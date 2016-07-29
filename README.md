@@ -1,0 +1,115 @@
+[![Build Status](https://travis-ci.com/SalesforceEng/Refocus.svg?token=zCxuyQ4aywV15imFpqT7&branch=master)](https://travis-ci.com/SalesforceEng/Refocus) [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/SalesforceEng/Refocus)
+# Refocus
+
+Refocus is a platform for visualizing the health and status of systems and/or services under observation. It is *not* a monitoring or alerting tool.
+
+> TODO: We need to flesh out this description to include why you would want to use it, why you would want to integrate it with your existing monitoring tools, etc.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Features](#features)
+- [Installation](#installation)
+  - [Updates](#updates)
+- [Development](#development)
+  - [Package Scripts](#package-scripts)
+- [Usage](#usage)
+- [How redis is used](#how-redis-is-used)
+- [Running on Heroku](#running-on-heroku)
+  - [Troubleshooting a Heroku deployment](#troubleshooting-a-heroku-deployment)
+- [Using API Access Tokens](#using-api-access-tokens)
+- [API Documentation](#api-documentation)
+- [Useful Resources](#useful-resources)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Features
+- API for everything
+- Pluggable lenses
+- Self-service
+- Easy deployment to Heroku
+
+## Installation
+1. Install [Node.js](https://nodejs.org/).
+1. Install [PostgreSQL](http://www.enterprisedb.com/products-services-training/pgdownload). Be sure to read the "PostgreSQL One Click Installer README" and follow the instructions there to adjust your shared memory as needed.
+1. Install [Redis](http://redis.io/download).
+1. Clone this git repository.
+1. Run `npm install`. This downloads and installs project dependencies and executes the post-install steps. Note: don't run this with sudo! You may get some weird errors later.
+1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
+1. Run `lunchy start redis` to start redis.
+1. Run `npm run initdb` to create the refocus postgres database.
+1. Run `npm run resetdb` to run all the DDL to create the database tables and columns and indexes and stuff.
+1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
+
+### Updates
+Whenever you pull down a new version of Refocus from the git repository:
+
+1. Run `npm update` to make sure you have all the latest dependencies.
+1. Run `npm run migratedb` to update any database tables and columns and indexes and stuff since the last update.
+1. Run `npm run syncdb` (do we really need to do this? it won't hurt, in any case)
+1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
+
+## Development
+- If you want any of the packages to send output to stdout, you can start your server with `DEBUG=* node .` or you can spell out which packages you want to show debug output, e.g. `DEBUG=express*,swagger* node .`.
+- Use [nodemon](http://nodemon.io/) to monitor for any changes in your source and automatically restart your server.
+- Use Node.js [Debugger](https://nodejs.org/api/debugger.html).
+- If you are making changes to the code, check for adherence to style guidelines by running `gulp style`.
+
+### Package Scripts
+Execute any of the scripts in the `scripts` section of [`./package.json`](./package.json) by calling `npm run [SCRIPTNAME]`, e.g. `npm run test` or `npm run lint` or `npm run start`.
+
+## Usage
+
+> TODO
+
+## How redis is used
+On node server startup, two redis clients are instantiated:
+The ```publisher``` is called by the sequelize ORM when a subject or sample is inserted/updated/deleted. It publishes a serialized object keyed by the record type (i.e. ```subject``` or ```sample```) and containing the object which was inserted/updated/deleted.
+The ```subscriber``` parses the message string into an object then uses socket.io to broadcast the changes out to any connected browser clients.
+After installing the server, you can run ```redis-cli``` to issue commands to redis server. Command to show active channels is: ```PUBSUB CHANNELS *```
+
+## Running on Heroku
+- Setup Heroku account and toolbelt (follow this guide https://devcenter.heroku.com/articles/getting-started-with-nodejs#introduction)
+- Run ```heroku create``` to create Heroku project
+- If you are not in a private space run ```PGSSLMODE=require``` to make all db data go over ssl
+- Run ```heroku config:set NODE_ENV=test```
+- Run ```heroku addons:create heroku-postgresql:hobby-dev``` to create a dev db
+- Run ```git push heroku <your branch>:master``` which will push to Heroku and start up a dyno.
+- Run ```heroku open``` and view the app running in Heroku
+- Run ```heroku run bash``` then run ```mocha``` to execute the test suite
+
+## Configuring New Relic
+
+### Local Deployment
+Add your New Relic license key to an attribute called ```newRelicKey``` in  ```config.js```
+
+### Heroku Deployment
+Install the New Relic add-on--it will automatically set the license key in your heroku environment.
+
+### Troubleshooting a Heroku deployment
+- Log errors in suspected areas. Use the logging in the error handler
+- For errors 'Relation __ does not exist', the db is not set up properly. Try resetting the database. Run ```heroku run bash``` to enter shell script mode, then run ```gulp resetdb```, to reset the db
+- Run ```heroku restart```, to restart the app
+- Run ```heroku logs --tail``` to see the heroku logs, as they update
+
+## Using API Access Tokens
+- A token is required for API calls when Refocus config has `useAccessToken` set to `true`.
+- New users should register to get API access token. A user can POST to the `/v1/register` endpoint to generate a token. Save this token for future use.
+- Existing users can POST to the `/v1/token` endpoint to retrieve new token.
+- To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
+- When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
+
+## Setup Production Environment on Localhost
+If not already setup, follow Installation instructions to setup Refocus. Execute following commands to setup production environment and corresponding config variables:
+- Run ```export NODE_ENV=production```
+- Run ```export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'```
+- Run ```npm start``` or ```node .```
+
+## API Documentation
+The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.yaml). Start your server and open `MY_HOST:MY_PORT/v1/docs` for interactive documentation of all the Refocus API endpoints.
+
+## Useful Resources
+- Redis [command line interface](http://redis.io/commands)
+- [Postman](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en) for testing API calls
+- Node.js [token-based authentication] (https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)

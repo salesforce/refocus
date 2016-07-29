@@ -1,0 +1,117 @@
+/**
+ * tests/api/v1/subjects/postChild.js
+ */
+'use strict';
+
+const supertest = require('supertest');
+const api = supertest(require('../../../../index').app);
+const constants = require('../../../../api/v1/constants');
+const tu = require('../../../testUtils');
+const u = require('./utils');
+const Subject = tu.db.Subject;
+const path = '/v1/subjects/{key}/child';
+const expect = require('chai').expect;
+
+describe(`api: POST ${path}`, () => {
+  const token = tu.createToken();
+  const n0 = { name: `${tu.namePrefix}NorthAmerica` };
+  const n1 = { name: `${tu.namePrefix}Canada` };
+  let i0 = 0;
+
+  beforeEach('create parent', (done) => {
+    Subject.create(n0)
+    .then((o) => {
+      i0 = o.id;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  afterEach(u.forceDelete);
+
+  it('posting child to parent_absolute_path/child url returns ' +
+    'expected parentAbsolutePath value', (done) => {
+    api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
+    .set('Authorization', token)
+    .send({ name: 'USA' })
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      if (res.body.parentId !== i0) {
+        throw new Error('wrong parent?');
+      }
+    })
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      const subject = JSON.parse(res.text);
+      expect(Object.keys(subject)).to.contain('parentAbsolutePath');
+      expect(subject.parentAbsolutePath).to.equal(n0.name);
+
+      done();
+    });
+  });
+
+  it('posting child to parent_id/child url returns' +
+    'expected parentAbsolutePath value', (done) => {
+    api.post(path.replace('{key}', i0))
+    .set('Authorization', token)
+    .send(n1)
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      if (res.body.parentId !== i0) {
+        throw new Error('wrong parent?');
+      }
+    })
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      const subject = JSON.parse(res.text);
+      expect(Object.keys(subject)).to.contain('parentAbsolutePath');
+      expect(subject.parentAbsolutePath).to.equal(n0.name);
+
+      done();
+    });
+  });
+
+  it('post child with parent id in url', (done) => {
+    api.post(path.replace('{key}', i0))
+    .set('Authorization', token)
+    .send(n1)
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      if (res.body.parentId !== i0) {
+        throw new Error('wrong parent?');
+      }
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('post child with parent name in url', (done) => {
+    api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
+    .set('Authorization', token)
+    .send(n1)
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      if (res.body.parentId !== i0) {
+        throw new Error('wrong parent?');
+      }
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+});

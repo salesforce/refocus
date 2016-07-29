@@ -1,0 +1,67 @@
+/**
+ * view/focus/lens-tree.css
+ */
+html, body {
+}
+
+h1 {
+  display: none;
+}
+
+#lens {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#lens svg {
+  padding: 24px;
+  border-right: solid 1px #eee;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+}
+
+.node text {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-size: 12px;
+}
+
+.link {
+  fill: none;
+  stroke: #eee;
+}
+
+#detailsPanel {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  position: absolute;
+  font-size: 12px;
+}
+
+#detailsPanel h1 {
+  display: block;
+  font-size: 14px;
+}
+
+#detailsPanel p {
+  margin: 2px 0;
+}
+
+
+#searchInput {
+  position: absolute;
+  font-size: 12px;
+}
+
+ol#searchResults {
+  position: absolute;
+  font-size: 12px;
+  overflow: scroll;
+  list-style-type: none;
+  padding-left: 2px;
+}

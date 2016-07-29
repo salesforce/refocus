@@ -1,0 +1,78 @@
+
+doctype html
+html(lang = "en")
+  head
+    link(rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css')
+    script(src='../analytics/app.js')
+  body
+    div#lens
+    script(src='https://d3js.org/d3.v4.0.0-alpha.50.min.js')
+    script(src='/socket.io.js')
+    script(src='/focusGrid/bundle.js')
+    script(type='text/javascript').
+      function getCookie(cname) {
+        const name = cname + '=';
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === ' ') {
+            c = c.substring(1);
+          }
+
+          if (c.indexOf(name) === 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+
+        return '';
+      } // getCookie
+      var lensElement = document.getElementById('lens');
+      var socket = io();
+      socket.on('refocus.internal.realtime.subject.add', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.subject.add', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.add'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.subject.remove', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.subject.remove', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.remove'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.subject.update', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.subject.update', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.update'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.add', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.sample.add', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.add'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.remove', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.sample.remove', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.remove'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.update', function (data) {
+        const evt = new CustomEvent('refocus.lens.realtime.sample.update', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.update'] });
+        lensElement.dispatchEvent(evt);
+      });
+      const rootSubject = window.location.search.split('?').pop();
+      if (rootSubject) {
+        d3.request(`/v1/subjects/${rootSubject}/hierarchy`)
+          .mimeType('application/json')
+          .header('Authorization', getCookie('Authorization'))
+          .header('X-Requested-With', 'XMLHttpRequest')
+          .header('Expires', '-1')
+          .header('Cache-Control', 'no-cache,no-store,must-revalidate,max-age=-1,private')
+          .response((xhr) => { return JSON.parse(xhr.responseText); })
+          .get((json) => {
+            if (json && json.absolutePath) {
+              console.log('focus.pug, json.absolutePath=', json.absolutePath);
+            } else {
+              console.log('focus.pug, json has no absolutePath');
+            }
+            const evt = new CustomEvent('refocus.lens.hierarchyLoad',
+              { 'detail': json });
+            lensElement.dispatchEvent(evt);
+          });
+      } else {
+        const evt = new CustomEvent('refocus.lens.hierarchyLoad',
+          { 'detail': {} });
+        lensElement.dispatchEvent(evt);
+      }

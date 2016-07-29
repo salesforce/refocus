@@ -1,0 +1,16 @@
+{
+  "name": "Refocus",
+  "description": "Refocus",
+  "repository": "https://github.com/SalesforceEng/Refocus",
+  "keywords": ["node", "refocus", "salesforce"],
+  "addons": ["heroku-postgresql:hobby-dev", "heroku-redis:hobby-dev"],
+  "env": {
+    "PGSSLMODE": {
+      "value": "require"
+    },
+    "SECRET_TOKEN": {
+      "description": "A secret key for creating jwt token used for authentication.",
+      "generator": "secret"
+    }
+  }
+}

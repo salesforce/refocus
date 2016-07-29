@@ -1,0 +1,22 @@
+/**
+ * view/index/perspective-style.css
+ */
+#center-heading {
+    margin: auto;
+    width: 60%;
+    padding: 30px;
+    text-align: center;
+}
+
+#center-links {
+    margin: auto;
+    width: 40%;
+    padding: 10px;
+    border: 1px solid #d9d9d9;
+    text-align: center;
+}
+
+.right-text{
+	text-align:right;
+	float: right;
+}

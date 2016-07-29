@@ -1,0 +1,22 @@
+/**
+ * view/authentication/login-style.css
+ */
+
+.local-form{
+  border: 1px solid #d9d9d9;
+  padding: 50px;
+}
+
+#errorInfo{
+  color: red;
+}
+
+.right-link{
+  text-align:right;
+  float: right;
+}
+
+#forgot-link{
+  text-align:left;
+  float: left;
+}

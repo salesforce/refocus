@@ -1,0 +1,59 @@
+/**
+ * tests/db/model/ssoconfig/create.js
+ */
+
+'use strict'; // eslint-disable-line strict
+
+const expect = require('chai').expect;
+const tu = require('../../../testUtils');
+const u = require('./utils');
+const SSOConfig = tu.db.SSOConfig;
+
+describe('db: SSOConfig: create', () => {
+  let ssoconfig = {};
+
+  beforeEach((done) => {
+    u.creatSSOConfig()
+    .then((createdSSOConfig) => {
+      ssoconfig = createdSSOConfig;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  afterEach(u.forceDelete);
+
+  it('expects correct ssoconfig parameters', (done) => {
+    expect(ssoconfig).to.have.property('samlEntryPoint').to.equal(
+      u.samlParams.samlEntryPoint
+    );
+    expect(ssoconfig).to.have.property('samlIssuer').to.equal(
+      u.samlParams.samlIssuer
+    );
+    done();
+  });
+
+  it('Get deleted ssoconfig by id, should return null', (done) => {
+    ssoconfig.destroy()
+    .then(() => SSOConfig.findById(ssoconfig.id))
+    .then((foundSSOConfig) => {
+      expect(foundSSOConfig).to.equal(null);
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('Adding new row should fail', (done) => {
+    SSOConfig.create({
+      samlEntryPoint: u.samlParams.samlEntryPoint,
+      samlIssuer: u.samlParams.samlIssuer,
+    })
+    .then(() => done('This should have thrown an error!'))
+    .catch((err) => {
+      expect(err).to.have.property('name')
+      .to.equal('SSOConfigCreateConstraintError');
+      expect(err).to.have.property('subject');
+      done();
+    });
+  });
+});

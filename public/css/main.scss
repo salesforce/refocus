@@ -1,0 +1,41 @@
+.slds-spinner--large {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+}
+
+/* Navbar background color */
+$navbar-bg-color: #4F6A92;
+$navbar-font-color: #FFFFFF;
+$navbar-font-color-light: rgba(255, 255, 255, 0.5);
+
+/* Tabs */
+$tabs-header-background: #f4f6f9;
+$tabs-header-border-color: #d8dde6;
+$tabs-header-font-color:#4E95DD;
+$tabs-header-space-color:#D9DFEA;
+
+/* Instance grid */
+$instance-grid-header-font-color: #9FAAB5;
+$instance-square-border-color: #DCE1E9;
+$instance-square-label-color: #54698D;
+$instance-square-hover-gb-color: #F4F6F9;
+$instance-healthy-bg-color: #4FC279;
+$instance-minor-bg-color: #FF9A3C;
+$instance-major-bg-color: #C23934;
+$instance-maintenance-bg-color: #7F8DE1;
+
+/* Instance grid on mobile */
+$instance-text-tab-label-active: #16325c;
+$instance-text-tab-label-inactive: #9FAAB5;
+
+/* Instance popover */
+$instance-popover-timestamp-font-color: #54698D;
+$instance-popover-description-font-color: #16325C;
+
+/* Instance details page */
+$instance-details-header-arrow: #9FAAB5;
+$instance-details-bg-color: #f4f6f9;
+$overall-label-bg-color: #061c3f;
+$overal-status-bg-color: #54698d;
+

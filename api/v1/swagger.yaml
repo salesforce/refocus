@@ -1,0 +1,5563 @@
+# =============================================================================
+# api/v1/swagger.yaml
+# =============================================================================
+swagger: "2.0"
+
+# =============================================================================
+info:
+  version: 1.0.0
+  title: Refocus API
+  # description: >-
+  #   A short description of the application. GFM syntax can be used for rich text
+  #   representation.
+  # termsOfService: The Terms of Service for the API.
+  # contact:
+  #   name: The identifying name of the contact person/organization.
+  #   url: http://focus.salesforce.com/contact
+  #   email: focusapi@salesforce.com
+  # license:
+  #   name: The license name used for the API.
+  #   url: http://focus.salesforce.com/license
+
+# =============================================================================
+host: localhost:10010
+
+# =============================================================================
+basePath: /v1
+
+# =============================================================================
+# externalDocs:
+#   description: >-
+#     Focus API Documentation
+#   url: http://focus.salesforce.com/docs/api/
+
+# =============================================================================
+schemes:
+  - https
+  - http
+
+# =============================================================================
+securityDefinitions:
+  jwt:
+    type: apiKey
+    name: Authorization
+    in: header
+# =============================================================================
+consumes:
+  - application/json
+
+# =============================================================================
+produces:
+  - application/json
+
+# =============================================================================
+paths:
+
+  # ---------------------------------------------------------------------------
+  /:
+    x-swagger-router-controller: index
+    get:
+      security:
+        - jwt: []
+      summary: Describe the v1 API
+      tags: [ API endpoints ]
+      description: >-
+        Get a description of all the available endpoints for v1 of the API.
+      externalDocs:
+        description: >-
+          GET /
+        url: http://focus.salesforce.com/docs/api
+      responses:
+        200:
+          description: >-
+            Success, returns a description of the v1 API.
+          schema:
+            type: object
+            description: API v1 Index.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects:
+    x-swagger-router-controller: aspects
+    get:
+      security:
+        - jwt: []
+      summary: Find an aspect or aspects
+      tags: [ aspects ]
+      description: >-
+        Find an aspect or aspects. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /aspects
+        url: http://focus.salesforce.com/docs/api/aspects
+      operationId: findAspects
+      parameters:
+        -
+          $ref: "#/parameters/AspectsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - description
+              - helpEmail
+              - helpUrl
+              - id
+              - isPublished
+              - name
+              - timeout
+              - valueLabel
+              - valueType
+              - createdAt
+              - updatedAt
+              - -description
+              - -helpEmail
+              - -helpUrl
+              - -id
+              - -isPublished
+              - -name
+              - -timeout
+              - -valueLabel
+              - -valueType
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by aspect name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: description
+          in: query
+          description: >-
+            Filter by aspect description; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: imageUrl
+          in: query
+          description: >-
+            Filter by aspect imageUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isPublished
+          in: query
+          description: >-
+            Filter by aspect isPublished (true|false).
+          required: false
+          type: boolean
+        -
+          name: timeout
+          in: query
+          description: >-
+            Filter by aspect timeout; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: valueLabel
+          in: query
+          description: >-
+            Filter by aspect valueLabel; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: valueType
+          in: query
+          description: >-
+            Filter by aspect valueType (BOOLEAN|NUMERIC|PERCENT).
+          required: false
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+            Filter by aspect status.
+          required: false
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns a list of aspects.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new aspect
+      tags: [ aspects ]
+      description: >-
+        Create a new aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postAspect
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A type of observation which can be measured.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the aspect. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the aspect.
+                  A lens may choose to display this information to the user e.g. if the
+                  user clicks a “help” icon attached to the aspect.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the aspect. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the aspect.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: Optional icon to represent the aspect.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  This affects the visibility of samples; defaults to false. When set to
+                  true, all the samples for this aspect are readable by other users; when
+                  set to false, the samples for this aspect are only readable by the owner
+                  of the aspect.
+              name:
+                type: string
+                maxLength: 60
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              criticalRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Critical status.
+              warningRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Warning status.
+              infoRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Info status.
+              okRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned OK status.
+              timeout:
+                type: string
+                maxLength: 8
+                pattern: ^[0-9]+[smhdSMHD]$
+                description: >
+                  The length of time after which a sample is treated as 'N/A', in the form
+                  of /^[0-9]+[smhd]$/i. For example, use '5s' for five seconds, '2m' for
+                  two minutes, '12h' for twelve hours, '1d' for one day.
+              valueLabel:
+                type: string
+                maxLength: 10
+                description: >
+                  A short label the lens may display next to the value. Most useful to
+                  specify a unit of measurement, e.g. 'ms' or '%'.
+              valueType:
+                type: string
+                maxLength: 7
+                enum:
+                  - BOOLEAN
+                  - NUMERIC
+                  - PERCENT
+                default: BOOLEAN
+                description: >
+                  The sample value must be able to be coerced to the specified data type.
+                  This allows a lens to render sample data in different ways depending on
+                  their type.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+            required:
+              - name
+              - timeout
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects/{key}:
+    x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Delete the specified aspect. Beware! Deleting an aspect also deletes all
+        the samples associated with this aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspect
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Retrieve the specified aspect by its id or name. You may also optionally
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getAspect
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the aspect to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/AspectsFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Update the specified aspect. If a field is not included in the query
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchAspect
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the aspect to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+                  A type of observation which can be measured.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the aspect. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the aspect.
+                  A lens may choose to display this information to the user e.g. if the
+                  user clicks a “help” icon attached to the aspect.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the aspect. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the aspect.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: Optional icon to represent the aspect.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  This affects the visibility of samples; defaults to false. When set to
+                  true, all the samples for this aspect are readable by other users; when
+                  set to false, the samples for this aspect are only readable by the owner
+                  of the aspect.
+              name:
+                type: string
+                maxLength: 60
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              criticalRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Critical status.
+              warningRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Warning status.
+              infoRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Info status.
+              okRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned OK status.
+              timeout:
+                type: string
+                maxLength: 10
+                pattern: ^[0-9]{1,9}[smhdSMHD]$
+                description: >
+                  The length of time after which a sample is treated as 'N/A', in the form
+                  of /^[0-9]+[smhd]$/i. For example, use '5s' for five seconds, '2m' for
+                  two minutes, '12h' for twelve hours, '1d' for one day.
+              valueLabel:
+                type: string
+                maxLength: 10
+                description: >
+                  A short label the lens may display next to the value. Most useful to
+                  specify a unit of measurement, e.g. 'ms' or '%'.
+              valueType:
+                type: string
+                maxLength: 7
+                enum:
+                  - BOOLEAN
+                  - NUMERIC
+                  - PERCENT
+                default: BOOLEAN
+                description: >
+                  The sample value must be able to be coerced to the specified data type.
+                  This allows a lens to render sample data in different ways depending on
+                  their type.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+      responses:
+        200:
+          description: Success, returns the updated aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Update the specified aspect. If a field is not included in the query
+        body, that field will be set to null (or false or empty or a default
+        enum value). If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putAspect
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the aspect to update
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body
+          required: true
+          schema:
+            type: object
+            description: A type of observation which can be measured.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the aspect. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the aspect.
+                  A lens may choose to display this information to the user e.g. if the
+                  user clicks a “help” icon attached to the aspect.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the aspect. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the aspect.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional icon to represent the aspect.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  This affects the visibility of samples; defaults to false. When set to
+                  true, all the samples for this aspect are readable by other users; when
+                  set to false, the samples for this aspect are only readable by the owner
+                  of the aspect.
+              name:
+                type: string
+                maxLength: 60
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              criticalRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Critical status.
+              warningRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Warning status.
+              infoRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned Info status.
+              okRange:
+                type: array
+                items:
+                  type: number
+                maxLength: 2
+                minLength: 2
+                example: [1,7]
+                description: >
+                  A two-element array of type decimal. Determines what range of values
+                  should be assigned OK status.
+              timeout:
+                type: string
+                maxLength: 8
+                pattern: ^[0-9]+[smhdSMHD]$
+                description: >
+                  The length of time after which a sample is treated as 'N/A', in the form
+                  of /^[0-9]+[smhd]$/i. For example, use '5s' for five seconds, '2m' for
+                  two minutes, '12h' for twelve hours, '1d' for one day.
+              valueLabel:
+                type: string
+                maxLength: 10
+                description: >
+                  A short label the lens may display next to the value. Most useful to
+                  specify a unit of measurement, e.g. 'ms' or '%'.
+              valueType:
+                type: string
+                maxLength: 7
+                enum:
+                  - BOOLEAN
+                  - NUMERIC
+                  - PERCENT
+                default: BOOLEAN
+                description: >
+                  The sample value must be able to be coerced to the specified data type.
+                  This allows a lens to render sample data in different ways depending on
+                  their type.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns the updated aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects/{key}/tags:
+    x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete all the tags of the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Delete all the tags of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspectTags
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which all the tags need to be
+            deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects/{key}/tags/{akey}:
+    x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified tag of the aspect
+      tags: [ aspects ]
+      description: >-
+        Delete the specified tag of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspectTags
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which specified tag needs to be
+            deleted.
+          required: true
+          type: string
+        -
+          name: akey
+          in: path
+          description: >-
+            The id of the tag to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated aspect after deleting tag.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects/{key}/relatedLinks:
+    x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete all the related links of the specified aspect
+      tags: [ aspects ]
+      description: >-
+        Deletes all the related links of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspectRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which all the related links need
+            to be deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /aspects/{key}/relatedLinks/{relName}:
+    x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified related link of the aspect
+      tags: [ aspects ]
+      description: >-
+        Delete the specified related link of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspectRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which specified related link needs
+            to be deleted.
+          required: true
+          type: string
+        -
+          name: relName
+          in: path
+          description: >-
+            The name of the relatedLink to delete
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated aspect.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /lenses:
+    x-swagger-router-controller: lenses
+    get:
+      security:
+        - jwt: []
+      summary: Find a lens or lenses
+      tags: [ lenses ]
+      description: >-
+        Find a lens or lenses. You may query using field filters with asterisk
+        (*) wildcards. You may also optionally specify sort, limit, offset, and
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /lenses
+        url: http://focus.salesforce.com/docs/api/lenses
+      operationId: findLenses
+      parameters:
+        -
+          $ref: "#/parameters/LensesFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - description
+              - helpEmail
+              - helpUrl
+              - id
+              - isCustom
+              - isPublished
+              - name
+              - sourceDescription
+              - sourceName
+              - sourceVersion
+              - installedBy
+              - createdAt
+              - updatedAt
+              - -description
+              - -helpEmail
+              - -helpUrl
+              - -id
+              - -isCustom
+              - -isPublished
+              - -name
+              - -sourceDescription
+              - -sourceName
+              - -sourceVersion
+              - -installedBy
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: description
+          in: query
+          required: false
+          type: string
+          description: >-
+            A description of the lens.
+        -
+          name: helpEmail
+          in: query
+          required: false
+          type: string
+          description: >-
+            The email address where a user can go to get more help about the
+            lens. A lens may choose to display this information to the user e.g.
+            if the user clicks a “help” icon attached to the lens.
+        -
+          name: helpUrl
+          in: query
+          required: false
+          type: string
+          description: >-
+            The url where a user can go to get more help about the lens. A lens
+            may choose to display this information to the user e.g. if the user
+            clicks a “help” icon attached to the lens.
+        -
+          name: isCustom
+          type: boolean
+          in: query
+          required: false
+          description: >-
+            True for any lens which is installed by an administrator (rather
+            than pre-installed in Focus).
+        -
+          name: isPublished
+          type: boolean
+          in: query
+          required: false
+          description: >-
+            True for any lens which is available to users.
+        -
+          name: name
+          type: string
+          in: query
+          required: false
+          description: The name of the lens.
+        -
+          name: sourceDescription
+          in: query
+          required: false
+          type: string
+          description: >-
+            The original lens publisher's description of the lens.
+        -
+          name: sourceName
+          type: string
+          in: query
+          required: false
+          description: The original lens publisher's name of the lens.
+        -
+          name: sourceVersion
+          type: string
+          in: query
+          required: false
+          description: The original lens publisher's version of the lens.
+        -
+          name: version
+          type: string
+          in: query
+          required: false
+          description: The version of the lens.
+      responses:
+        200:
+          description: >-
+            Success, returns a list of lenses.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Install a new lens
+      tags: [ lenses ]
+      description: Install a new lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postLens
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          name: description
+          in: formData
+          description: >-
+            A description of the lens. Leave empty if you want to use the
+            description provided by the lens publisher (i.e. sourceDescription).
+          type: string
+        -
+          name: isPublished
+          in: formData
+          description: >-
+            Default false. When set to true, the lens is available to all users.
+          type: boolean
+          default: false
+        -
+          name: library
+          description: >-
+            An archive (zip) of metadata and resources required for a browser to
+            render the lens.
+          in: formData
+          type: file
+          format: binary
+          required: true
+        -
+          name: name
+          in: formData
+          description: >-
+            A unique name for the lens. Leave empty if you want to use the
+            name provided by the lens publisher (i.e. sourceName).
+          type: string
+        -
+          name: version
+          in: formData
+          description: >-
+            A version for the lens. Leave empty if you want to use the
+            version provided by the lens publisher (i.e. sourceVersion).
+          type: string
+      responses:
+        201:
+          description: Returns created lens
+          schema:
+            $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /lenses/{key}:
+    x-swagger-router-controller: lenses
+    delete:
+      security:
+        - jwt: []
+      summary: Uninstall the specified lens
+      tags: [ lenses ]
+      description: >-
+        Uninstall the specified lens. You will not be allowed to uninstall the
+        lens if it is used by any perspectives. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteLens
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the lens to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted lens.
+          schema:
+            $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified lens
+      tags: [ lenses ]
+      description: >-
+        Retrieve the specified lens by its id or name. You may also optionally
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getLens
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the lens to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/LensesFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns the specified lens.
+          schema:
+            $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update selected metadata fields for the specified lens
+      tags: [ lenses ]
+      description: >-
+        Update selected metadata fields for the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchLens
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the lens to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body
+          required: true
+          schema:
+            type: object
+            description: The lens to update.
+            properties:
+              description:
+                description: >-
+                  A description of the lens. Leave empty if you want to use the
+                  description provided by the lens publisher (i.e. sourceDescription).
+                type: string
+              isPublished:
+                description: >-
+                  Default false. When set to true, the lens is available to all users.
+                type: boolean
+                default: false
+              name:
+                description: >-
+                  A unique name for the lens. Leave empty if you want to use the
+                  name provided by the lens publisher (i.e. sourceName).
+                type: string
+              version:
+                description: >-
+                  A version for the lens. Leave empty if you want to use the
+                  version provided by the lens publisher (i.e. sourceVersion).
+                type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated lens.
+          schema:
+            $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Install a new version of the specified lens
+      tags: [ lenses ]
+      description: >-
+        Install a new version of the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      consumes:
+        - multipart/form-data
+      operationId: putLens
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the lens to update.
+          required: true
+          type: string
+        -
+          name: library
+          description: >-
+            An archive (zip) of metadata and resources required for a browser to
+            render the lens.
+          in: formData
+          type: file
+          required: true
+        -
+          name: description
+          in: formData
+          description: >-
+            A description of the lens. Leave empty if you want to use the
+            description provided by the lens publisher (i.e. sourceDescription).
+          type: string
+        -
+          name: isPublished
+          in: formData
+          description: >-
+            Default false. When set to true, the lens is available to all users.
+          type: boolean
+          default: false
+        -
+          name: name
+          in: formData
+          description: >-
+            A unique name for the lens. Leave empty if you want to use the
+            name provided by the lens publisher (i.e. sourceName).
+          type: string
+        -
+          name: version
+          in: formData
+          description: >-
+            A version for the lens. Leave empty if you want to use the
+            version provided by the lens publisher (i.e. sourceVersion).
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated lens.
+          schema:
+            $ref: "#/definitions/LensesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /perspectives:
+    x-swagger-router-controller: perspectives
+    get:
+      security:
+        - jwt: []
+      summary: Find a perspective or perspectives
+      tags: [ perspectives ]
+      description: >-
+        Find a perspective or perspectives. You may query using field filters
+        with asterisk (*) wildcards. You may also optionally specify sort,
+        limit, offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /perspectives
+        url: http://focus.salesforce.com/docs/api/perspectives
+      operationId: findPerspectives
+      parameters:
+        -
+          $ref: "#/parameters/PerspectivesFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. "...?sort=name". Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - id
+              - name
+              - rootSubject
+              - aspectFilter
+              - aspectTagFilter
+              - subjectTagFilter
+              - statusFilter
+              - lensId
+              - createdBy
+              - createdAt
+              - updatedAt
+              - -id
+              - -name
+              - -rootSubject
+              - -aspectTagFilter
+              - -subjectTagFilter
+              - -statusFilter
+              - -lensId
+              - -createdBy
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns a list of perspectives.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new perspective
+      tags: [ perspectives ]
+      description: >-
+        Create a new perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postPerspective
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: object
+            description: >
+              A named combination of a set of subjects and their samples rendered by a
+              particular lens.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the perspective
+              rootSubject:
+                type: string
+                maxLength: 4096
+                description: >
+                  The absolute path of the root subject.
+              aspectFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect names to filter; Aspect name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              aspectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              subjectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              statusFilter:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - Critical
+                    - Invalid
+                    - Timeout
+                    - Warning
+                    - Info
+                    - OK
+                    - "-Critical"
+                    - "-Invalid"
+                    - "-Timeout"
+                    - "-Warning"
+                    - "-Info"
+                    - "-OK"
+                description: >
+                  Array of sample status to filter; Status values can only be one of these:
+                  Critical, Invalid, Timeout, Warning, Info, OK, -Critical, -Invalid, -Timeout, -Warning, -Info, -OK.
+              lensId:
+                type: string
+                description: >
+                  The id of Lens.
+            required:
+              - name
+              - lensId
+              - rootSubject
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /perspectives/{key}:
+    x-swagger-router-controller: perspectives
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified perspective
+      tags: [ perspectives ]
+      description: >-
+        Delete the specified perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deletePerspective
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted perspective.
+          schema:
+            $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified perspective
+      tags: [ perspectives ]
+      description: >-
+        Retrieve the specified perspective by its id or name. You may also
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getPerspective
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/PerspectivesFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns the specified perspective.
+          schema:
+            $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified perspective
+      tags: [ perspectives ]
+      description: >-
+        Update the specified perspective. If a field is not included in the
+        query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchPerspective
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A named combination of a set of subjects and their samples rendered by a particular lens.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the perspective
+              rootSubject:
+                type: string
+                maxLength: 4096
+                description: >
+                  The absolute path of the root subject.
+              aspectFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect names to filter; Aspect name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              aspectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              subjectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              statusFilter:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - Critical
+                    - Invalid
+                    - Timeout
+                    - Warning
+                    - Info
+                    - OK
+                    - "-Critical"
+                    - "-Invalid"
+                    - "-Timeout"
+                    - "-Warning"
+                    - "-Info"
+                    - "-OK"
+                description: >
+                  Array of sample status to filter; Status values can only be one of these:
+                  Critical, Invalid, Timeout, Warning, Info, OK, -Critical, -Invalid, -Timeout, -Warning, -Info, -OK.
+              lensId:
+                type: string
+                description: >
+                  The id of Lens.
+      responses:
+        200:
+          description: >-
+            Success, returns the updated perspective.
+          schema:
+            $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified perspective
+      tags: [ perspectives ]
+      description: >-
+        Update the specified perspective. If a field is not included in the
+        query body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putPerspective
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A named combination of a set of subjects and their samples rendered by a
+              particular lens.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the perspective.
+              rootSubject:
+                type: string
+                maxLength: 4096
+                description: >
+                  The absolute path of the root subject.
+              aspectFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect names to filter; Aspect name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              aspectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of aspect tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              subjectTagFilter:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                description: >
+                  Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              statusFilter:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - Critical
+                    - Invalid
+                    - Timeout
+                    - Warning
+                    - Info
+                    - OK
+                    - "-Critical"
+                    - "-Invalid"
+                    - "-Timeout"
+                    - "-Warning"
+                    - "-Info"
+                    - "-OK"
+                description: >
+                  Array of sample status to filter; Status values can only be one of these:
+                  Critical, Invalid, Timeout, Warning, Info, OK, -Critical, -Invalid, -Timeout, -Warning, -Info, -OK.
+              lensId:
+                type: string
+                description: >
+                  The id of Lens.
+            required:
+              - name
+              - lensId
+              - rootSubject
+      responses:
+        200:
+          description: >-
+            Success, returns the updated perspective
+          schema:
+            $ref: "#/definitions/PerspectivesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /profiles:
+    x-swagger-router-controller: profiles
+    get:
+      security:
+        - jwt: []
+      summary: Find a profile or profiles
+      tags: [ profiles ]
+      description: >-
+        Find a profile or profiles. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /profiles
+        url: http://focus.salesforce.com/docs/api/profiles
+      operationId: findProfiles
+      parameters:
+        -
+          $ref: "#/parameters/ProfilesFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - id
+              - name
+              - aspectAccess
+              - lensAccess
+              - perspectiveAccess
+              - profileAccess
+              - sampleAccess
+              - subjectAccess
+              - userAccess
+              - createdBy
+              - createdAt
+              - updatedAt
+              - -id
+              - -name
+              - -aspectAccess
+              - -lensAccess
+              - -perspectiveAccess
+              - -profileAccess
+              - -sampleAccess
+              - -subjectAccess
+              - -userAccess
+              - -createdBy
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns a list of profiles.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new profile
+      tags: [ profiles ]
+      description: >-
+        Create a new profile. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postProfile
+      parameters:
+        -
+          name: queryBody
+          in: body
+          schema:
+            type: object
+            description: >
+              A named set of read/write privileges.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the profile.
+              aspectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write aspects.
+              lensAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write lenses.
+              perspectiveAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write perspectives.
+              profileAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write profiles.
+              sampleAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write samples.
+              subjectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write subjects.
+              userAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write users.
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /profiles/{key}:
+    x-swagger-router-controller: profiles
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified profile
+      tags: [ profiles ]
+      description: >-
+        Delete the specified profile. You will not be allowed to delete the
+        profile if there are any users assigned to it. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteProfile
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the profile to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted profile.
+          schema:
+            $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified profile
+      tags: [ profiles ]
+      description: >-
+        Retrieve the specified profile by its id or name. You may also
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getProfile
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the profile to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/ProfilesFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns the specified profile.
+          schema:
+            $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified profile
+      tags: [ profiles ]
+      description: >-
+        Update the specified profile. If a field is not included in the query
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchProfile
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the profile to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A named set of read/write privileges.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the profile.
+              aspectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write aspects.
+              lensAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write lenses.
+              perspectiveAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write perspectives.
+              profileAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write profiles.
+              sampleAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write samples.
+              subjectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write subjects.
+              userAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write users.
+      responses:
+        200:
+          description: >-
+            Success, returns the updated profile.
+          schema:
+            $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified profile
+      tags: [ profiles ]
+      description: >-
+        Update the specified profile. If a field is not included in the query
+        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putProfile
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the profile to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A named set of read/write privileges.
+            properties:
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  The name of the profile.
+              aspectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write aspects.
+              lensAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write lenses.
+              perspectiveAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write perspectives.
+              profileAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write profiles.
+              sampleAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write samples.
+              subjectAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write subjects.
+              userAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write users.
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns the updated profile.
+          schema:
+            $ref: "#/definitions/ProfilesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples:
+    x-swagger-router-controller: samples
+    get:
+      security:
+        - jwt: []
+      summary: Find a sample or samples
+      tags: [ samples ]
+      description: >-
+        Find a sample or samples. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /samples
+        url: http://focus.salesforce.com/docs/api/samples
+      operationId: findSamples
+      parameters:
+        -
+          $ref: "#/parameters/SamplesFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - id
+              - messageBody
+              - messageCode
+              - status
+              - value
+              - createdAt
+              - updatedAt
+              - -id
+              - -messageBody
+              - -messageCode
+              - -status
+              - -value
+              - -createdAt
+              - -updatedAt
+              # TODO aspect name
+              # TODO subject absolutePath
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns a list of samples.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new sample
+      tags: [ samples ]
+      description: >-
+        Create a new sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postSample
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: object
+            description: >
+              An observation of a particular aspect for a particular subject at a
+              particular point in time.
+            properties:
+              messageBody:
+                type: string
+                description: >
+                  Optional message about the sample value. Informational only--not used to
+                  determine the status of the sample. It's up to the lens whether/how to
+                  display this, will typically be displayed only on hover or click.
+                maxLength: 4096
+              messageCode:
+                type: string
+                maxLength: 5
+                description: >
+                  Optional 5-charater code about the sample value. Informational only--not
+                  used to determine the status of the sample. It's up to the lens
+                  whether/how to display this, will typically be displayed without having
+                  to hover or click.
+              value:
+                type: string
+                maxLength: 255
+                description: >
+                  Stored as a string but will be treated as whatever the aspect’s
+                  valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+                  occurs, value is set to null.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+              aspectId:
+                type: string
+                description: >
+                  TODO
+              subjectId:
+                type: string
+                description: >
+                  TODO
+            required:
+              - aspectId
+              - subjectId
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples/{key}:
+    x-swagger-router-controller: samples
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified sample
+      tags: [ samples ]
+      description: >-
+        Delete the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSample
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified sample
+      tags: [ samples ]
+      description: >-
+        Retrieve the specified sample by its id or name. You may also optionally
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getSample
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/SamplesFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified sample
+      tags: [ samples ]
+      description: >-
+        Update the specified sample. If a field is not included in the query
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchSample
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              An observation of a particular aspect for a particular subject at a
+              particular point in time.
+            properties:
+              messageBody:
+                type: string
+                description: >
+                  Optional message about the sample value. Informational only--not used to
+                  determine the status of the sample. It's up to the lens whether/how to
+                  display this, will typically be displayed only on hover or click.
+                maxLength: 4096
+              messageCode:
+                type: string
+                maxLength: 5
+                description: >
+                  Optional 5-charater code about the sample value. Informational only--not
+                  used to determine the status of the sample. It's up to the lens
+                  whether/how to display this, will typically be displayed without having
+                  to hover or click.
+              value:
+                type: string
+                maxLength: 255
+                description: >
+                  Stored as a string but will be treated as whatever the aspect’s
+                  valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+                  occurs, value is set to null.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified sample
+      tags: [ samples ]
+      description: >-
+        Update the specified sample. If a field is not included in the query
+        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putSample
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              An observation of a particular aspect for a particular subject at a
+              particular point in time.
+            properties:
+              messageBody:
+                type: string
+                description: >
+                  Optional message about the sample value. Informational only--not used to
+                  determine the status of the sample. It's up to the lens whether/how to
+                  display this, will typically be displayed only on hover or click.
+                maxLength: 4096
+              messageCode:
+                type: string
+                maxLength: 5
+                description: >
+                  Optional 5-charater code about the sample value. Informational only--not
+                  used to determine the status of the sample. It's up to the lens
+                  whether/how to display this, will typically be displayed without having
+                  to hover or click.
+              value:
+                type: string
+                maxLength: 255
+                description: >
+                  Stored as a string but will be treated as whatever the aspect’s
+                  valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+                  occurs, value is set to null.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples/upsert:
+    x-swagger-router-controller: samples
+    post:
+      security:
+        - jwt: []
+      summary: Create or update a sample
+      tags: [ samples ]
+      description: >-
+        Create or update a sample by name. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: upsertSample
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: object
+            description: >
+              An observation of a particular aspect for a particular subject at a
+              particular point in time.
+            properties:
+              messageBody:
+                type: string
+                description: >
+                  Optional message about the sample value. Informational only--not used to
+                  determine the status of the sample. It's up to the lens whether/how to
+                  display this, will typically be displayed only on hover or click.
+                maxLength: 4096
+              messageCode:
+                type: string
+                maxLength: 5
+                description: >
+                  Optional 5-charater code about the sample value. Informational only--not
+                  used to determine the status of the sample. It's up to the lens
+                  whether/how to display this, will typically be displayed without having
+                  to hover or click.
+              name:
+                type: string
+                description: >
+                  TODO
+              value:
+                type: string
+                maxLength: 255
+                description: >
+                  Stored as a string but will be treated as whatever the aspect’s
+                  valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+                  occurs, value is set to null.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns created or updated sample.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples/upsert/bulk:
+    x-swagger-router-controller: samples
+    post:
+      security:
+        - jwt: []
+      summary: Create or update multiple samples
+      tags: [ samples ]
+      description: >-
+        Create or update multiple samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: bulkUpsertSample
+      produces:
+        - text/plain; charset=utf-8
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: array
+            items:
+              type: object
+              description: >
+                An observation of a particular aspect for a particular subject at a
+                particular point in time.
+              properties:
+                messageBody:
+                  type: string
+                  description: >
+                    Optional message about the sample value. Informational only--not used to
+                    determine the status of the sample. It's up to the lens whether/how to
+                    display this, will typically be displayed only on hover or click.
+                  maxLength: 4096
+                messageCode:
+                  type: string
+                  maxLength: 5
+                  description: >
+                    Optional 5-charater code about the sample value. Informational only--not
+                    used to determine the status of the sample. It's up to the lens
+                    whether/how to display this, will typically be displayed without having
+                    to hover or click.
+                name:
+                  type: string
+                  description: >
+                    TODO
+                value:
+                  type: string
+                  maxLength: 255
+                  description: >
+                    Stored as a string but will be treated as whatever the aspect’s
+                    valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+                    occurs, value is set to null.
+              required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns OK
+          schema:
+            type: string
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples/{key}/relatedLinks:
+    x-swagger-router-controller: samples
+    delete:
+      security:
+        - jwt: []
+      summary: Delete all the related links of the specified sample
+      tags: [ samples ]
+      description: >-
+        Delete all the related links of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSampleRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample for which related links needs to be
+            deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated sample.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /samples/{key}/relatedLinks/{relName}:
+    x-swagger-router-controller: samples
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified related link of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      tags: [ samples ]
+      description: >-
+        Delete the specified related link of the specified sample.
+      operationId: deleteSampleRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the sample for which related link needs to be
+            deleted.
+          required: true
+          type: string
+        -
+          name: relName
+          in: path
+          description: >-
+            The name of the related link to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the updated sample.
+          schema:
+            $ref: "#/definitions/SamplesResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects:
+    x-swagger-router-controller: subjects
+    get:
+      security:
+        - jwt: []
+      summary: Find a subject or subjects
+      tags: [ subjects ]
+      description: >-
+        Find a subject or subjects. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /subjects
+        url: http://focus.salesforce.com/docs/api/subjects
+      operationId: findSubjects
+      parameters:
+        -
+          $ref: "#/parameters/SubjectsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - absolutePath
+              - description
+              - helpEmail
+              - helpUrl
+              - id
+              - isPublished
+              - name
+              - parentAbsolutePath
+              - parentId
+              #- childCount
+              - createdBy
+              - createdAt
+              - updatedAt
+              - -absolutePath
+              - -description
+              - -helpEmail
+              - -helpUrl
+              - -id
+              - -isPublished
+              - -name
+              - -parentAbsolutePath
+              - -parentId
+              #- -childCount
+              - -createdBy
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: absolutePath
+          in: query
+          description: >-
+            Filter by absolutePath; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: description
+          in: query
+          description: >-
+            Filter by description; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: helpEmail
+          in: query
+          description: >-
+            Filter by helpEmail; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: helpUrl
+          in: query
+          description: >-
+            Filter by helpUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: imageUrl
+          in: query
+          description: >-
+            Filter by imageUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isPublished
+          in: query
+          description: >-
+            Filter by isPublished (true|false).
+          required: false
+          type: boolean
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: parentAbsolutePath
+          in: query
+          description: >-
+            Filter by parentAbsolutePath; asterisk (*) wildcards ok.
+          required: false
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, a list of subjects.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new subject
+      tags: [ subjects ]
+      description: >-
+        Create a new subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postSubject
+      parameters:
+        -
+          name: queryBody
+          in: body
+          schema:
+            type: object
+            description: >
+              A resource under observation.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the subject. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the
+                  subject. A lens may choose to display this information to the user e.g.
+                  if the user clicks a “help” icon attached to the subject.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the subject. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the subject.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional icon to represent the subject.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  Default false. When set to true, the subject is readable by other users;
+                  when set to false, the subject is only readable by its owner.
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              parentId:
+                type: string
+                pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+                description: >
+                  The absolute path or id of the subject's parent.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+              geolocation:
+                type: array
+                items:
+                  type: number
+                description: >
+                  If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified subject
+      tags: [ subjects ]
+      description: >-
+        Delete the specified subject. You will not be allowed to delete a
+        subject if it has any children subjects under it. Beware! Deleting a
+        subject also deletes all the samples associated with this subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubject
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns deleted subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified subject
+      tags: [ subjects ]
+      description: >-
+        Retrieve the specified subject by its id or name. You may also
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getSubject
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/SubjectsFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified subject
+      tags: [ subjects ]
+      description: >-
+        Update the specified subject. If a field is not included in the query
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchSubject
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A resource under observation.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the subject. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the
+                  subject. A lens may choose to display this information to the user e.g.
+                  if the user clicks a “help” icon attached to the subject.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the subject. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the subject.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional icon to represent the subject.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  Default false. When set to true, the subject is readable by other users;
+                  when set to false, the subject is only readable by its owner.
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              parentId:
+                type: string
+                pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+                description: >
+                  The id of the subject's parent.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+              geolocation:
+                type: array
+                items:
+                  type: number
+                description: >
+                  If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified subject
+      tags: [ subjects ]
+      description: >-
+        Update the specified subject. If a field is not included in the query
+        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putSubject
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A resource under observation.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the subject. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the subject.
+                  A lens may choose to display this information to the user e.g. if the
+                  user clicks a “help” icon attached to the subject.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the subject. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the subject.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional icon to represent the subject.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  Default false. When set to true, the subject is readable by other users;
+                  when set to false, the subject is only readable by its owner.
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              parentId:
+                type: string
+                pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+                description: >
+                  The absolute path or id of the subject's parent.
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+              geolocation:
+                type: array
+                items:
+                  type: number
+                description: >
+                  If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/child:
+    x-swagger-router-controller: subjects
+    post:
+      security:
+        - jwt: []
+      summary: Create a new child subject
+      tags: [ subjects ]
+      description: >-
+        Create a new child subject of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postChildSubject
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject to which you want to add a
+            child.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: object
+            description: >
+              A resource under observation.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the subject. A lens may choose to display this
+                  information to the user.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the
+                  subject. A lens may choose to display this information to the user e.g.
+                  if the user clicks a “help” icon attached to the subject.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the subject. A lens
+                  may choose to display this information to the user e.g. if the user
+                  clicks a “help” icon attached to the subject.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional icon to represent the subject.
+              isPublished:
+                type: boolean
+                default: false
+                description: >
+                  Default false. When set to true, the subject is readable by other users;
+                  when set to false, the subject is only readable by its owner.
+              name:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                maxLength: 60
+                description: >
+                  Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              tags:
+                type: array
+                items:
+                  $ref: "#/definitions/TagRequest"
+                description: >
+                  Tags associated with this model.
+              relatedLinks:
+                type: array
+                items:
+                  $ref: "#/definitions/RelatedLinkRequest"
+                description: >
+                  RelatedLinks associated with this model.
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/hierarchy:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the subject hierarchy
+      tags: [ subjects ]
+      description: >-
+        Delete the specified subject and all its descendents and all associated
+        samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectHierarchy
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the root subject to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns empty object.
+          schema: {}
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the hierarchy for the specified subject
+      tags: [ subjects ]
+      description: >-
+        Retrieve the hierarchy for the specified subject using its id or
+        absolute path. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getSubjectHierarchy
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the root subject to retrieve.
+          required: true
+          type: string
+        -
+          name: depth
+          in: query
+          description: >-
+            The number of hierarchy levels to include (0 for all, 1 for
+            just children, 2 for children and grandchildren, etc.).
+          type: integer
+          minimum: 0
+        -
+          name: aspect
+          in: query
+          description: >-
+           Comma-separated list of aspect names to include/exclude.
+           For example, ?aspect=FOO,BAR will only return subjects in the
+           hierarchy with samples for those two aspects (and all those
+           subjects' ancestors up to the specified root of the requested
+           hierarchy). Prefix the aspect name with a negative sign to indicate
+           that a sample with that aspect should be excluded.
+           For example, ?aspect=-BAZ will return only the subjects
+           (and its hierarchy) that have samples with aspect name not equal
+           to BAZ. Subjects without samples are not included in the result set
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+           Comma-separated list of sample status to include/exclude.
+           For example, ?status=OK,CRITICAL will only return subjects in the
+           hierarchy with samples that are in those statuses (and all those
+           subjects' ancestors up to the specified root of the requested
+           hierarchy). Prefix the status with a negative sign to indicate
+           that a sample with that status should be excluded.
+           For example, ?status=-OK will return only the subjects
+           (and its hierarchy) that have samples not in OK status.
+           Subjects without samples are not included in the result set
+          type: string
+        -
+          name: aspectTags
+          in: query
+          description: >-
+           Comma-separated list of tags names to include/exclude.
+           For example, ?aspectTags=TAG1,TAG2 will only return subjects in the
+           hierarchy with samples having aspect with tags matching TAG1 and TAG2
+           (and all those subjects' ancestors up to the specified root of the
+           requested hierarchy). Prefix the tag names with a negative sign to
+           indicate that a sample having aspect with those tag names will be
+           excluded. For example, ?aspectTags=-TAG3 will
+           return only the subjects(and its hierarchy) that have samples
+           having aspect with tags not gets to TAG3. Subjects without samples
+           are not included in the result set
+          type: string
+        -
+          name: subjectTags
+          in: query
+          description: >-
+           Comma-separated list of tags names to include/exclude.
+           For example, ?subjectTags=TAG1,TAG2 will only return subjects in the
+           hierarchy with tags matching TAG1 and TAG2
+           (and all those subjects' ancestors up to the specified root of the
+           requested hierarchy). Prefix the tag names with a negative sign to
+           indicate that the subject having tags with those names will be
+           excluded. For example, ?subjectTags=-TAG3 will return only the
+           subjects(and its hierarchy) with tags not matching TAG3
+          type: string
+        -
+          $ref: "#/parameters/SubjectsFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified subject heirarchy.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/tags:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete all the tags of the subject
+      tags: [ subjects ]
+      description: >-
+        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectTags
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject for which tags needs to be
+            deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/tags/{akey}:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified tag of the subject
+      tags: [ subjects ]
+      description: >-
+        Delete the specified tag of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectTags
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject for which tag needs to be
+            deleted.
+          required: true
+          type: string
+        -
+          name: akey
+          in: path
+          description: >-
+            The id or absolute path of the tag which needs to be deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/relatedLinks:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete all the tags of the subject
+      tags: [ subjects ]
+      description: >-
+        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject for which related links needs
+            to be deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/{key}/relatedLinks/{relName}:
+    x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified related link of the subject
+      tags: [ subjects ]
+      description: >-
+        Delete the specified related link of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectRelatedLinks
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or absolute path of the subject for which related link needs
+            to be deleted.
+          required: true
+          type: string
+        -
+          name: relName
+          in: path
+          description: >-
+            Name of the related link which needs to be deleted.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns updated subject.
+          schema:
+            $ref: "#/definitions/SubjectsResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /users:
+    x-swagger-router-controller: users
+    get:
+      security:
+        - jwt: []
+      summary: Find a user or users
+      tags: [ users ]
+      description: >-
+        Find a user or users. You may query using field filters with asterisk
+        (*) wildcards. You may also optionally specify sort, limit, offset, and
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /users
+        url: http://focus.salesforce.com/docs/api/users
+      operationId: findUsers
+      parameters:
+        -
+          $ref: "#/parameters/UsersFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - email
+              - id
+              - name
+              - createdBy
+              - createdAt
+              - updatedAt
+              - -email
+              - -id
+              - -name
+              - -createdBy
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: email
+          in: query
+          description: >-
+            Filter by email; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, a list of users.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new user
+      tags: [ users ]
+      description: >-
+        Create a new user.
+      operationId: postUser
+      parameters:
+        -
+          name: queryBody
+          in: body
+          schema:
+            type: object
+            description: >
+              A person or API client who interacts with the Focus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional thumbnail image.
+              name:
+                type: string
+                maxLength: 256
+                description: >
+                  First and last name.
+              password:
+                type: string
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Success, returns created user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /users/{key}:
+    x-swagger-router-controller: users
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified user
+      tags: [ users ]
+      description: >-
+        Delete the specified user. Beware! Deleting a user also deletes all the
+        perspectives associated with this user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteUser
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the user to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns deleted user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified user
+      tags: [ users ]
+      description: >-
+        Retrieve the specified user by its id or name. You may also optionally
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getUser
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the user to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/UsersFieldsParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified user
+      tags: [ users ]
+      description: >-
+        Update the specified user. If a field is not included in the query body,
+        that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchUser
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the user to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A person or API client who interacts with the Focus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional thumbnail image.
+              name:
+                type: string
+                maxLength: 256
+                description: >
+                  First and last name.
+              password:
+                type: string
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns updated user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified user
+      tags: [ users ]
+      description: >-
+        Update the specified user. If a field is not included in the query body,
+        that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: putUser
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the user to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A person or API client who interacts with the Focus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              imageUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  Optional thumbnail image.
+              name:
+                type: string
+                maxLength: 256
+                description: >
+                  First and last name.
+              password:
+                type: string
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Success, returns updated user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /register:
+    x-swagger-router-controller: register
+    post:
+      summary: Register a user
+      tags: [ register ]
+      description: >-
+        Register a user with email and password.
+      operationId: registerUser
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              A user who interacts with the Refocus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              password:
+                type: string
+                format: password
+                description: >
+                  The user's password.
+            required:
+              - email
+              - password
+      responses:
+        201:
+          description: >-
+            User created.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /authenticate:
+    x-swagger-router-controller: authenticate
+    post:
+      summary: Authenticate a user
+      tags: [ authenticate ]
+      description: >-
+        Authenticate a user with email and password.
+      operationId: authenticateUser
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              Credentials of person who interacts with the Refocus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              password:
+                type: string
+                format: password
+                description: >
+                  The user's password.
+            required:
+              - email
+              - password
+      responses:
+        200:
+          description: >-
+            Authenticated the user.
+          schema:
+            $ref: "#/definitions/AuthenticationResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /logout:
+    x-swagger-router-controller: logout
+    get:
+      security:
+        - jwt: []
+      summary: Logout user
+      tags: [ logout ]
+      description: >-
+        Logout authenticated user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: logoutUser
+      responses:
+        200:
+          description: >-
+            User logged out.
+          schema:
+            type: object
+            description: Logout message
+            properties:
+              Success:
+                type: boolean
+                readOnly: true
+              message:
+                type: string
+                readOnly: true
+                maxLength: 2082
+                description: >
+                  Logout message.
+        401:
+          description: >-
+            Authentication Error
+          schema:
+            type: object
+            description: Logout message
+            properties:
+              Success:
+                type: boolean
+                readOnly: true
+              message:
+                type: string
+                readOnly: true
+                maxLength: 2082
+                description: >
+                  Logout message.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+# ---------------------------------------------------------------------------
+  /ssoconfig:
+    x-swagger-router-controller: ssoconfig
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve SSO Config
+      tags: [ ssoconfig ]
+      description: >-
+        Retrieves SSO Config.
+      operationId: getSSOConfig
+      responses:
+        200:
+          description: >-
+            Success, returns SSO config
+          schema:
+            $ref: "#/definitions/SSOConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create SSO config
+      tags: [ ssoconfig ]
+      description: >-
+        Create SSO config. POST will throw SSOConfigCreateConstraintError if
+        SSOConfig already exists.
+      operationId: postSSOConfig
+      parameters:
+        -
+          name: queryBody
+          in: body
+          schema:
+            type: object
+            description: >
+              Configuration parameters to enable SSO in Refocus.
+            properties:
+              samlEntryPoint:
+                type: string
+                maxLength: 2082
+                description: >
+                  Identity Provider endpoint.
+              samlIssuer:
+                type: string
+                maxLength: 2082
+                description: >
+                  Issuer string to supply to Identity Provider.
+            required:
+              - samlEntryPoint
+              - samlIssuer
+      responses:
+        201:
+          description: >-
+            Returns created SSO Config
+          schema:
+            $ref: "#/definitions/SSOConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+    delete:
+      security:
+        - jwt: []
+      summary: Delete SSO Config
+      tags: [ ssoconfig ]
+      description: >-
+        Delete SSO Config.
+      operationId: deleteSSOConfig
+      responses:
+        200:
+          description: >-
+            Returns deleted SSO config
+          schema:
+            $ref: "#/definitions/SSOConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update SSO Config
+      tags: [ ssoconfig ]
+      description: >-
+        Update the specified SSO Config. If a field is not included in the query
+        body, that field will not be updated.
+      operationId: patchSSOConfig
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              Configuration parameters to enable SSO in Refocus.
+            properties:
+              samlEntryPoint:
+                type: string
+                maxLength: 2082
+                description: >
+                  Identity Provider endpoint.
+              samlIssuer:
+                type: string
+                maxLength: 2082
+                description: >
+                  Issuer string to supply to Identity Provider.
+            required:
+              - samlEntryPoint
+              - samlIssuer
+      responses:
+        200:
+          description: >-
+            Success, returns updated SSO Config.
+          schema:
+            $ref: "#/definitions/SSOConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update SSO Config
+      tags: [ ssoconfig ]
+      description: >-
+        Update the specified SSO Config. If a field is not included in the query
+        body, that field will be set to null or its default value.
+      operationId: putSSOConfig
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              Configuration parameters to enable SSO in Refocus.
+            properties:
+              samlEntryPoint:
+                type: string
+                maxLength: 2082
+                description: >
+                  Identity Provider endpoint.
+              samlIssuer:
+                type: string
+                maxLength: 2082
+                description: >
+                  Issuer string to supply to Identity Provider.
+            required:
+              - samlEntryPoint
+              - samlIssuer
+      responses:
+        200:
+          description: >-
+            Success, returns updated SSO Config.
+          schema:
+            $ref: "#/definitions/SSOConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /token:
+    x-swagger-router-controller: token
+    post:
+      summary: Create an api access token
+      tags: [ token ]
+      description: >-
+        Authenticate a user with email and password and create an api access
+        token.
+      operationId: postToken
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >
+              Credentials of person who interacts with the Refocus system.
+            properties:
+              email:
+                type: string
+                maxLength: 254
+                description: >
+                  The user's email address.
+              password:
+                type: string
+                format: password
+                description: >
+                  The user's password.
+            required:
+              - email
+              - password
+      responses:
+        200:
+          description: >-
+            Success, returns a token.
+          schema:
+            $ref: "#/definitions/TokenResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+# =============================================================================
+definitions:
+
+  AuthenticationError:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+  BadRequest:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+  ErrorResponse:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+  #  required:
+  #    - message
+
+  HATEOAS:
+    type: object
+    description: >
+      Hypertext As The Engine Of Application State.
+    properties:
+      href:
+        type: string
+        maxLength: 2082
+        readOnly: true
+        description: >
+          URL of the related HATEOAS link you can use for subsequent calls.
+      rel:
+        type: string
+        maxLength: 255
+        readOnly: true
+        description: >
+          Link relation that describes how this link relates to the previous call.
+      method:
+        type: string
+        readOnly: true
+        maxLength: 255
+        description: >
+          The HTTP method required for the related call.
+    required:
+      - href
+      - rel
+      - method
+
+  RelatedLinkResponse:
+    type: object
+    description: >
+      RelatedLink that is associated with a model.
+    properties:
+      name:
+        type: string
+        maxLength: 25
+        readOnly: true
+        description: >
+          Name of the related link.
+      url:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The relatedLink url. For example, a related link associated with a
+          sample can have a link to the source from which that sample
+          information is obtained.
+
+  RelatedLinkRequest:
+    type: object
+    description: >
+      RelatedLink that is associated with a model.
+    properties:
+      name:
+        type: string
+        minLength: 1
+        maxLength: 25
+        pattern: ^[0-9A-Za-z_\\ -]{1,25}$
+        description: >
+          Name of the related link.
+      url:
+        type: string
+        minLength: 1
+        maxLength: 4096
+        description: >
+          The relatedLink url. For example, a related link associated with a
+          sample can have a link to the source from which that sample
+          information is obtained.
+    required:
+      - name
+      - url
+
+  TagRequest:
+    type: object
+    description: >
+      Tag that is associated with a model.
+    properties:
+      name:
+        type: string
+        maxLength: 60
+        description: >
+          Name of the tag.
+    required:
+      - name
+
+  TagResponse:
+    type: object
+    description: >
+      Tag that is associated with a model.
+    properties:
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The Tag id
+      name:
+        type: string
+        maxLength: 60
+        readOnly: true
+        description: >
+          Name of the tag
+      associatedModelName:
+        type: string
+        maxLength: 60
+        readOnly: true
+        description: >
+          Name of the model that is associated with tag.
+      associationId:
+        type: string
+        readOnly: true
+        description: >
+          Id of the model associated with tag.
+
+  ResourceNotFoundError:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+    # properties:
+    #   message:
+    #     type: string
+    #   resourceType:
+    #     type: string
+    #     enum:
+    #       - Aspect
+    #       - Lens
+    #       - Perspective
+    #       - Profile
+    #       - Sample
+    #       - Subject
+    #       - User
+    #   resourceKey:
+    #     type: string
+    # required:
+    #   - message
+
+  AspectsResponse:
+    type: object
+    description: >
+      A type of observation which can be measured.
+    properties:
+      description:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          A description of the aspect. A lens may choose to display this
+          information to the user.
+      helpEmail:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          The email address where a user can go to get more help about the aspect.
+          A lens may choose to display this information to the user e.g. if the
+          user clicks a “help” icon attached to the aspect.
+      helpUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the aspect. A lens
+          may choose to display this information to the user e.g. if the user
+          clicks a “help” icon attached to the aspect.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The aspect id.
+      imageUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Optional icon to represent the aspect.
+      isPublished:
+        type: boolean
+        default: false
+        readOnly: true
+        description: >
+          This affects the visibility of samples; defaults to false. When set to
+          true, all the samples for this aspect are readable by other users; when
+          set to false, the samples for this aspect are only readable by the owner
+          of the aspect.
+      name:
+        type: string
+        readOnly: true
+        maxLength: 60
+        pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        description: >
+          Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
+      criticalRange:
+        type: array
+        items:
+          type: number
+        readOnly: true
+        maxLength: 2
+        minLength: 2
+        example: [1,7]
+        description: >
+          A two-element array of type decimal. Determines what range of values
+          should be assigned to status value 0.
+      warningRange:
+        type: array
+        items:
+          type: number
+        readOnly: true
+        maxLength: 2
+        minLength: 2
+        example: [1,7]
+        description: >
+          A two-element array of type decimal. Determines what range of values
+          should be assigned to status value 1.
+      infoRange:
+        type: array
+        items:
+          type: number
+        readOnly: true
+        maxLength: 2
+        minLength: 2
+        example: [1,7]
+        description: >
+          A two-element array of type decimal. Determines what range of values
+          should be assigned to status value 2.
+      okRange:
+        type: array
+        items:
+          type: number
+        readOnly: true
+        maxLength: 2
+        minLength: 2
+        example: [1,7]
+        description: >
+          A two-element array of type decimal. Determines what range of values
+          should be assigned to status value 3.
+      timeout:
+        type: string
+        readOnly: true
+        maxLength: 8
+        pattern: ^[0-9]+[smhdSMHD]$
+        description: >
+          The length of time after which a sample is treated as 'N/A', in the form
+          of /^[0-9]+[smhd]$/i. For example, use '5s' for five seconds, '2m' for
+          two minutes, '12h' for twelve hours, '1d' for one day.
+      valueLabel:
+        type: string
+        readOnly: true
+        maxLength: 10
+        description: >
+          A short label the lens may display next to the value. Most useful to
+          specify a unit of measurement, e.g. 'ms' or '%'.
+      valueType:
+        type: string
+        readOnly: true
+        maxLength: 7
+        enum:
+          - BOOLEAN
+          - NUMERIC
+          - PERCENT
+        default: BOOLEAN
+        description: >
+          The sample value must be able to be coerced to the specified data type.
+          This allows a lens to render sample data in different ways depending on
+          their type.
+      createdBy:
+        readOnly: true
+        $ref: "#/definitions/UsersResponse"
+        description: >
+          User who created this Aspect.
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      tags:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/TagResponse"
+        description: >
+          Tags associated with this model.
+      Samples:
+        type: array
+        readOnly: true
+        description: >
+          TODO
+        items:
+          $ref: "#/definitions/SamplesResponse"
+      relatedLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/RelatedLinkResponse"
+        description: >
+          RelatedLinks associated with this model.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  LensesResponse:
+    type: object
+    description: >
+      A user interface component which renders subject/sample data with a
+      particular visual representation.
+    properties:
+      description:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          A description of the lens.
+      helpEmail:
+        type: string
+        readOnly: true
+        description: >
+          The email address where a user can go to get more help about the lens.
+          A lens may choose to display this information to the user e.g. if the
+          user clicks a "help" icon attached to the lens.
+        maxLength: 254
+      helpUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the lens. A lens may
+          choose to display this information to the user e.g. if the user clicks a
+          "help" icon attached to the lens.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The lens id.
+      isCustom:
+        type: boolean
+        readOnly: true
+        default: true
+        description: >
+          True for any lens which is installed by an administrator (rather than
+            pre-installed in Focus).
+      isPublished:
+        type: boolean
+        readOnly: true
+        description: >
+          True when the lens is available to users.
+      name:
+        type: string
+        maxLength: 60
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        description: >
+          The name of the lens.
+      sourceDescription:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The original lens publisher's description of the lens.
+      sourceName:
+        type: string
+        maxLength: 60
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        description: >
+          The original lens publisher's name of the lens.
+      sourceVersion:
+        type: string
+        readOnly: true
+        description: >
+          The original lens publisher's version of the lens.
+      thumbnailUrl:
+        type: string
+        maxLength: 2082
+        readOnly: true
+        description: >
+          Optional thumbnail image to represent the lens.
+      installedBy:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  PerspectivesResponse:
+    type: object
+    description: >
+      A named combination of a set of subjects and their samples rendered by a
+      particular lens.
+    properties:
+      id:
+        type: string
+        readOnly: true
+      name:
+        type: string
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        maxLength: 60
+        description: >
+          The name of the perspective.
+      rootSubject:
+        type: string
+        maxLength: 4096
+        description: >
+          The absolute path of the root subject.
+      aspectFilter:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        description: >
+          Array of aspect names to filter; Aspect name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
+      aspectTagFilter:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        description: >
+          Array of aspect tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
+      subjectTagFilter:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        description: >
+          Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
+      statusFilter:
+        type: array
+        items:
+          type: string
+          enum:
+            - Critical
+            - Invalid
+            - Timeout
+            - Warning
+            - Info
+            - OK
+            - "-Critical"
+            - "-Invalid"
+            - "-Timeout"
+            - "-Warning"
+            - "-Info"
+            - "-OK"
+        description: >
+          Array of sample status to filter; Status values can only be one of these:
+          Critical, Invalid, Timeout, Warning, Info, OK, -Critical, -Invalid, -Timeout, -Warning, -Info, -OK.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      lensId:
+        type: string
+        description: >
+          The id of Lens.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  ProfilesResponse:
+    type: object
+    description: >
+      A named set of read/write privileges.
+    properties:
+      id:
+        type: string
+        readOnly: true
+      name:
+        type: string
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        maxLength: 60
+        description: >
+          The name of the profile.
+      aspectAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write aspects.
+      lensAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write lenses.
+      perspectiveAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write perspectives.
+      profileAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write profiles.
+      sampleAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write samples.
+      subjectAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write subjects.
+      userAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write users.
+      users:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/UsersResponse"
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  SamplesResponse:
+    type: object
+    description: >
+      An observation of a particular aspect for a particular subject at a
+      particular point in time.
+    properties:
+      id:
+        type: string
+        readOnly: true
+      messageBody:
+        type: string
+        readOnly: true
+        description: >
+          Optional message about the sample value. Informational only--not used to
+          determine the status of the sample. It's up to the lens whether/how to
+          display this, will typically be displayed only on hover or click.
+        maxLength: 4096
+      messageCode:
+        type: string
+        readOnly: true
+        maxLength: 5
+        description: >
+          Optional 5-charater code about the sample value. Informational only--not
+          used to determine the status of the sample. It's up to the lens
+          whether/how to display this, will typically be displayed without having
+          to hover or click.
+      status:
+        type: string
+        enum:
+          - Critical
+          - Invalid
+          - Timeout
+          - Warning
+          - Info
+          - OK
+        readOnly: true
+        description: >
+          Status.
+      previousStatus:
+        type: string
+        enum:
+          - Critical
+          - Invalid
+          - Timeout
+          - Warning
+          - Info
+          - OK
+        readOnly: true
+        description: >
+          Previous Status.
+      value:
+        type: string
+        readOnly: true
+        maxLength: 255
+        description: >
+          Stored as a string but will be treated as whatever the aspect’s
+          valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
+          occurs, value is set to null.
+      provider:
+        readOnly: true
+        $ref: "#/definitions/UsersResponse"
+        description: >
+          User who provided this sample.
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      statusChangedAt:
+        readOnly: true
+        type: string
+        description: >
+          Time at which the status changed from one state to another.
+      aspect:
+        readOnly: true
+        $ref: "#/definitions/AspectsResponse"
+        description: >
+          The aspect of this sample.
+      relatedLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/RelatedLinkResponse"
+        description: >
+          RelatedLinks associated with this model.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+
+  SubjectsResponse:
+    type: object
+    description: >
+      A resource under observation.
+    properties:
+      absolutePath:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The absolute path of the subject. This is automatically set based on the
+          name and hierarchy.
+      children:
+        type: array
+        items:
+          $ref: "#/definitions/SubjectsResponse"
+      description:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          A description of the subject. A lens may choose to display this
+          information to the user.
+      helpEmail:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          The email address where a user can go to get more help about the subject.
+          A lens may choose to display this information to the user e.g. if the
+          user clicks a “help” icon attached to the subject.
+      helpUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the subject. A lens
+          may choose to display this information to the user e.g. if the user
+          clicks a “help” icon attached to the subject.
+      id:
+        type: string
+        readOnly: true
+      imageUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Optional icon to represent the subject.
+      isPublished:
+        type: boolean
+        readOnly: true
+        description: >
+          Default false. When set to true, the subject is readable by other users;
+          when set to false, the subject is only readable by its owner.
+      name:
+        type: string
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{1,60}$
+        maxLength: 60
+        description: >
+          Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
+      parentId:
+        type: string
+        readOnly: true
+        description: >
+          The id of the subject's parent, empty if this subject is at the root of
+          the hierarchy.
+      parentAbsolutePath:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The absolute path of the subject's parent, empty if this subject is at
+          the root of the hierarchy.
+      # childCount:
+      #   type: integer
+      #   readOnly: true
+      #   description: >
+      #    The number of direct children subjects under this subject.
+      createdBy:
+        readOnly: true
+        $ref: "#/definitions/UsersResponse"
+        description: >
+          User who created this Aspect.
+      createdAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      updatedAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      tags:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/TagResponse"
+        description: >
+          RelatedLinks associated with this model.
+      samples:
+        type: array
+        description: >
+          TODO
+        items:
+          type: object
+      relatedLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/RelatedLinkResponse"
+        description: >
+          RelatedLinks associated with this model.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  UsersResponse:
+    type: object
+    description: >
+      A person or API client who interacts with the Focus system.
+    properties:
+      email:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          The user's email address.
+      id:
+        type: string
+        readOnly: true
+      imageUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Optional thumbnail image.
+      name:
+        type: string
+        readOnly: true
+        maxLength: 256
+        description: >
+          First and last name.
+      password:
+        type: string
+        readOnly: true
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      createdAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      updatedAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      # TODO profile!
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  SSOConfigResponse:
+    type: object
+    description: >
+      SSO Configuration parameters used to enable SSO in Refocus.
+    properties:
+      id:
+        type: string
+        readOnly: true
+      samlEntryPoint:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Required SAML Identity Provider entry point.
+      samlIssuer:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Required issuer string to supply to identity provider.
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      createdAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      updatedAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      # TODO profile!
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  TokenResponse:
+    type: object
+    description: >
+      API access token if authentication success.
+    properties:
+      Success:
+        type: boolean
+        readOnly: true
+      message:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          API access message.
+      token:
+        type: string
+        readOnly: true
+        description: >
+          API token.
+
+  AuthenticationResponse:
+    type: object
+    description: >
+      Authentication success response.
+    properties:
+      Success:
+        type: boolean
+        readOnly: true
+      message:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Authentication success message.
+      token:
+        type: string
+        readOnly: true
+        description: >
+          API token.
+
+# =============================================================================
+parameters:
+
+  limitParam:
+    name: limit
+    in: query
+    description: >
+        Maximum number of records to return in the response; also useful for
+        pagination in the UI.
+    required: false
+    type: integer
+
+  offsetParam:
+    name: offset
+    in: query
+    description: >
+        Offset for paginating the response.
+    required: false
+    type: integer
+
+  AspectsFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - imageUrl
+        - isPublished
+        - name
+        - criticalRange
+        - warningRange
+        - infoRange
+        - okRange
+        - tags
+        - timeout
+        - valueLabel
+        - valueType
+        - createdAt
+        - updatedAt
+
+  LensesFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - isCustom
+        - name
+        - thumbnailUrl
+        - installedBy
+        - createdAt
+        - updatedAt
+
+  PerspectivesFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - id
+        - name
+        - rootSubject
+        - aspectFilter
+        - aspectTagFilter
+        - subjectTagFilter
+        - statusFilter
+        - lensId
+        - createdBy
+        - createdAt
+        - updatedAt
+
+  ProfilesFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - id
+        - name
+        - aspectAccess
+        - lensAccess
+        - perspectiveAccess
+        - profileAccess
+        - sampleAccess
+        - subjectAccess
+        - userAccess
+        - createdBy
+        - createdAt
+        - updatedAt
+        - userCount
+        - users
+
+  SamplesFieldsParam:
+    name: fields
+    in: query
+    description: >
+          Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - id
+        - messageBody
+        - messageCode
+        - provider
+        - status
+        - tags
+        - value
+        - createdAt
+        - updatedAt
+        - aspect
+        - subject
+
+  SubjectsFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - absolutePath
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - imageUrl
+        - isPublished
+        - name
+        - parentAbsolutePath
+        - parentId
+        #- childCount
+        - createdBy
+        - createdAt
+        - updatedAt
+
+  UsersFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - email
+        - id
+        - imageUrl
+        - name
+        - createdBy
+        - createdAt
+        - updatedAt
+
+  SSOConfigFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - id
+        - samlEntryPoint
+        - samlIssuer
+        - createdBy
+        - createdAt
+        - updatedAt
+
+# =============================================================================
+responses:
+
+  400:
+    description: Bad Request
+    schema:
+      $ref: '#/definitions/BadRequest'
+
+  401:
+    description: Authentication Error
+    schema:
+      $ref: '#/definitions/AuthenticationError'
+
+  403:
+    description: Forbidden
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+
+  404:
+    description: Resource Not Found
+    schema:
+      $ref: '#/definitions/ResourceNotFoundError'
+
+  genericError:
+    description: Error
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================

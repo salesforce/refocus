@@ -1,0 +1,183 @@
+/**
+ * view/admin/config/create.js
+ *
+ * JSON to configure Form element in pages/Create view
+ * Usage:
+ * import { subject, aspect } form '../config/create'
+ */
+
+import React from 'react';
+import CheckBoxComponent from '../components/common/CheckBoxComponent';
+import CompoundFieldComponent
+from '../components/common/CompoundFieldComponent';
+import ReactSelectize from 'react-selectize';
+const SimpleSelect = ReactSelectize.SimpleSelect;
+import RangeSelector from '../components/common/RangeSelector';
+import MaxMinComponent from '../components/common/MaxMinComponent';
+
+const obj = {};
+obj.samples = [
+  {
+    propertyName: 'name',
+    displayName: 'Name',
+  }, {
+    propertyName: 'value',
+    displayName: 'Value',
+  }, {
+    propertyName: 'aspectId',
+    displayName: 'Aspect Id',
+  }, {
+    propertyName: 'subjectId',
+    displayName: 'Subject Id',
+  },
+];
+
+obj.subjects = [{
+  propertyName: 'name',
+  displayName: 'Name',
+}, {
+  propertyName: 'parentAbsolutePath',
+  displayName: 'Parent Absolute Path',
+  customValueQuery:
+    'document.getElementsByClassName("simple-value")[0].textContent',
+  propsFromForm: ['subjects', 'parentAbsolutePath'],
+  customOutput: (object) => {
+    const { subjects, parentAbsolutePath } = object;
+    // the default value is parentAbsolutePath,
+    // input value updates to the subject's absolutePath, since that is
+    // its child's parentAbsolutePath
+    const options = subjects.length ? subjects.map((subject) => {
+      return { label: subject.absolutePath, value: subject.absolutePath };
+    }) : {};
+    return <SimpleSelect
+    options={ options }
+    defaultValue = {{ label: parentAbsolutePath, value: parentAbsolutePath }}
+    placeholder='Choose subject'
+    style = {{ width: 550 }} />;
+  },
+}, {
+  propertyName: 'description',
+  displayName: 'Description',
+}, {
+  propertyName: 'helpEmail',
+  displayName: 'Help Email',
+}, {
+  propertyName: 'helpUrl',
+  displayName: 'Help Url',
+}, {
+  propertyName: 'relatedLinks',
+  displayName: 'Related links',
+  customOutput: (object) => {
+    return <CompoundFieldComponent
+      name={ object.name }
+      disabled={ object.disabled }
+      value={ object.value }
+      fields={ ['url', 'name'] }
+    />;
+  },
+}, {
+  propertyName: 'tags',
+  displayName: 'Tags',
+  customOutput: (object) => {
+    return <CompoundFieldComponent
+      name={ object.name }
+      disabled={ object.disabled }
+      value={ object.value }
+      fields={ ['name'] }
+    />;
+  },
+},
+];
+
+obj.aspects = [{
+  propertyName: 'name',
+  displayName: 'Name',
+}, {
+  propertyName: 'description',
+  displayName: 'Description',
+}, {
+  propertyName: 'helpEmail',
+  displayName: 'Help Email',
+}, {
+  propertyName: 'helpUrl',
+  displayName: 'Help Url',
+}, {
+  propertyName: 'imageUrl',
+  displayName: 'Icon',
+}, {
+  propertyName: 'timeout',
+  displayName: 'Timeout',
+}, {
+  propertyName: 'valueLabel',
+  displayName: 'Value Label',
+}, {
+  propertyName: 'relatedLinks',
+  displayName: 'Related links',
+  customOutput: (object) => {
+    return <CompoundFieldComponent
+      name={ object.name }
+      disabled={ object.disabled }
+      value={ object.value }
+      fields={ ['url', 'name'] }
+    />;
+  },
+}, {
+  propertyName: 'tags',
+  displayName: 'Tags',
+  customOutput: (object) => {
+    return <CompoundFieldComponent
+      name={ object.name }
+      disabled={ object.disabled }
+      value={ object.value }
+      fields={ ['name'] }
+    />;
+  },
+}, {
+  propertyName: 'valueType',
+  displayName: 'Map value to Statuses',
+  propsFromForm: ['changeAspectRangeFormat',
+  'resetAspectRange', 'aspectRangeFormat',
+  ],
+  customOutput: (object) => {
+    return <RangeSelector {...object} />;
+  },
+}, {
+  propertyName: 'criticalRange',
+  displayName: 'Critical',
+  propsFromForm: ['aspectRangeFormat', 'defaultAspectRange'],
+  customOutput: (object) => {
+    return <MaxMinComponent { ...object } />;
+  },
+}, {
+  propertyName: 'warningRange',
+  displayName: 'Warning',
+  propsFromForm: ['aspectRangeFormat', 'defaultAspectRange'],
+  customOutput: (object) => {
+    return <MaxMinComponent { ...object } />;
+  },
+}, {
+  propertyName: 'infoRange',
+  displayName: 'Info',
+  propsFromForm: ['aspectRangeFormat', 'defaultAspectRange'],
+  customOutput: (object) => {
+    return <MaxMinComponent { ...object } />;
+  },
+}, {
+  propertyName: 'okRange',
+  displayName: 'ok',
+  propsFromForm: ['aspectRangeFormat', 'defaultAspectRange'],
+  customOutput: (object) => {
+    return <MaxMinComponent { ...object } />;
+  },
+}, {
+  propertyName: 'isPublished',
+  displayName: 'Aspect is published',
+  customOutput: (resourceObj) => {
+    return <CheckBoxComponent
+      name={ resourceObj.name }
+      disabled={ false }
+    />;
+  },
+}];
+
+module.exports = obj;

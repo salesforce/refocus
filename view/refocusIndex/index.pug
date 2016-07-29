@@ -1,0 +1,18 @@
+
+doctype html
+html
+  head
+    link(rel="stylesheet", type="text/css", href="/refocusIndex/index-style.css")
+    script(src='../analytics/app.js')
+  body
+    .container
+      div.right-text
+        h4 #{user.email}
+        a(id='logoutLink' href='#') Logout
+      div#center-heading
+        label#errorInfo
+        h1 Refocus
+        div#center-links
+          h3 Perspectives
+  script(src='/refocusIndex/app.js')
+  script(src='/authentication/logout/app.js')

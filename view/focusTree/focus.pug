@@ -1,0 +1,45 @@
+
+doctype html
+html(lang = "en")
+  head
+    script(src='../analytics/app.js')
+  body
+    h1 Focus on&nbsp;
+      span#subjectKeyHolder
+
+    div#lens
+
+    script(type='text/javascript').
+      // get subjectKey from string after question mark
+      const subjectKey = window.location.search.split('?').pop();
+      document.getElementById('subjectKeyHolder').innerHTML = subjectKey;
+      var lensElement = document.getElementById('lens');
+    script(src='//d3js.org/d3.v3.min.js')
+    script(src='../focusTree/app.js')
+    script(src='/socket.io.js')
+    script(type='text/javascript').
+      var socket = io();
+      socket.on('refocus.internal.realtime.subject.add', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.subject.add', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.add'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.subject.remove', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.subject.remove', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.remove'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.subject.update', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.subject.update', { 'detail': JSON.parse(data)['refocus.internal.realtime.subject.update'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.add', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.sample.add', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.add'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.remove', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.sample.remove', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.remove'] });
+        lensElement.dispatchEvent(evt);
+      });
+      socket.on('refocus.internal.realtime.sample.update', function (data) {
+        const evt = new CustomEvent('refocus.internal.realtime.sample.update', { 'detail': JSON.parse(data)['refocus.internal.realtime.sample.update'] });
+        lensElement.dispatchEvent(evt);
+      });
