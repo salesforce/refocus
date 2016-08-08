@@ -38,7 +38,7 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 
 // pass passport for configuration
-require('./passportconfig')(passportModule);
+require('./config/passportconfig')(passportModule);
 
 // middleware for checking api token
 const jwtUtil = require('./api/v1/helpers/jwtUtil');
@@ -80,20 +80,6 @@ if (isDevelopment) {
 // View engine setup
 app.set('views', path.join(__dirname, 'view'));
 app.set('view engine', 'pug');
-
-// set up admin views
-//TODO: use regexp on multiple paths, to avoid code duplication
-app.get('/subject*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-});
-
-app.get('/aspect*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-});
-
-app.get('/sample*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
-});
 
 // Initialize the Swagger middleware
 const swaggerFile = fs // eslint-disable-line no-sync

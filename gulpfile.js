@@ -18,7 +18,6 @@ const conf = {
       'movecss',
       'movesocket',
       'style',
-      'moveGridLens',
       'movelensutil',
     ],
   },
@@ -138,18 +137,6 @@ gulp.task('movecss', () =>
 gulp.task('movesocket', () =>
   gulp.src('./node_modules/socket.io-client/socket.io.js')
     .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
-);
-
-/*
- * Moves grid lens to public folder.
- * TODO remove this once lenses are installed as data
- */
-gulp.task('moveGridLens', () =>
-  gulp.src(['./view/focusGrid/bundle.js', './view/focusGrid/focus.pug'])
-    .pipe(gulp.dest(conf.view.dest + '/focusGrid'))
     .on('end', () => {
       process.exit();
     })

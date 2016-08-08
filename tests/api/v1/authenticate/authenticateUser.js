@@ -2,6 +2,7 @@
  * tests/api/v1/authenticate/authenticateUser.js
  */
 
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -10,6 +11,8 @@ const u = require('./utils');
 const registerPath = '/v1/register';
 const authPath = '/v1/authenticate';
 const tu = require('../../../testUtils');
+const Profile = tu.db.Profile;
+const User = tu.db.User;
 
 describe(`api: authenticateUser`, () => {
   const token = tu.createToken();
@@ -17,9 +20,10 @@ describe(`api: authenticateUser`, () => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
     .end((err) => {
-      if(err){
+      if (err) {
         return done(err);
       }
+
       done();
     });
   });
@@ -78,3 +82,47 @@ describe(`api: authenticateUser`, () => {
   });
 });
 
+
+describe('api: authenticate sso user', () => {
+  const token = tu.createToken();
+  let ssoUser;
+  beforeEach((done) => {
+    Profile.create({
+      name: tu.namePrefix + 1,
+    })
+    .then((createdProfile) => {
+      return User.create({
+        profileId: createdProfile.id,
+        name: `${tu.namePrefix}1`,
+        email: 'user@example.com',
+        password: 'user123password',
+        sso: true,
+      });
+    })
+    .then((createdUser) => {
+      ssoUser = createdUser;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  after(u.forceDelete);
+
+  it('sso user cannot authenticate by username password', (done) => {
+    api.post(authPath)
+    .set('Authorization', token)
+    .send({
+      email: ssoUser.email,
+      password: 'fakePasswd',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/Invalid credentials/)
+    .end((err) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+});

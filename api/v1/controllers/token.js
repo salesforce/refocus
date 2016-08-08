@@ -27,9 +27,10 @@ module.exports = {
       }
 
       if (!user) {
-        const loginErr = new apiErrors.LoginError();
+        const loginErr = new apiErrors.LoginError({
+          explanation: 'Invalid credentials.',
+        });
         loginErr.resource = resourceName;
-        loginErr.info = 'Invalid credentials.';
         return u.handleError(next, loginErr, resourceName);
       }
 

@@ -29,8 +29,8 @@ describe(`api: registerUser`, () => {
   it('user already exists', (done) => {
     api.post(path)
     .send(u.toCreate)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .expect(/UniqueConstraintError/)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/User already exists/)
     .end((err) => {
       if (err) {
         return done(err);

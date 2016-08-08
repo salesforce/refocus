@@ -34,8 +34,8 @@ function sendData(jsonData) {
   .end((error, res) => {
     if (error) {
       let errorText = 'An unexpected error occurred';
-      if (error.response.body.errors[0].type ===
-       'SequelizeUniqueConstraintError') {
+      if (error.response.body.errors[0].message ===
+       'User already exists') {
         errorText = 'User already exists';
       }
 

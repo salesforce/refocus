@@ -16,7 +16,7 @@
     "view": "view/**/*/app.js"
   },
   "scripts": {
-    "build": "npm run clean && webpack --config ./webpack.config.js --progress --profile && gulp moveGridLens",
+    "build": "npm run clean && webpack --config ./webpack.config.js --progress --profile",
     "clean": "rm -rf public/admin",
     "lint": "eslint view/admin",
     "view": "gulp browserifyViews && npm run build && npm start",
@@ -26,6 +26,7 @@
     "resetdb": "node db/reset.js",
     "migratedb": "node db/migrate.js",
     "checkdb": "node db/createOrUpdateDb.js",
+    "checkprivatedb": "node db/createOrUpdatePrivateDb",
     "undo-migratedb": "node db/migrateUndo.js",
     "test-api": "mocha -R dot --recursive tests/api",
     "test-token-req": "NODE_ENV=testTokenReq mocha -R dot --recursive tests/tokenReq",
@@ -33,7 +34,8 @@
     "test-db": "npm run resetdb && mocha -R dot --recursive tests/db",
     "test-view": "NODE_ENV=test mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test": "npm run test-db && npm run test-api && npm run test-view && npm run test-token-req && npm run test-token-notreq",
-    "postinstall": "gulp browserifyViews && npm run build && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb"
+    "postinstall": "gulp browserifyViews && npm run build && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
+    "prestart": "npm run checkprivatedb"
   },
   "dependencies": {
     "adm-zip": "^0.4.7",
