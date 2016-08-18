@@ -11,6 +11,8 @@ const u = require('../api/v1/subjects/utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
+const User = tu.db.User;
+const Profile = tu.db.Profile;
 
 describe(`api: GET ${path}`, () => {
   const token = tu.createToken();
@@ -52,8 +54,17 @@ describe(`api: GET ${path}`, () => {
     })
     .then((samp) => {
       sample1.id = samp.id;
-      done();
     })
+    .then(() => Profile.create({
+      name: tu.namePrefix + 1,
+    }))
+    .then((createdProfile) => User.create({
+      email: 'test@refocus.com',
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      password: 'abcd',
+    }))
+    .then(() => done())
     .catch((err) => done(err));
   });
 

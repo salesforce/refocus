@@ -11,16 +11,14 @@
 const models = require('./index');
 const conf = require('../config');
 const pgtools = require('pgtools');
-const env = conf.environment[conf.nodeEnv];
-const DB_URL = env.dbUrl;
+const utils = require('./utils');
 
-const dbConfig = {
-  name: DB_URL.split('/').pop(),
-  user: DB_URL.split(':')[1].slice(2), // eslint-disable-line
-  password: DB_URL.split(':')[2].split('@')[0], // eslint-disable-line
-  host: DB_URL.split('@').pop().split(':')[0], // eslint-disable-line
-  port: DB_URL.split(':').pop().split('/')[0], // eslint-disable-line
-};
+// Heroku Private space postgres contains IP in host so check wthether
+// it is IP or not, if it is IP then exit because it is not able to
+// connect in Private space
+if (utils.isInHerokuPrivateSpace()) {
+  process.exit(0); // eslint-disable-line
+}
 
 models.sequelize.query(`select count(*) from
   information_schema.tables where table_schema = 'public'`)
@@ -32,6 +30,7 @@ models.sequelize.query(`select count(*) from
   }
 })
 .catch(() => {
+  const dbConfig = utils.dbConfigObjectFromDbURL();
   pgtools.createdb(dbConfig, dbConfig.name, (err, res) => {
     if (err) {
       console.error('ERROR', err); // eslint-disable-line

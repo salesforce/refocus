@@ -7,21 +7,29 @@
 'use strict'; // eslint-disable-line strict
 
 const SSOConfig = require('../db/index').SSOConfig;
+const User = require('../db/index').User;
+const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
+const path = require('path');
+const jwtUtil = require('../api/v1/helpers/jwtUtil');
 const NOT_FOUND = 404;
 
 // protected urls
 const viewmap = {
   '/perspectives': 'refocusIndex/index',
+  '/aspects': 'admin',
+  '/aspects/:key': 'admin',
+  '/aspects/:key/edit': 'admin',
+  '/subjects': 'admin',
+  '/subjects/:key': 'admin',
+  '/subjects/:key/edit': 'admin',
+  '/samples': 'admin',
+  '/samples/:key': 'admin',
+  '/samples/:key/edit': 'admin',
   '/focusGrid': 'focusGrid/focus',
   '/focusRtBracket': 'focusRtBracket/focus',
   '/focusTree': 'focusTree/focus',
-};
-
-// public urls
-const publicViewmap = {
-  '/register': 'authentication/register/register',
 };
 
 /**
@@ -43,18 +51,37 @@ function ensureAuthenticated(req, res, next) {
 }
 
 /**
- * SAML strategy for passport
- * @param  {Object}   profile - User profile parameters
+ * Authentication for validation SAML responses
+ * Used in SAML SSO Stategy
+ * Will provision user if no matching user is found
+ *
+ * @param  {Object}   userProfile - User profile parameters
  * @param  {Function} done - Callback function
- * @returns {Function}    Callback function with parameters
  */
-function samlStrategy(profile, done) {
-  return done(null,
-    {
-      email: profile.email,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-    });
+function samlAuthentication(userProfile, done) {
+  User.findOne({ where: { email: userProfile.email } })
+  .then((user) => {
+    if (!user) {
+      return Profile.findOrCreate({ where: { name: 'RefocusSSOUser' } });
+    }
+
+    return done(null, user);
+  })
+  .spread((profile) =>
+    User.create({
+      email: userProfile.email,
+      profileId: profile.id,
+      name: userProfile.email,
+      password: 'ssopassword',
+      sso: true,
+    })
+  )
+  .then((user) => {
+    done(null, user);
+  })
+  .catch((error) => {
+    done(error);
+  });
 }
 
 module.exports = function loadView(app, passport) {
@@ -63,15 +90,12 @@ module.exports = function loadView(app, passport) {
     app.get(
       key,
       ensureAuthenticated,
-      (req, res) => res.render(viewmap[key], { user: req.user })
-    )
-  );
-
-  const publicViewsKeys = Object.keys(publicViewmap);
-  publicViewsKeys.forEach((key) =>
-    app.get(
-      key,
-      (req, res) => res.render(publicViewmap[key])
+      (req, res) => {
+        // if request admin, serve html file. Otherwise render
+        viewmap[key] === 'admin' ?
+          res.sendFile(path.resolve('public/admin/index.html')) :
+          res.render(viewmap[key], { user: req.user });
+      }
     )
   );
 
@@ -99,7 +123,7 @@ module.exports = function loadView(app, passport) {
               path: '/sso/saml',
               entryPoint: ssoconfig.samlEntryPoint,
               issuer: ssoconfig.samlIssuer,
-            }, samlStrategy)
+            }, samlAuthentication)
           );
 
           return next();
@@ -133,7 +157,7 @@ module.exports = function loadView(app, passport) {
               path: '/sso/saml',
               entryPoint: ssoconfig.samlEntryPoint,
               issuer: ssoconfig.samlIssuer,
-            }, samlStrategy)
+            }, samlAuthentication)
           );
 
           return next();
@@ -148,9 +172,11 @@ module.exports = function loadView(app, passport) {
       {
         failureRedirect: '/login',
       }),
-      (_req, _res) => {
-        _res.redirect('/');
-      }
+    (_req, _res) => {
+      const token = jwtUtil.createToken(_req.user);
+      _res.cookie('Authorization', token);
+      _res.redirect('/');
+    }
   );
 
   /**
@@ -178,6 +204,25 @@ module.exports = function loadView(app, passport) {
 
     (req, res/* , next*/) => {
       res.render('authentication/login/login');
+    }
+  );
+
+  // Disable registration when SSO is enabled.
+  app.get('/register',
+    (req, res, next) => {
+      SSOConfig.findOne()
+      .then((ssoconfig) => {
+        if (ssoconfig) {
+          return res.status(NOT_FOUND).send('Page not found');
+        }
+
+        return next();
+      })
+      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+    },
+
+    (req, res/* , next*/) => {
+      res.render('authentication/register/register');
     }
   );
 

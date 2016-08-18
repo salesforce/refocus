@@ -40,8 +40,13 @@ function sendData(jsonData) {
   .send(jsonData)
   .end((error, res) => {
     if (error) {
-      document.getElementById('errorInfo').innerHTML =
-      'An unexpected error occurred';
+      let errorText = 'An unexpected error occurred';
+      if (error.response.body.errors[0].description === 'Invalid credentials' ||
+        error.response.body.errors[0].message === 'Invalid credentials') {
+        errorText = 'Invalid credentials';
+      }
+
+      document.getElementById('errorInfo').innerHTML = errorText;
     } else {
       u.setCookie('Authorization', res.body.token);
       returnUrl = getQueryParams(window.location.search.substring(1));

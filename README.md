@@ -35,6 +35,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 1. Install [PostgreSQL](http://www.enterprisedb.com/products-services-training/pgdownload). Be sure to read the "PostgreSQL One Click Installer README" and follow the instructions there to adjust your shared memory as needed.
 1. Install [Redis](http://redis.io/download).
 1. Clone this git repository.
+1. Run `cd refocus`.
 1. Run `npm install`. This downloads and installs project dependencies and executes the post-install steps. Note: don't run this with sudo! You may get some weird errors later.
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
@@ -105,6 +106,20 @@ If not already setup, follow Installation instructions to setup Refocus. Execute
 - Run ```export NODE_ENV=production```
 - Run ```export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'```
 - Run ```npm start``` or ```node .```
+
+## IP Restrictions for Refocus
+By default, there is no IP restriction for Refocus access. An admin can configure IP restriction by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.
+
+## Authentication
+### Local Authentication only. SSO is not enabled.
+A user should sign up with Refocus using register page or POST to /v1/register. Once registered, the user can sign in using Local authentication - username/password on Refocus login page.
+
+### SSO enabled with Local authentication.
+#### Non-SSO users
+Non-SSO users should authenticate with Refocus as described above using Local Authentication.
+
+#### SSO-Users
+If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO Login' button on login page. In case of local authentication with username/password, SSO users will be considered as unregistered user unless they sign up using register page or POST to /v1/register. Once an SSO user is registered with SSO username, the user can sign in using local authentication as well. 
 
 ## API Documentation
 The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.yaml). Start your server and open `MY_HOST:MY_PORT/v1/docs` for interactive documentation of all the Refocus API endpoints.

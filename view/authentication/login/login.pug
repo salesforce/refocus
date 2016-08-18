@@ -25,5 +25,6 @@ html
             button.btn.btn-primary.btn-block(type='submit') Submit
           a#forgot-link(href='/login') Forgot password?
           | &nbsp;
-          a.right-link(href='/register') Sign Up
+          - if (!SSOExists)
+            a.right-link(href='/register') Sign Up
   script(src='/authentication/login/app.js')

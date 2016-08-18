@@ -19,7 +19,11 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'view/admin/index.template.html',
       inject: 'body',
-      filename: 'index.html'
+      filename: 'index.html',
+      googleAnalytics: {
+        trackingId: process.env.GOOGLE_ANALYTICS_ID || 'N/A',
+        pageViewOnLoad: true
+      },
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),

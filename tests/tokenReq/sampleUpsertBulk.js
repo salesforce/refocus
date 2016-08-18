@@ -11,6 +11,8 @@ const u = require('../api/v1/samples/utils');
 const constants = require('../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const User = tu.db.User;
+const Profile = tu.db.Profile;
 const path = '/v1/samples/upsert/bulk';
 
 describe('api: POST ' + path, () => {
@@ -34,6 +36,15 @@ describe('api: POST ' + path, () => {
     .then(() => Subject.create({
       isPublished: true,
       name: `${tu.namePrefix}Subject`,
+    }))
+    .then(() => Profile.create({
+      name: tu.namePrefix + 1,
+    }))
+    .then((createdProfile) => User.create({
+      email: 'test@refocus.com',
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      password: 'abcd',
     }))
     .then(() => done())
     .catch((err) => done(err));

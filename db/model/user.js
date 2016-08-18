@@ -38,6 +38,10 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING,
       allowNull: false,
     },
+    sso: {
+      type: dataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   }, {
     classMethods: {
       getUserAssociations() {

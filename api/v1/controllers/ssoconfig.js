@@ -101,8 +101,9 @@ module.exports = {
       if (o) {
         res.status(httpStatus.OK).json(responsify(o, helper, req.method));
       } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.info = 'There is no sso config.';
+        const err = new apiErrors.ResourceNotFoundError({
+          explanation: 'There is no sso config.',
+        });
         u.handleError(next, err, helper.modelName);
       }
     })
@@ -140,8 +141,9 @@ module.exports = {
           .json(responsify(updatedObj, helper, req.method));
         });
       } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.info = 'There is no sso config to patch.';
+        const err = new apiErrors.ResourceNotFoundError({
+          explanation: 'There is no sso config.',
+        });
         u.handleError(next, err, helper.modelName);
       }
     })
@@ -207,8 +209,9 @@ module.exports = {
           .json(responsify(savedObj, helper, req.method));
         });
       } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.info = 'There is no sso config to update.';
+        const err = new apiErrors.ResourceNotFoundError({
+          explanation: 'There is no sso config.',
+        });
         u.handleError(next, err, helper.modelName);
       }
     })

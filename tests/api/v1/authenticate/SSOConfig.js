@@ -9,19 +9,20 @@ const loginPath = '/login';
 const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
 
-
-describe(`api: login ssoconfig`, () => {
-  afterEach(u.forceDeleteSSOConfig);
+describe.only('api: login ssoconfig', () => {
+  after(u.forceDeleteSSOConfig);
 
   it('does not contain sso config button if no ssoconfig', (done) => {
     api.get(loginPath)
     .expect((res) => {
       expect(res.text).to.not.contain('SSO Login');
+      expect(res.text).to.contain('Sign Up');
     })
     .end((err) => {
       if (err) {
         return done(err);
       }
+
       done();
     });
   });
@@ -29,11 +30,14 @@ describe(`api: login ssoconfig`, () => {
   it('contains sso login button text if ssoconfig', (done) => {
     u.creatSSOConfig()
     .then((ssoconfig) => {
-      if(ssoconfig){
+      if (ssoconfig) {
         api.get(loginPath)
         .expect(constants.httpStatus.OK)
-        .expect((res) => expect(res.text).to.not.contain('SSO Login'))
-        .end((err) => {
+        .expect((res) => {
+          expect(res.text).to.contain('SSO Login');
+          expect(res.text).to.not.contain('Sign Up');
+        })
+        .end((err/* , res*/) => {
           if (err) {
             return done(err);
           }

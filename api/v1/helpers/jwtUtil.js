@@ -7,6 +7,18 @@ const jwt = require('jsonwebtoken');
 const u = require('./verbs/utils');
 const apiErrors = require('../apiErrors');
 const conf = require('../../../config');
+const User = require('../../../db/index').User;
+
+/**
+ * create and handle Invalid Token error
+ * @param  {Function} cb - callback function
+ */
+function handleInvalidToken(cb) {
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'Invalid Token.',
+  });
+  u.handleError(cb, err, 'ApiToken');
+}
 
 /**
  * Verify jwt token.
@@ -23,14 +35,18 @@ function verifyToken(secret, req, cb) {
   }
 
   if (token) {
-    jwt.verify(token, secret, {}, (err) => {
+    jwt.verify(token, secret, {}, (err, decodedData) => {
       if (err) {
-        const _err = new apiErrors.ForbiddenError({
-          explanation: 'Invalid Token.',
-        });
-        u.handleError(cb, _err, 'ApiToken');
+        handleInvalidToken(cb);
       } else {
-        return cb();
+        User.findOne({ where: { email: decodedData } })
+        .then((user) => {
+          if (user) {
+            return cb();
+          }
+
+          return handleInvalidToken(cb);
+        });
       }
     });
   } else {
