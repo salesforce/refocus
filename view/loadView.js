@@ -94,16 +94,22 @@ module.exports = function loadView(app, passport) {
         // if request admin, serve html file. Otherwise render
         viewmap[key] === 'admin' ?
           res.sendFile(path.resolve('public/admin/index.html')) :
-          res.render(viewmap[key], { user: req.user });
+          res.render(viewmap[key], {
+            trackingId: viewConfig.trackingId,
+            user: req.user,
+          });
       }
     )
   );
 
   app.get(
     '/perspectives/:key',
-    (req, res) => res.render('lensPerspective/perspective/perspective', {
-      eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-    })
+    (req, res) => {
+      res.render('perspective/perspective', {
+        eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+        trackingId: viewConfig.trackingId,
+      })
+    }
   );
 
   /**
@@ -203,7 +209,9 @@ module.exports = function loadView(app, passport) {
     },
 
     (req, res/* , next*/) => {
-      res.render('authentication/login/login');
+      res.render('authentication/login/login', {
+        trackingId: viewConfig.trackingId,
+      });
     }
   );
 
@@ -222,7 +230,9 @@ module.exports = function loadView(app, passport) {
     },
 
     (req, res/* , next*/) => {
-      res.render('authentication/register/register');
+      res.render('authentication/register/register', {
+        trackingId: viewConfig.trackingId,
+      });
     }
   );
 

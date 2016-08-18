@@ -18,8 +18,11 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 - [How redis is used](#how-redis-is-used)
 - [Running on Heroku](#running-on-heroku)
   - [Troubleshooting a Heroku deployment](#troubleshooting-a-heroku-deployment)
-- [Using API Access Tokens](#using-api-access-tokens)
 - [API Documentation](#api-documentation)
+- [Securing Refocus](#securing-refocus)
+  - [IP Restrictions](#ip-restrictions)
+  - [Authentication](#authentication)
+  - [Using API Access Tokens](#using-api-access-tokens)
 - [Useful Resources](#useful-resources)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -52,10 +55,13 @@ Whenever you pull down a new version of Refocus from the git repository:
 1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
 
 ## Development
+- Set `NODE_ENV=development` and modify the webpack.config.js to take advantage of react hot module reload (react-hmr), for faster front-end development.
+- At times the generated pages don't show due to this error in the browser console: `locals[0] does not appear to be a 'module' object with Hot Module replacement API enabled`. This can happen when the NODE_ENV is development or blank. To fix the issue, set `NODE_ENV=build`, then run the page build again.
 - If you want any of the packages to send output to stdout, you can start your server with `DEBUG=* node .` or you can spell out which packages you want to show debug output, e.g. `DEBUG=express*,swagger* node .`.
 - Use [nodemon](http://nodemon.io/) to monitor for any changes in your source and automatically restart your server.
 - Use Node.js [Debugger](https://nodejs.org/api/debugger.html).
 - If you are making changes to the code, check for adherence to style guidelines by running `gulp style`.
+- If you are making any changes to the DB schema, create a migration using `node_modules/.bin/sequelize migration:create --name example-name`
 
 ### Package Scripts
 Execute any of the scripts in the `scripts` section of [`./package.json`](./package.json) by calling `npm run [SCRIPTNAME]`, e.g. `npm run test` or `npm run lint` or `npm run start`.
@@ -80,6 +86,8 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 - Run ```heroku open``` and view the app running in Heroku
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
 
+If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
+
 ## Configuring New Relic
 
 ### Local Deployment
@@ -94,32 +102,39 @@ Install the New Relic add-on--it will automatically set the license key in your 
 - Run ```heroku restart```, to restart the app
 - Run ```heroku logs --tail``` to see the heroku logs, as they update
 
-## Using API Access Tokens
-- A token is required for API calls when Refocus config has `useAccessToken` set to `true`.
-- New users should register to get API access token. A user can POST to the `/v1/register` endpoint to generate a token. Save this token for future use.
-- Existing users can POST to the `/v1/token` endpoint to retrieve new token.
-- To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
-- When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
-
 ## Setup Production Environment on Localhost
 If not already setup, follow Installation instructions to setup Refocus. Execute following commands to setup production environment and corresponding config variables:
 - Run ```export NODE_ENV=production```
 - Run ```export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'```
 - Run ```npm start``` or ```node .```
 
-## IP Restrictions for Refocus
-By default, there is no IP restriction for Refocus access. An admin can configure IP restriction by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.
+## Securing Refocus
+1. After installation, log in (UI or API) as `admin@refocus.admin` with password `password` and change the password for that account.
+1. Create a new user record for yourself with your real email address, and set your profile to the `Admin` profile.
+1. If you want to restrict access to specific IP ranges, see [IP Restrictions](#ip-restrictions) below.
+1. If you want to use your own single sign-on (SSO) user authentication service, see [Authentication](#authentication) below.
+1. Invite other users. Note: by default, only users with the `Admin` profile will be able to invite other users. If you want to let users register themselves as Refocus users, an Admin must set the config parameter `SELF_REGISTRATION_ENABLED` to `true`.
 
-## Authentication
-### Local Authentication only. SSO is not enabled.
+### IP Restrictions
+By default, there are no IP restrictions for Refocus access. An admin can configure IP restrictions by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.
+
+### Authentication
+#### Local Authentication only. SSO is not enabled.
 A user should sign up with Refocus using register page or POST to /v1/register. Once registered, the user can sign in using Local authentication - username/password on Refocus login page.
 
-### SSO enabled with Local authentication.
-#### Non-SSO users
+#### SSO enabled with Local authentication.
+##### Non-SSO users
 Non-SSO users should authenticate with Refocus as described above using Local Authentication.
 
-#### SSO-Users
-If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO Login' button on login page. In case of local authentication with username/password, SSO users will be considered as unregistered user unless they sign up using register page or POST to /v1/register. Once an SSO user is registered with SSO username, the user can sign in using local authentication as well. 
+##### SSO-Users
+If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO Login' button on login page. In case of local authentication with username/password, SSO users will be considered as unregistered user unless they sign up using register page or POST to /v1/register. Once an SSO user is registered with SSO username, the user can sign in using local authentication as well.
+
+### Using API Access Tokens
+- A token is required for API calls when Refocus config has `useAccessToken` set to `true`.
+- New users should register to get API access token. A user can POST to the `/v1/register` endpoint to generate a token. Save this token for future use.
+- Existing users can POST to the `/v1/token` endpoint to retrieve new token.
+- To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
+- When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
 
 ## API Documentation
 The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.yaml). Start your server and open `MY_HOST:MY_PORT/v1/docs` for interactive documentation of all the Refocus API endpoints.
@@ -127,4 +142,4 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 ## Useful Resources
 - Redis [command line interface](http://redis.io/commands)
 - [Postman](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en) for testing API calls
-- Node.js [token-based authentication] (https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)
+- Node.js [token-based authentication](https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)

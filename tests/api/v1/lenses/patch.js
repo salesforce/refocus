@@ -70,4 +70,19 @@ describe(`api: PATCH ${path}`, () => {
       return done();
     });
   });
+
+  it('patch isPublished', (done) => {
+    api.patch(`${path}/${lensId}`)
+    .set('Authorization', token)
+    .send({ isPublished: false })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.isPublished).to.equal(false);
+      return done();
+    });
+  });
 });

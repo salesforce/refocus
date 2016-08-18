@@ -9,7 +9,7 @@ const loginPath = '/login';
 const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
 
-describe.only('api: login ssoconfig', () => {
+describe('api: login ssoconfig', () => {
   after(u.forceDeleteSSOConfig);
 
   it('does not contain sso config button if no ssoconfig', (done) => {

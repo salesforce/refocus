@@ -97,18 +97,19 @@ function computeStatus(aspect, value) {
     return constants.statuses.Timeout;
   }
 
+  let num;
+
   // Boolean value type: Case-insensitive 'true'
   if (value.toLowerCase() === 'true') {
-    return constants.statuses.OK;
-  }
-
-  // Boolean value type: Case-insensitive 'false'
-  if (value.toLowerCase() === 'false') {
-    return constants.statuses.Critical;
+    num = 1;
+  } else if (value.toLowerCase() === 'false') {
+    // Boolean value type: Case-insensitive 'false'
+    num = 0;
+  } else {
+    num = Number(value);
   }
 
   // If not true|false|Timeout, then value must be convertible to number!
-  const num = Number(value);
   if (isNaN(num)) {
     return constants.statuses.Invalid;
   }
@@ -179,7 +180,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName) {
       seq.models.Subject.findOne({
         where: {
           absolutePath: {
-            $ilike: parsedName.subject.absolutePath,
+            $iLike: parsedName.subject.absolutePath,
           },
         },
       })
@@ -196,7 +197,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName) {
       .then(() => seq.models.Aspect.findOne({
         where: {
           name: {
-            $ilike: parsedName.aspect.name,
+            $iLike: parsedName.aspect.name,
           },
         },
       }))

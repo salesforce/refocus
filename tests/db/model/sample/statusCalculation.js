@@ -427,7 +427,18 @@ describe('db: sample: statusCalculation: ', () => {
   }); // integer ranges
 
   describe('booleans, etc.: ', () => {
-    it('lower case true => status 1', (done) => {
+    before((done) => {
+      setupRanges({
+        criticalRange: [0, 0],
+        warningRange: null,
+        infoRange: null,
+        okRange: [1, 1],
+      })
+      .then(() => done())
+      .catch((err) => done(err));
+    });
+
+    it('lower case true => status OK', (done) => {
       sample.update({ value: 'true' })
         .should.eventually.have.property('value', 'true')
       .then(() => Sample.findById(sample.id)
@@ -437,7 +448,7 @@ describe('db: sample: statusCalculation: ', () => {
       .catch((err) => done(err));
     });
 
-    it('upper case TRUE => status 1', (done) => {
+    it('upper case TRUE => status OK', (done) => {
       sample.update({ value: 'TRUE' })
         .should.eventually.have.property('value', 'TRUE')
       .then(() => Sample.findById(sample.id)

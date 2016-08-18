@@ -5,6 +5,8 @@
 const constants = require('../constants');
 const u = require('../helpers/userUtils');
 const common = require('../helpers/common');
+const AdminUpdateDeleteForbidden = require('../dbErrors')
+  .AdminUpdateDeleteForbidden;
 
 const usernameLength = 254;
 const assoc = {};
@@ -93,13 +95,19 @@ module.exports = function user(seq, dataTypes) {
       }, // hooks.beforeCreate
 
       /**
-       * Decrements profile's userCount.
+       * Decrements profile's userCount. No one is allowed to delete the
+       * out-of-the box admin user.
        *
        * @param {Instance} inst - The instance being deleted
        * @returns {Promise} which resolves to the instance, or rejects if
        *  Profile not found
        */
       beforeDestroy(inst /* , opts */) {
+        if (inst.get('name').toLowerCase() ===
+          common.dbconf.adminUser.name.toLowerCase()) {
+          throw new AdminUpdateDeleteForbidden();
+        }
+
         return new seq.Promise((resolve, reject) =>
           inst.getProfile()
           .then((p) => p.decrement('userCount'))
@@ -111,7 +119,8 @@ module.exports = function user(seq, dataTypes) {
 
       /**
        * If profileId was updated, increments userCount for new profile and
-       * decrements for old profile.
+       * decrements for old profile. No one is allowed to change the profile of
+       * the out-of-the-box admin user.
        *
        * @param {Instance} inst - The instance being updated
        * @returns {undefined|Promise} undefined profileId was not changed,
@@ -122,6 +131,12 @@ module.exports = function user(seq, dataTypes) {
         if (inst.changed('password')) {
           u.hashPassword(seq, inst.get('password'))
           .then((hash) => inst.set('password', hash));
+        }
+
+        if (inst.get('name').toLowerCase() ===
+          common.dbconf.adminUser.name.toLowerCase() &&
+          inst.changed('profileId')) {
+          throw new AdminUpdateDeleteForbidden();
         }
 
         if (inst.changed('profileId')) {
@@ -160,11 +175,18 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
+        name: 'UserUniqueLowercaseNameIsDeleted',
         unique: true,
-        fields: ['name', 'isDeleted'],
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+        ],
       },
       {
-        fields: ['email'],
+        name: 'UserLowercaseEmail',
+        fields: [
+          seq.fn('lower', seq.col('email')),
+        ],
       },
     ],
     paranoid: true,

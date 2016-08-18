@@ -161,7 +161,12 @@ describe('Profile model with users', () => {
   it('After attaching a user to a profile, get all profiles should contain ' +
   'a profile object with userCount of 1, and users array of length 1. All ' +
   'profiles will have users field ', (done) => {
-    Profile.findAndCountAll({ include: includeUser })
+    Profile.findAndCount({
+      where: {
+        name: tu.namePrefix + 1,
+      },
+      include: includeUser,
+    })
     .then((found) => {
       expect(found.count).to.equal(1);
       const p = found.rows[0];

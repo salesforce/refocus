@@ -10,6 +10,7 @@ const path = require('path');
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
+const dbutils = require('./utils');
 
 const env = conf.environment[conf.nodeEnv];
 const LAST_THREE_CHARS = -3;
@@ -25,13 +26,15 @@ const seq = new Sequelize(env.dbUrl, {
  *  ends with .js.
  */
 function isJavascriptFile(file) {
-  return fs.statSync(file).isFile() && file.slice(LAST_THREE_CHARS) === '.js';
+  return fs.statSync(file).isFile() && // eslint-disable-line no-sync
+    file.slice(LAST_THREE_CHARS) === '.js';
 }
 
 /**
  * Imports all of the the model definitions from the db/model directory then
  * executes any designated post-import tasks (like setting up associations and
  * scopes, which depend on the existence of other models).
+ * Initializes the "Admin" User and Profile.
  *
  * @param {String} modelDirName - The directory where the model definitions
  *  are located.
@@ -40,7 +43,7 @@ function isJavascriptFile(file) {
 function doImport(modelDirName) {
   const dir = path.join(__dirname, modelDirName);
   const imported = {};
-  const filteredFileArray = fs.readdirSync(dir)
+  const filteredFileArray = fs.readdirSync(dir) // eslint-disable-line no-sync
   .map((f) => path.join(dir, f))
   .filter((f) => isJavascriptFile(f));
   for (let i = 0; i < filteredFileArray.length; i++) {
@@ -56,6 +59,7 @@ function doImport(modelDirName) {
     }
   }
 
+  dbutils.initializeAdminUserAndProfile(seq);
   return imported;
 }
 

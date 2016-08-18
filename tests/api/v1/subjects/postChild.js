@@ -114,4 +114,22 @@ describe(`api: POST ${path}`, () => {
       done();
     });
   });
+
+  it('post child with published true while parent is unpublished',
+  (done) => {
+    api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
+    .set('Authorization', token)
+    .send({ 'name': 'test', 'isPublished': true })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].message).to
+      .equal('You cannot insert a subject with isPublished = true ' +
+        'unless all its ancestors are also published.');
+      done();
+    });
+  });
 });

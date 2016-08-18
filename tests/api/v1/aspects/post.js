@@ -65,7 +65,7 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body).to.have.property('errors');
         expect(res.body.errors[0].message)
-          .to.contain('name must be unique');
+          .to.contain('must be unique');
         expect(res.body.errors[0].source).to.contain('name');
       })
       .end((err /* , res */) => {

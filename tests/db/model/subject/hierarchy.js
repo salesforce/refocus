@@ -200,7 +200,8 @@ describe('db: subject: get hierarchy: ', () => {
       .then(() => {
         const childrenToCreate = [];
         for (let x = 0; x < howManyChildren; x++) {
-          childrenToCreate.push({ name: 'child' + x, parentId });
+          childrenToCreate.push({ name: 'child' + x, parentId,
+            isPublished: true });
         }
         // console.log(childrenToCreate);
         return Subject.bulkCreate(childrenToCreate,

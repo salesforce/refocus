@@ -7,6 +7,7 @@
 'use strict'; // eslint-disable-line strict
 
 const pub = require('../../pubsub').pub;
+const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
 
 // jsonSchema keys for relatedLink
@@ -198,6 +199,7 @@ function setIsDeleted(Promise, inst) {
 } // setIsDeleted
 
 module.exports = {
+  dbconf,
   setIsDeleted,
   handleTags,
   publishChange,

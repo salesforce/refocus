@@ -15,15 +15,15 @@ const path = '/v1/subjects';
 
 describe(`api: PUT ${path}`, () => {
   const token = tu.createToken();
-  const n0 = { name: `${tu.namePrefix}Canada` };
-  const n1 = { name: `${tu.namePrefix}Ontario` };
-  const n2 = { name: `${tu.namePrefix}Manitoba` };
-  const p0 = { name: `${tu.namePrefix}NA` };
+  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
+  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
+  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
+  const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = { name:
     `${tu.namePrefix}Quebec`,
     isPublished: true,
   };
-  const n0a = { name: `${tu.namePrefix}NorthAmerica` };
+  const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
 
   let i0 = 0;
   let i1 = 0;
@@ -202,6 +202,7 @@ describe(`api: PUT ${path}`, () => {
     .send({
       name: `${tu.namePrefix}Canada`,
       parentId: i0a,
+      isPublished: true
     })
     .expect(constants.httpStatus.OK)
     .expect(reparented)

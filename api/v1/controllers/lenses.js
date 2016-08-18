@@ -219,6 +219,12 @@ module.exports = {
   getLens(req, res, next) {
     u.findByKey(helper, req.swagger.params, ['lensLibrary'])
     .then((o) => {
+      if (o.isPublished === false) {
+        throw new apiErrors.ResourceNotFoundError({
+          explanation: 'Lens is not published. Please contact Refocus admin.',
+        });
+      }
+
       res.status(httpStatus.OK).json(responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

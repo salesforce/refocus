@@ -77,4 +77,27 @@ describe(`api: GET ${path}`, () => {
       return done();
     });
   });
+
+  it('Error if lens is not published', (done) => {
+    api.patch(`${path}/${lensName}`)
+    .set('Authorization', token)
+    .send({ isPublished: false })
+    .end((_err) => {
+      if (_err) {
+        return done(_err);
+      }
+
+      api.get(`${path}/${lensName}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to.equal('Lens is not published. Please contact Refocus admin.');
+        return done();
+      });
+    });
+  });
 });
