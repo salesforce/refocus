@@ -17,7 +17,7 @@ module.exports = {
         '../apiTestsUtils/lens.zip')
       );
       const lens = {
-        name: 'testLensName',
+        name: `${tu.namePrefix}testLensName`,
         sourceName: 'testSourceLensName',
         description: 'test Description',
         sourceDescription: 'test Source Description',

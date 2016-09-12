@@ -12,13 +12,22 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 
 describe(`api: DELETE ${path}`, () => {
-  const token = tu.createToken();
+  let token;
 
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
   let ipar = 0;
   let ichi = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Subject.create(par)
@@ -37,6 +46,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('by id', (done) => {
     api.delete(path.replace('{key}', ipar))

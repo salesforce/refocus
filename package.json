@@ -2,8 +2,8 @@
   "name": "Focus",
   "description": "Focus",
   "engines": {
-    "node": "4.0.x",
-    "npm": "3.3.x"
+    "node": "4.5.x",
+    "npm": "3.10.x"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -16,10 +16,9 @@
     "view": "view/**/*/app.js"
   },
   "scripts": {
-    "build": "npm run clean && webpack --config ./webpack.config.js --progress --profile",
-    "clean": "rm -rf public/admin",
+    "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "lint": "eslint view/admin",
-    "view": "gulp browserifyViews && npm run build && npm start",
+    "view": "NODE_ENV=production gulp browserifyViews && npm start",
     "start": "node index.js",
     "dropdb": "node db/createOrDropDb.js -d",
     "initdb": "node db/createOrDropDb.js -i",
@@ -29,12 +28,14 @@
     "checkprivatedb": "node db/createOrUpdatePrivateDb",
     "undo-migratedb": "node db/migrateUndo.js",
     "test-api": "mocha -R dot --recursive tests/api",
+    "test-disablehttp": "NODE_ENV=testDisableHttp  mocha -R dot --recursive tests/disableHttp",
     "test-token-req": "NODE_ENV=testTokenReq mocha -R dot --recursive tests/tokenReq",
     "test-token-notreq": "NODE_ENV=testTokenNotReq mocha -R dot --recursive tests/tokenNotReq",
     "test-db": "npm run resetdb && mocha -R dot --recursive tests/db",
+    "test-realtime": "mocha -R dot --recursive tests/realtime",
     "test-view": "NODE_ENV=test mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
-    "test": "npm run test-db && npm run test-api && npm run test-view && npm run test-token-req && npm run test-token-notreq",
-    "postinstall": "gulp browserifyViews && npm run build && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
+    "test": "npm run test-db && npm run test-api && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp",
+    "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
     "prestart": "npm run checkprivatedb"
   },
   "dependencies": {
@@ -63,6 +64,7 @@
     "debug": "^2.2.0",
     "errors": "^0.3.0",
     "express": "^4.13.3",
+    "express-enforces-ssl": "^1.1.0",
     "express-ipfilter": "^0.0.24",
     "express-session": "^1.13.0",
     "extract-text-webpack-plugin": "^0.8.2",
@@ -121,7 +123,7 @@
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.12.10",
     "webpack-hot-middleware": "^2.6.0",
-    "winston": "^1.0.2"
+    "winston": "^1.1.2"
   },
   "devDependencies": {
     "eslint": "^2.5.3",

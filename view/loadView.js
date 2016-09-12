@@ -17,16 +17,15 @@ const NOT_FOUND = 404;
 
 // protected urls
 const viewmap = {
-  '/perspectives': 'refocusIndex/index',
-  '/aspects': 'admin',
-  '/aspects/:key': 'admin',
-  '/aspects/:key/edit': 'admin',
-  '/subjects': 'admin',
-  '/subjects/:key': 'admin',
-  '/subjects/:key/edit': 'admin',
-  '/samples': 'admin',
-  '/samples/:key': 'admin',
-  '/samples/:key/edit': 'admin',
+  '/aspects': 'admin/index',
+  '/aspects/:key': 'admin/index',
+  '/aspects/:key/edit': 'admin/index',
+  '/subjects': 'admin/index',
+  '/subjects/:key': 'admin/index',
+  '/subjects/:key/edit': 'admin/index',
+  '/samples': 'admin/index',
+  '/samples/:key': 'admin/index',
+  '/samples/:key/edit': 'admin/index',
   '/focusGrid': 'focusGrid/focus',
   '/focusRtBracket': 'focusRtBracket/focus',
   '/focusTree': 'focusTree/focus',
@@ -92,23 +91,33 @@ module.exports = function loadView(app, passport) {
       ensureAuthenticated,
       (req, res) => {
         // if request admin, serve html file. Otherwise render
-        viewmap[key] === 'admin' ?
-          res.sendFile(path.resolve('public/admin/index.html')) :
-          res.render(viewmap[key], {
-            trackingId: viewConfig.trackingId,
-            user: req.user,
-          });
+        res.render(viewmap[key], {
+          trackingId: viewConfig.trackingId,
+          user: req.user,
+        });
       }
     )
   );
 
   app.get(
-    '/perspectives/:key',
+    '/perspectives',
+    ensureAuthenticated,
     (req, res) => {
       res.render('perspective/perspective', {
         eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
         trackingId: viewConfig.trackingId,
-      })
+      });
+    }
+  );
+
+  app.get(
+    '/perspectives/:key',
+    ensureAuthenticated,
+    (req, res) => {
+      res.render('perspective/perspective', {
+        eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+        trackingId: viewConfig.trackingId,
+      });
     }
   );
 

@@ -18,7 +18,16 @@ const path = '/v1/samples/upsert';
 describe(`api: POST ${path}`, () => {
   let aspect;
   let subject;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Aspect.create(u.aspectToCreate)
@@ -34,6 +43,7 @@ describe(`api: POST ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('upserts when the sample does not already exist', (done) => {
     api.post(path)
@@ -269,7 +279,16 @@ describe(`api: POST ${path}`, () => {
 describe(`api: POST ${path} aspect isPublished false`, () => {
   let aspect;
   let subject;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Aspect.create(u.aspectToCreateNotPublished)
@@ -285,6 +304,7 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('sample upsert restricted if aspect not published', (done) => {
     api.post(path)

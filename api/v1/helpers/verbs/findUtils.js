@@ -138,7 +138,7 @@ function options(params, props) {
   const opts = u.buildFieldList(params);
 
   // Specify the sort order
-  const ord = params.sort.value || props.defaultOrder;
+  const ord = (params.sort ? params.sort.value : null) || props.defaultOrder;
   opts.order = toSequelizeOrder(ord, props.modelName);
 
   // Specify the limit

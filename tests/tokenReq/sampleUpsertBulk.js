@@ -16,7 +16,16 @@ const Profile = tu.db.Profile;
 const path = '/v1/samples/upsert/bulk';
 
 describe('api: POST ' + path, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Aspect.create({
@@ -41,7 +50,7 @@ describe('api: POST ' + path, () => {
       name: tu.namePrefix + 1,
     }))
     .then((createdProfile) => User.create({
-      email: 'test@refocus.com',
+      email: 'testToken@refocus.com',
       profileId: createdProfile.id,
       name: `${tu.namePrefix}1`,
       password: 'abcd',
@@ -51,6 +60,7 @@ describe('api: POST ' + path, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('forbidden if no token', (done) => {
     api.post(path)

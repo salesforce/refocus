@@ -5,6 +5,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const logAPI = require('../../../../utils/loggingUtil').logAPI;
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -20,9 +21,14 @@ function doPost(req, res, next, props) {
   const toPost = req.swagger.params.queryBody.value;
   const assocToCreate = u.includeAssocToCreate(toPost, props);
   props.model.create(toPost, assocToCreate)
-  .then((o) =>
-    res.status(httpStatus.CREATED).json(u.responsify(o, props, req.method))
-  )
+  .then((o) => {
+    if (props.loggingEnabled) {
+      logAPI(req, props.modelName, o);
+    }
+
+    return res.status(httpStatus.CREATED)
+    .json(u.responsify(o, props, req.method));
+  })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

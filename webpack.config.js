@@ -8,16 +8,16 @@ module.exports = {
   devtool: 'eval-source-map',
   entry: [
     'webpack-hot-middleware/client?reload=true',
-    path.join(__dirname, 'view/admin/index.js')
+    path.join(__dirname, 'view/perspective/app.js')
   ],
   output: {
-    path: path.join(__dirname, '/public/admin/'),
-    filename: '[name].js',
-    publicPath: '/admin'
+    path: path.join(__dirname, '/public/perspective/'),
+    filename: 'app.js',
+    publicPath: '/perspective'
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: 'view/admin/index.template.html',
+      template: 'view/perspective/perspective.pug',
       inject: 'body',
       filename: 'index.html',
       googleAnalytics: {

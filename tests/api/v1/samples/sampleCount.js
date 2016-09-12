@@ -14,7 +14,16 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
 describe('Sample Count:', () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Aspect.create({
@@ -40,6 +49,7 @@ describe('Sample Count:', () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('For Subject:', () => {
     it('all subjects', (done) => {

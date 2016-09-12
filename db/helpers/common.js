@@ -9,11 +9,42 @@
 const pub = require('../../pubsub').pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
+const logDB = require('../../utils/loggingUtil').logDB;
+
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {
   relatedlink: ['name', 'url'],
 };
+
+// change types for logs.
+const changeType = {
+  add: 'ADD',
+  upd: 'UPDATE',
+  del: 'DELETE',
+};
+
+/**
+ * Takes a sample instance and enhances it with the subject instance
+ * @param {Sequelize} seq - A reference to Sequelize to have access to the
+ * the Promise class.
+ * @param {Instance} inst - The Sample Instance.
+ * @returns {Promise} - Returns a promise which resolves to sample instance
+ * enhanced with subject instance information.
+ */
+function augmentSampleWithSubjectInfo(seq, inst) {
+  return new seq.Promise((resolve, reject) => {
+    inst.getSubject()
+    .then((sub) => {
+      inst.dataValues.subject = sub;
+      // adding absolutePath to sample instance
+      inst.dataValues.absolutePath = sub.absolutePath;
+      inst.subject = sub;
+      resolve(inst);
+    })
+    .catch((err) => reject(err));
+  });
+}
 
 /**
  * This function checks if the aspect and subject associated with the sample
@@ -39,12 +70,58 @@ function sampleAspectAndSubjectArePublished(seq, inst) {
 } // sampleAspectAndSubjectArePublished
 
 /**
+ * Create db log. Changed values will be empty in case of post.
+ * @param  {Object} inst  -  Model instance in case of post,
+ * { old: old_inst, new: new_inst} in case of update
+ * @param  {Object} eventType  - event type
+ * @param  {Array} changedKeys - An array containing the fields of the model
+ * that were changed
+ * @param  {Array} ignoreAttributes - An array containing the fields of the
+ * model that should be ignored
+ */
+function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
+  let objNameLog;
+  let objIDLog;
+
+  // get name and id of instance
+  if (inst.old) {
+    objNameLog = `Name=${inst.old.name}`;
+  } else {
+    objNameLog = `Name=${inst.name}`;
+  }
+
+  if (inst.old) {
+    objIDLog = ` ID=${inst.old.id}`;
+  } else {
+    objIDLog = ` ID=${inst.id}`;
+  }
+
+  const instance = `${objNameLog} ${objIDLog}`;
+  let changedVals = '';
+
+  // If an update, log all changed attributes
+  if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
+    const ignoreSet = new Set(ignoreAttributes);
+
+    for (let i = 0; i < changedKeys.length; i++) {
+      if (!ignoreSet.has(changedKeys[i])) {
+        changedVals += `${changedKeys[i]}:` +
+        `${inst._previousDataValues[changedKeys[i]]} => ` +
+        `${inst.get()[changedKeys[i]]} ;`;
+      }
+    }
+  }
+
+  logDB(instance, eventType, changedVals);
+}
+
+/**
  * This function returns an object to be published via redis channel
  * @param  {Object} inst  -  Model instance
-  @param  {[Array]} changedKeys - An array containing the fileds of the model
+  @param  {[Array]} changedKeys - An array containing the fields of the model
  * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fileds of the
- * mode that should be ignored
+ * @param  {[Array]} ignoreAttributes An array containing the fields of the
+ * model that should be ignored
  * @returns {Object} - Returns an object that is ready to be published Or null
  * if there are no changedfields.
  */
@@ -69,15 +146,14 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  *
  * @param  {Object} inst - Model instance to be published
  * @param  {String} event  - Type of the event that is being published
- * @param  {[Array]} changedKeys - An array containing the fileds of the model
+ * @param  {[Array]} changedKeys - An array containing the fields of the model
  * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fileds of the mode
- * that should be ignored
+ * @param  {[Array]} ignoreAttributes An array containing the fields of the
+ * model that should be ignored
  * @returns {Object} - object that was published
  */
 function publishChange(inst, event, changedKeys, ignoreAttributes) {
   const obj = {};
-
   obj[event] = inst.get();
 
   /**
@@ -204,5 +280,8 @@ module.exports = {
   handleTags,
   publishChange,
   sampleAspectAndSubjectArePublished,
+  augmentSampleWithSubjectInfo,
   validateJsonSchema,
+  createDBLog,
+  changeType,
 }; // exports

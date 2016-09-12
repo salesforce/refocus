@@ -13,12 +13,21 @@ const expect = require('chai').expect;
 
 describe(`api: PATCH ${path}`, () => {
   let perspectiveId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
@@ -34,6 +43,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('patch rootSubject', (done) => {
     api.patch(`${path}/${perspectiveId}`)

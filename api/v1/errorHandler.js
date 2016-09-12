@@ -20,7 +20,7 @@ const dbErrors = require('../../db/dbErrors');
 function isApiError(err) {
   return err instanceof apiErrors.ResourceNotFoundError ||
   err instanceof apiErrors.ValidationError ||
-  err instanceof apiErrors.FocusApiError;
+  err instanceof apiErrors.RefocusApiError;
 }
 
 /**

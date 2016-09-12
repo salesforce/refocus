@@ -313,7 +313,7 @@ function getScopedModel(props, fields) {
     const scopes = [constants.SEQ_DEFAULT_SCOPE];
     for (let i = 0; i < fields.length; i++) {
       const f = fields[i];
-      if (props.fieldScopeMap[f]) {
+      if (props.fieldScopeMap && props.fieldScopeMap[f]) {
         scopes.push(props.fieldScopeMap[f]);
       }
     }

@@ -7,6 +7,7 @@ const ProfileDeleteConstraintError = require('../dbErrors')
   .ProfileDeleteConstraintError;
 const AdminUpdateDeleteForbidden = require('../dbErrors')
   .AdminUpdateDeleteForbidden;
+const adminProfileName = require('../../config').db.adminProfile.name;
 
 const assoc = {};
 
@@ -90,6 +91,15 @@ module.exports = function profile(seq, dataTypes) {
         //   override: true,
         // });
       },
+
+      isAdmin(profileId) {
+        return new Promise((resolve, reject) => {
+          Profile.findById(profileId)
+          .then((p) => resolve(p &&
+            p.name.toLowerCase() === adminProfileName.toLowerCase()))
+          .catch((err) => reject(err));
+        });
+      }, // isAdmin
     },
     defaultScope: {
       order: ['Profile.name'],

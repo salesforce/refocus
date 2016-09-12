@@ -13,7 +13,7 @@ const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}:`, () => {
-  const token = tu.createToken();
+  let token;
 
   let gp = { name: `${tu.namePrefix}America`, isPublished: true };
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -33,6 +33,15 @@ describe(`api: GET ${path}:`, () => {
 
   const sample1 = { value: '10' };
   const sample2 = { value: '10' };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(gp)
@@ -73,6 +82,7 @@ describe(`api: GET ${path}:`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('isPublished flag:', () => {
     it('hierarchy at gp level should contain parent as a child', (done) => {

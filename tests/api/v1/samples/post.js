@@ -13,7 +13,16 @@ const expect = require('chai').expect;
 
 describe(`api: POST ${path}`, () => {
   let sampleToPost;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     u.doSetup()
@@ -25,6 +34,7 @@ describe(`api: POST ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('basic post /samples', (done) => {
     api.post(path)
@@ -113,7 +123,16 @@ describe(`api: POST ${path}`, () => {
 
 describe(`api: POST ${path} aspect isPublished false`, () => {
   let sampleToPost;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     u.doSetupAspectNotPublished()
@@ -125,6 +144,7 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('cannot create sample if aspect not published', (done) => {
     api.post(path)

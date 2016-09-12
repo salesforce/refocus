@@ -16,7 +16,16 @@ describe(`api: PATCH ${path}`, () => {
   let sampleId;
   let sampUpdatedAt;
   let sampleValue;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -33,6 +42,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('UpdatedAt tests: ', () => {
     it('patch /samples without value does not increment ' +
@@ -182,7 +192,16 @@ describe(`api: PATCH ${path}`, () => {
 
 describe(`api: PATCH ${path} aspect isPublished false`, () => {
   let sampleId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -204,6 +223,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('cannot patch sample if aspect not published', (done) => {
     api.patch(`${path}/${sampleId}`)

@@ -3,8 +3,6 @@
  */
 
 const tu = require('../../../testUtils');
-const jwtUtil = require('../../../../api/v1/helpers/jwtUtil');
-const jwt = require('jsonwebtoken');
 const samlParams = {
   samlEntryPoint: 'http://someurl.com',
   samlIssuer: 'passport-saml',
@@ -22,11 +20,6 @@ module.exports = {
 
   creatSSOConfig() {
     return tu.db.SSOConfig.create(samlParams);
-  },
-
-  createToken() {
-    const createdToken = jwtUtil.createToken({ email: 'test@refocus.com' });
-    return createdToken;
   },
 
   samlParams,

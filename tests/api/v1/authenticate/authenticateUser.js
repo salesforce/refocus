@@ -15,7 +15,6 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 
 describe(`api: authenticateUser`, () => {
-  const token = tu.createToken();
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
@@ -32,7 +31,6 @@ describe(`api: authenticateUser`, () => {
 
   it('no user found', (done) => {
     api.post(authPath)
-    .set('Authorization', token)
     .send({
       email: 'unknown@abc.com',
       password: 'fakePasswd',
@@ -50,7 +48,6 @@ describe(`api: authenticateUser`, () => {
 
   it('Wrong password', (done) => {
     api.post(authPath)
-    .set('Authorization', token)
     .send({
       email: 'user1@abc.com',
       password: 'wrongPasswd',
@@ -68,7 +65,6 @@ describe(`api: authenticateUser`, () => {
 
   it('sucessful authentication', (done) => {
     api.post(authPath)
-    .set('Authorization', token)
     .send(u.fakeUserCredentials)
     .expect(constants.httpStatus.OK)
     .expect((res) => expect(res.body.success).to.be.true)
@@ -84,7 +80,6 @@ describe(`api: authenticateUser`, () => {
 
 
 describe('api: authenticate sso user', () => {
-  const token = tu.createToken();
   let ssoUser;
   beforeEach((done) => {
     Profile.create({
@@ -110,7 +105,6 @@ describe('api: authenticate sso user', () => {
 
   it('sso user cannot authenticate by username password', (done) => {
     api.post(authPath)
-    .set('Authorization', token)
     .send({
       email: ssoUser.email,
       password: 'fakePasswd',

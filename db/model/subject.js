@@ -11,11 +11,16 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
+const config = require('../../config');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
   del: 'refocus.internal.realtime.subject.remove',
 };
+
+const dbLoggingEnabled = (
+    config.auditSubjects === 'DB' || config.auditSubjects === 'ALL'
+  ) || false;
 
 const assoc = {};
 
@@ -280,6 +285,11 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       afterCreate(inst /* , opts */) {
+        // log instance create
+        if (dbLoggingEnabled) {
+          common.createDBLog(inst, common.changeType.add);
+        }
+
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.add);
         }
@@ -321,7 +331,7 @@ module.exports = function subject(seq, dataTypes) {
           inst.getChildren()
           .then((children) => {
             if (children) {
-              for (var i = 0, len = children.length; i < len; ++i) {
+              for (let i = 0, len = children.length; i < len; ++i) {
                 children[i].setDataValue('absolutePath',
                   inst.absolutePath + '.' + children[i].name);
                 children[i].setDataValue('parentAbsolutePath',
@@ -345,9 +355,25 @@ module.exports = function subject(seq, dataTypes) {
           'updatedAt',
           'isDeleted',
         ];
+
+        // log instance update
+        if (dbLoggingEnabled) {
+          common.createDBLog(
+            inst, common.changeType.upd, changedKeys, ignoreAttributes
+          );
+        }
+
         if (inst.getDataValue('isPublished')) {
-          common.publishChange(inst, eventName.upd, changedKeys,
-            ignoreAttributes);
+          if (inst.previous('isPublished')) {
+            common.publishChange(inst, eventName.upd, changedKeys,
+              ignoreAttributes);
+          } else {
+            // Treat publishing a subject as an "add" event.
+            common.publishChange(inst, eventName.add);
+          }
+        } else if (inst.previous('isPublished')) {
+          // Treat unpublishing a subject as a "delete" event.
+          common.publishChange(inst, eventName.del);
         }
       }, // hooks.afterupdate
 
@@ -360,6 +386,11 @@ module.exports = function subject(seq, dataTypes) {
        *  if an error was encountered
        */
       afterDelete(inst /* , opts */) {
+        // log instance deletion
+        if (dbLoggingEnabled) {
+          common.createDBLog(inst, common.changeType.del);
+        }
+
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.del);
         }
@@ -418,7 +449,7 @@ module.exports = function subject(seq, dataTypes) {
             .then((children) => {
               if (children && children.length) {
                 const len = children.length;
-                for (var i = 0; i < len; ++i) {
+                for (let i = 0; i < len; ++i) {
                   if (children[i].getDataValue('isPublished') === true) {
                     throw new ValidationError({
                       message: 'You cannot unpublish this subject until ' +
@@ -558,6 +589,14 @@ module.exports = function subject(seq, dataTypes) {
         fields: [
           seq.fn('lower', seq.col('absolutePath')),
           'isDeleted',
+        ],
+      },
+      {
+        name: 'SubjectAbsolutePathDeletedAtIsPublished',
+        fields: [
+          seq.fn('lower', seq.col('absolutePath')),
+          'deletedAt',
+          'isPublished',
         ],
       },
     ],

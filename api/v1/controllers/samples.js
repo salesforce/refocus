@@ -12,6 +12,7 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const logAPI = require('../../../utils/loggingUtil').logAPI;
 
 module.exports = {
 
@@ -109,8 +110,13 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     helper.model.upsertByName(req.swagger.params.queryBody.value)
-    .then((o) =>
-      res.status(httpStatus.OK).json(u.responsify(o, helper, req.method)))
+    .then((o) => {
+      if (helper.loggingEnabled) {
+        logAPI(req, helper.modelName, o);
+      }
+
+      return res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -137,6 +143,10 @@ module.exports = {
     */
 
     helper.model.bulkUpsertByName(req.swagger.params.queryBody.value);
+    if (helper.loggingEnabled) {
+      logAPI(req, helper.modelName);
+    }
+
     res.sendStatus(httpStatus.OK);
 
     /*
@@ -177,6 +187,10 @@ module.exports = {
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
+      if (helper.loggingEnabled) {
+        logAPI(req, 'SampleRelatedLinks', o);
+      }
+
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
     })

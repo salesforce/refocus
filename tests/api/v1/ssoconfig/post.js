@@ -1,6 +1,7 @@
 /**
  * tests/api/v1/ssoconfig/post.js
  */
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -10,9 +11,19 @@ const u = require('./utils');
 const path = '/v1/ssoconfig';
 
 describe(`api: POST ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('sucessful creation', (done) => {
     api.post(path)

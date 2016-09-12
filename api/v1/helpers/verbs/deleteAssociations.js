@@ -6,6 +6,7 @@
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const apiErrors = require('../../apiErrors');
+const logAPI = require('../../../../utils/loggingUtil').logAPI;
 
 /**
  * Deletes association from the object and sends updated object in the
@@ -61,6 +62,16 @@ function deleteAssociations(req, res, next, props) {
   })
   .then((assocObj) => {
     resObj.dataValues[association] = assocObj;
+
+    if (props.loggingEnabled) {
+      const logAssociationInfo = { association };
+      if (params.akey) {
+        logAssociationInfo.key = params.akey.value;
+      }
+
+      logAPI(req, props.modelName, resObj, logAssociationInfo);
+    }
+
     res.status(httpStatus.OK).json(
       u.responsify(resObj, props, req.method)
     );

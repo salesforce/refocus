@@ -15,7 +15,7 @@ const User = tu.db.User;
 const Profile = tu.db.Profile;
 
 describe(`api: GET ${path}`, () => {
-  const token = tu.createToken();
+  let token;
 
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
@@ -31,6 +31,15 @@ describe(`api: GET ${path}`, () => {
 
   let ipar = 0;
   let ichi = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(par)
@@ -59,7 +68,7 @@ describe(`api: GET ${path}`, () => {
       name: tu.namePrefix + 1,
     }))
     .then((createdProfile) => User.create({
-      email: 'test@refocus.com',
+      email: 'testToken@refocus.com',
       profileId: createdProfile.id,
       name: `${tu.namePrefix}1`,
       password: 'abcd',
@@ -69,6 +78,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('subject hierarchy with samples', () => {
     it('forbidden if no token', (done) => {

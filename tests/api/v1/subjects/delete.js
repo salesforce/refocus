@@ -15,7 +15,18 @@ const allDeletePath = '/v1/subjects/{key}/relatedLinks';
 const oneDeletePath = '/v1/subjects/{key}/relatedLinks/{akey}';
 
 describe(`api: DELETE ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  after(tu.forceDeleteUser);
 
   describe('Childless Subjects', () => {
     const n = { name: `${tu.namePrefix}NorthAmerica` };
@@ -325,7 +336,7 @@ describe(`api: DELETE ${path}`, () => {
 });
 
 describe('api: subjects: DELETE relatedLinks', () => {
-  const token = tu.createToken();
+  let token;
   let i;
   const n = {
     name: `${tu.namePrefix}NorthAmerica`,
@@ -341,6 +352,15 @@ describe('api: subjects: DELETE relatedLinks', () => {
     ]
   };
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Subject.create(
       n
@@ -352,6 +372,7 @@ describe('api: subjects: DELETE relatedLinks', () => {
     .catch((err) => done(err));
   });
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete all relatedLinks', (done) => {
     api.delete(allDeletePath.replace('{key}', i))

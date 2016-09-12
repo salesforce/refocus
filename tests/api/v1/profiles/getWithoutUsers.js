@@ -14,15 +14,24 @@ const path = '/v1/profiles';
 
 describe(`api: GET ${path} (without users)`, () => {
   const profileObj = { name: `${tu.namePrefix}1` };
-  const token = tu.createToken();
+  let token;
 
-  beforeEach((done) => {
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  before((done) => {
     Profile.create(profileObj)
     .then(() => done())
     .catch((err) => done(err));
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('GET all with fields [name,id] returns only name & id fields (and ' +
   'apiLinks)', (done) => {

@@ -903,6 +903,182 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /globalconfig:
+    x-swagger-router-controller: globalconfig
+    get:
+      security:
+        - jwt: []
+      summary: Get all global config items
+      tags: [ globalconfig ]
+      description: >-
+        Get all global config items. You may optionally specify limit and offset. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      externalDocs:
+        description: >-
+          GET /globalconfig
+        url: http://focus.salesforce.com/docs/api/globalconfig
+      operationId: findGlobalConfig
+      parameters:
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns a list of global config items.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GlobalConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new global config item
+      tags: [ globalconfig ]
+      description: >-
+        Create a new global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postGlobalConfig
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A global configration item (key/value pair).
+            properties:
+              key:
+                type: string
+                maxLength: 60
+              value:
+                type: string
+            required:
+              - key
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/GlobalConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /globalconfig/{key}:
+    x-swagger-router-controller: globalconfig
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified global config item
+      tags: [ globalconfig ]
+      description: >-
+        Delete the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteGlobalConfig
+      parameters:
+        -
+          name: key
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted global config item.
+          schema:
+            $ref: "#/definitions/GlobalConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified global config item
+      tags: [ globalconfig ]
+      description: >-
+        Retrieve the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getGlobalConfig
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the global config item to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified global config item.
+          schema:
+            $ref: "#/definitions/GlobalConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified global config item
+      tags: [ globalconfig ]
+      description: >-
+        Update the specified global config item. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: patchGlobalConfig
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the global config item to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+                  A global config item.
+            properties:
+              value:
+                type: string
+      responses:
+        200:
+          description: Success, returns the updated global config item.
+          schema:
+            $ref: "#/definitions/GlobalConfigResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /lenses:
     x-swagger-router-controller: lenses
     get:
@@ -4652,6 +4828,41 @@ definitions:
           $ref: "#/definitions/RelatedLinkResponse"
         description: >
           RelatedLinks associated with this model.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+  GlobalConfigResponse:
+    type: object
+    description: >
+      A global configuration item (key/value pair).
+    properties:
+      key:
+        type: string
+        readOnly: true
+        maxLength: 60
+      value:
+        type: string
+        readOnly: true
+      createdBy:
+        readOnly: true
+        $ref: "#/definitions/UsersResponse"
+        description: >
+          User who created this Aspect.
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          TODO
       apiLinks:
         readOnly: true
         type: array

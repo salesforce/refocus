@@ -18,6 +18,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 - [How redis is used](#how-redis-is-used)
 - [Running on Heroku](#running-on-heroku)
   - [Troubleshooting a Heroku deployment](#troubleshooting-a-heroku-deployment)
+- [Perspective Debugging](#perspective-debugging)
 - [API Documentation](#api-documentation)
 - [Securing Refocus](#securing-refocus)
   - [IP Restrictions](#ip-restrictions)
@@ -39,6 +40,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 1. Install [Redis](http://redis.io/download).
 1. Clone this git repository.
 1. Run `cd refocus`.
+1. Create a new branch: ```git checkout -b <your branch name> master```
 1. Run `npm install`. This downloads and installs project dependencies and executes the post-install steps. Note: don't run this with sudo! You may get some weird errors later.
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
@@ -55,8 +57,8 @@ Whenever you pull down a new version of Refocus from the git repository:
 1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
 
 ## Development
-- Set `NODE_ENV=development` and modify the webpack.config.js to take advantage of react hot module reload (react-hmr), for faster front-end development.
-- At times the generated pages don't show due to this error in the browser console: `locals[0] does not appear to be a 'module' object with Hot Module replacement API enabled`. This can happen when the NODE_ENV is development or blank. To fix the issue, set `NODE_ENV=build`, then run the page build again.
+- Run `npm run build` and modify the webpack.config.js to take advantage of react hot module reload (react-hmr), for faster front-end development.
+- At times the generated pages don't show due to this error in the browser console: `locals[0] does not appear to be a 'module' object with Hot Module replacement API enabled`. This can happen when the NODE_ENV is blank. To fix the issue, set the NODE_ENV to a non-empty value, then run the build again.
 - If you want any of the packages to send output to stdout, you can start your server with `DEBUG=* node .` or you can spell out which packages you want to show debug output, e.g. `DEBUG=express*,swagger* node .`.
 - Use [nodemon](http://nodemon.io/) to monitor for any changes in your source and automatically restart your server.
 - Use Node.js [Debugger](https://nodejs.org/api/debugger.html).
@@ -135,6 +137,9 @@ If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO
 - Existing users can POST to the `/v1/token` endpoint to retrieve new token.
 - To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
 - When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
+
+## Perspective Debugging
+If you are troubleshooting realtime event handling in a perspective, add query parameter `debug=REALTIME` to any perspective URL. This turns on console logging in the browser for all the realtime subject and sample events the perspective receives.
 
 ## API Documentation
 The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.yaml). Start your server and open `MY_HOST:MY_PORT/v1/docs` for interactive documentation of all the Refocus API endpoints.

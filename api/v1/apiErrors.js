@@ -9,7 +9,7 @@ const apiErrors = require('errors');
 
 apiErrors.create({
   code: 11010,
-  name: 'FocusApiError',
+  name: 'RefocusApiError',
 });
 
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ apiErrors.create({
   code: 11100,
   status: 400,
   name: 'ValidationError',
-  parent: apiErrors.FocusApiError,
+  parent: apiErrors.RefocusApiError,
   fields: [],
 });
 
@@ -40,7 +40,7 @@ apiErrors.create({
   code: 11200,
   status: 404,
   name: 'ResourceNotFoundError',
-  parent: apiErrors.FocusApiError,
+  parent: apiErrors.RefocusApiError,
   resourceType: '',
   resourceKey: '',
 });
@@ -52,7 +52,7 @@ apiErrors.create({
   code: 11300,
   status: 401,
   name: 'LoginError',
-  parent: apiErrors.FocusApiError,
+  parent: apiErrors.RefocusApiError,
   resourceType: '',
   resourceKey: '',
 });
@@ -64,7 +64,8 @@ apiErrors.create({
   code: 11400,
   status: 403,
   name: 'ForbiddenError',
-  parent: apiErrors.FocusApiError,
+  parent: apiErrors.RefocusApiError,
+  defaultMessage: 'Forbidden',
   resourceType: '',
   resourceKey: '',
 });

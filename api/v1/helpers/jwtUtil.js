@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const u = require('./verbs/utils');
 const apiErrors = require('../apiErrors');
 const conf = require('../../../config');
+const env = conf.environment[conf.nodeEnv];
 const User = require('../../../db/index').User;
 
 /**
@@ -22,11 +23,10 @@ function handleInvalidToken(cb) {
 
 /**
  * Verify jwt token.
- * @param  {string}   secret - secret to create token
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
  */
-function verifyToken(secret, req, cb) {
+function verifyToken(req, cb) {
   const authorization = req.headers.authorization;
   let token;
 
@@ -35,13 +35,14 @@ function verifyToken(secret, req, cb) {
   }
 
   if (token) {
-    jwt.verify(token, secret, {}, (err, decodedData) => {
+    jwt.verify(token, env.tokenSecret, {}, (err, decodedData) => {
       if (err) {
         handleInvalidToken(cb);
       } else {
         User.findOne({ where: { email: decodedData } })
         .then((user) => {
           if (user) {
+            req.user = user;
             return cb();
           }
 
@@ -58,12 +59,36 @@ function verifyToken(secret, req, cb) {
 }
 
 /**
+ * Verify jwt token.
+ * @param  {object}   req - request object
+ * @param  {Function} cb - callback function
+ * @returns {User}
+ */
+function getUsernameFromToken(req) {
+  return new Promise((resolve, reject) => {
+    if (req && req.headers && req.headers.authorization) {
+      jwt.verify(req.headers.authorization, env.tokenSecret, {},
+      (err, decodedData) => {
+        if (err !== null) {
+          reject(err);
+        }
+
+        resolve(decodedData);
+      });
+    } else {
+      reject(new apiErrors.ForbiddenError({
+        explanation: 'No authorization token was found',
+      }));
+    }
+  });
+} // getUsernameFromToken
+
+/**
  * Create jwt token
  * @param  {object}   user - user object
  * @returns {string} created token
  */
 function createToken(user) {
-  const env = conf.environment[conf.nodeEnv];
   const createdToken = jwt.sign(user.email, env.tokenSecret);
   return createdToken;
 }
@@ -71,4 +96,5 @@ function createToken(user) {
 module.exports = {
   verifyToken,
   createToken,
+  getUsernameFromToken,
 };

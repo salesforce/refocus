@@ -11,7 +11,18 @@ const path = '/v1';
 const expect = require('chai').expect;
 
 describe(`api: ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  after(tu.forceDeleteUser);
 
   it('/v1 redirects to /v1/docs', (done) => {
     api.get(path)
