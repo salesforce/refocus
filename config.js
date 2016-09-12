@@ -47,6 +47,21 @@ module.exports = {
     channelName: 'focus',
   },
   db: {
+    adminProfile: {
+      name: 'Admin',
+      aspectAccess: 'rw',
+      lensAccess: 'rw',
+      perspectiveAccess: 'rw',
+      profileAccess: 'rw',
+      sampleAccess: 'rw',
+      subjectAccess: 'rw',
+      userAccess: 'rw',
+    },
+    adminUser: {
+      email: 'admin@refocus.admin',
+      name: 'admin@refocus.admin',
+      password: 'password',
+    },
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,
   },

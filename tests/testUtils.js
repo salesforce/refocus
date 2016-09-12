@@ -27,7 +27,7 @@ module.exports = {
     return model.destroy({
       where: {
         name: {
-          $ilike: pfx + '%',
+          $iLike: pfx + '%',
         },
         createdAt: {
           $lt: new Date(),
@@ -36,7 +36,7 @@ module.exports = {
       },
       force: true,
     });
-  },
+  }, // forceDelete
 
   gotExpectedLength(stringOrArray, len) {
     return stringOrArray.length === len;

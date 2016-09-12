@@ -8,6 +8,7 @@ const constants = require('../constants');
 const SubjectDeleteConstraintError = require('../dbErrors')
   .SubjectDeleteConstraintError;
 const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
+const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const eventName = {
@@ -23,7 +24,7 @@ module.exports = function subject(seq, dataTypes) {
     absolutePath: {
       type: dataTypes.STRING(constants.fieldlen.longish),
       allowNull: false,
-      defaultValue: ''
+      defaultValue: '',
     },
     childCount: {
       type: dataTypes.INTEGER,
@@ -43,8 +44,8 @@ module.exports = function subject(seq, dataTypes) {
           }
 
           if (value[0] === null || value[1] === null) {
-            throw new ('If you are specifying geolocation, you must \
-              provide both longitude and latitude.');
+            throw new ('If you are specifying geolocation, you must ' +
+              'provide both longitude and latitude.');
           }
         },
       },
@@ -244,6 +245,15 @@ module.exports = function subject(seq, dataTypes) {
             Subject.scope({ method: [key, value] }).find()
             .then((parent) => {
               if (parent) {
+                if (parent.getDataValue('isPublished') === false &&
+                  inst.getDataValue('isPublished') === true) {
+                  throw new ValidationError({
+                    'message': 'You cannot insert a subject with ' +
+                    'isPublished = true unless all its ancestors are also ' +
+                    'published.'
+                  });
+                }
+
                 inst.setDataValue('absolutePath',
                   parent.absolutePath + '.' + inst.name);
                 inst.setDataValue(param, parent.getDataValue(key1));
@@ -310,7 +320,7 @@ module.exports = function subject(seq, dataTypes) {
 
           inst.getChildren()
           .then((children) => {
-            if (children){
+            if (children) {
               for (var i = 0, len = children.length; i < len; ++i) {
                 children[i].setDataValue('absolutePath',
                   inst.absolutePath + '.' + children[i].name);
@@ -402,6 +412,30 @@ module.exports = function subject(seq, dataTypes) {
        * rejects if an error was encountered
        */
       beforeUpdate (inst, opts) {
+        if (inst.getDataValue('isPublished') === false) {
+          return new seq.Promise((resolve, reject) => {
+            inst.getChildren()
+            .then((children) => {
+              if (children && children.length) {
+                const len = children.length;
+                for (var i = 0; i < len; ++i) {
+                  if (children[i].getDataValue('isPublished') === true) {
+                    throw new ValidationError({
+                      message: 'You cannot unpublish this subject until ' +
+                        'all its descendants are unpublished.',
+                    });
+                  }
+                }
+              }
+
+              return resolve(inst);
+            })
+            .catch((err) => {
+              return reject(err);
+            });
+          });
+        }
+
         if (inst.changed('parentId') || inst.changed('parentAbsolutePath')) {
           let key = null;
           let key1 = null;
@@ -519,8 +553,12 @@ module.exports = function subject(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
+        name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
         unique: true,
-        fields: ['absolutePath', 'isDeleted'],
+        fields: [
+          seq.fn('lower', seq.col('absolutePath')),
+          'isDeleted',
+        ],
       },
     ],
     instanceMethods: {

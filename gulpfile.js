@@ -146,7 +146,7 @@ gulp.task('movesocket', () =>
  * Moves lensUtils client side js to public folder
  */
 gulp.task('movelensutil', () =>
-  gulp.src('./view/lensPerspective/perspective/lensUtils.js')
+  gulp.src('./view/perspective/lensUtils.js')
     .pipe(gulp.dest(conf.view.dest))
     .on('end', () => {
       process.exit();

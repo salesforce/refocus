@@ -66,7 +66,15 @@ module.exports = function tag(seq, dataTypes) {
 
     }, // hooks
     indexes: [
-      { unique: true, fields: ['name', 'isDeleted', 'associationId'] },
+      {
+        name: 'TagUniqueLowercaseNameIsDeletedAssociationId',
+        unique: true,
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+          'associationId',
+        ],
+      },
     ],
     paranoid: true,
   });

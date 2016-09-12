@@ -8,7 +8,6 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-const should = chai.should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Sample = tu.db.Sample;
@@ -60,14 +59,16 @@ describe('db: sample: upsertBulk: ', () => {
     .catch((err) => done(err));
   });
 
-   /* Test below is verifying that I can upsert the same
-   aspect back to back in different transactions. */
+  /**
+   * This test verifyies that I can upsert the same aspect back to back in
+   * different transactions.
+   */
   it('all succeed part 2', (done) => {
     Sample.bulkUpsertByName([
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '2',
-      }
+      },
     ])
     .each((o) => {
       // console.log(o.dataValues);
@@ -98,10 +99,12 @@ describe('db: sample: upsertBulk: ', () => {
         if (util.isError(s)) {
           errorCount++;
         }
-        if(s.dataValues){
+
+        if (s.dataValues) {
           successObj = s.dataValues;
         }
       }
+
       expect(successObj).to.not.equal(undefined);
       expect(successObj).to.have.deep.property('value', '1');
       expect(errorCount).to.equal(1);
@@ -130,13 +133,13 @@ describe('db: sample: upsertBulk: ', () => {
   });
 
   it('bulk upsertwith the same value should update' +
-        ' the updatedAt timestamp', (done) => {
+  ' the updatedAt timestamp', (done) => {
     let newSample;
     Sample.bulkUpsertByName([
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '1',
-      }
+      },
     ])
     .each((o) => {
       newSample = o;
@@ -145,7 +148,7 @@ describe('db: sample: upsertBulk: ', () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '1',
-      }
+      },
     ]))
     .each((samp) => {
       const newSampleUpdateTime = newSample.dataValues.updatedAt.getTime();
@@ -155,11 +158,29 @@ describe('db: sample: upsertBulk: ', () => {
     .then(() => done())
     .catch((err) => done(err));
   });
+
+  it('case insensitive find by subject and aspect', (done) => {
+    Sample.bulkUpsertByName([
+      {
+        name: `${tu.namePrefix}subject|${tu.namePrefix}aspect1`,
+        value: '0',
+      }, {
+        name: `${tu.namePrefix}subject|${tu.namePrefix}aspect2`,
+        value: '11',
+      },
+    ])
+    .each((o) => {
+      if (util.isError(o)) {
+        throw new Error('not expecting error');
+      }
+    })
+    .then(() => done())
+    .catch((err) => done(err));
+  });
 });
 
 describe('db: sample: upsertBulk: many Aspects with Samples ', () => {
   const manySamples = 20;
-  // const fewSamples = 1;
 
   after(u.forceDelete);
 
@@ -180,13 +201,13 @@ describe('db: sample: upsertBulk: many Aspects with Samples ', () => {
         for (let x = 0; x < manySamples; x++) {
           aspectsToCreate.push({
             isPublished: true,
-            name: `${tu.namePrefix}Aspect`+ x,
+            name: `${tu.namePrefix}Aspect${x}`,
             timeout: '30s',
             valueType: 'NUMERIC',
             criticalRange: [0, 1],
           });
         }
-        // console.log(aspectsToCreate.length);
+
         return Aspect.bulkCreate(aspectsToCreate,
          { individualHooks: true, validate: true });
       })
@@ -203,10 +224,11 @@ describe('db: sample: upsertBulk: many Aspects with Samples ', () => {
     const samplesArray = [];
     for (let x = 0; x < manySamples; x++) {
       samplesArray.push({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`+ x,
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect${x}`,
         value: x,
       });
     }
+
     Sample.bulkUpsertByName(samplesArray)
     .then((o) => {
       expect(o.length).to.equal(manySamples);

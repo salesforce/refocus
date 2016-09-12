@@ -91,7 +91,14 @@ module.exports = function perspective(seq, dataTypes) {
       },
     },
     indexes: [
-      { unique: true, fields: ['name', 'isDeleted'] },
+      {
+        name: 'PerspectiveUniqueLowercaseNameIsDeleted',
+        unique: true,
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+        ],
+      },
     ],
     paranoid: true,
     validate: {

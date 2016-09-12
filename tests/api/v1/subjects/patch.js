@@ -15,10 +15,10 @@ const expect = require('chai').expect;
 describe(`api: PATCH ${path}`, () => {
   const token = tu.createToken();
 
-  const n0 = { name: `${tu.namePrefix}Canada` };
-  const n1 = { name: `${tu.namePrefix}Ontario` };
-  const n2 = { name: `${tu.namePrefix}Manitoba` };
-  const p0 = { name: `${tu.namePrefix}NA` };
+  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
+  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
+  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
+  const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = {
     name: `${tu.namePrefix}Quebec`,
     isPublished: true,
@@ -411,6 +411,28 @@ describe(`api: PATCH ${path}`, () => {
         return done(err);
       }
 
+      done();
+    });
+  });
+
+  it('patch parent with isPublished false while ' +
+    'its child is isPublished true', (done) => {
+    const toPatch = {
+      helpUrl: '',
+      isPublished: false,
+      name: p0.name,
+    };
+    api.patch(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.errors[0].message).to
+      .equal('You cannot unpublish this subject until ' +
+        'all its descendants are unpublished.');
       done();
     });
   });

@@ -4,9 +4,7 @@
  * Configuration Settings for Views
  */
 'use strict'; // eslint-disable-line strict
-const pe = process.env;
-const DEFAULT_THROTTLE_MILLISECS = 2000;
-const trackingId = pe.trackingId || 'UA-75732905-1';
+const pe = process.env; // eslint-disable-line no-process-env
 
 /**
  * Browser clients can get jittery or start to feel stuck when receiving large
@@ -16,12 +14,14 @@ const trackingId = pe.trackingId || 'UA-75732905-1';
  * server-side events into a single client-side event, so that the lens
  * implementation can minimize the graphics re-rendering.
  */
+const DEFAULT_THROTTLE_MILLISECS = 4000;
 const realtimeEventThrottleMilliseconds =
  pe.realtimeEventThrottleMilliseconds || DEFAULT_THROTTLE_MILLISECS;
 
 module.exports = {
+  // Make the Google Analytics trackingId available in /view.
+  trackingId: pe.GOOGLE_ANALYTICS_ID || 'N/A',
 
-  trackingId,
+  // Make the throttle time available in /view.
   realtimeEventThrottleMilliseconds,
-
 };

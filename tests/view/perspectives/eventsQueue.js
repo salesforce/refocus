@@ -5,7 +5,7 @@
 
 const expect = require('chai').expect;
 const eventsQueue = require(
-  '../../../view/lensPerspective/perspective/eventsQueue'
+  '../../../view/perspective/eventsQueue'
 );
 
 describe('event queue', () => {

@@ -2277,19 +2277,8 @@ describe('db: aspect: create: ', () => {
       Aspect.create(u.getSmall())
       .then(() => Aspect.create(u.getSmall()))
       .catch((err) => {
-        if (err.name === tu.uniErrorName &&
-          tu.gotArrayWithExpectedLength(err.errors, 2) &&
-          err.errors[0].message === 'name must be unique' &&
-          err.errors[0].type === 'unique violation' &&
-          err.errors[0].path === 'name' &&
-          err.errors[1].message === 'isDeleted must be unique' &&
-          err.errors[1].type === 'unique violation' &&
-          err.errors[1].path === 'isDeleted' &&
-          err.errors[1].value === '0') {
-          done();
-        } else {
-          done(tu.valError);
-        }
+        expect(err.name).to.equal(tu.uniErrorName);
+        done();
       });
     });
 

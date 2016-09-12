@@ -53,7 +53,7 @@ dbErrors.create({
   defaultMessage: 'A non-null range must include two elements',
 });
 dbErrors.create({
-  code: 10113,
+  code: 10114,
   status: 400,
   name: 'ParentSubjectNotFound',
   parent: dbErrors.ValidationError,
@@ -115,6 +115,19 @@ dbErrors.create({
   name: 'SSOConfigCreateConstraintError',
   parent: dbErrors.CreateConstraintError,
   subject: {},
+});
+
+// ----------------------------------------------------------------------------
+// Permission Errors
+// ----------------------------------------------------------------------------
+dbErrors.create({
+  code: 10500,
+  status: 403,
+  name: 'AdminUpdateDeleteForbidden',
+  parent: dbErrors.FocusDatabaseError,
+  range: [],
+  defaultMessage: 'Unauthorized.',
+  explanation: 'Unauthorized.',
 });
 
 // ----------------------------------------------------------------------------

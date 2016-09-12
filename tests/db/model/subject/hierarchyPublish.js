@@ -67,64 +67,18 @@ describe('db: subject: get hierarchy: ', () => {
   describe('Subject isPublished tests: ', () => {
     it('Subject should not be found once isPublished is '+
       'set to false', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
+      Subject.scope('hierarchy').findById(igrn)
       .then((sub) => {
         return sub.update({ isPublished: false });
       })
       .then(() => {
-        return Subject.scope('hierarchy').findById(ipar);
+        return Subject.scope('hierarchy').findById(igrn);
       })
       .then((sub) => {
         expect(sub).to.equal(null);
         done();
       })
       .catch((err) => done(err));
-    });
-
-    it('set isPublished to false at parent level, hierarchy should ' +
-      'continue from child', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ipar);
-      })
-      .then((sub) => {
-        expect(sub).to.equal(null);
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ichi);
-      })
-      .then((sub) => {
-        expect(sub).to.not.equal(null);
-        expect(sub.children).to.have.length(1);
-        done();
-      })
-      .catch((err) => done(err));
-    });
-
-    it('setting child to isPublished = false should break the hierarchy' +
-      'from parent', (done) => {
-      Subject.findById(ichi)
-      .then((sub) => {
-        // console.log(sub);
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ichi);
-      })
-      .then((sub) => {
-        expect(sub).to.equal(null);
-        return Subject.scope('hierarchy').findById(ipar);
-      })
-      .then(() => {
-        done(new Error('Should have thrown an hierarchy error'));
-      })
-      .catch((err) => {
-        expect(err.name).to.contain('SequelizeHierarchyError');
-        done();
-      });
     });
 
     it('setting grand child to isPublished = false should not break' +
@@ -151,7 +105,7 @@ describe('db: subject: get hierarchy: ', () => {
       'the hierarchy from parent', (done) => {
       Subject.findById(igrn)
       .then((sub) => {
-        sub.update({ isPublished: false });
+        return sub.update({ isPublished: false });
       })
       .then(() => {
         return Subject.findById(ichi);

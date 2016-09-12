@@ -2919,7 +2919,7 @@ paths:
       summary: Create a new subject
       tags: [ subjects ]
       description: >-
-        Create a new subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new subject. If you are creating a new subject as the child of another subject AND any of its ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: postSubject
       parameters:
         -
@@ -2960,7 +2960,7 @@ paths:
                 default: false
                 description: >
                   Default false. When set to true, the subject is readable by other users;
-                  when set to false, the subject is only readable by its owner.
+                  when set to false, the subject is only readable by its owner. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished.
               name:
                 type: string
                 pattern: ^[0-9A-Za-z_\\-]{1,60}$
@@ -2972,7 +2972,7 @@ paths:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
                 description: >
-                  The absolute path or id of the subject's parent.
+                  The id of the subject's parent.
               tags:
                 type: array
                 items:
@@ -3077,7 +3077,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will not be updated. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: patchSubject
       parameters:
         -
@@ -3126,7 +3126,7 @@ paths:
                 default: false
                 description: >
                   Default false. When set to true, the subject is readable by other users;
-                  when set to false, the subject is only readable by its owner.
+                  when set to false, the subject is only readable by its owner. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished.
               name:
                 type: string
                 pattern: ^[0-9A-Za-z_\\-]{1,60}$
@@ -3179,7 +3179,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will be set to null or its default value. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: putSubject
       parameters:
         -
@@ -3228,7 +3228,7 @@ paths:
                 default: false
                 description: >
                   Default false. When set to true, the subject is readable by other users;
-                  when set to false, the subject is only readable by its owner.
+                  when set to false, the subject is only readable by its owner. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished.
               name:
                 type: string
                 pattern: ^[0-9A-Za-z_\\-]{1,60}$
@@ -3240,7 +3240,7 @@ paths:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
                 description: >
-                  The absolute path or id of the subject's parent.
+                  The id of the subject's parent.
               tags:
                 type: array
                 items:
@@ -3285,7 +3285,7 @@ paths:
       summary: Create a new child subject
       tags: [ subjects ]
       description: >-
-        Create a new child subject of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new child subject of the specified subject. If any of your new subject's ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: postChildSubject
       parameters:
         -
@@ -3335,7 +3335,7 @@ paths:
                 default: false
                 description: >
                   Default false. When set to true, the subject is readable by other users;
-                  when set to false, the subject is only readable by its owner.
+                  when set to false, the subject is only readable by its owner. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished.
               name:
                 type: string
                 pattern: ^[0-9A-Za-z_\\-]{1,60}$

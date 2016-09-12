@@ -135,7 +135,14 @@ module.exports = function lens(seq, dataTypes) {
       plural: 'Lenses',
     },
     indexes: [
-      { unique: true, fields: ['name', 'isDeleted'] },
+      {
+        name: 'LensUniqueLowercaseNameIsDeleted',
+        unique: true,
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+        ],
+      },
     ],
     paranoid: true,
     tableName: 'Lenses',

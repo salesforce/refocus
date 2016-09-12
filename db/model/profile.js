@@ -5,6 +5,8 @@
 const common = require('../helpers/common');
 const ProfileDeleteConstraintError = require('../dbErrors')
   .ProfileDeleteConstraintError;
+const AdminUpdateDeleteForbidden = require('../dbErrors')
+  .AdminUpdateDeleteForbidden;
 
 const assoc = {};
 
@@ -96,12 +98,18 @@ module.exports = function profile(seq, dataTypes) {
 
       /**
        * Set the isDeleted timestamp and prevent destroying a profile if it
-       * still has users.
+       * still has users. No one is allowed to delete the out-of-the box admin
+       * profile.
        *
        * @param {Aspect} inst - The instance.
        * @returns {Promise}
        */
       beforeDestroy(inst /* , opts */) {
+        if (inst.get('name').toLowerCase() ===
+          common.dbconf.adminProfile.name.toLowerCase()) {
+          throw new AdminUpdateDeleteForbidden();
+        }
+
         if (inst.get('users')) {
           if (inst.get('users').length) {
             const err = new ProfileDeleteConstraintError();
@@ -124,7 +132,7 @@ module.exports = function profile(seq, dataTypes) {
             .catch((err) => reject(err))
           );
         }
-      },
+      }, // hooks.beforeDestroy
 
       beforeFind(opts, fn) {
         if (opts.attributes) {
@@ -135,10 +143,27 @@ module.exports = function profile(seq, dataTypes) {
         }
 
         fn(null, opts);
-      },
+      }, // hooks.beforeFind
+
+      /**
+       * No one is allowed to modify the out-of-the-box admin profile.
+       */
+      beforeUpdate(inst /* , opts */) {
+        if (inst.get('name').toLowerCase() ===
+          common.dbconf.adminProfile.name.toLowerCase()) {
+          throw new AdminUpdateDeleteForbidden();
+        }
+      }, // hooks.beforeUpdate
     },
     indexes: [
-      { unique: true, fields: ['name', 'isDeleted'] },
+      {
+        name: 'ProfileUniqueLowercaseNameIsDeleted',
+        unique: true,
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+        ],
+      },
     ],
     paranoid: true,
   });

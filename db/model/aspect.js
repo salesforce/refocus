@@ -254,7 +254,14 @@ module.exports = function aspect(seq, dataTypes) {
 
     }, // hooks
     indexes: [
-      { unique: true, fields: ['name', 'isDeleted'] },
+      {
+        name: 'AspectUniqueLowercaseNameIsDeleted',
+        unique: true,
+        fields: [
+          seq.fn('lower', seq.col('name')),
+          'isDeleted',
+        ],
+      },
     ],
     paranoid: true,
   });

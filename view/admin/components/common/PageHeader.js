@@ -12,11 +12,11 @@ import { Link } from 'react-router';
 class PageHeader extends React.Component {
   render() {
     const { resource, children, name, goBackUrl } = this.props;
-    let iconName = 'slds-icon-standard-account';
+    let iconName = 'apps';
     if (resource.indexOf('subject') > -1) {
-      iconName = 'slds-icon-standard-user';
+      iconName = 'account';
     } else if (resource.indexOf('aspect') > -1) {
-      iconName = 'slds-icon-standard-opportunity';
+      iconName = 'opportunity';
     }
     const upperCaseResource = resource.toUpperCase();
     const displayName = name || upperCaseResource;
