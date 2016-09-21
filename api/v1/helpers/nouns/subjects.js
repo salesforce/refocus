@@ -6,6 +6,7 @@
 const Subject = require('../../../../db/index').Subject;
 const constants = require('../../constants');
 const m = 'subject';
+const config = require('../../../../config');
 
 /*
  * All the query params that can be expected in the hierarchy endpoint are
@@ -23,6 +24,9 @@ const filters = {
 const assocList = ['tags'];
 const assocSet = new Set(assocList);
 const fieldsWithJsonArrayType = ['relatedLinks'];
+const loggingEnabled = (
+  config.auditSubjects === 'API' || config.auditSubjects === 'ALL'
+  ) || false;
 
 /**
  * Recursive function to prune children from a subject in order to return a
@@ -293,4 +297,5 @@ module.exports = {
   modifyAPIResponse,
   assocSet,
   fieldsWithJsonArrayType,
+  loggingEnabled,
 }; // exports

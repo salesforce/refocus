@@ -55,16 +55,19 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'createdBy',
         });
         assoc.profile = User.belongsTo(models.Profile, {
+          as: 'profile',
           foreignKey: {
             name: 'profileId',
             allowNull: false,
           },
+          hooks: true,
         });
         User.addScope('defaultScope', {
-          includes: [
-
-            // assoc.createdBy,
-            assoc.profile,
+          include: [
+            {
+              association: assoc.profile,
+              attributes: ['name'],
+            },
           ],
         }, {
           override: true,

@@ -17,7 +17,7 @@ const expect = require('chai').expect;
 
 describe(`api: DELETE ${path}`, () => {
   let i = 0;
-  const token = tu.createToken();
+  let token;
 
   function bodyCheckIfDeleted(res) {
     const errors = [];
@@ -44,6 +44,15 @@ describe(`api: DELETE ${path}`, () => {
     }
   }
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Aspect.create(u.toCreate)
     .then((aspect) => {
@@ -54,6 +63,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete by id', (done) => {
     api.delete(`${path}/${i}`)
@@ -99,7 +109,7 @@ describe(`api: DELETE ${path}`, () => {
 });
 
 describe('api: aspects: DELETE RelatedLinks', () => {
-  const token = tu.createToken();
+  let token;
   let i;
 
   const n = {
@@ -117,6 +127,15 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     ]
   };
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Aspect.create(n)
     .then((asp) => {
@@ -126,6 +145,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .catch((err) => done(err));
   });
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete all related links', (done) => {
     api.delete(allDeletePath.replace('{key}', i))
@@ -180,7 +200,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
 
 describe(`api: DELETE ${path} with samples`, () => {
   let i = 0;
-  const token = tu.createToken();
+  let token;
 
   const subjectToCreateSecond = {
     description: 'this is sample description',
@@ -192,6 +212,15 @@ describe(`api: DELETE ${path} with samples`, () => {
     isPublished: true,
     name: `${tu.namePrefix}TEST_SUBJECT1`,
   };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     const samp1 = { value: '1' };
@@ -219,6 +248,7 @@ describe(`api: DELETE ${path} with samples`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('deleting aspect deletes its samples', (done) => {
     api.delete(`${path}/${i}`)

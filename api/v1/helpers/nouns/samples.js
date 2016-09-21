@@ -4,10 +4,15 @@
 'use strict';
 
 const Sample = require('../../../../db/index').Sample;
+const config = require('../../../../config');
 
 const m = 'sample';
 
 const fieldsWithJsonArrayType = ['relatedLinks'];
+const loggingEnabled = (
+  config.auditSamples === 'API' || config.auditSamples === 'ALL'
+  ) || false;
+
 
 module.exports = {
   apiLinks: {
@@ -21,4 +26,6 @@ module.exports = {
   model: Sample,
   modelName: 'Sample',
   fieldsWithJsonArrayType,
+  loggingEnabled,
+
 }; // exports

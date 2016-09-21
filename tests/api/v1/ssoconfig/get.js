@@ -11,9 +11,17 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
 
-
 describe(`api: GET ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.creatSSOConfig()
@@ -22,6 +30,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('get ok', (done) => {
     api.get(path)

@@ -14,7 +14,7 @@ const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}:`, () => {
-  const token = tu.createToken();
+  let token;
   // The below code creates the following hierarchy.
   // gp
   //  |parOther1
@@ -70,6 +70,15 @@ describe(`api: GET ${path}:`, () => {
   const sample2 = { value: '1' };
   const sample3 = { value: '1' };
   const sample4 = { value: '100' };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(gp)
@@ -138,6 +147,7 @@ describe(`api: GET ${path}:`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('Sample Status filter', () => {
     it('filter :: status=critical',

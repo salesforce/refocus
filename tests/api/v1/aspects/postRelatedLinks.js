@@ -12,8 +12,17 @@ const path = '/v1/aspects';
 const expect = require('chai').expect;
 
 describe(`api: POST ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('post aspect with relatedLinks', (done) => {
     const aspectToPost = {

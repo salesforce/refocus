@@ -15,9 +15,18 @@ const path = '/v1/profiles';
 
 describe(`api: GET ${path} (with users)`, () => {
   let pid;
-  const token = tu.createToken();
+  let token;
 
-  beforeEach((done) => {
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  before((done) => {
     Profile.create({ name: `${tu.namePrefix}1` })
     .then((profile) => {
       pid = profile.id;
@@ -32,7 +41,7 @@ describe(`api: GET ${path} (with users)`, () => {
     .catch((err) => done(err));
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('get a profile with fields users returns array of length 1', (done) => {
     api.get(`${path}/${pid}?fields=users`)

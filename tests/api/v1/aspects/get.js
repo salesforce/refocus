@@ -12,7 +12,7 @@ const Aspect = tu.db.Aspect;
 const path = '/v1/aspects';
 
 describe(`api: GET ${path}`, () => {
-  const token = tu.createToken();
+  let token;
   const toCreate = [
     {
       description: 'this is a0 description',
@@ -38,12 +38,23 @@ describe(`api: GET ${path}`, () => {
   ];
 
   before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  before((done) => {
     Aspect.bulkCreate(toCreate)
     .then(() => done())
     .catch((err) => done(err));
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
 
   describe('Single Values: ', () => {
     it('key used twice in url', (done) => {

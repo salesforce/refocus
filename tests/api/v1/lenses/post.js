@@ -12,8 +12,19 @@ const path = '/v1/lenses';
 const expect = require('chai').expect;
 
 describe(`api: POST ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('OK', (done) => {
     api.post(path)

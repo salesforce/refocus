@@ -15,12 +15,21 @@ describe(`api: GET ${path}`, () => {
   let lensId;
   let perspectiveId;
   let perspectiveName;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
@@ -38,6 +47,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('basic get', (done) => {
     api.get(path)
@@ -72,7 +82,7 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal('testPersp');
+      expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
       expect(res.body.lensId).to.equal(lensId);
       expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);
@@ -93,7 +103,7 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal('testPersp');
+      expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
       expect(res.body.lensId).to.equal(lensId);
       expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);

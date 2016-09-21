@@ -6,11 +6,15 @@ const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
 const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
+const config = require('../../config');
 const eventName = {
   add: 'refocus.internal.realtime.sample.add',
   upd: 'refocus.internal.realtime.sample.update',
   del: 'refocus.internal.realtime.sample.remove',
 };
+const dbLoggingEnabled = (
+    config.auditSamples === 'DB' || config.auditSamples === 'ALL'
+  ) || false;
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
@@ -152,7 +156,6 @@ module.exports = function sample(seq, dataTypes) {
        */
       upsertByName(toUpsert, isBulk) {
         let subjasp;
-        let retValue;
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
           .then((sa) => {
@@ -253,15 +256,32 @@ module.exports = function sample(seq, dataTypes) {
       }, // hooks.beforeCreate
 
       /**
-       * Publishes the created sample to redis channel.
+       * Publishes the created sample to redis channel *including* the values
+       * from its aspect association.
        *
        * @param {Sample} inst - The newly-created instance
        */
       afterCreate(inst /* , opts */) {
-        return common.sampleAspectAndSubjectArePublished(seq, inst)
+        let samp;
+
+        // log instance creation
+        if (dbLoggingEnabled) {
+          common.createDBLog(inst, common.changeType.add);
+        }
+
+        Sample.findById(inst.dataValues.id)
+        .then((found) => {
+          samp = found;
+          return common.sampleAspectAndSubjectArePublished(seq, samp);
+        })
         .then((published) => {
           if (published) {
-            common.publishChange(inst, eventName.add);
+            // augment the sample instance with the subject instance to enable
+            // filtering by subjecttags in the realtime socketio module
+            common.augmentSampleWithSubjectInfo(seq, samp)
+            .then(() => {
+              return common.publishChange(samp, eventName.add);
+            });
           }
         });
       },
@@ -272,10 +292,20 @@ module.exports = function sample(seq, dataTypes) {
        * @param {Sample} inst - The Sample instance which was just deleted
        */
       afterDelete(inst /* , opts */) {
+        // log instance deletion
+        if (dbLoggingEnabled) {
+          common.createDBLog(inst, common.changeType.del);
+        }
+
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
           if (published) {
-            common.publishChange(inst, eventName.del);
+            // augument the sample instance with the subject instance to enable
+            // filtering by subjecttags in the realtime socketio module
+            common.augmentSampleWithSubjectInfo(seq, inst)
+            .then(() => {
+              return common.publishChange(inst, eventName.del);
+            });
           }
         });
       }, // hooks.afterDelete
@@ -289,11 +319,24 @@ module.exports = function sample(seq, dataTypes) {
       afterUpdate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
+
+        // log instance update
+        if (dbLoggingEnabled) {
+          common.createDBLog(
+            inst, common.changeType.upd, changedKeys, ignoreAttributes
+          );
+        }
+
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
           if (published) {
-            common.publishChange(inst, eventName.upd, changedKeys,
+            // augument the sample instance with the subject instance to enable
+            // filtering by subjecttags in the realtime socketio module
+            common.augmentSampleWithSubjectInfo(seq, inst)
+            .then(() => {
+              return common.publishChange(inst, eventName.upd, changedKeys,
               ignoreAttributes);
+            });
           }
         });
       },

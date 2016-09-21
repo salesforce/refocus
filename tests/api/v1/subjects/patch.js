@@ -13,7 +13,7 @@ const path = '/v1/subjects';
 const expect = require('chai').expect;
 
 describe(`api: PATCH ${path}`, () => {
-  const token = tu.createToken();
+  let token;
 
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
@@ -134,6 +134,15 @@ describe(`api: PATCH ${path}`, () => {
     }
   }
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Subject.create(n0)
     .then((subj) => {
@@ -159,6 +168,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('patch relatedLinks', (done) => {
     const relatedLinks = [{ name: 'link1', url: 'https://samples.com' }];

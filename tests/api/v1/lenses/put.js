@@ -13,7 +13,16 @@ const expect = require('chai').expect;
 
 describe(`api: PUT ${path}`, () => {
   let lensId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -25,6 +34,7 @@ describe(`api: PUT ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update description', (done) => {
     api.put(`${path}/${lensId}`)

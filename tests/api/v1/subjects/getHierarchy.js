@@ -13,7 +13,7 @@ const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}`, () => {
-  const token = tu.createToken();
+  let token;
 
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
@@ -30,6 +30,15 @@ describe(`api: GET ${path}`, () => {
   let ipar = 0;
   let ichi = 0;
   let igrn = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(par)
@@ -62,6 +71,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   describe('subject hierarchy with samples', () => {
     it('should be an empty object at the parent level', (done) => {

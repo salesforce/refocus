@@ -13,7 +13,16 @@ const path = '/v1/samples';
 
 describe(`api: GET ${path}`, () => {
   let sampleId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -28,6 +37,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('basic get', (done) => {
     api.get(path)

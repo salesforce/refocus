@@ -13,10 +13,19 @@ const path = '/v1/subjects/{key}/child';
 const expect = require('chai').expect;
 
 describe(`api: POST ${path}`, () => {
-  const token = tu.createToken();
+  let token;
   const n0 = { name: `${tu.namePrefix}NorthAmerica` };
   const n1 = { name: `${tu.namePrefix}Canada` };
   let i0 = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach('create parent', (done) => {
     Subject.create(n0)
@@ -28,6 +37,7 @@ describe(`api: POST ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('posting child to parent_absolute_path/child url returns ' +
     'expected parentAbsolutePath value', (done) => {

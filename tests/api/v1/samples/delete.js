@@ -16,7 +16,16 @@ const expect = require('chai').expect;
 
 describe(`api: DELETE ${path}`, () => {
   let sampleId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -31,6 +40,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('basic delete', (done) => {
     api.delete(`${path}/${sampleId}`)
@@ -50,8 +60,18 @@ describe(`api: DELETE ${path}`, () => {
   });
 });
 describe('api: samples: DELETE RelatedLinks', () => {
-  const token = tu.createToken();
+  let token;
   let sampleId;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     u.doSetup()
     .then((samp) => {
@@ -77,6 +97,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete all related links', (done) => {
     api.delete(allDeletePath.replace('{key}', sampleId))

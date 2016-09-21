@@ -14,6 +14,7 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const deleteAssociations = require('../helpers/verbs/deleteAssociations');
 const apiErrors = require('../apiErrors');
+const logAPI = require('../../../utils/loggingUtil').logAPI;
 
 module.exports = {
 
@@ -43,7 +44,13 @@ module.exports = {
     const params = req.swagger.params;
     u.findByKey(helper, params, ['hierarchy'])
     .then((o) => o.deleteHierarchy())
-    .then(() => res.status(httpStatus.OK).json({}))
+    .then(() => {
+      if (helper.loggingEnabled) {
+        logAPI(req, 'SubjectHierarchy');
+      }
+
+      return res.status(httpStatus.OK).json({});
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -219,6 +226,10 @@ module.exports = {
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
+      if (helper.loggingEnabled) {
+        logAPI(req, 'SubjectRelatedLinks', o);
+      }
+
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
     })

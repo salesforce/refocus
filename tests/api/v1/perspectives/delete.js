@@ -13,12 +13,21 @@ const expect = require('chai').expect;
 
 describe(`api: DELETE ${path}`, () => {
   let perspectiveId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
     }))
@@ -30,7 +39,8 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   after(u.forceDelete);
-
+  after(tu.forceDeleteUser);
+  
   it('delete ok', (done) => {
     api.delete(`${path}/${perspectiveId}`)
     .set('Authorization', token)

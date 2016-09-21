@@ -14,8 +14,17 @@ const path = '/v1/aspects';
 const expect = require('chai').expect;
 
 describe(`api: PUT ${path}`, () => {
-  const token = tu.createToken();
+  let token;
   let aspectId = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Aspect.create(u.toCreate)
@@ -29,6 +38,7 @@ describe(`api: PUT ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update timeout and verify', (done) => {
     const toPut = {
@@ -63,8 +73,17 @@ describe(`api: PUT ${path}`, () => {
 });
 
 describe('api: PUT aspects with related links', () => {
-  const token = tu.createToken();
+  let token;
   let aspectId = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Aspect.create(u.toCreate)
@@ -77,6 +96,7 @@ describe('api: PUT aspects with related links', () => {
     });
   });
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update to add related links', (done) => {
     const toPut = {
@@ -152,8 +172,17 @@ describe('api: PUT aspects with related links', () => {
 });
 
 describe('api: PUT aspects with tags', () => {
-  const token = tu.createToken();
+  let token;
   let aspectId = 0;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Aspect.create(u.toCreate)
@@ -166,6 +195,7 @@ describe('api: PUT aspects with tags', () => {
     });
   });
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update to add tags', (done) => {
     const toPut = {

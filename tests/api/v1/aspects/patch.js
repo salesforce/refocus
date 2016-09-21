@@ -16,7 +16,16 @@ const expect = require('chai').expect;
 describe(`api: PATCH ${path}`, () => {
   let i = 0;
   const asp = u.toCreate;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     Aspect.create(u.toCreate)
@@ -28,6 +37,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update timeout and verfiy', (done) => {
     const newTimeout = '1000s';
@@ -142,7 +152,7 @@ describe(`api: PATCH ${path}`, () => {
 });
 describe(`api: PATCH ${path} isPublished`, () => {
   let i = 0;
-  const token = tu.createToken();
+  let token;
 
   const subjectToCreateSecond = {
     description: 'this is sample description',
@@ -155,6 +165,15 @@ describe(`api: PATCH ${path} isPublished`, () => {
     name: `${tu.namePrefix}TEST_SUBJECT1`,
   };
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+  
   beforeEach((done) => {
     const samp1 = { value: '1' };
     const samp2 = { value: '2' };
@@ -181,6 +200,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('updating aspect isPublished to false deletes its samples', (done) => {
     api.patch(`${path}/${i}`)

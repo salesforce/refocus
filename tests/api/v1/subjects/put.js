@@ -14,7 +14,7 @@ const Tag = tu.db.Tag;
 const path = '/v1/subjects';
 
 describe(`api: PUT ${path}`, () => {
-  const token = tu.createToken();
+  let token;
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
   const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
@@ -135,6 +135,15 @@ describe(`api: PUT ${path}`, () => {
     }
   }
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Subject.create(n0)
     .then((subj) => {
@@ -160,6 +169,7 @@ describe(`api: PUT ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('puts a child', (done) => {
     api.put(`${path}/${i1}`)
@@ -289,9 +299,18 @@ describe(`api: PUT ${path}`, () => {
 });
 
 describe('api: PUT subjects with related links', () => {
-  const token = tu.createToken();
+  let token;
   let subjectId = 0;
   const n0 = { name: `${tu.namePrefix}Canada` };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(n0)
@@ -303,7 +322,9 @@ describe('api: PUT subjects with related links', () => {
       done(err);
     });
   });
+
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update to add related links', (done) => {
     const toPut = {
@@ -376,9 +397,18 @@ describe('api: PUT subjects with related links', () => {
 });
 
 describe('api: PUT subjects with tags', () => {
-  const token = tu.createToken();
+  let token;
   let subjectId = 0;
   const n0 = { name: `${tu.namePrefix}Canada` };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(n0)
@@ -391,6 +421,7 @@ describe('api: PUT subjects with tags', () => {
     });
   });
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update to add tags', (done) => {
     const toPut = {

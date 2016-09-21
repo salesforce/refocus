@@ -13,7 +13,16 @@ const u = require('./utils');
 const path = '/v1/ssoconfig';
 
 describe(`api: PATCH ${path}`, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.creatSSOConfig()
@@ -22,6 +31,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('update samlEntryPoint and verify', (done) => {
     api.patch(path)

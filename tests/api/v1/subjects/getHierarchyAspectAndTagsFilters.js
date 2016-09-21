@@ -14,7 +14,7 @@ const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}:`, () => {
-  const token = tu.createToken();
+  let token;
   //
   // the before hook creates this following hierarchy
   // gp
@@ -65,6 +65,15 @@ describe(`api: GET ${path}:`, () => {
   const sample2 = { value: '10' };
   const sample3 = { value: '10' };
   const sample4 = { value: '100' };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(gp)
@@ -132,6 +141,8 @@ describe(`api: GET ${path}:`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
   describe('SubjectTag filter on hierarchy', () => {
     it('Only subjects matchihing the tag and its hierarchy should be returned',
     (done) => {

@@ -25,12 +25,15 @@ const compress = require('compression');
 
 // set up sever side socket.io and redis publisher
 const express = require('express');
+const enforcesSSL = require('express-enforces-ssl');
+
 const app = express();
 const httpServer = require('http').Server(app);
 const io = require('socket.io')(httpServer);
+const socketIOSetup = require('./realtime/setupSocketIO');
+socketIOSetup.setupNamespace(io);
 const sub = require('./pubsub').sub;
-require('./setupRedis.js')(io, sub);
-
+require('./realtime/redisSubscriber')(io, sub);
 // modules for authentication
 const passportModule = require('passport');
 const cookieParser = require('cookie-parser');
@@ -50,6 +53,16 @@ const listening = 'Listening on port';
 const isDevelopment = (process.env.NODE_ENV === 'development');
 const PORT = process.env.PORT || conf.port;
 app.set('port', PORT);
+
+/*
+ * If http is disabled, if a GET request comes in over http, automatically
+ * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
+ * PATCH, POST, PUT, etc.) with a 403.
+ */
+if (env.disableHttp) {
+  app.enable('trust proxy');
+  app.use(enforcesSSL());
+}
 
 // Set the IP restricitions defined in config.js
 app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
@@ -119,10 +132,10 @@ swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
   app.use(mw.swaggerMetadata());
 
   // Use token security in swagger api routes
-  if (env.useAccessToken === 'true') {
+  if (env.useAccessToken === 'true' || env.useAccessToken === true) {
     app.use(mw.swaggerSecurity({
       jwt: (req, authOrSecDef, scopes, cb) => {
-        jwtUtil.verifyToken(env.tokenSecret, req, cb);
+        jwtUtil.verifyToken(req, cb);
       },
     }));
   }

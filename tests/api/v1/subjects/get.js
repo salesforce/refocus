@@ -13,7 +13,7 @@ const path = '/v1/subjects';
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}`, () => {
-  const token = tu.createToken();
+  let token;
 
   const na = {
     name: `${tu.namePrefix}NorthAmerica`,
@@ -27,6 +27,15 @@ describe(`api: GET ${path}`, () => {
     name: `${tu.namePrefix}Vermont`,
     description: 'state',
   };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Subject.create(na)
@@ -48,6 +57,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('GET returns parentAbsolutePath, from root', (done) => {
     api.get(`${path}/${na.id}`)

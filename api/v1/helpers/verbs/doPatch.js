@@ -5,6 +5,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const logAPI = require('../../../../utils/loggingUtil').logAPI;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -34,8 +35,14 @@ function doPatch(req, res, next, props) {
     return o.update(requestBody);
   })
   .then((o) => u.handleAssociations(requestBody, o, props, req.method))
-  .then((retVal) =>
-    res.status(httpStatus.OK).json(u.responsify(retVal, props, req.method)))
+  .then((retVal) => {
+    if (props.loggingEnabled) {
+      logAPI(req, props.modelName, retVal);
+    }
+
+    return res.status(httpStatus.OK)
+    .json(u.responsify(retVal, props, req.method));
+  })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

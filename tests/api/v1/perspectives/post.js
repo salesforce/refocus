@@ -12,7 +12,16 @@ const path = '/v1/perspectives';
 
 describe(`api: POST ${path}`, () => {
   let createdLensId;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   beforeEach((done) => {
     u.doSetup()
@@ -24,12 +33,13 @@ describe(`api: POST ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('OK, no filter', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
     })
@@ -47,7 +57,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
@@ -69,7 +79,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
@@ -86,7 +96,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature#'],
@@ -105,7 +115,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       aspectTagFilter: ['temp#', 'hum'],
@@ -124,7 +134,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       subjectTagFilter: ['ea#', 'na'],
@@ -143,7 +153,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send({
-      name: 'testPersp',
+      name: `${tu.namePrefix}testPersp`,
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       statusFilter: ['Critical', '-OKAY'],

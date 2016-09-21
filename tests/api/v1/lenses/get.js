@@ -14,7 +14,16 @@ const expect = require('chai').expect;
 describe(`api: GET ${path}`, () => {
   let lensId;
   let lensName;
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     u.doSetup()
@@ -27,6 +36,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('basic get', (done) => {
     api.get(path)
@@ -40,7 +50,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body).to.have.length(1);
       expect(res.body).to.have.deep.property('[0].id');
       expect(res.body).to.not.have.deep.property('[0].library');
-      expect(res.body).to.have.deep.property('[0].name', 'testLensName');
+      expect(res.body).to.have.deep.property('[0].name', `${tu.namePrefix}testLensName`);
 
       return done();
     });
@@ -55,7 +65,7 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal('testLensName');
+      expect(res.body.name).to.equal(`${tu.namePrefix}testLensName`);
       expect(res.body.sourceName).to.equal('testSourceLensName');
       expect(res.body.library['lens.js']).to.exist;
       expect(res.body.library['lens.json']).to.exist;

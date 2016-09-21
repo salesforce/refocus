@@ -12,7 +12,18 @@ const tu = require('../../../testUtils');
 const path = '/v1';
 
 describe.skip('Ip Restriction Tests', () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  after(tu.forceDeleteUser);
 
   it(`GET UNAUTHORIZED for localhost at ${path}`, (done) => {
     api.get(path)

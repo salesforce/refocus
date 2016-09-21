@@ -15,7 +15,16 @@ const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
 
 describe('api: POST ' + path, () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Aspect.create({
@@ -41,6 +50,7 @@ describe('api: POST ' + path, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('all succeed', (done) => {
     api.post(path)
@@ -201,7 +211,16 @@ describe('api: POST ' + path, () => {
   });
 });
 describe('api: POST ' + path + ' aspect isPublished false', () => {
-  const token = tu.createToken();
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
 
   before((done) => {
     Aspect.create({
@@ -227,6 +246,7 @@ describe('api: POST ' + path + ' aspect isPublished false', () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('no samples created if aspect isPublished is false', (done) => {
     api.post(path)

@@ -7,8 +7,8 @@ const common = require('../helpers/common');
 const MissingRequiredFieldError = require('../dbErrors')
   .MissingRequiredFieldError;
 const constants = require('../constants');
-
 const assoc = {};
+const eventName = 'refocus.internal.realtime.perspective.namespace.initialize';
 
 module.exports = function perspective(seq, dataTypes) {
   const Perspective = seq.define('Perspective', {
@@ -30,17 +30,37 @@ module.exports = function perspective(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.longish),
       allowNull: false,
     },
+    aspectFilterType: {
+      type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
+      defaultValue: 'INCLUDE',
+      allowNull: false,
+    },
     aspectFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
+    },
+    aspectTagFilterType: {
+      type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
+      defaultValue: 'INCLUDE',
+      allowNull: false,
     },
     aspectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
     },
+    subjectTagFilterType: {
+      type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
+      defaultValue: 'INCLUDE',
+      allowNull: false,
+    },
     subjectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
+    },
+    statusFilterType: {
+      type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
+      defaultValue: 'INCLUDE',
+      allowNull: false,
     },
     statusFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING),
@@ -86,9 +106,42 @@ module.exports = function perspective(seq, dataTypes) {
       },
     },
     hooks: {
+
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
       },
+
+      /**
+       * Publishes the created prespective to the redis channel, to initialize
+       * a socketio namespace if required
+       *
+       * @param {Perspective} inst - The newly-created instance
+       */
+      afterCreate(inst /* , opts */) {
+        const changedKeys = Object.keys(inst._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return common.publishChange(inst, eventName, changedKeys,
+              ignoreAttributes);
+      },
+
+      /**
+       * Publishes the updated prespective to the redis channel, to initialize
+       * a socketio namespace if required
+       *
+       * @param {Perspective} inst - The updated instance
+       */
+      afterUpdate(inst /* , opts */) {
+        const changedKeys = Object.keys(inst._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return common.publishChange(inst, eventName, changedKeys,
+              ignoreAttributes);
+      },
+
+      /*
+       * TODO: socketio namespace object is garbage collected when there are
+       * no references to it. We still have to check, if deleting the namespace
+       * object manually in the afterDelete hook will help.
+       */
     },
     indexes: [
       {

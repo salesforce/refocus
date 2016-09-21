@@ -215,7 +215,17 @@ const subjectMetaData = [
     propertyName: 'updatedAt',
     displayName: 'Last Modified On',
     readOnly: true,
+  }, {
+  propertyName: 'isPublished',
+  displayName: 'Subject is published',
+  customOutput: (obj) => {
+    return <CheckBoxComponent
+      name={ obj.name }
+      disabled={ obj.disabled }
+      checked={ obj.value }
+    />;
   },
+},
 ];
 
 const obj = {};

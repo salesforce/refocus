@@ -14,7 +14,7 @@ const allDeletePath = '/v1/aspects/{key}/tags';
 const oneDeletePath = '/v1/aspects/{key}/tags/{akey}';
 
 describe(`api: aspects: DELETE tags}`, () => {
-  const token = tu.createToken();
+  let token;
   let aspId;
   let tagId;
 
@@ -27,6 +27,15 @@ describe(`api: aspects: DELETE tags}`, () => {
     ]
   };
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Aspect.create(n, { include: Aspect.getAspectAssociations().tags })
     .then((asp) => {
@@ -37,6 +46,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     .catch((err) => done(err));
   });
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete all tags', (done) => {
     api.delete(allDeletePath.replace('{key}', aspId))

@@ -14,7 +14,7 @@ const allDeletePath = '/v1/subjects/{key}/tags';
 const oneDeletePath = '/v1/subjects/{key}/tags/{akey}';
 
 describe(`api: subjects: DELETE tags}`, () => {
-  const token = tu.createToken();
+  let token;
   let i;
   let tag0;
 
@@ -26,6 +26,15 @@ describe(`api: subjects: DELETE tags}`, () => {
     ]
   };
 
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
   beforeEach((done) => {
     Subject.create(n, { include: Subject.getSubjectAssociations().tags })
     .then((subj) => {
@@ -36,6 +45,7 @@ describe(`api: subjects: DELETE tags}`, () => {
     .catch((err) => done(err));
   });
   afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('delete all tags', (done) => {
     api.delete(allDeletePath.replace('{key}', i))
