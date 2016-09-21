@@ -10,6 +10,7 @@ module.exports = {
   fakeUserCredentials: {
     email: 'user1@abc.com',
     password: 'fakePasswd',
+    username: 'user1'
   },
   forceDelete(done) {
     tu.forceDelete(tu.db.User, testStartTime)

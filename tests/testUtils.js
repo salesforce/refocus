@@ -65,7 +65,12 @@ module.exports = {
         password: 'user123password',
       })
     )
-    .then(() => jwtUtil.createToken({ email: `${pfx}test@refocus.com` }));
+    .then(() => jwtUtil.createToken(
+      {
+        name: `${pfx}test@refocus.com`,
+        email: `${pfx}test@refocus.com`,
+      }
+      ));
   }, // createToken
 
   // delete users

@@ -54,7 +54,9 @@ document.loginform.addEventListener('submit', (evt) => {
   evt.preventDefault();
   const jsonData = {};
   jsonData.email = input.email.value;
+  jsonData.username = input.username.value;
   jsonData.password = input.password.value;
+
 
   sendData(jsonData);
 });

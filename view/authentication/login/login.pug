@@ -12,7 +12,7 @@ html
       div.text-center.col-md-4.col-md-offset-4
         h1 Refocus
         br
-        - if (SSOExists) 
+        - if (SSOExists)
           a(href='/loginSAML')
             button.btn.btn-default.btn-block(type='submit') SSO Login
           p.lead Or
@@ -20,7 +20,7 @@ html
           form(role='form', name='loginform')
             label#errorInfo
             .form-group
-              input.form-control(type='email', name="email", placeholder='Enter email' required)
+              input.form-control(type='text', name="username", placeholder='Enter username' required)
             .form-group
               input.form-control(type='password', name="password", placeholder='Password' required)
             button.btn.btn-primary.btn-block(type='submit') Submit

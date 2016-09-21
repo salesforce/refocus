@@ -34,6 +34,7 @@ const socketIOSetup = require('./realtime/setupSocketIO');
 socketIOSetup.setupNamespace(io);
 const sub = require('./pubsub').sub;
 require('./realtime/redisSubscriber')(io, sub);
+
 // modules for authentication
 const passportModule = require('passport');
 const cookieParser = require('cookie-parser');
@@ -74,7 +75,7 @@ if (isDevelopment) {
 
   app.use(require('webpack-dev-middleware')(compiler, {
     noInfo: true,
-    publicPath: webpackConfig.output.publicPath
+    publicPath: webpackConfig.output.publicPath,
   }));
 
   app.use(require('webpack-hot-middleware')(compiler));
@@ -169,6 +170,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
 }));
+
 // Initialize passport and use passport for session
 app.use(passportModule.initialize());
 app.use(passportModule.session());

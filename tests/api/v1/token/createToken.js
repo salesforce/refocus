@@ -10,12 +10,12 @@ const u = require('./utils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/token';
 
-describe(`api: createToken`, () => {
+describe('api: createToken', () => {
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
     .end((err) => {
-      if(err){
+      if (err) {
         return done(err);
       }
       done();
@@ -29,6 +29,7 @@ describe(`api: createToken`, () => {
     .send({
       email: 'unknown@abc.com',
       password: 'fakePasswd',
+      username: 'nouser'
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
@@ -46,6 +47,7 @@ describe(`api: createToken`, () => {
     .send({
       email: 'user1@abc.com',
       password: 'wrongPasswd',
+      username: 'user1'
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
