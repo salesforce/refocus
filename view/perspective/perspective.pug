@@ -1,0 +1,15 @@
+
+doctype html
+html(lang = 'en')
+  head
+    link(rel='stylesheet', type='text/css', href='../css/salesforce-lightning-design-system.min.css')
+    link(rel='stylesheet' type='text/css' href='../css/perspective.css')
+
+  body
+    #refocus_perspective_dropdown_container
+    label#errorInfo
+    div#lens
+  script(src='/socket.io.js')
+  script.
+    var realtimeEventThrottleMilliseconds = #{eventThrottle};
+  script(src='/perspective/app.js')
