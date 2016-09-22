@@ -11,15 +11,6 @@
     "SECRET_TOKEN": {
       "description": "A secret key for creating jwt token used for authentication.",
       "generator": "secret"
-    },
-    "DATABASE_URL": {
-      "required": true
-    },
-    "IP_WHITELIST": {
-      "required": true
-    },
-    "REDIS_URL": {
-      "required": true
     }
   }
 }

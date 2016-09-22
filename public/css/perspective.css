@@ -1,0 +1,56 @@
+/**
+ * public/css/perspective.css
+ *
+ * Styles refocus perspective page.
+ */
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    margin: 0;
+    padding: 5px;
+}
+
+#refocus_perspective_dropdown_container {
+    position: relative;
+    z-index: 2000;
+    height: 30px;
+    background: white;
+    width: 300px;
+    border-radius: 5px;
+    color: #16325c;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    font-size: 12px;
+}
+
+#refocus_perspective_dropdown_container a {
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    font-size: 12px;
+    color: #16325c;
+}
+
+#refocus_perspective_dropdown_container #searchborder {
+    height: 30px;
+}
+
+#refocus_perspective_dropdown_container .slds-button__icon {
+    color: black;
+}
+
+#refocus_perspective_dropdown_container #switchdropdown {
+    max-height: 370px;
+    width: 300px;
+    margin: 5px 0 0 0;
+    overflow: hidden;
+}
+
+#refocus_perspective_dropdown_container .slds-dropdown {
+    overflow: scroll;
+}
+
+#lens {
+    margin-top: -35px;
+}

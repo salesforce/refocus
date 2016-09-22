@@ -34,6 +34,40 @@ describe(`api: authenticateUser`, () => {
     .send({
       email: 'unknown@abc.com',
       password: 'fakePasswd',
+      username: 'unknown'
+    })
+    .expect(constants.httpStatus.UNAUTHORIZED)
+    .expect(/LoginError/)
+    .end((err) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+  it('should not be able to authenticate without username', (done) => {
+    api.post(authPath)
+    .send({
+      email: 'unknown@abc.com',
+      password: 'fakePasswd',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/Missing required property: username/)
+    .end((err) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+  it('Wrong password', (done) => {
+    api.post(authPath)
+    .send({
+      email: 'user1@abc.com',
+      password: 'wrongPasswd',
+      username: 'user1'
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
@@ -46,11 +80,12 @@ describe(`api: authenticateUser`, () => {
     });
   });
 
-  it('Wrong password', (done) => {
+  it('authentication with wrong username should fail', (done) => {
     api.post(authPath)
     .send({
       email: 'user1@abc.com',
       password: 'wrongPasswd',
+      username: 'wrongusername'
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
@@ -108,6 +143,7 @@ describe('api: authenticate sso user', () => {
     .send({
       email: ssoUser.email,
       password: 'fakePasswd',
+      username: ssoUser.name,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/Invalid credentials/)

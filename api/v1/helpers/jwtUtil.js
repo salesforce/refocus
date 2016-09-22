@@ -39,7 +39,7 @@ function verifyToken(req, cb) {
       if (err) {
         handleInvalidToken(cb);
       } else {
-        User.findOne({ where: { email: decodedData } })
+        User.findOne({ where: { name: decodedData.username } })
         .then((user) => {
           if (user) {
             req.user = user;
@@ -72,8 +72,8 @@ function getUsernameFromToken(req) {
         if (err !== null) {
           reject(err);
         }
-
-        resolve(decodedData);
+        const username = decodedData.username;
+        resolve(username);
       });
     } else {
       reject(new apiErrors.ForbiddenError({
@@ -89,7 +89,11 @@ function getUsernameFromToken(req) {
  * @returns {string} created token
  */
 function createToken(user) {
-  const createdToken = jwt.sign(user.email, env.tokenSecret);
+  const jwtClaim = {
+    username: user.name,
+    timestamp: Date.now,
+  };
+  const createdToken = jwt.sign(jwtClaim, env.tokenSecret);
   return createdToken;
 }
 

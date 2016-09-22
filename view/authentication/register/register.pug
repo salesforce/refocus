@@ -16,6 +16,8 @@ html
           form(role='form', name='loginform')
             label#errorInfo
             .form-group
+              input.form-control(type='text', name="username", placeholder='Enter username' required)
+            .form-group
               input.form-control(type='email', name="email", placeholder='Enter email' required)
             .form-group
               input.form-control(type='password', name="password", placeholder='Password' required)

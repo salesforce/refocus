@@ -4156,9 +4156,16 @@ paths:
                 format: password
                 description: >
                   The user's password.
+              username:
+                type: string
+                maxLength: 254
+                description: >
+                  User name provided by the user
             required:
               - email
               - password
+              - username
+
       responses:
         201:
           description: >-
@@ -4179,7 +4186,7 @@ paths:
       summary: Authenticate a user
       tags: [ authenticate ]
       description: >-
-        Authenticate a user with email and password.
+        Authenticate a user with username and password.
       operationId: authenticateUser
       parameters:
         -
@@ -4191,18 +4198,18 @@ paths:
             description: >
               Credentials of person who interacts with the Refocus system.
             properties:
-              email:
+              username:
                 type: string
                 maxLength: 254
                 description: >
-                  The user's email address.
+                  The User name provided by the user during registeration
               password:
                 type: string
                 format: password
                 description: >
                   The user's password.
             required:
-              - email
+              - username
               - password
       responses:
         200:

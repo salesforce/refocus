@@ -1,0 +1,41 @@
+doctype html
+html(lang='en')
+  head
+    title Admin Views
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel='shortcut icon', href='favicon.ico')
+    //if lt IE 9
+      script(src='//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js')
+    link(rel='stylesheet', type='text/css', href='../css/salesforce-lightning-design-system.min.css')
+    link(rel='stylesheet', type='text/css', href='../css/react-selectize.css')
+    style(type='text/css').
+      #logo {
+      height: 44px;
+      }
+      header {
+      padding: 16px 0;
+      }
+      header h1 {
+      display: inline-block;
+      }
+      .button-group.right a {
+      padding: 0 0 0 20px;
+      }
+      .backUrl {
+      line-height: 400%;
+      }
+      .slds-form-element__label {
+      margin-top: 0.5rem;
+      }
+      .fa-trash {
+      color: #fff;
+      }
+  body
+    .slds-grid.slds-grid--frame.slds-grid--vertical
+      #app
+
+  script(src='/admin/app.js')
+  script.
+    var trackingId = '#{trackingId}';
+  script(src='../analytics/app.js')

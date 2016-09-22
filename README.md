@@ -25,6 +25,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
   - [Authentication](#authentication)
   - [Using API Access Tokens](#using-api-access-tokens)
 - [Useful Resources](#useful-resources)
+- [Contributing](#contributing)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -148,3 +149,6 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 - Redis [command line interface](http://redis.io/commands)
 - [Postman](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en) for testing API calls
 - Node.js [token-based authentication](https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)
+
+## Contributing
+Guidelines on contributing to Refocus are available [here](docs/Contributing.md).
