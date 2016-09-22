@@ -1,4 +1,12 @@
 /**
+ * Copyright (c) 2016, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
  * ./gulpfile.js
  *
  * Configure the streaming build system.
@@ -10,6 +18,7 @@ const browserify = require('browserify');
 const babelify = require('babelify');
 const path = require('path');
 const fs = require('fs');
+const chmod = require('gulp-chmod');
 
 const conf = {
   tasks: {
@@ -171,3 +180,17 @@ gulp.task('style', () =>
 gulp.task('watch', () =>
   gulp.watch(conf.paths.src, ['browserifyViews', 'movecss', 'movesocket'])
 );
+
+
+/*
+ * Copy git pre-commit script to git hooks.
+ */
+gulp.task('copygitprecommit', () =>
+  gulp.src('./scripts/git/pre-commit')
+    .pipe(chmod(755))
+    .pipe(gulp.dest('./.git/hooks'))
+    .on('end', () => {
+      process.exit();
+    })
+);
+

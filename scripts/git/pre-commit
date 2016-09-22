@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Check if added files contains license header.
+# Bypass it with the --no-verify option
+#
+LIST="jpg png ttf md"
+
+lookup() {
+    IFS=" "
+    for i in $LIST
+    do
+    if [ "$i" = "$1" ]
+    then
+        return 1
+        break
+    fi
+    done
+    return 0
+}
+
+files=`git diff --cached --name-only`
+
+for f in $files; do
+    lookup $(echo "$f" | awk -F . '{print $NF}')
+    if [ $? -eq 1 ]; then
+      continue
+    fi
+
+    if ! head -2 $f | grep -i -e 'copyright.*salesforce.com' 2>&1 1>/dev/null; then
+        missing_copyright_files="$missing_copyright_files $f"
+    fi
+done
+
+if [ -n "$missing_copyright_files" ]; then
+    echo "License header missing in the following files:"
+    for f in $missing_copyright_files; do
+        echo "    $f"
+    done
+    exit 1
+fi
