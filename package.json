@@ -118,7 +118,7 @@
     "superagent": "^1.4.0",
     "supertest": "^1.1.0",
     "swagger-tools": "^0.10.1",
-    "throng": "^1.0.0",
+    "throng": "^1.0.1",
     "underscore": "^1.8.3",
     "validator": "^4.0.2",
     "vinyl-source-stream": "^1.1.0",

@@ -155,7 +155,7 @@ module.exports = {
       logAPI(req, helper.modelName);
     }
 
-    res.sendStatus(httpStatus.OK);
+    return res.status(httpStatus.OK).json({ 'status': 'OK' });
 
     /*
       .each((o) => {

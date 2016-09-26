@@ -10,7 +10,7 @@ Use Github to submit issues and enhancement requests.
 
 ## Contributing
 
-1. Create a new issue so that other contributors can keep track of what you are trying to add/fix, offer suggestions or let you know if there is already an effort in progress.
+1. Search for an existing issue. If none exists, create a new issue so that other contributors can keep track of what you are trying to add/fix and offer suggestions (or let you know if there is already an effort in progress).
 
 1. Fork the repo on GitHub.
 
@@ -27,9 +27,17 @@ Use Github to submit issues and enhancement requests.
 ## Acceptance Criteria
 
 - No security vulnerabilities!
+- Comments!
+  - Module-level comments
+  - Function-level comments
+  - Comments on any interesting or complex blocks of code
+  - Comments on any interesting or complex algorithms
 - New tests!
-- All existing tests pass!
-- Style! (Run `gulp lint` to make sure your contribution follows our project's style guidelines.)
+  - Code coverage tooling and % TBD
+- All tests pass!
+- Docs!
+- Style!
+  - Run `gulp lint` to make sure your contribution follows our project's style guidelines (based on (https://github.com/airbnb/javascript)).
 
 ## Copyright and Licensing
 

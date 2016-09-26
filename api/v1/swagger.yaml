@@ -2884,7 +2884,7 @@ paths:
           description: >-
             Success, returns OK
           schema:
-            type: string
+            $ref: "#/definitions/BulkUpsertResponse"
         400:
           $ref: "#/responses/400"
         403:
@@ -5291,6 +5291,18 @@ definitions:
         description: >
           Hypertext As The Engine Of Application State.
 
+  BulkUpsertResponse:
+    type: object
+    description: >
+      Status of bulk upsert request.
+    properties:
+      status:
+        type: string
+        enum:
+          - OK
+        readOnly: true
+        description: >
+          Status.
 
   SubjectsResponse:
     type: object

@@ -104,17 +104,10 @@ describe('api: POST ' + path, () => {
         value: '4',
       },
     ])
-    .expect(200)
-    // .expect((res) => {
-    //   if (!res.body) {
-    //     throw new Error('expecting response');
-    //   }
-    //   if (res.body.successCount !== 1 ||
-    //     res.body.failureCount !== 1 ||
-    //     res.body.errors.length !== 1) {
-    //     throw new Error('expecting 1 success and 1 failure');
-    //   }
-    // })
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.status).to.contain('OK');
+    })
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -136,7 +129,7 @@ describe('api: POST ' + path, () => {
         value: '4',
       },
     ])
-    .expect(200)
+    .expect(constants.httpStatus.OK)
     // .expect((res) => {
     //   if (!res.body) {
     //     throw new Error('expecting response');
