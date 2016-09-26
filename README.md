@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/SalesforceEng/Refocus.svg?token=zCxuyQ4aywV15imFpqT7&branch=master)](https://travis-ci.com/SalesforceEng/Refocus) [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/SalesforceEng/Refocus)
+[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
 # Refocus
 
 Refocus is a platform for visualizing the health and status of systems and/or services under observation. It is *not* a monitoring or alerting tool.
@@ -90,17 +90,6 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
 
 If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
-
-### Enable concurrency
-If you want to enable concurrency in your app, store the required number of processes in a Heroku config variable called `WEB_CONCURRENCY`. Ref: [Node-concurrency](https://devcenter.heroku.com/articles/node-concurrency)
-
-### Enable audit logs
-Audit logs can be enabled using the following Heroku config variables for corresponding object types:
-- Variable name for Subjects: ```AUDIT_SUBJECTS``` 
-- Variable name for Samples: ```AUDIT_SAMPLES```
-- Variable name for Aspects: ```AUDIT_ASPECTS```
-
-Value for above mentioned variables can be one of these: ```DB | API | ALL | NONE```
 
 ## Configuring New Relic
 
