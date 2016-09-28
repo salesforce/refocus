@@ -31,6 +31,23 @@ Use Github to submit issues and enhancement requests.
 - All existing tests pass!
 - Style! (Run `gulp lint` to make sure your contribution follows our project's style guidelines.)
 
+## Dependencies
+
+Good licenses (ok to use)
+- BSD
+- Apache 2.0
+- MIT
+- ISC
+- MPL
+
+Maybe ok licenses (we need to check with legal)
+- GPL v2 
+- LGPL
+
+Bad licenses (cannot use)
+- GPL v3
+- Affero GPL
+
 ## Copyright and Licensing
 
 [License](./LICENSE.txt)
