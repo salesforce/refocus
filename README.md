@@ -1,9 +1,11 @@
 [![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
 # Refocus
 
+> ## Get started now with our [QuickStart](docs/QuickStart.md) guide!
+
 Refocus is a platform for visualizing the health and status of systems and/or services under observation. It is *not* a monitoring or alerting tool.
 
-> TODO: We need to flesh out this description to include why you would want to use it, why you would want to integrate it with your existing monitoring tools, etc.
+*TODO: We need to flesh out this description to include why you would want to use it, why you would want to integrate it with your existing monitoring tools, etc.*
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
