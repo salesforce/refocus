@@ -12,6 +12,7 @@
 
 const common = require('../helpers/common');
 const constants = require('../constants');
+const redisCache = require('../../cache/redisCache').client;
 
 const assoc = {};
 
@@ -88,17 +89,6 @@ module.exports = function lens(seq, dataTypes) {
         }, {
           override: true,
         });
-
-        // Lens.addScope('defaultScope', {
-        //   include: [
-        //     {
-        //       model: models.User,
-        //       attributes: [ 'id', 'name' ],
-        //     }
-        //   ],
-        // }, {
-        //   override: true,
-        // });
       },
     },
     defaultScope: {
@@ -137,6 +127,29 @@ module.exports = function lens(seq, dataTypes) {
         }
       },
 
+      afterDestroy(inst /* , opts */) {
+        redisCache.del(inst.id);
+        redisCache.del(inst.name);
+      },
+
+      afterCreate(inst /* , opts */) {
+        // require inside hook to remove cyclic dependency.
+        const cleanAndCreateLensJson = require(
+        '../../api/v1/controllers/lenses'
+        ).cleanAndCreateLensJson;
+
+        const lensObj = cleanAndCreateLensJson(inst);
+        redisCache.set(lensObj.id, JSON.stringify(lensObj));
+        redisCache.set(lensObj.name, JSON.stringify(lensObj));
+      },
+
+      afterUpdate(inst /* , opts */) {
+        // the inst object here does not include library field because of
+        // default scope. So, we delete the cache entry on update so that
+        // fresh entry is populated on API layer when lens is fetched.
+        redisCache.del(inst.id);
+        redisCache.del(inst.name);
+      },
     },
     name: {
       singular: 'Lens',

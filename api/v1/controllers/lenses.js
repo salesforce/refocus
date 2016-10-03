@@ -18,6 +18,7 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
+const redisCache = require('../../../cache/redisCache').client;
 
 const ZERO = 0;
 const ONE = 1;
@@ -225,17 +226,47 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLens(req, res, next) {
-    u.findByKey(helper, req.swagger.params, ['lensLibrary'])
-    .then((o) => {
-      if (o.isPublished === false) {
-        throw new apiErrors.ResourceNotFoundError({
-          explanation: 'Lens is not published. Please contact Refocus admin.',
-        });
-      }
+    // try to get cached entry
+    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+      if (reply) {
+        // reply is responsified lens object as string.
+        const lensObject = JSON.parse(reply);
 
-      res.status(httpStatus.OK).json(responsify(o, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+        // add api links to the object and return response.
+        lensObject.apiLinks = u.getApiLinks(
+          lensObject.id, helper, req.method
+        );
+
+        res.status(httpStatus.OK)
+        .json(lensObject);
+      } else {
+        // if cache error, print error and continue to get lens from db.
+        if (cacheErr) {
+          console.log(cacheErr); // eslint-disable-line no-console
+        }
+
+        // no reply, go to db to get lens object.
+        u.findByKey(helper, req.swagger.params, ['lensLibrary'])
+        .then((o) => {
+          if (o.isPublished === false) {
+            const eStr = 'Lens is not published. Please contact Refocus admin.';
+            throw new apiErrors.ResourceNotFoundError({
+              explanation: eStr,
+            });
+          }
+
+          return responsify(o, helper, req.method);
+        })
+        .then((responseObj) => {
+          res.status(httpStatus.OK).json(responseObj);
+
+          // cache the lens by id and name.
+          redisCache.set(responseObj.id, JSON.stringify(responseObj));
+          redisCache.set(responseObj.name, JSON.stringify(responseObj));
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      }
+    });
   },
 
   /**
@@ -373,5 +404,6 @@ module.exports = {
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
+  cleanAndCreateLensJson,
 
 }; // exports
