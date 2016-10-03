@@ -278,6 +278,6 @@ POST to `v1/subjects/USA/child` using the following body:
 ```
 ### Authorization Tokens Are Coming Soon!
 
-Soon you can use authorization tokens to add an additional layer of security on the platform. Stay tuned!
+Soon you can require that all API users use authorization tokens to add an additional layer of security on the platform. Stay tuned!
 
 :sparkles:*Built with love by the Site Reliability Tools team @ Salesforce.*:sparkles:
