@@ -35,6 +35,9 @@ const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
 const iplist = configUtil.parseIPlist(ipWhitelist);
 
+// Check for timed-out samples every 30 seconds if not specified in env var
+const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
+
 // audit level values can be one of these: API, DB, ALL, NONE
 const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
 const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
@@ -85,6 +88,8 @@ module.exports = {
   // as well to enable database migraton in the environment.
   environment: {
     build: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
@@ -98,6 +103,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     development: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
@@ -115,6 +122,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     production: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
       disableHttp,
@@ -130,6 +139,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     test: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
       disableHttp,
@@ -146,6 +157,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testDisableHttp: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp: true,
@@ -157,6 +170,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testWhitelistLocalhost: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
@@ -168,6 +183,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testBlockAllhosts: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
@@ -179,6 +196,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testTokenReq: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
@@ -190,6 +209,8 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testTokenNotReq: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       disableHttp,
