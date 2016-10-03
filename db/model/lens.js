@@ -13,6 +13,7 @@
 const common = require('../helpers/common');
 const constants = require('../constants');
 const redisCache = require('../../cache/redisCache').client;
+const lensUtil = require('../../utils/lensUtil');
 
 const assoc = {};
 
@@ -133,12 +134,7 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterCreate(inst /* , opts */) {
-        // require inside hook to remove cyclic dependency.
-        const cleanAndCreateLensJson = require(
-        '../../api/v1/controllers/lenses'
-        ).cleanAndCreateLensJson;
-
-        const lensObj = cleanAndCreateLensJson(inst);
+        const lensObj = lensUtil.cleanAndCreateLensJson(inst);
         redisCache.set(lensObj.id, JSON.stringify(lensObj));
         redisCache.set(lensObj.name, JSON.stringify(lensObj));
       },
