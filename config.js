@@ -118,6 +118,7 @@ module.exports = {
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
       disableHttp,
+      isInHerokuPrivateSpace: pe.IS_IN_HEROKU_PRIVATE_SPACE || false,
       redisUrl: pe.REDIS_URL,
       ipWhitelist: iplist,
       dialect: 'postgres',

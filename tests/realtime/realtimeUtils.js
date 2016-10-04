@@ -48,7 +48,7 @@ describe('realtime utils Tests:', () => {
     },
     subject: {
       tags: [
-          { name: 'ea' },
+        'ea'
       ],
     }
   };
@@ -65,7 +65,7 @@ describe('realtime utils Tests:', () => {
     },
     subject: {
       tags: [
-          { name: 'ea' },
+          'ea',
       ],
     }
   };

@@ -262,7 +262,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   it('patch tags', (done) => {
-    const tags = [{ name: 'tag1' }];
+    const tags = ['tag1'];
     p1.tags = tags;
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
@@ -270,8 +270,8 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
+
     })
     .end((err /* , res */) => {
       if (err) {
@@ -283,9 +283,9 @@ describe(`api: PATCH ${path}`, () => {
 
   it('patch tags multiple', (done) => {
     const tags = [
-      { name: 'tag0' },
-      { name: 'tag1' },
-      { name: 'tag2' }
+      'tag0',
+      'tag1',
+      'tag2'
     ];
     p1.tags = tags;
     api.patch(`${path}/${i1}`)
@@ -293,10 +293,8 @@ describe(`api: PATCH ${path}`, () => {
     .send(p1)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      for (let k=0;k<res.body.tags.length;k++) {
-        expect(res.body.tags[k]).to.have.property('id');
-        expect(res.body.tags[k]).to.have.property('name', 'tag'+k);
-      }
+      expect(res.body.tags).to.have.length(tags.length);
+      expect(res.body.tags).to.have.members(tags);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -306,19 +304,20 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('patch tags with duplicate name', (done) => {
+  it('patch tags with duplicate names should remove the duplicate',
+  (done) => {
     const tags = [
-      { name: 'link1' },
-      { name: 'link2' },
-      { name: 'link1' }
+      'link1',
+      'link2',
+      'link1'
     ];
     p1.tags = tags;
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send(p1)
     .expect((res) => {
-      expect(res.body).to.have.property('errors');
-      expect(res.body.errors[0].source).to.contain('name');
+      expect(res.body.tags).to.have.length(2);
+      expect(res.body.tags).to.include.members(tags);
     })
     .end((err /* , res */) => {
       if (err) {

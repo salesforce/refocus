@@ -20,7 +20,6 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const deleteAssociations = require('../helpers/verbs/deleteAssociations');
 const apiErrors = require('../apiErrors');
 const logAPI = require('../../../utils/loggingUtil').logAPI;
 
@@ -206,8 +205,26 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectTags(req, res, next) {
-    helper.association = 'tags';
-    deleteAssociations(req, res, next, helper);
+    const params = req.swagger.params;
+    u.findByKey(helper, params)
+    .then((o) => {
+      let updatedTagArray = [];
+      if (params.tagName) {
+        updatedTagArray =
+          u.deleteArrayElement(o.tags, params.tagName.value);
+      }
+
+      return o.update({ tags: updatedTagArray });
+    })
+    .then((o) => {
+      if (helper.loggingEnabled) {
+        logAPI(req, 'SubjectTags', o);
+      }
+
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

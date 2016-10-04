@@ -40,6 +40,7 @@ function doPatch(req, res, next, props) {
     }
 
     u.patchJsonArrayFields(o, requestBody, props);
+    u.patchArrayFields(o, requestBody, props);
     return o.update(requestBody);
   })
   .then((o) => u.handleAssociations(requestBody, o, props, req.method))

@@ -247,6 +247,66 @@ function findByIdThenName(model, key, opts) {
 } // findByIdThenName
 
 /**
+ * Duplicate elements in an Array of strings are removed and the request object
+ * is returned.
+ * @param  {Object} requestBody  - The request object
+ * @param  {Object} props - The helpers/nouns module for the given DB model
+ * @returns {Object} the updated object with the duplicate elements in the array
+ * removed.
+ */
+function mergeDuplicateArrayElements(requestBody, props) {
+  if (props.fieldsWithArrayType) {
+    props.fieldsWithArrayType.forEach((field) => {
+      if (requestBody[field]) {
+        const aSet = new Set(requestBody[field]);
+        requestBody[field] = Array.from(aSet);
+      }
+    });
+  }
+
+  return requestBody;
+}
+
+/**
+ * All the array fields of the requestBody are compared with the
+ * same fields of the model and a merge is performed to update the requestBody
+ * @param  {Model} instance - A model instance which needs to be patched
+ * @param  {Object} requestBody  - The request object
+ * @param  {Object} props - The helpers/nouns module for the given DB model
+ * @returns {Object} the updated object with the array fields patched
+ */
+function patchArrayFields(instance, requestBody, props) {
+  if (props.fieldsWithArrayType) {
+    props.fieldsWithArrayType.forEach((field) => {
+      if (requestBody[field]) {
+        const instSet = new Set(instance.dataValues[field]);
+        requestBody[field].forEach((element) => {
+          instSet.add(element);
+        });
+        requestBody[field] = Array.from(instSet);
+      }
+    });
+  }
+
+  return requestBody;
+} // patchArrayFields
+
+/**
+ * Deletes a string in the array that matches 'elementName'
+ * @param  {Array} arr - Array of string.
+ * @param  {String} elementName  - The element in the array to be deleted.
+ * @returns {Array} - An array without an 'elementName' string in it
+ */
+function deleteArrayElement(arr, elementName) {
+  let updatedArr;
+  if (arr !== null) {
+    updatedArr = arr.filter((element) => element !== elementName);
+  }
+
+  return updatedArr;
+} // deleteArrayElement
+
+/**
  * Compares the json objects in the instArray with the requestArray and performs
  * a merge.
  * @param  {[Array]} instArray - Array of Json objects from the model instance
@@ -272,7 +332,7 @@ function mergeByProperty(instArray, requestArray) {
  * All the JSON array fields of the requestBody are compared with the
  * same fields of the model and a merge is performed to update the requestBody
  * @param  {Model} instance - A model instance which needs to be patched
- * @param  {Object} requestBody  - The request obdy object
+ * @param  {Object} requestBody  - The request body object
  * @param  {Object} props - The helpers/nouns module for the given DB model
  * @returns {Object} the updated model with the json array fields patched
  */
@@ -438,6 +498,10 @@ module.exports = {
 
   deleteAJsonArrayElement,
 
+  deleteArrayElement,
+
+  mergeDuplicateArrayElements,
+
   /**
    * Attaches the resource type to the error and passes it on to the next
    * handler.
@@ -459,6 +523,8 @@ module.exports = {
   capitalizeFirstLetter,
 
   patchJsonArrayFields,
+
+  patchArrayFields,
 
   getApiLinks,
 

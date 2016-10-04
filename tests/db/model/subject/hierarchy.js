@@ -18,12 +18,11 @@ const Subject = tu.db.Subject;
 
 describe('db: subject: get hierarchy: ', () => {
   const parTag = [
-    { name: '___na', associatedModelName: 'Subject' },
-    { name: '___continent', associatedModelName: 'Subject' }
+    '___na',
+    '___continent'
   ];
   const grnTag = [
-    { name: '___qbc', associatedModelName: 'Subject' },
-    { name: '___state', associatedModelName: 'Subject' }
+    '___qbc', '___state'
   ];
 
   const parLink = [{ name: '____parlink', url: 'https://fakelink.com' }];
@@ -37,20 +36,18 @@ describe('db: subject: get hierarchy: ', () => {
   let ipar = 0;
   let ichi = 0;
   before((done) => {
-    Subject.create(par, { include: [Subject.getSubjectAssociations().tags] })
+    Subject.create(par)
     .then((subj) => {
       ipar = subj.id;
     })
     .then(() => {
       chi.parentId = ipar;
-      return Subject.create(chi, { include: Subject.getSubjectAssociations()
-        .tags });
+      return Subject.create(chi);
     })
     .then((subj) => {
       ichi = subj.id;
       grn.parentId = ichi;
-      return Subject.create(grn, { include: [Subject.getSubjectAssociations()
-        .tags] });
+      return Subject.create(grn);
     })
     .then(() => done())
     .catch((err) => done(err));

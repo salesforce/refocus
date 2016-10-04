@@ -51,7 +51,12 @@ function parseTags(obj, property) {
   const tagNames = [];
   if (obj[property]) {
     obj[property].tags.forEach((tag) => {
-      tagNames.push(tag.name);
+    // lines 54 to 56 will be removed when aspecttags are moved to aspect table
+      if (tag.name) {
+        tagNames.push(tag.name);
+      } else {
+        tagNames.push(tag);
+      }
     });
   }
 

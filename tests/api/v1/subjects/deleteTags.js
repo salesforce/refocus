@@ -24,13 +24,13 @@ const oneDeletePath = '/v1/subjects/{key}/tags/{akey}';
 describe(`api: subjects: DELETE tags}`, () => {
   let token;
   let i;
-  let tag0;
+  const tag0 = 'tag0';
 
   const n = {
     name: `${tu.namePrefix}NorthAmerica`,
     tags: [
-      { name: 'tag0', associatedModelName: 'Subject' },
-      { name: 'tag1', associatedModelName: 'Subject' },
+      'tag0',
+      'tag1'
     ]
   };
 
@@ -44,10 +44,9 @@ describe(`api: subjects: DELETE tags}`, () => {
   });
 
   beforeEach((done) => {
-    Subject.create(n, { include: Subject.getSubjectAssociations().tags })
+    Subject.create(n)
     .then((subj) => {
       i = subj.id;
-      tag0 = subj.tags[0].id;
       done();
     })
     .catch((err) => done(err));
@@ -72,13 +71,13 @@ describe(`api: subjects: DELETE tags}`, () => {
   });
 
   it('delete one tag', (done) => {
+
     api.delete(oneDeletePath.replace('{key}', i).replace('{akey}', tag0))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -95,8 +94,7 @@ describe(`api: subjects: DELETE tags}`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -107,10 +105,14 @@ describe(`api: subjects: DELETE tags}`, () => {
     });
   });
 
-  it('error if tag not found', (done) => {
+  it('if tag not found; do not delete anything', (done) => {
     api.delete(oneDeletePath.replace('{key}', i).replace('{akey}', 'x'))
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.tags).to.have.length(2);
+      expect(res.body.tags).to.have.members(['tag1', 'tag0']);
+    })
     .end((err /* , res */) => {
       if (err) {
         return done(err);

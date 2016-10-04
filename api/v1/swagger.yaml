@@ -1,7 +1,7 @@
 # =============================================================================
 # Copyright (c) 2016, salesforce.com, inc.
 # All rights reserved.
-# Licensed under the BSD 3-Clause license. 
+# Licensed under the BSD 3-Clause license.
 # For full license text, see LICENSE.txt file in the repo root or
 # https://opensource.org/licenses/BSD-3-Clause
 # =============================================================================
@@ -3160,9 +3160,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3326,9 +3329,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3428,9 +3434,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3530,9 +3539,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3717,7 +3729,7 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
-  /subjects/{key}/tags/{akey}:
+  /subjects/{key}/tags/{tagName}:
     x-swagger-router-controller: subjects
     delete:
       security:
@@ -3737,10 +3749,10 @@ paths:
           required: true
           type: string
         -
-          name: akey
+          name: tagName
           in: path
           description: >-
-            The id or absolute path of the tag which needs to be deleted.
+            Name of tag which needs to be deleted.
           required: true
           type: string
       responses:
@@ -5400,12 +5412,14 @@ definitions:
         description: >
           TODO
       tags:
-        readOnly: true
         type: array
         items:
-          $ref: "#/definitions/TagResponse"
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_\\-]{1,60}$
         description: >
-          RelatedLinks associated with this model.
+          Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
       samples:
         type: array
         description: >

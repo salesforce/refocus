@@ -1,16 +1,16 @@
 {
-  "name": "Refocus",
-  "description": "The Go-To Platform for Visualizing Service Health",
+  "name": "Focus",
+  "description": "Focus",
   "engines": {
     "node": "4.5.x",
     "npm": "3.10.x"
   },
-  "license": "BSD-3-Clause",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Salesforce/refocus.git"
+    "url": "https://github.com/SalesforceEng/Refocus.git"
   },
   "watch": {
     "view": "view/**/*/app.js"
@@ -51,7 +51,6 @@
     "babel-preset-react-hmre": "^1.1.1",
     "babel-preset-stage-0": "^6.3.13",
     "babel-preset-stage-1": "6.1.2",
-    "babel-runtime": "^6.11.6",
     "babelify": "^7.3.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "1.x",

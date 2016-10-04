@@ -18,7 +18,7 @@ import { Link } from 'react-router';
 // props: need onClose, onSave handlers
 class Modal extends React.Component {
   render() {
-    const { title, onSave, onHide, primaryBtnTxt } = this.props;
+    const { title, onSave, onHide, primaryBtnTxt, notificationBox } = this.props;
     return (
       <div>
         <div
@@ -37,6 +37,7 @@ class Modal extends React.Component {
                     </button>
                     <h2 className='slds-text-heading--medium'>{title}</h2>
                 </div>
+                { notificationBox }
                 <div className='slds-modal__content slds-p-around--medium'>
                 {this.props.children}
                 </div>
@@ -59,6 +60,7 @@ class Modal extends React.Component {
 }
 
 Modal.propTypes = {
+  notificationBox: PropTypes.node,
   title: PropTypes.string,
   cancelUrl: PropTypes.string,
   onSave: PropTypes.func,

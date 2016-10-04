@@ -111,6 +111,11 @@ module.exports = function subject(seq, dataTypes) {
         },
       },
     },
+    tags: {
+      type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      allowNull: true,
+      defaultValue: constants.defaultArrayValue,
+    },
   }, {
     classMethods: {
       getSubjectAssociations() {
@@ -121,14 +126,6 @@ module.exports = function subject(seq, dataTypes) {
         assoc.createdBy = Subject.belongsTo(models.User, {
           foreignKey: 'createdBy',
         });
-        assoc.tags = Subject.hasMany(models.Tag, {
-          foreignKey: 'associationId',
-          constraints: false,
-          scope: {
-            associatedModelName: 'Subject',
-          },
-          as: 'tags',
-        });
         assoc.samples = Subject.hasMany(models.Sample, {
           foreignKey: 'subjectId',
           as: 'samples',
@@ -136,14 +133,6 @@ module.exports = function subject(seq, dataTypes) {
           hooks: true,
         });
         Subject.addScope('defaultScope', {
-          include: [
-
-            // {
-            //   association: assoc.createdBy,
-            //   attributes: [ 'name' ],
-            // },
-            assoc.tags,
-          ],
           order: ['absolutePath'],
         }, {
           override: true,
@@ -167,32 +156,18 @@ module.exports = function subject(seq, dataTypes) {
             },
           ],
         });
-        Subject.addScope('tagNameIn', (tagNames) => {
-          return {
-            include: [
-              {
-                model: models.Tag,
-                association: assoc.tags,
-                attributes: ['name'],
-                where: {
-                  name: { $in: tagNames },
-                },
-              },
-            ],
-          };
-        });
         Subject.addScope('id', (value) => {
           return {
             where: {
               id: value
-            }
+            },
           };
         });
         Subject.addScope('absolutePath', (value) => {
           return {
             where: {
               absolutePath: value
-            }
+            },
           };
         });
         Subject.addScope('hierarchy', {
@@ -217,10 +192,6 @@ module.exports = function subject(seq, dataTypes) {
                   },
                 },
               ],
-            },
-            {
-              association: assoc.tags,
-              attributes: ['name'],
             },
           ],
         });

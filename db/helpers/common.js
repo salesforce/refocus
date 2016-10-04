@@ -255,10 +255,11 @@ function validateJsonSchema(value) {
   for (let i = 0; i < value.length; i++) {
     const relLink = value[i];
     if (Object.keys(relLink).length > jsonSchemaProperties.relatedlink.length) {
-      throw new Error('A relatedlinks can only have'+
+      throw new Error('A relatedlinks can only have' +
         jsonSchemaProperties.relatedlink.length +' properties: ' +
         jsonSchemaProperties.relatedlink);
     }
+
     if (relLinkNameSet.has(relLink.name)) {
       throw new Error('Name of the relatedlinks should be unique');
     } else {

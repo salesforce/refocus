@@ -51,11 +51,6 @@ module.exports = function tag(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.subject = Tag.belongsTo(models.Subject, {
-          as: 'subject',
-          foreignKey: 'associationId',
-          constraints: false,
-        });
         assoc.aspect = Tag.belongsTo(models.Aspect, {
           as: 'aspect',
           foreignKey: 'associationId',

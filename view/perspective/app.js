@@ -6,10 +6,16 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * view/perspective/app.js
+ *
+ * Loads required data for named and unnamed perspectives.
+ */
+
 import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Perspective from './Perspective';
+import PerspectiveController from './PerspectiveController';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 
@@ -18,8 +24,10 @@ require('./lensUtils');
 
 const ZERO = 0;
 const ONE = 1;
+
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
+
 const REQ_HEADERS = {
   Authorization: u.getCookie('Authorization'),
   'X-Requested-With': 'XMLHttpRequest',
@@ -72,10 +80,9 @@ function handleEvent(eventData, eventTypeName) {
   }
 
   eventsQueue.enqueueEvent(eventTypeName, j[eventTypeName]);
-
   if (eventThrottleMillis === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
-    eventsQueue.queue.length = 0;
+    eventsQueue.queue.length = ZERO;
   }
 } // handleEvent
 
@@ -179,24 +186,27 @@ function handleLibraryFiles(res) {
  */
 function getFilterQuery(p) {
   let q = '?';
-  if (p.aspectFilter) {
-    q += 'aspect=' + p.aspectFilter.join();
+  if (p.aspectFilter && p.aspectFilter.length) {
+    const sign = p.aspectFilterType === 'INCLUDE' ? '=' : '=-';
+    q += 'aspect' + sign + p.aspectFilter.join();
   }
 
-  if (p.aspectTagFilter) {
+  if (p.aspectTagFilter && p.aspectTagFilter.length) {
     if (!q.endsWith('?')) {
       q += '&';
     }
 
-    q += 'aspectTags=' + p.aspectTagFilter.join();
+    const sign = p.aspectTagFilterType === 'INCLUDE' ? '=' : '=-';
+    q += 'aspectTags' + sign + p.aspectTagFilter.join();
   }
 
-  if (p.subjectTagFilter) {
+  if (p.subjectTagFilter && p.subjectTagFilter.length) {
     if (!q.endsWith('?')) {
       q += '&';
     }
 
-    q += 'subjectTags=' + p.subjectTagFilter.join();
+    const sign = p.subjectTagFilterType === 'INCLUDE' ? '=' : '=-';
+    q += 'subjectTags' + sign + p.subjectTagFilter.join();
   }
 
   if (p.statusFilter) {
@@ -204,94 +214,278 @@ function getFilterQuery(p) {
       q += '&';
     }
 
-    q += 'status=' + p.statusFilter.join();
+    const sign = p.statusFilterType === 'INCLUDE' ? '=' : '=-';
+    q += 'status' + sign + p.statusFilter.join();
   }
 
   return q;
 } // getFilterQuery
 
 /**
- * Request the hierarchy data and notify the lens when the data is loaded.
- *
- * @param {String} p - The API path to GET resource
+ * @param {String} name The key to the returned response object
+ * @param {String} url The url to get from
+ * param {Function} callback Additional processing with result
+ * @returns {Promise} For use in chaining.
  */
-function getHierarchyData(p) {
-  request.get(p)
-  .set(REQ_HEADERS)
-  .end((err, res) => {
-    if (err) {
-      handleError(err);
-    } else {
-      // Trigger the lens event "refocus.lens.hierarchyLoad".
-      const ev = new CustomEvent('refocus.lens.hierarchyLoad', {
-        detail: res.body,
-      });
-      LENS_DIV.dispatchEvent(ev);
-    }
+function getPromiseWithUrl(name, url, callback) {
+  return new Promise((resolve, reject) => {
+    request.get(url)
+    .set(REQ_HEADERS)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
+          url + '. Make sure the path is valid and the resource is published.';
+        reject(error);
+      } else {
+        if (callback) {
+          callback(response); // pass in the complete result
+        }
+        const obj = name ? { name: name, res: response.body } : response.body;
+        resolve(obj);
+      }
+    });
   });
 } // getHierarchyData
 
 /**
- * Load the lens then move on to get the hierarchy data.
+ * Passes data on to Controller to pass onto renderers.
  *
- * @param {String} lensId The complete lensId to GET from.
- * @param {String} rootSubject The subject to GET from.
- * @param {String} filterString For getHierarchy.
+ * @param {Object} values Data returned from AJAX.
+ * @param {Object} stateObject Data from queryParams.
  */
-function getLensById(lensId, rootSubject, filterString) {
-  request.get(`/v1/lenses/${lensId}`)
-  .set(REQ_HEADERS)
-  .end((err, res) => {
-    if (err) {
-      handleError(err);
-    } else {
-      // Inject the lens library files into the perspective page.
-      handleLibraryFiles(res);
-
-      // Trigger the lens event "refocus.lens.load".
-      LENS_DIV.dispatchEvent(new CustomEvent('refocus.lens.load'));
-
-      // Generate the hierarchy API path based on the rootSubject and filters.
-      let apiPath = `/v1/subjects/${rootSubject}/hierarchy`;
-      if (filterString) {
-        apiPath += filterString;
-      }
-
-      getHierarchyData(apiPath);
-    }
-  });
-} // getLensById
+function loadController(values, stateObject) {
+  ReactDOM.render(
+    <PerspectiveController
+      values={ values }
+      stateObject={ stateObject }
+    />,
+    PERSPECTIVE_CONTAINER
+  );
+}
 
 /**
- * Load the perspective, render the perspective overlay, load the lens and set
- * up the socket.io client.
+ * Given the rootSubject, gets subject hierarchy
+ * and returns a promise to load rootSubject
  *
- * @param {String} pname - the perspective to load
- * @param {Array} pnames - array of perspective names (string)
+ * @param {String} rootSubject The subject to load the hierarchy of
+ * @param {String} filterString Any filters
  */
-function getPerspective(pname, pnames) {
-  request.get(`/v1/perspectives/${pname}`)
-  .set(REQ_HEADERS)
-  .end((err, res) => {
-    if (err) {
-      handleError(err);
-    } else {
-      const { lensId, rootSubject, name } = res.body;
-      ReactDOM.render(
-        <Perspective
-          persNames={ pnames }
-          name={ name }
-        />,
-        PERSPECTIVE_CONTAINER
-      );
+function getSubjectPromise(rootSubject, filterString) {
+  let apiPath = `/v1/subjects/${rootSubject}/hierarchy`;
+  if (filterString) {
+    apiPath += filterString;
+  }
 
-      // Now get the lens...
-      const filterString = getFilterQuery(res.body);
-      getLensById(lensId, rootSubject, filterString);
-      setupSocketIOClient(res.body);
+  return getPromiseWithUrl('rootSubject', apiPath, (hierarchyRes) => {
+    const ev = new CustomEvent('refocus.lens.hierarchyLoad', {
+      detail: hierarchyRes.body,
+    });
+    LENS_DIV.dispatchEvent(ev);
+  });
+}
+
+/**
+ * @param {String} lensNameOrId
+ */
+function getLensPromise(lensNameOrId) {
+  return getPromiseWithUrl('lens', '/v1/lenses/' + lensNameOrId, (lensRes) => {
+    // inject lens library files in perspective view.
+    handleLibraryFiles(lensRes);
+
+    // remove spinner and load lens
+    const spinner = document.getElementById('lens_loading_spinner');
+    spinner.parentNode.removeChild(spinner);
+
+    // trigger refocus.lens.load event
+    LENS_DIV.dispatchEvent(new CustomEvent('refocus.lens.load'));
+  });
+} // getLensPromise
+
+/**
+ * Any last additions to show on create and detail view
+ * @returns {Object} The object with data from queryParam
+ */
+function getAllParams() {
+  const responseObject = {};
+  const { rootSubject, lens } = queryParams; // defined in pug file
+  responseObject.subjects = rootSubject || ''; // single
+  responseObject.lenses = lens || ''; // single
+  // multiples, may start with -. If so, use exclude filter
+  const filterA = [
+    'aspectFilter', 'aspectTagFilter', 'subjectTagFilter', 'statusFilter',
+  ];
+  for (let i = filterA.length - ONE; i >= ZERO; i--) {
+    const currentVal = queryParams[filterA[i]];
+    if (currentVal) {
+      if (currentVal.slice(ZERO, ONE) === '-') {
+        responseObject[filterA[i] + 'Type'] = 'EXCLUDE';
+        responseObject[filterA[i]] = currentVal.slice(ONE).split(',');
+      } else { // filter exists, and is an include
+        responseObject[filterA[i] + 'Type'] = 'INCLUDE';
+        responseObject[filterA[i]] = currentVal.split(',');
+      }
+    } else { // filter is empty or is not in params
+      responseObject[filterA[i] + 'Type'] = 'INCLUDE';
+      responseObject[filterA[i]] = [];
+    }
+  }
+
+  return responseObject;
+}
+
+
+/**
+ * Returns array of objects with tags
+ * @param {Array} array The array of reosurces to get tags from.
+ * @returns {Object} array of tags
+ */
+function getTagsFromResources(array) {
+  // get all tags
+  const allTags = [];
+  array.map((obj) => {
+    if (obj.tags.length) {
+      allTags.push(...obj.tags);
     }
   });
-} // getPerspective
+  const tagNames = [];
+
+  // get through tags, get all names
+  allTags.map((tagObj) => {
+    if (tagNames.indexOf(tagObj.name.toLowerCase()) === -1) {
+      tagNames.push(tagObj.name);
+    }
+  });
+  return tagNames;
+}
+
+function getPublishedObjectsbyField(array, field) {
+  return array.filter((obj) => 
+   obj.isPublished).map((obj) => obj[field])
+}
+
+/**
+ * @param {Array} promisesArr An array of AJAX GET promises.
+ * @param {Object} perspective An object
+ * @param {boolean} getRoot Get all subjects, set first published subject as
+ * rootSubject
+ * @param {boolean} getLens Get all lenses, use the first published lens
+ */
+function loadPerspective(promisesArr, perspective, getRoot, getLens) {
+  let allResponse = {};
+  const arr = [
+    { name: 'perspectives', url: '/v1/perspectives' },
+    { name: 'aspectFilter', url: '/v1/aspects' },
+  ];
+  const getAllSubjectsPromise = getPromiseWithUrl('subjects', '/v1/subjects');
+  const subjectPromise = !getRoot ? getAllSubjectsPromise :
+    getAllSubjectsPromise.then((val) => {
+      allResponse.subjects = val.res;
+
+      // get the first published subject, sorted in alphabetical order by
+      //  absolutePath
+      const rootSubject = getPublishedObjectsbyField(
+        val.res, 'absolutePath'
+      ).sort()[ZERO];
+      return getSubjectPromise(rootSubject);
+    });
+  promisesArr.push(subjectPromise);
+
+  const getAllLensesPromise = getPromiseWithUrl('lenses', '/v1/lenses');
+  const lensPromise = !getLens ? getAllLensesPromise :
+    getAllLensesPromise.then((val) => {
+      allResponse.lenses = val.res;
+
+      // get the first published lens, sorted in alphabetical order by name
+      const lens = getPublishedObjectsbyField(val.res, 'name').sort()[ZERO];
+      return getLensPromise(lens);
+    });
+  promisesArr.push(lensPromise);
+
+  for (let i = arr.length - ONE; i >= ZERO; i--) {
+    promisesArr.push(getPromiseWithUrl(arr[i].name, arr[i].url));
+  }
+
+  // change this to GET from API, after its implemented;
+  const statusFilter = [
+    'Critical',
+    'Invalid',
+    'Timeout',
+    'Warning',
+    'Info',
+    'OK',
+  ];
+  Promise.all(promisesArr).then((values) => {
+    for (let i = values.length - ONE; i >= ZERO; i--) {
+      allResponse[values[i].name] = values[i].res;
+    }
+
+    // for named perspective
+    if (perspective) {
+      allResponse = Object.assign(perspective, allResponse);
+    }
+
+    allResponse.statusFilter = statusFilter;
+
+    // fill in queries from the browser
+    const stateObject = Object.assign(
+      { perspectives: perspective ? perspective.name : '' }, getAllParams()
+    );
+    allResponse.aspectTags = getTagsFromResources(allResponse.aspectFilter);
+    allResponse.subjectTagFilter = getTagsFromResources(allResponse.subjects);
+    loadController(allResponse, stateObject);
+  });
+} // getPerspectiveNames
+
+function handleUnnamedPerspective() {
+  const promisesArr = [];
+  // fill in missing info from params
+  const { rootSubject, lens } = queryParams;
+  let getRoot = false;
+  let getLens = false;
+
+  // if no loadObj.rootSubject, rootSubject is the first subject in GET subject
+  if (rootSubject) {
+    promisesArr.push(getSubjectPromise(rootSubject));
+  } else if (!rootSubject) { // no queryParam.rootSubject: need to pass it to loadPerspective
+    getRoot = true;
+  }
+
+  if (lens) {
+    promisesArr.push(getLensPromise(lens));
+  } else if (!lens) {
+    getLens = true;
+  }
+
+  loadPerspective(promisesArr, null, getRoot, getLens);
+}
+
+/**
+ * GETs the specified perspective
+ * returns promises to find the perspective's rootSubject and lens
+ * @param {String} perspNameOrId The perspective to GET
+ * @returns {Array} Of promises
+ */
+function getPerspective(perspNameOrId) {
+  const perspectivePromise = getPromiseWithUrl(
+    'perspective',
+    '/v1/perspectives/' + perspNameOrId
+  );
+  perspectivePromise.then((val) => {
+    setupSocketIOClient(val.res);
+    const { lensId, name, rootSubject } = val.res;
+    const filterString = getFilterQuery(val.res);
+    getLensPromise(lensId)
+    .then(() => getSubjectPromise(rootSubject, filterString))
+    .then(() => {
+      const promisesArr = [];
+      return loadPerspective(promisesArr, { name, rootSubject, lensId });
+    });
+  })
+  .catch((error) => {
+    document.getElementById('errorInfo').innerHTML += error;
+  });
+}
 
 /**
  * Figure out which perspective to load. If it's in the URL path, load that
@@ -312,7 +506,7 @@ function whichPerspective(pnames) {
   hsplit.pop();
   let p = hsplit.pop();
   if (p && p !== 'perspectives') {
-    getPerspective(p, pnames);
+    getPerspective(p);
   } else {
     request.get(GET_DEFAULT_PERSPECTIVE)
     .set(REQ_HEADERS)
@@ -342,13 +536,7 @@ function getPerspectiveNames() {
       handleError(err);
     } else {
       if (res.body.length === 0) {
-        ReactDOM.render(
-          <Perspective
-            persNames={ pnames }
-            name={ name }
-          />,
-          PERSPECTIVE_CONTAINER
-        );
+        loadController({}, {});
       } else {
         for (let i = 0; i < res.body.length; i++) {
           pnames.push(res.body[i].name);
@@ -361,7 +549,9 @@ function getPerspectiveNames() {
   });
 } // getPerspectiveNames
 
-getPerspectiveNames();
+window.onload = () => {
+  getPerspectiveNames();
+};
 
 if (eventThrottleMillis !== ZERO) {
   eventsQueue.scheduleFlushQueue(LENS_DIV, eventThrottleMillis);

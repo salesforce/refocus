@@ -28,10 +28,8 @@ const filters = {
   status: {},
 };
 
-// List related associations and convert it to a set
-const assocList = ['tags'];
-const assocSet = new Set(assocList);
 const fieldsWithJsonArrayType = ['relatedLinks'];
+const fieldsWithArrayType = ['tags'];
 const loggingEnabled = (
   config.auditSubjects === 'API' || config.auditSubjects === 'ALL'
   ) || false;
@@ -123,10 +121,16 @@ function applyTagFilters(keys, filterBy) {
 
   let isPartOfInFilter = false;
   let isPartOfNotInFilter = false;
-
+  let keyValue;
   // check if the elements of keys are part of the "includes" filter
   for (let i = 0; i < keys.length; i++) {
-    if (filters[filterBy].includes.has(keys[i].name.toLowerCase())) {
+    // lines 127 - 132 will be removed when aspecttags are moved to aspect table
+    if (keys[i].name) {
+      keyValue = keys[i].name;
+    } else {
+      keyValue = keys[i];
+    }
+    if (filters[filterBy].includes.has(keyValue.toLowerCase())) {
       isPartOfInFilter = true;
       break;
     }
@@ -134,7 +138,13 @@ function applyTagFilters(keys, filterBy) {
 
   // check if the elements of keys are part of the "excludes" filter
   for (let i = 0; i < keys.length; i++) {
-    if (filters[filterBy].excludes.has(keys[i].name.toLowerCase())) {
+    // lines 141 - 146 will be removed when aspecttags are moved to aspect table
+    if (keys[i].name) {
+      keyValue = keys[i].name;
+    } else {
+      keyValue = keys[i];
+    }
+    if (filters[filterBy].excludes.has(keyValue.toLowerCase())) {
       isPartOfNotInFilter = true;
       break;
     }
@@ -303,7 +313,7 @@ module.exports = {
   modelName: 'Subject',
   nameFinder: 'absolutePath',
   modifyAPIResponse,
-  assocSet,
   fieldsWithJsonArrayType,
+  fieldsWithArrayType,
   loggingEnabled,
 }; // exports
