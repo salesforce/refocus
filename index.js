@@ -62,7 +62,6 @@ function start() { // eslint-disable-line max-statements
 
   // set up httpServer params
   const dbSample = require('./db/index').Sample;
-  const CHECK_TIMEOUT_INTERVAL_MILLIS = 10000; // 10 seconds
   const listening = 'Listening on port';
   const isDevelopment = (process.env.NODE_ENV === 'development');
   const PORT = process.env.PORT || conf.port;
@@ -95,12 +94,12 @@ function start() { // eslint-disable-line max-statements
 
     app.listen(PORT, () => {
       console.log(listening, PORT); // eslint-disable-line no-console
-      setInterval(() => dbSample.doTimeout(), CHECK_TIMEOUT_INTERVAL_MILLIS);
+      setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
     });
   } else {
     httpServer.listen(PORT, () => {
       console.log(listening, PORT); // eslint-disable-line no-console
-      setInterval(() => dbSample.doTimeout(), CHECK_TIMEOUT_INTERVAL_MILLIS);
+      setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
     });
   }
 
@@ -140,8 +139,8 @@ function start() { // eslint-disable-line max-statements
     ));
 
     /*
-     * Interpret Swagger resources and attach metadata to request - must be first
-     * in swagger-tools middleware chain
+     * Interpret Swagger resources and attach metadata to request - must be
+     * first in swagger-tools middleware chain.
      */
     app.use(mw.swaggerMetadata());
 
@@ -166,8 +165,8 @@ function start() { // eslint-disable-line max-statements
 
     // Serve the Swagger documents and Swagger UI
     app.use(mw.swaggerUi({
-      apiDocs: swaggerDoc.basePath + '/api-docs', // for API documetation as JSON
-      swaggerUi: swaggerDoc.basePath + '/docs', // for API documentation as HTML
+      apiDocs: swaggerDoc.basePath + '/api-docs', // API documetation as JSON
+      swaggerUi: swaggerDoc.basePath + '/docs', // API documentation as HTML
     }));
 
     // Handle Errors
