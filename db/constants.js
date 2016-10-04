@@ -22,6 +22,7 @@ module.exports = {
   nameRegex: /^[0-9a-z_-]+$/i,
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
+  defaultArrayValue: [],
   statuses: {
     Critical: 'Critical',
     Invalid: 'Invalid',

@@ -360,7 +360,7 @@ describe(`api: POST ${path}`, () => {
     it('post subject with absolutePath', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send({ 
+      .send({
         isPublished: false,
         absolutePath: 'dd',
         name: `${tu.namePrefix}test`
@@ -416,7 +416,7 @@ describe(`api: POST ${path}`, () => {
     afterEach(u.forceDelete);
     it('post subject with tags', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
-      const tags = [{ name: '___na' }, { name: '___continent' }];
+      const tags = ['___na', '___continent'];
       subjectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
@@ -424,6 +424,8 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
+        expect(res.body.tags).to.have.members(tags);
+
       })
       .end((err /* , res */) => {
         if (err) {
@@ -433,17 +435,18 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('posting subject with duplicate tags should fail', (done) => {
+    it('posting subject with duplicate tags', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}Asia` };
 
-      const tags = [{ name: '___na' }, { name: '___na' }];
+      const tags = ['___na', '___na'];
       subjectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
       .send(subjectToPost)
       .expect((res) => {
-        expect(res.body).to.have.property('errors');
-        expect(res.body.errors[0].type).to.contain('SequelizeUniqueConstraintError');
+        expect(res.body.tags).to.have.length(1);
+        expect(res.body.tags).to.include.members(tags);
+
       })
       .end((err /* , res */) => {
         if (err) {

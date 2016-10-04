@@ -25,18 +25,17 @@ const NOT_FOUND = 404;
 
 // protected urls
 const viewmap = {
-  '/aspects': 'admin/index',
-  '/aspects/:key': 'admin/index',
-  '/aspects/:key/edit': 'admin/index',
-  '/subjects': 'admin/index',
-  '/subjects/:key': 'admin/index',
-  '/subjects/:key/edit': 'admin/index',
-  '/samples': 'admin/index',
-  '/samples/:key': 'admin/index',
-  '/samples/:key/edit': 'admin/index',
-  '/focusGrid': 'focusGrid/focus',
-  '/focusRtBracket': 'focusRtBracket/focus',
-  '/focusTree': 'focusTree/focus',
+  '/aspects': 'admin',
+  '/aspects/:key': 'admin',
+  '/aspects/:key/edit': 'admin',
+  '/subjects': 'admin',
+  '/subjects/:key': 'admin',
+  '/subjects/:key/edit': 'admin',
+  '/samples': 'admin',
+  '/samples/:key': 'admin',
+  '/samples/:key/edit': 'admin',
+  '/perspectives': 'perspective/perspective',
+  '/perspectives/:key': 'perspective/perspective',
 };
 
 /**
@@ -98,35 +97,28 @@ module.exports = function loadView(app, passport) {
       key,
       ensureAuthenticated,
       (req, res) => {
-        // if request admin, serve html file. Otherwise render
-        res.render(viewmap[key], {
+        const trackObj = {
           trackingId: viewConfig.trackingId,
           user: req.user,
-        });
+          eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+        };
+
+        const templateVars = Object.assign(
+          {},
+          { queryParams: JSON.stringify(req.query) },
+          trackObj
+        );
+
+        // if url contains a query, render perspective detail page with realtime
+        // updates
+        if ((key === '/perspectives' && Object.keys(req.query).length) ||
+        key === '/perspectives/:key') {
+          res.render(viewmap[key], templateVars);
+        } else {
+          res.render(viewmap[key], trackObj);
+        }
       }
     )
-  );
-
-  app.get(
-    '/perspectives',
-    ensureAuthenticated,
-    (req, res) => {
-      res.render('perspective/perspective', {
-        eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-        trackingId: viewConfig.trackingId,
-      });
-    }
-  );
-
-  app.get(
-    '/perspectives/:key',
-    ensureAuthenticated,
-    (req, res) => {
-      res.render('perspective/perspective', {
-        eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-        trackingId: viewConfig.trackingId,
-      });
-    }
   );
 
   /**

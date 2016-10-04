@@ -36,16 +36,12 @@ describe(`api: GET ${path}:`, () => {
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   let parOther1 = { name: `${tu.namePrefix}SouthAmerica`, isPublished: true };
   let parOther2 = { name: `${tu.namePrefix}EastAmerica`, isPublished: true,
-                    tags: [
-                      { name: 'ea', associatedModelName: 'Subject' }
-                    ],
+                    tags: ['ea'],
                   };
   let chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   let grn = { name: `${tu.namePrefix}Quebec`, isPublished: true,
               tags: [
-                { name: 'cold', associatedModelName: 'Subject' },
-                { name: 'verycold', associatedModelName: 'Subject' }
-              ],
+                'cold', 'verycold'],
             };
   const aspectTemp = {
     name: 'temperature',
@@ -103,8 +99,7 @@ describe(`api: GET ${path}:`, () => {
       chi = subj;
       sample3.subjectId = subj.id;
       grn.parentId = chi.id;
-      return Subject.create(grn,
-        { include: Subject.getSubjectAssociations().tags });
+      return Subject.create(grn);
     })
     .then((subj) => {
       grn = subj;
@@ -131,8 +126,7 @@ describe(`api: GET ${path}:`, () => {
     })
     .then((subj) => {
       parOther1 = subj;
-      return tu.db.Subject.create(parOther2,
-        { include: Subject.getSubjectAssociations().tags });
+      return tu.db.Subject.create(parOther2);
     })
     .then((subj) => {
       parOther2 = subj;
@@ -166,11 +160,9 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children).to.have.length(1);
         // quebec
         const quebecSubj = res.body.children[0].children[0].children[0];
-        for (let i= 0; i < quebecSubj.tags.length; i++ ) {
-          expect(quebecSubj.tags[i].name).to.contain('cold');
-        }
+        expect(quebecSubj.tags).to.include.members(['cold']);
 
-      })
+     })
       .end((err /* , res */) => {
         if (err) {
           return done(err);
@@ -193,8 +185,8 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children).to.have.length(2);
         // canada
         let na = null;
-        for(let i = 0; i<res.body.children.length; i++) {
-          if(res.body.children[i].name === '___NorthAmerica') {
+        for (let i = 0; i<res.body.children.length; i++) {
+          if (res.body.children[i].name === '___NorthAmerica') {
             na = res.body.children[i];
             break;
           }
@@ -202,9 +194,7 @@ describe(`api: GET ${path}:`, () => {
         expect(na).to.not.equal(null);
         expect(na.children).to.have.length(1);
         expect(na.children[0].children).to.have.length(1);
-        for (let i= 0; i < na.children[0].children[0].tags.length; i++ ) {
-          expect(na.children[0].children[0].tags[i].name).to.contain('cold')
-        }
+        expect(na.children[0].children[0].tags).to.include.members(['cold']);
       })
       .end((err /* , res */) => {
         if (err) {
@@ -223,7 +213,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].tags[0].name).to.equal('ea');
+        expect(res.body.children[0].tags[0]).to.equal('ea');
       })
       .end((err /* , res */) => {
         if (err) {

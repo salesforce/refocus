@@ -33,10 +33,14 @@ function dbConfigObjectFromDbURL() {
 
 // check whether host is in private space of heroku or not
 function isInHerokuPrivateSpace() {
-  const rx = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
-  const dbConfig = dbConfigObjectFromDbURL();
-  console.log('dbConfig', dbConfig)
-  return rx.test(dbConfig.host);
+  // Temporary workaround since the regex stopped working.
+  console.log('Running in Heroku Private Space? ',
+    env.isInHerokuPrivateSpace || false);
+  return env.isInHerokuPrivateSpace || false;
+  // const rx = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
+  // const dbConfig = dbConfigObjectFromDbURL();
+  // console.log('dbConfig', dbConfig)
+  // return rx.test(dbConfig.host);
 } // isInHerokuPrivateSpace
 
 function initializeAdminUserAndProfile(seq) {

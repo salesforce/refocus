@@ -34,20 +34,20 @@ describe(`api: GET ${path}:`, () => {
   let gp = { name: `${tu.namePrefix}America`, isPublished: true };
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true,
               tags: [
-                { name: 'na', associatedModelName: 'Subject' }
+                'na'
               ],
             };
   let parOther1 = { name: `${tu.namePrefix}SouthAmerica`, isPublished: true };
   let parOther2 = { name: `${tu.namePrefix}EastAmerica`, isPublished: true,
                     tags: [
-                      { name: 'ea', associatedModelName: 'Subject' }
+                      'ea'
                     ],
                   };
   let chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   let grn = { name: `${tu.namePrefix}Quebec`, isPublished: true,
               tags: [
-                { name: 'cold', associatedModelName: 'Subject' },
-                { name: 'verycold', associatedModelName: 'Subject' }
+                'cold',
+                'verycold'
               ],
             };
   const aspectTemp = {
@@ -343,7 +343,7 @@ describe(`api: GET ${path}:`, () => {
         // quebec
         expect(res.body.children[0].children[0].samples).to.have.length(0);
         const quebecSubj = res.body.children[0].children[0].children[0];
-        expect(quebecSubj.tags[0].name).to.contain('cold');
+        expect(quebecSubj.tags[0]).to.contain('cold');
         expect(quebecSubj.samples[0].aspect.name).to.equal('wind-speed');
       })
       .end((err /* , res */) => {
@@ -372,7 +372,7 @@ describe(`api: GET ${path}:`, () => {
         expect(na.children[0].children).to.have.length(1);
         expect(na.children[0].children[0].samples).to.have.length(1);
         const quebecSubj = na.children[0].children[0];
-        expect(quebecSubj.tags[0].name).to.contain('cold');
+        expect(quebecSubj.tags[0]).to.contain('cold');
         expect(quebecSubj.samples[0].aspect.name).to.equal('wind-speed');
       })
       .end((err /* , res */) => {
@@ -418,7 +418,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].tags[0].name).to.equal('na');
+        expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');
@@ -445,7 +445,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].tags[0].name).to.equal('na');
+        expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');
@@ -548,7 +548,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].tags[0].name).to.equal('na');
+        expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');

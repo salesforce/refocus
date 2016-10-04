@@ -22,7 +22,7 @@ class ControlledInput extends React.Component {
     this.onChange = this.onChange.bind(this);
     this.state = {
       name: props.name,
-      value: props.value,
+      value: props.value || '',
     };
   }
 
@@ -44,9 +44,10 @@ class ControlledInput extends React.Component {
         <input
         type='text'
         className='slds-input'
+        placeholder={this.props.placeholder}
         name={this.state.name}
         value={this.state.value}
-        onChange={this.onChange}
+        onChange={this.props.onChange || this.onChange}
         />
       </div>
     );
@@ -56,6 +57,7 @@ class ControlledInput extends React.Component {
 ControlledInput.propTypes = {
   name: React.PropTypes.string.isRequired,
   value: React.PropTypes.string,
+  placeholder: React.PropTypes.string,
 };
 
 export default ControlledInput;

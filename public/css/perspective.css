@@ -40,23 +40,165 @@ body {
     color: #16325c;
 }
 
-#refocus_perspective_dropdown_container #searchborder {
+#refocus_perspective_dropdown_container ul {
+    margin: 0;
+}
+
+.slds-modal__content .slds-panel__section {
+    padding: 0.5rem;
+}
+
+#refocus_perspective_dropdown_container .slds-modal__content,
+#detailsbody > .slds-lookup__list {
+    height: 1000px;
+}
+
+.slds-modal__content .slds-lookup__list {
+    overflow: visible;
+}
+
+#refocus_perspective_dropdown_container .slds-notify_container {
+    position: relative;
+}
+
+#refocus_perspective_dropdown_container input.slds-lookup__search-input.slds-input--bare{
     height: 30px;
+    border-radius: 4px;
+    border: 1px solid #d8dde6;
 }
 
 #refocus_perspective_dropdown_container .slds-button__icon {
     color: black;
 }
 
-#refocus_perspective_dropdown_container #switchdropdown {
-    max-height: 370px;
-    width: 300px;
-    margin: 5px 0 0 0;
-    overflow: hidden;
+#refocus_perspective_dropdown_container .slds-pill_container {
+    width: 100%;
+}
+
+#refocus_perspective_dropdown_container .slds-button--icon-inverse.slds-modal__close.slds-modal__close svg {
+    color: #fff;
 }
 
 #refocus_perspective_dropdown_container .slds-dropdown {
+    max-height: 370px;
+    max-width: 300px;
+    width: 100%;
+    overflow: hidden;
+    margin: -5px 0 0 0;
+}
+
+
+/* radio button width */
+
+.slds-modal .slds-grid {
+    width: 100%;
+}
+
+.slds-modal .slds-button.slds-size--1-of-2.slds-button--neutral {
+    width: 50%;
+}
+
+#refocus_perspective_dropdown_container .slds-notify_container .slds-notify h2 {
+    box-sizing: border-box;
+    color: #fff;
+    font-family: 'Helvetica Neue', Helvetica;
+    font-size: 13px;
+    font-weight: 300;
+    height: 19px;
+    line-height: 19.5px;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.slds-modal ul {
+    width: 100%;
+}
+
+.slds-pill a {
+    font-size: 12px;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+}
+
+.slds-panel__section {
+    padding-top: 100;
+}
+
+.slds-dropdown__item {
     overflow: scroll;
+}
+
+.slds-dropdown {
+    overflow: scroll;
+    margin-left: 5px;
+    top: 35px;
+    padding: 0;
+}
+
+#aspecttagradio {
+    display: inline;
+}
+
+.editbutton {
+    position: relative;
+    left: 100%;
+}
+
+#butto {
+    border-radius: 0 4px 4px 0;
+}
+
+.details {
+    padding-right: 175px;
+}
+
+.multiPillContainer {
+    overflow: auto;
+}
+
+.no_truncate {
+    max-width: 100%;
+    overflow: visible;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.container1 {
+    display: inline-block;
+}
+
+.slds-page-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#inputid {
+    width: 80%;
+}
+
+#detailsbody {
+    padding: 0;
+}
+
+#includeexclude {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    color: #0070d2;
+}
+
+.browser-type {
+    padding-left: 0;
+    padding-right: 0;
+    width: 5.25rem;
+    color: #16325c;
+    background: #fff;
+}
+
+.browser-type.inactive {
+    color: rgba(22, 50, 92, .5);
+    background: #f4f6f9;
 }
 
 #lens {

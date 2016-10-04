@@ -18,7 +18,6 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
 const Subject = tu.db.Subject;
-const Tag = tu.db.Tag;
 const path = '/v1/subjects';
 
 describe(`api: PUT ${path}`, () => {
@@ -434,7 +433,7 @@ describe('api: PUT subjects with tags', () => {
   it('update to add tags', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      tags: [{ name: 'tagX' }]
+      tags: ['tagX']
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -442,8 +441,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tagX');
+      expect(res.body.tags).to.have.members(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -456,7 +454,7 @@ describe('api: PUT subjects with tags', () => {
   it('update to add existing tag', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      tags: [{ name: 'tagX' }]
+      tags: ['tagX']
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -464,8 +462,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tagX');
+      expect(res.body.tags).to.have.members(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -497,8 +494,8 @@ describe('api: PUT subjects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       tags: [
-        { name: 'tag0' },
-        { name: 'tag1' },
+        'tag0',
+        'tag1'
       ]
     };
     api.put(`${path}/${subjectId}`)
@@ -506,26 +503,18 @@ describe('api: PUT subjects with tags', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.tags).to.have.length(2);
-      for (let k=0;k<res.body.tags.length;k++) {
-        expect(res.body.tags[k]).to.have.property('id');
-        expect(res.body.tags[k]).to.have.property('name', 'tag'+k);
-      }
-      Tag.findAll({ where: { associationId: subjectId } })
-      .then((tags) => {
-        expect(tags.length).to.have.length(2);
-        for (let k=0;k<tags.length;k++) {
-          expect(tags[k]).to.have.property('id');
-          expect(tags[k]).to.have.property('name',
-           'tag'+k);
-        }
-      })
-      .catch((err) => new Error(err));
+      expect(res.body.tags).to.have.length(toPut.tags.length);
+      expect(res.body.tags).to.have.members(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
         return done(err);
       }
+      Subject.findOne({ where: { id: subjectId } })
+      .then((subj) => {
+        expect(subj.tags).to.have.length(2);
+        expect(subj.tags).to.have.members(toPut.tags);
+      });
       done();
     });
   });
@@ -542,17 +531,15 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(0);
-      Tag.findAll({ where: { associationId: subjectId } })
-      .then((tags) => {
-        expect(tags.length).to.have.length(0);
-      })
-      .catch((err) => new Error(err));
     })
     .end((err /* , res */) => {
       if (err) {
         return done(err);
       }
-
+      Subject.findOne({ where: { id: subjectId } })
+      .then((subj) => {
+        expect(subj.tags).to.have.length(0);
+      });
       return done();
     });
   });
