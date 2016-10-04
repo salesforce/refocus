@@ -3,6 +3,11 @@
 
   * [Why Use Refocus?](#why-use-refocus)
   * [Refocus Terminology](#refocus-terminology)
+    * [Subject](#subject)
+    * [Aspect](#aspect)
+    * [Sample](#sample)
+    * [Lens](#lens)
+    * [Perspective](#perspective)
   * [Refocus Interface](#refocus-interface)
   * [Getting Started with Refocus](#getting-started-with-refocus)
     * [Refocus API](#refocus-api)
@@ -17,7 +22,6 @@
     * [Step 6: Start using Refocus.](#step-6-start-using-refocus)
     * [Advanced Topics](#advanced-topics)
       * [Related Links](#related-links)
-      * [Authorization Tokens Are Coming Soon!](#authorization-tokens-are-coming-soon)
 
 ## Why use Refocus?
 
@@ -34,21 +38,22 @@ If you care about how your service is performing *right now*, use Refocus to:
 
 ## Refocus Terminology
 Let’s familiarize you with the terms we use in Refocus.
-- **Subject**
+
+### Subject
   Anything that can be monitored. Yes, we mean anything! In Refocus, subjects are the center of our data model.
   
-- **Aspect**  
+### Aspect
   A characteristic of a subject. An aspect can be anything that is measurable, such as average page times, wait times for a train, and even the weather. Anything!
   
-- **Sample**  
+### Sample
   The value of an aspect for a particular subject at a specified point in time. For example, a snapshot of subject status and health.
   
-- **Lens**  
+### Lens
   A visualization of the underlying Refocus data. Each lens provides a unique layout to represent the subject, child subjects, and samples.  
   
   With the Lens Developer Kit (**coming soon**), you can create your own lens to meet your specific visualization needs. When you install your lens into Refocus, it will also be available to other users.
   
-- **Perspective**  
+### Perspective
   A filtered view of a subset of data using a selected lens. You can save a perspective and share it with other Refocus users.
   
 ## Refocus Interface
@@ -276,8 +281,4 @@ POST to `v1/subjects/USA/child` using the following body:
     ]
 }
 ```
-### Authorization Tokens Are Coming Soon!
-
-Soon you can require that all API users use authorization tokens to add an additional layer of security on the platform. Stay tuned!
-
 :sparkles:*Built with love by the Site Reliability Tools team @ Salesforce.*:sparkles:
