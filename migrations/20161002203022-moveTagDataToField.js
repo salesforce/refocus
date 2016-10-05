@@ -22,18 +22,20 @@ module.exports = {
        { replacements: ['Subject'], type: queryInterface.sequelize.QueryTypes.SELECT }
         ).then((subjTags) => {
           subjTags.forEach((subjTag) => {
-            const a = [subjTag.name];
+            const arr = [];
+            arr.push(subjTag.name);
             queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = tags || $1 where id = $2',
-              { bind: [a, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
+              { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
         }).then(() => {
           return queryInterface.sequelize.query('SELECT * FROM "Tags" where "associatedModelName"=?',
            { replacements: ['Aspect'], type: queryInterface.sequelize.QueryTypes.SELECT }
-            ).then((subjTags) => {
-              subjTags.forEach((subjTag) => {
-                const arr = [subjTag.name];
+            ).then((aspTags) => {
+              aspTags.forEach((aspTag) => {
+                const arr = [];
+                arr.push(aspTag.name);
                 return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = tags || $1 where id = $2',
-                  { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
+                  { bind: [arr, aspTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
             });
         });
