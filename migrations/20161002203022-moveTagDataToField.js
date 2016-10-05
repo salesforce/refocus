@@ -24,7 +24,7 @@ module.exports = {
           subjTags.forEach((subjTag) => {
             const arr = [];
             arr.push(subjTag.name);
-            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = tags || $1 where id = $2',
+            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = "tags" || $1 where id = $2',
               { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
         }).then(() => {
@@ -34,7 +34,7 @@ module.exports = {
               aspTags.forEach((aspTag) => {
                 const arr = [];
                 arr.push(aspTag.name);
-                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = tags || $1 where id = $2',
+                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = "tags" || $1 where id = $2',
                   { bind: [arr, aspTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
             });
