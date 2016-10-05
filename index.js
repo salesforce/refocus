@@ -112,8 +112,7 @@ function start() { // eslint-disable-line max-statements
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-
-    app.use(express.static(path.join(__dirname, 'public')));
+    app.use('/static', express.static(path.join(__dirname, 'public')));
 
     // Compress(gzip) all the responses
     app.use(compress());

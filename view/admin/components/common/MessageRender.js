@@ -25,7 +25,7 @@ class MessageRender extends React.Component {
             onClick={this.props.hide}
             className='slds-button slds-button--icon-inverse slds-notify__close'>
             <svg aria-hidden='true' className='slds-icon slds-icon--x-small'>
-              <use xlinkHref='../icons/utility-sprite/svg/symbols.svg#close'></use>
+              <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#close'></use>
             </svg>
             <span className='slds-assistive-text'>Close</span>
           </button>

@@ -10,8 +10,8 @@ doctype html
 html(lang = 'en')
   head
     link(rel='shortcut icon', href='favicon.ico')
-    link(rel='stylesheet', type='text/css', href='../css/salesforce-lightning-design-system.min.css')
-    link(rel='stylesheet' type='text/css' href='../css/perspective.css')
+    link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
+    link(rel='stylesheet' type='text/css' href='../static/css/perspective.css')
 
   body
     #refocus_perspective_dropdown_container
@@ -27,10 +27,10 @@ html(lang = 'en')
             |     
             .slds-spinner__dot-b
 
-  script(src='/socket.io.js')
+  script(src='/static/socket.io.js')
   script.
     var realtimeEventThrottleMilliseconds = #{eventThrottle};
   script
       if queryParams
           | var queryParams = !{queryParams}
-  script(src='/perspective/app.js')
+  script(src='/static/perspective/app.js')

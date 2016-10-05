@@ -273,7 +273,7 @@ class CreatePerspective extends React.Component {
     const radioGroupConfig = {};
     const accountIcon = <span className="slds-icon_container slds-icon-standard-account slds-pill__icon_container">
       <svg aria-hidden="true" className="slds-icon">
-        <use xlinkHref="../icons/standard-sprite/svg/symbols.svg#account"></use>
+        <use xlinkHref="../static/icons/standard-sprite/svg/symbols.svg#account"></use>
       </svg>
       <span className="slds-assistive-text">Account</span>
     </span>;

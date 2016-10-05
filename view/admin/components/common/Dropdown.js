@@ -99,7 +99,7 @@ class Dropdown extends React.Component {
                 className='slds-lookup__item-action slds-media slds-media--center'>
                 <svg aria-hidden='true'
                   className='slds-icon slds-icon-standard-account slds-icon--small slds-media__figure'>
-                  <use xlinkHref='../icons/custom-sprite/svg/symbols.svg#custom39'></use>
+                  <use xlinkHref='../static/icons/custom-sprite/svg/symbols.svg#custom39'></use>
                 </svg>
                 { optionsName }
             </li>
@@ -138,7 +138,7 @@ class Dropdown extends React.Component {
       </div>
         <div className='slds-dropdown-trigger--click slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'>
           { showSearchIcon && <svg aria-hidden='true' className='slds-button__icon'>
-            <use xlinkHref='../icons/utility-sprite/svg/symbols.svg#search'></use>
+            <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#search'></use>
           </svg>}
           { this.state.open &&
             <div
@@ -154,7 +154,7 @@ class Dropdown extends React.Component {
                     <span className='lookup__item-action-label'>
                       <svg aria-hidden='true' className='slds-icon slds-icon--x-small slds-icon-text-default'>
 
-                        <use xlinkHref='../icons/utility-sprite/svg/symbols.svg#add'></use>
+                        <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#add'></use>
                       </svg>
                       <span className='slds-truncate'>{ newButtonText || 'Add New' }</span>
                     </span>

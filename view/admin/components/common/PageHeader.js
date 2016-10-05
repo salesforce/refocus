@@ -33,7 +33,7 @@ class PageHeader extends React.Component {
         {goBackUrl &&
           <Link to={ goBackUrl } className='backUrl'>
             <svg aria-hidden='true' className='slds-button__icon--stateful slds-button__icon--left'>
-              <use xlinkHref='../icons/utility-sprite/svg/symbols.svg#back'></use>
+              <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#back'></use>
             </svg>{`BACK TO ${upperCaseResource} LIST` }
           </Link>
         }
@@ -41,7 +41,7 @@ class PageHeader extends React.Component {
           <div className='slds-media__figure'>
             <span className={'slds-icon_container slds-icon-standard-' + iconName}>
               <svg aria-hidden='true' className='slds-icon slds-icon--large'>
-                <use xlinkHref={'../icons/standard-sprite/svg/symbols.svg#' + iconName}></use>
+                <use xlinkHref={'../static/icons/standard-sprite/svg/symbols.svg#' + iconName}></use>
               </svg>
             </span>
           </div>

@@ -56,7 +56,7 @@ class CompoundFields extends Component {
               className='slds-button slds-button--destructive'
               onClick={ this.props.onRemove.bind(null, linkObjects[i].rowKey) }>
               <svg aria-hidden='true' className='slds-icon slds-icon--x-small'>
-                <use xlinkHref='../icons/utility-sprite/svg/symbols.svg#delete'></use>
+                <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#delete'></use>
               </svg>
               </button>
             </div>

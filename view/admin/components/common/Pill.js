@@ -29,7 +29,7 @@ class Pill extends React.Component {
         <button onClick={this.props.onRemove}
           className="slds-button slds-button--icon slds-pill__remove">
           <svg aria-hidden="true" className="slds-button__icon">
-              <use xlinkHref="../icons/utility-sprite/svg/symbols.svg#close"></use>
+              <use xlinkHref="../static/icons/utility-sprite/svg/symbols.svg#close"></use>
           </svg>
           <span className="slds-assistive-text">Remove</span>
         </button>

@@ -14,8 +14,8 @@ html(lang='en')
     link(rel='shortcut icon', href='favicon.ico')
     //if lt IE 9
       script(src='//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js')
-    link(rel='stylesheet', type='text/css', href='../css/salesforce-lightning-design-system.min.css')
-    link(rel='stylesheet', type='text/css', href='../css/react-selectize.css')
+    link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
+    link(rel='stylesheet', type='text/css', href='../static/css/react-selectize.css')
     style(type='text/css').
       #logo {
       height: 44px;
@@ -42,7 +42,7 @@ html(lang='en')
     .slds-grid.slds-grid--frame.slds-grid--vertical
       #app
 
-  script(src='/admin/app.js')
+  script(src='/static/admin/app.js')
   script.
     var trackingId = '#{trackingId}';
-  script(src='../analytics/app.js')
+  script(src='../static/analytics/app.js')

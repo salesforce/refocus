@@ -137,7 +137,7 @@ class List extends React.Component {
           <Link to={ '/' + resource + '/new' }
             className='slds-button slds-button--neutral slds-not-selected'>
             <svg aria-hidden="true" className="slds-button__icon--stateful slds-button__icon--left">
-              <use xlinkHref="../icons/utility-sprite/svg/symbols.svg#add"></use>
+              <use xlinkHref="../static/icons/utility-sprite/svg/symbols.svg#add"></use>
             </svg>New
           </Link>
         </PageHeader>
