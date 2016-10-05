@@ -182,66 +182,6 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
 } // publishChange
 
 /**
- * This function updates or creates the associated tags of an Instance
- *
- * @param  {[Object]} inst - An instance that has to have the associated
- *  tags updated or created
- * @param  {[Array]} tags - An array containing the tags to be
- *  updated or inserted
- * @returns {Promise} which resolves to an object containing the tags
- */
-function handleTags(inst, tags, method) {
-  const promises = tags.map((tag) =>
-    new Promise((resolve, reject) => {
-      inst.getTags({ where:
-          { name: tag.name, },
-      })
-      .then((o) => {
-        // since the combination of name and associationId is unique,
-        // this instance o, of tag will either be an array
-        // of size 0 or size 1.
-        const assocInst = o [0];
-        if (!assocInst) {
-          return inst.createTag(tag);
-        }
-
-        return assocInst;
-      })
-      .then((retVal) => resolve(retVal))
-      .catch((err) => reject(err));
-    })
-  );
-  if (/put/i.test(method)) {
-    return new Promise((resolve, reject) => {
-      let resolvedTags;
-      Promise.all(promises)
-      .then((retValue) => {
-        resolvedTags = retValue;
-        return inst.getTags();
-      })
-      .then((instTags) => {
-        instTags.forEach((tag) => {
-          let found = false;
-          resolvedTags.forEach((rTag) => {
-            if (rTag.id === tag.id) {
-              found = true;
-            }
-          });
-
-          if (!found) {
-            tag.destroy();
-          }
-        });
-      })
-      .then(() => resolve(resolvedTags))
-      .catch((err) => reject(err));
-    });
-  }
-
-  return Promise.all(promises);
-} // handleTags
-
-/**
  * The Json format of the relatedLink is validated against a pre-defined
  * schema. Validation to check the uniqueness of relatedLinks by name is
  * done
@@ -286,7 +226,6 @@ function setIsDeleted(Promise, inst) {
 module.exports = {
   dbconf,
   setIsDeleted,
-  handleTags,
   publishChange,
   sampleAspectAndSubjectArePublished,
   augmentSampleWithSubjectInfo,

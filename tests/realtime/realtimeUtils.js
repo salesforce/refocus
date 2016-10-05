@@ -43,7 +43,7 @@ describe('realtime utils Tests:', () => {
     aspect: {
       name: 'temperature',
       tags: [
-          { name: 'temp' },
+        'temp'
       ]
     },
     subject: {
@@ -60,12 +60,12 @@ describe('realtime utils Tests:', () => {
     aspect: {
       name: 'temperature',
       tags: [
-          { name: 'temp' },
+        'temp'
       ]
     },
     subject: {
       tags: [
-          'ea',
+        'ea',
       ],
     }
   };

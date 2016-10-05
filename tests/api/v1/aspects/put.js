@@ -209,7 +209,7 @@ describe('api: PUT aspects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: [{ name: 'tagX' }]
+      tags: ['tagX']
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -217,8 +217,7 @@ describe('api: PUT aspects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tagX');
+      expect(res.body.tags).to.have.members(['tagX']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -227,12 +226,33 @@ describe('api: PUT aspects with tags', () => {
       done();
     });
   });
-
+  it('cannot update aspect tags with names starting with a dash(-)', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      timeout: '220s',
+      tags: ['-tagX']
+    };
+    api.put(`${path}/${aspectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body).to.property('errors');
+        expect(res.body.errors[0].type)
+          .to.equal(tu.schemaValidationErrorName);
+      })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
   it('update to add existing tag', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: [{ name: 'tagX' }]
+      tags: ['tagX']
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -240,8 +260,7 @@ describe('api: PUT aspects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tagX');
+      expect(res.body.tags).to.have.members(['tagX']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -250,14 +269,13 @@ describe('api: PUT aspects with tags', () => {
       done();
     });
   });
-
   it('update tags with some additions and deletions', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
       tags: [
-        { name: 'tag0' },
-        { name: 'tag1' },
+        'tag0',
+        'tag1'
       ]
     };
     api.put(`${path}/${aspectId}`)
@@ -265,25 +283,18 @@ describe('api: PUT aspects with tags', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.tags).to.have.length(2);
-      for (let k=0;k<res.body.tags.length;k++) {
-        expect(res.body.tags[k]).to.have.property('id');
-        expect(res.body.tags[k]).to.have.property('name', 'tag'+k);
-      }
-      Tag.findAll({ where: { associationId: aspectId } })
-      .then((tags) => {
-        expect(tags.length).to.have.length(2);
-        for (let k=0;k<tags.length;k++) {
-          expect(tags[k]).to.have.property('id');
-          expect(tags[k]).to.have.property('name', 'tag'+k);
-        }
-      })
-      .catch((err) => new Error(err));
+      expect(res.body.tags).to.have.length(toPut.tags.length);
+      expect(res.body.tags).to.have.members(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
         return done(err);
       }
+      Aspect.findOne({ where: { id: aspectId } })
+      .then((asp) => {
+        expect(asp.tags).to.have.length(2);
+        expect(asp.tags).to.have.members(toPut.tags);
+      });
       done();
     });
   });
@@ -300,17 +311,15 @@ describe('api: PUT aspects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(0);
-      Tag.findAll({ where: { associationId: aspectId } })
-      .then((tags) => {
-        expect(tags.length).to.have.length(0);
-      })
-      .catch((err) => new Error(err));
     })
     .end((err /* , res */) => {
       if (err) {
         return done(err);
       }
-
+      Aspect.findOne({ where: { id: aspectId } })
+      .then((asp) => {
+        expect(asp.tags).to.have.length(0);
+      });
       return done();
     });
   });

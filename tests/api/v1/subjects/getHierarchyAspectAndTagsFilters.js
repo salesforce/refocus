@@ -48,7 +48,7 @@ describe(`api: GET ${path}:`, () => {
     timeout: '30s',
     isPublished: true,
     tags: [
-      { name: 'temp', associatedModelName: 'Aspect' }
+      'temp'
     ],
   };
   const aspectHumid = {
@@ -60,9 +60,7 @@ describe(`api: GET ${path}:`, () => {
     name: 'wind-speed',
     timeout: '30s',
     isPublished: true,
-    tags: [
-      { name: 'wnd', associatedModelName: 'Aspect' }
-    ],
+    tags: ['wnd'],
   };
 
   const sample1 = { value: '10' };
@@ -108,8 +106,7 @@ describe(`api: GET ${path}:`, () => {
     .then((a) => {
       sample2.aspectId = a.id;
       sample3.aspectId = a.id;
-      return tu.db.Aspect.create(aspectTemp,
-        { include: tu.db.Aspect.getAspectAssociations().tags });
+      return tu.db.Aspect.create(aspectTemp);
     })
     .then((a) => {
       sample1.aspectId = a.id;
@@ -130,8 +127,7 @@ describe(`api: GET ${path}:`, () => {
     })
     .then((subj) => {
       parOther2 = subj;
-      return Aspect.create(aspectWind,
-        { include: Aspect.getAspectAssociations().tags });
+      return Aspect.create(aspectWind);
     })
     .then((a) => {
       sample4.aspectId = a.id;
@@ -465,7 +461,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.samples).to.have.length(0);
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
-        expect(res.body.children[0].samples[0].aspect.tags[0].name)
+        expect(res.body.children[0].samples[0].aspect.tags[0])
           .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].samples).to.have.length(0);
@@ -473,7 +469,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children[0].children[0].samples)
           .to.have.length(1);
         expect(res.body.children[0].children[0].children[0]
-          .samples[0].aspect.tags[0].name).to.equal('wnd');
+          .samples[0].aspect.tags[0]).to.equal('wnd');
       })
       .end((err /* , res */) => {
         if (err) {
@@ -501,7 +497,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children[0].children[0].samples)
           .to.have.length(1);
         expect(res.body.children[0].children[0].children[0]
-          .samples[0].aspect.tags[0].name).to.equal('wnd');
+          .samples[0].aspect.tags[0]).to.equal('wnd');
       })
       .end((err /* , res */) => {
         if (err) {

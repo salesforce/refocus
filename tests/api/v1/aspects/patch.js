@@ -112,7 +112,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   it('patch tags', (done) => {
-    const tags = [{ name: 'tag1' }];
+    const tags = ['tag1'];
     asp.tags = tags;
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
@@ -120,8 +120,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -130,12 +129,11 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
-
   it('patch tags multiple', (done) => {
     const tags = [
-      { name: 'tag0' },
-      { name: 'tag1' },
-      { name: 'tag2' },
+      'tag0',
+      'tag1',
+      'tag2'
     ];
     asp.tags = tags;
     api.patch(`${path}/${i}`)
@@ -144,10 +142,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(tags.length);
-      for (let k=0;k<res.body.tags.length;k++) {
-        expect(res.body.tags[k]).to.have.property('id');
-        expect(res.body.tags[k]).to.have.property('name', 'tag'+k);
-      }
+      expect(res.body.tags).to.have.members(tags);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -181,7 +176,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
     })
     .catch((err) => done(err));
   });
-  
+
   beforeEach((done) => {
     const samp1 = { value: '1' };
     const samp2 = { value: '2' };

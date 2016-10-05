@@ -51,7 +51,7 @@ module.exports = {
   valErrorName: 'SequelizeValidationError',
   valError: new Error('expecting SequelizeValidationError'),
   forceDelete,
-
+  schemaValidationErrorName: 'SCHEMA_VALIDATION_FAILED',
   gotExpectedLength(stringOrArray, len) {
     return stringOrArray.length === len;
   },

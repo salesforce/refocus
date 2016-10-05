@@ -343,9 +343,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -569,9 +572,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -728,9 +734,12 @@ paths:
               tags:
                 type: array
                 items:
-                  $ref: "#/definitions/TagRequest"
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
-                  Tags associated with this model.
+                  Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -792,7 +801,7 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
-  /aspects/{key}/tags/{akey}:
+  /aspects/{key}/tags/{tagName}:
     x-swagger-router-controller: aspects
     delete:
       security:
@@ -812,10 +821,10 @@ paths:
           required: true
           type: string
         -
-          name: akey
+          name: tagName
           in: path
           description: >-
-            The id of the tag to delete.
+            The name of the tag to be deleted
           required: true
           type: string
       responses:
@@ -3162,10 +3171,10 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
-                  underscore (_) and dash (-).
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3331,10 +3340,10 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
-                  underscore (_) and dash (-).
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3436,10 +3445,10 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
-                  underscore (_) and dash (-).
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -3541,10 +3550,10 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
-                  underscore (_) and dash (-).
+                  underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
                 items:
@@ -4622,47 +4631,6 @@ definitions:
       - name
       - url
 
-  TagRequest:
-    type: object
-    description: >
-      Tag that is associated with a model.
-    properties:
-      name:
-        type: string
-        maxLength: 60
-        description: >
-          Name of the tag.
-    required:
-      - name
-
-  TagResponse:
-    type: object
-    description: >
-      Tag that is associated with a model.
-    properties:
-      id:
-        type: string
-        readOnly: true
-        description: >
-          The Tag id
-      name:
-        type: string
-        maxLength: 60
-        readOnly: true
-        description: >
-          Name of the tag
-      associatedModelName:
-        type: string
-        maxLength: 60
-        readOnly: true
-        description: >
-          Name of the model that is associated with tag.
-      associationId:
-        type: string
-        readOnly: true
-        description: >
-          Id of the model associated with tag.
-
   ResourceNotFoundError:
     properties:
       errors:
@@ -4835,12 +4803,14 @@ definitions:
         description: >
           TODO
       tags:
-        readOnly: true
         type: array
         items:
-          $ref: "#/definitions/TagResponse"
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
         description: >
-          Tags associated with this model.
+          Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-). Tag names cannot start with a dash (-).
       Samples:
         type: array
         readOnly: true
@@ -5416,10 +5386,10 @@ definitions:
         items:
           type: string
           maxLength: 60
-          pattern: ^[0-9A-Za-z_\\-]{1,60}$
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
         description: >
           Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
-          underscore (_) and dash (-).
+          underscore (_) and dash (-). Tag names cannot start with a dash (-).
       samples:
         type: array
         description: >

@@ -18,7 +18,6 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-const deleteAssociations = require('../helpers/verbs/deleteAssociations');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 
@@ -107,7 +106,7 @@ module.exports = {
 
   /**
    * DELETE /v1/aspects/{key}/tags/
-   * DELETE /v1/aspects/{key}/tags/{akey}
+   * DELETE /v1/aspects/{key}/tags/{tagName}
    *
    * Deletes specified/all tags from the aspect and sends updated aspect in the
    * response.
@@ -117,8 +116,22 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectTags(req, res, next) {
-    helper.association = 'tags';
-    deleteAssociations(req, res, next, helper);
+    const params = req.swagger.params;
+    u.findByKey(helper, params)
+    .then((o) => {
+      let updatedTagArray = [];
+      if (params.tagName) {
+        updatedTagArray =
+          u.deleteArrayElement(o.tags, params.tagName.value);
+      }
+
+      return o.update({ tags: updatedTagArray });
+    })
+    .then((o) => {
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

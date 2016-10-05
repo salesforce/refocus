@@ -110,6 +110,11 @@ module.exports = function aspect(seq, dataTypes) {
         },
       },
     },
+    tags: {
+      type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      allowNull: true,
+      defaultValue: constants.defaultArrayValue,
+    },
   }, {
     classMethods: {
       getAspectAssociations() {
@@ -125,24 +130,14 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
           hooks: true,
         });
-        assoc.tags = Aspect.hasMany(models.Tag, {
-          foreignKey: 'associationId',
-          constraints: false,
-          scope: {
-            associatedModelName: 'Aspect',
-          },
-          as: 'tags',
-        });
-        Aspect.addScope('defaultScope', {
-          include: [
 
-            // assoc.createdBy,
-            assoc.tags,
-          ],
+        Aspect.addScope('defaultScope', {
+
           order: ['Aspect.name'],
         }, {
           override: true,
         });
+
         Aspect.addScope('withSamples', {
           include: [
             {
@@ -151,20 +146,7 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
-        Aspect.addScope('tagNameIn', (tagNames) => {
-          return {
-            include: [
-              {
-                model: models.Tag,
-                association: assoc.tags,
-                attributes: ['name'],
-                where: {
-                  name: { $in: tagNames },
-                },
-              },
-            ],
-          };
-        });
+
       },
     },
     hooks: {

@@ -195,7 +195,7 @@ module.exports = {
 
   /**
    * DELETE /v1/subjects/{key}/tags/
-   * DELETE /v1/subjects/{key}/tags/{akey}
+   * DELETE /v1/subjects/{key}/tags/{tagName}
    *
    * Deletes specified/all tags from the subject and sends updated subject
    * in the response.

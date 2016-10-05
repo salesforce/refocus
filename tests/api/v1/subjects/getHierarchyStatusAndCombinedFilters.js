@@ -56,7 +56,7 @@ describe(`api: GET ${path}:`, () => {
     timeout: '60s',
     isPublished: true,
     tags: [
-      { name: 'temp', associatedModelName: 'Aspect' }
+    'temp'
     ],
   };
   const aspectHumid = {
@@ -69,9 +69,7 @@ describe(`api: GET ${path}:`, () => {
     name: 'wind-speed',
     timeout: '60s',
     isPublished: true,
-    tags: [
-      { name: 'wnd', associatedModelName: 'Aspect' }
-    ],
+    tags: ['wnd'],
   };
 
   const sample1 = { value: '4' };
@@ -95,8 +93,7 @@ describe(`api: GET ${path}:`, () => {
       par.parentId = gp.id;
       parOther1.parentId = gp.id;
       parOther2.parentId = gp.id;
-      return Subject.create(par,
-        { include: Subject.getSubjectAssociations().tags });
+      return Subject.create(par);
     })
     .then((subj) => {
       par = subj;
@@ -109,8 +106,7 @@ describe(`api: GET ${path}:`, () => {
       chi = subj;
       sample3.subjectId = subj.id;
       grn.parentId = chi.id;
-      return Subject.create(grn,
-        { include: Subject.getSubjectAssociations().tags });
+      return Subject.create(grn);
     })
     .then((subj) => {
       grn = subj;
@@ -119,8 +115,7 @@ describe(`api: GET ${path}:`, () => {
     .then((a) => {
       sample2.aspectId = a.id;
       sample3.aspectId = a.id;
-      return tu.db.Aspect.create(aspectTemp,
-        { include: tu.db.Aspect.getAspectAssociations().tags });
+      return tu.db.Aspect.create(aspectTemp);
     })
     .then((a) => {
       sample1.aspectId = a.id;
@@ -137,13 +132,11 @@ describe(`api: GET ${path}:`, () => {
     })
     .then((subj) => {
       parOther1 = subj;
-      return tu.db.Subject.create(parOther2,
-        { include: Subject.getSubjectAssociations().tags });
+      return tu.db.Subject.create(parOther2);
     })
     .then((subj) => {
       parOther2 = subj;
-      return Aspect.create(aspectWind,
-        { include: Aspect.getAspectAssociations().tags });
+      return Aspect.create(aspectWind);
     })
     .then((a) => {
       sample4.aspectId = a.id;
@@ -422,7 +415,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');
-        expect(res.body.children[0].samples[0].aspect.tags[0].name)
+        expect(res.body.children[0].samples[0].aspect.tags[0])
           .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })
@@ -449,7 +442,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');
-        expect(res.body.children[0].samples[0].aspect.tags[0].name)
+        expect(res.body.children[0].samples[0].aspect.tags[0])
           .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })
@@ -552,7 +545,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
           .to.equal('temperature');
-        expect(res.body.children[0].samples[0].aspect.tags[0].name)
+        expect(res.body.children[0].samples[0].aspect.tags[0])
           .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })

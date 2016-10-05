@@ -280,7 +280,25 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
-
+  it('cannot patch tags with names starting with a dash (-)', (done) => {
+    const tags = ['-tag1'];
+    p1.tags = tags;
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(p1)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body).to.property('errors');
+      expect(res.body.errors[0].type)
+        .to.equal(tu.schemaValidationErrorName);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
   it('patch tags multiple', (done) => {
     const tags = [
       'tag0',

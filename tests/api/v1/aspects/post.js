@@ -52,7 +52,7 @@ describe(`api: POST ${path}`, () => {
         name: `${tu.namePrefix}HeartRate`,
         timeout: '110s',
       };
-      const tags = [{ name: '___na' }, { name: '___continent' }];
+      const tags = ['___na','___continent'];
       aspectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
@@ -68,22 +68,42 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
-
-    it('posting aspect with duplicate tags should fail', (done) => {
+    it('cannot post aspect with tags names starting with -', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}HeartRate`,
+        timeout: '110s',
+      };
+      const tags = ['-___na', '___continent'];
+      aspectToPost.tags = tags;
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body).to.property('errors');
+        expect(res.body.errors[0].type)
+          .to.equal(tu.schemaValidationErrorName);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+    it('posting aspect with duplicate tags', (done) => {
       const aspectToPost = {
         name: `${tu.namePrefix}Pressure`,
         timeout: '110s',
       };
-      const tags = [{ name: '___na' }, { name: '___na' }];
+      const tags = ['___na', '___na'];
       aspectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
       .send(aspectToPost)
       .expect((res) => {
-        expect(res.body).to.have.property('errors');
-        expect(res.body.errors[0].message)
-          .to.contain('must be unique');
-        expect(res.body.errors[0].source).to.contain('name');
+        expect(res.body.tags).to.have.length(1);
+        expect(res.body.tags).to.include.members(tags);
       })
       .end((err /* , res */) => {
         if (err) {

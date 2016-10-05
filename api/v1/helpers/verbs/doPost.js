@@ -27,9 +27,8 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  */
 function doPost(req, res, next, props) {
   const toPost = req.swagger.params.queryBody.value;
-  const assocToCreate = u.includeAssocToCreate(toPost, props);
   u.mergeDuplicateArrayElements(toPost, props);
-  props.model.create(toPost, assocToCreate)
+  props.model.create(toPost)
   .then((o) => {
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);

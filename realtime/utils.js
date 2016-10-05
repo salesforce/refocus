@@ -41,29 +41,6 @@ function parseObject(messgObj) {
 }
 
 /**
- * Returns the value of an object that is associated with a property or the
- * nested property
- * @param  {Object} obj - An object instance
- * @param  {String} property - Property of the object we are interested in
- * @returns {String} - returns the value of the associated property
- */
-function parseTags(obj, property) {
-  const tagNames = [];
-  if (obj[property]) {
-    obj[property].tags.forEach((tag) => {
-    // lines 54 to 56 will be removed when aspecttags are moved to aspect table
-      if (tag.name) {
-        tagNames.push(tag.name);
-      } else {
-        tagNames.push(tag);
-      }
-    });
-  }
-
-  return tagNames;
-}
-
-/**
  * A function that checks if atleast one element of an array is present in a
  * set and returns true if present.
  * @param  {Set}  filterValueSet - A set of strings contaning filter values
@@ -186,13 +163,13 @@ function shouldIEmitThisObj(nspString, obj) {
      * the results
      */
     if (isThisSubject(obj)) {
-      return applyFilter(subjectTagFilter, parseTags(obj, 'subject'));
+      return applyFilter(subjectTagFilter, obj.subject.tags);
     }
 
     // apply all the filters and return the result
     return applyFilter(aspectFilter, obj.aspect.name) &&
-      applyFilter(subjectTagFilter, parseTags(obj, 'subject')) &&
-      applyFilter(aspectTagFilter, parseTags(obj, 'aspect')) &&
+      applyFilter(subjectTagFilter, obj.subject.tags) &&
+      applyFilter(aspectTagFilter, obj.aspect.tags) &&
       applyFilter(statusFilter, obj.status) ;
   }
 

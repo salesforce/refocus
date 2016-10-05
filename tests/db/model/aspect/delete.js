@@ -45,7 +45,10 @@ describe('db: aspect: delete: ', () => {
 
   it('with tags', (done) => {
     Aspect.findOne({ where: { name: u.name } })
-    .then((o) => o.createTag({ name: 'xxxxx' }))
+    .then((o) => {
+      o.tags = ['xxxxx'];
+      return o.save();
+    })
     .then(() => Aspect.findOne({ where: { name: u.name } }))
     .then((o) => o.destroy())
     .then((o) => {
