@@ -345,7 +345,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -574,7 +574,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -736,7 +736,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -3171,7 +3171,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -3340,7 +3340,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -3445,7 +3445,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -3550,7 +3550,7 @@ paths:
                 items:
                   type: string
                   maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
                 description: >
                   Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -4807,7 +4807,7 @@ definitions:
         items:
           type: string
           maxLength: 60
-          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
         description: >
           Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-). Tag names cannot start with a dash (-).
@@ -5386,7 +5386,7 @@ definitions:
         items:
           type: string
           maxLength: 60
-          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,60}$
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
         description: >
           Array of tag names. Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-). Tag names cannot start with a dash (-).
