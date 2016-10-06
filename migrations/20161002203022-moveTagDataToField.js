@@ -24,7 +24,6 @@ module.exports = {
           subjTags.forEach((subjTag) => {
             const arr = [];
             arr.push(subjTag.name);
-            console.log('-------------non unique------------'+arr);
             queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = "tags" || $1 where id = $2',
               { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
@@ -36,8 +35,6 @@ module.exports = {
               subjs.forEach((subj) => {
                 const uniqueTags = new Set(subj.tags);
                 const arr = Array.from(uniqueTags);
-                console.log('--------unique array-------'+arr);
-
                 return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = $1 where id = $2',
                   { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
