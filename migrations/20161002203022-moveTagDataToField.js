@@ -23,7 +23,7 @@ module.exports = {
           subjTags.forEach((subjTag) => {
             const arr = [];
             arr.push(subjTag.name);
-            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = array_append(tags,$1) where id = $2',
+            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = "tags" || $1 where id = $2',
               { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
         })
@@ -34,7 +34,7 @@ module.exports = {
               subjs.forEach((subj) => {
                 const uniqueTags = new Set(subj.tags);
                 const arr = Array.from(uniqueTags);
-                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = $1 where id = $2',
+                return queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = $1 where id = $2',
                   { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
             });
