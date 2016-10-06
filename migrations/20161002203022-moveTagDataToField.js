@@ -17,6 +17,8 @@ module.exports = {
       Example:
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
+    return queryInterface.sequelize.transaction((t) => {
+
       return queryInterface.sequelize.query('SELECT * FROM "Tags" where "associatedModelName"=?',
        { replacements: ['Subject'], type: queryInterface.sequelize.QueryTypes.SELECT }
         ).then((subjTags) => {
@@ -28,6 +30,7 @@ module.exports = {
           });
         })
         .then(() => {
+          // done to remove duplicate tags
           return queryInterface.sequelize.query('SELECT * FROM "Subjects"',
            { type: queryInterface.sequelize.QueryTypes.SELECT }
             ).then((subjs) => {
@@ -49,7 +52,21 @@ module.exports = {
                   { bind: [arr, aspTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
             });
+        })
+        .then(() => {
+          // done to remove duplicate tags
+          return queryInterface.sequelize.query('SELECT * FROM "Aspects"',
+           { type: queryInterface.sequelize.QueryTypes.SELECT }
+            ).then((subjs) => {
+              subjs.forEach((subj) => {
+                const uniqueTags = new Set(subj.tags);
+                const arr = Array.from(uniqueTags);
+                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = $1 where id = $2',
+                  { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
+              });
+            });
         });
+    });
   },
   down: function (queryInterface, Sequelize) {
     // /*
