@@ -27,6 +27,18 @@ module.exports = {
             queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = "tags" || $1 where id = $2',
               { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
+        })
+        .then(() => {
+          return queryInterface.sequelize.query('SELECT * FROM "Subjects"',
+           { type: queryInterface.sequelize.QueryTypes.SELECT }
+            ).then((subjs) => {
+              subjs.forEach((subj) => {
+                const uniqueTags = new Set(subj.tags);
+                const arr = Array.from(uniqueTags);
+                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = $1 where id = $2',
+                  { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
+              });
+            });
         }).then(() => {
           return queryInterface.sequelize.query('SELECT * FROM "Tags" where "associatedModelName"=?',
            { replacements: ['Aspect'], type: queryInterface.sequelize.QueryTypes.SELECT }
