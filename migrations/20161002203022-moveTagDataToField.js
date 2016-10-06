@@ -23,7 +23,7 @@ module.exports = {
           subjTags.forEach((subjTag) => {
             const arr = [];
             arr.push(subjTag.name);
-            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = $1 where id = $2',
+            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = array_append(tags,$1) where id = $2',
               { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
         })
