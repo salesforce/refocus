@@ -17,7 +17,6 @@ module.exports = {
       Example:
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
-    return queryInterface.sequelize.transaction((t) => {
       return queryInterface.sequelize.query('SELECT * FROM "Tags" where "associatedModelName"=?',
        { replacements: ['Subject'], type: queryInterface.sequelize.QueryTypes.SELECT }
         ).then((subjTags) => {
@@ -51,7 +50,6 @@ module.exports = {
               });
             });
         });
-    });
   },
   down: function (queryInterface, Sequelize) {
     // /*
