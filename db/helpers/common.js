@@ -45,6 +45,7 @@ function augmentSampleWithSubjectInfo(seq, inst) {
     inst.getSubject()
     .then((sub) => {
       inst.dataValues.subject = sub;
+
       // adding absolutePath to sample instance
       inst.dataValues.absolutePath = sub.absolutePath;
       inst.subject = sub;
@@ -196,7 +197,7 @@ function validateJsonSchema(value) {
     const relLink = value[i];
     if (Object.keys(relLink).length > jsonSchemaProperties.relatedlink.length) {
       throw new Error('A relatedlinks can only have' +
-        jsonSchemaProperties.relatedlink.length +' properties: ' +
+        jsonSchemaProperties.relatedlink.length + ' properties: ' +
         jsonSchemaProperties.relatedlink);
     }
 

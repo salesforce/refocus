@@ -159,14 +159,14 @@ module.exports = function subject(seq, dataTypes) {
         Subject.addScope('id', (value) => {
           return {
             where: {
-              id: value
+              id: value,
             },
           };
         });
         Subject.addScope('absolutePath', (value) => {
           return {
             where: {
-              absolutePath: value
+              absolutePath: value,
             },
           };
         });
@@ -234,7 +234,7 @@ module.exports = function subject(seq, dataTypes) {
                   throw new ValidationError({
                     'message': 'You cannot insert a subject with ' +
                     'isPublished = true unless all its ancestors are also ' +
-                    'published.'
+                    'published.',
                   });
                 }
 
@@ -243,7 +243,7 @@ module.exports = function subject(seq, dataTypes) {
                 inst.setDataValue(param, parent.getDataValue(key1));
               } else {
                 throw new ParentSubjectNotFound({
-                  'message': 'parent' + key + ' not found.'
+                  'message': 'parent' + key + ' not found.',
                 });
               }
               resolve(inst);

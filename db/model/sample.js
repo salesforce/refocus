@@ -126,9 +126,10 @@ module.exports = function sample(seq, dataTypes) {
                 'infoRange',
                 'okRange',
                 'valueLabel',
-                'tags'
+                'tags',
               ],
             },
+
             // assoc.provider,
           ],
           order: ['Sample.name'],

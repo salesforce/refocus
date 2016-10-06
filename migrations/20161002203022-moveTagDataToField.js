@@ -22,18 +22,46 @@ module.exports = {
        { replacements: ['Subject'], type: queryInterface.sequelize.QueryTypes.SELECT }
         ).then((subjTags) => {
           subjTags.forEach((subjTag) => {
-            const a = [subjTag.name];
-            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = tags || $1 where id = $2',
-              { bind: [a, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
+            const arr = [];
+            arr.push(subjTag.name);
+            queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = "tags" || $1 where id = $2',
+              { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
           });
+        })
+        .then(() => {
+          // done to remove duplicate tags
+          return queryInterface.sequelize.query('SELECT * FROM "Subjects"',
+           { type: queryInterface.sequelize.QueryTypes.SELECT }
+            ).then((subjs) => {
+              subjs.forEach((subj) => {
+                const uniqueTags = new Set(subj.tags);
+                const arr = Array.from(uniqueTags);
+                return queryInterface.sequelize.query('UPDATE "Subjects" SET "tags" = $1 where id = $2',
+                  { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
+              });
+            });
         }).then(() => {
           return queryInterface.sequelize.query('SELECT * FROM "Tags" where "associatedModelName"=?',
            { replacements: ['Aspect'], type: queryInterface.sequelize.QueryTypes.SELECT }
-            ).then((subjTags) => {
-              subjTags.forEach((subjTag) => {
-                const arr = [subjTag.name];
-                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = tags || $1 where id = $2',
-                  { bind: [arr, subjTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
+            ).then((aspTags) => {
+              aspTags.forEach((aspTag) => {
+                const arr = [];
+                arr.push(aspTag.name);
+                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = "tags" || $1 where id = $2',
+                  { bind: [arr, aspTag.associationId], type: queryInterface.sequelize.QueryTypes.UPDATE });
+              });
+            });
+        })
+        .then(() => {
+          // done to remove duplicate tags
+          return queryInterface.sequelize.query('SELECT * FROM "Aspects"',
+           { type: queryInterface.sequelize.QueryTypes.SELECT }
+            ).then((subjs) => {
+              subjs.forEach((subj) => {
+                const uniqueTags = new Set(subj.tags);
+                const arr = Array.from(uniqueTags);
+                return queryInterface.sequelize.query('UPDATE "Aspects" SET "tags" = $1 where id = $2',
+                  { bind: [arr, subj.id], type: queryInterface.sequelize.QueryTypes.UPDATE });
               });
             });
         });
