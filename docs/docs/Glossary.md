@@ -1,3 +1,7 @@
+---
+layout: docs
+---
+
 # Glossary
 
 Refocus is a powerful visualization platform to monitor the health of your services. This document outlines some of the terminology we use when working with Refocus.
