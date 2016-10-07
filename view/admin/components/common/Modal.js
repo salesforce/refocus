@@ -31,7 +31,7 @@ class Modal extends React.Component {
                       onClick={onHide}
                       className='slds-button slds-button--icon-inverse slds-modal__close'>
                         <svg aria-hidden='true' className='slds-button__icon slds-button__icon--large'>
-                          <use xlinkHref='../icons/action-sprite/svg/symbols.svg#close'></use>
+                          <use xlinkHref='../static/icons/action-sprite/svg/symbols.svg#close'></use>
                         </svg>
                         <span className='slds-assistive-text'>Close</span>
                     </button>

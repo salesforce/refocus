@@ -12,7 +12,7 @@ html
     title Refocus Register
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     link(href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css', rel='stylesheet', media='screen')
-    link(rel="stylesheet", type="text/css", href="/authentication/login-style.css")
+    link(rel="stylesheet", type="text/css", href="/static/authentication/login-style.css")
   body
   div.container
     div.row
@@ -32,7 +32,7 @@ html
               input.form-control(type='password', name="repassword", placeholder='Retype Password' required)
             button.btn.btn-primary.btn-block(type='submit') Submit
           a.right-link(href='/login') Login
-  script(src='/authentication/register/app.js')
+  script(src='/static/authentication/register/app.js')
   script.
     var trackingId = '#{trackingId}';
-  script(src='/analytics/app.js')
+  script(src='/static/analytics/app.js')
