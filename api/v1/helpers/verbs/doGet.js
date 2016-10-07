@@ -13,6 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const redisCache = require('../../../../cache/redisCache').client;
 
 /**
  * Retrieves a record and sends it back in the json response with status code
@@ -29,11 +30,33 @@ const httpStatus = require('../../constants').httpStatus;
  *  resource type to retrieve.
  */
 function doGet(req, res, next, props) {
-  u.findByKey(props, req.swagger.params)
-  .then((o) => {
-    res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
-  })
-  .catch((err) => u.handleError(next, err, props.modelName));
+  if (props.cacheEnabled) {
+    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+      if (cacheErr || !reply) {
+        // if err or no reply, get from db and set redis cache
+        u.findByKey(props, req.swagger.params)
+        .then((o) => {
+          res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+
+          // cache the object by id and name.
+          const strObj = JSON.stringify(o);
+          redisCache.set(o.id, strObj);
+          redisCache.set(o.name, strObj);
+        })
+        .catch((err) => u.handleError(next, err, props.modelName));
+      } else {
+        // get from cache
+        const dbObj = JSON.parse(reply);
+        res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
+      }
+    });
+  } else {
+    u.findByKey(props, req.swagger.params)
+    .then((o) => {
+      res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+    })
+    .catch((err) => u.handleError(next, err, props.modelName));
+  }
 }
 
 module.exports = doGet;

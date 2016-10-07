@@ -14,6 +14,7 @@
 const Perspective = require('../../../../db/index').Perspective;
 
 const m = 'perspective';
+const cacheEnabled = true;
 
 module.exports = {
   apiLinks: {
@@ -29,4 +30,5 @@ module.exports = {
   },
   model: Perspective,
   modelName: 'Perspective',
+  cacheEnabled,
 }; // exports
