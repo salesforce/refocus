@@ -352,15 +352,15 @@ function getTagsFromResources(array) {
 
   // get through tags, get all names
   allTags.map((tagObj) => {
-    if (tagNames.indexOf(tagObj.name.toLowerCase()) === -1) {
-      tagNames.push(tagObj.name);
+    if (tagNames.indexOf(tagObj.toLowerCase()) === -1) {
+      tagNames.push(tagObj);
     }
   });
   return tagNames;
 }
 
 function getPublishedObjectsbyField(array, field) {
-  return array.filter((obj) => 
+  return array.filter((obj) =>
    obj.isPublished).map((obj) => obj[field])
 }
 
