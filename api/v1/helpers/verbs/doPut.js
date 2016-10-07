@@ -50,10 +50,8 @@ function doPut(req, res, next, props) {
         o.set(key, toPut[key]);
       }
     }
-
     return o.save();
   })
-  .then((o) => u.handleAssociations(toPut, o, props, req.method))
   .then((o) => {
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);

@@ -24,14 +24,14 @@ const oneDeletePath = '/v1/aspects/{key}/tags/{akey}';
 describe(`api: aspects: DELETE tags}`, () => {
   let token;
   let aspId;
-  let tagId;
+  const tag0 = 'tag0';
 
   const n = {
     name: `${tu.namePrefix}ASPECTNAME`,
     timeout: '110s',
     tags: [
-      { name: 'tag0', associatedModelName: 'Aspect' },
-      { name: 'tag1', associatedModelName: 'Aspect' },
+      'tag0',
+      'tag1'
     ]
   };
 
@@ -45,10 +45,9 @@ describe(`api: aspects: DELETE tags}`, () => {
   });
 
   beforeEach((done) => {
-    Aspect.create(n, { include: Aspect.getAspectAssociations().tags })
+    Aspect.create(n)
     .then((asp) => {
       aspId = asp.id;
-      tagId = asp.tags[0].id;
       done();
     })
     .catch((err) => done(err));
@@ -73,13 +72,12 @@ describe(`api: aspects: DELETE tags}`, () => {
   });
 
   it('delete one tag', (done) => {
-    api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', tagId))
+    api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', tag0))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -91,13 +89,12 @@ describe(`api: aspects: DELETE tags}`, () => {
   });
 
   it('delete tag by name', (done) => {
-    api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', 'tag0'))
+    api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', tag0))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.deep.property('[0].id');
-      expect(res.body.tags).to.have.deep.property('[0].name', 'tag1');
+      expect(res.body.tags).to.have.members(['tag1']);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -111,7 +108,11 @@ describe(`api: aspects: DELETE tags}`, () => {
   it('error if tag not found', (done) => {
     api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', 'x'))
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.tags).to.have.length(2);
+      expect(res.body.tags).to.have.members(['tag1', 'tag0']);
+    })
     .end((err /* , res */) => {
       if (err) {
         return done(err);

@@ -15,10 +15,8 @@ const Aspect = require('../../../../db/index').Aspect;
 
 const m = 'aspect';
 
-// list related associations and convert it to a set
-const assocList = ['tags'];
-const assocSet = new Set(assocList);
 const fieldsWithJsonArrayType = ['relatedLinks'];
+const fieldsWithArrayType = ['tags'];
 
 module.exports = {
   apiLinks: {
@@ -34,6 +32,6 @@ module.exports = {
   },
   model: Aspect,
   modelName: 'Aspect',
-  assocSet,
+  fieldsWithArrayType,
   fieldsWithJsonArrayType,
 }; // exports

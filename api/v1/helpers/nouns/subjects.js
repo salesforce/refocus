@@ -113,7 +113,6 @@ function applyTagFilters(keys, filterBy) {
   if (!filters[filterBy].includes || !filters[filterBy].excludes) {
     return true;
   }
-
   // When tags are not present, no filters are applied to it.
   if (keys.length === 0) {
     return false;
@@ -121,16 +120,10 @@ function applyTagFilters(keys, filterBy) {
 
   let isPartOfInFilter = false;
   let isPartOfNotInFilter = false;
-  let keyValue;
   // check if the elements of keys are part of the "includes" filter
   for (let i = 0; i < keys.length; i++) {
-    // lines 127 - 132 will be removed when aspecttags are moved to aspect table
-    if (keys[i].name) {
-      keyValue = keys[i].name;
-    } else {
-      keyValue = keys[i];
-    }
-    if (filters[filterBy].includes.has(keyValue.toLowerCase())) {
+
+    if (filters[filterBy].includes.has(keys[i].toLowerCase())) {
       isPartOfInFilter = true;
       break;
     }
@@ -138,13 +131,8 @@ function applyTagFilters(keys, filterBy) {
 
   // check if the elements of keys are part of the "excludes" filter
   for (let i = 0; i < keys.length; i++) {
-    // lines 141 - 146 will be removed when aspecttags are moved to aspect table
-    if (keys[i].name) {
-      keyValue = keys[i].name;
-    } else {
-      keyValue = keys[i];
-    }
-    if (filters[filterBy].excludes.has(keyValue.toLowerCase())) {
+
+    if (filters[filterBy].excludes.has(keys[i].toLowerCase())) {
       isPartOfNotInFilter = true;
       break;
     }

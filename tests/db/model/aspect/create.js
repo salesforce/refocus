@@ -1,4 +1,4 @@
-/**
+  /**
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
@@ -57,7 +57,7 @@ describe('db: aspect: create: ', () => {
           'and timeout');
       })
       .then(() => {
-        return asp.getTags();
+        return asp.tags;
       })
       .then((tags) => {
         if (tu.gotArrayWithExpectedLength(tags, 0)) {
@@ -2312,12 +2312,12 @@ describe('db: aspect: create: ', () => {
     describe('tags: ', () => {
       it('create with one tag', (done) => {
         const asp = u.getSmall();
-        asp.tags = [{ name: '___foo', associatedModelName: 'Aspect' }];
-        Aspect.create(asp, { include: Aspect.getAspectAssociations().tags })
+        asp.tags = ['___foo'];
+        Aspect.create(asp)
         .then((o) => {
           if (o.tags &&
             tu.gotArrayWithExpectedLength(o.tags, 1) &&
-            o.tags[0].name === '___foo') {
+            o.tags[0] === '___foo') {
             done();
           } else {
             done(new Error('expecting a tag'));
@@ -2329,12 +2329,12 @@ describe('db: aspect: create: ', () => {
       it('create with two tags', (done) => {
         const asp = u.getSmall();
         asp.tags = [
-          { name: '___foo', associatedModelName: 'Aspect' },
-          { name: '___bar', associatedModelName: 'Aspect' },
+          '___foo',
+          '___bar'
         ];
-        Aspect.create(asp, { include: Aspect.getAspectAssociations().tags })
+        Aspect.create(asp)
         .then((o) => {
-          return o.getTags();
+          return o.tags;
         })
         .then((t) => {
           if (tu.gotArrayWithExpectedLength(t, 2)) {

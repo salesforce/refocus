@@ -434,7 +434,26 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
-
+    it('should not be able to post tag names starting with dash(-)', (done) => {
+      const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
+      const tags = ['-na', '___continent'];
+      subjectToPost.tags = tags;
+      api.post(path)
+      .set('Authorization', token)
+      .send(subjectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body).to.property('errors');
+        expect(res.body.errors[0].type)
+          .to.equal(tu.schemaValidationErrorName);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
     it('posting subject with duplicate tags', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}Asia` };
 

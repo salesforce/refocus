@@ -450,7 +450,27 @@ describe('api: PUT subjects with tags', () => {
       done();
     });
   });
-
+  it('no putting tags with names starting with a dash(-)', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      tags: ['-tagX']
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body).to.property('errors');
+      expect(res.body.errors[0].type)
+        .to.equal(tu.schemaValidationErrorName);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
   it('update to add existing tag', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,

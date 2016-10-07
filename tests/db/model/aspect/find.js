@@ -24,20 +24,20 @@ describe('db: aspect: find: ', () => {
         timeout: '1s',
         isPublished: true,
         tags: [
-          { name: 'jedi', associatedModelName: 'Aspect' },
-          { name: 'boring', associatedModelName: 'Aspect' }
+          'jedi',
+          'boring'
         ],
-      }, { include: Aspect.getAspectAssociations().tags });
+      });
     })
     .then(() => Aspect.create({
       name: 'leia',
       timeout: '1m',
       isPublished: true,
       tags: [
-        { name: 'princess', associatedModelName: 'Aspect' },
-        { name: 'jedi', associatedModelName: 'Aspect' }
+        'princess',
+        'jedi'
       ],
-    }, { include: Aspect.getAspectAssociations().tags }))
+    }))
     .then(() => done())
     .catch((err) => {
       done(err);
@@ -74,12 +74,11 @@ describe('db: aspect: find: ', () => {
 
   it('find by tag, found', (done) => {
     Aspect.findAll({
-      include: [
-        {
-          association: Aspect.getAspectAssociations().tags,
-          where: { name: 'jedi' }
-        },
-      ],
+      where: {
+        tags: {
+          $contains: ['jedi']
+        }
+      }
     })
     .then((o) => {
       if (o.length !== 2) {
@@ -87,12 +86,11 @@ describe('db: aspect: find: ', () => {
       }
     })
     .then(() => Aspect.findAll({
-      include: [
-        {
-          association: Aspect.getAspectAssociations().tags,
-          where: { name: 'boring' }
-        },
-      ],
+      where: {
+        tags: {
+          $contains: ['boring']
+        }
+      }
     }))
     .then((o) => {
       if (o.length !== 1) {
@@ -100,50 +98,12 @@ describe('db: aspect: find: ', () => {
       }
     })
     .then(() => Aspect.findAll({
-      include: [
-        {
-          association: Aspect.getAspectAssociations().tags,
-          where: { name: 'father' }
-        },
-      ],
+      where: {
+        tags: {
+          $contains: ['father']
+        }
+      }
     }))
-    .then((o) => {
-      if (tu.gotArrayWithExpectedLength(o, 0)) {
-        done();
-      } else {
-        done(new Error('expecting zero aspects'));
-      }
-    })
-    .catch((err) => done(err));
-  });
-
-  it('find by tag using "tagNameIn" scope, found', (done) => {
-    Aspect.scope([
-      'defaultScope',
-      { method: ['tagNameIn', ['jedi']] },
-    ]).findAll()
-    .then((o) => {
-      if (o.length !== 2) {
-        done(new Error('expecting two aspects'));
-      }
-    })
-    .then(() => Aspect.scope(
-      [
-        'defaultScope',
-        { method: ['tagNameIn', ['boring']] },
-      ]
-    ).findAll())
-    .then((o) => {
-      if (o.length !== 1) {
-        done(new Error('expecting one aspect'));
-      }
-    })
-    .then(() =>
-      Aspect.scope([
-        'defaultScope',
-        { method: ['tagNameIn', ['father']] },
-      ]).findAll()
-    )
     .then((o) => {
       if (tu.gotArrayWithExpectedLength(o, 0)) {
         done();
@@ -157,7 +117,7 @@ describe('db: aspect: find: ', () => {
   it('tags and related links in default scope', (done) => {
     Aspect.findAll()
     .then((o) => {
-      for (var i = 0; i < o.length; i++) {
+      for (let i = 0; i < o.length; i++) {
         const el = o[i];
         if (el.get({ plain: true }).tags === undefined) {
           throw new Error('expecting "tags" attribute');

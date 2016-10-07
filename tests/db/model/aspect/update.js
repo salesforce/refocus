@@ -297,15 +297,14 @@ describe('associations: relatedLinks & Tags ', () => {
     });
     it('update a Tag', (done) => {
       const asp = u.getSmall();
-      asp.tags = [{ name: '___tagged', associatedModelName: 'Aspect' }];
-      Aspect.create(asp, { include: Aspect.getAspectAssociations().tags })
+      asp.tags = ['___tagged'];
+      Aspect.create(asp)
         .then((o) => {
-          // console.log(o.dataValues.Tags);
-          return o.tags[0].destroy();
+          o.tags= ['not-tagged'];
+          return o.save();
         })
         .then((o) => {
-          // console.log(o.dataValues);
-          expect(o.dataValues).to.have.property('isDeleted').to.not.equal(0);
+          expect(o.dataValues.tags).to.have.members(['not-tagged']);
           done();
         })
         .catch((err) => done(err));
