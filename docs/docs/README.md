@@ -1,3 +1,8 @@
+---
+layout: docs
+title: Readme
+---
+
 # Files
 
 # Using Jekyll Locally

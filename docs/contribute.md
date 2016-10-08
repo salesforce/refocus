@@ -1,5 +1,6 @@
 ---
 layout: default
+title: Contribute
 ---
 
 We couldn’t be more excited about Refocus! It is making a huge impact in how we visualize our service health within Salesforce, and provides a level of transparency that we have never had. 

@@ -1,3 +1,8 @@
+---
+layout: docs
+title: Quick Start Heroku
+---
+
 # QuickStart with Heroku Deployment
 
 
