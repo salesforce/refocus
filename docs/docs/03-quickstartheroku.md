@@ -3,11 +3,6 @@ layout: docs
 title: Quick Start Heroku
 ---
 
-# QuickStart with Heroku Deployment
+# Get up and running in seconds on Heroku.
+[<img src="https://www.herokucdn.com/deploy/button.svg">](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
 
-
-
-[back to QuickStart Guide](./QuickStart.md)
-
-
-//TODO add heroku button here
