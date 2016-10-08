@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Blogging Like a Hacker
+title: Quickstart
 ---
 
 
