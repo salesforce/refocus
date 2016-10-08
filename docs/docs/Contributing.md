@@ -1,3 +1,8 @@
+---
+layout: docs
+title: Contributing
+---
+
 # Contributing to Refocus
 
 Refocus welcomes contributions on Github!

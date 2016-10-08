@@ -1,6 +1,11 @@
 ---
+<<<<<<< HEAD
+layout: docs
+title: Quickstart
+=======
 layout: default
 title: Blogging Like a Hacker
+>>>>>>> 11f2eaca767443d89d9a752021b70f7a2562c027
 ---
 
 

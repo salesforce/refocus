@@ -1,3 +1,8 @@
+---
+layout: docs
+title: Quick Start Local
+---
+
 # QuickStart with Local Deployment
 
 
