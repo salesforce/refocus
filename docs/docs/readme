@@ -1,9 +1,3 @@
 # New Files
 - Prefix with a two digit number.  This controls the ordering of the docs on the navigation.
 - Add the "FrontMatter" at the top of the file.  See an existing file for an example.
-
-# Running locally
-`bundle exec jekyll serve`
-
-# Help
-[Jeykll Docs](https://jekyllrb.com/docs/home/)
