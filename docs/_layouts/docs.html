@@ -20,7 +20,7 @@ layout: default
             {% assign filename = node_url_parts | last %} 
             {% if url_parts_size == node_url_parts_size %} 
             {% if page.url == node.url %}            
-            <a class="list-group-item active" href="{{node.url}}" class="active">{{node.title}}</a> {% else %}
+            <a class="list-group-item active" href="{{ site.baseurl }}{{node.url}}" class="active">{{node.title}}</a> {% else %}
             <a class="list-group-item" href=" {{ site.baseurl }}{{node.url}}">{{node.title}}</a> {% endif %} {% endif %} {% endif %} {% endfor %}
         </div>
     </div>
