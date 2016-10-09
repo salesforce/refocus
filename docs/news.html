@@ -1,0 +1,23 @@
+--- 
+title: News 
+layout: default 
+---
+
+<div class="container">
+    <h1>Refocus News</h1>
+
+    <div class="row">
+        <div class="col-sm-6 col-md-4">
+            {% for post in site.posts %}
+            <div class="thumbnail">
+                <img src="{{ post.thumbnail }}" alt="...">
+                <div class="caption">
+                    <h3>{{post.title}}</h3>
+                    {{ post.date | date: "%B %-d, %Y"}}
+                    <p><a href="{{ post.url | prepend: site.baseurl }}" class="btn btn-primary" role="button">Read</a></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
