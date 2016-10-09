@@ -1,20 +1,25 @@
 --- 
-layout: default
+layout: default 
 ---
 
-<div class="container">
-    <div class="col-sm-3">
-        <img class="img-thumbnail img-responsive center-block" src="{{ page.thumbnail }}" alt="thumbnail">
+<ol class="breadcrumb">
+    <li><a href="{{ site.baseurl }}/news">News</a></li>
+    <li class="active">{{page.title}}</li>
+</ol>
+
+<div class="jumbotron" style="background: url({{ page.thumbnail }}) no-repeat center center; -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover; background-size: cover;">
+    <div class="container">
+        <div class="well">
+            <h1>{{page.title}} <small>{{ page.date | date: "%B %-d, %Y" }}</small></h1> </div>
     </div>
-    <div class="col-sm-9">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h1>{{page.title}} <small>{{ page.date | date: "%B %-d, %Y" }}</small></h1>
-            </div>
-            <div class="panel-body">
-                {{ content }}
-            </div>
-        </div>
-        <!--<span class="glyphicon glyphicon-tags" aria-hidden="true"></span> {% for tag in page.tags %} {{tag}} {% endfor %}-->
+</div>
+<div class="container">
+
+    <div class="col-sm-12">
+
+        {% for tag in page.tags %}
+        <button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-tag" aria-hidden="true"></span> {{tag}}</button>
+
+        {% endfor %} {{ content }}
     </div>
 </div>
