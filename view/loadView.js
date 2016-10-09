@@ -19,9 +19,9 @@ const User = require('../db/index').User;
 const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
-const path = require('path');
 const jwtUtil = require('../api/v1/helpers/jwtUtil');
 const NOT_FOUND = 404;
+const url = require('url');
 
 // protected urls
 const viewmap = {
@@ -90,6 +90,24 @@ function samlAuthentication(userProfile, done) {
   });
 }
 
+/**
+ * Creates redirect url for sso.
+ * @param  {String} qs Query string
+ * @returns {Object} Decode query params object
+ */
+function getRedirectUrlSSO(req) {
+  // req.headers.referer will be the original url requested
+  const query = url.parse(req.headers.referer, true).query;
+
+  // default to home page
+  let redirectUrl = '/';
+  if (query.ru) {
+    redirectUrl = query.ru;
+  }
+
+  return redirectUrl;
+}
+
 module.exports = function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
@@ -133,11 +151,16 @@ module.exports = function loadView(app, passport) {
       SSOConfig.findOne()
       .then((ssoconfig) => {
         if (ssoconfig) {
+          const redirectUrl = getRedirectUrlSSO(req);
+
+          // add relay state to remember redirect url when a response is
+          // returned from SAML IdP in post /sso/saml route
           passport.use(new SamlStrategy(
             {
               path: '/sso/saml',
               entryPoint: ssoconfig.samlEntryPoint,
               issuer: ssoconfig.samlIssuer,
+              additionalParams: { RelayState: redirectUrl },
             }, samlAuthentication)
           );
 
@@ -190,7 +213,9 @@ module.exports = function loadView(app, passport) {
     (_req, _res) => {
       const token = jwtUtil.createToken(_req.user);
       _res.cookie('Authorization', token);
-      _res.redirect('/');
+
+      // get the redirect url from relay state
+      _res.redirect(_req.body.RelayState);
     }
   );
 
