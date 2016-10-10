@@ -9,12 +9,18 @@
 /**
  * api/v1/helpers/nouns/perspectives.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const Perspective = require('../../../../db/index').Perspective;
+const config = require('../../../../config');
 
 const m = 'perspective';
-const cacheEnabled = true;
+let cacheEnabled = true;
+
+if (config.enableCachePerspective === 'false' ||
+ config.enableCachePerspective === false) {
+  cacheEnabled = false;
+}
 
 module.exports = {
   apiLinks: {
