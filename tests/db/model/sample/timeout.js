@@ -220,4 +220,32 @@ describe('db: sample: timeout: ', function() {
     .then(() => done())
     .catch((err) => done(err));
   });
+
+  it('checktimeout scope should only return required fields' +
+      'from sample model', (done) => {
+    Sample.scope('checkTimeout').findOne()
+    .then((samp) => {
+      expect(samp.id).to.not.equal(undefined);
+      expect(samp.value).to.not.equal(undefined);
+      expect(samp.updatedAt).to.not.equal(undefined);
+
+      /*
+       * the following sample fields should not be fetched in the
+       * checktimeout query
+       *
+       */
+      expect(samp.previousStatus).to.equal(undefined);
+      expect(samp.messageBody).to.equal(undefined);
+      expect(samp.messageCode).to.equal(undefined);
+      expect(samp.name).to.equal(undefined);
+      expect(samp.status).to.equal(undefined);
+      expect(samp.aspectId).to.equal(undefined);
+      expect(samp.subjectId).to.equal(undefined);
+      expect(samp.relatedLinks).to.equal(undefined);
+      expect(samp.createdAt).to.equal(undefined);
+      expect(samp.deletedAt).to.equal(undefined);
+    })
+    .then(() => done())
+    .catch((err) => done(err));
+  });
 });

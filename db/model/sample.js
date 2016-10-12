@@ -137,6 +137,11 @@ module.exports = function sample(seq, dataTypes) {
           override: true,
         });
         Sample.addScope('checkTimeout', {
+          attributes: [
+            'id',
+            'updatedAt',
+            'value'
+          ],
           where: {
             status: {
               $ne: constants.statuses.Timeout,
@@ -402,6 +407,13 @@ module.exports = function sample(seq, dataTypes) {
     }, // hooks
     indexes: [
       { unique: true, fields: ['aspectId', 'subjectId', 'isDeleted'] },
+      {
+        name: 'SampleStatusDeletedAt',
+        fields: [
+          'deletedAt',
+          'status',
+        ],
+      },
     ],
     instanceMethods: {
 
