@@ -96,10 +96,21 @@ function setupSocketIOClient(persBody) {
   const namespace = u.getNamespaceString(persBody);
 
   /*
+   * if the transprotocol is set, initialize the socketio client with
+   *  the transport protocol options. The transProtocol variable is set in 
+   *  perspective.pug
+   */
+  const options = {};
+  const clientProtocol = transProtocol; 
+  if (clientProtocol !== 'undefined') {
+    options.transports = clientProtocol.replace(/\s*,\s*/g, ',').split(',');
+  }
+
+  /*
    * Note: The "io" variable is defined by the "/socket.io.js" script included
    * in perspective.pug.
    */
-  const socket = io(namespace);
+  const socket = io(namespace, options);
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
   });
