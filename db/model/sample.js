@@ -427,11 +427,9 @@ module.exports = function sample(seq, dataTypes) {
         ],
       },
       {
-        name: 'SampleUniqueLowercaseNameIsDeleted',
-        unique: true,
+        name: 'SampleName',
         fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
+          'name',
         ],
       },
     ],

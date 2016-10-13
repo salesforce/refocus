@@ -4,15 +4,14 @@ module.exports = {
   up: function (queryInterface, Sequelize) {
     queryInterface.addIndex(
       'Samples',
-      [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+      ['name'],
       {
-        indexName: 'SampleUniqueLowercaseNameIsDeleted',
-        indicesType: 'UNIQUE',
+        indexName: 'SampleName',
       }
     );
   },
 
   down: function (queryInterface, Sequelize) {
-    queryInterface.removeIndex('Samples', 'SampleUniqueLowercaseNameIsDeleted');
+    queryInterface.removeIndex('Samples', 'SampleName');
   },
 };
