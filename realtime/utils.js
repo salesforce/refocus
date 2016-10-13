@@ -163,7 +163,7 @@ function shouldIEmitThisObj(nspString, obj) {
      * the results
      */
     if (isThisSubject(obj)) {
-      return applyFilter(subjectTagFilter, obj.subject.tags);
+      return applyFilter(subjectTagFilter, obj.tags);
     }
 
     // apply all the filters and return the result
