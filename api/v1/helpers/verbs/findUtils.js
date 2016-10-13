@@ -124,10 +124,10 @@ function toSequelizeOrder(sortOrder, modelName) {
       sortOrder : [sortOrder];
     return sortOrderArray.map((s) => {
       if (s.indexOf(constants.MINUS) === 0) {
-        return [`${modelName}.${s.substr(1)}`, constants.SEQ_DESC];
+        return [`${s.substr(1)}`, constants.SEQ_DESC];
       }
 
-      return `${modelName}.${s}`;
+      return `${s}`;
     });
   }
 
@@ -145,9 +145,12 @@ function toSequelizeOrder(sortOrder, modelName) {
 function options(params, props) {
   const opts = u.buildFieldList(params);
 
-  // Specify the sort order
-  const ord = (params.sort ? params.sort.value : null) || props.defaultOrder;
-  opts.order = toSequelizeOrder(ord, props.modelName);
+  // Specify the sort order. If defaultOrder is defined in props then
+  // update sort order otherwise take value from model defination
+  if (props.defaultOrder) {
+    const ord = (params.sort ? params.sort.value : null) || props.defaultOrder;
+    opts.order = toSequelizeOrder(ord, props.modelName);
+  }
 
   // Specify the limit
   if (params.limit.value) {
