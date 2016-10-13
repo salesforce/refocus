@@ -121,4 +121,21 @@ describe(`api: GET ${path}`, () => {
       return done();
     });
   });
+
+  it('get without lens assoc', (done) => {
+    api.get(`${path}?fields=name,rootSubject`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length.of.at.least(1);
+      expect(res.body[0]).to.have.property('name');
+      expect(res.body[0]).to.have.property('rootSubject');
+      expect(res.body[0]).to.not.have.property('lens');
+      return done();
+    });
+  });
 });

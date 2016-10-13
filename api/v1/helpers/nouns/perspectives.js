@@ -24,6 +24,9 @@ module.exports = {
     PUT: `Overwrite all attributes of this ${m}`,
   },
   baseUrl: '/v1/perspectives',
+  fieldAbsenceScopeMap: {
+    lens: 'withoutLensAssociation',
+  },
   model: Perspective,
   modelName: 'Perspective',
 }; // exports
