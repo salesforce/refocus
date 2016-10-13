@@ -393,7 +393,9 @@ function getScopedModel(props, fields) {
         const fieldName = keys[i];
         if (fields.indexOf(fieldName) === NOT_FOUND) {
           const scopeName = props.fieldAbsenceScopeMap[fieldName];
-          scopes.push(scopeName);
+          if (scopeName) {
+            scopes.push(scopeName);
+          }
         }
       }
     } else {
