@@ -15,11 +15,11 @@ const Perspective = require('../../../../db/index').Perspective;
 const config = require('../../../../config');
 
 const m = 'perspective';
-let cacheEnabled = true;
+let cacheEnabled = false;
 
-if (config.enableCachePerspective === 'false' ||
- config.enableCachePerspective === false) {
-  cacheEnabled = false;
+if (config.enableCachePerspective === 'true' ||
+ config.enableCachePerspective === true) {
+  cacheEnabled = true;
 }
 
 module.exports = {

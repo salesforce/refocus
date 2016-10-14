@@ -47,7 +47,7 @@ const optimizeUpsert = pe.OPTIMIZE_UPSERT === 'true' ||
  pe.OPTIMIZE_UPSERT === true || false;
 
 // env variable to enable caching for /GET /v1/perspectives/{key}
-const enableCachePerspective = pe.ENABLE_CACHE_PERSPECTIVE || true;
+const enableCachePerspective = pe.ENABLE_CACHE_PERSPECTIVE || false;
 
 module.exports = {
 
