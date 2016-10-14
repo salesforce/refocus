@@ -386,7 +386,7 @@ function deleteAJsonArrayElement(jsonArray, elementName) {
 function getScopedModel(props, fields) {
   const scopes = [];
 
-  if (fields && Array.isArray(fields)) {
+  if (fields && Array.isArray(fields) && fields.length) {
     if (props.fieldAbsenceScopeMap) {
       const keys = Object.keys(props.fieldAbsenceScopeMap);
       for (let i = 0; i < keys.length; i++) {

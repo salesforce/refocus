@@ -114,10 +114,27 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
       expect(res.body.lensId).to.equal(lensId);
+      expect(res.body).to.have.property('lens');
       expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
+      return done();
+    });
+  });
+
+  it('get by name specifying fields to retrieve', (done) => {
+    api.get(`${path}/${perspectiveName}?fields=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
+      expect(res.body).to.not.have.property('rootSubject');
+      expect(res.body).to.not.have.property('lens');
       return done();
     });
   });
