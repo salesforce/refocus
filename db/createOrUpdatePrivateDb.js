@@ -9,19 +9,14 @@
 /**
  * ./db/createOrUpdatePrivateDb.js
  *
- * This is script is for private space installation
- * First check whethere table is present or not
- * If tables are present then performs migratedb otherwise resetdb to
- * create new tables and false migrations to keep migration table up to date
- *
+ * If Refocus is deployed in a heroku private space, check whether our tables
+ * exist. If yes, run any necessary migrations, otherwize do a full reset to
+ * create all the tables and insert pseudo-migrations to bring the migration
+ * table up to date.\
  */
-
 const models = require('./index');
-const conf = require('../config');
 const utils = require('./utils');
 
-// Heroku Private space postgres contains IP in host so check wthether
-// it is IP or not, if it is IP then perform reset or migratedb
 if (utils.isInHerokuPrivateSpace()) {
   models.sequelize.query(`select count(*) from
    information_schema.tables where table_schema = 'public'`)

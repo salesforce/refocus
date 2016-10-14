@@ -59,6 +59,12 @@ function doImport(modelDirName) {
     imported[m.name] = m;
   }
 
+  /*
+   * Add any missing tables and indexes based on the imported model
+   * definitions.
+   */
+  seq.sync();
+
   const keys = Object.keys(imported);
   for (let i = 0; i < keys.length; i++) {
     const m = keys[i];
@@ -73,8 +79,7 @@ function doImport(modelDirName) {
 
 /*
  * Set up the "db" object and prepare it to be exported. It will contain the
- * imported models, the "reset" function, the "sequelize" instance and the
- * Sequelize class.
+ * imported models, the "sequelize" instance and the Sequelize class.
  */
 const db = doImport(conf.db.modelDirName);
 db.sequelize = seq;
