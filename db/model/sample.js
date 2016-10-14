@@ -170,8 +170,7 @@ module.exports = function sample(seq, dataTypes) {
        *  encountered while performing the sample upsert operation itself.
        */
       upsertByName(toUpsert, isBulk) {
-        if (config.optimizeUpsert === 'true' ||
-         config.optimizeUpsert === true) {
+        if (config.optimizeUpsert) {
           let sampleExists = true;
           return new seq.Promise((resolve, reject) => {
             // get sample by name
