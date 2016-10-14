@@ -67,6 +67,61 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('Check return result of get in alphabetical order of' +
+  'absolutePath by default', (done) => {
+    api.get(`${path}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body[0].absolutePath).to.equal(na.name);
+      expect(res.body[1].absolutePath).to.equal(na.name + '.' + us.name);
+      expect(res.body[2].absolutePath).to.equal(na.name + '.' + us.name +
+        '.' + vt.name);
+
+      done();
+    });
+  });
+
+  it('Check return result of get in alphabetical order of' +
+  'name when use of ?sort=name', (done) => {
+    api.get(`${path}?sort=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body[0].name).to.equal(na.name);
+      expect(res.body[1].name).to.equal(us.name);
+      expect(res.body[2].name).to.equal(vt.name);
+
+      done();
+    });
+  });
+
+  it('Check return result of get in alphabetical order of' +
+  'name when use of ?sort=-name', (done) => {
+    api.get(`${path}?sort=-name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body[2].name).to.equal(na.name);
+      expect(res.body[1].name).to.equal(us.name);
+      expect(res.body[0].name).to.equal(vt.name);
+
+      done();
+    });
+  });
+
   it('GET returns parentAbsolutePath, from root', (done) => {
     api.get(`${path}/${na.id}`)
     .set('Authorization', token)
