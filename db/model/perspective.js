@@ -15,8 +15,6 @@ const common = require('../helpers/common');
 const MissingRequiredFieldError = require('../dbErrors')
   .MissingRequiredFieldError;
 const constants = require('../constants');
-const redisCache = require('../../cache/redisCache').client;
-
 const assoc = {};
 const eventName = 'refocus.internal.realtime.perspective.namespace.initialize';
 
@@ -128,15 +126,11 @@ module.exports = function perspective(seq, dataTypes) {
 
       /**
        * Publishes the created prespective to the redis channel, to initialize
-       * a socketio namespace if required. Updates cache.
+       * a socketio namespace if required
        *
        * @param {Perspective} inst - The newly-created instance
        */
       afterCreate(inst /* , opts */) {
-        const strObj = JSON.stringify(inst);
-        redisCache.set(inst.id, strObj);
-        redisCache.set(inst.name, strObj);
-
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
         return common.publishChange(inst, eventName, changedKeys,
@@ -145,25 +139,15 @@ module.exports = function perspective(seq, dataTypes) {
 
       /**
        * Publishes the updated prespective to the redis channel, to initialize
-       * a socketio namespace if required. Updates cache.
+       * a socketio namespace if required
        *
        * @param {Perspective} inst - The updated instance
        */
       afterUpdate(inst /* , opts */) {
-        const strObj = JSON.stringify(inst);
-        redisCache.set(inst.id, strObj);
-        redisCache.set(inst.name, strObj);
-
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
         return common.publishChange(inst, eventName, changedKeys,
               ignoreAttributes);
-      },
-
-      // update cache
-      afterDestroy(inst /* , opts */) {
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
       },
 
       /*
