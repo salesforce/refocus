@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
@@ -371,18 +372,39 @@ function deleteAJsonArrayElement(jsonArray, elementName) {
  * Retrieves the appropriately-scoped model for the given DB model and the
  * list of fields requested.
  *
+ * If a model specifies a "fieldAbsenceScopeMap" then apply the designated
+ * scope if the mapped field is NOT in the list of fields to retrieve.
+ * If the model does NOT specify a "fieldAbsenceScopeMap" then check for a
+ * "fieldScopeMap" and apply the designated scope if the mapped field is
+ * included in the list of fields to retrieve.
+ *
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Array} fields - The list of fields to return
  * @returns {Model} the appropriately-scoped model for the given DB model and
  *  the list of fields requested.
  */
 function getScopedModel(props, fields) {
-  if (fields && Array.isArray(fields)) {
-    const scopes = [constants.SEQ_DEFAULT_SCOPE];
-    for (let i = 0; i < fields.length; i++) {
-      const f = fields[i];
-      if (props.fieldScopeMap && props.fieldScopeMap[f]) {
-        scopes.push(props.fieldScopeMap[f]);
+  const scopes = [];
+
+  if (fields && Array.isArray(fields) && fields.length) {
+    if (props.fieldAbsenceScopeMap) {
+      const keys = Object.keys(props.fieldAbsenceScopeMap);
+      for (let i = 0; i < keys.length; i++) {
+        const fieldName = keys[i];
+        if (fields.indexOf(fieldName) === NOT_FOUND) {
+          const scopeName = props.fieldAbsenceScopeMap[fieldName];
+          if (scopeName) {
+            scopes.push(scopeName);
+          }
+        }
+      }
+    } else {
+      scopes.push(constants.SEQ_DEFAULT_SCOPE);
+      for (let i = 0; i < fields.length; i++) {
+        const f = fields[i];
+        if (props.fieldScopeMap && props.fieldScopeMap[f]) {
+          scopes.push(props.fieldScopeMap[f]);
+        }
       }
     }
 
