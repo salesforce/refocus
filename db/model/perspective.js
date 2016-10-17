@@ -111,6 +111,11 @@ module.exports = function perspective(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Perspective.addScope('withoutLensAssociation', {
+          include: [],
+          order: ['Perspective.name'],
+        });
       },
     },
     hooks: {
