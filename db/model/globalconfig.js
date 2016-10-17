@@ -14,7 +14,7 @@ const constants = require('../constants');
 
 const assoc = {};
 
-module.exports = function user(seq, dataTypes) {
+module.exports = function globalconfig(seq, dataTypes) {
   const GlobalConfig = seq.define('GlobalConfig', {
     id: {
       type: dataTypes.UUID,
