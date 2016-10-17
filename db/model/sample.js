@@ -170,49 +170,83 @@ module.exports = function sample(seq, dataTypes) {
        *  encountered while performing the sample upsert operation itself.
        */
       upsertByName(toUpsert, isBulk) {
-        let sampleExists = true;
-        return new seq.Promise((resolve, reject) => {
-          // get sample by name
-          Sample.findOne({
-            where: {
-              name: {
-                $iLike: toUpsert.name,
+        if (config.optimizeUpsert) {
+          let sampleExists = true;
+          return new seq.Promise((resolve, reject) => {
+            // get sample by name
+            Sample.findOne({
+              where: {
+                name: {
+                  $iLike: toUpsert.name,
+                },
               },
-            },
-          })
-          .then((o) => {
-            // If sample does not exist, set sampleExists to false, which is
-            // used after this promise returns. Get corresponding subject and
-            //  aspect to check if the sample name is valid.
-            if (o === null) {
-              sampleExists = false;
-              return u.getSubjectAndAspectBySampleName(seq, toUpsert.name);
-            }
+            })
+            .then((o) => {
+              // If sample does not exist, set sampleExists to false, which is
+              // used after this promise returns. Get corresponding subject and
+              //  aspect to check if the sample name is valid.
+              if (o === null) {
+                sampleExists = false;
+                return u.getSubjectAndAspectBySampleName(seq, toUpsert.name);
+              }
 
-            // Else, if sample exists, update the sample.
-            // set value changed to true, during updates to avoid timeouts
-            // Adding this to the before update hook does
-            // give the needed effect; so adding it here!!!.
-            o.changed('value', true);
-            return o.update(toUpsert);
-          })
-          .then((returnedObj) => {
-            // If sample existed, return the updated object.
-            if (sampleExists) {
-              return returnedObj;
-            }
+              // Else, if sample exists, update the sample.
+              // set value changed to true, during updates to avoid timeouts
+              // Adding this to the before update hook does
+              // give the needed effect; so adding it here!!!.
+              o.changed('value', true);
+              return o.update(toUpsert);
+            })
+            .then((returnedObj) => {
+              // If sample existed, return the updated object.
+              if (sampleExists) {
+                return returnedObj;
+              }
 
-            // If sample does not exist, update subject and aspect id in sample
-            // object to be created. Create sample.
-            toUpsert.subjectId = returnedObj.subject.id;
-            toUpsert.aspectId = returnedObj.aspect.id;
-            return Sample.create(toUpsert);
-          })
-          .then((o) => resolve(o))
-          .catch((err) => {
-            isBulk ? resolve(err) : reject(err);
+              // If sample does not exist, update subject and aspect id in
+              // sample object to be created. Create sample.
+              toUpsert.subjectId = returnedObj.subject.id;
+              toUpsert.aspectId = returnedObj.aspect.id;
+              return Sample.create(toUpsert);
+            })
+            .then((o) => resolve(o))
+            .catch((err) => {
+              isBulk ? resolve(err) : reject(err);
+            });
           });
-        });
+        } else {
+          let subjasp;
+          return new seq.Promise((resolve, reject) => {
+            u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
+            .then((sa) => {
+              subjasp = sa;
+              toUpsert.subjectId = sa.subject.id;
+              toUpsert.aspectId = sa.aspect.id;
+            })
+            .then(() => Sample.findOne({
+              where: {
+                subjectId: subjasp.subject.id,
+                aspectId: subjasp.aspect.id,
+                isDeleted: NO,
+              },
+            }))
+            .then((o) => {
+              if (o === null) {
+                return Sample.create(toUpsert);
+              }
+
+              // set value changed to true, during updates to avoid timeouts
+              // Adding this to the before update hook does
+              // give the needed effect; so adding it here!!!.
+              o.changed('value', true);
+              return o.update(toUpsert);
+            })
+            .then((o) => resolve(o))
+            .catch((err) => {
+              isBulk ? resolve(err) : reject(err);
+            });
+          });
+        }
       }, // upsertByName
 
       bulkUpsertByName(toUpsert) {

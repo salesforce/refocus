@@ -43,6 +43,9 @@ const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
 const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
 const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 
+const optimizeUpsert = pe.OPTIMIZE_UPSERT === 'true' ||
+ pe.OPTIMIZE_UPSERT === true || false;
+
 module.exports = {
 
   api: {
@@ -232,5 +235,6 @@ module.exports = {
   auditSubjects,
   auditSamples,
   auditAspects,
+  optimizeUpsert,
 
 };
