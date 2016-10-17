@@ -13,7 +13,9 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const redisCache = require('../../../../cache/redisCache').client;
 
+const SECS_IN_MIN = 60;
 /**
  * Retrieves a record and sends it back in the json response with status code
  * 200.
@@ -29,11 +31,41 @@ const httpStatus = require('../../constants').httpStatus;
  *  resource type to retrieve.
  */
 function doGet(req, res, next, props) {
-  u.findByKey(props, req.swagger.params)
-  .then((o) => {
-    res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
-  })
-  .catch((err) => u.handleError(next, err, props.modelName));
+  if (props.cacheEnabled) {
+    const reqParams = req.swagger.params;
+    let cacheKey = reqParams.key.value;
+
+    // cache key is combination of key and fields in specified order.
+    if (reqParams.fields && reqParams.fields.value) {
+      cacheKey += reqParams.fields.value;
+    }
+
+    redisCache.get(cacheKey, (cacheErr, reply) => {
+      if (cacheErr || !reply) {
+        // if err or no reply, get from db and set redis cache
+        u.findByKey(props, req.swagger.params)
+        .then((o) => {
+          res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+
+          // cache the object by cacheKey. Store the key-value pair in cache
+          // with an expiry of 1 minute (60s)
+          const strObj = JSON.stringify(o);
+          redisCache.setex(cacheKey, SECS_IN_MIN, strObj);
+        })
+        .catch((err) => u.handleError(next, err, props.modelName));
+      } else {
+        // get from cache
+        const dbObj = JSON.parse(reply);
+        res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
+      }
+    });
+  } else {
+    u.findByKey(props, req.swagger.params)
+    .then((o) => {
+      res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+    })
+    .catch((err) => u.handleError(next, err, props.modelName));
+  }
 }
 
 module.exports = doGet;

@@ -46,6 +46,9 @@ const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 const optimizeUpsert = pe.OPTIMIZE_UPSERT === 'true' ||
  pe.OPTIMIZE_UPSERT === true || false;
 
+// env variable to enable caching for /GET /v1/perspectives/{key}
+const enableCachePerspective = pe.ENABLE_CACHE_PERSPECTIVE || false;
+
 module.exports = {
 
   api: {
@@ -236,5 +239,6 @@ module.exports = {
   auditSamples,
   auditAspects,
   optimizeUpsert,
+  enableCachePerspective,
 
 };
