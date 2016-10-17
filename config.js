@@ -238,10 +238,7 @@ module.exports = {
   auditSubjects,
   auditSamples,
   auditAspects,
-<<<<<<< 2352605d55f41a77d65efbeabd1a0fd36c1bee8c
   optimizeUpsert,
-=======
   enableCachePerspective,
->>>>>>> added config var
 
 };
