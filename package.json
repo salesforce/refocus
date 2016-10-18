@@ -39,6 +39,7 @@
     "prestart": "npm run checkprivatedb"
   },
   "dependencies": {
+    "@risingstack/trace": "^2.25.0",
     "adm-zip": "^0.4.7",
     "autoprefixer": "^6.0.3",
     "babel-core": "^6.7.7",
