@@ -19,6 +19,11 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
  */
 function start() { // eslint-disable-line max-statements
   const conf = require('./config');
+
+  if (conf.traceAPIKey) {
+    require('@risingstack/trace');
+  }
+
   if (conf.newRelicKey) {
     require('newrelic');
   }
