@@ -21,6 +21,15 @@ function start() { // eslint-disable-line max-statements
   const conf = require('./config');
 
   if (conf.traceAPIKey) {
+    /*
+     * the TRACE_SERVICE_NAME env variable needs to be set for an app
+     * to integrate with Trace
+     */
+    if (!conf.traceServiceName) {
+      throw new Error('The TRACE_SERVICE_NAME environment variable needs ' +
+            'to be set for an app to integrate with Trace');
+    }
+
     require('@risingstack/trace');
   }
 
