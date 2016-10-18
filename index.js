@@ -20,16 +20,12 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
 function start() { // eslint-disable-line max-statements
   const conf = require('./config');
 
-  if (conf.traceAPIKey) {
-    /*
-     * the TRACE_SERVICE_NAME env variable needs to be set for an app
-     * to integrate with Trace
-     */
-    if (!conf.traceServiceName) {
-      throw new Error('The TRACE_SERVICE_NAME environment variable needs ' +
-            'to be set for an app to integrate with Trace');
-    }
-
+  /*
+   * The TRACE_API_KEY and TRACE_SERVICE_NAME env variable needs
+   * to be set for an app to integrate with Trace. So, require the trace module
+   * of if these conditions are met.
+   */
+  if (conf.traceAPIKey && conf.traceServiceName) {
     require('@risingstack/trace');
   }
 
