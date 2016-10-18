@@ -19,7 +19,7 @@
     "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "lint": "eslint view/admin",
     "view": "NODE_ENV=production gulp browserifyViews && npm start",
-    "start": "node --optimize_for_size --max_old_space_size=1500 --nouse-idle-notification index.js",
+    "start": "node --max_old_space_size=1500 --nouse-idle-notification index.js",
     "dropdb": "node db/createOrDropDb.js -d",
     "initdb": "node db/createOrDropDb.js -i",
     "resetdb": "node db/reset.js",
