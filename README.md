@@ -93,6 +93,10 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 
 If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
 
+## Using Trace (by RisingStack) for application performance monitoring
+- Here is the quick start guide by Trace to start monitoring the app. https://trace-docs.risingstack.com/docs/getting-started
+- To monitor the app deployed on heroku, follow the steps here. https://devcenter.heroku.com/articles/trace
+
 ## Configuring New Relic
 
 ### Local Deployment
