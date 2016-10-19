@@ -179,6 +179,7 @@ module.exports = function sample(seq, dataTypes) {
                 name: {
                   $iLike: toUpsert.name,
                 },
+                isDeleted: NO,
               },
             })
             .then((o) => {
