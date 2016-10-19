@@ -246,7 +246,7 @@ Upload the lens by completing the following steps.
 
 Your form-data (in key-value format) looks like the following:
 
-![Postman form-data](./lens_upload_screenshot.png)
+![Postman form-data](../assets/lens_upload_screenshot.png)
 
 *Almost there!*
 
