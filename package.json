@@ -20,6 +20,7 @@
     "lint": "eslint view/admin",
     "view": "NODE_ENV=production gulp browserifyViews && npm start",
     "start": "node --max_old_space_size=1500 --nouse-idle-notification index.js",
+    "start-clock": "node --max_old_space_size=1500 --nouse-idle-notification clock/index.js",
     "dropdb": "node db/createOrDropDb.js -d",
     "initdb": "node db/createOrDropDb.js -i",
     "resetdb": "node db/reset.js",
