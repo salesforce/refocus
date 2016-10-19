@@ -13,7 +13,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const constants = require('../constants');
-const config = require('../../config');
 const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
 const fourByteBase = 2;
 const fourByteExponent = 31;
@@ -201,7 +200,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
       },
     };
 
-    if (config.optimizeBulkUpsert && idsOnly) {
+    if (idsOnly) {
       subjectFinder.attributes = ['id'];
       aspectFinder.attributes = ['id'];
     }
