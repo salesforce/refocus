@@ -4,67 +4,109 @@ title: Quickstart
 ---
 
 
-# Refocus Quick Start Guide
+# Refocus 
+*Quick Start Guide*
 
-Refocus is a platform for visualizing the status of some set of subjects under monitoring. The platform does not attempt to provide visualizations to satisfy every type of user. Instead, it allows users to install add-on modules, which we call lenses, to provide new visualizations. Each lens provides a new visualization to help users understand their data in a new way.
-
-Table of Contents
-=================
-
-  * [Refocus Quick Start Guide](#refocus-quick-start-guide)
-    * [Why use Refocus?](#why-use-refocus)
-  * [Quick Start](#quick-start)
-    * [Step 1: Use the API to create your Subjects](#step-1-use-the-api-to-create-your-subjects)
-      * [Create a root Subject](#create-a-root-subject)
-      * [Create a child Subject](#create-a-child-subject)
-      * [Create another child Subject](#create-another-child-subject)
-    * [Step 2: Use the API to create your Aspects.](#step-2-use-the-api-to-create-your-aspects)
-    * [Step 3: Use the API to send some samples.](#step-3-use-the-api-to-send-some-samples)
-    * [Step 4: Install a lens](#step-4-install-a-lens)
-    * [Step 5: Create a perspective](#step-5-create-a-perspective)
-    * [Step 6: Refocus!](#step-6-refocus)
+  * [Why Use Refocus?](#why-use-refocus)
+  * [Refocus Terminology](#refocus-terminology)
+    * [Subject](#subject)
+    * [Aspect](#aspect)
+    * [Sample](#sample)
+    * [Lens](#lens)
+    * [Perspective](#perspective)
+  * [Refocus Interface](#refocus-interface)
+  * [Getting Started with Refocus](#getting-started-with-refocus)
+    * [Refocus API](#refocus-api)
+    * [Step 1: Use the API to create your subject.](#step-1-use-the-api-to-create-your-subject)
+      * [Create a Root Subject](#create-a-root-subject)
+      * [Create a Child Subject](#create-a-child-subject)
+      * [Create Another Child Subject](#create-another-child-subject)
+    * [Step 2: Use the API to create aspects.](#step-2-use-the-api-to-create-aspects)
+    * [Step 3: Use the API to send a sample.](#step-3-use-the-api-to-send-a-sample)
+    * [Step 4: Install a lens.](#step-4-install-a-lens)
+    * [Step 5: Create a perspective.](#step-5-create-a-perspective)
+    * [Step 6: Start using Refocus.](#step-6-start-using-refocus)
     * [Advanced Topics](#advanced-topics)
       * [Related Links](#related-links)
-      * [Coming Soon: Auth Tokens](#coming-soon-auth-tokens)
-      * [Create your own lens](#create-your-own-lens)
-  * [Thank You!](#thank-you)
-
 
 ## Why use Refocus?
 
-If you care about how your service is performing _right now_, use Refocus to:
-- connect disparate monitoring tools into a self-service, unified platform
-- visualize your service health beautifully and unambiguously
+Refocus is a visualization platform for the status and health of anything you want to monitor.
+If you care about how your service is performing *right now*, use Refocus to:
+- **Understand**  
+  Understand your data in new ways by gaining insight
+  
+- **Connect**  
+  Connect various monitoring tools together into one unified platform
+  
+- **Visualize**  
+  Visualize your system health in beautiful and unambiguous ways
 
-Before you go any further, now might be a good time to [get familiar with some of the terms we use in Refocus](./Glossary.md).
+## Refocus Terminology
+Let’s familiarize you with the terms we use in Refocus.
 
-_OK, enough chit chat, let's get started already!_
+### Subject
+  Anything that can be monitored. Yes, we mean anything! In Refocus, subjects are the center of our data model.
+  
+### Aspect
+  A characteristic of a subject. An aspect can be anything that is measurable, such as average page times, wait times for a train, and even the weather. Anything!
+  
+### Sample
+  The value of an aspect for a particular subject at a specified point in time. For example, a snapshot of subject status and health.
+  
+### Lens
+  A visualization of the underlying Refocus data. Each lens provides a unique layout to represent the subject, child subjects, and samples.  
+  
+  With the Lens Developer Kit (**coming soon**), you can create your own lens to meet your specific visualization needs. When you install your lens into Refocus, it will also be available to other users.
+  
+### Perspective
+  A filtered view of a subset of data using a selected lens. You can save a perspective and share it with other Refocus users.
+  
+## Refocus Interface
 
-# Quick Start
+Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.  
+- **MultiTable**  
+  A set of tables with the various subject components arranged like a menu board. You can view system status at a glance and expand the components for combos and sides.  
+  
+- **Branch**  
+  An expandable set of system components, organized by the hierarchy each lives in. Click a branch to explore the component neighborhood.  
+  
+- **Tree**  
+  An expandable display of system components, organized in a root, trunk, and branch hierarchy. Go out on a limb to view the status of individual components.  
+  
+You can develop your own lenses with the [lens developer kit](https://github.com/salesforce/refocus/blob/master/docs/QuickStart.md#create-your-own-lens) (LDK).
 
-There are two options to set up Refocus. Select the one that best meets your needs:
+## Getting Started with Refocus  
+You have two ways to deploy Refocus. Select the one that best meets your needs.
+
 - I want [one-click Heroku deployment](./QuickStartHeroku.md)
 - I want to [download and build and deploy locally](./QuickStartLocal.md)
 
-Ensure that your deployment, either on Heroku or locally, has both Redis and PostgreSQL running. Once deployed, create an account and sign in.
+Refocus requires that both Redis and PostgreSQL are running. After Refocus is deployed, create an account and sign in.
 
-_OK, I've got Refocus deployed and I'm signed in, now what?_
+*OK, I've got Refocus deployed, and I'm signed in. Now what?*  
 
-Think about how you want to structure your subject hierarchy. 
+Think about how you want to structure your visualization based on the Refocus hierarchy. The relationship between subjects, aspects, and samples looks like this:
 
-This guide uses the Refocus API extensively to show you how to get data into your custom Refocus deployment. You will want an API client to help you do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en). We've outlined the API endpoints and body for each step, but to simplify it even further you can use our [sample postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change the URL for each request to your own Refocus domain.
+![Subject Hierarchy](
 
-Got it? OK, let's get started.
+As you work with Refocus, you’ll understand how these parts work together to best visualize your data.
 
-## Step 1: Use the API to create your Subjects
+### Refocus API
 
-### Create a root Subject
+This guide uses the [Refocus API](https://refocus.internal.salesforce.com/v1/docs/) extensively to show you how to get data into your custom deployment. You use an API client to do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
 
-> Remember that a subject represents a system under monitoring within the hiearchy.
+We’ve outlined the API endpoints and body for each step. But to simplify it even further, you can use our [sample Postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change each request’s URL to your own Refocus domain.
 
-Using your favorite API client , send a POST request to `/v1/subjects`
+*Got it? OK, let's get started.*
 
-In the body of the request, use the following:
+## Step 1: Use the API to create your subject.
+
+### Create a Root Subject
+
+Remember that a subject represents anything that you’re monitoring.  
+
+Using your favorite API client , send a POST request to `/v1/subjects`. In the body of the request, use the following:
 
 ```json
 {
@@ -73,12 +115,12 @@ In the body of the request, use the following:
 }
 ```
 
-The `isPublished` attribute enables a subject and allows us to create its child.
+The `isPublished` attribute enables a subject and allows you to create its child.
 
 ### Create a Child Subject
 
-Since we've already created a root Subject ("USA"), we can create its child with a POST to ```/v1/subjects/USA/child```.
-This time, use the following body:
+Because we’ve already created a root subject (USA), we can create its child with a POST to `/v1/subjects/USA/child` using the following body:
+
 
 ```json
 {
@@ -87,32 +129,32 @@ This time, use the following body:
 }
 ```
 
-Refocus uses dot notation to refer to the path between the parent subject to the child subject. You'll notice in the response that the ```absolutePath``` to this new child is "USA.California."
+Refocus uses dot notation to refer to the path between the parent subject and the child subject. You’ll notice in the response that the absolute path to the new child is `USA.California`.
 
-### Create another child Subject
+### Create Another Child Subject
 
-Let's create one final child subject: San Francisco. This time, POST to ```/v1/subjects/USA.California/child``` (getting the hang of dot notation?)
+Let’s create another child subject: San Francisco. This time, POST to `/v1/subjects/USA.California/child` (getting the hang of dot notation?) using the following body:
 
-Use the following body:
 ```json
 {
   "name": "San_Francisco",
   "isPublished": true
 }
 ```
-To make the dot notation paradigm absolutely clear, the absolute path would be "USA.California.San_Francisco.Financial_District" if we were to create a child of San Francisco, such as Financial District. We'll leave this exercise to you for further practice.
+To make the dot notation paradigm absolutely clear: If we created a child of San Francisco, such as Financial District the absolute path would be `USA.California.San_Francisco.Financial_District`. We’ll leave this exercise for your further practice.
 
-Great job! We've created a small subject hierarchy with ```USA``` as the root subject.
+*Great job! We've created a small subject hierarchy with USA as the root subject.*
 
-Lets create our aspects now.
+Let’s create our aspects now.
 
-## Step 2: Use the API to create your Aspects.
-> An aspect is a particular characteristic of the subject that we want to monitor.
+## Step 2: Use the API to create aspects.
 
-For the purposes of this guide, we may want to monitor the unemployment rate and daily Gross Domestic Product (GDP) across the USA. Lets create the unemployment rate aspect first.
+An aspect is a characteristic of the monitored subject.
 
-POST to ```/v1/aspects```.
-Use the following body:
+So we want to monitor the unemployment rate and daily Gross Domestic Product (GDP) across the United States. Let's create the unemployment rate aspect first.
+
+POST to `/v1/aspects using the following body`:
+
 ```json
 {
   "isPublished": true,
@@ -125,11 +167,12 @@ Use the following body:
   "valueType": "PERCENT"
 }
 ```
-The different ranges in the body of this request allow you to customize the thresholds for the aspect. When Refocus is determining which status to set for a particular sample of data, it does a linear scan through these ranges. This is why although the ```criticalRange``` lower bound is 21, the upper bound for ```warningRange``` is 21. This will ensure that Refocus is able to determine a status for 20.35, for example, which will be classified as a warning. In addition, the values are in terms of percent, which we've indicated in the ```valueType``` field. Depending on your needs, you can choose from one of the three possible aspect types: ```BOOLEAN```, ```NUMERIC```, or ```PERCENT```. 
+The different ranges in the body of this request allow you to customize the thresholds for the aspect. When Refocus is determining which status to set for a particular sample of data, it does a linear scan through these ranges. This is why the `criticalRange` lower bound is 21 and the upper bound for `warningRange` is also 21. These bounds ensure that Refocus is able to determine a status for 20.35, for example, which is in the warning range but not yet a critical value.
 
-Similarly, create the daily GDP aspect:
+In our example, we’ve set the `valueType` field to express a percentage, but you also have the option to specify a Boolean or numeric value. Using a similar approach, you can create the daily GDP aspect.
 
-POST to ```/v1/aspects``` using the following body:
+POST to `/v1/aspects` using the following body:
+
 ```json
 {
   "isPublished": true,
@@ -145,23 +188,24 @@ POST to ```/v1/aspects``` using the following body:
   "valueType": "NUMERIC"
 }
 ```
-The ```timeout``` field refers to the acceptable lapse in time between an update. It's customizable to various units of time. For instance, 2s sets the timeout to 2 second. Likewise, 5m refers to 5 minutes, and 1d refers to 1 day. If an aspect doesn't receive sample data within this timeout period, it will be marked as a timeout.
+The `timeout` field refers to the acceptable lapse in time between an update. You can customize it for various units of time. For instance, `2s` sets the timeout to 2 seconds. Likewise, `5m` refers to 5 minutes, and `1d` refers to 1 day. A sample is assigned a timeout status if no new data is received within this time period.
 
-Another interesting attribute to note is ```tags```. Tags are useful because they can help categorize your aspects. In this case, we've included the tag ```economic``` for our GDP aspect.
+Another interesting attribute to note is `tags`. Tags are useful because they can help categorize your aspects. In this case, we’ve included the tag “economic” for our GDP aspect.
 
-Nice job! We've set up our subject hierarchy and the aspects we will be monitoring. 
+*Nice job! We've set up the subject hierarchy and monitored aspects.*
 
-### Step 3: Use the API to send some samples.
-> A sample is a value for an aspect on a subject at a particular point of time.
+### Step 3: Use the API to send a sample.
 
-Lets send some data to our aspects. We can push data to our aspects individually or through a bulk upsert. Since we have multiple values that we want to upload, it's far more convenient to use the bulk upsert API endpoint. 
+A sample is the value of an aspect for a particular subject at a specified point in time.
 
-Following up on the dot notation when referring to parents and its children, we use a pipe when referring to a particular aspect. For instance, if we wanted to upload a data sample for California's GDP, our path would be ```USA.California|gdp```. Also note that the path is the **absolute path**, "USA.California", not just "California."
+Let’s send some data to our aspects. We can push data to aspects individually or through a bulk upsert. Because we have multiple values to upload, it’s more convenient and less resource-intensive (therefore better for overall system health and performance) to use the bulk upsert API endpoint.
 
+Following up on the dot notation when referring to root and child subjects, we use a pipe when referring to a particular aspect. For instance, to upload a data sample for California’s GDP, the path is `USA.California|gdp`. The path is the absolute path, `USA.California`, not just `California`.
 
-With this in mind, lets do a bulk upsert and upload all of our data samples in one POST request.
+Let's do a bulk upsert, and upload all our data samples in one POST request.
 
-POST to ```v1/samples/upsert/bulk``` using the following body:
+POST to `v1/samples/upsert/bulk` using the following body:
+
 ```json
 [
   {
@@ -178,42 +222,40 @@ POST to ```v1/samples/upsert/bulk``` using the following body:
   }
 ]
 ```
-California's daily GDP looks A-OK! Remember to keep pushing new samples within the timeout period, otherwise it will default to timeout. Another thing to note are ```messageCode``` and ```messageBody```. These are optional body attributes that can  be particularly useful when incoming data samples are in critical status. This metadata can help the Refocus user better understand the critical status and potentially resolve it faster.
+California's daily GDP looks A-OK! Remember to keep pushing new samples within the timeout period; otherwise, it defaults to a timeout. Another thing to note is the `messageCode` and `messageBody` attributes. They are optional body attributes that are particularly useful when incoming samples are not OK. Populate these attributes to help your users better understand the context around the current status and potentially resolve it faster.
 
-To confirm your hiearchical data, you can always make a ```GET``` to ```/v1/subjects/USA/hierarchy```. 
+To confirm that you have set up your hierarchical data correctly, you can always make a GET to `/v1/subjects/USA/hierarchy`.
 
-_Are we done yet?_ 
+*Are we done yet?*
 
-Almost, but not quite. We need to set up our lens and perspectives to visualize this data we've pushed.
+Almost, but not quite. We need to set up our lens and perspectives to visualize the data we’ve pushed.
 
-## Step 4: Install a lens
-> Different lens enable you to focus on different things, so it's important to completely understand what you want to truly focus on.
+## Step 4: Install a lens.
 
-For now, the process of installing a pre-built lens is only available via the API. However, the UI is coming soon, we promise! 
+Different lenses enable you to focus on different things, so it’s important to completely understand what you want to focus on. For now, the process of installing a lens is available only by using the API. However, the UI is coming soon, we promise!
 
-At this step, you'll need to select the lens best suited for your use. For the purpose of this guide, we'll use the Multi-Table lens. Pre-built lens are usually zip archives. To get the Multi-Table lens, do a ```git clone``` of [this repository](https://git.soma.salesforce.com/igoldstein/refocus-lens-multitable). The lens zip archive is under the dist folder.
+At this step, you need to select the lens best suited for your use. We’re going to  use the MultiTable lens. A lens is deployed as a zip file. To get the MultiTable lens, git clone [this repository](https://github.com/salesforce/refocus). The lens zip archive is under the dist folder.
 
-Although this is a pre-built lens, you can develop your own custom lens for your needs with the lens developer kit (LDK). See more info about it [here](#create-your-own-lens).
+Upload the MultiTable lens that you downloaded earlier to your Refocus deployment. Ensure that headers in Postman are disabled. Do a new POST request with the endpoint set to `/v1/lenses`.
 
-Lets upload the Multi-Table lens we downloaded earlier to your Refocus. First, ensure that any headers are disabled in Postman. Do a new POST request with the endpoint set to ```/v1/lenses```. Afterwards, upload the lens by doing the following:
+Upload the lens by completing the following steps.
+ 1. Under **Body > form-data**, set the key to **library**.
+ 2. Change the value field to **File**.
+ 3. Click **Choose Files**, and select the MultiTable lens zip file that you downloaded earlier.
+ 4. Add an isPublished key and set the value to **true**. 
 
-1. Under body > form-data, set the key to ```library```. 
-2. Change the value field from text to file
-3. Click "Choose Files" and select the multi-table lens zip that you downloaded earlier
-4. Add another key, ```isPublished```, and set the value to ```true```
-
-Your form-data (in key-value format) should look like the following: 
+Your form-data (in key-value format) looks like the following:
 
 ![Postman form-data](./lens_upload_screenshot.png)
 
-Almost there!
+*Almost there!*
 
-## Step 5: Create a perspective
-> API only for now, UI coming soon.
+## Step 5: Create a perspective.
 
-A perspective is a combination of filters and lenses. Create a basic perspective with a POST to ```/v1/perspectives```.
+A perspective is a display of subject and sample data using a selected lens. Right now, you can only create and modify perspectives using the API, but the UI is coming soon.
 
-Use the following body:
+Create a basic perspective with a POST to `/v1/perspectives` using the following body:
+
 ```json
 {
     "name": "test-perspective",
@@ -222,18 +264,20 @@ Use the following body:
 }
 ```
 
-Congrats, we've created our perspective and are ready to visualize the health of the USA!
-## Step 6: Refocus!
+*Congrats, you’ve created a perspective and are ready to visualize the health of the USA!*
 
-Navigate back to the Refocus you deployed and signed into before we began this guide. You should now see "test-perspective" we created in the previous step now under the perspectives list in your Refocus. Click on it to begin your visualization!
+## Step 6: Start using Refocus.
+
+Navigate back to your Refocus deployment and log in again. You should now see the `test-perspective` we created in the previous step under the Perspectives list. Click it to begin your visualization!
 
 ## Advanced Topics
 
 ### Related Links
 
-On both subjects and aspects, you can include an optional attribute, ```relatedLinks```, as a part of the request body. It's an array of objects, each with at least a name and URL. This will add the links to the subject/aspect detail modal in Refocus, enabling you to quickly accesss them as needed. The following example creates a new subject, California, under USA with a direct link to the official state website.
+For both subjects and aspects, you can include the optional attribute `relatedLinks` as a part of the request body. This attribute is an array of linked objects with each having a name and a URL. For quick access, lenses can display these related links when a user clicks or hovers over a subject or sample. The following example creates a new subject, `California`, under `USA`, with a direct link to the official state website.
 
-POST to ```v1/subjects/USA/child``` to create a 
+POST to `v1/subjects/USA/child` using the following body:
+
 ```json
 {
     "name" :"California",
@@ -243,15 +287,4 @@ POST to ```v1/subjects/USA/child``` to create a
     ]
 }
 ```
-### Coming Soon: Auth Tokens
-
-Refocus will soon also allow you to use auth tokens to add an additional layer of security on the platform. Stay tuned!
-
-### Create your own lens
-//TODO point at ldk
-
-# Thank You!
-Congrats on the deployment of your Refocus! If you have any questions or feedback, please reach out to us.
-
-
 :sparkles:*Built with love by the Site Reliability Tools team @ Salesforce.*:sparkles:
