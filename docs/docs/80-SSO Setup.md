@@ -1,3 +1,8 @@
+---
+layout: docs
+title: SSO Setup
+---
+
 # SSO Setup with OKTA
 
 This page will guide you through the Single Sign On Setup of refocus
