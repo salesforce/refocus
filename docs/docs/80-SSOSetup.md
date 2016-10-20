@@ -1,3 +1,8 @@
+---
+layout: docs
+title: SSO Setup
+---
+
 # SSO Setup with OKTA
 
 This page will guide you through the Single Sign On Setup of refocus
@@ -11,16 +16,16 @@ If you are an experienced OKTA administrator you can skip to
 
 Create your new application in the Admin->Applications section of OKTA:
 
-![CreateNewApp](https://cloud.githubusercontent.com/assets/20688432/19559807/75e9e844-9686-11e6-8a49-669f634f1451.png)
+![CreateNewApp](../assets/CreateNewApp.png)
 
 Set your sign on method to "SAML 2.0":
-![Set Sign On Method](https://cloud.githubusercontent.com/assets/20688432/19559829/890bd1d0-9686-11e6-9223-875409c2ab37.png)
+![Set Sign On Method](../assets/SetSignOnMethod.png)
 
 Add your application name, this is only used for display within OKTA so
 can be anything you wish. Upload a logo if you want as well, maximum
 size is (1400x900)
 
-![SAppName](https://cloud.githubusercontent.com/assets/20688432/19560173/33619f88-9688-11e6-8667-1bc152185759.png)
+![SAppName](../assets/SAppName.png)
 
 ### Refocus Specific Configuration 
 
@@ -45,25 +50,25 @@ be:
 | email     | Unspecified | ${user.email}     |
 
 
-![Refocus Specific Configuration](https://cloud.githubusercontent.com/assets/20688432/19560168/27f79422-9688-11e6-9b97-b07dd1990828.png)
+![Refocus Specific Configuration](../assets/RefocusSpecificConfiguration.png)
 
 ## Configure refocus
 
 Still in OKTA click on "View Setup Instructions":
 
-![View Setup Instructions](https://cloud.githubusercontent.com/assets/20688432/19560117/018335ee-9688-11e6-920e-c5d97134397f.png)
+![View Setup Instructions](../assets/ViewSetupInstructions.png)
 
 You will see these two links, which need to be added to refocus via a
 POST request to <refocus-FQDN>:3000/v1/ssoconfig>
 
-![OKTA URLs](https://cloud.githubusercontent.com/assets/20688432/19560091/e74370ea-9687-11e6-989f-ba9fedee910a.png)
+![OKTA URLs](../assets/OKTAURLs.png)
 
 To do the post,
 [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en)
 is recommended, but any interactive API program is fine. Your postman
 POST will look like this:
 
-![PostmanPut](https://cloud.githubusercontent.com/assets/20688432/19563513/18318b9e-9695-11e6-934b-b2e86489f6b1.png)
+![PostmanPut](../assets/PostmanPut.png)
 
 ## Test your configuration
 
