@@ -55,7 +55,6 @@ class PerspectiveController extends React.Component {
 
   render() {
     const { values, stateObject } = this.props;
-    console.log('values', values)
     let persNames = [];
     if (values && values.perspectives) {
       persNames = values.perspectives.map((persObject) => {
