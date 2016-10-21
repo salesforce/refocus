@@ -9,9 +9,41 @@
 /**
  * view/perspective/app.js
  *
- * Loads required data for named and unnamed perspectives.
+ * When this page is loaded, we call "getPerspectiveNames" to load all the
+ * perspective names to populate the dropdown.
+ * If there are no perspectives, we just render the perspective overlay over an
+ * empty page.
+ * If there are perspectives, we call "whichPerspective" to figure out which
+ * perspective to load.
+ * If it's not in the URL path, either use the DEFAULT_PERSPECTIVE from global
+ * config OR the first perspective from the list of perspective names
+ * (alphabetical order), and redirect to the URL using *that* perspective name.
+ * Once we can identify the perspective in the URL path, we call
+ * "getPerspective" to load the specified perspective. When we get the
+ * perspective back from the server, we perform all of this async work in
+ * parallel:
+ * (1) call "setupSocketIOClient" to initialize the socket.io client
+ * (2) call "getHierarchy" to request the hierarchy
+ * (3) call "getLensPromise" to request the lens library
+ * (4) call "loadPerspective" to start rendering the perspective-picker
+ *     component
+ * (5) call "loadExtraStuffForCreatePerspective" to start loading all the extra
+ *     data we'll need for the "CreatePerspective" component
+ *
+ * If config var "eventThrottleMillis" > 0, we start a timer to flush the
+ * realtime event queue on that defined interval.
+ *
+ * Whenever we get the response back with the lens, we dispatch the lens.load
+ * event to the lens.
+ *
+ * Whenever we get the response back with the hierarchy, we dispatch the
+ * lens.hierarchyLoad event to the lens. (If we happen to get the hierarchy
+ * back *before* the lens, hold onto it, wait for the lens, *then* dispatch the
+ * lens.hierarchyLoad event *after* the lens.load event.)
+ *
+ * Whenever we get all the extra data we need for "CreatePerspective", we
+ * re-render the perspective-picker component.
  */
-
 import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -260,7 +292,7 @@ function getPromiseWithUrl(name, url, callback) {
  * @param {String} filterString Any filters
  * @returns {Promise} which resolves once we receive the hierarchy
  */
-function getSubjectPromise(rootSubject, filterString) {
+function getHierarchy(rootSubject, filterString) {
   const apiPath = `/v1/subjects/${rootSubject}/hierarchy` +
     (filterString || '');
   return getPromiseWithUrl('rootSubject', apiPath, (res) => {
@@ -277,7 +309,7 @@ function getSubjectPromise(rootSubject, filterString) {
       LENS_DIV.dispatchEvent(hierarchyLoadEvent);
     }
   });
-}
+} // getHierarchy
 
 /**
  * @param {String} lensNameOrId
@@ -338,8 +370,7 @@ function getAllParams() {
   }
 
   return responseObject;
-}
-
+} // getAllParams
 
 /**
  * Returns array of objects with tags
@@ -411,7 +442,7 @@ function loadExtraStuffForCreatePerspective(perspective, params, promisesArr,
       // absolutePath
       const rootSubject = getPublishedObjectsbyField(val.res, 'absolutePath')
         .sort()[ZERO];
-      return getSubjectPromise(rootSubject);
+      return getHierarchy(rootSubject);
     });
   } else {
     subjectPromise = getAllSubjectsPromise;
@@ -467,7 +498,7 @@ function handleUnnamedPerspective() {
 
   // if no loadObj.rootSubject, rootSubject is the first subject in GET subject
   if (rootSubject) {
-    promisesArr.push(getSubjectPromise(rootSubject));
+    promisesArr.push(getHierarchy(rootSubject));
   } else if (!rootSubject) { // no queryParam.rootSubject: need to pass it to loadPerspective
     getRoot = true;
   }
@@ -494,7 +525,7 @@ function getPerspective(perspNameOrId) {
   .then((val) => {
     setupSocketIOClient(val.res);
     const { lensId, name, rootSubject } = val.res;
-    getSubjectPromise(rootSubject, getFilterQuery(val.res));
+    getHierarchy(rootSubject, getFilterQuery(val.res));
     getLensPromise(lensId);
     const p = { name, rootSubject, lensId };
     const params = getAllParams();
