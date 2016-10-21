@@ -38,3 +38,6 @@ public/*
 
 # Remove Redis dump
 dump.rdb
+
+# Remove codecoverage directory
+.coverage

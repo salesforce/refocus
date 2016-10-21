@@ -35,7 +35,7 @@
     "test-db": "npm run resetdb && mocha -R dot --recursive tests/db",
     "test-realtime": "mocha -R dot --recursive tests/realtime",
     "test-view": "NODE_ENV=test mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
-    "test": "npm run test-db && npm run test-api && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp",
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/db && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp",
     "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
     "prestart": "npm run checkprivatedb"
   },
@@ -130,9 +130,12 @@
     "winston": "^1.1.2"
   },
   "devDependencies": {
+    "coveralls": "^2.11.14",
     "eslint": "^2.5.3",
     "eslint-plugin-react": "^4.2.3",
     "eslint_d": "^3.1.0",
+    "istanbul": "^0.4.5",
+    "mocha-lcov-reporter": "1.2.0",
     "redbox-react": "^1.2.0",
     "webpack-dev-middleware": "^1.4.0",
     "webpack-dev-server": "^1.12.1"
