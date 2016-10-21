@@ -53,6 +53,9 @@ const optimizeUpsert = pe.OPTIMIZE_UPSERT === 'true' ||
 // env variable to enable caching for /GET /v1/perspectives/{key}
 const enableCachePerspective = pe.ENABLE_CACHE_PERSPECTIVE || false;
 
+const filterSubjByTags = pe.FILTER_SUBJ_BY_TAGS === 'true' ||
+ pe.FILTER_SUBJ_BY_TAGS === true || false;
+
 module.exports = {
 
   api: {
@@ -247,4 +250,5 @@ module.exports = {
   optimizeUpsert,
   enableCachePerspective,
   enableClockDyno,
+  filterSubjByTags,
 };

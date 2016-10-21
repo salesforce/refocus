@@ -14,6 +14,7 @@
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
+const filterSubjByTags = require('../../../../config').filterSubjByTags;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -52,10 +53,17 @@ function toSequelizeWildcards(val) {
  *  case-insensitive string matching
  *
  * @param {String} val - The value to transform into a Sequelize where clause
+ * @param {Object} props - The helpers/nouns module for the given DB model.
  * @returns {Object} a Sequelize where clause using "$ilike" for
  *  case-insensitive string matching
  */
-function toWhereClause(val) {
+function toWhereClause(val, props) {
+  if (filterSubjByTags && Array.isArray(val) && props.tagFilterName) {
+    const containsClause = {};
+    containsClause[constants.SEQ_CONTAINS] = val;
+    return containsClause;
+  }
+
   // TODO handle non-string data types like dates and numbers
   if (typeof val !== 'string') {
     return val;
@@ -72,9 +80,10 @@ function toWhereClause(val) {
  * a Sequelize "where" object.
  *
  * @param {Object} filter
+ * @param {Object} props - The helpers/nouns module for the given DB model.
  * @returns {Object} a Sequelize "where" object
  */
-function toSequelizeWhere(filter) {
+function toSequelizeWhere(filter, props) {
   const where = {};
   const keys = Object.keys(filter);
   for (let i = 0; i < keys.length; i++) {
@@ -85,23 +94,34 @@ function toSequelizeWhere(filter) {
       }
 
       const values = [];
-      for (let j = 0; j < filter[key].length; j++) {
-        const v = filter[key][j];
-        if (typeof v === 'boolean') {
-          values.push(v);
-        } else if (typeof v === 'string') {
-          const arr = v.split(constants.COMMA);
-          for (let k = 0; k < arr.length; k++) {
-            values.push(toWhereClause(arr[k]));
+
+      // if tag filter is enabled and key is "tags", then create a contains
+      // clause and add it to where clause,
+      // like,  { where : { '$contains': ['tag1', 'tag2'] } }
+      if (filterSubjByTags && props.tagFilterName &&
+       key === props.tagFilterName) {
+        const tagArr = filter[key];
+        values.push(toWhereClause(tagArr, props));
+        where[key] = values[0];
+      } else {
+        for (let j = 0; j < filter[key].length; j++) {
+          const v = filter[key][j];
+          if (typeof v === 'boolean') {
+            values.push(v);
+          } else if (typeof v === 'string') {
+            const arr = v.split(constants.COMMA);
+            for (let k = 0; k < arr.length; k++) {
+              values.push(toWhereClause(arr[k]));
+            }
           }
         }
-      }
 
-      if (values.length === 1) {
-        where[key] = values[0];
-      } else if (values.length > 1) {
-        where[key] = {};
-        where[key][constants.SEQ_OR] = values;
+        if (values.length === 1) {
+          where[key] = values[0];
+        } else if (values.length > 1) {
+          where[key] = {};
+          where[key][constants.SEQ_OR] = values;
+        }
       }
     }
   }
@@ -172,7 +192,7 @@ function options(params, props) {
   }
 
   if (filter) {
-    opts.where = toSequelizeWhere(filter);
+    opts.where = toSequelizeWhere(filter, props);
   }
 
   return opts;
