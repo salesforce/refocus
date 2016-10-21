@@ -9,7 +9,9 @@
 /**
  * ./index.js
  *
- * Main module to start the express server.
+ * Main module to start the express server(web process). To just start the
+ * web process use "node index.js". To start both the web and the clock process
+ * use "heroku local"
  */
 const throng = require('throng');
 const WORKERS = process.env.WEB_CONCURRENCY || 1;
@@ -19,6 +21,16 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
  */
 function start() { // eslint-disable-line max-statements
   const conf = require('./config');
+
+  /*
+   * The TRACE_API_KEY and TRACE_SERVICE_NAME env variable needs
+   * to be set for an app to integrate with Trace. So, require the trace module
+   * of if these conditions are met.
+   */
+  if (conf.traceAPIKey && conf.traceServiceName) {
+    require('@risingstack/trace');
+  }
+
   if (conf.newRelicKey) {
     require('newrelic');
   }
@@ -61,7 +73,6 @@ function start() { // eslint-disable-line max-statements
   const jwtUtil = require('./api/v1/helpers/jwtUtil');
 
   // set up httpServer params
-  const dbSample = require('./db/index').Sample;
   const listening = 'Listening on port';
   const isDevelopment = (process.env.NODE_ENV === 'development');
   const PORT = process.env.PORT || conf.port;
@@ -94,15 +105,19 @@ function start() { // eslint-disable-line max-statements
 
     app.listen(PORT, () => {
       console.log(listening, PORT); // eslint-disable-line no-console
-      setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
     });
   } else {
     httpServer.listen(PORT, () => {
       console.log(listening, PORT); // eslint-disable-line no-console
-      setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
     });
   }
 
+  // if the clock dyno is not enabled run the Sample timeout query here.
+  if (!conf.enableClockDyno) {
+    // require the sample model only if we want to run the timeout query here
+    const dbSample = require('./db/index').Sample;
+    setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
+  }
   // View engine setup
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');

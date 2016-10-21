@@ -179,6 +179,7 @@ module.exports = function sample(seq, dataTypes) {
                 name: {
                   $iLike: toUpsert.name,
                 },
+                isDeleted: NO,
               },
             })
             .then((o) => {
@@ -187,7 +188,8 @@ module.exports = function sample(seq, dataTypes) {
               //  aspect to check if the sample name is valid.
               if (o === null) {
                 sampleExists = false;
-                return u.getSubjectAndAspectBySampleName(seq, toUpsert.name);
+                return u.getSubjectAndAspectBySampleName(seq, toUpsert.name,
+                  isBulk);
               }
 
               // Else, if sample exists, update the sample.
@@ -217,7 +219,7 @@ module.exports = function sample(seq, dataTypes) {
         } else {
           let subjasp;
           return new seq.Promise((resolve, reject) => {
-            u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
+            u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)
             .then((sa) => {
               subjasp = sa;
               toUpsert.subjectId = sa.subject.id;

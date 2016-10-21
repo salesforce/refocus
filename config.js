@@ -22,6 +22,8 @@ const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
 const disableHttp = pe.DISABLE_HTTP || false;
 const newRelicKey = pe.NEW_RELIC_LICENSE_KEY || '';
+const traceAPIKey = pe.TRACE_API_KEY || '';
+const traceServiceName = pe.TRACE_SERVICE_NAME || '';
 const payloadLimit = pe.payloadLimit || defaultPayloadLimit;
 const pgdatabase = pe.PGDATABASE || 'focusdb';
 const pguser = pe.PGUSER || 'postgres';
@@ -37,6 +39,8 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 
 // Check for timed-out samples every 30 seconds if not specified in env var
 const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
+const enableClockDyno = pe.HEROKU_CLOCK_DYNO === 'true' ||
+                            pe.HEROKU_CLOCK_DYNO === true || false;
 
 // audit level values can be one of these: API, DB, ALL, NONE
 const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
@@ -234,11 +238,13 @@ module.exports = {
   nodeEnv,
   port,
   payloadLimit,
+  traceAPIKey,
+  traceServiceName,
   newRelicKey,
   auditSubjects,
   auditSamples,
   auditAspects,
   optimizeUpsert,
   enableCachePerspective,
-
+  enableClockDyno,
 };

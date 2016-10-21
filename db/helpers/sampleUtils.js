@@ -174,24 +174,40 @@ function parseName(name) {
  * @param {String} sampleName - The sample name, which is a concatenation of
  *  the subject absolute path, constants.sampleNameSeparator and the aspect
  *  name
+ * @param {Boolean} idsOnly - indicate whether to return the default scoped
+ *  attributes for subject and aspect or just the id
  * @returns {Promise} which resolves to an object containing the sample and
  *  aspect, or rejects if either sample or aspect is not found
  * @throws {ResourceNotFoundError} if the sampleName cannot be split into its
  *  subject/aspect parts or if either the subject absolute path or aspect name
  *  cannot be found
  */
-function getSubjectAndAspectBySampleName(seq, sampleName) {
+function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
   try {
     const parsedName = parseName(sampleName);
+    const subjectFinder = {
+      where: {
+        absolutePath: {
+          $iLike: parsedName.subject.absolutePath,
+        },
+      },
+    };
+    const aspectFinder = {
+      where: {
+        name: {
+          $iLike: parsedName.aspect.name,
+        },
+      },
+    };
+
+    if (idsOnly) {
+      subjectFinder.attributes = ['id'];
+      aspectFinder.attributes = ['id'];
+    }
+
     const retval = {};
     return new seq.Promise((resolve, reject) =>
-      seq.models.Subject.findOne({
-        where: {
-          absolutePath: {
-            $iLike: parsedName.subject.absolutePath,
-          },
-        },
-      })
+      seq.models.Subject.findOne(subjectFinder)
       .then((s) => {
         if (s) {
           retval.subject = s;
@@ -202,13 +218,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName) {
           throw err;
         }
       })
-      .then(() => seq.models.Aspect.findOne({
-        where: {
-          name: {
-            $iLike: parsedName.aspect.name,
-          },
-        },
-      }))
+      .then(() => seq.models.Aspect.findOne(aspectFinder))
       .then((a) => {
         if (a) {
           retval.aspect = a;

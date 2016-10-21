@@ -50,6 +50,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 1. Run `npm run initdb` to create the refocus postgres database.
 1. Run `npm run resetdb` to run all the DDL to create the database tables and columns and indexes and stuff.
 1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
+1. If you want to unload some of the processing to a background process run `npm run start-clock`. If you intend to deploy this on heroku and have heroku toolbelt installed run `heroku local` to start both the web and the background process.
 
 ### Updates
 Whenever you pull down a new version of Refocus from the git repository:
@@ -92,6 +93,10 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
 
 If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
+
+## Using Trace (by RisingStack) for application performance monitoring
+- Here is the quick start guide by Trace to start monitoring the app. https://trace-docs.risingstack.com/docs/getting-started
+- To monitor the app deployed on heroku, follow the steps here. https://devcenter.heroku.com/articles/trace
 
 ## Configuring New Relic
 
