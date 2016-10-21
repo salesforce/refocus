@@ -27,7 +27,8 @@ const ONE = 1;
 
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
-
+const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
+  .includes('protocol=websocket');
 const REQ_HEADERS = {
   Authorization: u.getCookie('Authorization'),
   'X-Requested-With': 'XMLHttpRequest',
@@ -101,8 +102,16 @@ function setupSocketIOClient(persBody) {
    *  perspective.pug
    */
   const options = {};
-  const clientProtocol = transProtocol; 
-  if (clientProtocol !== 'undefined') {
+  const clientProtocol = transProtocol;
+  if (clientProtocol) {
+    /*
+     * options is used here to set the transport type. For example to only use
+     * websockets as the transport protocol the options object will be
+     * { transports: ['websocket'] }. The regex is used to trim the white spaces
+     * and since clientProtocol is a string of comma seperated values,
+     * the split function is used to split them out by comma and convert
+     * it to an array.
+     */
     options.transports = clientProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
 
@@ -110,7 +119,13 @@ function setupSocketIOClient(persBody) {
    * Note: The "io" variable is defined by the "/socket.io.js" script included
    * in perspective.pug.
    */
-  const socket = io(namespace, options);
+  let socket;
+  if (WEBSOCKET_ONLY) {
+    socket = io(namespace, { transports: ['websocket'] });
+  } else {
+    socket = io(namespace, options);
+  }
+  
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
   });
