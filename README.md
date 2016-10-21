@@ -91,7 +91,7 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 - Run ```git push heroku <your branch>:master``` which will push to Heroku and start up a dyno.
 - Run ```heroku open``` and view the app running in Heroku
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
-
+- If you are running the app in more than one dyno, you will need to force the client to communicate with the server only using websockets. To do so, set the config variable SOCKETIO_TRANSPORT_PROTOCOL to websocket or run ```heroku config:set SOCKETIO_TRANSPORT_PROTOCOL=websocket```
 If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
 
 ## Using Trace (by RisingStack) for application performance monitoring
