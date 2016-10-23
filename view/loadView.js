@@ -36,6 +36,8 @@ const viewmap = {
   '/samples/:key/edit': 'admin',
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
+  '/perspectivesBeta': 'perspectiveBeta/perspective',
+  '/perspectivesBeta/:key': 'perspectiveBeta/perspective',
 };
 
 /**
@@ -131,7 +133,9 @@ module.exports = function loadView(app, passport) {
         // if url contains a query, render perspective detail page with realtime
         // updates
         if ((key === '/perspectives' && Object.keys(req.query).length) ||
-        key === '/perspectives/:key') {
+        key === '/perspectives/:key' ||
+        (key === '/perspectivesBeta' && Object.keys(req.query).length) ||
+        key === '/perspectivesBeta/:key') {
           res.render(viewmap[key], templateVars);
         } else {
           res.render(viewmap[key], trackObj);
