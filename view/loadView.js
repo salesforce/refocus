@@ -121,6 +121,7 @@ module.exports = function loadView(app, passport) {
           trackingId: viewConfig.trackingId,
           user: req.user,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+          transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
         const templateVars = Object.assign(
