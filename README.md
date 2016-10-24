@@ -1,11 +1,14 @@
-[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus) [![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
+[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) 
+[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master) 
+[![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus)
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
+
 # Refocus
 
 > ## Get started now with our [QuickStart](docs/QuickStart.md) guide!
 
-Refocus is a platform for visualizing the health and status of systems and/or services under observation. It is *not* a monitoring or alerting tool.
-
-*TODO: We need to flesh out this description to include why you would want to use it, why you would want to integrate it with your existing monitoring tools, etc.*
+Refocus is a platform for visualizing the health and status of systems and/or services under observation. Check out our [home page](https://salesforce.github.io/refocus) and our [docs](https://salesforce.github.io/refocus/docs/00-welcome).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -91,20 +94,8 @@ After installing the server, you can run ```redis-cli``` to issue commands to re
 - Run ```git push heroku <your branch>:master``` which will push to Heroku and start up a dyno.
 - Run ```heroku open``` and view the app running in Heroku
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
-
+- If you are running the app in more than one dyno, you will need to force the client to communicate with the server only using websockets. To do so, set the config variable SOCKETIO_TRANSPORT_PROTOCOL to websocket or run ```heroku config:set SOCKETIO_TRANSPORT_PROTOCOL=websocket```
 If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
-
-## Using Trace (by RisingStack) for application performance monitoring
-- Here is the quick start guide by Trace to start monitoring the app. https://trace-docs.risingstack.com/docs/getting-started
-- To monitor the app deployed on heroku, follow the steps here. https://devcenter.heroku.com/articles/trace
-
-## Configuring New Relic
-
-### Local Deployment
-Add your New Relic license key to an attribute called ```newRelicKey``` in  ```config.js```
-
-### Heroku Deployment
-Install the New Relic add-on--it will automatically set the license key in your heroku environment.
 
 ### Troubleshooting a Heroku deployment
 - Log errors in suspected areas. Use the logging in the error handler
@@ -113,7 +104,7 @@ Install the New Relic add-on--it will automatically set the license key in your 
 - Run ```heroku logs --tail``` to see the heroku logs, as they update
 
 ## Setup Production Environment on Localhost
-If not already setup, follow Installation instructions to setup Refocus. Execute following commands to setup production environment and corresponding config variables:
+If not already setup, follow Installation instructions to setup Refocus. Execute the following commands to setup production environment and corresponding config variables:
 - Run ```export NODE_ENV=production```
 - Run ```export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'```
 - Run ```npm start``` or ```node .```
@@ -158,4 +149,4 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 - Node.js [token-based authentication](https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)
 
 ## Contributing
-Guidelines on contributing to Refocus are available [here](docs/Contributing.md).
+Guidelines on contributing to Refocus are available [here](https://salesforce.github.io/refocus/docs/95-contributing.html).

@@ -26,10 +26,14 @@ const DEFAULT_THROTTLE_MILLISECS = 4000;
 const realtimeEventThrottleMilliseconds =
  pe.realtimeEventThrottleMilliseconds || DEFAULT_THROTTLE_MILLISECS;
 
+const socketIOtransportProtocol = pe.SOCKETIO_TRANSPORT_PROTOCOL || null;
 module.exports = {
   // Make the Google Analytics trackingId available in /view.
   trackingId: pe.GOOGLE_ANALYTICS_ID || 'N/A',
 
   // Make the throttle time available in /view.
   realtimeEventThrottleMilliseconds,
+
+  // Expose the socketIOtransportProtocol variable in the /view
+  socketIOtransportProtocol,
 };
