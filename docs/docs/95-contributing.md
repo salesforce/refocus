@@ -41,6 +41,7 @@ Use Github to submit issues and enhancement requests.
   - Code coverage tooling and % TBD
 - All tests pass!
 - Docs!
+  - If you are adding images to the docs, please keep image width < 800px
 - Style!
   - Run `gulp lint` to make sure your contribution follows our project's style guidelines (based on (https://github.com/airbnb/javascript)).
 

@@ -54,6 +54,7 @@ function start() { // eslint-disable-line max-statements
 
   const app = express();
   const httpServer = require('http').Server(app);
+  
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
   socketIOSetup.setupNamespace(io);

@@ -30,10 +30,7 @@ html(lang = 'en')
   script(src='/static/socket.io.js')
   script.
     var realtimeEventThrottleMilliseconds = #{eventThrottle};
-  script.
-    var transProtocol = '#{transportProtocol}';
-    
   script
       if queryParams
           | var queryParams = !{queryParams}
-  script(src='/static/perspective/app.js')
+  script(src='/static/perspectiveBeta/app.js')
