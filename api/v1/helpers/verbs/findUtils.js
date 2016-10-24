@@ -14,7 +14,10 @@
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
-const filterSubjByTags = require('../../../../config').filterSubjByTags;
+const conf = require('../../../../config');
+
+const env = conf.environment[conf.nodeEnv];
+const filterSubjByTags = env.filterSubjByTags;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -185,7 +188,18 @@ function options(params, props) {
   const keys = Object.keys(params);
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0;
+
+    let isFilterField;
+    if (filterSubjByTags) {
+      isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0;
+    } else {
+      // if filterSubjByTags is disabled and we do v1/subjects?tags=mytag, we
+      // get error because isFilterField resolves to true becuase of swagger
+      // changes, and I cannot apply feature flag to swagger.
+      isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0 &&
+       key !== props.tagFilterName;
+    }
+
     if (isFilterField && params[key].value !== undefined) {
       filter[key] = params[key].value;
     }

@@ -19,7 +19,6 @@ const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
-const filterSubjByTags = require('../../../../config').filterSubjByTags;
 
 describe(`api: GET ${path}`, () => {
   let token;
@@ -187,41 +186,6 @@ describe(`api: GET ${path}`, () => {
       done();
     });
   });
-
-  if (filterSubjByTags) {
-    it('GET with tag filter :: one tag', (done) => {
-      api.get(`${path}/?tags=US`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(2);
-        expect(res.body[0].tags).to.eql(['US']);
-        expect(res.body[1].tags).to.eql(['US', 'NE']);
-
-        done();
-      });
-    });
-
-    it('GET with tag filter :: multiple tags', (done) => {
-      api.get(`${path}/?tags=NE,US`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(1);
-        expect(res.body[0].tags).to.eql(['US', 'NE']);
-
-        done();
-      });
-    });
-  }
 
   it('pagination tests');
   it('childCount, descendentCount');

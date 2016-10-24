@@ -114,6 +114,7 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     development: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -133,6 +134,7 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     production: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -151,6 +153,7 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     test: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -169,6 +172,7 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     testDisableHttp: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -182,6 +186,7 @@ module.exports = {
       useAccessToken: 'true',
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     testWhitelistLocalhost: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -195,6 +200,7 @@ module.exports = {
       ipWhitelist: iplist,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     testBlockAllhosts: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -208,6 +214,7 @@ module.exports = {
       ipWhitelist: [''],
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     testTokenReq: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -221,6 +228,7 @@ module.exports = {
       useAccessToken: 'true',
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
     testTokenNotReq: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
@@ -234,8 +242,22 @@ module.exports = {
       useAccessToken: false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags,
     },
-
+    testSubjTagFilter: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
+      dbLogging: false, // console.log | false | ...
+      dbUrl: defaultDbUrl,
+      disableHttp,
+      redisUrl: '//127.0.0.1:6379',
+      defaultNodePort: defaultPort,
+      host: '127.0.0.1',
+      useAccessToken: false,
+      tokenSecret:
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+      filterSubjByTags: true,
+    }
   },
 
   nodeEnv,
@@ -250,5 +272,4 @@ module.exports = {
   optimizeUpsert,
   enableCachePerspective,
   enableClockDyno,
-  filterSubjByTags,
 };
