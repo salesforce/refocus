@@ -50,18 +50,14 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 1. Run `npm install`. This downloads and installs project dependencies and executes the post-install steps. Note: don't run this with sudo! You may get some weird errors later.
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
-1. Run `npm run initdb` to create the refocus postgres database.
-1. Run `npm run resetdb` to run all the DDL to create the database tables and columns and indexes and stuff.
-1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
+1. Run `npm start` to start your Node.js server at http://localhost:3000.
 1. If you want to unload some of the processing to a background process run `npm run start-clock`. If you intend to deploy this on heroku and have heroku toolbelt installed run `heroku local` to start both the web and the background process.
 
 ### Updates
 Whenever you pull down a new version of Refocus from the git repository:
 
 1. Run `npm update` to make sure you have all the latest dependencies.
-1. Run `npm run migratedb` to update any database tables and columns and indexes and stuff since the last update.
-1. Run `npm run syncdb` (do we really need to do this? it won't hurt, in any case)
-1. Run `npm start` or `node .` to start your Node.js server at http://localhost:3000.
+1. Run `npm start` to start your Node.js server at http://localhost:3000.
 
 ## Development
 - Run `npm run build` and modify the webpack.config.js to take advantage of react hot module reload (react-hmr), for faster front-end development.
@@ -105,9 +101,12 @@ If you are running on Heroku and you want to use Google Analytics, store your tr
 
 ## Setup Production Environment on Localhost
 If not already setup, follow Installation instructions to setup Refocus. Execute the following commands to setup production environment and corresponding config variables:
-- Run ```export NODE_ENV=production```
-- Run ```export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'```
-- Run ```npm start``` or ```node .```
+
+```
+export NODE_ENV=production
+export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'
+npm start
+```
 
 ## Securing Refocus
 1. After installation, log in (UI or API) as `admin@refocus.admin` with password `password` and change the password for that account.
