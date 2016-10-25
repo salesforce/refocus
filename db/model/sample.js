@@ -140,7 +140,10 @@ module.exports = function sample(seq, dataTypes) {
           attributes: [
             'id',
             'updatedAt',
-            'value'
+            'value',
+            'subjectId',
+            'aspectId',
+            'name',
           ],
           where: {
             status: {
