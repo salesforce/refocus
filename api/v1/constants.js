@@ -38,6 +38,7 @@ module.exports = {
   SEQ_DEFAULT_SCOPE: 'defaultScope',
   SEQ_DESC: 'DESC',
   SEQ_LIKE: '$iLike',
+  SEQ_CONTAINS: '$contains',
   SEQ_OR: '$or',
   SEQ_WILDCARD: '%',
   SLASH: '/',

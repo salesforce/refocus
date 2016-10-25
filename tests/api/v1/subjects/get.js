@@ -30,10 +30,12 @@ describe(`api: GET ${path}`, () => {
   const us = {
     name: `${tu.namePrefix}UnitedStates`,
     description: 'country',
+    tags: ['US'],
   };
   const vt = {
     name: `${tu.namePrefix}Vermont`,
     description: 'state',
+    tags: ['US', 'NE'],
   };
 
   before((done) => {

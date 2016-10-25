@@ -3094,6 +3094,17 @@ paths:
             Filter by parentAbsolutePath; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+          description: >-
+            Filter by tags.
+          required: false
+          type: array
       responses:
         200:
           description: >-

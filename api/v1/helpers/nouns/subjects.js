@@ -304,4 +304,5 @@ module.exports = {
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
   loggingEnabled,
+  tagFilterName: 'tags',
 }; // exports

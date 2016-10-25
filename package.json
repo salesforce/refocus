@@ -34,8 +34,9 @@
     "test-token-notreq": "NODE_ENV=testTokenNotReq mocha -R dot --recursive tests/tokenNotReq",
     "test-db": "npm run resetdb && mocha -R dot --recursive tests/db",
     "test-realtime": "mocha -R dot --recursive tests/realtime",
+    "test-subj-tag-filter": "NODE_ENV=testSubjTagFilter mocha -R dot --recursive tests/subjectTagFilter",
     "test-view": "NODE_ENV=test mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/db && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp",
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/db && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp && npm run test-subj-tag-filter",
     "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
     "prestart": "npm run checkprivatedb"
   },
