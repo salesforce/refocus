@@ -73,7 +73,7 @@ class PerspectiveController extends React.Component {
           placeholderText='Search Perspectives'
           options={ persNames }
           showSearchIcon={ true }
-          onAddNewButton={ this.openCreatePanel.bind(this) }
+          onAddNewButton={ values.lenses ? this.openCreatePanel.bind(this) : undefined }
           onClickItem={ this.goToUrl.bind(this) }
           newButtonText='New Perspective'
         />
