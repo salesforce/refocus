@@ -78,8 +78,9 @@ obj.subjects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "object" }
       disabled={ object.disabled }
-      value={ object.value }
+      values={ object.value }
       fields={ ['url', 'name'] }
     />;
   },
@@ -89,9 +90,10 @@ obj.subjects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "string" }
       disabled={ object.disabled }
-      value={ object.value }
-      fields={ ['name'] }
+      values={ object.value }
+      fields={ [] }
     />;
   },
 },
@@ -124,8 +126,9 @@ obj.aspects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "object" }
       disabled={ object.disabled }
-      value={ object.value }
+      values={ object.value }
       fields={ ['url', 'name'] }
     />;
   },
@@ -135,9 +138,10 @@ obj.aspects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "string" }
       disabled={ object.disabled }
-      value={ object.value }
-      fields={ ['name'] }
+      values={ object.value }
+      fields={ [] }
     />;
   },
 }, {
