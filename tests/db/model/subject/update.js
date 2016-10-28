@@ -61,7 +61,7 @@ describe('db: subject: update: ', () => {
       Subject.create({ name: parentName })
       .then((parent) => {
         oldParentId = parent.id;
-        return Subject.findById(childId1);
+        return Subject.findById(childId2);
       })
       .then((child) => {
         return child.update({ parentAbsolutePath: parentName });
@@ -90,7 +90,7 @@ describe('db: subject: update: ', () => {
       Subject.create({ name: parentName })
       .then((parent) => {
         oldParentId = parent.id;
-        return Subject.findById(childId1);
+        return Subject.findById(childId2);
       })
       .then((child) => {
         return child.update({ parentAbsolutePath: parentName });
@@ -114,13 +114,18 @@ describe('db: subject: update: ', () => {
 
     it('on update child name, child should remain parented', (done) => {
       const childName = 'achoo';
-      Subject.findById(childId1)
+      let oldParentId = null;
+      let oldParentAbsolutePath = null;
+      Subject.findById(childId2)
       .then((child) => {
+        oldParentId = child.parentId;
+        oldParentAbsolutePath = child.parentAbsolutePath;
         return child.update({ name: childName });
       })
       .then((child) => {
-        expect(child.dataValues.parentAbsolutePath).to.not.be.null;
-        expect(child.dataValues.absolutePath).to.contain('.');
+        expect(child.dataValues.parentId).to.equal(oldParentId);
+        expect(child.dataValues.parentAbsolutePath)
+          .to.equal(oldParentAbsolutePath);
         done();
       })
       .catch((err) => {
@@ -179,14 +184,14 @@ describe('db: subject: update: ', () => {
       const parentName = `${tu.namePrefix}parent3`;
       Subject.create({ name: parentName })
       .then(() => {
-        return Subject.findById(childId1);
+        return Subject.findById(childId2);
       })
       .then((child) => {
         return child.update({ parentAbsolutePath: parentName });
       })
       .then((child) => {
         expect(child.dataValues.absolutePath).to
-        .equal(`${parentName}.${tu.namePrefix}child1`);
+        .equal(`${parentName}.${tu.namePrefix}child2`);
         expect(child.dataValues.parentAbsolutePath).to.equal(parentName);
         done();
       })
@@ -200,7 +205,7 @@ describe('db: subject: update: ', () => {
       const parentName = `${tu.namePrefix}parent2`;
       Subject.create({ name: parentName })
       .then(() => {
-        return Subject.findById(childId1);
+        return Subject.findById(childId2);
       })
       .then((subj) => {
         return subj.update({ parentAbsolutePath: parentName });
@@ -208,7 +213,7 @@ describe('db: subject: update: ', () => {
       .then((subj) => {
         expect(subj.dataValues.parentAbsolutePath).to.equal(parentName);
         expect(subj.dataValues.absolutePath).to
-        .equal(`${tu.namePrefix}parent2.${tu.namePrefix}child1`);
+        .equal(`${tu.namePrefix}parent2.${tu.namePrefix}child2`);
         done();
       })
       .catch((err) => {
@@ -293,24 +298,6 @@ describe('db: subject: update: ', () => {
       .catch((err) => done(err));
     });
 
-    it('update parent isPublished to false, should not change child subject',
-    (done) => {
-      Subject.findById(subjId1)
-      .then((parent) => {
-        expect(parent.get('isPublished')).to.equal(true);
-        parent.update({ isPublished: false });
-        expect(parent.get('isPublished')).to.equal(false);
-      })
-      .then(() => {
-        return Subject.findById(childId1);
-      })
-      .then((child) => {
-        expect(child.get('isPublished')).to.equal(true);
-        done();
-      })
-      .catch((err) => done(err));
-    });
-
     it('update child helpEmail, should not change parent subject',
     (done) => {
       Subject.findById(childId1)
@@ -370,14 +357,14 @@ describe('db: subject: update: ', () => {
 
     it('update child isPublished, should not change parent subject',
     (done) => {
-      Subject.findById(childId1)
+      Subject.findById(childId2)
       .then((child) => {
         expect(child.get('isPublished')).to.equal(true);
         child.update({ isPublished: false });
         expect(child.get('isPublished')).to.equal(false);
       })
       .then(() => {
-        return Subject.findById(subjId1);
+        return Subject.findById(childId1);
       })
       .then((parent) => {
         expect(parent.get('isPublished')).to.equal(true);

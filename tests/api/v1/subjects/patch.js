@@ -280,6 +280,7 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
+
   it('cannot patch tags with names starting with a dash (-)', (done) => {
     const tags = ['-tag1'];
     p1.tags = tags;
@@ -299,6 +300,7 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
+
   it('patch tags multiple', (done) => {
     const tags = [
       'tag0',
@@ -465,9 +467,11 @@ describe(`api: PATCH ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.errors[0].message).to
       .equal('You cannot unpublish this subject until ' +
         'all its descendants are unpublished.');
+
       done();
     });
   });

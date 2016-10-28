@@ -47,7 +47,10 @@ function augmentSampleWithSubjectInfo(seq, inst) {
       inst.dataValues.subject = sub;
 
       // adding absolutePath to sample instance
-      inst.dataValues.absolutePath = sub.absolutePath;
+      if (sub) {
+        inst.dataValues.absolutePath = sub.absolutePath;
+      }
+
       inst.subject = sub;
       resolve(inst);
     })
