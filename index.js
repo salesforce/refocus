@@ -9,7 +9,7 @@
 /**
  * ./index.js
  *
- * Main module to start the express server(web process). To just start the
+ * Main module to start the express server (web process). To just start the
  * web process use "node index.js". To start both the web and the clock process
  * use "heroku local"
  */
@@ -20,6 +20,7 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
  * Entry point for each newly clustered process
  */
 function start() { // eslint-disable-line max-statements
+  const featureToggles = require('feature-toggles');
   const conf = require('./config');
 
   /*
@@ -114,11 +115,12 @@ function start() { // eslint-disable-line max-statements
   }
 
   // if the clock dyno is not enabled run the Sample timeout query here.
-  if (!conf.enableClockDyno) {
+  if (!featureToggles.isFeatureEnabled('enableClockDyno')) {
     // require the sample model only if we want to run the timeout query here
     const dbSample = require('./db/index').Sample;
     setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
   }
+
   // View engine setup
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
