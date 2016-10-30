@@ -53,6 +53,10 @@ function start() { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
+  
+  // Compress(gzip) all the responses
+  app.use(compress());
+  
   const httpServer = require('http').Server(app);
   
   const io = require('socket.io')(httpServer);
@@ -129,9 +133,6 @@ function start() { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     app.use('/static', express.static(path.join(__dirname, 'public')));
-
-    // Compress(gzip) all the responses
-    app.use(compress());
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
