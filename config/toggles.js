@@ -21,7 +21,6 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const pe = process.env; // eslint-disable-line no-process-env
-const nodeEnv = pe.NODE_ENV || 'development';
 
 /**
  * Return boolean true if the named environment variable is boolean true or
@@ -31,8 +30,8 @@ const nodeEnv = pe.NODE_ENV || 'development';
  * @returns {Boolean} true if the named environment variable is boolean true or
  *  case-insensitive string 'true'.
  */
-function environmentVariableTrue(environmentVariableName) {
-  const x = pe[environmentVariableName];
+function environmentVariableTrue(processEnv, environmentVariableName) {
+  const x = processEnv[environmentVariableName];
   return typeof x !== 'undefined' && x !== null &&
     x.toString().toLowerCase() === 'true';
 } // environmentVariableTrue
@@ -42,16 +41,21 @@ function environmentVariableTrue(environmentVariableName) {
  */
 const toggles = {
   // Enable caching for GET /v1/perspectives/{key}?
-  enableCachePerspective: environmentVariableTrue('ENABLE_CACHE_PERSPECTIVE'),
+  enableCachePerspective: environmentVariableTrue(pe,
+    'ENABLE_CACHE_PERSPECTIVE'),
 
   // Enable heroku clock dyno
-  enableClockDyno: environmentVariableTrue('HEROKU_CLOCK_DYNO'),
+  enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
   // Enable GET /v1/subjects?tags=...
-  filterSubjByTags: environmentVariableTrue('FILTER_SUBJ_BY_TAGS'),
+  filterSubjByTags: environmentVariableTrue(pe, 'FILTER_SUBJ_BY_TAGS'),
 
   // Enable bulk upsert optimization
-  optimizeUpsert: environmentVariableTrue('OPTIMIZE_UPSERT'),
+  optimizeUpsert: environmentVariableTrue(pe, 'OPTIMIZE_UPSERT'),
 };
 
 featureToggles.load(toggles);
+
+module.exports = {
+  environmentVariableTrue, // exporting to make it easy to test
+};
