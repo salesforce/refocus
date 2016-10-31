@@ -54,7 +54,12 @@ function start() { // eslint-disable-line max-statements
 
   const app = express();
   
-  // Compress(gzip) all the responses
+  /*
+   * Compress(gzip) all the api responses and all the static files. 
+   * Since this is called before the static pages and the API routes, this will
+   * ensure that both the static pages and the API response are compressed.
+   */
+  
   app.use(compress());
   
   const httpServer = require('http').Server(app);
