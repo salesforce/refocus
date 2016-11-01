@@ -10,14 +10,11 @@
  * api/v1/helpers/verbs/findUtils.js
  */
 'use strict';
-
+const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
-const conf = require('../../../../config');
-
-const env = conf.environment[conf.nodeEnv];
-const filterSubjByTags = env.filterSubjByTags;
+const filterSubjByTags = featureToggles.isFeatureEnabled('filterSubjByTags');
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.

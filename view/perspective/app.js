@@ -249,9 +249,11 @@ function handleLibraryFiles(res) {
  */
 function getFilterQuery(p) {
   let q = '?';
+
   if (p.aspectFilter && p.aspectFilter.length) {
-    const sign = p.aspectFilterType === 'INCLUDE' ? '=' : '=-';
-    q += 'aspect' + sign + p.aspectFilter.join();
+    const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
+    q += 'aspect' + '=' + sign + 
+        p.aspectFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.aspectTagFilter && p.aspectTagFilter.length) {
@@ -259,8 +261,9 @@ function getFilterQuery(p) {
       q += '&';
     }
 
-    const sign = p.aspectTagFilterType === 'INCLUDE' ? '=' : '=-';
-    q += 'aspectTags' + sign + p.aspectTagFilter.join();
+    const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
+    q += 'aspectTags' + '=' + sign + 
+        p.aspectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.subjectTagFilter && p.subjectTagFilter.length) {
@@ -268,8 +271,9 @@ function getFilterQuery(p) {
       q += '&';
     }
 
-    const sign = p.subjectTagFilterType === 'INCLUDE' ? '=' : '=-';
-    q += 'subjectTags' + sign + p.subjectTagFilter.join();
+    const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
+    q += 'subjectTags' + '=' + sign + 
+        p.subjectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.statusFilter) {
@@ -277,8 +281,9 @@ function getFilterQuery(p) {
       q += '&';
     }
 
-    const sign = p.statusFilterType === 'INCLUDE' ? '=' : '=-';
-    q += 'status' + sign + p.statusFilter.join();
+    const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
+    q += 'status' + '=' + sign + 
+        p.statusFilter.join().replace(/,/g, ',' + sign);
   }
 
   return q;
