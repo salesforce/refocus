@@ -12,15 +12,8 @@
 'use strict'; // eslint-disable-line strict
 
 const Perspective = require('../../../../db/index').Perspective;
-const config = require('../../../../config');
-
+const featureToggles = require('feature-toggles');
 const m = 'perspective';
-let cacheEnabled = false;
-
-if (config.enableCachePerspective === 'true' ||
- config.enableCachePerspective === true) {
-  cacheEnabled = true;
-}
 
 module.exports = {
   apiLinks: {
@@ -36,5 +29,5 @@ module.exports = {
   },
   model: Perspective,
   modelName: 'Perspective',
-  cacheEnabled,
+  cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
 }; // exports
