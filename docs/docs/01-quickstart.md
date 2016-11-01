@@ -94,9 +94,11 @@ As you work with Refocus, you’ll understand how these parts work together to b
 
 ### Refocus API
 
-This guide uses the [Refocus API](https://refocus.internal.salesforce.com/v1/docs/) extensively to show you how to get data into your custom deployment. You use an API client to do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
+This guide uses the Refocus API extensively to show you how to get data into your custom deployment. You use an API client to do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
 
 We’ve outlined the API endpoints and body for each step. But to simplify it even further, you can use our [sample Postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change each request’s URL to your own Refocus domain.
+
+Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 *Got it? OK, let's get started.*
 

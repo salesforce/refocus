@@ -13,12 +13,12 @@
  * use "npm run start-clock". To start both the web and the clock process
  * locally, use "heroku local"
  */
+const featureToggles = require('feature-toggles');
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 
 const dbSample = require('../db/index').Sample;
 
-if (conf.enableClockDyno) {
+if (featureToggles.isFeatureEnabled('enableClockDyno')) {
   setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
 }
-
