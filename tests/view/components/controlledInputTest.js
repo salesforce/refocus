@@ -24,11 +24,16 @@ describe('ControlledInput Test', () => {
   var NEW_FIELD_VALUE = 'happy_birthday';
 
   it('input renders with correct name, and default value', () => {
-    var inputFieldHolder = TestUtils.renderIntoDocument(
+    // shallow renderer
+    var renderer = TestUtils.createRenderer();
+
+    renderer.render(
       <ControlledInput name={FIELD_NAME} value={FIELD_VALUE}/>
     );
-    var inputField = ReactDOM.findDOMNode(inputFieldHolder)._childNodes[0];
-    expect(inputField._value).to.equal(FIELD_VALUE);
+
+    var inputHolder = renderer.getRenderOutput();
+    var inputField = inputHolder.props.children.props;
+    expect(inputField.value).to.equal(FIELD_VALUE);
     expect(inputField.name).to.equal(FIELD_NAME);
   });
 
@@ -44,7 +49,7 @@ describe('ControlledInput Test', () => {
   it('on input with new props, expect name and input value to be updated');
 
   // use ReactDOM.findDOMNode, not inputField directly, in Simulate.change
-  it.skip('on change, input value updates to new value', () => {
+  it('on change, input value updates to new value', () => {
     var inputField = TestUtils.renderIntoDocument(
       <ControlledInput name={FIELD_NAME} value={FIELD_VALUE}/>
     );
