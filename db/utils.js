@@ -66,5 +66,4 @@ function initializeAdminUserAndProfile(seq) {
 module.exports = {
   dbConfigObjectFromDbURL,
   initializeAdminUserAndProfile,
-  isInHerokuPrivateSpace,
 };
