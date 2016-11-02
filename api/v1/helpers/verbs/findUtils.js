@@ -10,7 +10,6 @@
  * api/v1/helpers/verbs/findUtils.js
  */
 'use strict';
-const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
