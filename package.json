@@ -26,7 +26,6 @@
     "resetdb": "node db/reset.js",
     "migratedb": "node db/migrate.js",
     "checkdb": "node db/createOrUpdateDb.js",
-    "checkprivatedb": "node db/createOrUpdatePrivateDb",
     "undo-migratedb": "node db/migrateUndo.js",
     "test-api": "mocha -R dot --recursive tests/api",
     "test-disablehttp": "NODE_ENV=testDisableHttp  mocha -R dot --recursive tests/disableHttp",
