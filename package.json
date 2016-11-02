@@ -29,7 +29,7 @@
     "checkprivatedb": "node db/createOrUpdatePrivateDb",
     "undo-migratedb": "node db/migrateUndo.js",
     "test-api": "mocha -R dot --recursive tests/api",
-    "test-disablehttp": "NODE_ENV=testDisableHttp  mocha -R dot --recursive tests/disableHttp",
+    "test-disablehttp": "DISABLE_HTTP=true mocha -R dot --recursive tests/disableHttp",
     "test-token-req": "NODE_ENV=testTokenReq mocha -R dot --recursive tests/tokenReq",
     "test-token-notreq": "NODE_ENV=testTokenNotReq mocha -R dot --recursive tests/tokenNotReq",
     "test-db": "npm run resetdb && mocha -R dot --recursive tests/db",

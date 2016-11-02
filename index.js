@@ -94,7 +94,7 @@ function start() { // eslint-disable-line max-statements
    * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
    * PATCH, POST, PUT, etc.) with a 403.
    */
-  if (env.disableHttp) {
+  if (featureToggles.isFeatureEnabled('disableHttp')) {
     app.enable('trust proxy');
     app.use(enforcesSSL());
   }
