@@ -26,6 +26,9 @@ const pe = process.env; // eslint-disable-line no-process-env
  * Return boolean true if the named environment variable is boolean true or
  * case-insensitive string 'true'.
  *
+ * @param {Object} processEnv - The node process environment. (Passing it into
+ *  this function instead of just getting a reference to it *inside* this
+ *  function makes the function easier to test.)
  * @param {String} environmentVariableName - The name of the environment var.
  * @returns {Boolean} true if the named environment variable is boolean true or
  *  case-insensitive string 'true'.
@@ -40,6 +43,9 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * Add a new feature flag by adding an attribute here.
  */
 const toggles = {
+  // Disable HTTP, i.e. only use https
+  disableHttp: environmentVariableTrue(pe, 'DISABLE_HTTP'),
+
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
