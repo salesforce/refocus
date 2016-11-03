@@ -12,7 +12,7 @@
  * Configuration Settings
  */
 'use strict'; // eslint-disable-line strict
-
+require('./config/toggles'); // Loads the feature toggles
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
@@ -20,7 +20,6 @@ const pe = process.env; // eslint-disable-line no-process-env
 const nodeEnv = pe.NODE_ENV || 'development';
 const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
-const disableHttp = pe.DISABLE_HTTP || false;
 const newRelicKey = pe.NEW_RELIC_LICENSE_KEY || '';
 const traceAPIKey = pe.TRACE_API_KEY || '';
 const traceServiceName = pe.TRACE_SERVICE_NAME || '';
@@ -39,22 +38,11 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 
 // Check for timed-out samples every 30 seconds if not specified in env var
 const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
-const enableClockDyno = pe.HEROKU_CLOCK_DYNO === 'true' ||
-                            pe.HEROKU_CLOCK_DYNO === true || false;
 
 // audit level values can be one of these: API, DB, ALL, NONE
 const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
 const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
 const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
-
-const optimizeUpsert = pe.OPTIMIZE_UPSERT === 'true' ||
- pe.OPTIMIZE_UPSERT === true || false;
-
-// env variable to enable caching for /GET /v1/perspectives/{key}
-const enableCachePerspective = pe.ENABLE_CACHE_PERSPECTIVE || false;
-
-const filterSubjByTags = pe.FILTER_SUBJ_BY_TAGS === 'true' ||
- pe.FILTER_SUBJ_BY_TAGS === true || false;
 
 module.exports = {
 
@@ -105,7 +93,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
@@ -114,14 +101,12 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     development: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: '//127.0.0.1:6379',
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
@@ -134,14 +119,12 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     production: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
-      disableHttp,
       isInHerokuPrivateSpace: pe.IS_IN_HEROKU_PRIVATE_SPACE || false,
       redisUrl: pe.REDIS_URL,
       ipWhitelist: iplist,
@@ -153,14 +136,12 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     test: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
-      disableHttp,
       redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       ipWhitelist: iplist,
@@ -172,92 +153,55 @@ module.exports = {
       useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
-    },
-    testDisableHttp: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      disableHttp: true,
-      redisUrl: '//127.0.0.1:6379',
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      useAccessToken: 'true',
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     testWhitelistLocalhost: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: iplist,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     testBlockAllhosts: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: [''],
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     testTokenReq: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: '//127.0.0.1:6379',
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       useAccessToken: 'true',
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
     testTokenNotReq: {
       checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      disableHttp,
       redisUrl: '//127.0.0.1:6379',
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       useAccessToken: false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags,
     },
-    testSubjTagFilter: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      disableHttp,
-      redisUrl: '//127.0.0.1:6379',
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      useAccessToken: false,
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-      filterSubjByTags: true,
-    }
   },
 
   nodeEnv,
@@ -269,7 +213,4 @@ module.exports = {
   auditSubjects,
   auditSamples,
   auditAspects,
-  optimizeUpsert,
-  enableCachePerspective,
-  enableClockDyno,
 };

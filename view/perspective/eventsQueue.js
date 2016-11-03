@@ -59,6 +59,11 @@ function createAndDispatchLensEvent(queueToFlush, lensElement) {
 
 /**
  * Clone object to handle race conditions.
+ *
+ * A note on performance: calling this "clone" function 3000 times with a
+ * sample or subject event takes about ~70ms.
+ * Running JSON.parse(JSON.stringify(...)) for the same objects takes ~129ms.
+ *
  * @param  {Object} obj - Object to copy
  * @returns {Object} copy - New copied object
  */

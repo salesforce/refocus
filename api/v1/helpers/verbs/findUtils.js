@@ -10,14 +10,9 @@
  * api/v1/helpers/verbs/findUtils.js
  */
 'use strict';
-
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
-const conf = require('../../../../config');
-
-const env = conf.environment[conf.nodeEnv];
-const filterSubjByTags = env.filterSubjByTags;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -61,7 +56,7 @@ function toSequelizeWildcards(val) {
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
-  if (filterSubjByTags && Array.isArray(val) && props.tagFilterName) {
+  if (Array.isArray(val) && props.tagFilterName) {
     const containsClause = {};
     containsClause[constants.SEQ_CONTAINS] = val;
     return containsClause;
@@ -101,8 +96,7 @@ function toSequelizeWhere(filter, props) {
       // if tag filter is enabled and key is "tags", then create a contains
       // clause and add it to where clause,
       // like,  { where : { '$contains': ['tag1', 'tag2'] } }
-      if (filterSubjByTags && props.tagFilterName &&
-       key === props.tagFilterName) {
+      if (props.tagFilterName && key === props.tagFilterName) {
         const tagArr = filter[key];
         values.push(toWhereClause(tagArr, props));
         where[key] = values[0];
@@ -189,16 +183,7 @@ function options(params, props) {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
 
-    let isFilterField;
-    if (filterSubjByTags) {
-      isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0;
-    } else {
-      // if filterSubjByTags is disabled and we do v1/subjects?tags=mytag, we
-      // get error because isFilterField resolves to true becuase of swagger
-      // changes, and I cannot apply feature flag to swagger.
-      isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0 &&
-       key !== props.tagFilterName;
-    }
+    const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0;
 
     if (isFilterField && params[key].value !== undefined) {
       filter[key] = params[key].value;

@@ -9,7 +9,7 @@
 /**
  * ./index.js
  *
- * Main module to start the express server(web process). To just start the
+ * Main module to start the express server (web process). To just start the
  * web process use "node index.js". To start both the web and the clock process
  * use "heroku local"
  */
@@ -20,6 +20,7 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
  * Entry point for each newly clustered process
  */
 function start() { // eslint-disable-line max-statements
+  const featureToggles = require('feature-toggles');
   const conf = require('./config');
 
   /*
@@ -53,6 +54,15 @@ function start() { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
+  
+  /*
+   * Compress(gzip) all the api responses and all the static files. 
+   * Since this is called before the static pages and the API routes, this will
+   * ensure that both the static pages and the API response are compressed.
+   */
+  
+  app.use(compress());
+  
   const httpServer = require('http').Server(app);
   
   const io = require('socket.io')(httpServer);
@@ -84,7 +94,7 @@ function start() { // eslint-disable-line max-statements
    * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
    * PATCH, POST, PUT, etc.) with a 403.
    */
-  if (env.disableHttp) {
+  if (featureToggles.isFeatureEnabled('disableHttp')) {
     app.enable('trust proxy');
     app.use(enforcesSSL());
   }
@@ -114,11 +124,12 @@ function start() { // eslint-disable-line max-statements
   }
 
   // if the clock dyno is not enabled run the Sample timeout query here.
-  if (!conf.enableClockDyno) {
+  if (!featureToggles.isFeatureEnabled('enableClockDyno')) {
     // require the sample model only if we want to run the timeout query here
     const dbSample = require('./db/index').Sample;
     setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
   }
+
   // View engine setup
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
@@ -129,9 +140,6 @@ function start() { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     app.use('/static', express.static(path.join(__dirname, 'public')));
-
-    // Compress(gzip) all the responses
-    app.use(compress());
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());

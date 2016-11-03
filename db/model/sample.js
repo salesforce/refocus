@@ -10,6 +10,7 @@
  * db/model/sample.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
@@ -173,7 +174,7 @@ module.exports = function sample(seq, dataTypes) {
        *  encountered while performing the sample upsert operation itself.
        */
       upsertByName(toUpsert, isBulk) {
-        if (config.optimizeUpsert) {
+        if (featureToggles.isFeatureEnabled('optimizeUpsert')) {
           let sampleExists = true;
           return new seq.Promise((resolve, reject) => {
             // get sample by name
@@ -219,39 +220,40 @@ module.exports = function sample(seq, dataTypes) {
               isBulk ? resolve(err) : reject(err);
             });
           });
-        } else {
-          let subjasp;
-          return new seq.Promise((resolve, reject) => {
-            u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)
-            .then((sa) => {
-              subjasp = sa;
-              toUpsert.subjectId = sa.subject.id;
-              toUpsert.aspectId = sa.aspect.id;
-            })
-            .then(() => Sample.findOne({
-              where: {
-                subjectId: subjasp.subject.id,
-                aspectId: subjasp.aspect.id,
-                isDeleted: NO,
-              },
-            }))
-            .then((o) => {
-              if (o === null) {
-                return Sample.create(toUpsert);
-              }
-
-              // set value changed to true, during updates to avoid timeouts
-              // Adding this to the before update hook does
-              // give the needed effect; so adding it here!!!.
-              o.changed('value', true);
-              return o.update(toUpsert);
-            })
-            .then((o) => resolve(o))
-            .catch((err) => {
-              isBulk ? resolve(err) : reject(err);
-            });
-          });
         }
+
+        // 'optimizeUpsert' is not enabled
+        let subjasp;
+        return new seq.Promise((resolve, reject) => {
+          u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)
+          .then((sa) => {
+            subjasp = sa;
+            toUpsert.subjectId = sa.subject.id;
+            toUpsert.aspectId = sa.aspect.id;
+          })
+          .then(() => Sample.findOne({
+            where: {
+              subjectId: subjasp.subject.id,
+              aspectId: subjasp.aspect.id,
+              isDeleted: NO,
+            },
+          }))
+          .then((o) => {
+            if (o === null) {
+              return Sample.create(toUpsert);
+            }
+
+            // set value changed to true, during updates to avoid timeouts
+            // Adding this to the before update hook does
+            // give the needed effect; so adding it here!!!.
+            o.changed('value', true);
+            return o.update(toUpsert);
+          })
+          .then((o) => resolve(o))
+          .catch((err) => {
+            isBulk ? resolve(err) : reject(err);
+          });
+        });
       }, // upsertByName
 
       bulkUpsertByName(toUpsert) {
