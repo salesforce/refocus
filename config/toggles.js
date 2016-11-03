@@ -40,24 +40,47 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
 } // environmentVariableTrue
 
 /*
- * Add a new feature flag by adding an attribute here.
+ * longTermToggles - add a new toggle here if you expect it to be around
+ * long-term.
+ *
+ * Defining a toggle in either "shortTermToggles" or "longTermToggles" has no
+ * bearing on how the toggle behaves--it is purely a way for us keep track of
+ * our *intention* for a particular feature toggle. It should help us keep
+ * things from getting out of hand and keeping tons of dead unused code around.
  */
-const toggles = {
+const longTermToggles = {
+
   // Disable HTTP, i.e. only use https
   disableHttp: environmentVariableTrue(pe, 'DISABLE_HTTP'),
+
+  // Enable heroku clock dyno
+  enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
+
+}; // longTermToggles
+
+/*
+ * shortTermToggles - add a new toggle here if you expect it to just be a
+ * short-term thing, i.e. we'll use it to control rollout of a new feature, but
+ * once we're satisfied with the new feature, we'll pull it out and clean up
+ * after ourselves.
+ *
+ * Defining a toggle in either shortTermToggles or longTermToggles has no
+ * bearing on how the toggle behaves--it is purely a way for us keep track of
+ * our *intention* for a particular feature toggle. It should help us keep
+ * things from getting out of hand and keeping tons of dead unused code around.
+ */
+const shortTermToggles = {
 
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
-  // Enable heroku clock dyno
-  enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
-
   // Enable bulk upsert optimization
   optimizeUpsert: environmentVariableTrue(pe, 'OPTIMIZE_UPSERT'),
-};
 
-featureToggles.load(toggles);
+}; // shortTermToggles
+
+featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
 
 module.exports = {
   environmentVariableTrue, // exporting to make it easy to test
