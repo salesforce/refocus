@@ -21,7 +21,6 @@ const utils = require('./utils');
 models.sequelize.query(`select count(*) from
   information_schema.tables where table_schema = 'public'`)
 .then((data) => {
-  console.log('found', data); // eslint-disable-line
   if (data[0][0].count === '0') { // eslint-disable-line
     require('./reset.js'); // eslint-disable-line global-require
   } else {
@@ -30,7 +29,7 @@ models.sequelize.query(`select count(*) from
 })
 .catch((err) => {
   const dbConfig = utils.dbConfigObjectFromDbURL();
-  console.log('create db now', dbConfig); // eslint-disable-line
+  console.log('create db now', dbConfig.name); // eslint-disable-line
   pgtools.createdb(dbConfig, dbConfig.name, (err2, res) => {
     if (err2) {
       console.error('ERROR', err2); // eslint-disable-line
