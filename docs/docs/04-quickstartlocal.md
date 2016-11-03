@@ -32,6 +32,15 @@ Whenever you pull down a new version of Refocus from the git repository:
 - If you are making changes to the code, check for adherence to style guidelines by running `gulp style`.
 - If you are making any changes to the DB schema, create a migration using `node_modules/.bin/sequelize migration:create --name example-name`
 
+## Setup Production Environment on Localhost
+If not already setup, follow Installation instructions to setup Refocus. Execute the following commands to setup production environment and corresponding config variables:
+
+```
+export NODE_ENV=production
+export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'
+npm start
+```
+
 ### Package Scripts
 Execute any of the scripts in the `scripts` section of [`./package.json`](./package.json) by calling `npm run [SCRIPTNAME]`, e.g. `npm run test` or `npm run lint` or `npm run start`.
 
