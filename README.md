@@ -35,8 +35,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 
 ## Quickstart
 
-See the Quickstart guide to get going with Refocus!
-[Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.html)
+See the [Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.html) guide to get going with Refocus!
 
 ## Securing Refocus
 1. After installation, log in (UI or API) as `admin@refocus.admin` with password `password` and change the password for that account.
