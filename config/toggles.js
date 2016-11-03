@@ -53,9 +53,6 @@ const toggles = {
   // Enable heroku clock dyno
   enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
-  // Enable GET /v1/subjects?tags=...
-  filterSubjByTags: environmentVariableTrue(pe, 'FILTER_SUBJ_BY_TAGS'),
-
   // Enable bulk upsert optimization
   optimizeUpsert: environmentVariableTrue(pe, 'OPTIMIZE_UPSERT'),
 };

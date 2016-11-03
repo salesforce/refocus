@@ -187,6 +187,39 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('GET with tag filter :: one tag', (done) => {
+    api.get(`${path}?tags=US`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(2);
+      expect(res.body[0].tags).to.eql(['US']);
+      expect(res.body[1].tags).to.eql(['US', 'NE']);
+
+      done();
+    });
+  });
+
+  it('GET with tag filter :: multiple tags', (done) => {
+    api.get(`${path}?tags=NE,US`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].tags).to.eql(['US', 'NE']);
+
+      done();
+    });
+  });
+
   it('pagination tests');
   it('childCount, descendentCount');
   it('by id');
