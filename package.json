@@ -26,7 +26,6 @@
     "resetdb": "node db/reset.js",
     "migratedb": "node db/migrate.js",
     "checkdb": "node db/createOrUpdateDb.js",
-    "checkprivatedb": "node db/createOrUpdatePrivateDb",
     "undo-migratedb": "node db/migrateUndo.js",
     "test-api": "mocha -R dot --recursive tests/api",
     "test-disablehttp": "DISABLE_HTTP=true mocha -R dot --recursive tests/disableHttp",
@@ -36,8 +35,8 @@
     "test-realtime": "mocha -R dot --recursive tests/realtime",
     "test-view": "NODE_ENV=test mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/db tests/config && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-realtime && npm run test-token-req && npm run test-token-notreq && npm run test-disablehttp",
-    "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil && npm run checkdb",
-    "prestart": "npm run checkprivatedb"
+    "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil",
+    "prestart": "npm run checkdb"
   },
   "dependencies": {
     "@risingstack/trace": "^2.25.0",
