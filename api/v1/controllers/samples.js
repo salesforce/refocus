@@ -123,7 +123,8 @@ module.exports = {
         logAPI(req, helper.modelName, o);
       }
 
-      return res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
+      return res.status(httpStatus.OK)
+        .json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
@@ -131,44 +132,21 @@ module.exports = {
   /**
    * POST /samples/upsert/bulk
    *
-   * Upserts multiple samples. Response will contain the number of successful
-   * upserts, the number of failed upserts, and an array of errors for the
-   * failed upserts.
+   * Upserts multiple samples. Returns "OK" without waiting for the upserts to
+   * happen.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
+   * @returns {ServerResponse} - The response object indicating merely that the
+   *  bulk upsert request has been received.
    */
-  bulkUpsertSample(req, res, next) {
-    // UNPROMISIFY THIS FUNCTION TO RETURN THE RESPONSE IMMEDIATELY!
-
-    /*
-      const retval = {
-        successCount: 0,
-        failureCount: 0,
-        errors: [],
-      };
-    */
-
+  bulkUpsertSample(req, res /* , next */) {
     helper.model.bulkUpsertByName(req.swagger.params.queryBody.value);
     if (helper.loggingEnabled) {
       logAPI(req, helper.modelName);
     }
 
-    return res.status(httpStatus.OK).json({ 'status': 'OK' });
-
-    /*
-      .each((o) => {
-        if (util.isError(o)) {
-          retval.failureCount++;
-          retval.errors.push(o);
-        } else {
-          retval.successCount++;
-        }
-      })
-      .then((o) => res.status(200).json(retval)) // TODO add apiLinks!
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    */
+    return res.status(httpStatus.OK).json({ status: 'OK' });
   },
 
   /**

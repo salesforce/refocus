@@ -113,16 +113,17 @@ function applyTagFilters(keys, filterBy) {
   if (!filters[filterBy].includes || !filters[filterBy].excludes) {
     return true;
   }
+
   // When tags are not present, no filters are applied to it.
-  if (keys.length === 0) {
+  if (!keys.length) {
     return false;
   }
 
   let isPartOfInFilter = false;
   let isPartOfNotInFilter = false;
+
   // check if the elements of keys are part of the "includes" filter
   for (let i = 0; i < keys.length; i++) {
-
     if (filters[filterBy].includes.has(keys[i].toLowerCase())) {
       isPartOfInFilter = true;
       break;
@@ -131,7 +132,6 @@ function applyTagFilters(keys, filterBy) {
 
   // check if the elements of keys are part of the "excludes" filter
   for (let i = 0; i < keys.length; i++) {
-
     if (filters[filterBy].excludes.has(keys[i].toLowerCase())) {
       isPartOfNotInFilter = true;
       break;
@@ -184,6 +184,7 @@ function applyFilters(key, filterBy) {
         !filters[filterBy].excludes.has(key.toLowerCase())) {
     return true;
   }
+
   // If the entity is present in the includes filter clause return true.
   if (filters[filterBy].includes.has(key.toLowerCase())) {
     return true;

@@ -17,17 +17,18 @@ const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
 
 /**
- * This functions adds the association scope name to the as the to all
+ * This function adds the association scope name to the as the to all
  * the elements of the associaton array
- * @param {Array} assocArry -  The array of association objects that are
- * to be created
- * @param {Module} props - The module containing the properties of the
+ *
+ * @param {Array} associations -  The array of association objects that are
+ *  to be created
+ * @param {Object} props - The module containing the properties of the
  *  resource type to post
  */
-function addAssociationScope(assocArry, props) {
-  assocArry.map((o) =>
-    o.associatedModelName = props.modelName
-  );
+function addAssociationScope(associations, props) {
+  associations.map((o) => {
+    o.associatedModelName = props.modelName;
+  });
 } // addAssociationScope
 
 /**
@@ -433,12 +434,12 @@ function cleanAndStripNulls(obj) {
 
       // if undefined, parentAbsolutePath needs to be set to empty string,
       // to pass swagger's schema validation
-      if (key == 'parentAbsolutePath' && !o[key]) {
+      if (key === 'parentAbsolutePath' && !o[key]) {
         o[key] = '';
       } else if (o[key] === undefined || o[key] === null) {
         delete o[key];
       } else if (Array.isArray(o[key])) {
-        o[key] = o[key].map((i) => cleanAndStripNulls(i));
+        o[key] = o[key].map((j) => cleanAndStripNulls(j));
       } else if (typeof o[key] === 'object') {
         o[key] = cleanAndStripNulls(o[key]);
       }

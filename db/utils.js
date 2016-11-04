@@ -9,16 +9,19 @@
 /**
  * ./db/utils.js
  *
- * Provides utility functions to parse the DB URL and to determine
- * whether or not the db is in a Heroku Private Space.
- *
+ * Provides utility functions to parse the DB URL and initialize the admin
+ * user and profile.
  */
 const url = require('url');
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const DB_URL = env.dbUrl;
 
-// create dbconfig object from DB URL
+/**
+ * Create a dbconfig object from the DB URL.
+ *
+ * @returns {Object} - dbconfig
+ */
 function dbConfigObjectFromDbURL() {
   const u = url.parse(DB_URL);
   const auth = u.auth.split(':');
@@ -31,6 +34,12 @@ function dbConfigObjectFromDbURL() {
   };
 } // dbConfigObjectFromDbURL
 
+/**
+ * Initialize Admin User and Profile.
+ *
+ * @param {Object} seq - Sequelize
+ * @returns {Promise}
+ */
 function initializeAdminUserAndProfile(seq) {
   var pid;
   return seq.models.Profile.upsert(conf.db.adminProfile)

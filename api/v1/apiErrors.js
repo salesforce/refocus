@@ -37,8 +37,9 @@ apiErrors.create({
   name: 'SubjectValidationError',
   parent: apiErrors.ValidationError,
   fields: [],
-  defaultMessage: 'You are not allowed to set the subject\'s absolutePath attribute' +
-    'directly--it is generated based on the subject\'s name and parent.',
+  defaultMessage: 'You are not allowed to set the subject\'s absolutePath ' +
+    'attribute directly--it is generated based on the subject\'s name and ' +
+    'parent.',
 });
 
 // ----------------------------------------------------------------------------
