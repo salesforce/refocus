@@ -19,5 +19,6 @@ services:
   - redis-server
 
 script:
+  - npm run checkdb
   - npm test
 
