@@ -23,19 +23,6 @@ function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
 
-  /*
-   * The TRACE_API_KEY and TRACE_SERVICE_NAME env variable needs
-   * to be set for an app to integrate with Trace. So, require the trace module
-   * of if these conditions are met.
-   */
-  if (conf.traceAPIKey && conf.traceServiceName) {
-    require('@risingstack/trace');
-  }
-
-  if (conf.newRelicKey) {
-    require('newrelic');
-  }
-
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
 
