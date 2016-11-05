@@ -11,8 +11,7 @@
  *
  * Utility for Audit logs
  */
-
-'use strict' // eslint-disable-line strict
+'use strict'; // eslint-disable-line strict
 const winston = require('winston');
 
 /**

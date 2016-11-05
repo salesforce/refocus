@@ -93,9 +93,11 @@ function toSequelizeWhere(filter, props) {
 
       const values = [];
 
-      // if tag filter is enabled and key is "tags", then create a contains
-      // clause and add it to where clause,
-      // like,  { where : { '$contains': ['tag1', 'tag2'] } }
+      /*
+       * If tag filter is enabled and key is "tags", then create a "contains"
+       * clause and add it to where clause, e.g.
+       * { where : { '$contains': ['tag1', 'tag2'] } }
+       */
       if (props.tagFilterName && key === props.tagFilterName) {
         const tagArr = filter[key];
         values.push(toWhereClause(tagArr, props));
@@ -131,11 +133,9 @@ function toSequelizeWhere(filter, props) {
  * a Sequelize "order" array of arrays.
  *
  * @param {Array|String} sortOrder - The sort order to transform
- * @param {String} modelName - The DB model name, used to disambiguate field
- *  names
  * @returns {Array} a Sequelize "order" array of arrays
  */
-function toSequelizeOrder(sortOrder, modelName) {
+function toSequelizeOrder(sortOrder) {
   if (sortOrder) {
     const sortOrderArray = Array.isArray(sortOrder) ?
       sortOrder : [sortOrder];
