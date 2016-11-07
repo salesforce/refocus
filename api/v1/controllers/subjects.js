@@ -127,7 +127,7 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError;
+      throw new apiErrors.SubjectValidationError();
     }
 
     doPatch(req, res, next, helper);
@@ -144,7 +144,7 @@ module.exports = {
    */
   postSubject(req, res, next) {
     if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError;
+      throw new apiErrors.SubjectValidationError();
     }
 
     doPost(req, res, next, helper);
@@ -187,7 +187,7 @@ module.exports = {
    */
   putSubject(req, res, next) {
     if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError;
+      throw new apiErrors.SubjectValidationError();
     }
 
     doPut(req, res, next, helper);

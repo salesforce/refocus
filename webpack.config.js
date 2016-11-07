@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 'use strict';
-
+const pe = process.env; // eslint-disable-line no-process-env
 var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -16,12 +15,12 @@ module.exports = {
   devtool: 'eval-source-map',
   entry: [
     'webpack-hot-middleware/client?reload=true',
-    path.join(__dirname, 'view/perspective/app.js')
+    path.join(__dirname, 'view/perspective/app.js'),
   ],
   output: {
     path: path.join(__dirname, '/public/perspective/'),
     filename: 'app.js',
-    publicPath: '/perspective'
+    publicPath: '/perspective',
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -29,31 +28,36 @@ module.exports = {
       inject: 'body',
       filename: 'index.html',
       googleAnalytics: {
-        trackingId: process.env.GOOGLE_ANALYTICS_ID || 'N/A',
-        pageViewOnLoad: true
+        trackingId: pe.GOOGLE_ANALYTICS_ID || 'N/A',
+        pageViewOnLoad: true,
       },
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('development')
-    })
+      'process.env.NODE_ENV': JSON.stringify('development'),
+    }),
   ],
   module: {
-    loaders: [{
-      test: /\.jsx?$/,
-      exclude: /node_modules/,
-      loader: 'babel',
-      query: {
-        "presets": ["react", "es2015", "stage-0", "react-hmre"]
-      }
-    }, {
-      test: /\.json?$/,
-      loader: 'json'
-    }, {
-      test: /\.css$/,
-      loader: 'style!css?modules&localIdentName=[name]---[local]---[hash:base64:5]'
-    }]
-  }
+    loaders: [
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        loader: 'babel',
+        query: {
+          presets: ['react', 'es2015', 'stage-0', 'react-hmre'],
+        },
+      },
+      {
+        test: /\.json?$/,
+        loader: 'json',
+      },
+      {
+        test: /\.css$/,
+        loader:
+          'style!css?modules&localIdentName=[name]---[local]---[hash:base64:5]',
+      },
+    ],
+  },
 };
