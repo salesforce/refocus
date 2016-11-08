@@ -17,7 +17,7 @@ For the default setup you can click the heroku button to get Refocus running! If
 - Run ```heroku open``` and view the app running in Heroku
 - Run ```heroku run bash``` then run ```mocha``` to execute the test suite
 - If you are running the app in more than one dyno, you will need to force the client to communicate with the server only using websockets. To do so, set the config variable `SOCKETIO_TRANSPORT_PROTOCOL` to `websocket` (or if you prefer to use the command line, run ```heroku config:set SOCKETIO_TRANSPORT_PROTOCOL=websocket```).
-If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
+- If you are running on Heroku and you want to use Google Analytics, store your tracking id in a Heroku config variable called `GOOGLE_ANALYTICS_ID`.
 
 ### Troubleshooting a Heroku deployment
 - Log errors in suspected areas. Use the logging in the error handler
