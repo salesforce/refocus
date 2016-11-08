@@ -17,8 +17,8 @@ const redis = require('redis');
 const conf = require('./config');
 const env = conf.environment[conf.nodeEnv];
 
-const pub = redis.createClient(env.redisUrl);;
-const sub = redis.createClient(env.redisUrl);;
+const pub = redis.createClient(env.redisUrl);
+const sub = redis.createClient(env.redisUrl);
 
 sub.subscribe(conf.redis.channelName);
 

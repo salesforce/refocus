@@ -11,12 +11,11 @@
  *
  * Main module to start the clock process. To just start the clock process,
  * use "npm run start-clock". To start both the web and the clock process
- * locally, use "heroku local"
+ * locally, use "heroku local".
  */
 const featureToggles = require('feature-toggles');
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
-
 const dbSample = require('../db/index').Sample;
 
 if (featureToggles.isFeatureEnabled('enableClockDyno')) {
