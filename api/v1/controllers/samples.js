@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/samples');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -21,7 +22,11 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAPI = require('../../../utils/loggingUtil').logAPI;
-
+const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') === true ?
+                  require('../../../jobQueue/setup').jobType : null;
+const jobWrapper =
+              featureToggles.isFeatureEnabled('useWorkerProcess') === true ?
+                require('../../../jobQueue/jobWrapper'): null;
 module.exports = {
 
   /**
@@ -133,7 +138,8 @@ module.exports = {
    * POST /samples/upsert/bulk
    *
    * Upserts multiple samples. Returns "OK" without waiting for the upserts to
-   * happen.
+   * happen. The bulk upsert is sent to the queue to be later processed by
+   * the workers, if they are enabled.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -141,7 +147,13 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res /* , next */) {
-    helper.model.bulkUpsertByName(req.swagger.params.queryBody.value);
+    if (jobType && jobWrapper) {
+      jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+        req.swagger.params.queryBody.value);
+    } else {
+      helper.model.bulkUpsertByName(req.swagger.params.queryBody.value);
+    }
+
     if (helper.loggingEnabled) {
       logAPI(req, helper.modelName);
     }

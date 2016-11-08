@@ -56,6 +56,9 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
+  // Use worker process
+  useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
+
 }; // longTermToggles
 
 /*
