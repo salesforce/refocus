@@ -23,15 +23,6 @@ Whenever you pull down a new version of Refocus from the git repository:
 1. Run `npm update` to make sure you have all the latest dependencies.
 1. Run `npm start` to start your Node.js server at http://localhost:3000.
 
-## Development
-- Run `npm run build` and modify the webpack.config.js to take advantage of react hot module reload (react-hmr), for faster front-end development.
-- At times the generated pages don't show due to this error in the browser console: `locals[0] does not appear to be a 'module' object with Hot Module replacement API enabled`. This can happen when the NODE_ENV is blank. To fix the issue, set the NODE_ENV to a non-empty value, then run the build again.
-- If you want any of the packages to send output to stdout, you can start your server with `DEBUG=* node .` or you can spell out which packages you want to show debug output, e.g. `DEBUG=express*,swagger* node .`.
-- Use [nodemon](http://nodemon.io/) to monitor for any changes in your source and automatically restart your server.
-- Use Node.js [Debugger](https://nodejs.org/api/debugger.html).
-- If you are making changes to the code, check for adherence to style guidelines by running `gulp style`.
-- If you are making any changes to the DB schema, create a migration using `node_modules/.bin/sequelize migration:create --name example-name`
-
 ## Setup Production Environment on Localhost
 If not already setup, follow Installation instructions to setup Refocus. Execute the following commands to setup production environment and corresponding config variables:
 
@@ -40,9 +31,6 @@ export NODE_ENV=production
 export DATABASE_URL='postgres://postgres:postgres@localhost:5432/focusdb'
 npm start
 ```
-
-### Package Scripts
-Execute any of the scripts in the `scripts` section of [`./package.json`](./package.json) by calling `npm run [SCRIPTNAME]`, e.g. `npm run test` or `npm run lint` or `npm run start`.
 
 ## Usage
 
