@@ -215,8 +215,13 @@ module.exports = function loadView(app, passport) {
       const token = jwtUtil.createToken(_req.user);
       _res.cookie('Authorization', token);
 
-      // get the redirect url from relay state
-      _res.redirect(_req.body.RelayState);
+      if (_req.body.RelayState) {
+        // get the redirect url from relay state if present
+        _res.redirect(_req.body.RelayState);
+      } else {
+        // redirect to home page
+        _res.redirect('/');
+      }
     }
   );
 
