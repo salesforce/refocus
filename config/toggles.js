@@ -75,9 +75,6 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
-  // Enable bulk upsert optimization
-  optimizeUpsert: environmentVariableTrue(pe, 'OPTIMIZE_UPSERT'),
-
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
