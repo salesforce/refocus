@@ -51,8 +51,9 @@ const aspectMetaData = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "object" }
       disabled={ object.disabled }
-      value={ object.value }
+      values={ object.value }
       fields={ ['url', 'name'] }
     />;
   },
@@ -62,9 +63,10 @@ const aspectMetaData = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ "string" }
       disabled={ object.disabled }
-      value={ object.value }
-      fields={ ['name'] }
+      values={ object.value }
+      fields={ [] }
     />;
   },
 }, {
@@ -199,8 +201,9 @@ const subjectMetaData = [
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
+        type={ "object" }
         disabled={ object.disabled }
-        value={ object.value }
+        values={ object.value }
         fields={ ['url', 'name'] }
       />;
     },
@@ -210,9 +213,10 @@ const subjectMetaData = [
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
+        type={ "string" }
         disabled={ object.disabled }
-        value={ object.value }
-        fields={ ['name'] }
+        values={ object.value }
+        fields={ [] }
       />;
     },
   }, {
@@ -224,16 +228,16 @@ const subjectMetaData = [
     displayName: 'Last Modified On',
     readOnly: true,
   }, {
-  propertyName: 'isPublished',
-  displayName: 'Subject is published',
-  customOutput: (obj) => {
-    return <CheckBoxComponent
-      name={ obj.name }
-      disabled={ obj.disabled }
-      checked={ obj.value }
-    />;
+    propertyName: 'isPublished',
+    displayName: 'Subject is published',
+    customOutput: (obj) => {
+      return <CheckBoxComponent
+        name={ obj.name }
+        disabled={ obj.disabled }
+        checked={ obj.value }
+      />;
+    },
   },
-},
 ];
 
 const obj = {};
