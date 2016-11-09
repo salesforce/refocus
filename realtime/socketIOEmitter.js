@@ -27,7 +27,12 @@ module.exports = (io, key, mssgObj) => {
   }
   for (const nsp in io.nsps) {
     if (nsp && rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      io.of(nsp).emit(key, JSON.stringify(mssgObj));
+      // obj contains only the newest values
+      io.of(nsp).emit(key, JSON.stringify({
+        key: {
+          new: obj,
+        },
+      }));
     }
   }
 };
