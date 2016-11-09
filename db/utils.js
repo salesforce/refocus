@@ -17,6 +17,11 @@ const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const DB_URL = env.dbUrl;
 
+const ExitCodes = {
+  OK: 0,
+  ERROR: 1,
+};
+
 /**
  * Create a dbconfig object from the DB URL.
  *
@@ -72,7 +77,23 @@ function initializeAdminUserAndProfile(seq) {
   });
 } // initializeAdminUserAndProfile
 
+/**
+ * A console logging wrapper for stuff running from the command line.
+ *
+ * @param {String} moduleName - The name of the module emitting the message.
+ * @param {String} functionName - The name of the function emitting the
+ *  message. (Undefined/empty/null is OK here if it's a module-level call.)
+ * @param {String} msg - The message to log.
+ */
+function clog(moduleName, functionName, msg) {
+  console.log('[./db/' + // eslint-disable-line no-console
+    `${moduleName}${functionName ? '.' + functionName : ''}]`,
+    msg);
+} // clog
+
 module.exports = {
+  clog,
   dbConfigObjectFromDbURL,
+  ExitCodes,
   initializeAdminUserAndProfile,
 };
