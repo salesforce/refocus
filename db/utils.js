@@ -39,6 +39,8 @@ function dbConfigObjectFromDbURL() {
   };
 } // dbConfigObjectFromDbURL
 
+const dbConfig = dbConfigObjectFromDbURL();
+
 /**
  * Initialize Admin User and Profile.
  *
@@ -91,9 +93,39 @@ function clog(moduleName, functionName, msg) {
     msg);
 } // clog
 
+/**
+ * Create the database.
+ *
+ * @param {Function} cmd - The pgtools function to create the db.
+ * @returns {Promise} - Resolves to success message or throws error.
+ */
+function createDb(cmd) {
+  return cmd(dbConfig, dbConfig.name)
+  .then((res) => `${res.command} "${dbConfig.name}"... OK`)
+  .catch((err) => {
+    throw new Error(`CREATE "${dbConfig.name}"... FAILED (${err.name})`);
+  });
+} // createDb
+
+/**
+ * Drop the database.
+ *
+ * @param {Function} cmd - The pgtools function to create the db.
+ * @returns {Promise} - Resolves to success message or throws error.
+ */
+function dropDb(cmd) {
+  return cmd(dbConfig, dbConfig.name)
+  .then((res) => `${res.command} "${dbConfig.name}"... OK`)
+  .catch((err) => {
+    throw new Error(`DROP "${dbConfig.name}"... FAILED (${err.name})`);
+  });
+} // dropDb
+
 module.exports = {
   clog,
+  createDb,
   dbConfigObjectFromDbURL,
+  dropDb,
   ExitCodes,
   initializeAdminUserAndProfile,
 };
