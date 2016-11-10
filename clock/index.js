@@ -18,6 +18,9 @@ const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const dbSample = require('../db/index').Sample;
 
+const clockStarted = 'Clock process started';
+console.log(clockStarted); // eslint-disable-line no-console
+
 if (featureToggles.isFeatureEnabled('enableClockDyno')) {
   setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
 }

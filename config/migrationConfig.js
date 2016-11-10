@@ -10,6 +10,8 @@
  * /config/migrationConfig
  * Migration config parameters
  */
+'use strict'; // eslint-disable-line strict
+
 const conf = require('../config');
 
 module.exports = {
