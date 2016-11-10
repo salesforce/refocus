@@ -23,10 +23,10 @@ let redisUrl = env.redisUrl;
 const redisOptions = {};
 if (redisUrl) {
   const redisInfo = urlParser.parse(redisUrl, true);
-
   if (redisInfo.protocol !== 'redis:') {
     redisUrl = 'redis:' + redisUrl;
   }
+
   redisOptions.redis = redisUrl;
 }
 
