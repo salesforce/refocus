@@ -10,7 +10,6 @@
  * tests/jobQueue/v1/jobWrapper.js
  */
 'use strict';
-
 const jobQueue = require('../../../jobQueue/jobWrapper').jobQueue;
 const expect = require('chai').expect;
 const tu = require('../../testUtils');

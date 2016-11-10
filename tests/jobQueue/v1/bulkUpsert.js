@@ -10,7 +10,6 @@
  * tests/jobQueue/v1/bulkUpsert.js
  */
 'use strict';
-
 const jobQueue = require('../../../jobQueue/setup').jobQueue;
 const jobType = require('../../../jobQueue/setup').jobType;
 const expect = require('chai').expect;
@@ -22,6 +21,7 @@ const constants = require('../../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
+
 describe('api: POST ' + path, () => {
   let token;
 
@@ -33,6 +33,7 @@ describe('api: POST ' + path, () => {
     })
     .catch((err) => done(err));
   });
+
   // force the job queue to enter the test mode.
   beforeEach((done) => {
     jobQueue.testMode.enter();
@@ -62,7 +63,6 @@ describe('api: POST ' + path, () => {
     .catch((err) => done(err));
   });
 
-
   afterEach(() => {
     jobQueue.testMode.clear();
   });
@@ -87,6 +87,7 @@ describe('api: POST ' + path, () => {
       if (err) {
         return done(err);
       }
+
       // make sure only 1 job is created for each bulk upsert call
       expect(jobQueue.testMode.jobs.length).to.equal(1);
       // make sure the job type is correct
@@ -96,7 +97,6 @@ describe('api: POST ' + path, () => {
       expect(jobQueue.testMode.jobs[0].data).to.have.length(2);
       expect(jobQueue.testMode.jobs[0].data[0])
                           .to.have.all.keys('name', 'value');
-
       return done();
     });
   });

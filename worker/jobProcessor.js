@@ -9,11 +9,10 @@
 /**
  * /worker/jobProcessor.js
  *
- * joProcessor is a worker process, that acts as a consumer to process the jobs
- * saved in the redis queue. The "Kue" module is used for this purpose.
+ * The jobProcessor is a worker process which uses the "Kue" module to pull jobs
+ * off the redis queue.
  */
 'use strict'; // eslint-disable-line strict
-
 const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
@@ -21,10 +20,9 @@ const workerStarted = 'Worker Process Started';
 
 console.log(workerStarted); // eslint-disable-line no-console
 
-jobQueue.process(jobType.bulkUpsertSamples, (job, done) => {
+jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const samples = job.data;
-  console.log('job id being processed' + job.id);
-  helper.model.bulkUpsertByName(samples).then(() => {
-    done();  
-  });
+  console.log('Job id being processed: ' + // eslint-disable-line no-console
+                      job.id);
+  helper.model.bulkUpsertByName(samples).then(() => done());
 });

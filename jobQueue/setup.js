@@ -9,11 +9,11 @@
 /**
  * /jobQueue/setup.js
  *
- * Setup the "Kue" library to process background jobs
+ * Setup the "Kue" library to process background jobs. Declare all job types to
+ * be processed by the workers in the jobType object.
  */
 
 'use strict'; // eslint-disable-line strict
-
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const urlParser = require('url');
@@ -27,7 +27,6 @@ if (redisUrl) {
   if (redisInfo.protocol !== 'redis:') {
     redisUrl = 'redis:' + redisUrl;
   }
-
   redisOptions.redis = redisUrl;
 }
 
@@ -35,8 +34,10 @@ if (redisUrl) {
 const jobQueue = kue.createQueue(redisOptions);
 
 module.exports = {
+
   jobQueue,
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
   }
+
 };

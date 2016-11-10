@@ -22,10 +22,10 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAPI = require('../../../utils/loggingUtil').logAPI;
-const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') === true ?
+const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') ?
                   require('../../../jobQueue/setup').jobType : null;
 const jobWrapper =
-              featureToggles.isFeatureEnabled('useWorkerProcess') === true ?
+              featureToggles.isFeatureEnabled('useWorkerProcess') ?
                 require('../../../jobQueue/jobWrapper'): null;
 module.exports = {
 

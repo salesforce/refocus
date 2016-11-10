@@ -56,7 +56,10 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
-  // Use worker process
+  /*
+   * Use this setting to offload work from web processes to worker processes to
+   * achieve better web process throughput and response times.
+   */
   useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
 
 }; // longTermToggles

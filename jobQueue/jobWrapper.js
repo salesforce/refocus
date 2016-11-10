@@ -9,15 +9,18 @@
 /**
  * /jobQueue/jobWrapper.js
  *
- * Expsoses a wrapper to create jobs and save them to the redis queue for
- * it to be processed by the workers later. The "kue" library defined in the
- * setup is used for this purpose.
+ *This jobWrapper module uses the "kue" library to help create jobs and
+ * enqueue them. Jobs are subsequently dequeued and executed by a
+ * separate worker process.
  */
 
 'use strict'; // eslint-disable-line strict
-
 const jobQueue = require('./setup').jobQueue;
 
+/* The delay is introduced to avoid the job.id leakage. It can be any
+ * arbitary big enough number that does not case the leakage.
+ * TODO: Clean this up once we move job removal listner to the clock process.
+ */
 const delayToRemoveJobs = 3000;
 
 /**
@@ -25,10 +28,10 @@ const delayToRemoveJobs = 3000;
  * is introduced to avoid the job.id leakage.
  * TODO: This needs to be moved to the clock process, once we start exposing
  * APIs to monitor the jobs.
- * @param  {Object} job - Job object to be cleaned up from the queue
+ * @param {Object} job - Job object to be cleaned up from the queue
  *
  */
-function cleanUpJobOnComplete(job) {
+function removeJobOnComplete(job) {
   if (job) {
     job.on('complete', () => {
       setTimeout(() => {
@@ -40,14 +43,14 @@ function cleanUpJobOnComplete(job) {
 
 /**
  * Creates a job to be prossed using the KUE api, when given the jobName and
- * data to be processed by the job
- * @param  {String} jobName - Name of the job (A worker process should be
- * listning to this jobName for it to be processed)
- * @param  {Json} data - Data for the job to work with.
- * @returns {Object} - A job object
+ * data to be processed by the job.
+ * @param {String} jobName - The job name. A worker process will be
+ *   listening for this jobName to process the jobs.
+ * @param {Object} data - Data for the job to work with.
+ * @returns {Object} - A job object. The job object will be null when the
+ *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data) {
-  // jobQueue.create will return undefined when it is created in the test mode
   const job = jobQueue.create(jobName, data)
       .save((err) => {
         if (err) {
@@ -55,10 +58,12 @@ function createJob(jobName, data) {
                               ', with id:' + job.id + 'to the worker queue');
         }
       });
-  cleanUpJobOnComplete(job);
+  removeJobOnComplete(job);
   return job;
 }
 module.exports = {
+
   jobQueue,
   createJob
+
 };
