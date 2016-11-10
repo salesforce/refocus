@@ -9,10 +9,10 @@
 /**
  * ./db/createOrDropDb.js
  *
- * Creates or deletes the configured db, depending on
- * the option after the filename.
+ * Call this script from the command line to create or drop the db. Requires
+ * a command line argument to indicate whether to create (--init, -i) or drop
+ * (--drop, -d) the database.
  */
-
 const commandLineArgs = require('command-line-args');
 const pgtools = require('pgtools');
 const u = require('./utils');
