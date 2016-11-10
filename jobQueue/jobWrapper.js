@@ -39,7 +39,7 @@ function removeJobOnComplete(job) {
       }, delayToRemoveJobs);
     });
   }
-}
+} // removeJobOnComplete
 
 /**
  * Creates a job to be prossed using the KUE api, when given the jobName and
@@ -60,10 +60,10 @@ function createJob(jobName, data) {
       });
   removeJobOnComplete(job);
   return job;
-}
+} // createJob
 module.exports = {
 
   jobQueue,
   createJob
 
-};
+}; // exports

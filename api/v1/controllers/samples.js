@@ -138,8 +138,8 @@ module.exports = {
    * POST /samples/upsert/bulk
    *
    * Upserts multiple samples. Returns "OK" without waiting for the upserts to
-   * happen. The bulk upsert is sent to the queue to be later processed by
-   * the workers, if they are enabled.
+   * happen. When "useWorkerProcess" is enabled, the bulk upsert is enqueued
+   * to be processed by a separate worker process.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
