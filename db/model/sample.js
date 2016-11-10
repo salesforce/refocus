@@ -10,7 +10,6 @@
  * db/model/sample.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
@@ -174,55 +173,6 @@ module.exports = function sample(seq, dataTypes) {
        *  encountered while performing the sample upsert operation itself.
        */
       upsertByName(toUpsert, isBulk) {
-        if (featureToggles.isFeatureEnabled('optimizeUpsert')) {
-          let sampleExists = true;
-          return new seq.Promise((resolve, reject) => {
-            // get sample by name
-            Sample.findOne({
-              where: {
-                name: {
-                  $iLike: toUpsert.name,
-                },
-                isDeleted: NO,
-              },
-            })
-            .then((o) => {
-              // If sample does not exist, set sampleExists to false, which is
-              // used after this promise returns. Get corresponding subject and
-              //  aspect to check if the sample name is valid.
-              if (o === null) {
-                sampleExists = false;
-                return u.getSubjectAndAspectBySampleName(seq, toUpsert.name,
-                  isBulk);
-              }
-
-              // Else, if sample exists, update the sample.
-              // set value changed to true, during updates to avoid timeouts
-              // Adding this to the before update hook does
-              // give the needed effect; so adding it here!!!.
-              o.changed('value', true);
-              return o.update(toUpsert);
-            })
-            .then((returnedObj) => {
-              // If sample existed, return the updated object.
-              if (sampleExists) {
-                return returnedObj;
-              }
-
-              // If sample does not exist, update subject and aspect id in
-              // sample object to be created. Create sample.
-              toUpsert.subjectId = returnedObj.subject.id;
-              toUpsert.aspectId = returnedObj.aspect.id;
-              return Sample.create(toUpsert);
-            })
-            .then((o) => resolve(o))
-            .catch((err) => {
-              isBulk ? resolve(err) : reject(err);
-            });
-          });
-        }
-
-        // 'optimizeUpsert' is not enabled
         let subjasp;
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)

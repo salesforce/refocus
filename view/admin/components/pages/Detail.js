@@ -20,6 +20,8 @@ import Form from '../common/Forms';
 import PageHeader from '../common/PageHeader';
 import Modal from '../common/Modal';
 import ButtonRowWhenRead from '../common/ButtonRowWhenRead';
+const ONE = 1;
+const ZERO = 0;
 
 class Detail extends React.Component {
   constructor(props) {
@@ -38,7 +40,7 @@ class Detail extends React.Component {
 
   doDelete() {
     const { history, deleteResource, url } = this.props;
-    const resource = url.split('/')[1].slice(0, -1);
+    const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     deleteResource(url);
     history.push(`/${resource}s`);
   }
@@ -55,7 +57,7 @@ class Detail extends React.Component {
     const form = this.refs.editResourceForm;
     const valueType = form.state.aspectRangeFormat;
     const formOutput = ReactDOM.findDOMNode(form);
-    const resource = url.split('/')[1].slice(0, -1);
+    const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     const propertyMetaData = fields[resource].propertyMetaData;
     const formObj = getFormData(formOutput, valueType, propertyMetaData);
     // go to details page
@@ -70,7 +72,7 @@ class Detail extends React.Component {
   render () {
     const { url, refocusReducer, isEditing } = this.props;
     // ie. subject, aspect
-    const resource = url.split('/')[1].slice(0, -1);
+    const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     // if no subject, do not render
     if (!refocusReducer[resource]) {
       return <p>No resource to render</p>;
@@ -78,7 +80,7 @@ class Detail extends React.Component {
     let deleteFunc;
     let name = '';
     let addChildLink = '';
-    if (resource.indexOf('subject') >= 0) {
+    if (resource.indexOf('subject') >= ZERO) {
       // pass in the delete handler iff subject is childless
       deleteFunc = (refocusReducer[resource].childCount) ?
         null : this.handleDeleteClick;

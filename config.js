@@ -20,9 +20,6 @@ const pe = process.env; // eslint-disable-line no-process-env
 const nodeEnv = pe.NODE_ENV || 'development';
 const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
-const newRelicKey = pe.NEW_RELIC_LICENSE_KEY || '';
-const traceAPIKey = pe.TRACE_API_KEY || '';
-const traceServiceName = pe.TRACE_SERVICE_NAME || '';
 const payloadLimit = pe.payloadLimit || defaultPayloadLimit;
 const pgdatabase = pe.PGDATABASE || 'focusdb';
 const pguser = pe.PGUSER || 'postgres';
@@ -207,9 +204,6 @@ module.exports = {
   nodeEnv,
   port,
   payloadLimit,
-  traceAPIKey,
-  traceServiceName,
-  newRelicKey,
   auditSubjects,
   auditSamples,
   auditAspects,

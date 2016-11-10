@@ -17,14 +17,23 @@
  * @param {Object} jsonData Contains input names and values
  * @returns {Object} jsonData The updated input values
  */
+const ONE = 1;
+const ZERO = 0;
+
+/**
+ * Adds boolean data to array input
+ * @param {Array} inputs Extract data from this array
+ * @param {Array} jsonData Push results to this array
+ * @returns {Array} Array with data from boolean UI
+ */
 function fromBooleanInput(inputs, jsonData) {
-  for (let i = inputs.length - 1; i >= 0; i--) {
+  for (let i = inputs.length - ONE; i >= ZERO; i--) {
     if (inputs[i].getAttribute('type') === 'radio') {
       if (inputs[i].checked) {
         const arr = inputs[i].value.split(',');
         let intArr = [];
-        for (let j = 0; j < arr.length; j++) {
-          intArr.push(parseInt(arr[j]));
+        for (let j = ZERO; j < arr.length; j++) {
+          intArr.push(parseInt(arr[j], 10));
         }
         jsonData[inputs[i].name] = intArr;
       }
@@ -43,12 +52,12 @@ function fromBooleanInput(inputs, jsonData) {
  */
 function fromTextInput(inputs, jsonData, alterDataFunc) {
   // edit input text values, depending on name
-  for (let i = 0; i < inputs.length; i++) {
+  for (let i = ZERO; i < inputs.length; i++) {
     const name = inputs[i].name;
     const lastIndex = name.lastIndexOf('_');
-    const key = name.substring(0, lastIndex);
+    const key = name.substring(ZERO, lastIndex);
     // get the number after _
-    const index = parseInt(name.substring(lastIndex+1, name.length));
+    const index = parseInt(name.substring(lastIndex+ONE, name.length), 10);
 
     if (inputs[i].getAttribute('type') === 'text' && key) {
       delete jsonData[name]; // ie. okRange_1
@@ -81,19 +90,26 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
   // for tags, relatedLinks
   let tempObj = {};
   const fieldSets = form.getElementsByTagName('fieldset');
-  for (let i = fieldSets.length - 1; i >= 0; i--) {
+  for (let i = fieldSets.length - ONE; i >= ZERO; i--) {
     const objName = fieldSets[i].name;
     let dataObject = {};
     dataObject[objName] = [];
     const rows = fieldSets[i].getElementsByClassName('slds-form-element__row');
     // for each row, make new object
-    for (let j = rows.length - 1; j >= 0; j--) {
+    for (let j = rows.length - ONE; j >= ZERO; j--) {
       const innerInputs = rows[j].getElementsByTagName('input');
-      // loop through all fields per row
-      for (let k = innerInputs.length - 1; k >= 0; k--) {
-        tempObj[innerInputs[k].name] = innerInputs[k].value;
+      // if there's one field per row,
+      // check whether input name === fieldset name,
+      // if so add input value to dataObject
+      if (innerInputs.length === ONE && objName === innerInputs[ZERO].name) {
+        dataObject[objName].push(innerInputs[ZERO].value);
+      } else { // multi field row
+        // loop through all fields per row
+        for (let k = innerInputs.length - ONE; k >= ZERO; k--) {
+          tempObj[innerInputs[k].name] = innerInputs[k].value;
+        }
+        dataObject[objName].push(tempObj);
       }
-      dataObject[objName].push(tempObj);
       tempObj = {}; // reset
     }
     // add fieldSet data to JSON
@@ -101,19 +117,19 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
   }
   // check propertyMetaData for customOutput,
   // if so, get value by customValueQuery
-  for (let i = propertyMetaData.length - 1; i >= 0; i--) {
+  for (let i = propertyMetaData.length - ONE; i >= ZERO; i--) {
     if (propertyMetaData[i].hasOwnProperty('customValueQuery')) {
       jsonData[propertyMetaData[i].propertyName] =
         eval(propertyMetaData[i].customValueQuery);
     }
   }
 
-  for (let i = inputsAndSelects.length - 1; i >= 0; i--) {
-    if (inputsAndSelects[i].name) {
+  for (let i = inputsAndSelects.length - ONE; i >= ZERO; i--) {
+    // add all values together, wkthout duplicates
+    if (inputsAndSelects[i].name &&
+      !jsonData.hasOwnProperty(inputsAndSelects[i].name)) {
       // do not include radio button values
-      if (inputsAndSelects[i].getAttribute('type') !== 'radio') {
-        jsonData[inputsAndSelects[i].name] = inputsAndSelects[i].value;
-      }
+      jsonData[inputsAndSelects[i].name] = inputsAndSelects[i].value;
     }
   }
 

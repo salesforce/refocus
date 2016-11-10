@@ -56,6 +56,12 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
+  /*
+   * Use this setting to offload work from web processes to worker processes to
+   * achieve better web process throughput and response times.
+   */
+  useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
+
 }; // longTermToggles
 
 /*
@@ -74,9 +80,6 @@ const shortTermToggles = {
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
-
-  // Enable bulk upsert optimization
-  optimizeUpsert: environmentVariableTrue(pe, 'OPTIMIZE_UPSERT'),
 
 }; // shortTermToggles
 
