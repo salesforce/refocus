@@ -100,7 +100,7 @@ gulp.task('browserifyViews', () => {
     const bundler = browserify(props);
     const outputPath = pathToApp.split('/').splice(2).join('/');
 
-    var stream = bundler.bundle();
+    var stream = bundler.transform('uglifyify').bundle();
     return stream
       .on('error', (err) => {
         console.error(err);
