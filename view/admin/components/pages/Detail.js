@@ -30,6 +30,7 @@ class Detail extends React.Component {
     this.putForm = this.putForm.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.toggleEdit = this.toggleEdit.bind(this);
+    this.turnOffDelete = this.turnOffDelete.bind(this);
     this.doDelete = this.doDelete.bind(this);
   }
 
@@ -43,6 +44,12 @@ class Detail extends React.Component {
     const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     deleteResource(url);
     history.push(`/${resource}s`);
+  }
+
+  turnOffDelete() {
+    this.setState({
+      askDelete: false,
+    });
   }
 
   // toggleEdit: change url to ?edit if not editing, and vice-versa
@@ -103,7 +110,9 @@ class Detail extends React.Component {
           <Modal
             title={`Delete ${resource}`}
             onSave={ this.doDelete }
-            onHide={ this.toggleEdit }
+            // if other modal is open, close both this
+            // and the other modal
+            onHide={ this.turnOffDelete }
             primaryBtnTxt='Delete'
           >
             <p>{message}</p>
@@ -131,6 +140,7 @@ class Detail extends React.Component {
               title={`Edit ${resource}`}
               resource={ resource }
               onSave={ this.putForm }
+              // toggles isEditing to off
               onHide={ this.toggleEdit }
             >
               <Form
