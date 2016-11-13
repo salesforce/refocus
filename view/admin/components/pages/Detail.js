@@ -78,7 +78,7 @@ class Detail extends React.Component {
   }
   render () {
     const { url, refocusReducer, isEditing } = this.props;
-    // ie. subject, aspect
+    // resource: ie. subject, aspect
     const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     // if no subject, do not render
     if (!refocusReducer[resource]) {
@@ -110,8 +110,6 @@ class Detail extends React.Component {
           <Modal
             title={`Delete ${resource}`}
             onSave={ this.doDelete }
-            // if other modal is open, close both this
-            // and the other modal
             onHide={ this.turnOffDelete }
             primaryBtnTxt='Delete'
           >
