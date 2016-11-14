@@ -82,10 +82,6 @@ module.exports = function token(seq, dataTypes) {
         );
       },
     },
-    name: {
-      singular: 'Lens',
-      plural: 'Lenses',
-    },
     indexes: [
       {
         name: 'TokenUniqueLowercaseNameCreatedByIsDeleted',
