@@ -9,34 +9,69 @@
 /**
  * ./db/createOrUpdateDb.js
  *
- * If database and table schema already exist, just execute migratedb to
- * perform the necessary migrations to bring the db up to the present.
- * Otherwise, create the database, run resetdb to create the tables and
- * indexes, and do "pseudo-migrations" to bring the migration table up to date.
+ * This is called from the npm "checkdb" script, which is run as part of npm
+ * prestart. If the database and table schema already exist, it just executes
+ * migratedb to perform the necessary migrations to bring the db up to the
+ * present. Otherwise, it creates the database, runs resetdb to create the
+ * tables and indexes, and does "pseudo-migrations" to bring the migration
+ * table up to date.
  */
-const models = require('./index');
+const Sequelize = require('sequelize');
+require('sequelize-hierarchy')(Sequelize);
+const conf = require('../config');
+const env = conf.environment[conf.nodeEnv];
+const seq = new Sequelize(env.dbUrl, {
+  logging: env.dbLogging,
+});
 const pgtools = require('pgtools');
-const utils = require('./utils');
+const u = require('./utils');
 
-models.sequelize.query(`select count(*) from
+/**
+ * Create the database, run resetdb to create the tables and indexes, and do
+ * "pseudo-migrations" to bring the migration table up to date.
+ */
+function createAndReset() {
+  u.createDb(pgtools.createdb)
+  .then((res) => {
+    u.clog('createOrUpdateDb', 'createAndReset', res);
+    return u.reset();
+  })
+  .then((res) => {
+    u.clog('createOrUpdateDb', 'createAndReset', res);
+    process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
+  })
+  .catch((err) => {
+    u.clog('createOrUpdateDb', 'createAndReset', err.message);
+    process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
+  });
+} // createAndReset
+
+seq.query(`select count(*) from
   information_schema.tables where table_schema = 'public'`)
 .then((data) => {
   if (data[0][0].count === '0') { // eslint-disable-line
-    require('./reset.js'); // eslint-disable-line global-require
+    // The database exists but the table schemas do not exist.
+    u.reset()
+    .then((res) => {
+      u.clog('createOrUpdateDb', '', res);
+      process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
+    })
+    .catch((err) => {
+      u.clog('createOrUpdateDb', '', err.message);
+      process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
+    });
   } else {
+    // The database AND the table schemas exist.
     require('./migrate.js'); // eslint-disable-line global-require
   }
 })
 .catch((err) => {
-  const dbConfig = utils.dbConfigObjectFromDbURL();
-  console.log('create db now', dbConfig.name); // eslint-disable-line
-  pgtools.createdb(dbConfig, dbConfig.name, (err2, res) => {
-    if (err2) {
-      console.error('ERROR', err2); // eslint-disable-line
-      process.exit(1); // eslint-disable-line
-    }
-
-    console.log(`${res.command} "${dbConfig.name}"... OK`); // eslint-disable-line
-    require('./reset.js'); // eslint-disable-line global-require
-  });
+  if (err.name === 'SequelizeConnectionError' &&
+    err.message === `database "focusdb" does not exist`) {
+    // Database does not exist.
+    createAndReset();
+  } else {
+    // Some other error.
+    u.clog('createOrUpdateDb', '', err.name + ': ' + err.message);
+  }
 });
