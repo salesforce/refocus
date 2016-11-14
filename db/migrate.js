@@ -8,23 +8,27 @@
 
 /**
  * ./db/migrate.js
- * Migrate db from current state to next state
-*/
-
+ *
+ * Run this script from the command line (or npm package script) to perform the
+ * current migration(s).
+ */
 const exec = require('child_process').exec;
 const cmd = 'node_modules/.bin/sequelize db:migrate';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
-  // console statements for migration results.
-  console.log('stdout: ' + stdout); // eslint-disable-line no-console
+  // Log the results to the console.
+  console.log('[./db/migrate (stdout)] ' + // eslint-disable-line no-console
+    stdout);
+
   if (stderr) {
-    console.log('stderr: ' + stderr); // eslint-disable-line no-console
-    process.exit(1); // eslint-disable-line
+    console.log('[./db/migrate (stderr)] ' + // eslint-disable-line no-console
+      stderr);
   }
 
   if (error !== null) {
-    console.log('exec error: ' + error); // eslint-disable-line no-console
-    process.exit(1); // eslint-disable-line
+    console.log('[./db/migrate] ' + // eslint-disable-line no-console
+      error);
+    process.exit(-1); // eslint-disable-line
   }
 
   process.exit(0); // eslint-disable-line
