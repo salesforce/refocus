@@ -61,9 +61,11 @@ const dbConfig = dbConfigObjectFromDbURL();
  * @param {String} msg - The message to log.
  */
 function clog(moduleName, functionName, msg) {
-  console.log('[./db/' + // eslint-disable-line no-console
-    `${moduleName}${functionName ? '.' + functionName : ''}]`,
-    msg);
+  if (conf.nodeEnv === 'development') {
+    console.log('[./db/' + // eslint-disable-line no-console
+      `${moduleName}${functionName ? '.' + functionName : ''}]`,
+      msg);
+  }
 } // clog
 
 /**
@@ -216,7 +218,7 @@ function importSyncInitialize(force) {
   })
   .then(() => {
     clog('utils', 'importSyncInitialize', `Sync (force=${force})... OK`);
-    return initializeAdminUserAndProfile(seq);
+    return initializeAdminUserAndProfile();
   })
   .then((res) => {
     clog('utils', 'importSyncInitialize', res);
@@ -248,8 +250,12 @@ module.exports = {
   clog,
   createDb,
   dbConfigObjectFromDbURL,
+  doImport,
   importSyncInitialize,
+  initializeAdminUserAndProfile,
   dropDb,
   ExitCodes,
   reset,
+  seq,
+  Sequelize,
 };
