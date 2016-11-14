@@ -16,6 +16,7 @@ const rtUtils = require('./utils');
 
 module.exports = (io, key, mssgObj) => {
   const obj = rtUtils.parseObject(mssgObj[key]);
+  const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
   /*
    * initialize a namespace when an perspective initialize namespace event is
@@ -27,12 +28,8 @@ module.exports = (io, key, mssgObj) => {
   }
   for (const nsp in io.nsps) {
     if (nsp && rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      // obj contains only the newest values
-      io.of(nsp).emit(key, JSON.stringify({
-        key: {
-          new: obj,
-        },
-      }));
+      // newObjectAsString contains {key: {new: obj }}
+      io.of(nsp).emit(key, newObjectAsString);
     }
   }
 };
