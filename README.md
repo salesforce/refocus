@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) 
-[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master) 
+[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus)
+[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master)
 [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus)
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
@@ -51,8 +51,13 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
 1. Run `npm start` to start your Node.js server at http://localhost:3000.
-1. If you want to unload some of the processing to a background process run `npm run start-clock`. If you intend to deploy this on heroku and have heroku toolbelt installed run `heroku local` to start both the web and the background process.
-
+1. If you want to run the sample timeout check in a separate background process:
+    1. Start the server with environment variable (i.e. config setting) `HEROKU_CLOCK_DYNO` set to `true`.
+    1. Run `npm run start-clock` to start the clock process.
+1. If you want to offload expensive work from your web process to separate worker process:
+    1. Start the server with environment variable (i.e. config setting) `USE_WORKER_PROCESS ` set to `true`.
+    1. Run `npm run start-worker` to start the worker process.
+1. If you intend to deploy this on heroku and have heroku toolbelt installed, run `heroku local` to start the web, clock and worker processes all together. Make sure that the `HEROKU_CLOCK_DYNO` and `USE_WORKER_PROCESS` environment variables are set to true.  Note that the node server will be listening on port 5000 when you start it using the `heroku local` command.
 ### Updates
 Whenever you pull down a new version of Refocus from the git repository:
 
