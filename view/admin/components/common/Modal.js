@@ -13,12 +13,18 @@
  */
 
 import React, { PropTypes } from 'react';
-import { Link } from 'react-router';
 
 // props: need onClose, onSave handlers
 class Modal extends React.Component {
   render() {
-    const { title, onSave, onHide, primaryBtnTxt, notificationBox } = this.props;
+    const {
+      title,
+      onSave,
+      onHide,
+      primaryBtnTxt,
+      children,
+      notificationBox
+    } = this.props;
     return (
       <div>
         <div
@@ -29,9 +35,13 @@ class Modal extends React.Component {
                 <div className='slds-modal__header'>
                     <button
                       onClick={onHide}
-                      className='slds-button slds-button--icon-inverse slds-modal__close'>
-                        <svg aria-hidden='true' className='slds-button__icon slds-button__icon--large'>
-                          <use xlinkHref='../static/icons/action-sprite/svg/symbols.svg#close'></use>
+                      className={'slds-button slds-button--icon-inverse' +
+                      ' slds-modal__close'}>
+                        <svg aria-hidden='true'
+                          className={'slds-button__icon' +
+                          ' slds-button__icon--large'}>
+                          <use xlinkHref={'../static/icons/' +
+                            'action-sprite/svg/symbols.svg#close'}></use>
                         </svg>
                         <span className='slds-assistive-text'>Close</span>
                     </button>
@@ -39,15 +49,16 @@ class Modal extends React.Component {
                 </div>
                 { notificationBox }
                 <div className='slds-modal__content slds-p-around--medium'>
-                {this.props.children}
+                {children}
                 </div>
                 <div className='slds-modal__footer'>
                     <button
                       onClick={onHide}
-                      className='slds-button slds-button--neutral'
+                      className='slds-button slds-button--neutral cancelButton'
                     >Cancel</button>
                     <button
-                      className='slds-button slds-button--neutral slds-button--brand'
+                      className={'slds-button slds-button--neutral' +
+                      ' slds-button--brand'}
                       onClick={onSave}
                     >{primaryBtnTxt || 'Save'}</button>
                 </div>
@@ -65,7 +76,8 @@ Modal.propTypes = {
   cancelUrl: PropTypes.string,
   onSave: PropTypes.func,
   onHide: PropTypes.func,
-  primaryBtnTxt: PropTypes.string
+  primaryBtnTxt: PropTypes.string,
+  children: React.PropTypes.element,
 };
 
 export default Modal;
