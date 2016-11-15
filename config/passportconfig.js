@@ -10,6 +10,7 @@
  * ./passport.js
  * Passport strategies
  */
+'use strict'; // eslint-disable-line strict
 
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/index').User;

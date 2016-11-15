@@ -6,7 +6,7 @@
 
 # Refocus
 
-> ## Get started now with our [QuickStart](docs/QuickStart.md) guide!
+> ## Get started now with our [QuickStart](https://salesforce.github.io/refocus/docs/01-quickstart.html) guide!
 
 Refocus is a platform for visualizing the health and status of systems and/or services under observation. Check out our [home page](https://salesforce.github.io/refocus) and our [docs](https://salesforce.github.io/refocus/docs/00-welcome).
 
