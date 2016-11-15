@@ -12,6 +12,7 @@
  * Provides utility functions to parse the DB URL and initialize the admin
  * user and profile.
  */
+'use strict'; // eslint-disable-line strict
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
