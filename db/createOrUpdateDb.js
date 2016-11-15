@@ -31,7 +31,7 @@ const u = require('./utils');
  * "pseudo-migrations" to bring the migration table up to date.
  */
 function createAndReset() {
-  u.createDb(pgtools.createdb)
+  u.createOrDropDb(pgtools.createdb)
   .then((res) => {
     u.clog('createOrUpdateDb', 'createAndReset', res);
     return u.reset();

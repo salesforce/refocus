@@ -95,7 +95,7 @@ If you are running on Heroku and you want to use Google Analytics, store your tr
 
 ### Troubleshooting a Heroku deployment
 - Log errors in suspected areas. Use the logging in the error handler
-- For errors 'Relation __ does not exist', the db is not set up properly. Try resetting the database. Run ```heroku run bash``` to enter shell script mode, then run ```gulp resetdb```, to reset the db
+- For errors 'Relation __ does not exist', the db is not set up properly. Try resetting the database. Run ```heroku run bash``` to enter shell script mode, then run ```npm run checkdb```.
 - Run ```heroku restart```, to restart the app
 - Run ```heroku logs --tail``` to see the heroku logs, as they update
 

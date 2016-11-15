@@ -51,8 +51,6 @@ function dbConfigObjectFromDbURL() {
   };
 } // dbConfigObjectFromDbURL
 
-const dbConfig = dbConfigObjectFromDbURL();
-
 /**
  * A console logging wrapper for stuff running from the command line.
  *
@@ -68,6 +66,22 @@ function clog(moduleName, functionName, msg) {
       msg);
   }
 } // clog
+
+/**
+ * Create or drop the database.
+ *
+ * @param {Function} cmd - The pgtools function to create the db.
+ * @returns {Promise} - Resolves to success message or throws error.
+ */
+function createOrDropDb(cmd) {
+  const dbConfig = dbConfigObjectFromDbURL();
+  return cmd(dbConfig, dbConfig.name)
+  .then((res) => `${res.command} "${dbConfig.name}"... OK`)
+  .catch((err) => {
+    throw new Error(
+      `${err.pgErr.routine} "${dbConfig.name}"... FAILED (${err.name})`);
+  });
+} // createOrDropDb
 
 /**
  * Initialize Admin User and Profile.
@@ -102,34 +116,6 @@ function initializeAdminUserAndProfile() {
   })
   .then(() => 'Initialize Admin User and Profile... OK');
 } // initializeAdminUserAndProfile
-
-/**
- * Create the database.
- *
- * @param {Function} cmd - The pgtools function to create the db.
- * @returns {Promise} - Resolves to success message or throws error.
- */
-function createDb(cmd) {
-  return cmd(dbConfig, dbConfig.name)
-  .then((res) => `${res.command} "${dbConfig.name}"... OK`)
-  .catch((err) => {
-    throw new Error(`CREATE "${dbConfig.name}"... FAILED (${err.name})`);
-  });
-} // createDb
-
-/**
- * Drop the database.
- *
- * @param {Function} cmd - The pgtools function to create the db.
- * @returns {Promise} - Resolves to success message or throws error.
- */
-function dropDb(cmd) {
-  return cmd(dbConfig, dbConfig.name)
-  .then((res) => `${res.command} "${dbConfig.name}"... OK`)
-  .catch((err) => {
-    throw new Error(`DROP "${dbConfig.name}"... FAILED (${err.name})`);
-  });
-} // dropDb
 
 /**
  * Fetch the migrations from migration directory. Perform pseudo-migrations to
@@ -247,14 +233,47 @@ function reset() {
   });
 } // reset
 
+// Polyfill Array "includes" -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+if (!Array.prototype.includes) {
+  Array.prototype.includes = function(searchElement /*, fromIndex*/) {
+    'use strict';
+    if (this == null) {
+      throw new TypeError('Array.prototype.includes called on null or undefined');
+    }
+
+    var O = Object(this);
+    var len = parseInt(O.length, 10) || 0;
+    if (len === 0) {
+      return false;
+    }
+    var n = parseInt(arguments[1], 10) || 0;
+    var k;
+    if (n >= 0) {
+      k = n;
+    } else {
+      k = len + n;
+      if (k < 0) {k = 0;}
+    }
+    var currentElement;
+    while (k < len) {
+      currentElement = O[k];
+      if (searchElement === currentElement ||
+         (searchElement !== searchElement && currentElement !== currentElement)) { // NaN !== NaN
+        return true;
+      }
+      k++;
+    }
+    return false;
+  };
+}
+
 module.exports = {
   clog,
-  createDb,
+  createOrDropDb,
   dbConfigObjectFromDbURL,
   doImport,
   importSyncInitialize,
   initializeAdminUserAndProfile,
-  dropDb,
   ExitCodes,
   reset,
   seq,

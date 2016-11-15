@@ -43,7 +43,7 @@ try {
 
   // Create or drop the database.
   if (keys.includes('init')) {
-    u.createDb(pgtools.createdb)
+    u.createOrDropDb(pgtools.createdb)
     .then((res) => {
       u.clog('createOrDropDb', '', res);
     })
@@ -51,7 +51,7 @@ try {
       u.clog('createOrDropDb', '', err.message);
     });
   } else {
-    u.dropDb(pgtools.dropdb)
+    u.createOrDropDb(pgtools.dropdb)
     .then((res) => {
       u.clog('createOrDropDb', '', res);
     })
