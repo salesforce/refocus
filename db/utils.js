@@ -37,10 +37,11 @@ const ExitCodes = {
 /**
  * Create a dbconfig object from the DB URL.
  *
+ * @param {String} dbUrl - The DB URL. Leave empty to use the one from env.
  * @returns {Object} - dbconfig
  */
-function dbConfigObjectFromDbURL() {
-  const u = url.parse(DB_URL);
+function dbConfigObjectFromDbURL(dbUrl) {
+  const u = url.parse(dbUrl || DB_URL);
   const auth = u.auth.split(':');
   return {
     name: u.pathname.slice(1), // strip off leading slash
