@@ -24,21 +24,22 @@ module.exports = {
     password: 'fakePasswd',
     username: `${tu.namePrefix}user1`,
   },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.User, testStartTime)
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
     .catch((err) => done(err));
   },
+
   creatSSOConfig() {
     return tu.db.SSOConfig.create(samlParams);
   },
-  forceDeleteSSOConfig(done) {
+
+  forceDeleteSSOConfig() {
     return tu.db.SSOConfig.destroy({
       where: {},
       force: true,
-    })
-    .then(() => done())
-    .catch((err) => done(err));
+    });
   },
 };

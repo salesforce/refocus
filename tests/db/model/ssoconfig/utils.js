@@ -9,7 +9,6 @@
 /**
  * tests/db/model/ssoconfig/utils.js
  */
-
 const tu = require('../../../testUtils');
 
 const samlParams = {
@@ -18,16 +17,16 @@ const samlParams = {
 };
 
 module.exports = {
-  forceDelete(done) {
+  forceDelete() {
     return tu.db.SSOConfig.destroy({
       where: {},
       force: true,
-    })
-    .then(() => done())
-    .catch((err) => done(err));
+    });
   },
+
   creatSSOConfig() {
     return tu.db.SSOConfig.create(samlParams);
   },
+
   samlParams,
 };

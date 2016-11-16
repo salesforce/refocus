@@ -154,7 +154,6 @@ gulp.task('watch', () =>
   gulp.watch(conf.paths.src, ['browserifyViews', 'movecss', 'movesocket'])
 );
 
-
 /*
  * Copy git pre-commit script to git hooks.
  */
