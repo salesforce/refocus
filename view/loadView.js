@@ -19,7 +19,7 @@ const User = require('../db/index').User;
 const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
-const jwtUtil = require('../api/v1/helpers/jwtUtil');
+const jwtUtil = require('../utils/jwtUtil');
 const NOT_FOUND = 404;
 const url = require('url');
 

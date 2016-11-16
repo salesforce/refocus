@@ -21,7 +21,7 @@ const doGet = require('../helpers/verbs/doGet');
 const doFind = require('../helpers/verbs/doFind');
 const apiErrors = require('../apiErrors');
 const u = require('../helpers/verbs/utils');
-const jwtUtil = require('../helpers/jwtUtil');
+const jwtUtil = require('../../../utils/jwtUtil');
 
 function isAdmin(req) {
   return new Promise((resolve, reject) => {
