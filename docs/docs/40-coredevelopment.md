@@ -11,7 +11,7 @@ title: Core Development
 - If you want any of the packages to send output to stdout, you can start your server with `DEBUG=* node .` or you can spell out which packages you want to show debug output, e.g. `DEBUG=express*,swagger* node .`.
 - Use [nodemon](http://nodemon.io/) to monitor for any changes in your source and automatically restart your server.
 - Use Node.js [Debugger](https://nodejs.org/api/debugger.html).
-- If you are making changes to the code, check for adherence to style guidelines by running `gulp style`.
+- If you are making changes to the code, check for adherence to style guidelines by running `npm run lint` and `npm run jscs`.
 - If you are making any changes to the DB schema, create a migration using `node_modules/.bin/sequelize migration:create --name example-name`
 
 ### Package Scripts

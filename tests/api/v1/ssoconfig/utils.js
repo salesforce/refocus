@@ -17,13 +17,11 @@ const samlParams = {
 };
 
 module.exports = {
-  forceDelete(done) {
+  forceDelete() {
     return tu.db.SSOConfig.destroy({
       where: {},
       force: true,
-    })
-    .then(() => done())
-    .catch((err) => done(err));
+    });
   },
 
   creatSSOConfig() {
