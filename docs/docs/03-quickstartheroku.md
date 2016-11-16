@@ -21,6 +21,5 @@ For the default setup you can click the heroku button to get Refocus running! If
 
 ### Troubleshooting a Heroku deployment
 - Log errors in suspected areas. Use the logging in the error handler
-- For errors 'Relation __ does not exist', the db is not set up properly. Try resetting the database. Run ```heroku run bash``` to enter shell script mode, then run ```gulp resetdb```, to reset the db
 - Run ```heroku restart```, to restart the app
 - Run ```heroku logs --tail``` to see the heroku logs as they update

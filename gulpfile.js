@@ -12,11 +12,9 @@
  * Configure the streaming build system.
  */
 const gulp = require('gulp');
-const jscs = require('gulp-jscs');
 const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
-const path = require('path');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
 
@@ -26,8 +24,6 @@ const conf = {
       'browserifyViews',
       'movecss',
       'movesocket',
-      'style',
-      'movelensutil',
     ],
   },
   paths: {
@@ -152,35 +148,11 @@ gulp.task('movesocket', () =>
 );
 
 /*
- * Moves lensUtils client side js to public folder
- */
-gulp.task('movelensutil', () =>
-  gulp.src('./view/perspective/lensUtils.js')
-    .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
-);
-
-/*
- * Checks code using airbnb style guide.
- */
-gulp.task('style', () =>
-  gulp.src(conf.paths.src)
-    .pipe(jscs())
-    .pipe(jscs.reporter())
-    .on('end', () => {
-      process.exit();
-    })
-);
-
-/*
  * Runs default tasks on any changes to src.
  */
 gulp.task('watch', () =>
   gulp.watch(conf.paths.src, ['browserifyViews', 'movecss', 'movesocket'])
 );
-
 
 /*
  * Copy git pre-commit script to git hooks.
@@ -193,4 +165,3 @@ gulp.task('copygitprecommit', () =>
       process.exit();
     })
 );
-
