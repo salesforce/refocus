@@ -30,6 +30,7 @@ class Detail extends React.Component {
     this.putForm = this.putForm.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.toggleEdit = this.toggleEdit.bind(this);
+    this.turnOffDelete = this.turnOffDelete.bind(this);
     this.doDelete = this.doDelete.bind(this);
   }
 
@@ -43,6 +44,12 @@ class Detail extends React.Component {
     const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     deleteResource(url);
     history.push(`/${resource}s`);
+  }
+
+  turnOffDelete() {
+    this.setState({
+      askDelete: false,
+    });
   }
 
   // toggleEdit: change url to ?edit if not editing, and vice-versa
@@ -71,7 +78,7 @@ class Detail extends React.Component {
   }
   render () {
     const { url, refocusReducer, isEditing } = this.props;
-    // ie. subject, aspect
+    // resource: ie. subject, aspect
     const resource = url.split('/')[ONE].slice(ZERO, -ONE);
     // if no subject, do not render
     if (!refocusReducer[resource]) {
@@ -103,7 +110,7 @@ class Detail extends React.Component {
           <Modal
             title={`Delete ${resource}`}
             onSave={ this.doDelete }
-            onHide={ this.toggleEdit }
+            onHide={ this.turnOffDelete }
             primaryBtnTxt='Delete'
           >
             <p>{message}</p>
@@ -131,6 +138,7 @@ class Detail extends React.Component {
               title={`Edit ${resource}`}
               resource={ resource }
               onSave={ this.putForm }
+              // toggles isEditing to off
               onHide={ this.toggleEdit }
             >
               <Form
