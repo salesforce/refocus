@@ -25,6 +25,21 @@ function isThisSubject(obj) {
 }
 
 /**
+ * Returns the stringified object, with the specified key
+ * as property and the given object as the value of
+ * 'new' property.
+ *
+ * @param {String} key The key of the returned object.
+ * @param {Object} obj The value of 'new'
+ * @returns {String} The stringified object
+ */
+function getNewObjAsString(key, obj) {
+  const wrappedObj = {};
+  wrappedObj[key] = { new: obj };
+  return JSON.stringify(wrappedObj);
+}
+
+/**
  * The message object received from the redis channel, contains a "new" property
  * when a database instance is updated. This function check to see if the
  * message object contains a "new" property, if it does, it returns the new
@@ -241,6 +256,7 @@ module.exports = {
 
   getNamespaceString,
   initializeNamespace,
+  getNewObjAsString,
   parseObject,
   shouldIEmitThisObj,
 

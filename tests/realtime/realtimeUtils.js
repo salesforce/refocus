@@ -156,6 +156,19 @@ describe('realtime utils Tests:', () => {
                                   '&INCLUDE&INCLUDE&INCLUDE=OK');
       });
     });
+
+    describe('getNewObjAsString tests', () => {
+      it('getNewObjAsString returns the expected string', () => {
+        const SAMPLE_ADD_KEY = 'refocus.internal.realtime.sample.add';
+        const string = realtimeUtils.getNewObjAsString(SAMPLE_ADD_KEY, newSubject);
+        expect(string).to.be.a('string');
+        const obj = JSON.parse(string);
+        expect(obj.hasOwnProperty(SAMPLE_ADD_KEY)).to.equal(true);
+        expect(obj[SAMPLE_ADD_KEY].hasOwnProperty('new')).to.equal(true);
+        expect(obj[SAMPLE_ADD_KEY].new).to.deep.equal(newSubject);
+      })
+    });
+
     describe('parseObject tests', () => {
       it('parse updated object', () => {
         const obj = realtimeUtils.parseObject(newSubject);
