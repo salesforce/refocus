@@ -55,9 +55,6 @@ const lensLoadEvent = new CustomEvent('refocus.lens.load');
 let hierarchyLoadEvent;
 const pcValues = {};
 
-// TODO get rid of this once all the lenses aren't using it
-require('./lensUtils');
-
 const ZERO = 0;
 const ONE = 1;
 
