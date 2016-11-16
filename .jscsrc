@@ -1,3 +1,4 @@
 {
+  "maxErrors": "10000",
   "preset": "airbnb"
 }
