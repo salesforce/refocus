@@ -27,7 +27,6 @@ const conf = {
       'movecss',
       'movesocket',
       'style',
-      'movelensutil',
     ],
   },
   paths: {
@@ -145,17 +144,6 @@ gulp.task('movecss', () =>
  */
 gulp.task('movesocket', () =>
   gulp.src('./node_modules/socket.io-client/socket.io.js')
-    .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
-);
-
-/*
- * Moves lensUtils client side js to public folder
- */
-gulp.task('movelensutil', () =>
-  gulp.src('./view/perspective/lensUtils.js')
     .pipe(gulp.dest(conf.view.dest))
     .on('end', () => {
       process.exit();

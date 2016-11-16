@@ -22,7 +22,7 @@
     "initdb": "node db/createOrDropDb.js --init",
     "lint": "eslint view/admin",
     "migratedb": "node db/migrate.js",
-    "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket && gulp movelensutil",
+    "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && gulp movesocket",
     "prestart": "npm run checkdb",
     "start": "node --max_old_space_size=1500 --nouse-idle-notification index.js",
     "start-clock": "node --max_old_space_size=1500 --nouse-idle-notification clock/index.js",
