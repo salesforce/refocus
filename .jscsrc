@@ -1,4 +1,5 @@
 {
+  "fileExtensions": [".js", ".jsx"],
   "maxErrors": "10000",
   "preset": "airbnb"
 }
