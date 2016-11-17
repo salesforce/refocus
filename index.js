@@ -68,7 +68,7 @@ function start() { // eslint-disable-line max-statements
   require('./config/passportconfig')(passportModule);
 
   // middleware for checking api token
-  const jwtUtil = require('./api/v1/helpers/jwtUtil');
+  const jwtUtil = require('./utils/jwtUtil');
 
   // set up httpServer params
   const listening = 'Listening on port';
