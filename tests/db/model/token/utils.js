@@ -16,7 +16,7 @@ const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const pfx = '___';
-const jwtUtil = require('../../../../api/v1/helpers/jwtUtil');
+const jwtUtil = require('../../../../utils/jwtUtil');
 const tokenName = 'testTokenName';
 
 module.exports = {

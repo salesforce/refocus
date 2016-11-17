@@ -14,7 +14,7 @@ const configuredPassport = require('../../../index').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/users');
-const jwtUtil = require('../helpers/jwtUtil');
+const jwtUtil = require('../../../utils/jwtUtil');
 
 const resourceName = 'register';
 

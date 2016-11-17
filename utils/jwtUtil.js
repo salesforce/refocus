@@ -7,16 +7,16 @@
  */
 
 /**
- * api/v1/helpers/jwt.js
+ * utils/jwtUtil.js
  */
 'use strict'; // eslint-disable-line strict
 
 const jwt = require('jsonwebtoken');
-const u = require('./verbs/utils');
-const apiErrors = require('../apiErrors');
-const conf = require('../../../config');
+const u = require('../api/v1/helpers/verbs/utils');
+const apiErrors = require('../api/v1/apiErrors');
+const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
-const User = require('../../../db/index').User;
+const User = require('../db/index').User;
 
 /**
  * create and handle Invalid Token error
