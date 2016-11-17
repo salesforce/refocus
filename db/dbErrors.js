@@ -67,8 +67,8 @@ dbErrors.create({
   parent: dbErrors.ValidationError,
   range: [],
   defaultMessage: 'Could not find the specified parent for this subject.',
-  explanation: 'If a subject specifies that it has a parent, the parent' +
-   'subject must already exist.'
+  explanation: 'If a subject specifies that it has a parent, the parent ' +
+   'subject must already exist.',
 });
 
 // ----------------------------------------------------------------------------

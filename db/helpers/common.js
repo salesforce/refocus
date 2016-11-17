@@ -11,14 +11,12 @@
  *
  * Common utility file used by all the models
  */
-
 'use strict'; // eslint-disable-line strict
 
 const pub = require('../../pubsub').pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
 const logDB = require('../../utils/loggingUtil').logDB;
-
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {
@@ -71,11 +69,16 @@ function augmentSampleWithSubjectInfo(seq, inst) {
  */
 function sampleAspectAndSubjectArePublished(seq, inst) {
   return new seq.Promise((resolve, reject) => {
-    let asp, sub;
+    let asp;
+    let sub;
     inst.getSubject()
-    .then((s) => sub = s)
+    .then((s) => {
+      sub = s;
+    })
     .then(() => inst.getAspect())
-    .then((a) => asp = a)
+    .then((a) => {
+      asp = a;
+    })
     .then(() => resolve(sub && asp && sub.isPublished && asp.isPublished))
     .catch((err) => reject(err));
   });
