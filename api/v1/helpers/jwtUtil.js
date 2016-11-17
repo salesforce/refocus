@@ -80,6 +80,7 @@ function getUsernameFromToken(req) {
         if (err !== null) {
           reject(err);
         }
+
         const username = decodedData.username;
         resolve(username);
       });

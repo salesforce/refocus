@@ -25,8 +25,9 @@ const ZERO = 0;
 const ONE = 1;
 
 /**
- * overwrites name, description and version from lens metadata if not provided
- * in request
+ * Overwrites name, description and version from lens metadata if not provided
+ * in request.
+ *
  * @param  {object} seqObj - lens object
  */
 function updateLensDetails(seqObj) {
@@ -51,10 +52,11 @@ function updateLensDetails(seqObj) {
       seqObj.version = seqObj.sourceVersion;
     }
   }
-}
+} // updateLensDetails
 
 /**
- * Parse lens metadata from lens json provided in lens zip
+ * Parse lens metadata from lens json provided in lens zip.
+ *
  * @param  {object} zip - lens zip
  * @param  {object} lensJson - lens metadata in json format
  * @param  {object} seqObj - lens object to create
@@ -62,8 +64,8 @@ function updateLensDetails(seqObj) {
 function parseLensMetadata(zip, lensJson, seqObj) {
   const metadataJson = JSON.parse(zip.readAsText(lensJson));
   for (const metadataEntry in metadataJson) {
-    // lens metadata name will be saved as sourceName.
-    //  Same with description and version
+    // Lens metadata name will be saved as sourceName.
+    // Same with description and version.
     if (metadataEntry === 'name' || metadataEntry === 'description' ||
      metadataEntry === 'version') {
       const capMetadataEntry = metadataEntry.charAt(ZERO).toUpperCase() +
@@ -73,10 +75,11 @@ function parseLensMetadata(zip, lensJson, seqObj) {
       seqObj[metadataEntry] = metadataJson[metadataEntry];
     }
   }
-}
+} // parseLensMetadata
 
 /**
- * Extract lens metadata from lens zip
+ * Extract lens metadata from lens zip.
+ *
  * @param  {object} requestObj - request object
  * @param  {string} libraryParam - zip parameter in request object
  * @param  {object} seqObj - description
@@ -109,8 +112,7 @@ function handleLensMetadata(requestObj, libraryParam, seqObj) {
   } else {
     throw new apiErrors.ValidationError();
   }
-}
-
+} // handleLensMetadata
 
 /**
  * Prepares the object to be sent back in the response ("cleans" the object,

@@ -10,7 +10,6 @@
  * api/v1/controllers/samples.js
  */
 'use strict';
-
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/samples');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -23,10 +22,10 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAPI = require('../../../utils/loggingUtil').logAPI;
 const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') ?
-                  require('../../../jobQueue/setup').jobType : null;
-const jobWrapper =
-              featureToggles.isFeatureEnabled('useWorkerProcess') ?
-                require('../../../jobQueue/jobWrapper'): null;
+  require('../../../jobQueue/setup').jobType : null;
+const jobWrapper = featureToggles.isFeatureEnabled('useWorkerProcess') ?
+  require('../../../jobQueue/jobWrapper') : null;
+
 module.exports = {
 
   /**

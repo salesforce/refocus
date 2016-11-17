@@ -10,17 +10,12 @@
  * api/v1/helpers/nouns/samples.js
  */
 'use strict';
-
 const Sample = require('../../../../db/index').Sample;
 const config = require('../../../../config');
-
 const m = 'sample';
-
 const fieldsWithJsonArrayType = ['relatedLinks'];
-const loggingEnabled = (
-  config.auditSamples === 'API' || config.auditSamples === 'ALL'
-  ) || false;
-
+const loggingEnabled = (config.auditSamples === 'API' ||
+  config.auditSamples === 'ALL') || false;
 
 module.exports = {
   apiLinks: {
@@ -35,5 +30,4 @@ module.exports = {
   modelName: 'Sample',
   fieldsWithJsonArrayType,
   loggingEnabled,
-
 }; // exports
