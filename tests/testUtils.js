@@ -13,7 +13,7 @@
 'use strict';
 
 var pfx = '___';
-const jwtUtil = require('../api/v1/helpers/jwtUtil');
+const jwtUtil = require('../utils/jwtUtil');
 const db = require('../db');
 const testStartTime = new Date();
 

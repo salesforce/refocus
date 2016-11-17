@@ -20,7 +20,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 const pfx = '___';
-const jwtUtil = require('../../../../api/v1/helpers/jwtUtil');
+const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe('db: Token: create', () => {
   let userObj = {};
