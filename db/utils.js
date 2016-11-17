@@ -236,7 +236,7 @@ function reset() {
 
 // Polyfill Array "includes" -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 if (!Array.prototype.includes) {
-  Array.prototype.includes = function(searchElement /*, fromIndex*/) {
+  Array.prototype.includes = function (searchElement /*, fromIndex*/) {
     'use strict';
     if (this == null) {
       throw new TypeError('Array.prototype.includes called on null or undefined');
@@ -247,6 +247,7 @@ if (!Array.prototype.includes) {
     if (len === 0) {
       return false;
     }
+
     var n = parseInt(arguments[1], 10) || 0;
     var k;
     if (n >= 0) {
@@ -255,6 +256,7 @@ if (!Array.prototype.includes) {
       k = len + n;
       if (k < 0) {k = 0;}
     }
+
     var currentElement;
     while (k < len) {
       currentElement = O[k];
@@ -262,8 +264,10 @@ if (!Array.prototype.includes) {
          (searchElement !== searchElement && currentElement !== currentElement)) { // NaN !== NaN
         return true;
       }
+
       k++;
     }
+
     return false;
   };
 }
