@@ -58,10 +58,10 @@ describe(`api: ${path}`, () => {
     });
   });
 
-  it('POST Not Allowed', (done) => {
+  it('No POST', (done) => {
     api.post(path)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_ALLOWED)
+    .expect(constants.httpStatus.NOT_FOUND) 
     .end((err /* , res */) => {
       if (err) {
         return done(err);
@@ -71,10 +71,10 @@ describe(`api: ${path}`, () => {
     });
   });
 
-  it('PUT Not Allowed', (done) => {
+  it('No PUT', (done) => {
     api.put(path)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_ALLOWED)
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
         return done(err);
@@ -84,10 +84,10 @@ describe(`api: ${path}`, () => {
     });
   });
 
-  it('PATCH Not Allowed', (done) => {
+  it('No PATCH', (done) => {
     api.patch(path)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_ALLOWED)
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
         return done(err);
@@ -97,10 +97,10 @@ describe(`api: ${path}`, () => {
     });
   });
 
-  it('DELETE Not Allowed', (done) => {
+  it('No DELETE', (done) => {
     api.delete(path)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_ALLOWED)
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
         return done(err);
