@@ -208,8 +208,7 @@ describe(`api: GET ${path}:`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].tags[0]).to.equal('ea');
+        expect(res.body.children).to.have.length(3);
       })
       .end((err /* , res */) => {
         if (err) {
@@ -227,7 +226,7 @@ describe(`api: GET ${path}:`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.children).to.have.length(0);
+        expect(res.body.children).to.have.length(2);
       })
       .end((err /* , res */) => {
         if (err) {
@@ -490,9 +489,9 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         expect(res.body.samples).to.have.length(0);
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].samples).to.have.length(0);
+        expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(1);
-        expect(res.body.children[0].children[0].samples).to.have.length(0);
+        expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].children[0].samples)
           .to.have.length(1);
@@ -517,7 +516,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.samples).to.have.length(0);
-        expect(res.body.children).to.have.length(0);
+        expect(res.body.children).to.have.length(1);
       })
       .end((err /* , res */) => {
         if (err) {
