@@ -114,9 +114,9 @@ function applyTagFilters(keys, filterBy) {
     return true;
   }
 
-  // When tags are not present, no filters are applied to it.
-  if (!keys.length) {
-    return false;
+  // When tags are not present and an excludes filter is set, return true
+  if (!keys.length && filters[filterBy].excludes.size) {
+    return true;
   }
 
   let isPartOfInFilter = false;
