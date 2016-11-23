@@ -342,11 +342,6 @@ module.exports = function subject(seq, dataTypes) {
           );
         }
 
-        if (inst.changed('tags')) {
-          common.publishChange(inst, eventName.del);
-          common.publishChange(inst, eventName.add);
-        }
-
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
             // Send event for updation of tags, first delete and then add
