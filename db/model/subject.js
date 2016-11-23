@@ -342,7 +342,6 @@ module.exports = function subject(seq, dataTypes) {
           );
         }
 
-        // Send event for updation of tags, first delete and then add
         if (inst.changed('tags')) {
           common.publishChange(inst, eventName.del);
           common.publishChange(inst, eventName.add);
@@ -350,8 +349,14 @@ module.exports = function subject(seq, dataTypes) {
 
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
-            common.publishChange(inst, eventName.upd, changedKeys,
+            // Send event for updation of tags, first delete and then add
+            if (inst.changed('tags')) {
+              common.publishChange(inst, eventName.del);
+              common.publishChange(inst, eventName.add);
+            } else {
+              common.publishChange(inst, eventName.upd, changedKeys,
               ignoreAttributes);
+            }
           } else {
             // Treat publishing a subject as an "add" event.
             common.publishChange(inst, eventName.add);
