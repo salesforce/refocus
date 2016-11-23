@@ -344,7 +344,12 @@ module.exports = function subject(seq, dataTypes) {
 
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
-            // Send event for updation of tags, first delete and then add
+            /*
+             * If tags were updated, send a "delete" event followed by an "add"
+             * event so that perspectives using subject tag filters will get
+             * the right realtime events. If subject tags were not updated,
+             * just send the usual "update" event.
+             */
             if (inst.changed('tags')) {
               common.publishChange(inst, eventName.del);
               common.publishChange(inst, eventName.add);
