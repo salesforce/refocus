@@ -25,11 +25,18 @@ import DataTable from '../common/DataTable';
 import PageHeader from '../common/PageHeader';
 import Form from '../common/Forms';
 import Modal from '../common/Modal';
+import ErrorRender from '../common/ErrorRender';
+
+const ONE = '1';
 
 class List extends React.Component {
   constructor(props) {
     super(props);
+    this.setIinvalidFieldObj = this.setIinvalidFieldObj.bind(this);
     this.postForm = this.postForm.bind(this);
+    this.showError = this.showError.bind(this);
+    this.closeError = this.closeError.bind(this);
+    this.processData = this.processData.bind(this);
     this.doFetch = this.doFetch.bind(this);
     this.doDelete = this.doDelete.bind(this);
     this.toggleDelete = this.toggleDelete.bind(this);
@@ -37,6 +44,8 @@ class List extends React.Component {
     this.cancelForm = this.cancelForm.bind(this);
     this.state = {
       delResource: false,
+      error: '',
+      invalidFieldObj: {},
     };
   }
 
@@ -57,28 +66,68 @@ class List extends React.Component {
   cancelForm() {
     const { history, url } = this.props;
     // go back home
-    history.push('/' + url.split('/')[1]);
+    history.push('/' + url.split('/')[ONE]);
+  }
+  showError(error) {
+    const errorMessage = (error && typeof error === 'object') ?
+      JSON.stringify(error) : error;
+    this.setState({ error: errorMessage });
+  }
+  closeError() {
+    this.setState({ error: '' });
+  }
+
+  /**
+   * Validates form data with regexp from config
+   * If validation passes, post formObj
+   * else update error state with fields that failed validation
+   * @param {Array} propertyMetaData Contains data validation
+   * @param {Object} formObj JSON object with all postable data from form
+   * @param {String} goToUrl The url to redirect to
+   */
+  processData(propertyMetaData, formObj, goToUrl) {
+    const { history, postResource, checkValidation } = this.props;
+    // if array contains fields, show error
+    const failedFields = checkValidation(propertyMetaData, formObj);
+    const keys = Object.keys(failedFields);
+    if (keys.length) {
+      this.setIinvalidFieldObj(failedFields);
+      this.showError('error from create: ' +
+        keys.join(', ') + ' failed validation');
+    } else {
+      // all fields valid
+      this.setIinvalidFieldObj({});
+      // go to details page
+      postResource(formObj, goToUrl, (redirectUrl) => {
+        history.push(redirectUrl);
+      });
+    }
+  }
+
+  // obj contains invalid fields and their data
+  setIinvalidFieldObj(invalidFieldObj) {
+    this.setState({
+      invalidFieldObj,
+    });
   }
 
   postForm() {
-    const { history, url, postResource, getFormData } = this.props;
+    const { url, getFormData } = this.props;
     const form = this.refs.addResourceForm;
     const valueType = form.state.aspectRangeFormat;
     const formOutput = ReactDOM.findDOMNode(form);
-    const goToUrl = '/' + url.split('/')[1];
-    const resource = goToUrl.substr(1);
+    const goToUrl = '/' + url.split('/')[ONE];
+    const resource = goToUrl.substr(ONE);
     const propertyMetaData = createFields[resource];
     const formObj = getFormData(formOutput, valueType, propertyMetaData);
-    // go to details page
-    postResource(formObj, goToUrl, (redirectUrl) => {
-      history.push(redirectUrl);
-    });
+    // If validation passes, proceeed with HTTP request
+    this.processData(propertyMetaData, formObj, goToUrl);
   }
 
   doFetch(newUrl) {
     const { url, fetchResources, params } = this.props;
     const fetchUrl = newUrl || url;
-    const resource = fetchUrl.split('/')[1];
+    const resource = fetchUrl.split('/')[ONE];
     // fetch all if on new page, or fetch specific resource
     params.identifier === 'new' ?
       fetchResources('/' + resource) :
@@ -99,7 +148,7 @@ class List extends React.Component {
 
   render () {
     const { url, refocusReducer, urlQuery, params } = this.props;
-    const resource = url.split('/')[1];
+    const resource = url.split('/')[ONE];
     const message = 'Do you want to delete ' + resource +
       ' ' + this.state.delResource + ', and all its associated samples?';
     const tableOpts = {
@@ -120,6 +169,18 @@ class List extends React.Component {
       tableOpts.parentAbsolutePath = urlQuery.split('=').pop() || 'dummy';
       formOpts.parentAbsolutePath = urlQuery.split('=').pop();
     }
+    const { invalidFieldObj } = this.state;
+    // if invalid input, show them
+    if (Object.keys(invalidFieldObj).length) {
+      formOpts.data = invalidFieldObj;
+    }
+
+    const errorMessage = this.state.error ? <ErrorRender
+        hide={this.closeError.bind(this)}
+        error={ this.state.error }
+        displayRelative={ true }
+        /> :
+      ' ';
 
     return (
       <div>
@@ -136,8 +197,12 @@ class List extends React.Component {
         <PageHeader resource={resource} >
           <Link to={ '/' + resource + '/new' }
             className='slds-button slds-button--neutral slds-not-selected'>
-            <svg aria-hidden="true" className="slds-button__icon--stateful slds-button__icon--left">
-              <use xlinkHref="../static/icons/utility-sprite/svg/symbols.svg#add"></use>
+            <svg
+              aria-hidden="true"
+              className="slds-button__icon--stateful slds-button__icon--left">
+              <use
+                xlinkHref="../static/icons/utility-sprite/svg/symbols.svg#add">
+              </use>
             </svg>New
           </Link>
         </PageHeader>
@@ -146,9 +211,10 @@ class List extends React.Component {
         </div>
         {(params.identifier === 'new') &&
         <Modal
-          title={ 'Create new ' + resource.slice(0, -1) }
+          title={ 'Create new ' + resource.slice(0, -ONE) }
           onSave={ this.postForm }
           onHide={ this.cancelForm }
+          notificationBox={ errorMessage }
         >
           <Form {...formOpts}/>
         </Modal>
@@ -167,6 +233,7 @@ List.propTypes = {
   fetchResources: PropTypes.func,
   refocusReducer: PropTypes.object,
   getFormData: PropTypes.func,
+  checkValidation: PropTypes.func,
   params: PropTypes.object,
 };
 
