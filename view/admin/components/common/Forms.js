@@ -15,9 +15,6 @@
 import React from 'react';
 import ControlledInput from './ControlledInput';
 
-const ONE = 1;
-const ZERO = 0;
-
 /**
  * Given string, creates a label with content of that string
  * @param {string} displayName The label's content
@@ -45,7 +42,7 @@ const Form = React.createClass({
       edit: false,
     };
   },
-  getInitialState() {
+  getInitialState: function() {
     return { // default valueType
       aspectRangeFormat: this.props.data.valueType || 'BOOLEAN',
       useDefaultAspectRange: false,
@@ -103,10 +100,10 @@ const Form = React.createClass({
     allFields.resetAspectRange = this.resetAspectRange;
     allFields.changeAspectRangeFormat = this.changeAspectRangeFormat;
 
-    for (let i = ZERO; i < propertyMetaData.length; i++) {
+    for (let i = 0; i < propertyMetaData.length; i++) {
       const defultValue = resource[propertyMetaData[i].propertyName];
       // if range field and useDefaultAspectRange, value is defaultAspectRange
-      const value = (propertyMetaData[i].propertyName.indexOf('Range') > ZERO &&
+      const value = (propertyMetaData[i].propertyName.indexOf('Range') > 0 &&
         Array.isArray(defultValue) && this.state.useDefaultAspectRange) ?
         defaultAspectRange :
         defultValue;
@@ -116,11 +113,11 @@ const Form = React.createClass({
       // unit test this
       const propsFromForm = propertyMetaData[i].propsFromForm;
       if (propsFromForm && propsFromForm.length) {
-        for (let j = propsFromForm.length - ONE; j >= ZERO; j--) {
+        for (let j = propsFromForm.length - 1; j >= 0; j--) {
           obj[propsFromForm[j]] = (
-              propsFromForm.indexOf('Range') > ZERO &&
-              this.state.useDefaultAspectRange
-            ) ? defaultAspectRange : allFields[propsFromForm[j]];
+            propsFromForm.indexOf('Range') > 0 && this.state.useDefaultAspectRange) ?
+            defaultAspectRange :
+            allFields[propsFromForm[j]];
         }
       }
 
