@@ -16,7 +16,6 @@ const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const pfx = '___';
-const jwtUtil = require('../../../../utils/jwtUtil');
 const tokenName = 'testTokenName';
 
 module.exports = {
@@ -41,16 +40,9 @@ module.exports = {
       })
     )
     .then((returnedUser) => {
-      // create token
-      const token = jwtUtil.createToken({
-        name: returnedUser.name,
-        email: returnedUser.email,
-      });
-
       // create Token object
       return tu.db.Token.create({
         name: tokenName,
-        token,
         createdBy: returnedUser.id,
       });
     });

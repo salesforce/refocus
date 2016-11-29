@@ -27,17 +27,12 @@ module.exports = function token(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
     },
-    token: {
-      type: dataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
     isDeleted: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
       allowNull: false,
     },
-    isDisabled: {
+    isRevoked: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
       allowNull: false,
@@ -59,7 +54,6 @@ module.exports = function token(seq, dataTypes) {
                 association: assoc.createdBy,
               },
             ],
-            attributes: { exclude: ['token'] },
             order: ['Token.name'],
           },
           {
@@ -71,15 +65,6 @@ module.exports = function token(seq, dataTypes) {
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
-      },
-
-      beforeCreate(inst /* , opts */) {
-        return new seq.Promise((resolve, reject) =>
-          u.hashPassword(seq, inst.get('token'))
-          .then((hash) => inst.set('token', hash))
-          .then(() => resolve(inst))
-          .catch((err) => reject(err))
-        );
       },
     },
     indexes: [
