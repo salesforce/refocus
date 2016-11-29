@@ -43,7 +43,6 @@ obj.samples = [
 obj.subjects = [{
   propertyName: 'name',
   displayName: 'Name',
-  validate: /^[0-9A-Za-z_\\-]{1,60}$/,
 }, {
   propertyName: 'parentAbsolutePath',
   displayName: 'Parent Absolute Path',
@@ -88,7 +87,6 @@ obj.subjects = [{
 }, {
   propertyName: 'tags',
   displayName: 'Tags',
-  validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
@@ -137,7 +135,6 @@ obj.aspects = [{
 }, {
   propertyName: 'tags',
   displayName: 'Tags',
-  validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
