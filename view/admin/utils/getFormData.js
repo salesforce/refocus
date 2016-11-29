@@ -75,25 +75,21 @@ function fromTextInput(inputs, jsonData, alterDataFunc) {
 }
 
 /**
- * Queries rendered form and returns keyed DOM elements in the form.
- * @param {DOMElement} form The rendered form
- * @returns {Object} with keys to particular DOM elements
+ *
+ * @param {DOMElement} form The form to get inputs from
+ * @param {String} aspectRangeFormat The format to get inputs by
+ * @param {Object} propertyMetaData The metaData to group inputs by
+ * @returns {Object} jsonData The JSON representation of form data
  */
-function getInputsAndSelects(form) {
+function getFormData(form, aspectRangeFormat, propertyMetaData) {
   const inputs = form.getElementsByTagName('input');
   const selects = form.getElementsByTagName('select');
-  const fieldSets = form.getElementsByTagName('fieldset');
-  return { inputs, fieldSets, inputsAndSelects: [...inputs, ...selects] };
-}
+  const inputsAndSelects = [...inputs, ...selects];
+  const jsonData = {};
 
-/**
- * Gets data from the supplied DOM elements.
- * @param {DOMElement} fieldSets The rendered field sets
- * @returns {Object} JSON representation of data in field sets
- */
-function addData(fieldSets) {
+  // for tags, relatedLinks
   let tempObj = {};
-  let jsonData = {};
+  const fieldSets = form.getElementsByTagName('fieldset');
   for (let i = fieldSets.length - ONE; i >= ZERO; i--) {
     const objName = fieldSets[i].name;
     let dataObject = {};
@@ -119,20 +115,6 @@ function addData(fieldSets) {
     // add fieldSet data to JSON
     jsonData[objName] = dataObject[objName];
   }
-  return jsonData;
-}
-
-/**
- *
- * @param {DOMElement} form The form to get inputs from
- * @param {String} aspectRangeFormat The format to get inputs by
- * @param {Object} propertyMetaData The metaData to group inputs by
- * @returns {Object} jsonData The JSON representation of form data
- */
-function getFormData(form, aspectRangeFormat, propertyMetaData) {
-  const { inputs, fieldSets, inputsAndSelects } = getInputsAndSelects(form);
-  // for tags, relatedLinks
-  const jsonData = addData(fieldSets);
   // check propertyMetaData for customOutput,
   // if so, get value by customValueQuery
   for (let i = propertyMetaData.length - ONE; i >= ZERO; i--) {
@@ -165,53 +147,4 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
   return jsonData;
 }
 
-/**
- * Check whether the given string matches the given pattern.
- * @param {String} string The string to check
- * @param {String} pattern The regexp to check
- * @returns {Boolean}} true if string match pattern, false otherwise
- */
-function checkStringForPattern(string, pattern) {
-  const patt = new RegExp(pattern);
-  return patt.test(string);
-}
-
-/**
- * @param {Array} propertyMetadata Contains data validation
- * @param {Object} jsonData JSON object with all postable data from form
- * @returns {Object} With keys as propertyName of invalid fields,
- * or empty object if all fields are valid
-*/
-function checkValidation(propertyMetadata, jsonData) {
-  // filters invalid fields
-  const result = propertyMetadata.filter((obj) => {
-    // check only fields to validate
-    if (obj.hasOwnProperty('validate')) {
-      const value = jsonData[obj.propertyName];
-      if (Array.isArray(value)) {
-        // returns true or false for all item in array.
-        const isValid = value.every((string) => {
-          return checkStringForPattern(string, obj.validate);
-        });
-        if (!isValid) {
-          return obj;
-        }
-      } else { // check string
-        const isValid = checkStringForPattern(value, obj.validate);
-        if (!isValid) {
-          return obj;
-        }
-      }
-    }
-  }).reduce(function(accumulatorObj, propertyMetadataObj) {
-    const name = propertyMetadataObj.propertyName;
-    accumulatorObj[name] = jsonData[name];
-    return accumulatorObj;
-  }, {});
-
-  // if all fields are valid, result is an empty array.
-  // return an empty obj instead
-  return Array.isArray(result) ? {} : result;
-}
-
-export { getFormData, checkValidation };
+export default getFormData;

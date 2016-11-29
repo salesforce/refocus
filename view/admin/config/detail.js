@@ -60,7 +60,6 @@ const aspectMetaData = [{
 }, {
   propertyName: 'tags',
   displayName: 'Tags',
-  validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
@@ -172,7 +171,6 @@ const subjectMetaData = [
   {
     propertyName: 'name',
     displayName: 'Name',
-    validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   }, {
     propertyName: 'parentAbsolutePath',
     displayName: 'Parent Absolute Path',
@@ -212,7 +210,6 @@ const subjectMetaData = [
   }, {
     propertyName: 'tags',
     displayName: 'Tags',
-    validate: /^[0-9A-Za-z_\\-]{1,60}$/,
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
