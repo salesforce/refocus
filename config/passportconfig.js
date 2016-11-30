@@ -14,6 +14,7 @@
 
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/index').User;
+const Token = require('../db/index').Token;
 const Profile = require('../db/index').Profile;
 const bcrypt = require('bcrypt-nodejs');
 
@@ -63,13 +64,24 @@ module.exports = (passportModule) => {
       return Profile.findOrCreate({ where: { name: 'RefocusUser' } });
     })
     .spread((profile, created) => { // eslint-disable-line no-unused-vars
+      // if non-sso register, create new user and token object.
+      let newUserCreated = null;
       User.create({
         profileId: profile.id,
         name: userName,
         email: req.body.email,
         password: userPassword,
       })
-      .then((newUser) => done(null, newUser))
+      .then((newUser) => {
+        newUserCreated = newUser;
+        return Token.create({
+          name: newUser.name,
+          createdby: newUser.id,
+        });
+      })
+      .then(() => {
+        done(null, newUserCreated);
+      })
       .catch((_err) => done(_err));
     })
     .catch((err) => done(err));

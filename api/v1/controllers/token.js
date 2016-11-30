@@ -28,13 +28,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    *
    */
+
+  // this endpoint will be replaced with new create token endpoint.
   postToken(req, res, next) {
     configuredPassport.authenticate('local-login', (err, user/* , info */) => {
       if (err) {
         return u.handleError(next, err, resourceName);
       }
 
-      if (!user) {
+      if (!user || !user.name) {
         const loginErr = new apiErrors.LoginError({
           explanation: 'Invalid credentials.',
         });
@@ -42,7 +44,8 @@ module.exports = {
         return u.handleError(next, loginErr, resourceName);
       }
 
-      const createdToken = jwtUtil.createToken(user);
+      // just changing this to pass tests for now.
+      const createdToken = jwtUtil.createToken(user.name, user.name);
 
       return res.status(httpStatus.OK).json({
         success: true,

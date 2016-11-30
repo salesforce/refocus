@@ -34,7 +34,7 @@ module.exports = {
         return u.handleError(next, err, resourceName);
       }
 
-      if (!user) {
+      if (!user || !user.name) {
         const loginErr = new apiErrors.LoginError({
           explanation: 'Invalid credentials',
         });
@@ -42,7 +42,7 @@ module.exports = {
       }
 
       // Create a new token on login.
-      const createdToken = jwtUtil.createToken(user);
+      const createdToken = jwtUtil.createToken(user.name, user.name);
 
       req.logIn(user, (_err) => {
         if (_err) {
