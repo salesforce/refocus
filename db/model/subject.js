@@ -349,6 +349,9 @@ module.exports = function subject(seq, dataTypes) {
              * event so that perspectives using subject tag filters will get
              * the right realtime events. If subject tags were not updated,
              * just send the usual "update" event.
+             *
+             * TODO : Right now don't have the ability to mock the socket.io
+             * test for this.
              */
             if (inst.changed('tags')) {
               common.publishChange(inst, eventName.del);
