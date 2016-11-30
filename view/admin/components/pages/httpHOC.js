@@ -20,7 +20,7 @@ import _ from 'lodash';
 import List from './List';
 import Detail from './Detail';
 import Header from '../common/Header';
-import getFormData from '../../utils/getFormData';
+import { getFormData, checkValidation } from '../../utils/getFormData';
 import ErrorRender from '../common/ErrorRender';
 import MessageRender from '../common/MessageRender';
 import * as actions from '../../actions/index';
@@ -49,6 +49,7 @@ class httpHOC extends React.Component {
     const isEditing = urlQuery.indexOf('?edit') > -1;
     const { message, error } = refocusReducer;
     const propsToChild = {
+      checkValidation,
       url,
       isEditing,
       urlQuery,
@@ -65,7 +66,7 @@ class httpHOC extends React.Component {
         ' '}
         {error ? <ErrorRender
           hide={this.closeDialogue}
-          error={ error.message } /> :
+          error={ error } /> :
         ' '}
         {(params.identifier === 'new' || !params.identifier) ?
           <List {...propsToChild} /> :
@@ -100,6 +101,7 @@ httpHOC.propTypes = {
   actions: PropTypes.object,
   params: PropTypes.object,
   getFormData: PropTypes.func,
+  checkValidation: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps,

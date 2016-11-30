@@ -50,6 +50,34 @@ describe('Detail view ', () => {
     return enzymeWrapper;
   }
 
+  it('state overwrites form Object when the latter has empty array', () => {
+    const formObj = { name: DUMMY_STRING, tags: [] };
+    const invalidFieldObj = { tags: [' I am invalid'] };
+    const updatedObj = Object.assign(formObj, invalidFieldObj);
+    expect(updatedObj.tags).to.deep.equal(invalidFieldObj.tags);
+  });
+
+  it('state overwrites form Object when the latter has empty string', () => {
+    const formObj = { name: DUMMY_STRING, helpEmail: '' };
+    const invalidFieldObj = { helpEmail: DUMMY_STRING };
+    const updatedObj = Object.assign(formObj, invalidFieldObj);
+    expect(updatedObj.helpEmail).to.deep.equal(invalidFieldObj.helpEmail);
+  });
+
+  it('state overwrites form Object when the latter is non-empty string', () => {
+    const formObj = { name: DUMMY_STRING, helpEmail: 'valid@email.com' };
+    const invalidFieldObj = { helpEmail: DUMMY_STRING };
+    const updatedObj = Object.assign(formObj, invalidFieldObj);
+    expect(updatedObj.helpEmail).to.deep.equal(invalidFieldObj.helpEmail);
+  });
+
+  it('state overwrites form Object when the latter has values', () => {
+    const formObj = { name: DUMMY_STRING, tags: ['valid_tag'] };
+    const invalidFieldObj = { tags: [' I am invalid'] };
+    const updatedObj = Object.assign(formObj, invalidFieldObj);
+    expect(updatedObj.tags).to.deep.equal(invalidFieldObj.tags);
+  });
+
   it('should render button row with three buttons as expected', () => {
     const enzymeWrapper = setup();
     // button row container
