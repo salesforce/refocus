@@ -23,7 +23,6 @@ const conf = {
     default: [
       'browserifyViews',
       'movecss',
-      'movesocket',
     ],
   },
   paths: {
@@ -134,24 +133,6 @@ gulp.task('movecss', () =>
     .on('end', () => {
       process.exit();
     })
-);
-
-/*
- * Moves socket io client side js to public folder
- */
-gulp.task('movesocket', () =>
-  gulp.src('./node_modules/socket.io-client/socket.io.js')
-    .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
-);
-
-/*
- * Runs default tasks on any changes to src.
- */
-gulp.task('watch', () =>
-  gulp.watch(conf.paths.src, ['browserifyViews', 'movecss', 'movesocket'])
 );
 
 /*

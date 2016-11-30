@@ -48,27 +48,13 @@ describe('db: Token: create', () => {
   afterEach(u.forceDelete);
 
   it('Create token object', (done) => {
-    // create token
-    const token = jwtUtil.createToken({
-      name: userObj.name,
-      email: userObj.name,
-    });
-
     Token.create({
       name: tokenName,
-      token,
       createdBy: userObj.id,
     })
     .then((createdToken) => {
       expect(createdToken.name).to.be.equal(tokenName);
-      bcrypt.compare(token, createdToken.token, (err, res) => {
-        if (err) {
-          throw err;
-        }
-
-        expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
-      });
-      expect(createdToken.isDisabled).to.be.equal('0');
+      expect(createdToken.isRevoked).to.be.equal('0');
       expect(createdToken.createdBy).to.be.equal(userObj.id);
       done();
     })

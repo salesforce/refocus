@@ -41,12 +41,12 @@ describe('db: Token: update', () => {
     .catch((err) => done(err));
   });
 
-  it('Disable a token', (done) => {
+  it('Revoke a token', (done) => {
     const date = Date.now();
     Token.findById(tokenObj.id)
-    .then((returnedToken) => returnedToken.update({ isDisabled: date }))
+    .then((returnedToken) => returnedToken.update({ isRevoked: date }))
     .then((updatedToken) => {
-      expect(updatedToken.isDisabled).to.be.eql(date);
+      expect(updatedToken.isRevoked).to.be.eql(date);
       done();
     })
     .catch((err) => done(err));
