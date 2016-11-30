@@ -30,7 +30,6 @@ describe('db: Token: find', () => {
   afterEach(u.forceDelete);
 
   it('Delete token object', (done) => {
-    console.log(u.tokenObj);
     Token.findById(tokenObj.id)
     .then((returnedToken) => returnedToken.destroy())
     .then((delToken) => {

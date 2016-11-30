@@ -37,7 +37,7 @@ describe('db: Token: find', () => {
       expect(returnedToken.name).to.be.equal(tokenObj.name);
       expect(returnedToken.id).to.be.equal(tokenObj.id);
       expect(returnedToken.createdBy).to.be.equal(tokenObj.createdBy);
-      expect(returnedToken.isDisabled).to.be.equal(tokenObj.isDisabled);
+      expect(returnedToken.isRevoked).to.be.equal(tokenObj.isRevoked);
       done();
     })
     .catch((err) => done(err));
@@ -47,15 +47,6 @@ describe('db: Token: find', () => {
     Token.findAll({ where: { createdBy: tokenObj.createdBy } })
     .then((returnedTokens) => {
       expect(returnedTokens.length).to.be.eql(1);
-      done();
-    })
-    .catch((err) => done(err));
-  });
-
-  it('token is not returned', (done) => {
-    Token.findById(tokenObj.id)
-    .then((returnedToken) => {
-      expect(returnedToken.token).to.be.eql(undefined);
       done();
     })
     .catch((err) => done(err));
