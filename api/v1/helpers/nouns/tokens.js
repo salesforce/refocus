@@ -23,7 +23,7 @@ module.exports = {
     POST: `Create a new ${m}`,
     PUT: `Overwrite all attributes of this ${m}`,
   },
-  baseUrl: '/v1/token',
+  baseUrl: '/v1/tokens',
   model: Token,
   modelName: 'Token',
 }; // exports
