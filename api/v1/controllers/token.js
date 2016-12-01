@@ -33,14 +33,15 @@ module.exports = {
     // not set, then return error.
     if (!req.user || !req.user.name) {
       const tokenErr = new apiErrors.LoginError({
-        explanation: 'Unable to parse token. Please make sure that you have ' +
-         'provided token in header.',
+        explanation: 'Unable to parse token. Please make sure that you ' +
+         'include an Authorization header (i.e. Authorization=YOUR_TOKEN) ' +
+         'with your POST request.',
       });
       tokenErr.resource = resourceName;
       return u.handleError(next, tokenErr, resourceName);
     }
 
-    // create tokem to be returned in response.
+    // create token to be returned in response.
     const tokenName = req.swagger.params.queryBody.value.name;
     const tokenValue = jwtUtil.createToken(tokenName, req.user.name);
 

@@ -4495,7 +4495,10 @@ paths:
                 type: string
                 maxLength: 254
                 description: >
-                  The name of token. Token name should be unique for a user.
+                  A name for your new token. Token name must be unique for a 
+                  user. Best practice is to select a name which reminds you of 
+                  how you intend to use the token,
+                  e.g. "PushSamplesFromSystemXyz".
             required:
               - name
       responses:
