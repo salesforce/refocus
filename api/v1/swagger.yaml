@@ -62,34 +62,6 @@ produces:
 paths:
 
   # ---------------------------------------------------------------------------
-  /:
-    x-swagger-router-controller: index
-    get:
-      security:
-        - jwt: []
-      summary: Describe the v1 API
-      tags: [ API endpoints ]
-      description: >-
-        Get a description of all the available endpoints for v1 of the API.
-      externalDocs:
-        description: >-
-          GET /
-        url: http://focus.salesforce.com/docs/api
-      responses:
-        200:
-          description: >-
-            Success, returns a description of the v1 API.
-          schema:
-            type: object
-            description: API v1 Index.
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        default:
-          $ref: "#/responses/genericError"
-
-  # ---------------------------------------------------------------------------
   /aspects:
     x-swagger-router-controller: aspects
     get:
