@@ -29,6 +29,7 @@ module.exports = {
       },
       force: true,
     })
-    .then(() => tu.forceDelete(tu.db.User, testStartTime));
+    .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Token, testStartTime));
   },
 };
