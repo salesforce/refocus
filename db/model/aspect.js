@@ -130,6 +130,11 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
           hooks: true,
         });
+        assoc.writers = Aspect.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'AspectWriters',
+          foreignKey: 'aspectId',
+        });
 
         Aspect.addScope('defaultScope', {
 
@@ -146,7 +151,6 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
-
       },
     },
     hooks: {
@@ -253,6 +257,20 @@ module.exports = function aspect(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          this.countWriters()
+          .then((ct) => {
+            if (!ct) {
+              resolve(true);
+            }
+
+            resolve(this.hasWriter(who));
+          });
+        });
+      }, // isWritableBy
+    },
     paranoid: true,
   });
 

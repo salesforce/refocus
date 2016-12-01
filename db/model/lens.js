@@ -84,6 +84,11 @@ module.exports = function lens(seq, dataTypes) {
         assoc.installedBy = Lens.belongsTo(models.User, {
           foreignKey: 'installedBy',
         });
+        assoc.writers = Lens.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'LensWriters',
+          foreignKey: 'lensId',
+        });
 
         Lens.addScope('lensLibrary', {
           attributes: { include: ['name', 'library'] },
@@ -161,6 +166,16 @@ module.exports = function lens(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        if (this.writers.length === 0) {
+          return true;
+        }
+
+        const found = this.writers.filter((w) => w.name === who);
+        return found.length === 1;
+      }, // isWritableBy
+    },
     paranoid: true,
     tableName: 'Lenses',
   });

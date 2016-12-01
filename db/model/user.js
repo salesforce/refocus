@@ -70,6 +70,26 @@ module.exports = function user(seq, dataTypes) {
           },
           hooks: true,
         });
+        assoc.writableAspects = User.belongsToMany(models.Aspect, {
+          as: 'writableAspects',
+          through: 'AspectWriters',
+          foreignKey: 'userId',
+        });
+        assoc.writableLenses = User.belongsToMany(models.Lens, {
+          as: 'writableLenses',
+          through: 'LensWriters',
+          foreignKey: 'userId',
+        });
+        assoc.writablePerspectives = User.belongsToMany(models.Perspective, {
+          as: 'writablePerspectives',
+          through: 'PerspectiveWriters',
+          foreignKey: 'userId',
+        });
+        assoc.writableSubjects = User.belongsToMany(models.Subject, {
+          as: 'writableSubjects',
+          through: 'SubjectWriters',
+          foreignKey: 'userId',
+        });
         User.addScope('defaultScope', {
           include: [
             {
