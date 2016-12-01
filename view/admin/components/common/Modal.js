@@ -49,7 +49,7 @@ class Modal extends React.Component {
                 </div>
                 { notificationBox }
                 <div className='slds-modal__content slds-p-around--medium'>
-                {children}
+                  {children}
                 </div>
                 <div className='slds-modal__footer'>
                     <button
