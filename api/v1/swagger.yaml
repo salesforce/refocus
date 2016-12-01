@@ -4470,11 +4470,16 @@ paths:
   /token:
     x-swagger-router-controller: token
     post:
-      summary: Create an api access token
+      security:
+        - jwt: []
+      summary: Create a new api access token
       tags: [ token ]
       description: >-
-        Authenticate a user with email and password and create an api access
-        token.
+        Create a new api access token by providing a token in header.
+        If the Refocus configuration parameter `useAccessToken` is set to 
+        `true`, you must include an `Authorization` request header with your 
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: postToken
       parameters:
         -
@@ -4484,33 +4489,40 @@ paths:
           schema:
             type: object
             description: >
-              Credentials of person who interacts with the Refocus system.
+              Name of token.
             properties:
-              email:
+              name:
                 type: string
                 maxLength: 254
                 description: >
-                  The user's email address.
-              password:
-                type: string
-                format: password
-                description: >
-                  The user's password.
+                  The name of token. Token name should be unique for a user.
             required:
-              - email
-              - password
+              - name
       responses:
-        200:
-          description: >-
-            Success, returns a token.
+        201:
+          description: Token created.
           schema:
             $ref: "#/definitions/TokenResponse"
-        400:
-          $ref: "#/responses/400"
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct 
+            credentials. If you are using an API key, it may be invalid or your 
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
         403:
-          $ref: "#/responses/403"
+          description: >-
+            Caller is not authorized to create token. While your authentication 
+            is valid, the authenticated user or token does not have permission 
+            to perform this action.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         default:
-          $ref: "#/responses/genericError"
+          description: >-
+            An unexpected error occurred. Please review the response for error 
+            details.
+          schema:
+              $ref: '#/definitions/ErrorResponse'
 # =============================================================================
 definitions:
 
@@ -5500,17 +5512,33 @@ definitions:
       Success:
         type: boolean
         readOnly: true
-      message:
+      id:
+        type: string
+      isDisabled:
         type: string
         readOnly: true
-        maxLength: 2082
-        description: >
-          API access message.
+      name:
+        type: string
+        readOnly: true
+        description:
+          Name of token.
       token:
         type: string
         readOnly: true
         description: >
           API token.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          TODO
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
 
   AuthenticationResponse:
     type: object

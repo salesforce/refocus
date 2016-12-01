@@ -7,52 +7,54 @@
  */
 
 /**
- * api/v1/controllers/apiaccess.js
+ * api/v1/controllers/token.js
  */
-
-const configuredPassport = require('../../../index').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const apiErrors = require('../apiErrors');
 const jwtUtil = require('../../../utils/jwtUtil');
+const helper = require('../helpers/nouns/tokens');
 
 const resourceName = 'token';
 
 module.exports = {
 
   /**
-   * Authenticates user and sends token in response with status code 200
-   * if authenticated else responds with error.
+   * Authenticates user using provided token and creates new token with given
+   * name. Saves created token to db and sends token in response with status
+   * code 201 if token craeted, else responds with error.
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    *
    */
-
-  // this endpoint will be replaced with new create token endpoint.
   postToken(req, res, next) {
-    configuredPassport.authenticate('local-login', (err, user/* , info */) => {
-      if (err) {
-        return u.handleError(next, err, resourceName);
-      }
-
-      if (!user || !user.name) {
-        const loginErr = new apiErrors.LoginError({
-          explanation: 'Invalid credentials.',
-        });
-        loginErr.resource = resourceName;
-        return u.handleError(next, loginErr, resourceName);
-      }
-
-      // just changing this to pass tests for now.
-      const createdToken = jwtUtil.createToken(user.name, user.name);
-
-      return res.status(httpStatus.OK).json({
-        success: true,
-        message: 'Enjoy your token!',
-        token: createdToken,
+    // req.user is set when verifying token with user details. If req.user is
+    // not set, then return error.
+    if (!req.user || !req.user.name) {
+      const tokenErr = new apiErrors.LoginError({
+        explanation: 'Unable to parse token. Please make sure that you have ' +
+         'provided token in header.',
       });
-    })(req, res, next);
+      tokenErr.resource = resourceName;
+      return u.handleError(next, tokenErr, resourceName);
+    }
+
+    // create tokem to be returned in response.
+    const tokenName = req.swagger.params.queryBody.value.name;
+    const tokenValue = jwtUtil.createToken(tokenName, req.user.name);
+
+    // create token object in db
+    return helper.model.create({
+      name: tokenName,
+      createdby: req.user.id,
+    })
+    .then((createdToken) => {
+      const tokenObj = u.responsify(createdToken, helper, req.method);
+      tokenObj.token = tokenValue;
+      return res.status(httpStatus.CREATED).json(tokenObj);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
 }; // exports
