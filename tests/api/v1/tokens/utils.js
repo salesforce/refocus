@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/tokenReq/api/token/utils.js
+ * tests/api/v1/tokens/utils.js
  */
 
 const tu = require('../../../testUtils');

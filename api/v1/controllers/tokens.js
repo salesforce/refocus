@@ -7,7 +7,7 @@
  */
 
 /**
- * api/v1/controllers/token.js
+ * api/v1/controllers/tokens.js
  */
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
@@ -15,7 +15,7 @@ const apiErrors = require('../apiErrors');
 const jwtUtil = require('../../../utils/jwtUtil');
 const helper = require('../helpers/nouns/tokens');
 
-const resourceName = 'token';
+const resourceName = 'tokens';
 
 module.exports = {
 

@@ -41,18 +41,18 @@ describe('api: login ssoconfig', () => {
       if (ssoconfig) {
         api.get(loginPath)
         .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          expect(res.text).to.contain('SSO Login');
-          expect(res.text).to.not.contain('Sign Up');
-        })
-        .end((err/* , res*/) => {
+        .end((err, res) => {
           if (err) {
             return done(err);
           }
+
+          expect(res.text).to.contain('SSO Login');
+          expect(res.text).to.not.contain('Sign Up');
+
+          done();
         });
       }
     })
-    .then(() => done())
     .catch((err) => done(err));
   });
 });

@@ -61,7 +61,7 @@ If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO
 ### Using API Access Tokens
 - A token is required for API calls when Refocus config has `useAccessToken` set to `true`.
 - New users should register to get API access token. A user can POST to the `/v1/register` endpoint to generate a token. Save this token for future use.
-- Existing users can POST to the `/v1/token` endpoint to retrieve new token.
+- Existing users can POST to the `/v1/tokens` endpoint to retrieve new token.
 - To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
 - When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
 
