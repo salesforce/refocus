@@ -168,12 +168,18 @@ module.exports = function lens(seq, dataTypes) {
     ],
     instanceMethods: {
       isWritableBy(who) {
-        if (this.writers.length === 0) {
-          return true;
-        }
+        return new seq.Promise((resolve, reject) => {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
 
-        const found = this.writers.filter((w) => w.name === who);
-        return found.length === 1;
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
       }, // isWritableBy
     },
     paranoid: true,

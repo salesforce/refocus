@@ -137,7 +137,6 @@ module.exports = function aspect(seq, dataTypes) {
         });
 
         Aspect.addScope('defaultScope', {
-
           order: ['Aspect.name'],
         }, {
           override: true,
@@ -260,13 +259,15 @@ module.exports = function aspect(seq, dataTypes) {
     instanceMethods: {
       isWritableBy(who) {
         return new seq.Promise((resolve, reject) => {
-          this.countWriters()
-          .then((ct) => {
-            if (!ct) {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
               resolve(true);
             }
 
-            resolve(this.hasWriter(who));
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
           });
         });
       }, // isWritableBy

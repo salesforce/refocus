@@ -433,12 +433,21 @@ module.exports = function sample(seq, dataTypes) {
       }, // calculateStatus
 
       isWritableBy(who) {
-        if (this.aspect.writers.length === 0) {
-          return true;
-        }
+        return new seq.Promise((resolve, reject) => {
+          return this.getAspect()
+          .then((a) => {
+            return a.getWriters();
+          })
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
 
-        const found = this.aspect.writers.filter((w) => w.name === who);
-        return found.length === 1;
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
       }, // isWritableBy
 
       setStatusChangedAt() {
