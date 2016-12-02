@@ -12,7 +12,15 @@
     "type": "git",
     "url": "https://github.com/Salesforce/refocus.git"
   },
+  "watch": {
+    "test-view": {
+      "patterns": ["view/perspective", "tests/view/components"],
+      "extensions": "js,jsx",
+      "quiet": true
+    }
+  },
   "scripts": {
+    "watch": "npm-watch",
     "cleanup": "npm run dropdb && npm run initdb && npm run checkdb",
     "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "checkdb": "node db/createOrUpdateDb.js",
@@ -86,6 +94,7 @@
     "multer": "^1.0.3",
     "nock": "^3.6.0",
     "npm": "^3.10.9",
+    "npm-watch": "^0.1.6",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "passport-saml": "^0.15.0",
