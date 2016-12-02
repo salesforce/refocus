@@ -194,7 +194,7 @@ module.exports = function aspect(seq, dataTypes) {
       }, // hooks.beforeUpdate
 
       /**
-       * If isPublished is being updated from true to false or name of 
+       * If isPublished is being updated from true to false or name of
        * the aspect is changed, delete any samples
        * which are associated with the aspect.
        *
