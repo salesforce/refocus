@@ -20,24 +20,6 @@ import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
 const ZERO = 0;
 const ONE = 1;
-/**
- * Given array of objects, returns array of strings or primitives
- * of values of the field key
- *
- * @param {String} field The field of each value to return
- * @param {array} arrayOfObjects The array of objects to
- * get new array from
- * @returns {Array} The array of strings or primitives
- */
-function getArray(field, arrayOfObjects) {
-  let arr = [];
-  for (let i = arrayOfObjects.length - ONE; i >= ZERO; i--) {
-    if (arrayOfObjects[i].isPublished) {
-      arr.push(arrayOfObjects[i][field]);
-    }
-  }
-  return arr;
-}
 
 /**
  * Returns the state object without any incidental data.
@@ -50,6 +32,7 @@ function getStateDataOnly(stateObject) {
   delete stateCopy.error;
   return stateCopy;
 }
+
 /**
  *  Ie. "thisStringIsGood" --> This String Is Good
  * @param {String} string The string to split
@@ -60,7 +43,9 @@ function convertCamelCase(string) {
       // insert a space before all caps
     .replace(/([A-Z])/g, ' $1')
     // uppercase the first character
-    .replace(/^./, function(string) { return string.toUpperCase(); });
+    .replace(/^./, function(string) {
+      return string.toUpperCase();
+    });
 }
 
 /**
@@ -69,7 +54,7 @@ function convertCamelCase(string) {
  * @returns {DOM_element} The ancestor element that is closest to el
  */
 function findCommonAncestor(el, selector) {
- let retval = null;
+  let retval = null;
   while (el) {
     if (el.classList.contains(selector)) {
       retval = el;
@@ -95,6 +80,27 @@ class CreatePerspective extends React.Component {
       ...props.stateObject,
     }; // default values
   }
+
+  /**
+   * Given array of objects, returns array of strings or primitives
+   * of values of the field key
+   *
+   * @param {String} field The field of each value to return
+   * @param {array} arrayOfObjects The array of objects to
+   * get new array from
+   * @returns {Array} The array of strings or primitives
+   */
+  static getArray(field, arrayOfObjects) {
+    let arr = [];
+    for (let i = ZERO; i < arrayOfObjects.length; i++) {
+      if (arrayOfObjects[i].isPublished) {
+        arr.push(arrayOfObjects[i][field]);
+      }
+    }
+
+    return arr;
+  }
+
   componentDidMount() {
     this.updateDropdownConfig();
   }
@@ -105,6 +111,7 @@ class CreatePerspective extends React.Component {
     const { values } = this.props;
     let stateObject = getStateDataOnly(this.state);
     let config = {};
+    const { getArray } = this.constructor;
 
     for (let key in stateObject) {
       const value = this.state[key];
@@ -137,7 +144,7 @@ class CreatePerspective extends React.Component {
         delete config.placeholderText;
         // remove value[i] if not in all appropriate values
         let notAllowedTags = [];
-        for (var i = value.length - 1; i >= 0; i--) {
+        for (let i = value.length - ONE; i >= 0; i--) {
           if (!values[key] || values[key].indexOf(value[i]) < ZERO) {
             notAllowedTags.push(value[i]);
           }
@@ -157,6 +164,7 @@ class CreatePerspective extends React.Component {
     }
     this.setState({ dropdownConfig: dropdownConfig });
   }
+
   handleRadioButtonClick(event) {
     const buttonGroup = findCommonAncestor(event.target, 'slds-button-group');
     const filterType = buttonGroup.title;
@@ -195,7 +203,7 @@ class CreatePerspective extends React.Component {
     // if string, delete key, if array, delete from array
     if (Array.isArray(valueInState)) {
       const index = valueInState.indexOf(labelContent);
-      valueInState.splice(index, 1); // remove element from array;
+      valueInState.splice(index, ONE); // remove element from array;
       newState[dropdownTitle] = valueInState;
     } else if (typeof valueInState === 'string') {
       newState[dropdownTitle] = '';
@@ -205,7 +213,7 @@ class CreatePerspective extends React.Component {
     newState.dropdownConfig[dropdownTitle].options.push(labelContent);
 
     // if there's values in dropdown decrement dorpdown margin top. otherwise set margin top to 0
-    newState.dropdownConfig[dropdownTitle].dropDownStyle.marginTop = valueInState.length < 1 ? -5 :
+    newState.dropdownConfig[dropdownTitle].dropDownStyle.marginTop = valueInState.length < ONE ? -5 :
       this.state.dropdownConfig[dropdownTitle].dropDownStyle.marginTop -= 25; // TODO: get from DOM eleme
     this.setState(newState);
   }
@@ -228,7 +236,7 @@ class CreatePerspective extends React.Component {
     newState.dropdownConfig[dropdownTitle].options = arr;
 
     // if there's no pill, use default margin-top
-    newState.dropdownConfig[dropdownTitle].dropDownStyle.marginTop = valueInState.length < 1 ? -5 :
+    newState.dropdownConfig[dropdownTitle].dropDownStyle.marginTop = valueInState.length < ONE ? -5 :
       this.state.dropdownConfig[dropdownTitle].dropDownStyle.marginTop += 25; // TODO: get from DOM eleme
     this.setState(newState);
   }
@@ -283,11 +291,11 @@ class CreatePerspective extends React.Component {
       let pillOutput = '';
       const value = this.state[key];
       if (key.slice(-4) === 'Type') {
-          radioGroupConfig[key] = {
+        radioGroupConfig[key] = {
           highlightFirst: value === 'INCLUDE',
           title: key,
           onClick: this.handleRadioButtonClick,
-        }
+        };
       }
       // // if display value is array, use multi pill
       // // else single pill
@@ -297,7 +305,6 @@ class CreatePerspective extends React.Component {
             title={ value }
             onRemove={this.deletePill}
           />;
-
         } else if (typeof value === 'string') {
           pillOutput = <Pill
             title={ [value] }
