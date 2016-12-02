@@ -12,6 +12,11 @@
 
 'use strict'; // eslint-disable-line strict
 const constants = require('./constants');
+const eventName = {
+  add: 'refocus.internal.realtime.subject.add',
+  upd: 'refocus.internal.realtime.subject.update',
+  del: 'refocus.internal.realtime.subject.remove',
+};
 
 /**
  * A function to see if an object is a subject object or not. It returns true
@@ -47,8 +52,12 @@ function getNewObjAsString(key, obj) {
  * @param {Object}  messgObj - Message object received from the redis channel.
  * @returns {Object} - returns the parsed message object.
  */
-function parseObject(messgObj) {
-  if (messgObj.new) {
+function parseObject(messgObj, key) {
+  if (key === eventName.del && messgObj.new) {
+    return messgObj.old;
+  }
+
+  if (key === eventName.add && messgObj.new) {
     return messgObj.new;
   }
 

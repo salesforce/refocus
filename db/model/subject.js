@@ -354,8 +354,10 @@ module.exports = function subject(seq, dataTypes) {
              * test for this.
              */
             if (inst.changed('tags')) {
-              common.publishChange(inst, eventName.del);
-              common.publishChange(inst, eventName.add);
+              common.publishChange(inst, eventName.del, ['tags'],
+                ignoreAttributes);
+              common.publishChange(inst, eventName.add, ['tags'],
+                ignoreAttributes);
             } else {
               common.publishChange(inst, eventName.upd, changedKeys,
               ignoreAttributes);
