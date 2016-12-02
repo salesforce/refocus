@@ -19,11 +19,14 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
+const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe(`api: POST ${path}`, () => {
   let testUserToken;
-  let predefinedAdminUserToken;
   let token;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
 
   before((done) => {
     tu.createToken()
@@ -51,19 +54,6 @@ describe(`api: POST ${path}`, () => {
         done(err);
       } else {
         testUserToken = res.body.token;
-        api.post('/v1/token')
-        .send({
-          username: adminUser.name,
-          email: adminUser.name,
-          password: adminUser.password,
-        })
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            predefinedAdminUserToken = res2.body.token;
-          }
-        });
         done();
       }
     });

@@ -19,11 +19,14 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
+const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe(`api: PATCH ${path}`, () => {
   let testUserToken;
-  let predefinedAdminUserToken;
   let token;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
 
   before((done) => {
     tu.createToken()
@@ -51,28 +54,15 @@ describe(`api: PATCH ${path}`, () => {
         done(err);
       } else {
         testUserToken = res.body.token;
-        api.post('/v1/token')
+        api.post(path)
+        .set('Authorization', predefinedAdminUserToken)
         .send({
-          username: adminUser.name,
-          email: adminUser.name,
-          password: adminUser.password,
+          key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+          value: 'def',
         })
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            predefinedAdminUserToken = res2.body.token;
-            api.post(path)
-            .set('Authorization', predefinedAdminUserToken)
-            .send({
-              key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
-              value: 'def',
-            })
-            .expect(constants.httpStatus.CREATED)
-            .end((err3, res3) => {
-              //
-            });
-          }
+        .expect(constants.httpStatus.CREATED)
+        .end((err3, res3) => {
+          //
         });
         done();
       }
