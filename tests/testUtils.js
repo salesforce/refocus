@@ -16,6 +16,7 @@ var pfx = '___';
 const jwtUtil = require('../utils/jwtUtil');
 const db = require('../db');
 const testStartTime = new Date();
+const userName = `${pfx}test@refocus.com`;
 
 /**
  * By convention, all the resources we create in our tests are named using
@@ -68,17 +69,12 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: `${pfx}test@refocus.com`,
-        email: `${pfx}test@refocus.com`,
+        name: userName,
+        email: userName,
         password: 'user123password',
       })
     )
-    .then(() => jwtUtil.createToken(
-      {
-        name: `${pfx}test@refocus.com`,
-        email: `${pfx}test@refocus.com`,
-      }
-      ));
+    .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
 
   // delete users

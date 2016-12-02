@@ -12,7 +12,6 @@
 
 'use strict';  // eslint-disable-line strict
 
-const bcrypt = require('bcrypt-nodejs');
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -20,7 +19,6 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 const pfx = '___';
-const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe('db: Token: create', () => {
   let userObj = {};
@@ -63,28 +61,13 @@ describe('db: Token: create', () => {
 
   it('One user can create multiple tokens, and' +
   'tokens are returned sorted by name in asc order', (done) => {
-    // create tokens
-    const tokenA = jwtUtil.createToken({
-      name: 'tokenA',
-      username: userObj.name,
-      email: userObj.name,
-    });
-
-    const tokenB = jwtUtil.createToken({
-      name: 'tokenB',
-      username: userObj.name,
-      email: userObj.name,
-    });
-
     Token.create({
       name: 'tokenA',
-      token: tokenA,
       createdBy: userObj.id,
     })
     .then(() =>
       Token.create({
         name: 'tokenB',
-        token: tokenB,
         createdBy: userObj.id,
       })
     )

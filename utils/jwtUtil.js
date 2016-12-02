@@ -96,9 +96,10 @@ function getUsernameFromToken(req) {
  * @param  {object}   user - user object
  * @returns {string} created token
  */
-function createToken(user) {
+function createToken(tokenName, userName) {
   const jwtClaim = {
-    username: user.name,
+    tokenname: tokenName,
+    username: userName,
     timestamp: Date.now,
   };
   const createdToken = jwt.sign(jwtClaim, env.tokenSecret);

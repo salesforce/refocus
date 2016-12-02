@@ -7,21 +7,13 @@
  */
 
 /**
- * api/v1/helpers/nouns/samples.js
+ * api/v1/helpers/nouns/tokens.js
  */
 'use strict';
 
-const Sample = require('../../../../db/index').Sample;
-const config = require('../../../../config');
+const Token = require('../../../../db/index').Token;
 
-const m = 'sample';
-
-const fieldsWithJsonArrayType = ['relatedLinks'];
-const fieldsWithEnum = ['status', 'previousStatus'];
-const loggingEnabled = (
-  config.auditSamples === 'API' || config.auditSamples === 'ALL'
-  ) || false;
-
+const m = 'token';
 
 module.exports = {
   apiLinks: {
@@ -31,10 +23,7 @@ module.exports = {
     POST: `Create a new ${m}`,
     PUT: `Overwrite all attributes of this ${m}`,
   },
-  baseUrl: '/v1/samples',
-  model: Sample,
-  modelName: 'Sample',
-  fieldsWithJsonArrayType,
-  fieldsWithEnum,
-  loggingEnabled,
+  baseUrl: '/v1/tokens',
+  model: Token,
+  modelName: 'Token',
 }; // exports

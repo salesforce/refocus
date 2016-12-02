@@ -212,8 +212,10 @@ module.exports = function loadView(app, passport) {
         failureRedirect: '/login',
       }),
     (_req, _res) => {
-      const token = jwtUtil.createToken(_req.user);
-      _res.cookie('Authorization', token);
+      if (_req.user && _req.user.name) {
+        const token = jwtUtil.createToken(_req.user.name, _req.user.name);
+        _res.cookie('Authorization', token);
+      }
 
       if (_req.body.RelayState) {
         // get the redirect url from relay state if present
