@@ -2447,6 +2447,41 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by sample name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: messageCode
+          in: query
+          description: >-
+            Filter by sample messageCode; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+            Filter by sample status (Critical|Invalid|Timeout|Warning|Info|OK).
+          required: false
+          type: string
+        -
+          name: previousStatus
+          in: query
+          description: >-
+            Filter by sample previousStatus (Critical|Invalid|Timeout|Warning|Info|OK).
+          required: false
+          type: string
+        -
+          name: value
+          in: query
+          description: >-
+            Filter by sample value (BOOLEAN|NUMERIC|PERCENT).
+          required: false
+          type: string
       responses:
         200:
           description: >-
@@ -3624,11 +3659,11 @@ paths:
            For example, ?aspect=FOO,BAR will only return subjects in the
            hierarchy with samples for those two aspects (and all those
            subjects' ancestors up to the specified root of the requested
-           hierarchy). Prefix each of the aspect name with a negative sign to 
+           hierarchy). Prefix each of the aspect name with a negative sign to
            indicate that a sample with that aspect should be excluded.
            For example, ?aspect=-BAZ,-FOO will return only the subjects
            (and its hierarchy) that have samples with aspect name not equal
-           to BAZ or FOO. Subjects without samples are not included in the 
+           to BAZ or FOO. Subjects without samples are not included in the
            result set
           type: string
         -
@@ -3639,7 +3674,7 @@ paths:
            For example, ?status=OK,CRITICAL will only return subjects in the
            hierarchy with samples that are in those statuses (and all those
            subjects' ancestors up to the specified root of the requested
-           hierarchy). Prefix each of the status with a negative sign to 
+           hierarchy). Prefix each of the status with a negative sign to
            indicate that a sample with that status should be excluded.
            For example, ?status=-OK,-CRITICAL will return only the subjects
            (and its hierarchy) that have samples not in OK or CRITICAL status.
@@ -3653,11 +3688,11 @@ paths:
            For example, ?aspectTags=TAG1,TAG2 will only return subjects in the
            hierarchy with samples having aspect with tags matching TAG1 and TAG2
            (and all those subjects' ancestors up to the specified root of the
-           requested hierarchy). Prefix each of the tag names with a negative 
-           sign to indicate that a sample having aspect with those tag names 
+           requested hierarchy). Prefix each of the tag names with a negative
+           sign to indicate that a sample having aspect with those tag names
            will be excluded. For example, ?aspectTags=-TAG3,-TAG4 will
-           return the subject hierarchy without aspects having tags -  
-           TAG3 and TAG4. Subjects without samples are not included in 
+           return the subject hierarchy without aspects having tags -
+           TAG3 and TAG4. Subjects without samples are not included in
            the result set
           type: string
         -
@@ -3668,9 +3703,9 @@ paths:
            For example, ?subjectTags=TAG1,TAG2 will only return subjects in the
            hierarchy with tags matching TAG1 and TAG2
            (and all those subjects' ancestors up to the specified root of the
-           requested hierarchy). Prefix each of the tag names with a negative 
-           sign to indicate that the subject having tags with those names will 
-           be excluded. For example, ?subjectTags=-TAG3,-TAG4 will return the 
+           requested hierarchy). Prefix each of the tag names with a negative
+           sign to indicate that the subject having tags with those names will
+           be excluded. For example, ?subjectTags=-TAG3,-TAG4 will return the
            subject hierarchy without subjects having tags -  TAG3 and TAG4.
           type: string
         -
