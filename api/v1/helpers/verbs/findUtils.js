@@ -13,6 +13,8 @@
 const u = require('./utils');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
+const ZERO = 0;
+const ONE = 1;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -22,7 +24,7 @@ const defaults = require('../../../../config').api.defaults;
  */
 function escapePercentLiterals(val) {
   if (typeof val === 'string' || val instanceof String) {
-    if (val.indexOf(constants.SEQ_WILDCARD) >= 0) {
+    if (val.indexOf(constants.SEQ_WILDCARD) > -ONE) {
       return val.replace(constants.ALL_PERCENTS_RE, constants.ESCAPED_PERCENT);
     }
   }
@@ -56,6 +58,13 @@ function toSequelizeWildcards(val) {
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
+  // given array, return { $in: array }
+  if (Array.isArray(val) && props.isEnum) {
+    const inClause = {};
+    inClause[constants.SEQ_IN] = val;
+    return inClause;
+  }
+
   if (Array.isArray(val) && props.tagFilterName) {
     const containsClause = {};
     containsClause[constants.SEQ_CONTAINS] = val;
@@ -84,7 +93,8 @@ function toWhereClause(val, props) {
 function toSequelizeWhere(filter, props) {
   const where = {};
   const keys = Object.keys(filter);
-  for (let i = 0; i < keys.length; i++) {
+
+  for (let i = ZERO; i < keys.length; i++) {
     const key = keys[i];
     if (filter[key] !== undefined) {
       if (!Array.isArray(filter[key])) {
@@ -94,30 +104,49 @@ function toSequelizeWhere(filter, props) {
       const values = [];
 
       /*
+       * If enum filter is enabled and key is an enumerable field
+       * then create an "in"
+       * clause and add it to where clause, e.g.
+       * {
+       *  where: {
+            valueType: { $in: ["PERCENT", "BOOLEAN"] },
+          },
+       * }
+       */
+      if (Array.isArray(props.fieldsWithEnum) &&
+        props.fieldsWithEnum.indexOf(key) > -ONE) {
+        const enumArr = filter[key];
+        // to use $in instead of $contains in toWhereClause
+        props.isEnum = true;
+        values.push(toWhereClause(enumArr, props));
+        where[key] = values[ZERO];
+      }
+
+      /*
        * If tag filter is enabled and key is "tags", then create a "contains"
        * clause and add it to where clause, e.g.
        * { where : { '$contains': ['tag1', 'tag2'] } }
        */
-      if (props.tagFilterName && key === props.tagFilterName) {
+      else if (props.tagFilterName && key === props.tagFilterName) {
         const tagArr = filter[key];
         values.push(toWhereClause(tagArr, props));
-        where[key] = values[0];
+        where[key] = values[ZERO];
       } else {
-        for (let j = 0; j < filter[key].length; j++) {
+        for (let j = ZERO; j < filter[key].length; j++) {
           const v = filter[key][j];
           if (typeof v === 'boolean') {
             values.push(v);
           } else if (typeof v === 'string') {
             const arr = v.split(constants.COMMA);
-            for (let k = 0; k < arr.length; k++) {
+            for (let k = ZERO; k < arr.length; k++) {
               values.push(toWhereClause(arr[k]));
             }
           }
         }
 
-        if (values.length === 1) {
-          where[key] = values[0];
-        } else if (values.length > 1) {
+        if (values.length === ONE) {
+          where[key] = values[ZERO];
+        } else if (values.length > ONE) {
           where[key] = {};
           where[key][constants.SEQ_OR] = values;
         }
@@ -140,8 +169,8 @@ function toSequelizeOrder(sortOrder) {
     const sortOrderArray = Array.isArray(sortOrder) ?
       sortOrder : [sortOrder];
     return sortOrderArray.map((s) => {
-      if (s.indexOf(constants.MINUS) === 0) {
-        return [`${s.substr(1)}`, constants.SEQ_DESC];
+      if (s.indexOf(constants.MINUS) === ZERO) {
+        return [`${s.substr(ONE)}`, constants.SEQ_DESC];
       }
 
       return `${s}`;
@@ -180,10 +209,10 @@ function options(params, props) {
 
   const filter = {};
   const keys = Object.keys(params);
-  for (let i = 0; i < keys.length; i++) {
+  for (let i = ZERO; i < keys.length; i++) {
     const key = keys[i];
 
-    const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < 0;
+    const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < ZERO;
 
     if (isFilterField && params[key].value !== undefined) {
       filter[key] = params[key].value;
