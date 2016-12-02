@@ -17,6 +17,7 @@ const m = 'aspect';
 
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
+const fieldsWithEnum = ['valueType'];
 
 module.exports = {
   apiLinks: {
@@ -34,4 +35,5 @@ module.exports = {
   modelName: 'Aspect',
   fieldsWithArrayType,
   fieldsWithJsonArrayType,
+  fieldsWithEnum,
 }; // exports
