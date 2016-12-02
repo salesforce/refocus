@@ -435,9 +435,7 @@ module.exports = function sample(seq, dataTypes) {
       isWritableBy(who) {
         return new seq.Promise((resolve, reject) => {
           return this.getAspect()
-          .then((a) => {
-            return a.getWriters();
-          })
+          .then((a) => a.getWriters())
           .then((writers) => {
             if (!writers.length) {
               resolve(true);

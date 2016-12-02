@@ -19,6 +19,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
+const Profile = tu.db.Profile;
+const User = tu.db.User;
 const Subject = tu.db.Subject;
 
 describe('db: aspect: delete: ', () => {
@@ -138,3 +140,80 @@ describe('db: aspect: sample: ', () => {
   });
 });
 
+describe('db: aspect: delete: isWritableBy: ', () => {
+  let prof;
+  let aspUnprotected;
+  let aspProtected;
+  let user1;
+  let user2;
+
+  beforeEach((done) => {
+    Profile.create({
+      name: tu.namePrefix + '1',
+    })
+    .then((createdProfile) => {
+      prof = createdProfile.id;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user1@example.com`,
+        email: 'user1@example.com',
+        password: 'user123password',
+      });
+    })
+    .then((createdUser) => {
+      user1 = createdUser;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user2@example.com`,
+        email: 'user2@example.com',
+        password: 'user223password',
+      });
+    })
+    .then((createdUser) => {
+      user2 = createdUser;
+      const a = u.getSmall();
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspUnprotected = aspect;
+      const a = u.getSmall();
+      a.name += 'Protected';
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspProtected = aspect;
+      return aspect.addWriters([user1]);
+    })
+    .then(() => done())
+    .catch(done);
+  });
+
+  afterEach(u.forceDelete);
+
+  it('aspect is not write-protected, isWritableBy true', (done) => {
+    aspUnprotected.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, isWritableBy true', (done) => {
+    aspProtected.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, isWritableBy false', (done) => {
+    aspProtected.isWritableBy(user2.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.false;
+      done();
+    })
+    .catch(done);
+  });
+}); // db: aspect: delete: permission:
