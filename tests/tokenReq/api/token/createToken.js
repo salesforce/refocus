@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/token/createToken.js
+ * tests/tokenReq/api/token/createtoken.js
  */
 
 const expect = require('chai').expect;
@@ -19,28 +19,27 @@ const registerPath = '/v1/register';
 const tokenPath = '/v1/token';
 
 describe('api: createToken', () => {
+  let defaultToken;
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
-    .end((err) => {
+    .end((err, res) => {
       if (err) {
         return done(err);
       }
+
+      defaultToken = res.body.token;
       done();
     });
   });
 
   after(u.forceDelete);
 
-  it('no user found', (done) => {
+  it('error if no token found provided in header', (done) => {
     api.post(tokenPath)
-    .send({
-      email: 'unknown@abc.com',
-      password: 'fakePasswd',
-      username: 'nouser'
-    })
-    .expect(constants.httpStatus.UNAUTHORIZED)
-    .expect(/LoginError/)
+    .send({ name: 'newToken' })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .expect(/No authorization token was found/)
     .end((err) => {
       if (err) {
         return done(err);
@@ -50,15 +49,12 @@ describe('api: createToken', () => {
     });
   });
 
-  it('Wrong password', (done) => {
+  it('error if wrong token found provided', (done) => {
     api.post(tokenPath)
-    .send({
-      email: 'user1@abc.com',
-      password: 'wrongPasswd',
-      username: 'user1'
-    })
-    .expect(constants.httpStatus.UNAUTHORIZED)
-    .expect(/LoginError/)
+    .set('Authorization', `${defaultToken}xyz`)
+    .send({ name: 'newToken' })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .expect(/Invalid Token/)
     .end((err) => {
       if (err) {
         return done(err);
@@ -68,20 +64,19 @@ describe('api: createToken', () => {
     });
   });
 
-  it('sucessful authentication, create token', (done) => {
+  it('sucessful authentication, create token for user', (done) => {
     api.post(tokenPath)
-    .send(u.fakeUserCredentials)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => expect(res.body.success).to.be.true)
-    .expect((res) => expect(res.body.message).to.be.equal('Enjoy your token!'))
-    .expect((res) => expect(res.body).to.have.property('token'))
-    .end((err) => {
+    .set('Authorization', defaultToken)
+    .send({ name: 'newToken' })
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
       if (err) {
         return done(err);
       }
 
+      expect(res.body.name).to.be.equal('newToken');
+      expect(res.body.isRevoked).to.be.equal('0');
       done();
     });
   });
 });
-
