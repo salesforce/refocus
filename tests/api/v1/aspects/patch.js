@@ -225,4 +225,25 @@ describe(`api: PATCH ${path} isPublished`, () => {
       done();
     });
   });
+
+  it('updating aspect name deletes its samples', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ name: 'name_change' })
+    .expect(constants.httpStatus.OK)
+    .expect(() => {
+      Sample.findAll()
+      .then((samp) => {
+        expect(samp).to.have.length(0);
+      })
+      .catch((_err) => done(_err));
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
 });
