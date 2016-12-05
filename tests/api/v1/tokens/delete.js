@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/tokens/get.js
+ * tests/api/v1/tokens/delete.js
  */
 'use strict';
 
@@ -22,7 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: GET ${path}`, () => {
+describe(`api: DELETE ${path}`, () => {
   let usr;
   let tid;
 
@@ -55,7 +55,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
 
   it('found', (done) => {
-    api.get(`${path}/${tid}`)
+    api.delete(`${path}/${tid}`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -70,7 +70,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   it('not found', (done) => {
-    api.get(`${path}/123-abc`)
+    api.delete(`${path}/123-abc`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.NOT_FOUND)
     .end(() => done());

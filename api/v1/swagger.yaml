@@ -4528,7 +4528,7 @@ paths:
             properties:
               name:
                 type: string
-                maxLength: 254
+                maxLength: 60
                 description: >
                   A name for your new token. Token name must be unique for a 
                   user. Best practice is to select a name which reminds you of 
@@ -4565,6 +4565,58 @@ paths:
 # =============================================================================
   /tokens/{key}:
     x-swagger-router-controller: tokens
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified token
+      tags: [ tokens ]
+      description: >-
+        Delete the specified token by its id.
+      operationId: deleteTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the metadata for the deleted token.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        403:
+          description: >-
+            Caller is not authorized to delete token. While your authentication
+            is valid, the authenticated user or token does not have permission
+            to perform this action.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     get:
       security:
         - jwt: []

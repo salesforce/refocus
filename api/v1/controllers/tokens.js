@@ -33,9 +33,9 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  // deleteToken(req, res, next) {
-  //   doDelete(req, res, next, helper);
-  // },
+  deleteTokenById(req, res, next) {
+    doDelete(req, res, next, helper);
+  },
 
   /**
    * GET /tokens
@@ -61,23 +61,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getTokenByKey(req, res, next) {
-    /*
-     * Not using the doGet helper function here because for this endpoint we
-     * only want to find by id (no fallback to find by name).
-     */
-    const key = req.swagger.params.key.value;
-    helper.model.findById(key)
-    .then((o) => {
-      if (o) {
-        res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
-      } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.resource = helper.modelName;
-        err.key = key;
-        throw err;
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGet(req, res, next, helper);
   },
 
   /**
