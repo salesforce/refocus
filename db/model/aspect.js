@@ -197,7 +197,8 @@ module.exports = function aspect(seq, dataTypes) {
       }, // hooks.beforeUpdate
 
       /**
-       * If isPublished is being updated from true to false, delete any samples
+       * If isPublished is being updated from true to false or name of
+       * the aspect is changed, delete any samples
        * which are associated with the aspect.
        *
        * @param {Aspect} inst - The updated instance
@@ -206,7 +207,8 @@ module.exports = function aspect(seq, dataTypes) {
       afterUpdate(inst /* , opts */) {
         if (inst.changed('isPublished') &&
           inst.previous('isPublished') &&
-          !inst.getDataValue('isPublished')) {
+          !inst.getDataValue('isPublished') ||
+          inst.changed('name')) {
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())
