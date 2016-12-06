@@ -423,6 +423,7 @@ module.exports = function subject(seq, dataTypes) {
        * reparented
        *
        * @param {Subject} inst - The instance being updated
+       * @param {Object} opts - The Sequelize options
        * @returns {undefined|Promise} undefined if name/parentId did not
        *  change, otherwise returns a Promise which resolves to undefined, or
        * rejects if an error was encountered
