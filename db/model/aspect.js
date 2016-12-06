@@ -130,9 +130,13 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
           hooks: true,
         });
+        assoc.writers = Aspect.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'AspectWriters',
+          foreignKey: 'aspectId',
+        });
 
         Aspect.addScope('defaultScope', {
-
           order: ['Aspect.name'],
         }, {
           override: true,
@@ -146,7 +150,6 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
-
       },
     },
     hooks: {
@@ -194,7 +197,8 @@ module.exports = function aspect(seq, dataTypes) {
       }, // hooks.beforeUpdate
 
       /**
-       * If isPublished is being updated from true to false, delete any samples
+       * If isPublished is being updated from true to false or name of
+       * the aspect is changed, delete any samples
        * which are associated with the aspect.
        *
        * @param {Aspect} inst - The updated instance
@@ -203,7 +207,8 @@ module.exports = function aspect(seq, dataTypes) {
       afterUpdate(inst /* , opts */) {
         if (inst.changed('isPublished') &&
           inst.previous('isPublished') &&
-          !inst.getDataValue('isPublished')) {
+          !inst.getDataValue('isPublished') ||
+          inst.changed('name')) {
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())
@@ -253,6 +258,22 @@ module.exports = function aspect(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
+      }, // isWritableBy
+    },
     paranoid: true,
   });
 
