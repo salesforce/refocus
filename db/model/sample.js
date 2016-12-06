@@ -201,7 +201,11 @@ module.exports = function sample(seq, dataTypes) {
           })
           .then((o) => resolve(o))
           .catch((err) => {
-            isBulk ? resolve(err) : reject(err);
+            if (isBulk) {
+              resolve(err);
+            } else {
+              reject(err);
+            }
           });
         });
       }, // upsertByName
@@ -234,7 +238,8 @@ module.exports = function sample(seq, dataTypes) {
               return s.update({ value: constants.statuses.Timeout });
             }
           })
-          .then(() => resolve(`Evaluated ${numberEvaluated} samples; ${numberTimedOut} were timed out.`))
+          .then(() => resolve(`Evaluated ${numberEvaluated} samples; ` +
+            `${numberTimedOut} were timed out.`))
           .catch((err) => reject(err));
         });
       }, // doTimeout
@@ -297,9 +302,7 @@ module.exports = function sample(seq, dataTypes) {
             // augment the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
             common.augmentSampleWithSubjectInfo(seq, samp)
-            .then(() => {
-              return common.publishChange(samp, eventName.add);
-            });
+            .then(() => common.publishChange(samp, eventName.add));
           }
         });
       },
@@ -321,9 +324,7 @@ module.exports = function sample(seq, dataTypes) {
             // augument the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
             common.augmentSampleWithSubjectInfo(seq, inst)
-            .then(() => {
-              return common.publishChange(inst, eventName.del);
-            });
+            .then(() => common.publishChange(inst, eventName.del));
           }
         });
       }, // hooks.afterDelete
@@ -351,10 +352,8 @@ module.exports = function sample(seq, dataTypes) {
             // augument the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
             common.augmentSampleWithSubjectInfo(seq, inst)
-            .then(() => {
-              return common.publishChange(inst, eventName.upd, changedKeys,
-              ignoreAttributes);
-            });
+            .then(() => common.publishChange(inst, eventName.upd, changedKeys,
+              ignoreAttributes));
           }
         });
       },
@@ -432,6 +431,22 @@ module.exports = function sample(seq, dataTypes) {
       calculateStatus() {
         this.status = u.computeStatus(this.aspect, this.value);
       }, // calculateStatus
+
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          return this.getAspect()
+          .then((a) => a.getWriters())
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
+      }, // isWritableBy
 
       setStatusChangedAt() {
         if (this.status !== this._previousDataValues.status) {

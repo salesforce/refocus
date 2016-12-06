@@ -130,9 +130,13 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
           hooks: true,
         });
+        assoc.writers = Aspect.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'AspectWriters',
+          foreignKey: 'aspectId',
+        });
 
         Aspect.addScope('defaultScope', {
-
           order: ['Aspect.name'],
         }, {
           override: true,
@@ -146,7 +150,6 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
-
       },
     },
     hooks: {
@@ -255,6 +258,22 @@ module.exports = function aspect(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
+      }, // isWritableBy
+    },
     paranoid: true,
   });
 
