@@ -91,6 +91,11 @@ module.exports = function perspective(seq, dataTypes) {
             allowNull: false,
           },
         });
+        assoc.writers = Perspective.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'PerspectiveWriters',
+          foreignKey: 'perspectiveId',
+        });
         Perspective.addScope('defaultScope', {
           include: [
 
@@ -166,6 +171,22 @@ module.exports = function perspective(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
+      }, // isWritableBy
+    },
     paranoid: true,
     validate: {
       lensIdNotNull() {

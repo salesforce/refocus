@@ -67,7 +67,7 @@ seq.query(`select count(*) from
 })
 .catch((err) => {
   if (err.name === 'SequelizeConnectionError' &&
-    err.message === `database "focusdb" does not exist`) {
+    err.message === 'database "focusdb" does not exist') {
     // Database does not exist.
     createAndReset();
   } else {

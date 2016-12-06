@@ -132,6 +132,11 @@ module.exports = function subject(seq, dataTypes) {
           onDelete: 'CASCADE',
           hooks: true,
         });
+        assoc.writers = Subject.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'SubjectWriters',
+          foreignKey: 'subjectId',
+        });
         Subject.addScope('defaultScope', {
           order: ['absolutePath'],
         }, {
@@ -232,9 +237,9 @@ module.exports = function subject(seq, dataTypes) {
                 if (parent.getDataValue('isPublished') === false &&
                   inst.getDataValue('isPublished') === true) {
                   throw new ValidationError({
-                    'message': 'You cannot insert a subject with ' +
-                    'isPublished = true unless all its ancestors are also ' +
-                    'published.',
+                    message: 'You cannot insert a subject with ' +
+                      'isPublished = true unless all its ancestors are also ' +
+                      'published.',
                   });
                 }
 
@@ -243,17 +248,19 @@ module.exports = function subject(seq, dataTypes) {
                 inst.setDataValue(param, parent.getDataValue(key1));
               } else {
                 throw new ParentSubjectNotFound({
-                  'message': 'parent' + key + ' not found.',
+                  message: 'parent' + key + ' not found.',
                 });
               }
+
               resolve(inst);
             })
             .catch((err) => reject(err));
           });
-        } else {
-          inst.setDataValue('absolutePath', inst.name);
         }
+
+        inst.setDataValue('absolutePath', inst.name);
       },
+
       /**
        * Increments childCount in parent.
        * Publishes the created subject to redis channel.
@@ -317,9 +324,8 @@ module.exports = function subject(seq, dataTypes) {
                   inst.absolutePath);
                 children[i].save();
               }
-            } else {
-              return;
             }
+
             return;
           })
           .catch((err) => {
@@ -417,11 +423,12 @@ module.exports = function subject(seq, dataTypes) {
        * reparented
        *
        * @param {Subject} inst - The instance being updated
+       * @param {Object} opts - The Sequelize options
        * @returns {undefined|Promise} undefined if name/parentId did not
        *  change, otherwise returns a Promise which resolves to undefined, or
        * rejects if an error was encountered
        */
-      beforeUpdate (inst, opts) {
+      beforeUpdate(inst, opts) {
         if (inst.getDataValue('isPublished') === false) {
           return new seq.Promise((resolve, reject) => {
             inst.getChildren()
@@ -440,9 +447,7 @@ module.exports = function subject(seq, dataTypes) {
 
               return resolve(inst);
             })
-            .catch((err) => {
-              return reject(err);
-            });
+            .catch(reject);
           });
         }
 
@@ -492,21 +497,22 @@ module.exports = function subject(seq, dataTypes) {
               } else {
                 if (inst.getDataValue(key)) {
                   throw new ParentSubjectNotFound({
-                    'message': key + ' not found.'
+                    message: key + ' not found.',
                   });
                 }
 
-                Subject.scope({ method: [param, inst.previous(key)] }).find()
-                // inst.getParent()
-                .then((parent) => {
-                  if (parent) {
-                    parent.decrement('childCount');
+                Subject.scope({ method: [param, inst.previous(key)] })
+                .find()
+                .then((par) => {
+                  if (par) {
+                    par.decrement('childCount');
                   }
                 });
                 inst.setDataValue(key, null);
                 inst.setDataValue(key1, null);
                 inst.setDataValue('absolutePath', inst.name);
               }
+
               resolve(inst);
             })
             .catch((err) => {
@@ -523,6 +529,7 @@ module.exports = function subject(seq, dataTypes) {
             } else {
               inst.setDataValue('absolutePath', inst.name);
             }
+
             return resolve(inst);
           });
         }
@@ -597,6 +604,20 @@ module.exports = function subject(seq, dataTypes) {
         );
       }, // instanceMethods.deleteHierarchy
 
+      isWritableBy(who) {
+        return new seq.Promise((resolve, reject) => {
+          return this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          });
+        });
+      }, // isWritableBy
     }, // instanceMethods
     paranoid: true,
   });

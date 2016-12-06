@@ -7,22 +7,21 @@
  */
 
 /**
- * tests/db/model/sample/utils.js
+ * tests/db/model/aspect/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 
 module.exports = {
-  forceDelete: (done) => {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+  forceDelete(done) {
+    tu.forceDelete(tu.db.Perspective, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };
