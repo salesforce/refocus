@@ -14,11 +14,14 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
+const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Profile = tu.db.Profile;
+const User = tu.db.User;
 
 describe('sample name gets updated:', () => {
   afterEach(u.forceDelete);
@@ -134,3 +137,113 @@ describe('sample name gets updated:', () => {
     });
   });
 });
+
+describe('db: sample: update: isWritableBy: ', () => {
+  let prof;
+  let aspUnprotected;
+  let aspProtected;
+  let user1;
+  let user2;
+  let subj;
+  let s1;
+  let s2;
+
+  before((done) => {
+    Profile.create({
+      name: tu.namePrefix + '1',
+    })
+    .then((createdProfile) => {
+      prof = createdProfile.id;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user1@example.com`,
+        email: 'user1@example.com',
+        password: 'user123password',
+      });
+    })
+    .then((createdUser) => {
+      user1 = createdUser;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user2@example.com`,
+        email: 'user2@example.com',
+        password: 'user223password',
+      });
+    })
+    .then((createdUser) => {
+      user2 = createdUser;
+      const a = {
+        name: `${tu.namePrefix}Unprotected`,
+        timeout: '1s',
+        isPublished: true,
+      };
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspUnprotected = aspect;
+      const a = {
+        name: `${tu.namePrefix}Protected`,
+        timeout: '1s',
+        isPublished: true,
+      };
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspProtected = aspect;
+      return aspect.addWriters([user1]);
+    })
+    .then(() => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject1`,
+    }))
+    .then((subject) => {
+      subj = subject;
+      return Sample.create({
+        aspectId: aspUnprotected.id,
+        subjectId: subj.id,
+      });
+    })
+    .then((sample) => {
+      s1 = sample;
+      return Sample.create({
+        aspectId: aspProtected.id,
+        subjectId: subj.id,
+      });
+    })
+    .then((sample) => {
+      s2 = sample;
+      done();
+    })
+    .catch(done);
+  });
+
+  after(u.forceDelete);
+
+  it('aspect is not write-protected, sample isWritableBy true', (done) => {
+    s1.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, sample isWritableBy true', (done) => {
+    s2.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, sample isWritableBy false', (done) => {
+    s2.isWritableBy(user2.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.false;
+      done();
+    })
+    .catch(done);
+  });
+}); // db: aspect: update: permission:
+

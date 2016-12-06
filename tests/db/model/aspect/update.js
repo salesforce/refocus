@@ -15,6 +15,8 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
+const User = tu.db.User;
+const Profile = tu.db.Profile;
 
 describe('db: aspect: update: ', () => {
   beforeEach((done) => {
@@ -252,9 +254,9 @@ describe('db: aspect: update: ', () => {
     })
     .catch((err) => done(err));
   });
-});
+}); // db: aspect: update:
 
-describe('associations: relatedLinks & Tags ', () => {
+describe('db: aspect: update: associations: relatedLinks & Tags ', () => {
   afterEach(u.forceDelete);
   describe('relatedLinks: ', () => {
     it('update a relatedLink', (done) => {
@@ -310,9 +312,9 @@ describe('associations: relatedLinks & Tags ', () => {
         .catch((err) => done(err));
     });
   });
-});
+}); // associations: relatedLinks & Tags
 
-describe('Field Validation', () => {
+describe('db: aspect: update: Field Validation', () => {
   afterEach(u.forceDelete);
   describe('relatedLinks: ', () => {
     it('without url field should fail', (done) => {
@@ -334,4 +336,82 @@ describe('Field Validation', () => {
         .catch((err) => done(err));
     });
   });
-});
+}); // Field Validation
+
+describe('db: aspect: update: isWritableBy: ', () => {
+  let prof;
+  let aspUnprotected;
+  let aspProtected;
+  let user1;
+  let user2;
+
+  before((done) => {
+    Profile.create({
+      name: tu.namePrefix + '1',
+    })
+    .then((createdProfile) => {
+      prof = createdProfile.id;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user1@example.com`,
+        email: 'user1@example.com',
+        password: 'user123password',
+      });
+    })
+    .then((createdUser) => {
+      user1 = createdUser;
+      return User.create({
+        profileId: prof,
+        name: `${tu.namePrefix}user2@example.com`,
+        email: 'user2@example.com',
+        password: 'user223password',
+      });
+    })
+    .then((createdUser) => {
+      user2 = createdUser;
+      const a = u.getSmall();
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspUnprotected = aspect;
+      const a = u.getSmall();
+      a.name += 'Protected';
+      return Aspect.create(a);
+    })
+    .then((aspect) => {
+      aspProtected = aspect;
+      return aspect.addWriters([user1]);
+    })
+    .then(() => done())
+    .catch(done);
+  });
+
+  after(u.forceDelete);
+
+  it('aspect is not write-protected, isWritableBy true', (done) => {
+    aspUnprotected.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, isWritableBy true', (done) => {
+    aspProtected.isWritableBy(user1.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.true;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('aspect is write-protected, isWritableBy false', (done) => {
+    aspProtected.isWritableBy(user2.name)
+    .then((isWritableBy) => {
+      expect(isWritableBy).to.be.false;
+      done();
+    })
+    .catch(done);
+  });
+}); // db: aspect: update: permission:
