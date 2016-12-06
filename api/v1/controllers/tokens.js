@@ -38,20 +38,6 @@ module.exports = {
   },
 
   /**
-   * GET /tokens
-   *
-   * Finds zero or more token metadata records and sends them back in the
-   * response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  // findTokens(req, res, next) {
-  //   doFind(req, res, next, helper);
-  // },
-
-  /**
    * GET /tokens/{key}
    *
    * Retrieves the token metadata record and sends it back in the response.
@@ -65,105 +51,59 @@ module.exports = {
   },
 
   /**
-   * PATCH /aspects/{key}
+   * POST /tokens/{key}/restore
    *
-   * Updates the aspect and sends it back in the response. PATCH will only
-   * update the attributes of the aspect provided in the body of the request.
-   * Other attributes will not be updated.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  // patchAspect(req, res, next) {
-  //   doPatch(req, res, next, helper);
-  // },
-
-  /**
-   * POST /aspects
-   *
-   * Creates a new aspect and sends it back in the response.
+   * Restore access for the specified token if access had previously been
+   * revoked.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  // postAspect(req, res, next) {
-  //   doPost(req, res, next, helper);
-  // },
+  restoreTokenById(req, res, next) {
+    const id = req.swagger.params.key.value;
+    helper.model.findById(id)
+    .then((o) => {
+      console.log('restoreTokenById, found', o.dataValues)
+      if (o.isRevoked === 0) {
+        throw new Error('Cannot restore a token which had not been revoked');
+      }
 
-  /**
-   * PUT /aspects/{key}
-   *
-   * Updates an aspect and sends it back in the response. If any attributes
-   * are missing from the body of the request, those attributes are cleared.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  // putAspect(req, res, next) {
-  //   doPut(req, res, next, helper);
-  // },
+      return o.restore();
+    })
+    .then((o) => {
+      console.log('restoreTokenById, restored', o.dataValues)
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  },
 
-  /**
-   * DELETE /v1/aspects/{key}/tags/
-   * DELETE /v1/aspects/{key}/tags/{tagName}
+    /**
+   * POST /tokens/{key}/revoke
    *
-   * Deletes specified/all tags from the aspect and sends updated aspect in the
-   * response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  // deleteAspectTags(req, res, next) {
-  //   const params = req.swagger.params;
-  //   u.findByKey(helper, params)
-  //   .then((o) => {
-  //     let updatedTagArray = [];
-  //     if (params.tagName) {
-  //       updatedTagArray =
-  //         u.deleteArrayElement(o.tags, params.tagName.value);
-  //     }
-
-  //     return o.update({ tags: updatedTagArray });
-  //   })
-  //   .then((o) => {
-  //     const retval = u.responsify(o, helper, req.method);
-  //     res.status(httpStatus.OK).json(retval);
-  //   })
-  //   .catch((err) => u.handleError(next, err, helper.modelName));
-  // },
-
-  /**
-   * DELETE /v1/aspects/{key}/relatedLinks/
-   * DELETE /v1/aspects/{key}/relatedLinks/{relName}
-   *
-   * Deletes specified/all related Links from the aspect and sends updated
-   * aspect in the response.
+   * Revoke access for the specified token.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  // deleteAspectRelatedLinks(req, res, next) {
-  //   const params = req.swagger.params;
-  //   u.findByKey(helper, params)
-  //   .then((o) => {
-  //     let jsonData = [];
-  //     if (params.relName) {
-  //       jsonData =
-  //         u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
-  //     }
+  revokeTokenById(req, res, next) {
+    const id = req.swagger.params.key.value;
+    helper.model.findById(id)
+    .then((o) => {
+      console.log('revokeTokenById, found', o.dataValues)
+      if (o.isRevoked > 0) {
+        throw new Error('Cannot revoke a token which is already revoked');
+      }
 
-  //     return o.update({ relatedLinks: jsonData });
-  //   })
-  //   .then((o) => {
-  //     const retval = u.responsify(o, helper, req.method);
-  //     res.status(httpStatus.OK).json(retval);
-  //   })
-  //   .catch((err) => u.handleError(next, err, helper.modelName));
-  // },
-
+      return o.revoke();
+    })
+    .then((o) => {
+      console.log('revokeTokenById, revoked', o.dataValues)
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  },
 }; // exports

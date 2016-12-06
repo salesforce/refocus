@@ -4670,6 +4670,114 @@ paths:
             $ref: '#/definitions/ErrorResponse'
 
 # =============================================================================
+  /tokens/{key}/revoke:
+    x-swagger-router-controller: tokens
+    post:
+      security:
+        - jwt: []
+      summary: Revoke access for the specified token
+      tags: [ token ]
+      description: >-
+        Revoke access for the specified token. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your 
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        value. You can get a token using `POST /v1/register` or
+        `POST /v1/token`.
+      operationId: revokeTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, token permission revoked.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments, e.g. trying to revoke a token which had already
+            been revoked. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================
+  /tokens/{key}/restore:
+    x-swagger-router-controller: tokens
+    post:
+      security:
+        - jwt: []
+      summary: Restore access for the specified token
+      tags: [ token ]
+      description: >-
+        Restore access for the specified token if access had previously been
+        revoked. If the Refocus configuration parameter `useAccessToken` is set
+        to `true`, you must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
+        value. You can get a token using `POST /v1/register` or
+        `POST /v1/token`.
+      operationId: restoreTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, token permission restored.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments, e.g. trying to restore a token which had not
+            been revoked. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================
 definitions:
 
   AuthenticationError:
@@ -5562,7 +5670,7 @@ definitions:
         type: string
         readOnly: true
       isRevoked:
-        type: string
+        type: integer
         readOnly: true
         description: >
           Zero if the token is still active, non-zero if the token has been
