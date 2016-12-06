@@ -1,7 +1,7 @@
 {
   "name": "Refocus",
   "description": "Refocus",
-  "repository": "https://github.com/SalesforceEng/Refocus",
+  "repository": "https://github.com/salesforce/refocus",
   "keywords": ["node", "refocus", "salesforce"],
   "addons": ["heroku-postgresql:hobby-dev", "heroku-redis:hobby-dev"],
   "env": {
