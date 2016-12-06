@@ -22,11 +22,11 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe.only(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
+describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
   let usr;
   let tid;
 
-  before((done) => {
+  beforeEach((done) => {
     Profile.create({
       name: `${tu.namePrefix}testProfile`,
     })
@@ -52,7 +52,7 @@ describe.only(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () =>
     .catch(done);
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
 
   it('ok', (done) => {
     api.post(`${path}/${tid}/revoke`)
@@ -65,7 +65,7 @@ describe.only(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () =>
       } else {
         expect(res.body).to.have.property('name',
           `${tu.namePrefix}Voldemort`);
-        expect(res.body.isRevoked > 0).to.be.true;
+        expect(res.body.isRevoked > '0').to.be.true;
         api.post(`${path}/${tid}/restore`)
         .set('Authorization', '???')
         .send({})
@@ -76,7 +76,7 @@ describe.only(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () =>
           } else {
             expect(res2.body).to.have.property('name',
               `${tu.namePrefix}Voldemort`);
-            expect(res2.body).to.have.property('isRevoked', 0);
+            expect(res2.body).to.have.property('isRevoked', '0');
             done();
           }
         });
@@ -84,13 +84,44 @@ describe.only(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () =>
     });
   });
 
-  it('try to restore a token if it was not already revoked');
-  it('try to revoke a token if it was already revoked');
+  it('try to restore a token if it was not already revoked', (done) => {
+    api.post(`${path}/${tid}/restore`)
+    .set('Authorization', '???')
+    .send({})
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
 
-  // it('not found', (done) => {
-  //   api.delete(`${path}/123-abc`)
-  //   .set('Authorization', '???')
-  //   .expect(constants.httpStatus.NOT_FOUND)
-  //   .end(() => done());
-  // });
+  it('try to revoke a token if it was already revoked', (done) => {
+    api.post(`${path}/${tid}/revoke`)
+    .set('Authorization', '???')
+    .send({})
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body).to.have.property('name',
+          `${tu.namePrefix}Voldemort`);
+        expect(res.body.isRevoked > '0').to.be.true;
+        api.post(`${path}/${tid}/revoke`)
+        .set('Authorization', '???')
+        .send({})
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err2, res2) => {
+          if (err2) {
+            done(err2);
+          } else {
+            done();
+          }
+        });
+      }
+    });
+  });
 });

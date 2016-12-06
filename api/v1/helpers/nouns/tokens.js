@@ -24,4 +24,5 @@ module.exports = {
   baseUrl: '/v1/tokens',
   model: Token,
   modelName: 'Token',
+  stringify: ['isRevoked'],
 }; // exports

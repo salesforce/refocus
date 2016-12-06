@@ -64,15 +64,13 @@ module.exports = {
     const id = req.swagger.params.key.value;
     helper.model.findById(id)
     .then((o) => {
-      console.log('restoreTokenById, found', o.dataValues)
-      if (o.isRevoked === 0) {
-        throw new Error('Cannot restore a token which had not been revoked');
+      if (o.isRevoked === '0') {
+        throw new apiErrors.InvalidTokenActionError();
       }
 
       return o.restore();
     })
     .then((o) => {
-      console.log('restoreTokenById, restored', o.dataValues)
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
     })
@@ -92,15 +90,13 @@ module.exports = {
     const id = req.swagger.params.key.value;
     helper.model.findById(id)
     .then((o) => {
-      console.log('revokeTokenById, found', o.dataValues)
-      if (o.isRevoked > 0) {
-        throw new Error('Cannot revoke a token which is already revoked');
+      if (o.isRevoked > '0') {
+        throw new apiErrors.InvalidTokenActionError();
       }
 
       return o.revoke();
     })
     .then((o) => {
-      console.log('revokeTokenById, revoked', o.dataValues)
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
     })

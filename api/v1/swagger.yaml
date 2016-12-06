@@ -5670,7 +5670,7 @@ definitions:
         type: string
         readOnly: true
       isRevoked:
-        type: integer
+        type: string
         readOnly: true
         description: >
           Zero if the token is still active, non-zero if the token has been
@@ -5688,7 +5688,6 @@ definitions:
           $ref: "#/definitions/HATEOAS"
         description: >
           Hypertext As The Engine Of Application State.
-
 
   UsersResponse:
     type: object
