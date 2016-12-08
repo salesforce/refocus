@@ -53,10 +53,14 @@ function getNewObjAsString(key, obj) {
  * @returns {Object} - returns the parsed message object.
  */
 function parseObject(messgObj, key) {
-  if (key === eventName.del && messgObj.new) {
-    return messgObj.old;
+  // If event is subject delete then send the old subject so that namespace
+  // filter can send the delete event to perspectives
+  if (messgObj.new) {
+    return key === eventName.del ? messgObj.old : messgObj.new;
   }
 
+  // If event is subject add then send the new subject so that namespace
+  // filter can send the add event to perspectives
   if (key === eventName.add && messgObj.new) {
     return messgObj.new;
   }
