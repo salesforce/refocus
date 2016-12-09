@@ -33,6 +33,7 @@ title: Quickstart
 
 Refocus is a visualization platform for the status and health of anything you want to monitor.
 If you care about how your service is performing *right now*, use Refocus to:
+
 - **Understand**  
   Understand your data in new ways by gaining insight
   
@@ -64,7 +65,8 @@ Let’s familiarize you with the terms we use in Refocus.
   
 ## Refocus Interface
 
-Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.  
+Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.
+
 - **MultiTable**  
   A set of tables with the various subject components arranged like a menu board. You can view system status at a glance and expand the components for combos and sides.  
   
@@ -74,13 +76,13 @@ Refocus displays real-time system status in a browser window based on the select
 - **Tree**  
   An expandable display of system components, organized in a root, trunk, and branch hierarchy. Go out on a limb to view the status of individual components.  
   
-You can develop your own lenses with the [lens developer kit](https://github.com/salesforce/refocus/blob/master/docs/QuickStart.md#create-your-own-lens) (LDK).
+You can develop your own lenses with the [lens developer kit](./50-lensdevelopment.html) (LDK).
 
 ## Getting Started with Refocus  
 You have two ways to deploy Refocus. Select the one that best meets your needs.
 
-- I want [one-click Heroku deployment](./QuickStartHeroku.md)
-- I want to [download and build and deploy locally](./QuickStartLocal.md)
+- I want [one-click Heroku deployment](./03-quickstartheroku.html)
+- I want to [download and build and deploy locally](./04-quickstartlocal.html)
 
 Refocus requires that both Redis and PostgreSQL are running. After Refocus is deployed, create an account and sign in.
 
@@ -289,4 +291,6 @@ POST to `v1/subjects/USA/child` using the following body:
     ]
 }
 ```
-:sparkles:*Built with love by the Site Reliability Tools team @ Salesforce.*:sparkles:
+
+
+*Built with love by the Site Reliability Tools team @ Salesforce.*
