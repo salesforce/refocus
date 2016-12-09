@@ -36,6 +36,7 @@ const viewmap = {
   '/samples/:key/edit': 'admin',
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
+  '/tokens/new': 'tokens/new',
 };
 
 /**
@@ -92,7 +93,7 @@ function samlAuthentication(userProfile, done) {
 
 /**
  * Creates redirect url for sso.
- * @param  {String} qs Query string
+ * @param  {String} req Query string
  * @returns {Object} Decode query params object
  */
 function getRedirectUrlSSO(req) {
@@ -117,7 +118,7 @@ module.exports = function loadView(app, passport) {
       (req, res) => {
         const trackObj = {
           trackingId: viewConfig.trackingId,
-          user: req.user,
+          user: JSON.stringify(req.user),
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
@@ -214,7 +215,13 @@ module.exports = function loadView(app, passport) {
     (_req, _res) => {
       if (_req.user && _req.user.name) {
         const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _res.cookie('Authorization', token);
+        _res.cookie(
+          'Authorization',
+          token, {
+            secure: true,
+            httpOnly: true,
+          }
+        )
       }
 
       if (_req.body.RelayState) {
