@@ -11,6 +11,14 @@
   color: red;
 }
 
+#tokenInfo {
+  color: green;
+  word-wrap: break-word;
+  /* this will take up space, even when div is hidden */
+  padding: 0.5em;
+  margin: 10px;
+  border-radius: 15px;
+}
 .right-link{
   text-align:right;
   float: right;
