@@ -360,9 +360,9 @@ module.exports = function subject(seq, dataTypes) {
              * test for this.
              */
             if (inst.changed('tags')) {
-              common.publishChange(inst, eventName.del, ['tags'],
+              common.publishChange(inst, eventName.del, changedKeys,
                 ignoreAttributes);
-              common.publishChange(inst, eventName.add, ['tags'],
+              common.publishChange(inst, eventName.add, changedKeys,
                 ignoreAttributes);
             } else {
               common.publishChange(inst, eventName.upd, changedKeys,
