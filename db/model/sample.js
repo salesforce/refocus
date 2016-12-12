@@ -126,6 +126,8 @@ module.exports = function sample(seq, dataTypes) {
                 'infoRange',
                 'okRange',
                 'valueLabel',
+                'valueType',
+                'relatedLinks',
                 'tags',
               ],
             },
