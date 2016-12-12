@@ -3958,7 +3958,7 @@ paths:
           schema:
             type: object
             description: >
-              A person or API client who interacts with the Focus system.
+              A person or API client who interacts with the Refocus system.
             properties:
               email:
                 type: string
@@ -4079,7 +4079,7 @@ paths:
           schema:
             type: object
             description: >
-              A person or API client who interacts with the Focus system.
+              A person or API client who interacts with the Refocus system.
             properties:
               email:
                 type: string
@@ -4138,7 +4138,7 @@ paths:
           schema:
             type: object
             description: >
-              A person or API client who interacts with the Focus system.
+              A person or API client who interacts with the Refocus system.
             properties:
               email:
                 type: string
@@ -4528,7 +4528,7 @@ paths:
             properties:
               name:
                 type: string
-                maxLength: 254
+                maxLength: 60
                 description: >
                   A name for your new token. Token name must be unique for a 
                   user. Best practice is to select a name which reminds you of 
@@ -4561,6 +4561,222 @@ paths:
             details.
           schema:
               $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================
+  /tokens/{key}:
+    x-swagger-router-controller: tokens
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified token
+      tags: [ tokens ]
+      description: >-
+        Delete the specified token by its id.
+      operationId: deleteTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the metadata for the deleted token.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        403:
+          description: >-
+            Caller is not authorized to delete token. While your authentication
+            is valid, the authenticated user or token does not have permission
+            to perform this action.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve metadata about the specified token.
+      tags: [ tokens ]
+      description: >-
+        Retrieve metadata about the specified token by its id. You may also
+        optionally specify a list of fields to include in the response. If the
+        Refocus configuration parameter `useAccessToken` is set to `true`, you
+        must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
+        value.
+      operationId: getTokenByKey
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/TokensFieldsParam"
+      responses:
+        200:
+          description: Success, returns metadata about the specified token.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================
+  /tokens/{key}/revoke:
+    x-swagger-router-controller: tokens
+    post:
+      security:
+        - jwt: []
+      summary: Revoke access for the specified token
+      tags: [ token ]
+      description: >-
+        Revoke access for the specified token. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your 
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        value. You can get a token using `POST /v1/register` or
+        `POST /v1/token`.
+      operationId: revokeTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, token permission revoked.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments, e.g. trying to revoke a token which had already
+            been revoked. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+# =============================================================================
+  /tokens/{key}/restore:
+    x-swagger-router-controller: tokens
+    post:
+      security:
+        - jwt: []
+      summary: Restore access for the specified token
+      tags: [ token ]
+      description: >-
+        Restore access for the specified token if access had previously been
+        revoked. If the Refocus configuration parameter `useAccessToken` is set
+        to `true`, you must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
+        value. You can get a token using `POST /v1/register` or
+        `POST /v1/token`.
+      operationId: restoreTokenById
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id of the token to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, token permission restored.
+          schema:
+            $ref: "#/definitions/TokensResponse"
+        400:
+          description: >-
+            Invalid arguments, e.g. trying to restore a token which had not
+            been revoked. Please review the response for error details.
+          schema:
+            $ref: '#/definitions/BadRequest'
+        401:
+          description: >-
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
+            Authorization header may be malformed.
+          schema:
+            $ref: '#/definitions/AuthenticationError'
+        404:
+          description: >-
+            The resource you requested does not exist.
+          schema:
+            $ref: '#/definitions/ResourceNotFoundError'
+        default:
+          description: >-
+            An unexpected error occurred. Please review the response for error
+            details.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
 # =============================================================================
 definitions:
 
@@ -4941,7 +5157,7 @@ definitions:
         default: true
         description: >
           True for any lens which is installed by an administrator (rather than
-            pre-installed in Focus).
+            pre-installed in Refocus).
       isPublished:
         type: boolean
         readOnly: true
@@ -5445,10 +5661,38 @@ definitions:
         description: >
           Hypertext As The Engine Of Application State.
 
+  TokensResponse:
+    type: object
+    description: >
+      Metadata about the JSON web token.
+    properties:
+      id:
+        type: string
+        readOnly: true
+      isRevoked:
+        type: string
+        readOnly: true
+        description: >
+          Zero if the token is still active, non-zero if the token has been
+          revoked.
+      name:
+        type: string
+        readOnly: true
+        maxLength: 60
+        description: >
+          The name of the token.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
   UsersResponse:
     type: object
     description: >
-      A person or API client who interacts with the Focus system.
+      A person or API client who interacts with the Refocus system.
     properties:
       email:
         type: string
@@ -5695,7 +5939,7 @@ parameters:
   ProfilesFieldsParam:
     name: fields
     in: query
-    description: >
+    description: >-
       Comma-delimited list of field names to include in the response.
     required: false
     type: array
@@ -5721,7 +5965,7 @@ parameters:
   SamplesFieldsParam:
     name: fields
     in: query
-    description: >
+    description: >-
           Comma-delimited list of field names to include in the response.
     required: false
     type: array
@@ -5744,7 +5988,7 @@ parameters:
   SubjectsFieldsParam:
     name: fields
     in: query
-    description: >
+    description: >-
       Comma-delimited list of field names to include in the response.
     required: false
     type: array
@@ -5766,11 +6010,25 @@ parameters:
         - createdBy
         - createdAt
         - updatedAt
+  
+  TokensFieldsParam:
+    name: fields
+    in: query
+    description: >-
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - isRevoked
 
   UsersFieldsParam:
     name: fields
     in: query
-    description: >
+    description: >-
       Comma-delimited list of field names to include in the response.
     required: false
     type: array

@@ -78,6 +78,22 @@ module.exports = function token(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      restore() {
+        return new Promise((resolve, reject) => {
+          return this.update({ isRevoked: 0 })
+          .then(resolve)
+          .catch(reject);
+        });
+      }, // restore
+      revoke() {
+        return new Promise((resolve, reject) => {
+          return this.update({ isRevoked: Date.now() })
+          .then(resolve)
+          .catch(reject);
+        });
+      }, // revoke
+    },
     paranoid: true,
   });
   return Token;

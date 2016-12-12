@@ -16,10 +16,11 @@ const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client;
 
 const SECS_IN_MIN = 60;
+
 /**
  * Retrieves a record and sends it back in the json response with status code
  * 200.
- * NOTE : Sequelize is not able to generate the right postgres sql aggeragate
+ * NOTE: Sequelize is not able to generate the right postgres sql aggeragate
  * query for Subject and Aspect objects to count the samples associated with
  * them. So, these models are scoped before finding them and the length
  * of the associated sample array is used as the sample count.
