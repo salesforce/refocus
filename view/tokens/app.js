@@ -22,6 +22,7 @@ const input = document.loginform.elements;
 const errorInfo = document.getElementById('errorInfo');
 const successInfo = document.getElementById('successInfo');
 const tokenInfo = document.getElementById('tokenInfo');
+const formGroup = document.getElementById('formGroup');
 toggleVisibility(tokenInfo, false);
 successInfo.innerHTML = 'Max length 60 characters';
 
@@ -38,7 +39,8 @@ document.loginform.addEventListener('submit', (evt) => {
  * Else hide element
  */
 function toggleVisibility(elem, visibility) {
-  elem.style.visibility = visibility ? 'visible' : 'hidden';
+  // sets className to show or hidden
+  elem.className = visibility ? 'show' : 'hidden';
 }
 
 /**
@@ -64,7 +66,6 @@ function post(jsonData, address) {
         'somewhere safe--you will not be able to see it again!';
 
       toggleVisibility(tokenInfo, true);
-
       const para_name = document.createElement("p");
       const para_value = document.createElement("p");
       const token_name = document.createTextNode("Token name: " + res.body.name);
@@ -76,6 +77,8 @@ function post(jsonData, address) {
       tokenInfo.appendChild(para_value);
 
       toggleVisibility(errorInfo, false);
+      // add margin-top
+      toggleVisibility(formGroup, true);
       // reset value
       input.name.value = '';
     }

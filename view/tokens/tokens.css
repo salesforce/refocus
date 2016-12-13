@@ -1,10 +1,17 @@
 /**
  * view/tokens/tokens.css
  */
-
+.hidden {
+  display: none;
+}
+.show {
+  display: block;
+}
 #successInfo {
-  margin-bottom: 20px;
   font-weight: bold;
+}
+#successInfo.show {
+  margin-bottom: 20px;
 }
 #tokenInfo label {
   color: green;
@@ -13,14 +20,15 @@
 }
 #tokenInfo {
   border-bottom: 1px solid black;
-  padding: 0 0 30px 0;
 }
 #tokenInfo p {
   margin: 10px auto;
   word-wrap: break-word;
-  max-width: 300px;
   text-align: left;
 }
-.form-group {
+#formGroup {
+  margin: 10px 0;
+}
+#formGroup.show {
   margin: 20px 0;
 }
