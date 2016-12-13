@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/tokens/revokeRestore.js
+ * tests/api/v1/userTokens/get.js
  */
 'use strict';
 
@@ -16,46 +16,42 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/tokens';
+const path = '/v1/users';
 const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
-  let usr;
-  let tid;
+describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
+  const uname = `${tu.namePrefix}test@refocus.com`;
+  const tname = `${tu.namePrefix}Voldemort`;
 
-  beforeEach((done) => {
+  before((done) => {
     Profile.create({
       name: `${tu.namePrefix}testProfile`,
     })
     .then((profile) =>
       User.create({
         profileId: profile.id,
-        name: `${tu.namePrefix}test@refocus.com`,
-        email: `${tu.namePrefix}test@refocus.com`,
+        name: uname,
+        email: uname,
         password: 'user123password',
       })
     )
     .then((user) => {
-      usr = user;
       return Token.create({
-        name: `${tu.namePrefix}Voldemort`,
-        createdBy: usr.id,
+        name: tname,
+        createdBy: user.id,
       });
     })
-    .then((token) => {
-      tid = token.id;
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('ok', (done) => {
-    api.post(`${path}/${tid}/revoke`)
+    api.post(`${path}/${uname}/tokens/${tname}/revoke`)
     .set('Authorization', '???')
     .send({})
     .expect(constants.httpStatus.OK)
@@ -63,10 +59,9 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
+        expect(res.body).to.have.property('name', tname);
         expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${tid}/restore`)
+        api.post(`${path}/${uname}/tokens/${tname}/restore`)
         .set('Authorization', '???')
         .send({})
         .expect(constants.httpStatus.OK)
@@ -74,8 +69,7 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
           if (err2) {
             done(err2);
           } else {
-            expect(res2.body).to.have.property('name',
-              `${tu.namePrefix}Voldemort`);
+            expect(res2.body).to.have.property('name', tname);
             expect(res2.body).to.have.property('isRevoked', '0');
             done();
           }
@@ -85,7 +79,7 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
   });
 
   it('try to restore a token if it was not already revoked', (done) => {
-    api.post(`${path}/${tid}/restore`)
+    api.post(`${path}/${uname}/tokens/${tname}/restore`)
     .set('Authorization', '???')
     .send({})
     .expect(constants.httpStatus.BAD_REQUEST)
@@ -99,7 +93,7 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
   });
 
   it('try to revoke a token if it was already revoked', (done) => {
-    api.post(`${path}/${tid}/revoke`)
+    api.post(`${path}/${uname}/tokens/${tname}/revoke`)
     .set('Authorization', '???')
     .send({})
     .expect(constants.httpStatus.OK)
@@ -107,10 +101,9 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
+        expect(res.body).to.have.property('name', tname);
         expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${tid}/revoke`)
+        api.post(`${path}/${uname}/tokens/${tname}/revoke`)
         .set('Authorization', '???')
         .send({})
         .expect(constants.httpStatus.BAD_REQUEST)

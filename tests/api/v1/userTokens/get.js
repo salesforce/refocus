@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/tokens/get.js
+ * tests/api/v1/userTokens/get.js
  */
 'use strict';
 
@@ -16,15 +16,15 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/tokens';
+const path = '/v1/users';
 const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: GET ${path}`, () => {
-  let usr;
-  let tid;
+describe(`api: GET ${path}/U/tokens/T`, () => {
+  const uname = `${tu.namePrefix}test@refocus.com`;
+  const tname = `${tu.namePrefix}Voldemort`;
 
   before((done) => {
     Profile.create({
@@ -33,45 +33,47 @@ describe(`api: GET ${path}`, () => {
     .then((profile) =>
       User.create({
         profileId: profile.id,
-        name: `${tu.namePrefix}test@refocus.com`,
-        email: `${tu.namePrefix}test@refocus.com`,
+        name: uname,
+        email: uname,
         password: 'user123password',
       })
     )
     .then((user) => {
-      usr = user;
       return Token.create({
-        name: `${tu.namePrefix}Voldemort`,
-        createdBy: usr.id,
+        name: tname,
+        createdBy: user.id,
       });
     })
-    .then((token) => {
-      tid = token.id;
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
   after(u.forceDelete);
 
-  it('found', (done) => {
-    api.get(`${path}/${tid}`)
+  it('user and token found', (done) => {
+    api.get(`${path}/${uname}/tokens/${tname}`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
-        expect(res.body).to.have.property('isRevoked', '0');
+        expect(res.body).to.have.property('name', tname);
+        expect(res.body.isDeleted).to.not.equal(0);
         done();
       }
     });
   });
 
-  it('not found', (done) => {
-    api.get(`${path}/123-abc`)
+  it('user not found', (done) => {
+    api.get(`${path}/who@what.com/tokens/foo`)
+    .set('Authorization', '???')
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('user found but token name not found', (done) => {
+    api.get(`${path}/${uname}/tokens/foo`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.NOT_FOUND)
     .end(() => done());
