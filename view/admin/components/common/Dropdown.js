@@ -69,13 +69,12 @@ class Dropdown extends React.Component {
   }
   componentWillReceiveProps(nextProps) {
     // update dropdown options on props change
-    if (nextProps.options != this.props.options) {
+    if (nextProps.options !== this.props.options) {
       this.setState({ data: nextProps.options });
     }
   }
   render () {
     const {
-      options,
       newButtonText,
       dropDownStyle,
       allOptionsLabel,
@@ -85,7 +84,6 @@ class Dropdown extends React.Component {
       showSearchIcon,
       onAddNewButton,
       onClickItem,
-      showInputWithContent,
     } = this.props;
     const { data } = this.state;
     let outputUL = '';
@@ -98,8 +96,10 @@ class Dropdown extends React.Component {
                 onClick={ onClickItem }
                 className='slds-lookup__item-action slds-media slds-media--center'>
                 <svg aria-hidden='true'
-                  className='slds-icon slds-icon-standard-account slds-icon--small slds-media__figure'>
-                  <use xlinkHref='../static/icons/custom-sprite/svg/symbols.svg#custom39'></use>
+                  className={'slds-icon slds-icon-standard-account' +
+                    ' slds-icon--small slds-media__figure'}>
+                  <use xlinkHref={'../static/icons/custom-sprite' +
+                    '/svg/symbols.svg#custom39'}></use>
                 </svg>
                 { optionsName }
             </li>
@@ -108,7 +108,7 @@ class Dropdown extends React.Component {
         )}
       </ul>;
     }
-    const inputElem =  <input
+    const inputElem = <input
       className='slds-lookup__search-input slds-input--bare'
       type='text'
       defaultValue={ defaultValue || '' }
@@ -120,8 +120,6 @@ class Dropdown extends React.Component {
       onFocus={ this.handleFocus.bind(this) }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
-    // when there's children, check if showInputWithContent is true, then show inputElem
-    // complicated wrapper class name to display items vertically (not inline) in lightning style
     return (
       <div
         title={ title || 'dropdown' }
@@ -129,14 +127,11 @@ class Dropdown extends React.Component {
         ref='dropdown'
       >
       <div className="slds-col--padded slds-size--1-of-1">
-       { this.props.children ? this.props.children : inputElem}
+       { this.props.children }
+       { inputElem }
       </div>
-      <div className="slds-col--padded slds-size--1-of-1">
-        {((this.props.children && showInputWithContent)
-            && inputElem
-        )}
-      </div>
-        <div className='slds-dropdown-trigger--click slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'>
+        <div className={'slds-dropdown-trigger--click ' +
+          'slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'}>
           { showSearchIcon && <svg aria-hidden='true' className='slds-button__icon'>
             <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#search'></use>
           </svg>}
@@ -144,16 +139,20 @@ class Dropdown extends React.Component {
             <div
               style={ dropDownStyle }
               className='slds-dropdown slds-dropdown--left slds-scrollable--y'>
-              <div className='slds-form-element slds-lookup slds-is-open' data-select='single' data-scope='single'>
-                <div className='slds-lookup__item--label slds-text-body--small'>{ allOptionsLabel || 'All Options'}</div>
+              <div
+                className='slds-form-element slds-lookup slds-is-open'
+                data-select='single' data-scope='single'>
+                <div className='slds-lookup__item--label slds-text-body--small'>
+                  { allOptionsLabel || 'All Options'}
+                </div>
                 { outputUL }
                 { onAddNewButton && <div>
                   <a role='button'
                     onClick={ onAddNewButton }
                     className='slds-lookup__item-action slds-lookup__item-action--label'>
                     <span className='lookup__item-action-label'>
-                      <svg aria-hidden='true' className='slds-icon slds-icon--x-small slds-icon-text-default'>
-
+                      <svg aria-hidden='true' className={'slds-icon ' +
+                        'slds-icon--x-small slds-icon-text-default'}>
                         <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#add'></use>
                       </svg>
                       <span className='slds-truncate'>{ newButtonText || 'Add New' }</span>
@@ -171,16 +170,16 @@ class Dropdown extends React.Component {
 
 Dropdown.propTypes = {
   options: PropTypes.array,
-  showInputWithContent: PropTypes.bool,
   dropDownStyle: PropTypes.object,
   newButtonText: PropTypes.string,
   title: PropTypes.string, // which dropdown
   allOptionsLabel: PropTypes.string,
   placeholderText: PropTypes.string,
   defaultValue: PropTypes.string,
-  showSearchIcon: PropTypes.bool,
   onAddNewButton: PropTypes.func,
   onClickItem: PropTypes.func.isRequired,
+  children: PropTypes.element,
+  showSearchIcon: PropTypes.bool,
 };
 
 export default Dropdown;
