@@ -72,6 +72,9 @@ class Dropdown extends React.Component {
     if (nextProps.options !== this.props.options) {
       this.setState({ data: nextProps.options });
     }
+    if (nextProps.close) {
+      this.handleClose();
+    }
   }
   render () {
     const {
@@ -84,10 +87,13 @@ class Dropdown extends React.Component {
       showSearchIcon,
       onAddNewButton,
       onClickItem,
+      showInputElem,
+      children, // react elements
     } = this.props;
     const { data } = this.state;
     let outputUL = '';
     // if options exist, load them
+    // if closeOnSelect is true, close the dropwon on click option
     if (data.length) {
       outputUL = <ul className='slds-lookup__list' role='presentation'>
         {data.map((optionsName) => {
@@ -120,6 +126,9 @@ class Dropdown extends React.Component {
       onFocus={ this.handleFocus.bind(this) }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
+    // if there's child elements, render them
+    // if there's child elements and showInputElem is true, show inputElem
+    // if there's no child elements, show inputElem
     return (
       <div
         title={ title || 'dropdown' }
@@ -127,8 +136,9 @@ class Dropdown extends React.Component {
         ref='dropdown'
       >
       <div className="slds-col--padded slds-size--1-of-1">
-       { this.props.children }
-       { inputElem }
+       { !children && inputElem}
+       { children }
+       { (children && showInputElem) && inputElem }
       </div>
         <div className={'slds-dropdown-trigger--click ' +
           'slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'}>
@@ -180,6 +190,8 @@ Dropdown.propTypes = {
   onClickItem: PropTypes.func.isRequired,
   children: PropTypes.element,
   showSearchIcon: PropTypes.bool,
+  showInputElem: PropTypes.bool,
+  close: PropTypes.bool, // if true, close dropdown
 };
 
 export default Dropdown;
