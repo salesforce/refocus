@@ -60,10 +60,21 @@ function post(jsonData, address) {
       toggleVisibility(tokenInfo, false);
     } else {
       toggleVisibility(successInfo, true);
+      successInfo.innerHTML = 'Copy and paste your new token ' +
+        'somewhere safe--you will not be able to see it again!';
+
       toggleVisibility(tokenInfo, true);
-      successInfo.innerHTML = 'Token generated from ' + res.body.name +
-        '. Please save this token, you will not see this token again!';
-      tokenInfo.innerHTML = res.body.token;
+
+      const para_name = document.createElement("p");
+      const para_value = document.createElement("p");
+      const token_name = document.createTextNode("Token name: " + res.body.name);
+      const token_value = document.createTextNode("Token value: " + res.body.token);
+      para_name.appendChild(token_name);
+      para_value.appendChild(token_value);
+
+      tokenInfo.appendChild(para_name);
+      tokenInfo.appendChild(para_value);
+
       toggleVisibility(errorInfo, false);
       // reset value
       input.name.value = '';

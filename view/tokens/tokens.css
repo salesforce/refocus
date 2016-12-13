@@ -1,0 +1,26 @@
+/**
+ * view/tokens/tokens.css
+ */
+
+#successInfo {
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+#tokenInfo label {
+  color: green;
+  word-wrap: break-word;
+  margin: 0;
+}
+#tokenInfo {
+  border-bottom: 1px solid black;
+  padding: 0 0 30px 0;
+}
+#tokenInfo p {
+  margin: 10px auto;
+  word-wrap: break-word;
+  max-width: 300px;
+  text-align: left;
+}
+.form-group {
+  margin: 20px 0;
+}
