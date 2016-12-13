@@ -17,7 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Token = tu.db.Token;
 
-describe('db: Token: find', () => {
+describe('db: Token: delete', () => {
   let tokenObj = {};
   beforeEach((done) => {
     u.createTokenObject()
@@ -40,6 +40,28 @@ describe('db: Token: find', () => {
       expect(rToken).to.be.equal(null);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
+  });
+});
+
+describe('db: System Token: delete', () => {
+  let t;
+  beforeEach((done) => {
+    u.createSystemToken()
+    .then((token) => {
+      t = token;
+      done();
+    })
+    .catch(done);
+  });
+  afterEach(u.forceDelete);
+  it('Not allowed to delete system token', (done) => {
+    Token.findOne({ where: { name: t.name } })
+    .then((token) => token.destroy())
+    .then(() => done('expecting error here'))
+    .catch((err) => {
+      expect(err).to.have.property('name', 'TokenDeleteConstraintError');
+      done();
+    });
   });
 });
