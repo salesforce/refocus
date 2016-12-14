@@ -31,14 +31,15 @@ const changeType = {
 };
 
 /**
- * Takes a sample instance and enhances it with the subject instance
+ * Takes a sample instance and enhances it with the subject instance and
+ * aspect instance
  * @param {Sequelize} seq - A reference to Sequelize to have access to the
  * the Promise class.
  * @param {Instance} inst - The Sample Instance.
  * @returns {Promise} - Returns a promise which resolves to sample instance
- * enhanced with subject instance information.
+ * enhanced with subject instance and aspect instance information.
  */
-function augmentSampleWithSubjectInfo(seq, inst) {
+function augmentSampleWithSubjectAspectInfo(seq, inst) {
   return new seq.Promise((resolve, reject) => {
     inst.getSubject()
     .then((sub) => {
@@ -48,13 +49,15 @@ function augmentSampleWithSubjectInfo(seq, inst) {
       if (sub) {
         inst.dataValues.absolutePath = sub.absolutePath;
       }
-
       inst.subject = sub;
+    }).then(() => inst.getAspect())
+    .then((asp) => {
+      inst.dataValues.aspect = asp;
       resolve(inst);
     })
     .catch((err) => reject(err));
   });
-}
+} // augmentSampleWithSubjectAspectInfo
 
 /**
  * This function checks if the aspect and subject associated with the sample
@@ -235,7 +238,7 @@ module.exports = {
   setIsDeleted,
   publishChange,
   sampleAspectAndSubjectArePublished,
-  augmentSampleWithSubjectInfo,
+  augmentSampleWithSubjectAspectInfo,
   validateJsonSchema,
   createDBLog,
   changeType,
