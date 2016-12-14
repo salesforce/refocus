@@ -93,7 +93,6 @@ class Dropdown extends React.Component {
     const { data } = this.state;
     let outputUL = '';
     // if options exist, load them
-    // if closeOnSelect is true, close the dropwon on click option
     if (data.length) {
       outputUL = <ul className='slds-lookup__list' role='presentation'>
         {data.map((optionsName) => {
