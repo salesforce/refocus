@@ -12,6 +12,7 @@
 
 const constants = require('../constants');
 const common = require('../helpers/common');
+const dbErrors = require('../dbErrors');
 const u = require('../helpers/userUtils');
 
 const assoc = {};
@@ -64,6 +65,12 @@ module.exports = function token(seq, dataTypes) {
     },
     hooks: {
       beforeDestroy(inst /* , opts */) {
+        if (inst.name === inst.User.name && inst.User.isDeleted) {
+          // Not allowed to delete the system-created token record
+          const err = new dbErrors.TokenDeleteConstraintError();
+          throw err;
+        }
+
         return common.setIsDeleted(seq.Promise, inst);
       },
     },
