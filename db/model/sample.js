@@ -146,6 +146,7 @@ module.exports = function sample(seq, dataTypes) {
             'subjectId',
             'aspectId',
             'name',
+            'relatedLinks',
           ],
           where: {
             status: {

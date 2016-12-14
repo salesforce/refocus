@@ -231,6 +231,7 @@ describe('db: sample: timeout: ', function() {
       expect(samp.name).to.not.equal(undefined);
       expect(samp.aspectId).to.not.equal(undefined);
       expect(samp.subjectId).to.not.equal(undefined);
+      expect(samp.relatedLinks).to.not.equal(undefined);
       /*
        * the following sample fields should not be fetched in the
        * checktimeout query
@@ -240,7 +241,6 @@ describe('db: sample: timeout: ', function() {
       expect(samp.messageBody).to.equal(undefined);
       expect(samp.messageCode).to.equal(undefined);
       expect(samp.status).to.equal(undefined);
-      expect(samp.relatedLinks).to.equal(undefined);
       expect(samp.createdAt).to.equal(undefined);
       expect(samp.deletedAt).to.equal(undefined);
     })
