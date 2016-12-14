@@ -100,7 +100,8 @@ class Dropdown extends React.Component {
           return (
             <li key={ optionsName }
                 onClick={ onClickItem }
-                className='slds-lookup__item-action slds-media slds-media--center'>
+                className={'slds-lookup__item-action ' +
+                  'slds-media slds-media--center'}>
                 <svg aria-hidden='true'
                   className={'slds-icon slds-icon-standard-account' +
                     ' slds-icon--small slds-media__figure'}>
@@ -131,19 +132,22 @@ class Dropdown extends React.Component {
     // if there's no child elements, show inputElem
     return (
       <div
-        title={ title || 'dropdown' }
-        className='slds-form-element__control slds-grid slds-wrap slds-grid--pull-padded'
         ref='dropdown'
+        title={ title || 'dropdown' }
+        className={'slds-form-element__control ' +
+          'slds-grid slds-wrap slds-grid--pull-padded'}
       >
       <div className="slds-col--padded slds-size--1-of-1">
        { !children && inputElem}
        { children }
        { (children && showInputElem) && inputElem }
       </div>
-        <div className={'slds-dropdown-trigger--click ' +
-          'slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'}>
-          { showSearchIcon && <svg aria-hidden='true' className='slds-button__icon'>
-            <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#search'></use>
+        <div className={'slds-dropdown-trigger--click slds-align-middle ' +
+          'slds-m-right--xx-small slds-shrink-none slds-is-open'}>
+          { showSearchIcon &&
+            <svg aria-hidden='true' className='slds-button__icon'>
+            <use xlinkHref={'../static/icons/utility-sprite/' +
+              'svg/symbols.svg#search'}></use>
           </svg>}
           { this.state.open &&
             <div
@@ -159,13 +163,16 @@ class Dropdown extends React.Component {
                 { onAddNewButton && <div>
                   <a role='button'
                     onClick={ onAddNewButton }
-                    className='slds-lookup__item-action slds-lookup__item-action--label'>
+                    className={'slds-lookup__item-action ' +
+                      'slds-lookup__item-action--label'}>
                     <span className='lookup__item-action-label'>
                       <svg aria-hidden='true' className={'slds-icon ' +
                         'slds-icon--x-small slds-icon-text-default'}>
-                        <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#add'></use>
+                        <use xlinkHref={'../static/icons/utility-sprite/' +
+                          'svg/symbols.svg#add'}></use>
                       </svg>
-                      <span className='slds-truncate'>{ newButtonText || 'Add New' }</span>
+                      <span className='slds-truncate'
+                      >{ newButtonText || 'Add New' }</span>
                     </span>
                   </a>
                 </div>}

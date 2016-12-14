@@ -66,14 +66,16 @@ describe('Dropdown component tests', () => {
     'child element(s), there is no input rendered', () => {
     // by default, showInputElem = false
     const enzymeWrapper = setup({}, <div id='lookForMe'/>);
-    expect(enzymeWrapper.find('.slds-lookup__search-input')).to.have.length(ZERO);
+    expect(enzymeWrapper.find('.slds-lookup__search-input'))
+      .to.have.length(ZERO);
   });
 
   it('even when showInputElem is false, if given no child elements, ' +
     'input is rendered', () => {
     // by default, showInputElem = false
     const enzymeWrapper = setup();
-    expect(enzymeWrapper.find('.slds-lookup__search-input')).to.have.length(ONE);
+    expect(enzymeWrapper.find('.slds-lookup__search-input'))
+      .to.have.length(ONE);
   });
 
   it('when showInputElem is true, an input is rendered with ' +
@@ -82,7 +84,8 @@ describe('Dropdown component tests', () => {
     const enzymeWrapper = setup(
       { showInputElem: true },
       <div id='lookForMe'/>);
-    expect(enzymeWrapper.find('.slds-lookup__search-input')).to.have.length(ONE);
+    expect(enzymeWrapper.find('.slds-lookup__search-input'))
+      .to.have.length(ONE);
     expect(enzymeWrapper.find('#lookForMe')).to.have.length(ONE);
   });
 
