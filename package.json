@@ -22,7 +22,7 @@
   "scripts": {
     "watch": "npm-watch",
     "cleanup": "npm run dropdb && npm run initdb && npm run checkdb",
-    "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
+    "build": "NODE_ENV=development && webpack --watch --config ./webpack.config.js --progress --profile",
     "checkdb": "node db/createOrUpdateDb.js",
     "dropdb": "node db/createOrDropDb.js --drop",
     "initdb": "node db/createOrDropDb.js --init",
