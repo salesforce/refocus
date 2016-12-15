@@ -1,0 +1,33 @@
+//
+  Copyright (c) 2016, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or
+  https://opensource.org/licenses/BSD-3-Clause
+
+
+doctype html
+html
+  head
+    title New Token
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css', rel='stylesheet', media='screen')
+    link(rel="stylesheet", type="text/css", href="/static/tokens/tokens.css")
+  body
+  div.container
+    div.row
+      div.text-center.col-md-4.col-md-offset-4
+        h1 Create new token
+        br
+        div.local-form
+          form(role='form', name='loginform')
+            #errorInfo
+            #successInfo
+            #tokenInfo
+            .form-group#formGroup
+              input.form-control(type='text', autofocus, name="name", maxlength='60' placeholder='Enter token name' required)
+            button.btn.btn-primary.btn-block(type='submit') Submit
+  script.
+    var trackingId = '#{trackingId}';
+  script(src='/static/analytics/app.js')
+  script(src='/static/tokens/app.js')
