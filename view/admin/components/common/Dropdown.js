@@ -72,6 +72,9 @@ class Dropdown extends React.Component {
     if (nextProps.options !== this.props.options) {
       this.setState({ data: nextProps.options });
     }
+    if (nextProps.close) {
+      this.handleClose();
+    }
   }
   render () {
     const {
@@ -84,6 +87,8 @@ class Dropdown extends React.Component {
       showSearchIcon,
       onAddNewButton,
       onClickItem,
+      showInputElem,
+      children, // react elements
     } = this.props;
     const { data } = this.state;
     let outputUL = '';
@@ -94,7 +99,8 @@ class Dropdown extends React.Component {
           return (
             <li key={ optionsName }
                 onClick={ onClickItem }
-                className='slds-lookup__item-action slds-media slds-media--center'>
+                className={'slds-lookup__item-action ' +
+                  'slds-media slds-media--center'}>
                 <svg aria-hidden='true'
                   className={'slds-icon slds-icon-standard-account' +
                     ' slds-icon--small slds-media__figure'}>
@@ -120,20 +126,27 @@ class Dropdown extends React.Component {
       onFocus={ this.handleFocus.bind(this) }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
+    // if there's child elements, render them
+    // if there's child elements and showInputElem is true, show inputElem
+    // if there's no child elements, show inputElem
     return (
       <div
-        title={ title || 'dropdown' }
-        className='slds-form-element__control slds-grid slds-wrap slds-grid--pull-padded'
         ref='dropdown'
+        title={ title || 'dropdown' }
+        className={'slds-form-element__control ' +
+          'slds-grid slds-wrap slds-grid--pull-padded'}
       >
       <div className="slds-col--padded slds-size--1-of-1">
-       { this.props.children }
-       { inputElem }
+       { !children && inputElem}
+       { children }
+       { (children && showInputElem) && inputElem }
       </div>
-        <div className={'slds-dropdown-trigger--click ' +
-          'slds-align-middle slds-m-right--xx-small slds-shrink-none slds-is-open'}>
-          { showSearchIcon && <svg aria-hidden='true' className='slds-button__icon'>
-            <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#search'></use>
+        <div className={'slds-dropdown-trigger--click slds-align-middle ' +
+          'slds-m-right--xx-small slds-shrink-none slds-is-open'}>
+          { showSearchIcon &&
+            <svg aria-hidden='true' className='slds-button__icon'>
+            <use xlinkHref={'../static/icons/utility-sprite/' +
+              'svg/symbols.svg#search'}></use>
           </svg>}
           { this.state.open &&
             <div
@@ -149,13 +162,16 @@ class Dropdown extends React.Component {
                 { onAddNewButton && <div>
                   <a role='button'
                     onClick={ onAddNewButton }
-                    className='slds-lookup__item-action slds-lookup__item-action--label'>
+                    className={'slds-lookup__item-action ' +
+                      'slds-lookup__item-action--label'}>
                     <span className='lookup__item-action-label'>
                       <svg aria-hidden='true' className={'slds-icon ' +
                         'slds-icon--x-small slds-icon-text-default'}>
-                        <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#add'></use>
+                        <use xlinkHref={'../static/icons/utility-sprite/' +
+                          'svg/symbols.svg#add'}></use>
                       </svg>
-                      <span className='slds-truncate'>{ newButtonText || 'Add New' }</span>
+                      <span className='slds-truncate'
+                      >{ newButtonText || 'Add New' }</span>
                     </span>
                   </a>
                 </div>}
@@ -180,6 +196,8 @@ Dropdown.propTypes = {
   onClickItem: PropTypes.func.isRequired,
   children: PropTypes.element,
   showSearchIcon: PropTypes.bool,
+  showInputElem: PropTypes.bool,
+  close: PropTypes.bool, // if true, close dropdown
 };
 
 export default Dropdown;
