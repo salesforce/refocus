@@ -236,10 +236,14 @@ class CreatePerspective extends React.Component {
       } else {
         newState[dropdownTitle] = [valueToAppend];
       }
-    } else if (valueInState) {
-      // for single pill fields with non-empty value,
+    } else { // single pill input
+      // close the dropdown
+      config.close = true;
+      // field had value,
       // add replaced value into options
-      config.options.push(valueInState);
+      if (valueInState) {
+        config.options.push(valueInState);
+      }
     }
     // remove selected option from available options in dropdown
     const arr = filteredArray(config.options || [], valueToAppend);
@@ -312,6 +316,9 @@ class CreatePerspective extends React.Component {
       }
       // if display value is array, use multi pill
       // else single pill
+      // showInputElem {Bool} if true, show additional
+      // input near dropdown
+      const showInputElem = dropdownConfig[key].isArray;
       if (value.length) {
         if (dropdownConfig[key].isArray) {
           pillOutput = <Pill
@@ -319,17 +326,15 @@ class CreatePerspective extends React.Component {
             onRemove={this.deletePill}
           />;
         } else if (typeof value === 'string') {
+          // Do not show input when there's pills
           pillOutput = <Pill
-            title={ [value] }
             icon={ accountIcon }
+            title={ [value] }
             onRemove={this.deletePill}
           />;
         }
       }
-      // show input below dropdown, to filter
-      const _config = Object.assign(
-        dropdownConfig[key], { showInputWithContent: true },
-      );
+      const _config = Object.assign(dropdownConfig[key], { showInputElem });
       dropdownObj[key] = (
         <Dropdown { ..._config } >
          { pillOutput }
