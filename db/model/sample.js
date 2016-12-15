@@ -146,6 +146,7 @@ module.exports = function sample(seq, dataTypes) {
             'subjectId',
             'aspectId',
             'name',
+            'relatedLinks',
           ],
           where: {
             status: {
@@ -303,7 +304,7 @@ module.exports = function sample(seq, dataTypes) {
           if (published) {
             // augment the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, samp)
+            common.augmentSampleWithSubjectAspectInfo(seq, samp)
             .then(() => common.publishChange(samp, eventName.add));
           }
         });
@@ -325,7 +326,7 @@ module.exports = function sample(seq, dataTypes) {
           if (published) {
             // augument the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, inst)
+            common.augmentSampleWithSubjectAspectInfo(seq, inst)
             .then(() => common.publishChange(inst, eventName.del));
           }
         });
@@ -353,7 +354,7 @@ module.exports = function sample(seq, dataTypes) {
           if (published) {
             // augument the sample instance with the subject instance to enable
             // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, inst)
+            common.augmentSampleWithSubjectAspectInfo(seq, inst)
             .then(() => common.publishChange(inst, eventName.upd, changedKeys,
               ignoreAttributes));
           }

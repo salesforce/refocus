@@ -106,6 +106,15 @@ dbErrors.create({
   parent: dbErrors.DeleteConstraintError,
   subject: {},
 });
+dbErrors.create({
+  code: 10303,
+  status: 403,
+  name: 'TokenDeleteConstraintError',
+  parent: dbErrors.DeleteConstraintError,
+  token: {},
+  defaultMessage: 'Not allowed to delete the system-created token.',
+  explanation: 'Not allowed to delete the system-created token.',
+});
 
 // ----------------------------------------------------------------------------
 // Create Constraint Errors

@@ -36,9 +36,7 @@ describe('utility function tests:', () => {
     it('destory with a model', (done) => {
       const par = { name: `${tu.namePrefix}Gamma`, isPublished: true };
       Subject.create(par)
-      .then((o) => {
-        return o.destroy();
-      })
+      .then((o) => o.destroy())
       .then((o) => {
         const obj = common.publishChange(o, 'delete');
         expect(obj).to.have.property('delete');
@@ -50,9 +48,7 @@ describe('utility function tests:', () => {
     it('update a model instance', (done) => {
       const par = { name: `${tu.namePrefix}Kappa`, isPublished: false };
       Subject.create(par)
-      .then((o) => {
-        return o.update({ isPublished: true });
-      })
+      .then((o) => o.update({ isPublished: true }))
       .then((o) => {
         const changedKeys = Object.keys(o._changed);
         const ignoreAttributes = ['isDeleted'];
@@ -68,9 +64,7 @@ describe('utility function tests:', () => {
         ' is a part of ignoreAttributes ', (done) => {
       const par = { name: `${tu.namePrefix}Delta`, isPublished: false };
       Subject.create(par)
-      .then((o) => {
-        return o.update({ isPublished: true });
-      })
+      .then((o) => o.update({ isPublished: true }))
       .then((o) => {
         const changedKeys = Object.keys(o._changed);
         const ignoreAttributes = changedKeys;
@@ -86,9 +80,7 @@ describe('utility function tests:', () => {
       'in ignoreAttributes', (done) => {
       const par = { name: `${tu.namePrefix}Eta`, isPublished: false };
       Subject.create(par)
-      .then((o) => {
-        return o.update({ isPublished: true });
-      })
+      .then((o) => o.update({ isPublished: true }))
       .then((o) => {
         const changedKeys = Object.keys(o._changed);
         const ignoreAttributes = changedKeys;
@@ -100,7 +92,8 @@ describe('utility function tests:', () => {
       .catch((err) => done(err));
     });
   });
-  describe('sampleAspectAndSubjectArePublished function:', () => {
+  describe('test sampleAspectAndSubjectArePublished and' +
+    ' augmentSampleWithSubjectAspectInfo function:', () => {
     let sub;
     before((done) => {
       Aspect.create({
@@ -120,14 +113,13 @@ describe('utility function tests:', () => {
       .catch((err) => done(err));
     });
 
-    it('create sample; check for true', (done) => {
+    it('sampleAspectAndSubjectArePublished : check for true', (done) => {
       Sample.upsertByName({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
         value: '1',
       })
-      .then((samp) => {
-        return common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp);
-      })
+      .then((samp) =>
+        common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp))
       .then((pub) => {
         expect(pub).to.equal(true);
       })
@@ -135,18 +127,35 @@ describe('utility function tests:', () => {
       .catch((err) => done(err));
     });
 
-    it('create sample; check for false', (done) => {
+    it('sampleAspectAndSubjectArePublished : check for false', (done) => {
       Subject.findById(sub.id)
       .then((s) => s.update({ isPublished: false }))
       .then(() => Sample.upsertByName({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
         value: '1',
       }))
-      .then((samp) => {
-        return common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp);
-      })
+      .then((samp) =>
+        common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp))
       .then((pub) => {
         expect(pub).to.equal(false);
+      })
+      .then(() => done())
+      .catch((err) => done(err));
+    });
+
+    it('augmentSampleWithSubjectAspectInfo : returned sample should have' +
+        ' subject and aspect information', (done) => {
+      Sample.upsertByName({
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+        value: '1',
+      })
+      .then((samp) =>
+        common.augmentSampleWithSubjectAspectInfo(tu.db.sequelize, samp))
+      .then((sam) => {
+        expect(sam.subject.name).to.equal(`${tu.namePrefix}Subject`);
+        expect(sam.aspect.name).to.equal(`${tu.namePrefix}Aspect`);
+        expect(sam.subject.tags).to.be.instanceof(Array);
+        expect(sam.aspect.tags).to.to.be.instanceof(Array);
       })
       .then(() => done())
       .catch((err) => done(err));
