@@ -32,7 +32,7 @@ apiErrors.create({
 });
 
 apiErrors.create({
-  code: 11100,
+  code: 11101,
   status: 400,
   name: 'SubjectValidationError',
   parent: apiErrors.ValidationError,
@@ -40,6 +40,16 @@ apiErrors.create({
   defaultMessage: 'You are not allowed to set the subject\'s absolutePath ' +
     'attribute directly--it is generated based on the subject\'s name and ' +
     'parent.',
+});
+
+apiErrors.create({
+  code: 11102,
+  status: 400,
+  name: 'InvalidTokenActionError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You are not allowed to restore a token if it was not ' +
+    'previously revoked, and vice versa.',
 });
 
 // ----------------------------------------------------------------------------
