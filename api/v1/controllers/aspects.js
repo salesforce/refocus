@@ -12,6 +12,7 @@
 'use strict';
 
 const helper = require('../helpers/nouns/aspects');
+const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -61,6 +62,28 @@ module.exports = {
   getAspect(req, res, next) {
     doGet(req, res, next, helper);
   },
+
+  /**
+   * GET /aspects/{key}/writers
+   *
+   * Retrieves all the writers associated with the aspect
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getAspectWriters(req, res, next) {
+    const params = req.swagger.params;
+    const options = {};
+    options.scope = userProps.scopeMap.withoutSensitiveInfo;
+    u.findAssociatedInstances(helper,
+      params, helper.userModelAssociationName, options)
+    .then((o) => {
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // getAspectWriters
 
   /**
    * PATCH /aspects/{key}

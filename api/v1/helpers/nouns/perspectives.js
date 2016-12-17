@@ -29,5 +29,6 @@ module.exports = {
   },
   model: Perspective,
   modelName: 'Perspective',
+  userModelAssociationName: 'writers',
   cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
 }; // exports
