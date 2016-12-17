@@ -30,17 +30,26 @@ function isThisSubject(obj) {
 }
 
 /**
- * Returns the stringified object, with the specified key
- * as property and the given object as the value of
- * 'new' property.
+ * Transforms and returns the stringified object.
+ * If the key, i.e. the event type, ends with "update", then return the
+ * stringified object with the specified key as the property and the given
+ * object as the value of a "new" property. Otherwise return the stringified
+ * object with the specified key as the property name and the given object as
+ * the value.
  *
- * @param {String} key The key of the returned object.
- * @param {Object} obj The value of 'new'
- * @returns {String} The stringified object
+ * @param {String} key - The key of the returned object, i.e. the event type.
+ * @param {Object} obj - The object to return.
+ * @returns {String} - The stringified object nested inside the key (and also
+ *  nested inside "new" if the event is an "update").
  */
 function getNewObjAsString(key, obj) {
   const wrappedObj = {};
-  wrappedObj[key] = { new: obj };
+  if (key.endsWith('update')) {
+    wrappedObj[key] = { new: obj };
+  } else {
+    wrappedObj[key] = obj;
+  }
+
   return JSON.stringify(wrappedObj);
 }
 
