@@ -12,11 +12,11 @@
 
 'use strict';
 
-var pfx = '___';
+const pfx = '___';
 const jwtUtil = require('../utils/jwtUtil');
 const db = require('../db');
 const testStartTime = new Date();
-const userName = `${pfx}test@refocus.com`;
+const userName = `${pfx}testUser@refocus.com`;
 
 /**
  * By convention, all the resources we create in our tests are named using
@@ -60,7 +60,34 @@ module.exports = {
   gotArrayWithExpectedLength(arr, len) {
     return Array.isArray(arr) && this.gotExpectedLength(arr, len);
   },
-
+  // create one more user
+  createThirdUser() {
+    return db.Profile.create({
+      name: `${pfx}testProfilethird`,
+    })
+    .then((createdProfile) =>
+      db.User.create({
+        profileId: createdProfile.id,
+        name: userName+'third',
+        email: userName+'third',
+        password: 'user123password',
+      })
+    );
+  },
+  // create another user
+  createSecondUser() {
+    return db.Profile.create({
+      name: `${pfx}testProfilesecond`,
+    })
+    .then((createdProfile) =>
+      db.User.create({
+        profileId: createdProfile.id,
+        name: userName+'second',
+        email: userName+'second',
+        password: 'user123password',
+      })
+    );
+  },
   // create user and corresponding token to be used in api tests.
   createToken() {
     return db.Profile.create({
