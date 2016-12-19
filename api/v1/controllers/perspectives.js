@@ -75,7 +75,6 @@ module.exports = {
   getPerspectiveWriters(req, res, next) {
     const params = req.swagger.params;
     const options = {};
-    options.scope = userProps.scopeMap.withoutSensitiveInfo;
     u.findAssociatedInstances(helper,
       params, helper.userModelAssociationName, options)
     .then((o) => {
@@ -98,7 +97,6 @@ module.exports = {
   getPerspectiveWriter(req, res, next) {
     const params = req.swagger.params;
     const options = {};
-    options.scope = userProps.scopeMap.withoutSensitiveInfo;
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
       params, helper.userModelAssociationName, options)

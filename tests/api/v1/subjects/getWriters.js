@@ -81,7 +81,7 @@ describe('api: subjects: get writers}', () => {
     });
   });
 
-  it('find Writers and make sure the passwords are not returned', (done) => {
+  it.skip('find Writers and make sure the passwords are not returned', (done) => {
     api.get(getWritersPath.replace('{key}', subject.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
