@@ -1646,10 +1646,10 @@ paths:
     post:
         security:
           - jwt: []
-        summary: Add one or more users to an lens' list of authorized writers
+        summary: Add one or more users to a lens' list of authorized writers
         tags: [ lenses ]
         description: >-
-          Add one or more users to an lens' list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+          Add one or more users to a lens' list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
         operationId: postLensWriters
         parameters:
           -
@@ -2228,10 +2228,10 @@ paths:
     post:
       security:
         - jwt: []
-      summary: Add one or more users to an perspective's list of authorized writers
+      summary: Add one or more users to a perspective's list of authorized writers
       tags: [ perspectives ]
       description: >-
-        Add one or more users to an perspective's list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Add one or more users to a perspective's list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: postPerspectiveWriters
       parameters:
         -
@@ -4301,10 +4301,10 @@ paths:
     post:
         security:
           - jwt: []
-        summary: Add one or more users to an subjects list of authorized writers
+        summary: Add one or more users to a subjects list of authorized writers
         tags: [ subjects ]
         description: >-
-          Add one or more users to an subjects list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+          Add one or more users to a subjects list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
         operationId: postSubjectWriters
         parameters:
           -
@@ -6674,12 +6674,12 @@ definitions:
         type: string
         readOnly: true
         description: >
-          Id of a writer protected aspect
+          Id of a write-protected aspect
       userId:
         type: string
         readOnly: true
         description: >
-          Id of an user having write permission to the aspect
+          Id of a user having write permission to the aspect
       createdAt:
         readOnly: true
         type: string
@@ -6700,12 +6700,12 @@ definitions:
         type: string
         readOnly: true
         description: >
-          Id of a writer protected aspect
+          Id of a write-protected aspect
       userId:
         type: string
         readOnly: true
         description: >
-          Id of an user having write permission to the lens
+          Id of a user having write permission to the lens
       createdAt:
         readOnly: true
         type: string
@@ -6726,12 +6726,12 @@ definitions:
         type: string
         readOnly: true
         description: >
-          Id of a writer protected perspective
+          Id of a write-protected perspective
       userId:
         type: string
         readOnly: true
         description: >
-          Id of an user having write permission to the perspective
+          Id of a user having write permission to the perspective
       createdAt:
         readOnly: true
         type: string
@@ -6752,12 +6752,12 @@ definitions:
         type: string
         readOnly: true
         description: >
-          Id of a writer protected subject
+          Id of a write-protected subject
       userId:
         type: string
         readOnly: true
         description: >
-          Id of an user having write permission to the subject
+          Id of a user having write permission to the subject
       createdAt:
         readOnly: true
         type: string
