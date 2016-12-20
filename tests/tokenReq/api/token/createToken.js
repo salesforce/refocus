@@ -14,7 +14,7 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const u = require('./utils');
+const u = require('../../../testUtils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/token';
 
@@ -33,7 +33,7 @@ describe('api: createToken', () => {
     });
   });
 
-  after(u.forceDelete);
+  after(u.forceDeleteToken);
 
   it('error if no token found provided in header', (done) => {
     api.post(tokenPath)

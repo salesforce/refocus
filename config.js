@@ -199,6 +199,18 @@ module.exports = {
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
+    testTokenEnforced: {
+      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
+      dbLogging: false, // console.log | false | ...
+      dbUrl: defaultDbUrl,
+      redisUrl: '//127.0.0.1:6379',
+      defaultNodePort: defaultPort,
+      host: '127.0.0.1',
+      useAccessToken: true,
+      tokenSecret:
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    },
   },
 
   nodeEnv,

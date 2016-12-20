@@ -41,6 +41,18 @@ function forceDelete(model, testStartTime) {
 } // forceDelete
 
 module.exports = {
+  fakeUserCredentials: {
+    email: 'user1@abc.com',
+    password: 'fakePasswd',
+    username: 'user1'
+  },
+  forceDeleteToken(done) {
+    forceDelete(db.User, testStartTime)
+    .then(() => forceDelete(db.Profile, testStartTime))
+    .then(() => forceDelete(db.Token, testStartTime))
+    .then(() => done())
+    .catch((err) => done(err));
+  },
   db,
   dbErrorName: 'SequelizeDatabaseError',
   dbError: new Error('expecting SequelizeDatabaseError'),
@@ -111,5 +123,10 @@ module.exports = {
     .then(() => done())
     .catch((err) => done(err));
   }, // forceDeleteUser
-
+  // delete users
+  forceDeleteSubject(done) {
+    forceDelete(db.Subject, testStartTime)
+    .then(() => done())
+    .catch((err) => done(err));
+  }, // forceDeleteUser
 }; // exports
