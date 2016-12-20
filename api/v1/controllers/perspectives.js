@@ -12,6 +12,9 @@
 'use strict';
 
 const helper = require('../helpers/nouns/perspectives');
+const userProps = require('../helpers/nouns/users');
+const httpStatus = require('../constants').httpStatus;
+const u = require('../helpers/verbs/utils');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -60,6 +63,52 @@ module.exports = {
     doGet(req, res, next, helper);
   },
 
+  /**
+   * GET /perspectives/{key}/writers
+   *
+   * Retrieves all the writers associated with the perspective
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getPerspectiveWriters(req, res, next) {
+    const params = req.swagger.params;
+    const options = {};
+    u.findAssociatedInstances(helper,
+      params, helper.userModelAssociationName, options)
+    .then((o) => {
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // getPerspectiveWriters
+
+  /**
+   * GET /perspectives/{key}/writers/userNameOrId
+   *
+   * Determine whether a user is an authorized writer for a perspective
+   * and returns the user record if so.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getPerspectiveWriter(req, res, next) {
+    const params = req.swagger.params;
+    const options = {};
+    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
+    u.findAssociatedInstances(helper,
+      params, helper.userModelAssociationName, options)
+    .then((o) => {
+    // if the resolved object is an empty array, throw a ResourceNotFound error
+      u.throwErrorForEmptyArray(o,
+        params.userNameOrId.value, userProps.modelName);
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // getPerspectivesWriter
   /**
    * PATCH /perspectives/{key}
    *
