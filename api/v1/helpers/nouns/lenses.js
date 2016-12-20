@@ -28,4 +28,6 @@ module.exports = {
   baseUrl: '/v1/lenses',
   model: Lens,
   modelName: 'Lens',
+  userModelAssociationName: 'writers',
+
 }; // exports

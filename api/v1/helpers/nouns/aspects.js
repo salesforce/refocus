@@ -33,6 +33,7 @@ module.exports = {
   },
   model: Aspect,
   modelName: 'Aspect',
+  userModelAssociationName: 'writers',
   fieldsWithArrayType,
   fieldsWithJsonArrayType,
   fieldsWithEnum,

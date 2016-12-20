@@ -26,7 +26,7 @@ const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') ?
                   require('../../../jobQueue/setup').jobType : null;
 const jobWrapper =
               featureToggles.isFeatureEnabled('useWorkerProcess') ?
-                require('../../../jobQueue/jobWrapper'): null;
+                require('../../../jobQueue/jobWrapper') : null;
 module.exports = {
 
   /**

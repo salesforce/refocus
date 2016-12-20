@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/lenses');
+const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const u = require('../helpers/verbs/utils');
@@ -157,6 +158,53 @@ module.exports = {
   findLenses(req, res, next) {
     doFind(req, res, next, helper);
   },
+
+  /**
+   * GET /lenses/{key}/writers
+   *
+   * Retrieves all the writers associated with the lens
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getLensWriters(req, res, next) {
+    const params = req.swagger.params;
+    const options = {};
+    u.findAssociatedInstances(helper,
+      params, helper.userModelAssociationName, options)
+    .then((o) => {
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // getLensWriters
+
+  /**
+   * GET /lenses/{key}/writers/userNameOrId
+   *
+   * Determine whether a user is an authorized writer for a lens and returns
+   * the user record if so.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getLensWriter(req, res, next) {
+    const params = req.swagger.params;
+    const options = {};
+    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
+    u.findAssociatedInstances(helper,
+      params, helper.userModelAssociationName, options)
+    .then((o) => {
+    // if the resolved object is an empty array, throw a ResourceNotFound error
+      u.throwErrorForEmptyArray(o,
+        params.userNameOrId.value, userProps.modelName);
+      const retval = u.responsify(o, helper, req.method);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // getLensWriter
 
   /**
    * GET /lenses/{key}

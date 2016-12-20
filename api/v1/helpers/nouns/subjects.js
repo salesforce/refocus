@@ -301,6 +301,7 @@ module.exports = {
   model: Subject,
   modelName: 'Subject',
   nameFinder: 'absolutePath',
+  userModelAssociationName: 'writers',
   modifyAPIResponse,
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
