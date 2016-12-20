@@ -892,6 +892,91 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /aspects/{key}/writers:
+    x-swagger-router-controller: aspects
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for an aspect
+      tags: [ aspects ]
+      description: >-
+        Get the list of all authorized writers for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getAspectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the aspect.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /aspects/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: aspects
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for an aspect
+      tags: [ aspects ]
+      description: >-
+        Determine whether a user is an authorized writer for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getAspectWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the aspect.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /globalconfig:
     x-swagger-router-controller: globalconfig
     get:
@@ -1475,6 +1560,91 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /lenses/{key}/writers:
+    x-swagger-router-controller: lenses
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for a lens
+      tags: [ lenses ]
+      description: >-
+        Get the list of all authorized writers for a lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getLensWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the lens for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns The users having write permission to the lens.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the lens
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /lenses/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: lenses
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for a lens
+      tags: [ lenses ]
+      description: >-
+        Determine whether a user is an authorized writer for lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getLensWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the user record.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /perspectives:
     x-swagger-router-controller: perspectives
     get:
@@ -1921,6 +2091,90 @@ paths:
           $ref: "#/responses/401"
         403:
           $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+  # ---------------------------------------------------------------------------
+  /perspectives/{key}/writers:
+    x-swagger-router-controller: perspectives
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for a perspective
+      tags: [ perspectives ]
+      description: >-
+        Get the list of all authorized writers for a perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getPerspectiveWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns The users having write permission to the perspective.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the perspective
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /perspectives/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: perspectives
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for a perspective
+      tags: [ perspectives ]
+      description: >-
+        Determine whether a user is an authorized writer for perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getPerspectiveWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the user record.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
         404:
           $ref: "#/responses/404"
         default:
@@ -3870,6 +4124,91 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /subjects/{key}/writers:
+    x-swagger-router-controller: subjects
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for a subject
+      tags: [ subjects ]
+      description: >-
+        Get the list of all authorized writers for a subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getSubjectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the subject for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the subject.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the subject
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /subjects/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: subjects
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for a subject
+      tags: [ subjects ]
+      description: >-
+        Determine whether a user is an authorized writer for subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: getSubjectWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the subject for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the user record.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /users:
     x-swagger-router-controller: users
     get:
@@ -4511,9 +4850,9 @@ paths:
       tags: [ token ]
       description: >-
         Create a new api access token by providing a token in header.
-        If the Refocus configuration parameter `useAccessToken` is set to 
-        `true`, you must include an `Authorization` request header with your 
-        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        If the Refocus configuration parameter `useAccessToken` is set to
+        `true`, you must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or `POST /v1/token`.
       operationId: postToken
       parameters:
@@ -4530,8 +4869,8 @@ paths:
                 type: string
                 maxLength: 60
                 description: >
-                  A name for your new token. Token name must be unique for a 
-                  user. Best practice is to select a name which reminds you of 
+                  A name for your new token. Token name must be unique for a
+                  user. Best practice is to select a name which reminds you of
                   how you intend to use the token,
                   e.g. "PushSamplesFromSystemXyz".
             required:
@@ -4543,21 +4882,21 @@ paths:
             $ref: "#/definitions/TokenResponse"
         401:
           description: >-
-            Caller did not supply credentials or did not provide the correct 
-            credentials. If you are using an API key, it may be invalid or your 
+            Caller did not supply credentials or did not provide the correct
+            credentials. If you are using an API key, it may be invalid or your
             Authorization header may be malformed.
           schema:
             $ref: '#/definitions/AuthenticationError'
         403:
           description: >-
-            Caller is not authorized to create token. While your authentication 
-            is valid, the authenticated user or token does not have permission 
+            Caller is not authorized to create token. While your authentication
+            is valid, the authenticated user or token does not have permission
             to perform this action.
           schema:
             $ref: '#/definitions/ErrorResponse'
         default:
           description: >-
-            An unexpected error occurred. Please review the response for error 
+            An unexpected error occurred. Please review the response for error
             details.
           schema:
               $ref: '#/definitions/ErrorResponse'
@@ -4680,8 +5019,8 @@ paths:
       description: >-
         Revoke access for the specified token. If the Refocus configuration
         parameter `useAccessToken` is set to `true`, you must include an
-        `Authorization` request header with your 
-        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
         `POST /v1/token`.
       operationId: revokeTokenById
@@ -4967,8 +5306,8 @@ paths:
       description: >-
         Revoke access for the specified token. If the Refocus configuration
         parameter `useAccessToken` is set to `true`, you must include an
-        `Authorization` request header with your 
-        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the 
+        `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
         `POST /v1/token`.
       operationId: revokeTokenByName
@@ -6311,7 +6650,7 @@ parameters:
         - createdBy
         - createdAt
         - updatedAt
-  
+
   TokensFieldsParam:
     name: fields
     in: query

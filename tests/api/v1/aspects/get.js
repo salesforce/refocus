@@ -67,7 +67,6 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-
   describe('Single Values: ', () => {
     it('filter by BOOLEAN returns expected values', (done) => {
       api.get(path + '?valueType=PERCENT') // BOOLEAN is default

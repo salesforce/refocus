@@ -59,6 +59,7 @@ function includeAssocToCreate(obj, props) {
   return includedAssoc;
 } // includeAssocToCreate
 
+
 /**
  * Function that capitalises the first letter of the string and returns it.
  * @param  {String} str - String that has to have its first letter capitalized
@@ -184,6 +185,38 @@ function getApiLinks(key, props, method) {
  */
 function looksLikeId(key) {
   return constants.POSTGRES_UUID_RE.test(key);
+}
+
+/**
+ * Returns a where clause object that can be used to query the model.
+ * @param  {String} nameOrId - Name or id of the record that the where clause
+ * has to find
+ * @returns {Object} - A where clause object
+ */
+function whereClauseForNameOrId(nameOrId) {
+  const whr = {};
+  if (looksLikeId(nameOrId)) {
+    whr.id = nameOrId;
+  } else {
+    whr.name = nameOrId;
+  }
+  return whr;
+} // whereClauseForNameOrId
+
+/**
+ * A function that throws resource not found error if an array passed
+ * to the function is empty
+ * @param  {Array} arr  -  An array
+ * @param  {String} key - Record id for which the error is thrown
+ * @param  {String} modelName - Name of the model throwing the error
+ */
+function throwErrorForEmptyArray(arr, key, modelName) {
+  if (Array.isArray(arr) && !arr.length) {
+    const err = new apiErrors.ResourceNotFoundError();
+    err.resource = modelName;
+    err.key = key;
+    throw err;
+  }
 }
 
 /**
@@ -449,6 +482,46 @@ function cleanAndStripNulls(obj) {
   return o;
 }
 
+/**
+ * If the key looks like a postgres uuid, tries calling findById first, but
+ * falls back to find by name (or subject.absolutePath) if none found. If
+ * the key does not look like a postgres uuid, just tries to find by name
+ * (or subject.absolutePath).
+ *
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Object} params - The request params
+ * @param {Array} extraAttributes - An array of... // TODO
+ * @returns {Promise} which resolves to the record found, or rejects with
+ *  ResourceNotFoundError if record not found
+ */
+function findByKey(props, params, extraAttributes) {
+  const key = params.key.value;
+  const opts = buildFieldList(params);
+  const keyClause = {};
+  keyClause[constants.SEQ_LIKE] = key;
+  opts.where = {};
+  opts.where[props.nameFinder || 'name'] = keyClause;
+  const attrArr = [];
+  if (opts.attributes && Array.isArray(opts.attributes)) {
+    for (let i = 0; i < opts.attributes.length; i++) {
+      attrArr.push(opts.attributes[i]);
+    }
+  }
+
+  if (extraAttributes && Array.isArray(extraAttributes)) {
+    for (let i = 0; i < extraAttributes.length; i++) {
+      attrArr.push(extraAttributes[i]);
+    }
+  }
+
+  const scopedModel = getScopedModel(props, attrArr);
+  if (looksLikeId(key)) {
+    return findByIdThenName(scopedModel, key, opts);
+  }
+
+  return findByName(scopedModel, key, opts);
+} // findByKey
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -480,44 +553,30 @@ module.exports = {
   }, // responsify
 
   /**
-   * If the key looks like a postgres uuid, tries calling findById first, but
-   * falls back to find by name (or subject.absolutePath) if none found. If
-   * the key does not look like a postgres uuid, just tries to find by name
-   * (or subject.absolutePath).
-   *
+   * Finds the associated instances of a given model
    * @param {Object} props - The helpers/nouns module for the given DB model
    * @param {Object} params - The request params
-   * @param {Array} extraAttributes - An array of... // TODO
-   * @returns {Promise} which resolves to the record found, or rejects with
-   *  ResourceNotFoundError if record not found
+   * @param  {String} association - Name of the associated model
+   * @param  {[type]} options - An optional object to apply a "where" clause or
+   * "scopes" to the associated model
+   * @returns {Promise} which resolves to the associated record found or rejects
+   * with ResourceNotFoundError if the given model(parent record) is not found.
    */
-  findByKey(props, params, extraAttributes) {
-    const key = params.key.value;
-    const opts = buildFieldList(params);
-    const keyClause = {};
-    keyClause[constants.SEQ_LIKE] = key;
-    opts.where = {};
-    opts.where[props.nameFinder || 'name'] = keyClause;
-    const attrArr = [];
-    if (opts.attributes && Array.isArray(opts.attributes)) {
-      for (let i = 0; i < opts.attributes.length; i++) {
-        attrArr.push(opts.attributes[i]);
-      }
-    }
+  findAssociatedInstances(props, params, association, options) {
+    return new Promise((resolve, reject) => {
+      findByKey(props, params)
+      .then((o) => {
+        if (o) {
+          const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
+          o[getAssocfuncName](options)
+          .then((writers) => resolve(writers));
+        }
+      })
+      .catch((err) => reject(err));
+    });
+  },
 
-    if (extraAttributes && Array.isArray(extraAttributes)) {
-      for (let i = 0; i < extraAttributes.length; i++) {
-        attrArr.push(extraAttributes[i]);
-      }
-    }
-
-    const scopedModel = getScopedModel(props, attrArr);
-    if (looksLikeId(key)) {
-      return findByIdThenName(scopedModel, key, opts);
-    }
-
-    return findByName(scopedModel, key, opts);
-  }, // findByKey
+  findByKey,
 
   getScopedModel,
 
@@ -546,6 +605,10 @@ module.exports = {
   },
 
   looksLikeId,
+
+  whereClauseForNameOrId,
+
+  throwErrorForEmptyArray,
 
   cleanAndStripNulls,
 
