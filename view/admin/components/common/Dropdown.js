@@ -14,6 +14,8 @@
  */
 
 import React, { PropTypes } from 'react';
+const ZERO = 0;
+const ONE = 1;
 
 /**
  * Returns subset of data array that matches text.
@@ -23,34 +25,79 @@ import React, { PropTypes } from 'react';
  */
 function filterData(dataArr, searchText, callback) {
   const data = dataArr.filter(
-    (entry) => entry.toUpperCase().indexOf(searchText.toUpperCase()) > -1
+    (entry) => entry.toUpperCase().indexOf(searchText.toUpperCase()) > -ONE
   );
   callback(data);
 }
 
+/**
+ * Returns the index of the defaultValue in array options.
+ * Or -1 if empty array
+ * @param {Array} options
+ * @param {String} defaultValue
+ * @returns {Integer} Index of the defaultValue in options
+ */
+function getIndexFromArray(options, defaultValue) {
+  let index = -ONE; // default: no options in dropdown
+  if (options.length) {
+    index = options.indexOf(defaultValue);
+    // indexOf might return 0
+    if (index < ZERO) {
+      index = ZERO;
+    }
+  }
+  return index;
+}
+
 class Dropdown extends React.Component {
+
+  /**
+   * The index wraps around SIZE
+   * @param {String} oldIndex
+   * @param {Integer} size
+   * @param {Bool} direction true to go up,
+   * false to go down (increment index)
+   * @returns {Integer} updated index
+   */
+  static getupdatedIndex(oldIndex, size, direction) {
+    let newIndex = ZERO;
+    if (direction) {
+      newIndex = oldIndex === ZERO ? size-ONE : oldIndex-ONE;
+    } else {
+      newIndex = (oldIndex+ONE)%size;
+    }
+
+    return newIndex;
+  }
+
   constructor(props) {
     super(props);
     this.state = {
       open: false, // dropdown is open or closed
       data: [], // data in dropdown
+      highlightedIndex: getIndexFromArray(props.options, props. defaultValue),
     };
-    this.handleClose = this.handleClose.bind(this);
+    this.toggle = this.toggle.bind(this);
   }
   componentDidMount() {
     // click anywhere outside of container
     // to hide dropdown
     const containerEl = this.refs.dropdown;
-    const closeDropdown = this.handleClose;
+    const closeDropdown = this.toggle;
     document.addEventListener('click', (event) => {
       if (!containerEl.contains(event.target)) {
-        closeDropdown();
+        closeDropdown(false);
       }
     }, true);
   }
-  handleClose() {
+
+  /**
+   * @param {Boolean} bool If true, open
+   * else close
+   */
+  toggle(bool) {
     this.setState({
-      open: false,
+      open: bool,
     });
   }
   handleFocus() {
@@ -60,20 +107,55 @@ class Dropdown extends React.Component {
       data: this.props.options,
     });
   }
-  handleKeyUp(event) {
-    const searchText = event.target.value || '';
-    this.setState({ data: [] });
-    filterData(this.props.options, searchText, (data) => {
-      this.setState({ data, loading: false });
-    });
+  handleKeyUp(evt) {
+    const Key = {
+      UP: 38,
+      DOWN: 40,
+      ENTER: 13,
+    };
+    // enter key, up or down key, or text change
+    const event = evt || window.event; // for IE compatible
+    // also for cross-browser compatible
+    const keycode = event.keyCode || event.which;
+    const { highlightedIndex } = this.state;
+    const { getupdatedIndex } = this.constructor;
+    const { options } = this.props;
+    if (keycode === Key.UP) {
+      this.setState({
+        highlightedIndex: getupdatedIndex(
+          highlightedIndex,
+          options.length,
+          true,
+        ),
+      });
+    } else if (keycode === Key.DOWN) {
+      this.setState({
+        highlightedIndex: getupdatedIndex(
+          highlightedIndex,
+          options.length,
+          false,
+        ),
+      });
+    } else if (keycode === Key.ENTER) {
+      const persName = options[highlightedIndex];
+      window.location.href = '/perspectives/' + persName;
+    } else {
+      const searchText = event.target.value || '';
+      this.setState({ data: [] });
+      filterData(this.props.options, searchText, (data) => {
+        this.setState({ data, loading: false });
+      });
+    }
   }
   componentWillReceiveProps(nextProps) {
     // update dropdown options on props change
     if (nextProps.options !== this.props.options) {
-      this.setState({ data: nextProps.options });
+      this.setState({
+        data: nextProps.options,
+      });
     }
     if (nextProps.close) {
-      this.handleClose();
+      this.toggle(false);
     }
   }
   render () {
@@ -82,25 +164,29 @@ class Dropdown extends React.Component {
       dropDownStyle,
       allOptionsLabel,
       placeholderText,
-      defaultValue,
       title,
       showSearchIcon,
       onAddNewButton,
       onClickItem,
       showInputElem,
       children, // react elements
+      defaultValue,
     } = this.props;
     const { data } = this.state;
     let outputUL = '';
     // if options exist, load them
     if (data.length) {
       outputUL = <ul className='slds-lookup__list' role='presentation'>
-        {data.map((optionsName) => {
+        {data.map((optionsName, index) => {
+          let className = 'slds-lookup__item-action ' +
+            'slds-media slds-media--center';
+          if (index === this.state.highlightedIndex) {
+            className += ' highlighted';
+          }
           return (
             <li key={ optionsName }
                 onClick={ onClickItem }
-                className={'slds-lookup__item-action ' +
-                  'slds-media slds-media--center'}>
+                className={ className }>
                 <svg aria-hidden='true'
                   className={'slds-icon slds-icon-standard-account' +
                     ' slds-icon--small slds-media__figure'}>
