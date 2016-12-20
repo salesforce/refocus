@@ -16,7 +16,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('../../../testUtils');
 const registerPath = '/v1/register';
-const tokenPath = '/v1/token';
+const tokenPath = '/v1/tokens';
 
 describe('api: createToken', () => {
   let defaultToken;
