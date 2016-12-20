@@ -204,15 +204,29 @@ function whereClauseForNameOrId(nameOrId) {
 } // whereClauseForNameOrId
 
 /**
+ * Returns a where clause object that uses the "IN" operator
+ * @param  {Array} arr - An array that needs to be assigned to the "IN" operator
+ * @returns {Object} - An where clause object
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+
+  whr.name = {};
+  whr.name[constants.SEQ_IN]= arr ;
+  return whr;
+} // whereClauseForNameOrId
+
+/**
  * A function that throws resource not found error if an array passed
  * to the function is empty
  * @param  {Array} arr  -  An array
  * @param  {String} key - Record id for which the error is thrown
  * @param  {String} modelName - Name of the model throwing the error
+ * @param  {String} message - Message assigned to the error object
  */
-function throwErrorForEmptyArray(arr, key, modelName) {
+function throwErrorForEmptyArray(arr, key, modelName, message) {
   if (Array.isArray(arr) && !arr.length) {
-    const err = new apiErrors.ResourceNotFoundError();
+    const err = new apiErrors.ResourceNotFoundError(message);
     err.resource = modelName;
     err.key = key;
     throw err;
@@ -607,6 +621,8 @@ module.exports = {
   looksLikeId,
 
   whereClauseForNameOrId,
+
+  whereClauseForNameInArr,
 
   throwErrorForEmptyArray,
 

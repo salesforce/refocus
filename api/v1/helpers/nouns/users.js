@@ -29,4 +29,6 @@ module.exports = {
   baseUrl: '/v1/users',
   model: User,
   modelName: 'User',
+  writePermissionNotModified: 'Write permission for the record was not ' +
+                                'modified in this request',
 }; // exports

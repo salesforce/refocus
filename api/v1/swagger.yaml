@@ -929,6 +929,48 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to an aspect’s list of authorized writers
+      tags: [ aspects ]
+      description: >-
+        Add one or more users to an aspect’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postAspectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            $ref: "#/definitions/AspectsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
   /aspects/{key}/writers/{userNameOrId}:
