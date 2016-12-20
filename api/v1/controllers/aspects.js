@@ -111,6 +111,42 @@ module.exports = {
   }, // getAspectWriter
 
   /**
+   * POST /aspects/{key}/writers
+   *
+   * Add one or more users to an aspect’s list of authorized writers
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postAspectWriters(req, res, next) {
+    const params = req.swagger.params;
+    const toPost = params.queryBody.value;
+    const options = {};
+    let usersInsts;
+    options.where = u.whereClauseForNameInArr(toPost);
+    userProps.model.findAll(options)
+    .then((usrs) => {
+      usersInsts = usrs;
+      return u.findByKey(helper, req.swagger.params);
+    })
+    .then((asp) => {
+      return asp.addWriters(usersInsts);
+    })
+    .then((o) => {
+    // if the resolved object is an empty array, throw a ResourceNotFound error
+      u.throwErrorForEmptyArray(o,
+        params.key.value, userProps.modelName,
+          userProps.writePermissionNotModified);
+      // object returned is an array of arrays, we just need the inner array
+      let retval = o.pop();
+      retval = u.responsify(retval, helper, req.method);
+      res.status(httpStatus.CREATED).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // postAspectWriters
+
+  /**
    * PATCH /aspects/{key}
    *
    * Updates the aspect and sends it back in the response. PATCH will only
