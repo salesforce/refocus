@@ -111,6 +111,40 @@ module.exports = {
   }, // getAspectWriter
 
   /**
+   * POST /aspects/{key}/writers
+   *
+   * Add one or more users to an aspect’s list of authorized writers
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postAspectWriters(req, res, next) {
+    const params = req.swagger.params;
+    const toPost = params.queryBody.value;
+    const options = {};
+    let usersInsts;
+    options.where = u.whereClauseForNameInArr(toPost);
+    userProps.model.findAll(options)
+    .then((usrs) => {
+      usersInsts = usrs;
+      return u.findByKey(helper, req.swagger.params);
+    })
+    .then((asp) => asp.addWriters(usersInsts))
+    .then((o) => {
+      /*
+       * The resolved object is either an array of arrays (when
+       * writers are added) or just an empty array when no writers are added.
+       * The popping is done to get the array from the array of arrays
+       */
+      let retval = o.length ? o.pop() : o;
+      retval = u.responsify(retval, helper, req.method);
+      res.status(httpStatus.CREATED).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // postAspectWriters
+
+  /**
    * PATCH /aspects/{key}
    *
    * Updates the aspect and sends it back in the response. PATCH will only

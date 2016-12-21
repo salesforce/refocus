@@ -200,6 +200,20 @@ function whereClauseForNameOrId(nameOrId) {
   } else {
     whr.name = nameOrId;
   }
+
+  return whr;
+} // whereClauseForNameOrId
+
+/**
+ * Returns a where clause object that uses the "IN" operator
+ * @param  {Array} arr - An array that needs to be assigned to the "IN" operator
+ * @returns {Object} - An where clause object
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+
+  whr.name = {};
+  whr.name[constants.SEQ_IN] = arr;
   return whr;
 } // whereClauseForNameOrId
 
@@ -607,6 +621,8 @@ module.exports = {
   looksLikeId,
 
   whereClauseForNameOrId,
+
+  whereClauseForNameInArr,
 
   throwErrorForEmptyArray,
 

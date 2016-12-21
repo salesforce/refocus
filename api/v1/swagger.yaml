@@ -929,6 +929,52 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to an aspect’s list of authorized writers
+      tags: [ aspects ]
+      description: >-
+        Add one or more users to an aspect’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postAspectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the aspect for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AspectWriterResponse"
+              description: >-
+                The users having write permission to the aspect
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
   /aspects/{key}/writers/{userNameOrId}:
@@ -1597,6 +1643,52 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+    post:
+        security:
+          - jwt: []
+        summary: Add one or more users to a lens' list of authorized writers
+        tags: [ lenses ]
+        description: >-
+          Add one or more users to a lens' list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        operationId: postLensWriters
+        parameters:
+          -
+            name: key
+            in: path
+            description: >-
+              The id or name of the lens for which the authorized list of users
+              are to be obtained.
+            required: true
+            type: string
+          -
+            name: queryBody
+            description: Request body.
+            in: body
+            required: true
+            schema:
+              type: array
+              items:
+                type: string
+              description: >
+                User name
+        responses:
+          201:
+            description: >-
+              One or more of the valid users were added to the list of authorized writers.
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/LensWriterResponse"
+                description: >-
+                  The users having write permission to the lens
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          403:
+            $ref: "#/responses/403"
+          default:
+            $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
   /lenses/{key}/writers/{userNameOrId}:
@@ -2133,7 +2225,52 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to a perspective's list of authorized writers
+      tags: [ perspectives ]
+      description: >-
+        Add one or more users to a perspective's list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postPerspectiveWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the perspective for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/PerspectiveWriterResponse"
+              description: >-
+                The users having write permission to the perspective
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
 # ---------------------------------------------------------------------------
   /perspectives/{key}/writers/{userNameOrId}:
     x-swagger-router-controller: perspectives
@@ -4161,6 +4298,52 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+    post:
+        security:
+          - jwt: []
+        summary: Add one or more users to a subjects list of authorized writers
+        tags: [ subjects ]
+        description: >-
+          Add one or more users to a subjects list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        operationId: postSubjectWriters
+        parameters:
+          -
+            name: key
+            in: path
+            description: >-
+              The id or name of the subject for which the authorized list of users
+              are to be obtained.
+            required: true
+            type: string
+          -
+            name: queryBody
+            description: Request body.
+            in: body
+            required: true
+            schema:
+              type: array
+              items:
+                type: string
+              description: >
+                User name
+        responses:
+          201:
+            description: >-
+              One or more of the valid users were added to the list of authorized writers.
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/SubjectWriterResponse"
+                description: >-
+                  The users having write permission to the subject
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          403:
+            $ref: "#/responses/403"
+          default:
+            $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
   /subjects/{key}/writers/{userNameOrId}:
@@ -6481,6 +6664,110 @@ definitions:
         readOnly: true
         description: >
           API token.
+
+  AspectWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the aspects
+    properties:
+      aspectId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected aspect
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the aspect
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  LensWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the lenses
+    properties:
+      lensId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected aspect
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the lens
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  PerspectiveWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the perspectives
+    properties:
+      perspectiveId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected perspective
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the perspective
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  SubjectWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the subject
+    properties:
+      aspectId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected subject
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the subject
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
 
 # =============================================================================
 parameters:
