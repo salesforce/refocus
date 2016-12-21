@@ -30,7 +30,7 @@ document.loginform.addEventListener('submit', (evt) => {
   const name = input.name.value;
   evt.preventDefault();
   const jsonData = { name };
-  post(jsonData, '/v1/token');
+  post(jsonData, '/v1/tokens');
 });
 
 /**

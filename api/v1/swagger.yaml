@@ -72,7 +72,7 @@ paths:
       description: >-
         Find an aspect or aspects. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /aspects
@@ -195,7 +195,7 @@ paths:
       summary: Create a new aspect
       tags: [ aspects ]
       description: >-
-        Create a new aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postAspect
       parameters:
         -
@@ -355,7 +355,7 @@ paths:
       tags: [ aspects ]
       description: >-
         Delete the specified aspect. Beware! Deleting an aspect also deletes all
-        the samples associated with this aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        the samples associated with this aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteAspect
       parameters:
         -
@@ -386,7 +386,7 @@ paths:
       tags: [ aspects ]
       description: >-
         Retrieve the specified aspect by its id or name. You may also optionally
-        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getAspect
       parameters:
         -
@@ -417,7 +417,7 @@ paths:
       tags: [ aspects ]
       description: >-
         Update the specified aspect. If a field is not included in the query
-        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchAspect
       parameters:
         -
@@ -579,7 +579,7 @@ paths:
       description: >-
         Update the specified aspect. If a field is not included in the query
         body, that field will be set to null (or false or empty or a default
-        enum value). If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        enum value). If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putAspect
       parameters:
         -
@@ -746,7 +746,7 @@ paths:
       summary: Delete all the tags of the specified aspect
       tags: [ aspects ]
       description: >-
-        Delete all the tags of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete all the tags of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteAspectTags
       parameters:
         -
@@ -781,7 +781,7 @@ paths:
       summary: Delete the specified tag of the aspect
       tags: [ aspects ]
       description: >-
-        Delete the specified tag of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified tag of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteAspectTags
       parameters:
         -
@@ -823,7 +823,7 @@ paths:
       summary: Delete all the related links of the specified aspect
       tags: [ aspects ]
       description: >-
-        Deletes all the related links of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Deletes all the related links of the specified aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteAspectRelatedLinks
       parameters:
         -
@@ -858,7 +858,7 @@ paths:
       summary: Delete the specified related link of the aspect
       tags: [ aspects ]
       description: >-
-        Delete the specified related link of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified related link of the aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteAspectRelatedLinks
       parameters:
         -
@@ -900,7 +900,7 @@ paths:
       summary: Get the list of all authorized writers for an aspect
       tags: [ aspects ]
       description: >-
-        Get the list of all authorized writers for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Get the list of all authorized writers for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getAspectWriters
       parameters:
         -
@@ -985,7 +985,7 @@ paths:
       summary: Determine whether a user is an authorized writer for an aspect
       tags: [ aspects ]
       description: >-
-        Determine whether a user is an authorized writer for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Determine whether a user is an authorized writer for an aspect. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getAspectWriter
       parameters:
         -
@@ -1031,7 +1031,7 @@ paths:
       summary: Get all global config items
       tags: [ globalconfig ]
       description: >-
-        Get all global config items. You may optionally specify limit and offset. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Get all global config items. You may optionally specify limit and offset. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /globalconfig
@@ -1062,7 +1062,7 @@ paths:
       summary: Create a new global config item
       tags: [ globalconfig ]
       description: >-
-        Create a new global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postGlobalConfig
       parameters:
         -
@@ -1105,7 +1105,7 @@ paths:
       summary: Delete the specified global config item
       tags: [ globalconfig ]
       description: >-
-        Delete the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteGlobalConfig
       parameters:
         -
@@ -1133,7 +1133,7 @@ paths:
       summary: Retrieve the specified global config item
       tags: [ globalconfig ]
       description: >-
-        Retrieve the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Retrieve the specified global config item. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getGlobalConfig
       parameters:
         -
@@ -1161,7 +1161,7 @@ paths:
       summary: Update the specified global config item
       tags: [ globalconfig ]
       description: >-
-        Update the specified global config item. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Update the specified global config item. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchGlobalConfig
       parameters:
         -
@@ -1209,7 +1209,7 @@ paths:
       description: >-
         Find a lens or lenses. You may query using field filters with asterisk
         (*) wildcards. You may also optionally specify sort, limit, offset, and
-        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /lenses
@@ -1350,7 +1350,7 @@ paths:
         - jwt: []
       summary: Install a new lens
       tags: [ lenses ]
-      description: Install a new lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      description: Install a new lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postLens
       consumes:
         - multipart/form-data
@@ -1416,7 +1416,7 @@ paths:
       tags: [ lenses ]
       description: >-
         Uninstall the specified lens. You will not be allowed to uninstall the
-        lens if it is used by any perspectives. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        lens if it is used by any perspectives. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteLens
       parameters:
         -
@@ -1447,7 +1447,7 @@ paths:
       tags: [ lenses ]
       description: >-
         Retrieve the specified lens by its id or name. You may also optionally
-        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getLens
       parameters:
         -
@@ -1479,7 +1479,7 @@ paths:
       summary: Update selected metadata fields for the specified lens
       tags: [ lenses ]
       description: >-
-        Update selected metadata fields for the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Update selected metadata fields for the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchLens
       parameters:
         -
@@ -1540,7 +1540,7 @@ paths:
       summary: Install a new version of the specified lens
       tags: [ lenses ]
       description: >-
-        Install a new version of the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Install a new version of the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       consumes:
         - multipart/form-data
       operationId: putLens
@@ -1614,7 +1614,7 @@ paths:
       summary: Get the list of all authorized writers for a lens
       tags: [ lenses ]
       description: >-
-        Get the list of all authorized writers for a lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Get the list of all authorized writers for a lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getLensWriters
       parameters:
         -
@@ -1699,7 +1699,7 @@ paths:
       summary: Determine whether a user is an authorized writer for a lens
       tags: [ lenses ]
       description: >-
-        Determine whether a user is an authorized writer for lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Determine whether a user is an authorized writer for lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getLensWriter
       parameters:
         -
@@ -1747,7 +1747,7 @@ paths:
       description: >-
         Find a perspective or perspectives. You may query using field filters
         with asterisk (*) wildcards. You may also optionally specify sort,
-        limit, offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        limit, offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /perspectives
@@ -1813,7 +1813,7 @@ paths:
       summary: Create a new perspective
       tags: [ perspectives ]
       description: >-
-        Create a new perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postPerspective
       parameters:
         -
@@ -1916,7 +1916,7 @@ paths:
       summary: Delete the specified perspective
       tags: [ perspectives ]
       description: >-
-        Delete the specified perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deletePerspective
       parameters:
         -
@@ -1947,7 +1947,7 @@ paths:
       tags: [ perspectives ]
       description: >-
         Retrieve the specified perspective by its id or name. You may also
-        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getPerspective
       parameters:
         -
@@ -1980,7 +1980,7 @@ paths:
       tags: [ perspectives ]
       description: >-
         Update the specified perspective. If a field is not included in the
-        query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchPerspective
       parameters:
         -
@@ -2085,7 +2085,7 @@ paths:
       tags: [ perspectives ]
       description: >-
         Update the specified perspective. If a field is not included in the
-        query body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        query body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putPerspective
       parameters:
         -
@@ -2196,7 +2196,7 @@ paths:
       summary: Get the list of all authorized writers for a perspective
       tags: [ perspectives ]
       description: >-
-        Get the list of all authorized writers for a perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Get the list of all authorized writers for a perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getPerspectiveWriters
       parameters:
         -
@@ -2280,7 +2280,7 @@ paths:
       summary: Determine whether a user is an authorized writer for a perspective
       tags: [ perspectives ]
       description: >-
-        Determine whether a user is an authorized writer for perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Determine whether a user is an authorized writer for perspective. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getPerspectiveWriter
       parameters:
         -
@@ -2328,7 +2328,7 @@ paths:
       description: >-
         Find a profile or profiles. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /profiles
@@ -2397,7 +2397,7 @@ paths:
       summary: Create a new profile
       tags: [ profiles ]
       description: >-
-        Create a new profile. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new profile. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postProfile
       parameters:
         -
@@ -2504,7 +2504,7 @@ paths:
       tags: [ profiles ]
       description: >-
         Delete the specified profile. You will not be allowed to delete the
-        profile if there are any users assigned to it. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        profile if there are any users assigned to it. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteProfile
       parameters:
         -
@@ -2535,7 +2535,7 @@ paths:
       tags: [ profiles ]
       description: >-
         Retrieve the specified profile by its id or name. You may also
-        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getProfile
       parameters:
         -
@@ -2568,7 +2568,7 @@ paths:
       tags: [ profiles ]
       description: >-
         Update the specified profile. If a field is not included in the query
-        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchProfile
       parameters:
         -
@@ -2679,7 +2679,7 @@ paths:
       tags: [ profiles ]
       description: >-
         Update the specified profile. If a field is not included in the query
-        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putProfile
       parameters:
         -
@@ -2797,7 +2797,7 @@ paths:
       description: >-
         Find a sample or samples. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /samples
@@ -2893,7 +2893,7 @@ paths:
       summary: Create a new sample
       tags: [ samples ]
       description: >-
-        Create a new sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postSample
       parameters:
         -
@@ -2969,7 +2969,7 @@ paths:
       summary: Delete the specified sample
       tags: [ samples ]
       description: >-
-        Delete the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSample
       parameters:
         -
@@ -2998,7 +2998,7 @@ paths:
       tags: [ samples ]
       description: >-
         Retrieve the specified sample by its id or name. You may also optionally
-        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSample
       parameters:
         -
@@ -3029,7 +3029,7 @@ paths:
       tags: [ samples ]
       description: >-
         Update the specified sample. If a field is not included in the query
-        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchSample
       parameters:
         -
@@ -3098,7 +3098,7 @@ paths:
       tags: [ samples ]
       description: >-
         Update the specified sample. If a field is not included in the query
-        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putSample
       parameters:
         -
@@ -3170,7 +3170,7 @@ paths:
       summary: Create or update a sample
       tags: [ samples ]
       description: >-
-        Create or update a sample by name. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create or update a sample by name. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: upsertSample
       parameters:
         -
@@ -3241,7 +3241,7 @@ paths:
       summary: Create or update multiple samples
       tags: [ samples ]
       description: >-
-        Create or update multiple samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create or update multiple samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: bulkUpsertSample
       produces:
         - text/plain; charset=utf-8
@@ -3310,7 +3310,7 @@ paths:
       summary: Delete all the related links of the specified sample
       tags: [ samples ]
       description: >-
-        Delete all the related links of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete all the related links of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSampleRelatedLinks
       parameters:
         -
@@ -3340,7 +3340,7 @@ paths:
     delete:
       security:
         - jwt: []
-      summary: Delete the specified related link of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      summary: Delete the specified related link of the specified sample. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       tags: [ samples ]
       description: >-
         Delete the specified related link of the specified sample.
@@ -3385,7 +3385,7 @@ paths:
       description: >-
         Find a subject or subjects. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /subjects
@@ -3521,7 +3521,7 @@ paths:
       summary: Create a new subject
       tags: [ subjects ]
       description: >-
-        Create a new subject. If you are creating a new subject as the child of another subject AND any of its ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new subject. If you are creating a new subject as the child of another subject AND any of its ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postSubject
       parameters:
         -
@@ -3622,7 +3622,7 @@ paths:
       description: >-
         Delete the specified subject. You will not be allowed to delete a
         subject if it has any children subjects under it. Beware! Deleting a
-        subject also deletes all the samples associated with this subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        subject also deletes all the samples associated with this subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubject
       parameters:
         -
@@ -3651,7 +3651,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Retrieve the specified subject by its id or name. You may also
-        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        optionally specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSubject
       parameters:
         -
@@ -3682,7 +3682,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will not be updated. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will not be updated. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchSubject
       parameters:
         -
@@ -3787,7 +3787,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will be set to null or its default value. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        body, that field will be set to null or its default value. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putSubject
       parameters:
         -
@@ -3896,7 +3896,7 @@ paths:
       summary: Create a new child subject
       tags: [ subjects ]
       description: >-
-        Create a new child subject of the specified subject. If any of your new subject's ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Create a new child subject of the specified subject. If any of your new subject's ancestors has isPublished=false, then you must create your new subject with isPublished=false. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postChildSubject
       parameters:
         -
@@ -3996,7 +3996,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Delete the specified subject and all its descendents and all associated
-        samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        samples. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubjectHierarchy
       parameters:
         -
@@ -4024,7 +4024,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Retrieve the hierarchy for the specified subject using its id or
-        absolute path. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        absolute path. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSubjectHierarchy
       parameters:
         -
@@ -4123,7 +4123,7 @@ paths:
       summary: Delete all the tags of the subject
       tags: [ subjects ]
       description: >-
-        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubjectTags
       parameters:
         -
@@ -4156,7 +4156,7 @@ paths:
       summary: Delete the specified tag of the subject
       tags: [ subjects ]
       description: >-
-        Delete the specified tag of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified tag of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubjectTags
       parameters:
         -
@@ -4196,7 +4196,7 @@ paths:
       summary: Delete all the tags of the subject
       tags: [ subjects ]
       description: >-
-        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete all the tags associated with the subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubjectRelatedLinks
       parameters:
         -
@@ -4229,7 +4229,7 @@ paths:
       summary: Delete the specified related link of the subject
       tags: [ subjects ]
       description: >-
-        Delete the specified related link of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Delete the specified related link of the specified subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteSubjectRelatedLinks
       parameters:
         -
@@ -4269,7 +4269,7 @@ paths:
       summary: Get the list of all authorized writers for a subject
       tags: [ subjects ]
       description: >-
-        Get the list of all authorized writers for a subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Get the list of all authorized writers for a subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSubjectWriters
       parameters:
         -
@@ -4354,7 +4354,7 @@ paths:
       summary: Determine whether a user is an authorized writer for a subject
       tags: [ subjects ]
       description: >-
-        Determine whether a user is an authorized writer for subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Determine whether a user is an authorized writer for subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSubjectWriter
       parameters:
         -
@@ -4402,7 +4402,7 @@ paths:
       description: >-
         Find a user or users. You may query using field filters with asterisk
         (*) wildcards. You may also optionally specify sort, limit, offset, and
-        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /users
@@ -4524,7 +4524,7 @@ paths:
       tags: [ users ]
       description: >-
         Delete the specified user. Beware! Deleting a user also deletes all the
-        perspectives associated with this user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        perspectives associated with this user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: deleteUser
       parameters:
         -
@@ -4553,7 +4553,7 @@ paths:
       tags: [ users ]
       description: >-
         Retrieve the specified user by its id or name. You may also optionally
-        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getUser
       parameters:
         -
@@ -4584,7 +4584,7 @@ paths:
       tags: [ users ]
       description: >-
         Update the specified user. If a field is not included in the query body,
-        that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchUser
       parameters:
         -
@@ -4643,7 +4643,7 @@ paths:
       tags: [ users ]
       description: >-
         Update the specified user. If a field is not included in the query body,
-        that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        that field will be set to null or its default value. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putUser
       parameters:
         -
@@ -4803,7 +4803,7 @@ paths:
       summary: Logout user
       tags: [ logout ]
       description: >-
-        Logout authenticated user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        Logout authenticated user. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: logoutUser
       responses:
         200:
@@ -5024,19 +5024,19 @@ paths:
           $ref: "#/responses/genericError"
 
 # =============================================================================
-  /token:
-    x-swagger-router-controller: token
+  /tokens:
+    x-swagger-router-controller: tokens
     post:
       security:
         - jwt: []
-      summary: Create a new api access token
+      summary: Create a new API access token
       tags: [ token ]
       description: >-
-        Create a new api access token by providing a token in header.
+        Create a new API access token by providing a token in header.
         If the Refocus configuration parameter `useAccessToken` is set to
         `true`, you must include an `Authorization` request header with your
         [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
-        value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+        value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: postToken
       parameters:
         -
@@ -5205,7 +5205,7 @@ paths:
         `Authorization` request header with your
         [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
-        `POST /v1/token`.
+        `POST /v1/tokens`.
       operationId: revokeTokenById
       parameters:
         -
@@ -5259,7 +5259,7 @@ paths:
         to `true`, you must include an `Authorization` request header with your
         [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
-        `POST /v1/token`.
+        `POST /v1/tokens`.
       operationId: restoreTokenById
       parameters:
         -
@@ -5492,7 +5492,7 @@ paths:
         `Authorization` request header with your
         [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
-        `POST /v1/token`.
+        `POST /v1/tokens`.
       operationId: revokeTokenByName
       parameters:
         -
@@ -5553,7 +5553,7 @@ paths:
         to `true`, you must include an `Authorization` request header with your
         [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or
-        `POST /v1/token`.
+        `POST /v1/tokens`.
       operationId: restoreTokenByName
       parameters:
         -
