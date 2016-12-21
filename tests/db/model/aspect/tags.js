@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/model/aspect/tagsAndLinks.js
+ * tests/db/model/aspect/tags.js
  */
 'use strict';
 
