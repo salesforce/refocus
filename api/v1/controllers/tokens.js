@@ -53,7 +53,7 @@ module.exports = {
    *
    * Authenticates user using provided token and creates new token with given
    * name. Saves created token to db and sends token in response with status
-   * code 201 if token craeted, else responds with error.
+   * code 201 if token created, else responds with error.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
