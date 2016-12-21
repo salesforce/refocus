@@ -18,7 +18,8 @@ import Dropdown from '../../../view/admin/components/common/Dropdown.js';
 describe('Dropdown component tests', () => {
   const ZERO = 0;
   const ONE = 1;
-  const DUMMY_STRING = 'COOL';
+  const DUMMY_STRING = 'UNITED';
+  const DUMMY_ARRAY = DUMMY_STRING.split('');
   const DUMMY_FUNCTION = () => {};
 
   /**
@@ -41,6 +42,7 @@ describe('Dropdown component tests', () => {
       onAddNewButton: DUMMY_FUNCTION,
       onClickItem: DUMMY_FUNCTION,
       showInputElem: false, //default
+      // close, open are by default false
     };
     // update props as needed
     if (propAddons) {
@@ -52,6 +54,67 @@ describe('Dropdown component tests', () => {
     );
     return enzymeWrapper;
   }
+
+  it('on toggle true, dropdown opens', () => {
+    const enzymeWrapper = setup();
+    const instance = enzymeWrapper.instance();
+    // by default dropdown is closed
+    expect(instance.state.open).to.equal(false);
+    instance.toggle(true);
+    expect(instance.state.open).to.equal(true);
+  });
+
+  it('on toggle false, dropdown closes', () => {
+    const enzymeWrapper = setup();
+    const instance = enzymeWrapper.instance();
+    // set up
+    instance.setState({ open: true });
+    expect(instance.state.open).to.equal(true);
+
+    instance.toggle(false);
+    expect(instance.state.open).to.equal(false);
+  });
+
+  it('there are NO otions, ' +
+    'highlighted index is -1', () => {
+      // default: no options
+    const enzymeWrapper = setup();
+    const instance = enzymeWrapper.instance();
+    expect(instance.state.highlightedIndex).to.equal(-ONE);
+  });
+
+  it('the INPUT has no value, and there are options, ' +
+    'the first cell is highlighted', () => {
+    const enzymeWrapper = setup({ options: DUMMY_ARRAY, defaultValue: '' });
+    const instance = enzymeWrapper.instance();
+    expect(instance.state.highlightedIndex).to.equal(ZERO);
+  });
+
+  it('the INPUT has value, the highlighted index ' +
+    'has value === INPUT.value', () => {
+    const INPUT_VAL = 'D';
+    const enzymeWrapper = setup({
+      options: DUMMY_ARRAY,
+      defaultValue: INPUT_VAL
+    });
+    const instance = enzymeWrapper.instance();
+    expect(instance.state.highlightedIndex)
+      .to.equal(DUMMY_ARRAY.indexOf(INPUT_VAL));
+  });
+
+  it('up key wraps around the highlighted index. 0 -> options.length-1', () => {
+    const ARR_LEN = DUMMY_ARRAY.length;
+    const newIndex = Dropdown.getupdatedIndex(ZERO, ARR_LEN, true);
+    expect(newIndex).to.equal(ARR_LEN-ONE);
+  });
+
+  it('down key increments the highlighted index, when index === 0', () => {
+    const newIndex = Dropdown.getupdatedIndex(ZERO, DUMMY_ARRAY.length, false);
+    expect(newIndex).to.equal(ONE);
+  });
+
+  it('on enter, url changes to end with the value of' +
+    ' the highlighted cell');
 
   it('calling close from props closes the dropdown', () => {
     const enzymeWrapper = setup();
