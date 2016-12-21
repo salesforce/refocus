@@ -18,7 +18,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 
-describe.only('db: aspect: tags: update', () => {
+describe('db: aspect: tags: update', () => {
   beforeEach((done) => {
     Aspect.create({
       isPublished: true,
