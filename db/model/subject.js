@@ -350,8 +350,24 @@ module.exports = function subject(seq, dataTypes) {
 
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
-            common.publishChange(inst, eventName.upd, changedKeys,
+            /*
+             * If tags were updated, send a "delete" event followed by an "add"
+             * event so that perspectives using subject tag filters will get
+             * the right realtime events. If subject tags were not updated,
+             * just send the usual "update" event.
+             *
+             * TODO : Right now don't have the ability to mock the socket.io
+             * test for this.
+             */
+            if (inst.changed('tags')) {
+              common.publishChange(inst, eventName.del, changedKeys,
+                ignoreAttributes);
+              common.publishChange(inst, eventName.add, changedKeys,
+                ignoreAttributes);
+            } else {
+              common.publishChange(inst, eventName.upd, changedKeys,
               ignoreAttributes);
+            }
           } else {
             // Treat publishing a subject as an "add" event.
             common.publishChange(inst, eventName.add);

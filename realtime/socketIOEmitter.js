@@ -15,7 +15,7 @@
 const rtUtils = require('./utils');
 
 module.exports = (io, key, mssgObj) => {
-  const obj = rtUtils.parseObject(mssgObj[key]);
+  const obj = rtUtils.parseObject(mssgObj[key], key);
   const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
   /*

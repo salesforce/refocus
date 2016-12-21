@@ -12,6 +12,11 @@
 
 'use strict'; // eslint-disable-line strict
 const constants = require('./constants');
+const eventName = {
+  add: 'refocus.internal.realtime.subject.add',
+  upd: 'refocus.internal.realtime.subject.update',
+  del: 'refocus.internal.realtime.subject.remove',
+};
 
 /**
  * A function to see if an object is a subject object or not. It returns true
@@ -25,17 +30,26 @@ function isThisSubject(obj) {
 }
 
 /**
- * Returns the stringified object, with the specified key
- * as property and the given object as the value of
- * 'new' property.
+ * Transforms and returns the stringified object.
+ * If the key, i.e. the event type, ends with "update", then return the
+ * stringified object with the specified key as the property and the given
+ * object as the value of a "new" property. Otherwise return the stringified
+ * object with the specified key as the property name and the given object as
+ * the value.
  *
- * @param {String} key The key of the returned object.
- * @param {Object} obj The value of 'new'
- * @returns {String} The stringified object
+ * @param {String} key - The key of the returned object, i.e. the event type.
+ * @param {Object} obj - The object to return.
+ * @returns {String} - The stringified object nested inside the key (and also
+ *  nested inside "new" if the event is an "update").
  */
 function getNewObjAsString(key, obj) {
   const wrappedObj = {};
-  wrappedObj[key] = { new: obj };
+  if (key.endsWith('update')) {
+    wrappedObj[key] = { new: obj };
+  } else {
+    wrappedObj[key] = obj;
+  }
+
   return JSON.stringify(wrappedObj);
 }
 
@@ -47,8 +61,16 @@ function getNewObjAsString(key, obj) {
  * @param {Object}  messgObj - Message object received from the redis channel.
  * @returns {Object} - returns the parsed message object.
  */
-function parseObject(messgObj) {
+function parseObject(messgObj, key) {
+  // If event is subject delete then send the old subject so that namespace
+  // filter can send the delete event to perspectives
   if (messgObj.new) {
+    return key === eventName.del ? messgObj.old : messgObj.new;
+  }
+
+  // If event is subject add then send the new subject so that namespace
+  // filter can send the add event to perspectives
+  if (key === eventName.add && messgObj.new) {
     return messgObj.new;
   }
 
