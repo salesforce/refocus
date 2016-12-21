@@ -18,6 +18,11 @@ const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
 const valueLabelLength = 10;
+const sampleEventNames = {
+  add: 'refocus.internal.realtime.sample.add',
+  upd: 'refocus.internal.realtime.sample.update',
+  del: 'refocus.internal.realtime.sample.remove',
+};
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -172,6 +177,10 @@ module.exports = function aspect(seq, dataTypes) {
 
       /**
        * Recalculate sample status if any of the status ranges changed.
+       * If aspect tags changed, send a "delete" realtime event for all the
+       * samples for this aspect. (The afterUpdate hook will subsequently send
+       * an "add" event.) This way, perspectives which filter by aspect tags
+       * will get the right samples.
        *
        * @param {Aspect} inst - The instance being updated
        * @returns {Promise}
@@ -194,12 +203,38 @@ module.exports = function aspect(seq, dataTypes) {
             .catch((err) => reject(err))
           );
         }
+
+        if (inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            inst.getSamples()
+            .each((samp) => {
+              return common.sampleAspectAndSubjectArePublished(seq, samp)
+              .then((published) => {
+                if (published) {
+                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
+                  .then((s) => {
+                    common.publishChange(s, sampleEventNames.del);
+                  });
+                }
+
+                return seq.Promise.resolve(true);
+              });
+            })
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
+
+        return seq.Promise.resolve(true);
       }, // hooks.beforeUpdate
 
       /**
-       * If isPublished is being updated from true to false or name of
-       * the aspect is changed, delete any samples
-       * which are associated with the aspect.
+       * If isPublished is being updated from true to false or the name of the
+       * aspect is changed, delete any samples associated with the aspect.
+       * If aspect tags changed, send an "add" realtime event for all the
+       * samples for this aspect. (The beforeUpdate hook will already have
+       * sent a "delete" event.) This way, perspectives which filter by aspect
+       * tags will get the right samples.
        *
        * @param {Aspect} inst - The updated instance
        * @returns {Promise}
@@ -216,6 +251,27 @@ module.exports = function aspect(seq, dataTypes) {
             .catch((err) => reject(err))
           );
         }
+
+        if (inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            inst.getSamples()
+            .each((samp) => {
+              return common.sampleAspectAndSubjectArePublished(seq, samp)
+              .then((published) => {
+                if (published) {
+                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
+                  .then((s) => {
+                    common.publishChange(s, sampleEventNames.add);
+                  });
+                }
+
+                return seq.Promise.resolve(true);
+              });
+            })
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
 
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
