@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
+const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
@@ -95,7 +96,6 @@ module.exports = {
       host: '127.0.0.1',
       ipWhitelist: iplist.push('::ffff:127.0.0.1'),
       dialect: 'postgres',
-      useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
@@ -113,7 +113,6 @@ module.exports = {
       dialectOptions: {
         ssl: true,
       },
-      useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
@@ -130,7 +129,6 @@ module.exports = {
       dialectOptions: {
         ssl: true,
       },
-      useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
@@ -147,7 +145,6 @@ module.exports = {
       dialectOptions: {
         ssl: true,
       },
-      useAccessToken: pe.USE_ACCESS_TOKEN || false,
       tokenSecret: pe.SECRET_TOKEN ||
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
@@ -172,42 +169,6 @@ module.exports = {
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: [''],
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    testTokenReq: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      redisUrl: '//127.0.0.1:6379',
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      useAccessToken: 'true',
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    testTokenNotReq: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      redisUrl: '//127.0.0.1:6379',
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      useAccessToken: false,
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    testTokenEnforced: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      redisUrl: '//127.0.0.1:6379',
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      useAccessToken: true,
       tokenSecret:
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },

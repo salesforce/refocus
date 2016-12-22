@@ -155,7 +155,7 @@ function start() { // eslint-disable-line max-statements
     app.use(mw.swaggerMetadata());
 
     // Use token security in swagger api routes
-    if (env.useAccessToken === 'true' || env.useAccessToken === true) {
+    if (featureToggles.isFeatureEnabled('enforceApiToken')) {
       app.use(mw.swaggerSecurity({
         jwt: (req, authOrSecDef, scopes, cb) => {
           jwtUtil.verifyToken(req, cb);

@@ -17,6 +17,7 @@ const jwtUtil = require('../utils/jwtUtil');
 const db = require('../db');
 const testStartTime = new Date();
 const userName = `${pfx}testUser@refocus.com`;
+const featureToggles = require('feature-toggles');
 
 /**
  * By convention, all the resources we create in our tests are named using
@@ -129,4 +130,8 @@ module.exports = {
     .then(() => done())
     .catch((err) => done(err));
   }, // forceDeleteUser
+
+  toggleOverride(key, value) {
+    featureToggles._toggles[key] = value;
+  }, // toggleOverride
 }; // exports

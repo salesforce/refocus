@@ -56,6 +56,9 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
 
+  // Enforce that all API requests have valid API token
+  enforceApiToken: environmentVariableTrue(pe, 'USE_ACCESS_TOKEN'),
+
   /*
    * Use this setting to offload work from web processes to worker processes to
    * achieve better web process throughput and response times.

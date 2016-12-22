@@ -15,7 +15,6 @@ const tu = require('../../testUtils');
 const testStartTime = new Date();
 
 module.exports = {
-
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
@@ -23,5 +22,4 @@ module.exports = {
     .then(() => done())
     .catch((err) => done(err));
   },
-
 };

@@ -26,6 +26,7 @@ describe('api: POST ' + path, () => {
   let token;
 
   before((done) => {
+    tu.toggleOverride('useWorkerProcess', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -69,6 +70,9 @@ describe('api: POST ' + path, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+  after(() => {
+    tu.toggleOverride('useWorkerProcess', false);
+  });
 
   it('sample bulkUpsert should be sent to the queue', (done) => {
     api.post(path)
