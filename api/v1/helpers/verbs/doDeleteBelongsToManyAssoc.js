@@ -7,36 +7,31 @@
  */
 
 /**
- * api/v1/helpers/verbs/doDelete.js
+ * api/v1/helpers/verbs/doDeleteBelongsToManyAssoc.js
  */
 'use strict';
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const logAPI = require('../../../../utils/loggingUtil').logAPI;
 
 /**
- * Deletes a record and sends the deleted record back in the json response
- * with status code 200.
+ * Deletes all the associations of the resource and sends back no content
+ * with a status of code 204.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  * @param {Module} props - The module containing the properties of the
- *  resource type to delete.
+ *  resource type for which the associations are to be deleted.
  */
-function doDelete(req, res, next, props) {
-  u.findByKey(props, req.swagger.params)
-  .then((o) => o.destroy())
+function doDeleteBelongsToManyAssoc(req, res, next, props) {
+  const params = req.swagger.params;
+  u.findByKey(props, params)
   .then((o) => {
-    if (props.loggingEnabled) {
-      logAPI(req, props.modelName, o);
-    }
-    // when a resource is deleted, delete all its associations too
     u.removeAssociations(o, props);
-    return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+    res.status(httpStatus.NO_CONTENT).json();
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 
-module.exports = doDelete;
+module.exports = doDeleteBelongsToManyAssoc;

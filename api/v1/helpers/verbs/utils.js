@@ -127,6 +127,33 @@ function handleAssociations(reqObj, inst, props, method) {
 } // handleAssociations
 
 /**
+ * Removes all the "belongs to many" associations of the model instance. If the
+ * "assocArr" passed in is undefined or an empty array, all the associations
+ * are removed.
+ * @param {Model} modelInst - The DB model instance that need to have all its
+ *  association removed
+ * @param {Object} model - The helpers/nouns module for the given DB model
+ * @param {Array} assocArr - An array containing the associated instances or the
+ * primary key that are to be removed from the association
+ *
+ */
+function removeAssociations(modelInst, model, assocArr) {
+  const assoc = model.belongsToManyAssoc;
+  let functionName;
+  let assocToRemove = assocArr;
+  if (!assocArr) {
+    assocToRemove = [];
+  }
+  for (const key in assoc) {
+    if (assoc.hasOwnProperty(key)) {
+      const value = assoc[key];
+      functionName = `set${capitalizeFirstLetter(value)}`;
+      modelInst[functionName](assocToRemove);
+    }
+  }
+} // removeAssociations
+
+/**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
  *
@@ -617,6 +644,8 @@ module.exports = {
     err.resource = modelName;
     next(err);
   },
+
+  removeAssociations,
 
   looksLikeId,
 

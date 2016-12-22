@@ -65,6 +65,7 @@ describe('api: perspective: get writers', () => {
     .then(() => done())
     .catch((err) => done(err));
   });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
