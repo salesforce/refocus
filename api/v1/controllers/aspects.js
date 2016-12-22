@@ -14,6 +14,10 @@
 const helper = require('../helpers/nouns/aspects');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
+const doDeleteAllAssoc =
+                    require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc =
+                    require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
@@ -76,7 +80,7 @@ module.exports = {
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
@@ -99,7 +103,7 @@ module.exports = {
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
       // throw a ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
@@ -184,6 +188,34 @@ module.exports = {
    */
   putAspect(req, res, next) {
     doPut(req, res, next, helper);
+  },
+
+  /**
+   * DELETE /aspects/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteAspectWriters(req, res, next) {
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+  },
+
+  /**
+   * DELETE /aspects/{keys}/writers/userNameOrId
+   *
+   * Deletes a user from an aspect’s list of authorized writers.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteAspectWriter(req, res, next) {
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
   },
 
   /**

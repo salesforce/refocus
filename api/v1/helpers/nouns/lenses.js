@@ -28,6 +28,8 @@ module.exports = {
   baseUrl: '/v1/lenses',
   model: Lens,
   modelName: 'Lens',
-  userModelAssociationName: 'writers',
-
+  // define the associations that are to be deleted here
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
 }; // exports
