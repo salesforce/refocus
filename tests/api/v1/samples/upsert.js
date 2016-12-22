@@ -281,6 +281,40 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
+
+    it('upserts when sample already exists and check' +
+    'that duplication of sample is not happening', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        if (!res.body) {
+          throw new Error('expecting sample');
+        }
+
+        expect(res.body.name)
+        .to.contain(`${subject.absolutePath}|${aspect.name}`);
+
+        // If response has only one item then res.body containes
+        // only one object not the list of one object so length
+        // will be undefined. If response containes 2 samples then
+        // length will be 2 so that will fail the test case
+        if (res.body.length !== undefined) {
+          throw new Error('Duplicate Sample created');
+        }
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
   });
 });
 
