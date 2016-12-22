@@ -261,7 +261,7 @@ describe('db: aspect: update: associations: relatedLinks & Tags ', () => {
   describe('relatedLinks: ', () => {
     it('update a relatedLink', (done) => {
       const asp = u.getSmall();
-      asp.relatedLinks = [{ name: '___reLink', url: 'https://fakelink.com'}];
+      asp.relatedLinks = [{ name: '___reLink', url: 'https://fakelink.com' }];
       Aspect.create(asp)
         .then((o) => {
           // console.log(o.dataValues.relatedLinks);
@@ -280,7 +280,7 @@ describe('db: aspect: update: associations: relatedLinks & Tags ', () => {
     });
     it('update a relatedLink', (done) => {
       const asp = u.getSmall();
-      asp.relatedLinks = [{ name: '___reLink', url: 'https://fakelink.com'}];
+      asp.relatedLinks = [{ name: '___reLink', url: 'https://fakelink.com' }];
       Aspect.create(asp)
         .then((o) => {
           // console.log(o.dataValues.relatedLinks);
