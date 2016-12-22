@@ -22,7 +22,7 @@ describe('api: POST ' + path, () => {
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-  before(() => {
+  after(() => {
     tu.toggleOverride('useWorkerProcess', false);
   });
 
