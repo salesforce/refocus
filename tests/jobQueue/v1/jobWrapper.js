@@ -17,8 +17,14 @@ const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
 
 describe('api: POST ' + path, () => {
+  before(() => {
+    tu.toggleOverride('useWorkerProcess', true);
+  });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+  before(() => {
+    tu.toggleOverride('useWorkerProcess', false);
+  });
 
   it('jobWrapper should let you create any job type of job', (done) => {
     const jobType = 'myTestJob';

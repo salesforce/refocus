@@ -29,7 +29,6 @@ describe('API verb token enforced tests', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        console.log(res)
         return done(err);
       }
       done();

@@ -22,11 +22,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAPI = require('../../../utils/loggingUtil').logAPI;
-const jobType = featureToggles.isFeatureEnabled('useWorkerProcess') ?
-                  require('../../../jobQueue/setup').jobType : null;
-const jobWrapper =
-              featureToggles.isFeatureEnabled('useWorkerProcess') ?
-                require('../../../jobQueue/jobWrapper') : null;
+
 module.exports = {
 
   /**
@@ -147,7 +143,9 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res /* , next */) {
-    if (jobType && jobWrapper) {
+    if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+      const jobType = require('../../../jobQueue/setup').jobType;
+      const jobWrapper = require('../../../jobQueue/jobWrapper');
       jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
         req.swagger.params.queryBody.value);
     } else {
