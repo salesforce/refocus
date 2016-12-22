@@ -67,7 +67,7 @@ describe('db: aspect: tags: update', () => {
       name: `${tu.namePrefix}Subject|${tu.namePrefix}A`,
     }))
     .then((s) => {
-      expect(s.dataValues.aspect.tags).to.have.members(['T3']);
+      expect(s.dataValues.aspect.tags).to.deep.equal(['T3']);
       done();
     })
     .catch(done);
