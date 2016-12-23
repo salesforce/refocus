@@ -92,63 +92,6 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  it('upsert bulk when sample already exists and check' +
-  'that duplication of sample is not happening', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send([{
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
-      value: '5',
-    }])
-    .then(() => {
-      api.get('/v1/samples?name=' +
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
-      .expect((res) => {
-        setTimeout(() => {
-          expect(res.body).to.have.length(1);
-          expect(res.body[0].name)
-          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
-        }, 500);
-      })
-      .end((err) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
-    });
-  });
-
-  it('check case insensitivity upsert bulk when sample already exists ' +
-  'and check that duplication of sample is not happening', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send([{
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase(),
-      value: '2',
-    }])
-    .then(() => {
-      api.get('/v1/samples?name=' +
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
-      .expect((res) => {
-        setTimeout(() => {
-          expect(res.body).to.have.length(1);
-          expect(res.body[0].name)
-          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`
-            .toLowerCase());
-        }, 500);
-      })
-      .end((err) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
-    });
-  });
-
   it('some succeed, some fail', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -268,6 +211,111 @@ describe('api: POST ' + path, () => {
     });
   });
 });
+
+describe('api: POST ' + path + ' upsert bulk when sample ' +
+  'already exists', () => {
+  let token;
+  let aspect1Id = null;
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  before((done) => {
+    Aspect.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Aspect1`,
+      timeout: '30s',
+      valueType: 'NUMERIC',
+      criticalRange: [0, 1],
+    })
+    .then((aspect1) => {
+      aspect1Id = aspect1.id;
+      Aspect.create({
+        isPublished: true,
+        name: `${tu.namePrefix}Aspect2`,
+        timeout: '10m',
+        valueType: 'BOOLEAN',
+        okRange: [10, 100],
+      });
+    })
+    .then(() => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject`,
+    }))
+    .then((subject) => Sample.create({
+      subjectId: subject.id,
+      aspectId: aspect1Id
+    }))
+    .then(() => done())
+    .catch((err) => done(err));
+  });
+
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('check that duplication of sample is not happening', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([{
+      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+      value: '6',
+    }])
+    .then(() => {
+      api.get('/v1/samples?name=' +
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+      .expect((res) => {
+        setTimeout(() => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+          // return done();
+        }, 500);
+      })
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
+    });
+  });
+
+  it('check that duplication of sample is not happening even for ' +
+  'sample name in different case', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([{
+      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase(),
+      value: '6',
+    }])
+    .then(() => {
+      api.get('/v1/samples?name=' +
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+      .expect((res) => {
+        setTimeout(() => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+          // return done();
+        }, 500);
+      })
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
+    });
+  });
+});
+
 describe('api: POST ' + path + ' aspect isPublished false', () => {
   let token;
 
