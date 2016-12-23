@@ -104,9 +104,11 @@ describe('api: POST ' + path, () => {
       api.get('/v1/samples?name=' +
         `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
       .expect((res) => {
-        expect(res.body).to.have.length(1);
-        expect(res.body[0].name)
-        .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+        setTimeout(() => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+        }, 500);
       })
       .end((err) => {
         if (err) {
@@ -118,7 +120,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  it.only('check case insensitivity upsert bulk when sample already exists ' +
+  it('check case insensitivity upsert bulk when sample already exists ' +
   'and check that duplication of sample is not happening', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -130,10 +132,12 @@ describe('api: POST ' + path, () => {
       api.get('/v1/samples?name=' +
         `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
       .expect((res) => {
-        expect(res.body).to.have.length(1);
-        expect(res.body[0].name)
-        .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`
-          .toLowerCase());
+        setTimeout(() => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`
+            .toLowerCase());
+        }, 500);
       })
       .end((err) => {
         if (err) {
