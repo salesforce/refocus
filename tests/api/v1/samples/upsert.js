@@ -290,29 +290,45 @@ describe(`api: POST ${path}`, () => {
         name: `${subject.absolutePath}|${aspect.name}`,
         value: '2',
       })
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        if (!res.body) {
-          throw new Error('expecting sample');
-        }
+      .then(() => {
+        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${subject.absolutePath}|${aspect.name}`);
+        })
+        .end((err) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(res.body.name)
-        .to.contain(`${subject.absolutePath}|${aspect.name}`);
+          return done();
+        });
+      });
+    });
 
-        // If response has only one item then res.body containes
-        // only one object not the list of one object so length
-        // will be undefined. If response containes 2 samples then
-        // length will be 2 so that will fail the test case
-        if (res.body.length !== undefined) {
-          throw new Error('Duplicate Sample created');
-        }
+    it('check case insensitivity upserts when sample already exists and check' +
+    'that duplication of sample is not happening', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`.toLowerCase(),
+        value: '2',
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
+      .then(() => {
+        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.contain(`${subject.absolutePath}|${aspect.name}`.toLowerCase());
+        })
+        .end((err) => {
+          if (err) {
+            return done(err);
+          }
 
-        done();
+          return done();
+        });
       });
     });
   });
