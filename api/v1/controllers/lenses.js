@@ -14,6 +14,8 @@
 const helper = require('../helpers/nouns/lenses');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
+const doDeleteManyAssoc =
+                    require('../helpers/verbs/doDeleteBelongsToManyAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -147,6 +149,19 @@ module.exports = {
   },
 
   /**
+   * DELETE /lenses/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteLensWriters(req, res, next) {
+    doDeleteManyAssoc(req, res, next, helper);
+  },
+
+  /**
    * GET /lenses
    *
    * Finds zero or more lenses and sends them back in the response.
@@ -172,7 +187,7 @@ module.exports = {
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
@@ -195,7 +210,7 @@ module.exports = {
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
     // if the resolved object is an empty array, throw a ResourceNotFound error
       u.throwErrorForEmptyArray(o,

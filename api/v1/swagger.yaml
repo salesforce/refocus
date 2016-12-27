@@ -894,6 +894,34 @@ paths:
   # ---------------------------------------------------------------------------
   /aspects/{key}/writers:
     x-swagger-router-controller: aspects
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from an aspect’s list of authorized writers
+      tags: [ aspects ]
+      description: >-
+        Remove all users from an aspect’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteAspectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the aspect.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The aspect is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -1608,6 +1636,34 @@ paths:
   # ---------------------------------------------------------------------------
   /lenses/{key}/writers:
     x-swagger-router-controller: lenses
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a lens' list of authorized writers
+      tags: [ lenses ]
+      description: >-
+        Remove all users from a lens' list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteLensWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the lens.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The lens is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -2190,6 +2246,34 @@ paths:
   # ---------------------------------------------------------------------------
   /perspectives/{key}/writers:
     x-swagger-router-controller: perspectives
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a perspective's list of authorized writers
+      tags: [ perspectives ]
+      description: >-
+        Remove all users from a perspective’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deletePerspectiveWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the perspective.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The perspective is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -4263,6 +4347,34 @@ paths:
   # ---------------------------------------------------------------------------
   /subjects/{key}/writers:
     x-swagger-router-controller: subjects
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a subject's list of authorized writers
+      tags: [ subjects ]
+      description: >-
+        Remove all users from a subject’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteSubjectWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the subject.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The subject is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []

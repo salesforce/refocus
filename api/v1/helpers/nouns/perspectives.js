@@ -29,6 +29,9 @@ module.exports = {
   },
   model: Perspective,
   modelName: 'Perspective',
-  userModelAssociationName: 'writers',
+  // define the associations that are to be deleted here
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
   cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
 }; // exports
