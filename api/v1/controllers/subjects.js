@@ -24,8 +24,48 @@ const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const logAPI = require('../../../utils/loggingUtil').logAPI;
 
-module.exports = {
+/**
+ * Checks the given fields. If fail, throws an
+ * corresponding error
+ * @param {String} absolutePath Should not exist
+ * @param {Array} tags Should not contain duplicates
+ */
+function checkRequestBody(absolutePath, tags) {
+  if (absolutePath) {
+    throw new apiErrors.SubjectValidationError();
+  }
+  if (tags && tags.length) {
+    if (checkDuplicates(tags)) {
+      throw new apiErrors.TagValidationError();
+    }
+  }
+}
 
+/**
+ * Given an array, return true if there
+ * are duplicates. False otherwise
+ *
+ * @param {Array} tagsArr The input array
+ * @param {Boolean} whether input array
+ * contains duplicates
+ */
+function checkDuplicates(tagsArr) {
+  const LEN = tagsArr.length - 1;
+  // to store lowercase copies
+  const copyArr = [];
+  let toAdd;
+  for (let i = LEN; i >= 0; i--) {
+    toAdd = tagsArr[i].toLowerCase();
+    // if duplicate found, return true
+    if (copyArr.indexOf(toAdd) > -1) {
+      return true;
+    }
+    copyArr.push(toAdd);
+  }
+  return false;
+}
+
+module.exports = {
   /**
    * DELETE /subjects/{key}
    *
@@ -208,10 +248,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSubject(req, res, next) {
-    if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError();
-    }
-
+    const { absolutePath, tags } = req.body;
+    checkRequestBody(absolutePath, tags);
     doPatch(req, res, next, helper);
   },
 
@@ -225,10 +263,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSubject(req, res, next) {
-    if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError();
-    }
-
+    const { absolutePath, tags } = req.body;
+    checkRequestBody(absolutePath, tags);
     doPost(req, res, next, helper);
   },
 
@@ -268,10 +304,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSubject(req, res, next) {
-    if (req.body.absolutePath) {
-      throw new apiErrors.SubjectValidationError();
-    }
-
+    const { absolutePath, tags } = req.body;
+    checkRequestBody(absolutePath, tags);
     doPut(req, res, next, helper);
   },
 

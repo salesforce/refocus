@@ -52,6 +52,15 @@ apiErrors.create({
     'previously revoked, and vice versa.',
 });
 
+apiErrors.create({
+  code: 11103,
+  status: 400,
+  name: 'TagValidationError',
+  parent: apiErrors.ValidationError,
+  fields: ['tags'],
+  defaultMessage: 'Tags are case-insensitive. Duplicates found',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

@@ -324,7 +324,27 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('patch tags with duplicate names should remove the duplicate',
+  it('patch tags with case sensitive names should throw an error',
+  (done) => {
+    const tags = [
+      'link1',
+      'LINK1',
+    ];
+    p1.tags = tags;
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(p1)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/TagValidationError/)
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
+
+  it('patch tags with duplicate names should throw an error',
   (done) => {
     const tags = [
       'link1',
@@ -335,10 +355,8 @@ describe(`api: PATCH ${path}`, () => {
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send(p1)
-    .expect((res) => {
-      expect(res.body.tags).to.have.length(2);
-      expect(res.body.tags).to.include.members(tags);
-    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/TagValidationError/)
     .end((err /* , res */) => {
       if (err) {
         return done(err);

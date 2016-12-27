@@ -227,6 +227,69 @@ function options(params, props) {
 } // options
 
 /**
+ * Returns a filtered resource array,
+ * according to the supplied tag string
+ *
+ * @param {Array} sArr The array of resources
+ * to filter from
+ * @param {String} tags Comma delimited String with
+ * tags to check for.
+ * @returns {Array} The filtered array
+ */
+function filterArrFromArr(sArr, tagsStr) {
+  const tagsArr = tagsStr.split(',');
+  const TAGLEN = tagsArr.length;
+  // assume TAGLEN has > 0 tags, since if ther's
+  // 0 tags express would've thrown an error
+  const INCLUDE = tagsArr[0].charAt(0) !== '-';
+  // if !INCLUDE, splice out the leading -  in tags
+  // else throw exception if tag starts with -
+  for (var i = TAGLEN - 1; i >= 0; i--) {
+    if (tagsArr[i].charAt(0) === '-') {
+      if (INCLUDE) {
+        throw new Error('To specify EXCLUDE tags, ' +
+          'prepend each tag with -');
+      }
+      tagsArr[i] = tagsArr[i].slice(1);
+    }
+  }
+
+  let filteredArr = [];
+  // append iff subject's tags contains all tags in tagsArr
+  if (INCLUDE) {
+    for (let i = 0; i < sArr.length; i++) {
+      let count = 0;
+      const tags = sArr[i].tags;
+      for (var j = TAGLEN - 1; j >= 0; j--) {
+        if (tags.indexOf(tagsArr[j]) > -1) {
+          count++;
+        }
+      }
+      if (count === TAGLEN) {
+        filteredArr.push(sArr[i]);
+      }
+    }
+  } else {
+    // EXCLUDE: append iff none of subject's tags
+    // is in tagsArr
+    for (let i = 0; i < sArr.length; i++) {
+      let addToArr = true;
+      const tags = sArr[i].tags;
+      for (var j = TAGLEN - 1; j >= 0; j--) {
+        if (tags.indexOf(tagsArr[j]) > -1) {
+          addToArr = false;
+          break;
+        }
+      }
+      if (addToArr) {
+        filteredArr.push(sArr[i]);
+      }
+    }
+  }
+  return filteredArr;
+}
+
+/**
  * Generates the "next" URL for paginated result sets.
  *
  * @param {String} url - The original URL
@@ -244,4 +307,5 @@ function getNextUrl(url, limit, offset) {
 module.exports = {
   getNextUrl,
   options,
+  filterArrFromArr, // for testing
 }; // exports

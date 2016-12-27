@@ -62,16 +62,26 @@ function doFindAndCountAll(reqResNext, props, opts) {
  *  find command
  */
 function doFindAll(reqResNext, props, opts) {
+  if (opts.where && opts.where.tags && opts.where.tags['$contains'].length) {
+    // change to filter at the API level
+    opts.where.tags['$contains'] = [];
+  }
+
   u.getScopedModel(props, opts.attributes).findAll(opts)
   .then((o) => {
     reqResNext.res.set(COUNT_HEADER_NAME, o.length);
-    const retval = o.map((row) => {
+    let retval = o.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
       }
 
       return u.responsify(row, props, reqResNext.req.method);
     });
+
+    const { tags } = reqResNext.req.swagger.params;
+    if (tags && tags.value && tags.value.length) {
+      retval = fu.filterArrFromArr(retval, tags.value);
+    }
     reqResNext.res.status(httpStatus.OK).json(retval);
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));

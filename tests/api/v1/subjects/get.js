@@ -11,14 +11,17 @@
  */
 'use strict';
 const supertest = require('supertest');
-
 const api = supertest(require('../../../../index').app);
+const filterArrFromArr = require('../../../../api/v1/helpers/verbs/findUtils.js').filterArrFromArr;
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
+const TWO = 2;
 
 describe(`api: GET ${path}`, () => {
   let token;
@@ -79,9 +82,9 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body[0].absolutePath).to.equal(na.name);
-      expect(res.body[1].absolutePath).to.equal(na.name + '.' + us.name);
-      expect(res.body[2].absolutePath).to.equal(na.name + '.' + us.name +
+      expect(res.body[ZERO].absolutePath).to.equal(na.name);
+      expect(res.body[ONE].absolutePath).to.equal(na.name + '.' + us.name);
+      expect(res.body[TWO].absolutePath).to.equal(na.name + '.' + us.name +
         '.' + vt.name);
 
       done();
@@ -98,9 +101,9 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body[0].name).to.equal(na.name);
-      expect(res.body[1].name).to.equal(us.name);
-      expect(res.body[2].name).to.equal(vt.name);
+      expect(res.body[ZERO].name).to.equal(na.name);
+      expect(res.body[ONE].name).to.equal(us.name);
+      expect(res.body[TWO].name).to.equal(vt.name);
 
       done();
     });
@@ -115,10 +118,9 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
-
-      expect(res.body[2].name).to.equal(na.name);
-      expect(res.body[1].name).to.equal(us.name);
-      expect(res.body[0].name).to.equal(vt.name);
+      expect(res.body[TWO].name).to.equal(na.name);
+      expect(res.body[ONE].name).to.equal(us.name);
+      expect(res.body[ZERO].name).to.equal(vt.name);
 
       done();
     });
@@ -154,7 +156,7 @@ describe(`api: GET ${path}`, () => {
 
       // get up to last period
       const expectedParAbsPath =
-        absPath.slice(0, absPath.lastIndexOf('.'));
+        absPath.slice(ZERO, absPath.lastIndexOf('.'));
 
       const result = JSON.parse(res.text);
       expect(Object.keys(result)).to.contain('parentAbsolutePath');
@@ -177,7 +179,7 @@ describe(`api: GET ${path}`, () => {
 
       // get up to last period
       const expectedParAbsPath =
-        absPath.slice(0, absPath.lastIndexOf('.'));
+        absPath.slice(ZERO, absPath.lastIndexOf('.'));
 
       const result = JSON.parse(res.text);
       expect(Object.keys(result)).to.contain('parentAbsolutePath');
@@ -187,7 +189,50 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  it('GET with tag filter :: one tag', (done) => {
+  it('GET with tag EXCLUDE filter :: single tag', (done) => {
+    api.get(`${path}?tags=-NE`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('GET with tag EXCLUDE filter :: multiple tags missing ' +
+    '- on subsequent tag should still EXCLUDE successfully', (done) => {
+    api.get(`${path}?tags=-US,NE`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].tags).to.deep.equal([]);
+      done();
+    });
+  });
+
+  it('GET with tag EXCLUDE filter :: multiple tags', (done) => {
+    api.get(`${path}?tags=-US,-NE`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].tags).to.deep.equal([]);
+      done();
+    });
+  });
+
+  it('GET with INCLUDE tag filter :: one tag', (done) => {
     api.get(`${path}?tags=US`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -196,15 +241,15 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(2);
-      expect(res.body[0].tags).to.eql(['US']);
-      expect(res.body[1].tags).to.eql(['US', 'NE']);
+      expect(res.body.length).to.equal(TWO);
+      expect(res.body[ZERO].tags).to.eql(['US']);
+      expect(res.body[ONE].tags).to.eql(['US', 'NE']);
 
       done();
     });
   });
 
-  it('GET with tag filter :: multiple tags', (done) => {
+  it('GET with INCLUDE tag filter :: multiple tags', (done) => {
     api.get(`${path}?tags=NE,US`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -213,8 +258,8 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(1);
-      expect(res.body[0].tags).to.eql(['US', 'NE']);
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].tags).to.eql(['US', 'NE']);
 
       done();
     });
