@@ -585,6 +585,7 @@ function whichPerspective(pnames) {
   hsplit.pop();
   let p = hsplit.pop();
   if (p && p !== 'perspectives') {
+    document.title += ' - ' + p;
     getPerspective(p);
   } else {
     request.get(GET_DEFAULT_PERSPECTIVE)
