@@ -12,6 +12,7 @@ html(lang = 'en')
     link(rel='shortcut icon', href='favicon.ico')
     link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
     link(rel='stylesheet' type='text/css' href='../static/css/perspective.css')
+    title Refocus
 
   body
     #refocus_perspective_dropdown_container
@@ -31,8 +32,8 @@ html(lang = 'en')
   script.
     var transProtocol = '#{transportProtocol}';
   script
-      if queryParams
-          | var queryParams = !{queryParams}
+    if queryParams
+      | var queryParams = !{queryParams}
   script(src='/static/perspective/app.js')
   script.
     var trackingId = '#{trackingId}';
