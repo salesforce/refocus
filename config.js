@@ -13,7 +13,6 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
-const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
@@ -123,22 +122,6 @@ module.exports = {
       dbUrl: pe.DATABASE_URL,
       isInHerokuPrivateSpace: pe.IS_IN_HEROKU_PRIVATE_SPACE || false,
       redisUrl: pe.REDIS_URL,
-      ipWhitelist: iplist,
-      dialect: 'postgres',
-      protocol: 'postgres',
-      dialectOptions: {
-        ssl: true,
-      },
-      tokenSecret: pe.SECRET_TOKEN ||
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    test: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
-      dbLogging: false, // console.log | false | ...
-      dbUrl: pe.DATABASE_URL,
-      redisUrl: pe.REDIS_URL,
-      defaultNodePort: defaultPort,
       ipWhitelist: iplist,
       dialect: 'postgres',
       protocol: 'postgres',
