@@ -91,17 +91,6 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'userId',
         });
         User.addScope('defaultScope', {
-
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-        }, {
-          override: true,
-        });
-        User.addScope('withoutSensitiveInfo', {
           attributes: {
             exclude: ['password'],
           },
@@ -112,11 +101,19 @@ module.exports = function user(seq, dataTypes) {
             },
           ],
           order: ['User.name'],
+        }, {
+          override: true,
+        });
+        User.addScope('withSensitiveInfo', {
+          include: [
+            {
+              association: assoc.profile,
+              attributes: ['name'],
+            },
+          ],
+          order: ['User.name'],
         });
       },
-    },
-    defaultScope: {
-      order: ['User.name'],
     },
     hooks: {
 

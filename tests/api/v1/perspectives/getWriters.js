@@ -85,7 +85,7 @@ describe('api: perspective: get writers', () => {
     });
   });
 
-  it.skip('find Writers and make sure the passwords are not returned', (done) => {
+  it('find Writers and make sure the passwords are not returned', (done) => {
     api.get(getWritersPath.replace('{key}', perspective.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
