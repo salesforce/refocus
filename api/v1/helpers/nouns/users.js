@@ -23,9 +23,6 @@ module.exports = {
     POST: `Create a new ${m}`,
     PUT: `Overwrite all attributes of this ${m}`,
   },
-  scopeMap: {
-    withoutSensitiveInfo: 'withoutSensitiveInfo',
-  },
   baseUrl: '/v1/users',
   model: User,
   modelName: 'User',
