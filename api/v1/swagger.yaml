@@ -6899,7 +6899,7 @@ parameters:
     name: fields
     in: query
     description: >-
-          Comma-delimited list of field names to include in the response.
+      Comma-delimited list of field names to include in the response.
     required: false
     type: array
     collectionFormat: csv
@@ -6909,6 +6909,7 @@ parameters:
         - id
         - messageBody
         - messageCode
+        - name
         - provider
         - status
         - tags
