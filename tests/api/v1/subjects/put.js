@@ -369,7 +369,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.members(toPut.tags);
+      expect(res.body.tags).to.deep.equal(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -378,6 +378,7 @@ describe('api: PUT subjects with tags', () => {
       done();
     });
   });
+
   it('no putting tags with names starting with a dash(-)', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
@@ -399,6 +400,43 @@ describe('api: PUT subjects with tags', () => {
       done();
     });
   });
+
+  it('update to duplicate tags fails', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      tags: ['tagX', 'tagX'],
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/DuplicateFieldError/)
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
+
+  it('update to case-sensitive duplicate tags fails', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      tags: ['TAGX', 'tagx'],
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/DuplicateFieldError/)
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
+
   it('update to add existing tag', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
@@ -410,7 +448,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.tags).to.have.length(1);
-      expect(res.body.tags).to.have.members(toPut.tags);
+      expect(res.body.tags).to.deep.equal(toPut.tags);
     })
     .end((err /* , res */) => {
       if (err) {
