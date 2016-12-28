@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/userTokens/get.js
+ * tests/api/v1/users/get.js
  */
 'use strict';
 
@@ -22,7 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: GET ${path}/U/tokens/T`, () => {
+describe(`api: GET ${path}`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
 
@@ -38,42 +38,43 @@ describe(`api: GET ${path}/U/tokens/T`, () => {
         password: 'user123password',
       })
     )
-    .then((user) => {
-      return Token.create({
-        name: tname,
-        createdBy: user.id,
-      });
-    })
     .then(() => done())
     .catch(done);
   });
 
   after(u.forceDelete);
 
-  it('user and token found', (done) => {
-    api.get(`${path}/${uname}/tokens/${tname}`)
-    .set('Authorization', '???')
+  it('user found', (done) => {
+    api.get(`${path}/${uname}`)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('name', tname);
+        expect(res.body).to.have.property('name', uname);
+        expect(res.body).to.not.have.property('password');
         expect(res.body.isDeleted).to.not.equal(0);
         done();
       }
     });
   });
 
-  it('user not found', (done) => {
-    api.get(`${path}/who@what.com/tokens/foo`)
-    .set('Authorization', '???')
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+  it('users array returned', (done) => {
+    api.get(`${path}`)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body).to.be.instanceof(Array);
+        expect(res.body[0]).to.not.have.property('password');
+        done();
+      }
+    });
   });
 
-  it('user found but token name not found', (done) => {
-    api.get(`${path}/${uname}/tokens/foo`)
+  it('user not found', (done) => {
+    api.get(`${path}/who@what.com`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.NOT_FOUND)
     .end(() => done());
