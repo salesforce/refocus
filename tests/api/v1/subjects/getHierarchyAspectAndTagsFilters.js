@@ -142,7 +142,7 @@ describe(`api: GET ${path}:`, () => {
   after(tu.forceDeleteUser);
 
   describe('SubjectTag filter on hierarchy', () => {
-    it('Only subjects matchihing the tag and its hierarchy should be returned',
+    it('Only subjects matching the tag and its hierarchy should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id)+'?subjectTags=cold';
       api.get(endpoint)
@@ -201,7 +201,7 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('Negation test: Subject with tags not matchihing the negated tag name ',
+    it('Negation test: Subject with tags not matching the negated tag name ',
     (done) => {
       const endpoint = path.replace('{key}', gp.id)+'?subjectTags=-verycold';
       api.get(endpoint)
@@ -219,7 +219,7 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('Negation test: Multiple Tags: Subject with tags not matchihing the' +
+    it('Negation test: Multiple Tags: Subject with tags not matching the' +
       ' negated tag name ', (done) => {
       const endpoint = path.replace('{key}', gp.id)+'?subjectTags=-cold,-ea';
       api.get(endpoint)

@@ -434,6 +434,7 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
+
     it('should not be able to post tag names starting with dash(-)', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
       const tags = ['-na', '___continent'];
@@ -454,19 +455,35 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
-    it('posting subject with duplicate tags', (done) => {
-      const subjectToPost = { name: `${tu.namePrefix}Asia` };
 
+    it('posting subject with case sensitive (duplicate) tags should fail',
+      (done) => {
+      const subjectToPost = { name: `${tu.namePrefix}Asia` };
+      const tags = ['___na', '___NA'];
+      subjectToPost.tags = tags;
+      api.post(path)
+      .set('Authorization', token)
+      .send(subjectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+
+    it('posting subject with duplicate tags should fail',
+      (done) => {
+      const subjectToPost = { name: `${tu.namePrefix}Asia` };
       const tags = ['___na', '___na'];
       subjectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
       .send(subjectToPost)
-      .expect((res) => {
-        expect(res.body.tags).to.have.length(1);
-        expect(res.body.tags).to.include.members(tags);
-
-      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
       .end((err /* , res */) => {
         if (err) {
           return done(err);
