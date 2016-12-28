@@ -232,7 +232,7 @@ function options(params, props) {
  *
  * @param {Array} sArr The array of resources
  * to filter from
- * @param {String} tags Comma delimited String with
+ * @param {String} tagsStr Comma delimited String with
  * tags to check for.
  * @returns {Array} The filtered array
  */
@@ -241,27 +241,27 @@ function filterArrFromArr(sArr, tagsStr) {
   const TAGLEN = tagsArr.length;
   // assume TAGLEN has > 0 tags, since if ther's
   // 0 tags express would've thrown an error
-  const INCLUDE = tagsArr[0].charAt(0) !== '-';
+  const INCLUDE = tagsArr[ZERO].charAt(ZERO) !== '-';
   // if !INCLUDE, splice out the leading -  in tags
   // else throw exception if tag starts with -
-  for (var i = TAGLEN - 1; i >= 0; i--) {
-    if (tagsArr[i].charAt(0) === '-') {
+  for (let i = TAGLEN - ONE; i >= ZERO; i--) {
+    if (tagsArr[i].charAt(ZERO) === '-') {
       if (INCLUDE) {
         throw new Error('To specify EXCLUDE tags, ' +
           'prepend each tag with -');
       }
-      tagsArr[i] = tagsArr[i].slice(1);
+      tagsArr[i] = tagsArr[i].slice(ONE);
     }
   }
 
   let filteredArr = [];
   // append iff subject's tags contains all tags in tagsArr
   if (INCLUDE) {
-    for (let i = 0; i < sArr.length; i++) {
-      let count = 0;
+    for (let i = ZERO; i < sArr.length; i++) {
+      let count = ZERO;
       const tags = sArr[i].tags;
-      for (var j = TAGLEN - 1; j >= 0; j--) {
-        if (tags.indexOf(tagsArr[j]) > -1) {
+      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
+        if (tags.indexOf(tagsArr[j]) > -ONE) {
           count++;
         }
       }
@@ -272,11 +272,11 @@ function filterArrFromArr(sArr, tagsStr) {
   } else {
     // EXCLUDE: append iff none of subject's tags
     // is in tagsArr
-    for (let i = 0; i < sArr.length; i++) {
+    for (let i = ZERO; i < sArr.length; i++) {
       let addToArr = true;
       const tags = sArr[i].tags;
-      for (var j = TAGLEN - 1; j >= 0; j--) {
-        if (tags.indexOf(tagsArr[j]) > -1) {
+      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
+        if (tags.indexOf(tagsArr[j]) > -ONE) {
           addToArr = false;
           break;
         }

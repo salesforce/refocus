@@ -62,9 +62,9 @@ function doFindAndCountAll(reqResNext, props, opts) {
  *  find command
  */
 function doFindAll(reqResNext, props, opts) {
-  if (opts.where && opts.where.tags && opts.where.tags['$contains'].length) {
+  if (opts.where && opts.where.tags && opts.where.tags.$contains.length) {
     // change to filter at the API level
-    opts.where.tags['$contains'] = [];
+    opts.where.tags.$contains = [];
   }
 
   u.getScopedModel(props, opts.attributes).findAll(opts)

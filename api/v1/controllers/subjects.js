@@ -23,6 +23,32 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const logAPI = require('../../../utils/loggingUtil').logAPI;
+const ZERO = 0;
+const ONE = 1;
+
+/**
+ * Given an array, return true if there
+ * are duplicates. False otherwise.
+ *
+ * @param {Array} tagsArr The input array
+ * @returns {Boolean} whether input array
+ * contains duplicates
+ */
+function checkDuplicates(tagsArr) {
+  const LEN = tagsArr.length - ONE;
+  // to store lowercase copies
+  const copyArr = [];
+  let toAdd;
+  for (let i = LEN; i >= ZERO; i--) {
+    toAdd = tagsArr[i].toLowerCase();
+    // if duplicate found, return true
+    if (copyArr.indexOf(toAdd) > -ONE) {
+      return true;
+    }
+    copyArr.push(toAdd);
+  }
+  return false;
+}
 
 /**
  * Checks the given fields. If fail, throws an
@@ -41,31 +67,8 @@ function checkRequestBody(absolutePath, tags) {
   }
 }
 
-/**
- * Given an array, return true if there
- * are duplicates. False otherwise
- *
- * @param {Array} tagsArr The input array
- * @param {Boolean} whether input array
- * contains duplicates
- */
-function checkDuplicates(tagsArr) {
-  const LEN = tagsArr.length - 1;
-  // to store lowercase copies
-  const copyArr = [];
-  let toAdd;
-  for (let i = LEN; i >= 0; i--) {
-    toAdd = tagsArr[i].toLowerCase();
-    // if duplicate found, return true
-    if (copyArr.indexOf(toAdd) > -1) {
-      return true;
-    }
-    copyArr.push(toAdd);
-  }
-  return false;
-}
-
 module.exports = {
+
   /**
    * DELETE /subjects/{key}
    *
@@ -145,7 +148,7 @@ module.exports = {
     u.findByKey(helper, params, ['hierarchy', 'samples'])
     .then((o) => {
       let retval = u.responsify(o, helper, req.method);
-      if (depth > 0) {
+      if (depth > ZERO) {
         retval = helper.deleteChildren(retval, depth);
       }
 
