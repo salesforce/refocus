@@ -72,6 +72,61 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  describe('duplicate tags fail', () => {
+    it('GET with tag EXCLUDE filter', (done) => {
+      api.get(`${path}?tags=-US,-US`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+
+    it('GET with tag EXCLUDE filter :: case-sensitive tags return ' +
+      'non-case-sensitive result', (done) => {
+      api.get(`${path}?tags=-US,-us`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+
+    it('GET with tag INCLUDE filter :: duplicate tags pass', (done) => {
+      api.get(`${path}?tags=US,US`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+
+    it('GET with tag INCLUDE filter :: case-sensitive tags pass', (done) => {
+      api.get(`${path}?tags=US,us`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+  });
+
   it('Check return result of get in alphabetical order of' +
   'absolutePath by default', (done) => {
     api.get(`${path}`)
@@ -86,7 +141,6 @@ describe(`api: GET ${path}`, () => {
       expect(res.body[ONE].absolutePath).to.equal(na.name + '.' + us.name);
       expect(res.body[TWO].absolutePath).to.equal(na.name + '.' + us.name +
         '.' + vt.name);
-
       done();
     });
   });
@@ -104,7 +158,6 @@ describe(`api: GET ${path}`, () => {
       expect(res.body[ZERO].name).to.equal(na.name);
       expect(res.body[ONE].name).to.equal(us.name);
       expect(res.body[TWO].name).to.equal(vt.name);
-
       done();
     });
   });
@@ -121,7 +174,6 @@ describe(`api: GET ${path}`, () => {
       expect(res.body[TWO].name).to.equal(na.name);
       expect(res.body[ONE].name).to.equal(us.name);
       expect(res.body[ZERO].name).to.equal(vt.name);
-
       done();
     });
   });
@@ -138,7 +190,6 @@ describe(`api: GET ${path}`, () => {
       const result = JSON.parse(res.text);
       expect(Object.keys(result)).to.contain('parentAbsolutePath');
       expect(result.parentAbsolutePath).to.equal.null;
-
       done();
     });
   });
@@ -161,7 +212,6 @@ describe(`api: GET ${path}`, () => {
       const result = JSON.parse(res.text);
       expect(Object.keys(result)).to.contain('parentAbsolutePath');
       expect(result.parentAbsolutePath).to.equal(expectedParAbsPath);
-
       done();
     });
   });
@@ -184,7 +234,6 @@ describe(`api: GET ${path}`, () => {
       const result = JSON.parse(res.text);
       expect(Object.keys(result)).to.contain('parentAbsolutePath');
       expect(result.parentAbsolutePath).to.equal(expectedParAbsPath);
-
       done();
     });
   });
@@ -244,7 +293,6 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.length).to.equal(TWO);
       expect(res.body[ZERO].tags).to.eql(['US']);
       expect(res.body[ONE].tags).to.eql(['US', 'NE']);
-
       done();
     });
   });
@@ -260,7 +308,6 @@ describe(`api: GET ${path}`, () => {
 
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].tags).to.eql(['US', 'NE']);
-
       done();
     });
   });

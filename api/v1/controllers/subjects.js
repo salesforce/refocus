@@ -62,7 +62,7 @@ function checkRequestBody(absolutePath, tags) {
   }
   if (tags && tags.length) {
     if (checkDuplicates(tags)) {
-      throw new apiErrors.TagValidationError();
+      throw new apiErrors.DuplicateFieldError();
     }
   }
 }
@@ -115,6 +115,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSubjects(req, res, next) {
+    // tags is a comma delimited string, not empty.
+    const tags = req.swagger.params.tags.value;
+    if (tags && tags.length) {
+      const tagsArr = tags.split(',');
+      checkRequestBody(null, tagsArr);
+    }
     doFind(req, res, next, helper);
   },
 

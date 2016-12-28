@@ -465,7 +465,7 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send(subjectToPost)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/TagValidationError/)
+      .expect(/DuplicateFieldError/)
       .end((err /* , res */) => {
         if (err) {
           return done(err);
@@ -483,7 +483,7 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send(subjectToPost)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/TagValidationError/)
+      .expect(/DuplicateFieldError/)
       .end((err /* , res */) => {
         if (err) {
           return done(err);

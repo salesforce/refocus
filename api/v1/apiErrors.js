@@ -55,7 +55,7 @@ apiErrors.create({
 apiErrors.create({
   code: 11103,
   status: 400,
-  name: 'TagValidationError',
+  name: 'DuplicateFieldError',
   parent: apiErrors.ValidationError,
   fields: ['tags'],
   defaultMessage: 'Tags are case-insensitive. Duplicates found',

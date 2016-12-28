@@ -335,7 +335,7 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send(p1)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .expect(/TagValidationError/)
+    .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
         return done(err);
@@ -356,7 +356,7 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send(p1)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .expect(/TagValidationError/)
+    .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
         return done(err);

@@ -410,7 +410,25 @@ describe('api: PUT subjects with tags', () => {
     .set('Authorization', token)
     .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .expect(/TagValidationError/)
+    .expect(/DuplicateFieldError/)
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
+
+  it('update to case-sensitive duplicate tags fails', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      tags: ['TAGX', 'tagx'],
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
         return done(err);
