@@ -227,6 +227,69 @@ function options(params, props) {
 } // options
 
 /**
+ * Returns a filtered resource array,
+ * according to the supplied tag string
+ *
+ * @param {Array} sArr The array of resources
+ * to filter from
+ * @param {String} tagsStr Comma delimited String with
+ * tags to check for.
+ * @returns {Array} The filtered array
+ */
+function filterArrFromArr(sArr, tagsStr) {
+  const tagsArr = tagsStr.split(',');
+  const TAGLEN = tagsArr.length;
+  // assume TAGLEN has > 0 tags, since if ther's
+  // 0 tags express would've thrown an error
+  const INCLUDE = tagsArr[ZERO].charAt(ZERO) !== '-';
+  // if !INCLUDE, splice out the leading -  in tags
+  // else throw exception if tag starts with -
+  for (let i = TAGLEN - ONE; i >= ZERO; i--) {
+    if (tagsArr[i].charAt(ZERO) === '-') {
+      if (INCLUDE) {
+        throw new Error('To specify EXCLUDE tags, ' +
+          'prepend each tag with -');
+      }
+      tagsArr[i] = tagsArr[i].slice(ONE);
+    }
+  }
+
+  let filteredArr = [];
+  // append iff subject's tags contains all tags in tagsArr
+  if (INCLUDE) {
+    for (let i = ZERO; i < sArr.length; i++) {
+      let count = ZERO;
+      const tags = sArr[i].tags;
+      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
+        if (tags.indexOf(tagsArr[j]) > -ONE) {
+          count++;
+        }
+      }
+      if (count === TAGLEN) {
+        filteredArr.push(sArr[i]);
+      }
+    }
+  } else {
+    // EXCLUDE: append iff none of subject's tags
+    // is in tagsArr
+    for (let i = ZERO; i < sArr.length; i++) {
+      let addToArr = true;
+      const tags = sArr[i].tags;
+      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
+        if (tags.indexOf(tagsArr[j]) > -ONE) {
+          addToArr = false;
+          break;
+        }
+      }
+      if (addToArr) {
+        filteredArr.push(sArr[i]);
+      }
+    }
+  }
+  return filteredArr;
+}
+
+/**
  * Generates the "next" URL for paginated result sets.
  *
  * @param {String} url - The original URL
@@ -244,4 +307,5 @@ function getNextUrl(url, limit, offset) {
 module.exports = {
   getNextUrl,
   options,
+  filterArrFromArr, // for testing
 }; // exports

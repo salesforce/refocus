@@ -3500,9 +3500,15 @@ paths:
             maxLength: 60
             pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
           description: >-
-            Filter by tags.
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             subjects with tags FOO or BAR. Prefix each of the tag name with
+             a negative sign to indicate that a subject with that tag should
+             be excluded. For example, ?tags=-BAZ,-FOO will return only the
+             subjects with tag name not equal to BAZ or FOO. Subjects without
+             tags are not included in the result set.
+          type: string
           required: false
-          type: array
       responses:
         200:
           description: >-
