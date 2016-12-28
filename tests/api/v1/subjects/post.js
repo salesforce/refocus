@@ -456,7 +456,7 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('posting subject with case sensitive tags should fail',
+    it('posting subject with case sensitive (duplicate) tags should fail',
       (done) => {
       const subjectToPost = { name: `${tu.namePrefix}Asia` };
       const tags = ['___na', '___NA'];
