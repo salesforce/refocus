@@ -133,6 +133,7 @@ function applyFilter(filterString, objValues) {
     if (filterComponents.length < 2) {
       return true;
     }
+
     // filter type is either INCLUDE or EXCLUDE
     const filterType = filterComponents[0];
 
@@ -145,10 +146,10 @@ function applyFilter(filterString, objValues) {
                                                   .valuesSeparator));
 
     if (filterType === constants.filterTypeInclude) {
-    /*
-     * if any of the values in the objValueArr is found in the filterValueSet
-     * return true
-     */
+      /*
+       * If any of the values in the objValueArr is found in the filterValueSet
+       * return true.
+       */
       return isPresent(filterValueSet, objValueArr);
     }
 
@@ -186,11 +187,11 @@ function shouldIEmitThisObj(nspString, obj) {
   const absolutePathObj = '/' + obj.absolutePath;
 
   if ((absolutePathObj).startsWith(absPathNsp)) {
-   /*
-    * when none of the filters are set, the nspComponent just has the
-    * subjectAbsolutePath in it, so we do not have to check for the
-    * filter conditions and we just need to return true.
-    */
+    /*
+     * When none of the filters are set, the nspComponent just has the
+     * subjectAbsolutePath in it, so we do not have to check for the filter
+     * conditions and we just need to return true.
+     */
     if (nspComponents.length < 2) {
       return true;
     }
@@ -207,7 +208,7 @@ function shouldIEmitThisObj(nspString, obj) {
     return applyFilter(aspectFilter, obj.aspect.name) &&
       applyFilter(subjectTagFilter, obj.subject.tags) &&
       applyFilter(aspectTagFilter, obj.aspect.tags) &&
-      applyFilter(statusFilter, obj.status) ;
+      applyFilter(statusFilter, obj.status);
   }
 
   return false;
@@ -229,6 +230,7 @@ function getNamespaceString(inst) {
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
+
   if (inst.aspectFilter) {
     namespace += constants.filterSeperator + inst.aspectFilterType +
                 constants.fieldTypeFieldSeparator +
@@ -236,6 +238,7 @@ function getNamespaceString(inst) {
   } else {
     namespace += constants.filterSeperator + inst.aspectFilterType;
   }
+
   if (inst.subjectTagFilter) {
     namespace += constants.filterSeperator + inst.subjectTagFilterType +
                 constants.fieldTypeFieldSeparator +
@@ -243,6 +246,7 @@ function getNamespaceString(inst) {
   } else {
     namespace += constants.filterSeperator + inst.subjectTagFilterType;
   }
+
   if (inst.aspectTagFilter) {
     namespace += constants.filterSeperator + inst.aspectTagFilterType +
                 constants.fieldTypeFieldSeparator +
@@ -250,6 +254,7 @@ function getNamespaceString(inst) {
   } else {
     namespace += constants.filterSeperator + inst.aspectTagFilterType;
   }
+
   if (inst.statusFilter) {
     namespace += constants.filterSeperator + inst.statusFilterType +
                 constants.fieldTypeFieldSeparator +
