@@ -27,7 +27,18 @@ describe(`api: POST ${path}`, () => {
   let aspect;
   let subject;
   let token;
-
+  const URL1 = 'https://samples.com';
+  const URL2 = 'https://updatedsamples.com';
+  const relatedLinks = [{
+    name: 'link1', url: URL1,
+  }, {
+    name: 'link2', url: URL1,
+  }];
+  const updatedRelatedLinks = [{
+    name: 'link1', url: URL2,
+  }, {
+    name: 'link2', url: URL2,
+  }];
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -53,7 +64,41 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('upserts when the sample does not already exist', (done) => {
+  describe(`when aspect isPublished false`, () => {
+    let updatedAspect;
+
+    // unpublish the aspects
+    beforeEach((done) => {
+      Aspect.findById(aspect.id)
+      .then((aspectOne) => aspectOne.update({
+        isPublished: false,
+      }))
+      .then((_aspect) => {
+        updatedAspect = _aspect;
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('sample upsert returns not found', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${updatedAspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
+    });
+  });
+
+  it('upsert succeeds when the sample does not exist', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send({
@@ -61,156 +106,57 @@ describe(`api: POST ${path}`, () => {
       value: '2',
     })
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (!res.body) {
-        throw new Error('expecting sample');
-      }
-
-      if (res.body.status !== constants.statuses.Warning) {
-        throw new Error('Incorrect Status Value');
-      }
-    })
-    .end((err /* , res */) => {
+    .end((err  , res ) => {
       if (err) {
         return done(err);
       }
 
+      expect(res.body).to.be.an('object');
+      expect(res.body.status).to.equal(constants.statuses.Warning);
       done();
     });
   });
 
-  it('update sample and relatedLinks after create', (done) => {
+  it('update sample with relatedLinks', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send({
       name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ]
+      relatedLinks: updatedRelatedLinks,
     })
-    .expect((res) => {
+    .end((err, res ) => {
+      if (err) {
+        return done(err);
+      }
+
       expect(res.body.relatedLinks).to.have.length(2);
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-      api.post(path)
-      .set('Authorization', token)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: '2',
-        relatedLinks: [{ name: 'link1', url: 'https://updatedsamples.com' },
-        { name: 'link2', url: 'https://updatedsamples.com' }
-        ]
-      })
-      .expect((res) => {
-        expect(res.body.relatedLinks).to.have.length(2);
-        for(let i=0;i<res.body.relatedLinks.length;i++) {
-          expect(res.body.relatedLinks[0]).to.have
-            .property('url', 'https://updatedsamples.com');
-        }
-      })
-      .end((getErr /* , res */) => {
-        if (getErr) {
-          return done(getErr);
-        }
-        done();
-      });
-    });
-  });
-
-  it('create sample with relatedLinks', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ]
-    })
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(2);
-      for(let i=0;i<res.body.relatedLinks.length;i++) {
-        expect(res.body.relatedLinks[0]).to.have
-          .property('url', 'https://samples.com');
-      }
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+      expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
       done();
     });
   });
 
-  it('incremental creation of relatedLinks', (done) => {
+  it('update to relatedLinks with the same name fails', (done) => {
+    const withSameName = [relatedLinks[0], relatedLinks[0]];
     api.post(path)
     .set('Authorization', token)
     .send({
       name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }
-      ]
+      relatedLinks: withSameName,
     })
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
-    })
-    .end((err /* , res */) => {
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res ) => {
       if (err) {
         return done(err);
       }
-      api.post(path)
-      .set('Authorization', token)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: '2',
-        relatedLinks: [{ name: 'link2', url: 'https://updatedsamples.com' }
-        ]
-      })
-      .expect((res) => {
-        expect(res.body.relatedLinks).to.have.length(1);
-        for(let i=0;i<res.body.relatedLinks.length;i++) {
-          expect(res.body.relatedLinks[0]).to.have
-            .property('url', 'https://updatedsamples.com');
-        }
-      })
-      .end((getErr /* , res */) => {
-        if (getErr) {
-          return done(getErr);
-        }
-        done();
-      });
-    });
-  });
 
-  it('fail creation on relatedLinks with same name and sampleId', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link1', url: 'https://samples.com' }
-      ]
-    })
-    .expect((res) => {
-      expect(res.body.errors[0].message)
-        .to.contain('Name of the relatedlinks should be unique');
-      expect(res.body.errors[0].source)
-        .to.contain('relatedLinks');
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+      const { message, source } = res.body.errors[0];
+      expect(message).to.equal('Name of the relatedlinks should be unique');
+      expect(source).to.equal('relatedLinks');
       done();
     });
   });
 
-  it('subject not found', (done) => {
+  it('subject not found yields NOT FOUND', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send({
@@ -227,7 +173,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  it('aspect not found', (done) => {
+  it('aspect not found yields NOT FOUND', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send({
@@ -256,7 +202,7 @@ describe(`api: POST ${path}`, () => {
       .catch((err) => done(err));
     });
 
-    it('upserts when sample already exists', (done) => {
+    it('value is updated', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({
@@ -264,70 +210,88 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        if (!res.body) {
-          throw new Error('expecting sample');
-        }
-
-        if (res.body.status !== constants.statuses.Warning) {
-          throw new Error('Incorrect Status Value');
-        }
-      })
-      .end((err /* , res */) => {
+      .end((err , res) => {
         if (err) {
           return done(err);
         }
 
+        expect(res.body.status).to.equal(constants.statuses.Warning);
         done();
       });
     });
+
+    it('update relatedLinks succeeds', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+        relatedLinks: updatedRelatedLinks,
+      })
+      .end((getErr, res ) => {
+        if (getErr) {
+          return done(getErr);
+        }
+
+        expect(res.body.relatedLinks).to.have.length(2);
+        expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
+        done();
+      });
+    });
+
+    it('sample is not duplicated', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .then(() => {
+        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name)
+          .to.equal(`${subject.absolutePath}|${aspect.name}`);
+          return done();
+        });
+      });
+    });
   });
-});
 
-describe(`api: POST ${path} aspect isPublished false`, () => {
-  let aspect;
-  let subject;
-  let token;
+  describe('on case insensitive upsert', () => {
+    beforeEach((done) => {
+      Sample.create({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '1',
+        aspectId: aspect.id,
+        subjectId: subject.id,
+      })
+      .then(() => api.post(path)
+      .set('Authorization', token)
+      .send({
+        // updates the name to use lowercase
+        name: `${subject.absolutePath}|${aspect.name}`.toLowerCase(),
+        value: '2',
+      }))
+      .then(() => done())
+      .catch((err) => done(err));
+    });
 
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch((err) => done(err));
-  });
+    it('existing sample is not duplicated', (done) => {
+      api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-  beforeEach((done) => {
-    Aspect.create(u.aspectToCreateNotPublished)
-    .then((a) => {
-      aspect = a;
-      return Subject.create(u.subjectToCreate);
-    })
-    .then((s) => {
-      subject = s;
-      done();
-    })
-    .catch((err) => done(err));
-  });
-
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
-
-  it('sample upsert restricted if aspect not published', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
+        expect(res.body).to.have.length(1);
+        expect(res.body[0].name)
+        .to.equal(`${subject.absolutePath}|${aspect.name}`.toLowerCase());
+        return done();
+      });
     });
   });
 });
