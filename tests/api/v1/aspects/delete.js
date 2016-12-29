@@ -58,7 +58,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -67,7 +67,7 @@ describe(`api: DELETE ${path}`, () => {
       i = aspect.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -81,13 +81,12 @@ describe(`api: DELETE ${path}`, () => {
     .expect(notFound)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
-
 
   it('delete by name', (done) => {
     api.delete(`${path}/${u.toCreate.name}`)
@@ -97,10 +96,10 @@ describe(`api: DELETE ${path}`, () => {
     .expect(notFound)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -124,15 +123,9 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     name: `${tu.namePrefix}ASPECTNAME`,
     timeout: '110s',
     relatedLinks: [
-      {
-        name: 'rlink0',
-        url: 'https://samples.com'
-      },
-      {
-        name: 'rlink1',
-        url: 'https://samples.com'
-      },
-    ]
+      { name: 'rlink0', url: 'https://samples.com' },
+      { name: 'rlink1', url: 'https://samples.com' },
+    ],
   };
 
   before((done) => {
@@ -141,7 +134,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -150,7 +143,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
       i = asp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -164,10 +157,10 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -181,10 +174,10 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -198,10 +191,10 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
@@ -227,7 +220,7 @@ describe(`api: DELETE ${path} with samples`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -252,7 +245,7 @@ describe(`api: DELETE ${path} with samples`, () => {
       Sample.create(samp2);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -271,10 +264,10 @@ describe(`api: DELETE ${path} with samples`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
