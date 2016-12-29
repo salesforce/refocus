@@ -34,10 +34,8 @@ if (redisUrl) {
 const jobQueue = kue.createQueue(redisOptions);
 
 module.exports = {
-
   jobQueue,
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
-  }
-
+  },
 }; // exports
