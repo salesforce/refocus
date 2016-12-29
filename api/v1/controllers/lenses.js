@@ -112,7 +112,6 @@ function handleLensMetadata(requestObj, libraryParam, seqObj) {
   }
 }
 
-
 /**
  * Prepares the object to be sent back in the response ("cleans" the object,
  * strips out nulls, adds API links).
@@ -197,7 +196,7 @@ module.exports = {
     u.findAssociatedInstances(helper,
       params, helper.userModelAssociationName, options)
     .then((o) => {
-    // if the resolved object is an empty array, throw a ResourceNotFound error
+      // throw a ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
         params.userNameOrId.value, userProps.modelName);
       const retval = u.responsify(o, helper, req.method);

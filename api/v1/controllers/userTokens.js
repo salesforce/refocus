@@ -65,10 +65,8 @@ module.exports = {
       err.key = user + ', ' + tokenName;
       throw err;
     })
-    .then((o) => {
-      return res.status(httpStatus.OK)
-      .json(u.responsify(o, helper, req.method));
-    })
+    .then((o) => res.status(httpStatus.OK)
+      .json(u.responsify(o, helper, req.method)))
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 

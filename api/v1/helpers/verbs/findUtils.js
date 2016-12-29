@@ -41,10 +41,8 @@ function escapePercentLiterals(val) {
  */
 function toSequelizeWildcards(val) {
   const chars = val.split(constants.EMPTY_STRING);
-  const arr = chars.map((ch) => {
-    return ch === constants.QUERY_PARAM_WILDCARD ?
-      constants.SEQ_WILDCARD : ch;
-  });
+  const arr = chars.map((ch) =>
+    (ch === constants.QUERY_PARAM_WILDCARD ? constants.SEQ_WILDCARD : ch));
   return arr.join(constants.EMPTY_STRING);
 } // toSequelizeWildcards
 
@@ -116,6 +114,7 @@ function toSequelizeWhere(filter, props) {
       if (Array.isArray(props.fieldsWithEnum) &&
         props.fieldsWithEnum.indexOf(key) > -ONE) {
         const enumArr = filter[key];
+
         // to use $in instead of $contains in toWhereClause
         props.isEnum = true;
         values.push(toWhereClause(enumArr, props));
@@ -239,22 +238,27 @@ function options(params, props) {
 function filterArrFromArr(sArr, tagsStr) {
   const tagsArr = tagsStr.split(',');
   const TAGLEN = tagsArr.length;
-  // assume TAGLEN has > 0 tags, since if ther's
-  // 0 tags express would've thrown an error
+
+  // Assume TAGLEN has > 0 tags (otherwise express would throw error)
   const INCLUDE = tagsArr[ZERO].charAt(ZERO) !== '-';
-  // if !INCLUDE, splice out the leading -  in tags
-  // else throw exception if tag starts with -
+
+  /*
+   * If !INCLUDE, splice out the leading "-" in tags. Otherwise throw an
+   * exception if tag starts with "-".
+   */
   for (let i = TAGLEN - ONE; i >= ZERO; i--) {
     if (tagsArr[i].charAt(ZERO) === '-') {
       if (INCLUDE) {
         throw new Error('To specify EXCLUDE tags, ' +
           'prepend each tag with -');
       }
+
       tagsArr[i] = tagsArr[i].slice(ONE);
     }
   }
 
-  let filteredArr = [];
+  const filteredArr = [];
+
   // append iff subject's tags contains all tags in tagsArr
   if (INCLUDE) {
     for (let i = ZERO; i < sArr.length; i++) {
@@ -265,6 +269,7 @@ function filterArrFromArr(sArr, tagsStr) {
           count++;
         }
       }
+
       if (count === TAGLEN) {
         filteredArr.push(sArr[i]);
       }
@@ -281,11 +286,13 @@ function filterArrFromArr(sArr, tagsStr) {
           break;
         }
       }
+
       if (addToArr) {
         filteredArr.push(sArr[i]);
       }
     }
   }
+
   return filteredArr;
 }
 
