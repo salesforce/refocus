@@ -148,7 +148,7 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -165,14 +165,12 @@ describe(`api: PATCH ${path}`, () => {
       ch2.parentId = i0;
       Subject.create(ch2);
     })
-    .then(() => {
-      return Subject.create(n0a);
-    })
+    .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -191,43 +189,46 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
 
   it('patch relatedLinks multiple', (done) => {
-    const relatedLinks = [{ name: 'link0', url: 'https://samples.com' },
-    { name: 'link1', url: 'https://samples.com' },
-    { name: 'link2', url: 'https://samples.com'}];
+    const relatedLinks = [
+      { name: 'link0', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     p1.relatedLinks = relatedLinks;
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send(p1)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      for (let k=0;k<res.body.relatedLinks.length;k++) {
-      /**
-       * link names are starting from link0 to link2, so adding  the index k
-       * at the end to get the name dynamically
-       */
-        expect(res.body.relatedLinks[k]).to.have.property('name',
-         'link'+k);
+      for (let k = 0; k < res.body.relatedLinks.length; k++) {
+        // Link names are starting from link0 to link2, so adding the index k
+        // at the end to get the name dynamically.
+        expect(res.body.relatedLinks[k]).to.have.property('name', 'link' + k);
       }
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
 
   it('patch relatedLinks with duplicate name', (done) => {
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-    { name: 'link2', url: 'https://samples.com' },
-    { name: 'link1', url: 'https://samples.com' }];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+    ];
     p1.relatedLinks = relatedLinks;
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
@@ -238,8 +239,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -255,8 +257,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -275,8 +278,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -295,8 +299,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -305,7 +310,7 @@ describe(`api: PATCH ${path}`, () => {
     const tags = [
       'tag0',
       'tag1',
-      'tag2'
+      'tag2',
     ];
     p1.tags = tags;
     api.patch(`${path}/${i1}`)
@@ -318,8 +323,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -338,8 +344,9 @@ describe(`api: PATCH ${path}`, () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -349,7 +356,7 @@ describe(`api: PATCH ${path}`, () => {
     const tags = [
       'link1',
       'link2',
-      'link1'
+      'link1',
     ];
     p1.tags = tags;
     api.patch(`${path}/${i1}`)
@@ -359,8 +366,9 @@ describe(`api: PATCH ${path}`, () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -376,8 +384,9 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -391,7 +400,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(childCheckIfPatched)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -401,7 +410,7 @@ describe(`api: PATCH ${path}`, () => {
   it('patch child parentAbsolutePath updates ' +
     'absolutePath, parentAbsolutePath, and parentId', (done) => {
     const toPatch = {
-      parentAbsolutePath: n0a.name
+      parentAbsolutePath: n0a.name,
     };
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
@@ -409,8 +418,9 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
       expect(res.body.parentId).to.equal(i0a);
       expect(res.body.absolutePath).to.equal(`${n0a.name}.${n1.name}`);
@@ -428,7 +438,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(childrenAbsPathUpdated)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -443,7 +453,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(reparented)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -463,7 +473,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(childCheckIfPatched)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -483,7 +493,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -507,7 +517,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(/SubjectValidationError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -527,7 +537,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -551,7 +561,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -567,7 +577,7 @@ describe(`api: PATCH ${path}`, () => {
     const toPatch = {
       isPublished: p1.isPublished,
       name: p1.name,
-      geolocation: [1,2,3],
+      geolocation: [1, 2, 3],
     };
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
@@ -575,7 +585,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.errors[0].message).to

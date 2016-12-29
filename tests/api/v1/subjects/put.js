@@ -148,7 +148,7 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -165,14 +165,12 @@ describe(`api: PUT ${path}`, () => {
       ch2.parentId = i0;
       Subject.create(ch2);
     })
-    .then(() => {
-      return Subject.create(n0a);
-    })
+    .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -190,7 +188,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(childCheckIfPut)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -206,7 +204,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(childrenAbsPathUpdated)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -219,13 +217,13 @@ describe(`api: PUT ${path}`, () => {
     .send({
       name: `${tu.namePrefix}Canada`,
       parentId: i0a,
-      isPublished: true
+      isPublished: true,
     })
     .expect(constants.httpStatus.OK)
     .expect(reparented)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -244,7 +242,7 @@ describe('api: PUT subjects with related links', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -264,7 +262,7 @@ describe('api: PUT subjects with related links', () => {
   it('update to add related links', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }]
+      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -276,8 +274,9 @@ describe('api: PUT subjects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -285,7 +284,7 @@ describe('api: PUT subjects with related links', () => {
   it('update to add existing related link', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }]
+      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -297,8 +296,9 @@ describe('api: PUT subjects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -309,7 +309,7 @@ describe('api: PUT subjects with related links', () => {
       relatedLinks: [
         { name: 'link0', url: 'https://samples.com' },
         { name: 'link1', url: 'https://samples.com' },
-      ]
+      ],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -317,15 +317,15 @@ describe('api: PUT subjects with related links', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(2);
-      for (let k=0;k<res.body.relatedLinks.length;k++) {
-        expect(res.body.relatedLinks[k]).to.have.property('name',
-         'link'+k);
+      for (let k = 0; k < res.body.relatedLinks.length; k++) {
+        expect(res.body.relatedLinks[k]).to.have.property('name', 'link' + k);
       }
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -342,7 +342,7 @@ describe('api: PUT subjects with tags', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -361,7 +361,7 @@ describe('api: PUT subjects with tags', () => {
   it('update to add tags', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      tags: ['tagX']
+      tags: ['tagX'],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -373,8 +373,9 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -382,7 +383,7 @@ describe('api: PUT subjects with tags', () => {
   it('no putting tags with names starting with a dash(-)', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      tags: ['-tagX']
+      tags: ['-tagX'],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -395,8 +396,9 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -413,8 +415,9 @@ describe('api: PUT subjects with tags', () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -431,8 +434,9 @@ describe('api: PUT subjects with tags', () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -440,7 +444,7 @@ describe('api: PUT subjects with tags', () => {
   it('update to add existing tag', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      tags: ['tagX']
+      tags: ['tagX'],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -452,8 +456,9 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -461,7 +466,7 @@ describe('api: PUT subjects with tags', () => {
   it('put subject with absolutePath', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
-      absolutePath: 'test'
+      absolutePath: 'test',
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -470,8 +475,9 @@ describe('api: PUT subjects with tags', () => {
     .expect(/SubjectValidationError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -481,8 +487,8 @@ describe('api: PUT subjects with tags', () => {
       name: `${tu.namePrefix}newName`,
       tags: [
         'tag0',
-        'tag1'
-      ]
+        'tag1',
+      ],
     };
     api.put(`${path}/${subjectId}`)
     .set('Authorization', token)
@@ -494,8 +500,9 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       Subject.findOne({ where: { id: subjectId } })
       .then((subj) => {
         expect(subj.tags).to.have.length(2);
@@ -520,13 +527,14 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       Subject.findOne({ where: { id: subjectId } })
       .then((subj) => {
         expect(subj.tags).to.have.length(0);
       });
-      return done();
+      done();
     });
   });
 });

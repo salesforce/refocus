@@ -38,7 +38,7 @@ describe('api: subjects: get writers}', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -59,7 +59,7 @@ describe('api: subjects: get writers}', () => {
       user = secUsr;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);

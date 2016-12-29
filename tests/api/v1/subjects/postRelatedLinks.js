@@ -28,7 +28,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -36,9 +36,10 @@ describe(`api: POST ${path}`, () => {
 
   it('post subject with relatedLinks', (done) => {
     const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     subjectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -49,18 +50,19 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 
   it('posting subject with duplicate relatedLinks should fail', (done) => {
     const subjectToPost = { name: `${tu.namePrefix}Asia` };
-
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link1', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+    ];
     subjectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -73,9 +75,10 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 
@@ -92,9 +95,10 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 });

@@ -23,33 +23,35 @@ const expect = require('chai').expect;
 
 describe(`api: GET ${path}:`, () => {
   let token;
+
   //
   // the before hook creates this following hierarchy
   // gp
   //  |parOther1
   //  |parOther2 - [subjectTags: ea]
   //  |par - [sample2: humidity[tags: hum], sample1: temperature[tags: temp]]
-  //      |chi - [sample3: humidity[tags: hum]]
-  //          |grn - subjectTags[cold,verycold],[sample4: wind-speed[tags: wnd]]
+  //    |chi - [sample3: humidity[tags: hum]]
+  //      |grn - subjectTags[cold,verycold],[sample4: wind-speed[tags: wnd]]
 
   let gp = { name: `${tu.namePrefix}America`, isPublished: true };
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   let parOther1 = { name: `${tu.namePrefix}SouthAmerica`, isPublished: true };
-  let parOther2 = { name: `${tu.namePrefix}EastAmerica`, isPublished: true,
-                    tags: ['ea'],
-                  };
+  let parOther2 = {
+    name: `${tu.namePrefix}EastAmerica`,
+    isPublished: true,
+    tags: ['ea'],
+  };
   let chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
-  let grn = { name: `${tu.namePrefix}Quebec`, isPublished: true,
-              tags: [
-                'cold', 'verycold'],
-            };
+  let grn = {
+    name: `${tu.namePrefix}Quebec`,
+    isPublished: true,
+    tags: ['cold', 'verycold'],
+  };
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
     isPublished: true,
-    tags: [
-      'temp'
-    ],
+    tags: ['temp'],
   };
   const aspectHumid = {
     name: 'humidity',
@@ -74,7 +76,7 @@ describe(`api: GET ${path}:`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -112,15 +114,9 @@ describe(`api: GET ${path}:`, () => {
       sample1.aspectId = a.id;
       return tu.db.Sample.create(sample1);
     })
-    .then(() => {
-      return tu.db.Sample.create(sample2);
-    })
-    .then(() => {
-      return tu.db.Sample.create(sample3);
-    })
-    .then(() => {
-      return tu.db.Subject.create(parOther1);
-    })
+    .then(() => tu.db.Sample.create(sample2))
+    .then(() => tu.db.Sample.create(sample3))
+    .then(() => tu.db.Subject.create(parOther1))
     .then((subj) => {
       parOther1 = subj;
       return tu.db.Subject.create(parOther2);
@@ -135,7 +131,7 @@ describe(`api: GET ${path}:`, () => {
       return tu.db.Sample.create(sample4);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -144,24 +140,26 @@ describe(`api: GET ${path}:`, () => {
   describe('SubjectTag filter on hierarchy', () => {
     it('Only subjects matching the tag and its hierarchy should be returned',
     (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?subjectTags=cold';
+      const endpoint = path.replace('{key}', gp.id) + '?subjectTags=cold';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body).to.not.equal(null);
+
         // north america. Check to make sure it does not return the parOther
         expect(res.body.children).to.have.length(1);
+
         // canada
         expect(res.body.children[0].children).to.have.length(1);
+
         // quebec
         const quebecSubj = res.body.children[0].children[0].children[0];
         expect(quebecSubj.tags).to.include.members(['cold']);
-
-     })
+      })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -170,23 +168,26 @@ describe(`api: GET ${path}:`, () => {
 
     it('Multiple Query Params: Only subjects matching the tag and' +
     ' its hierarchy should be returned', (done) => {
-      const endpoint = path.replace('{key}', gp.id)+
+      const endpoint = path.replace('{key}', gp.id) +
         '?subjectTags=cold,ea,verycold';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body).to.not.equal(null);
+
         // north america. Check to make sure it does not return the parOther
         expect(res.body.children).to.have.length(2);
+
         // canada
         let na = null;
-        for (let i = 0; i<res.body.children.length; i++) {
+        for (let i = 0; i < res.body.children.length; i++) {
           if (res.body.children[i].name === '___NorthAmerica') {
             na = res.body.children[i];
             break;
           }
         }
+
         expect(na).to.not.equal(null);
         expect(na.children).to.have.length(1);
         expect(na.children[0].children).to.have.length(1);
@@ -203,7 +204,7 @@ describe(`api: GET ${path}:`, () => {
 
     it('Negation test: Subject with tags not matching the negated tag name ',
     (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?subjectTags=-verycold';
+      const endpoint = path.replace('{key}', gp.id) + '?subjectTags=-verycold';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -219,9 +220,9 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('Negation test: Multiple Tags: Subject with tags not matching the' +
-      ' negated tag name ', (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?subjectTags=-cold,-ea';
+    it('Negation test: Multiple Tags: Subject with tags not matching the ' +
+      'negated tag name', (done) => {
+      const endpoint = path.replace('{key}', gp.id) + '?subjectTags=-cold,-ea';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -240,7 +241,7 @@ describe(`api: GET ${path}:`, () => {
   describe('Aspect Filter on Hierarchy', () => {
     it('should return samples with temperature and humidity aspects',
     (done) => {
-      const endpoint = path.replace('{key}', par.id)+
+      const endpoint = path.replace('{key}', par.id) +
         '?aspect=humidity,temperature';
       api.get(endpoint)
       .set('Authorization', token)
@@ -259,7 +260,7 @@ describe(`api: GET ${path}:`, () => {
     });
 
     it('should return sample with just humidity aspect', (done) => {
-      const endpoint = path.replace('{key}', par.id)+'?aspect=humidity';
+      const endpoint = path.replace('{key}', par.id) + '?aspect=humidity';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -283,8 +284,7 @@ describe(`api: GET ${path}:`, () => {
     });
 
     it('test negitation humidity but no temperature', (done) => {
-      const endpoint = path.replace('{key}', par.id)+
-        '?aspect=-temperature';
+      const endpoint = path.replace('{key}', par.id) + '?aspect=-temperature';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -310,7 +310,7 @@ describe(`api: GET ${path}:`, () => {
     });
 
     it('test with aspect name not in the hierarchy', (done) => {
-      const endpoint2 = path.replace('{key}', par.id)+'?aspect=invalidName';
+      const endpoint2 = path.replace('{key}', par.id) + '?aspect=invalidName';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -328,8 +328,8 @@ describe(`api: GET ${path}:`, () => {
     });
 
     it('filter should apply to all levels of hierarchy', (done) => {
-      const endpoint2 = path.replace('{key}', par.id)+
-      '?aspect=-humidity,temperature';
+      const endpoint2 = path.replace('{key}', par.id) +
+        '?aspect=-humidity,temperature';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -354,8 +354,7 @@ describe(`api: GET ${path}:`, () => {
     });
 
     it('filter with aspect name having a hyphen', (done) => {
-      const endpoint2 = path.replace('{key}', par.id)+
-      '?aspect=wind-speed';
+      const endpoint2 = path.replace('{key}', par.id) + '?aspect=wind-speed';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -378,10 +377,9 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('negation on aspect name filter with aspect name '+
-      'having a hyphen', (done) => {
-      const endpoint2 = path.replace('{key}', par.id)+
-      '?aspect=-wind-speed';
+    it('negation on aspect name filter with aspect name ' +
+    'having a hyphen', (done) => {
+      const endpoint2 = path.replace('{key}', par.id) + '?aspect=-wind-speed';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -403,10 +401,9 @@ describe(`api: GET ${path}:`, () => {
   });
 
   describe('aspectTags filter on hierarchy', () => {
-    it('Hierarchy for subject with Aspect tags matching the quuery params'+
-      ' should be returned',
-    (done) => {
-      const endpoint = path.replace('{key}', chi.id)+'?aspectTags=wnd';
+    it('Hierarchy for subject with Aspect tags matching the quuery params ' +
+    'should be returned', (done) => {
+      const endpoint = path.replace('{key}', chi.id) + '?aspectTags=wnd';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -428,10 +425,9 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('Hierarchy for subject with Aspect tags matching the query params'+
-      ' should be returned',
-    (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?aspectTags=notpresent';
+    it('Hierarchy for subject with Aspect tags matching the query params ' +
+    'should be returned', (done) => {
+      const endpoint = path.replace('{key}', gp.id) + '?aspectTags=notpresent';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -452,7 +448,7 @@ describe(`api: GET ${path}:`, () => {
     it('Multiple Query Params: Hierarchy for subject with Aspect tags' +
       ' matching the quuery params should be returned',
     (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?aspectTags=wnd,temp';
+      const endpoint = path.replace('{key}', gp.id) + '?aspectTags=wnd,temp';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -482,7 +478,7 @@ describe(`api: GET ${path}:`, () => {
     it('Negation: Hierarchy for subject with Aspect tags' +
       ' matching the quuery params should be returned',
     (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?aspectTags=-temp';
+      const endpoint = path.replace('{key}', gp.id) + '?aspectTags=-temp';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -510,7 +506,7 @@ describe(`api: GET ${path}:`, () => {
     it('Negation: Multiple Query Params: Hierarchy for subject with Aspect' +
       ' tags matching the quuery params should be returned',
     (done) => {
-      const endpoint = path.replace('{key}', gp.id)+'?aspectTags=-temp,-wnd';
+      const endpoint = path.replace('{key}', gp.id) + '?aspectTags=-temp,-wnd';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)

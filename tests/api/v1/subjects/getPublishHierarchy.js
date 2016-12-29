@@ -48,7 +48,7 @@ describe(`api: GET ${path}:`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -82,11 +82,9 @@ describe(`api: GET ${path}:`, () => {
       sample1.aspectId = a.id;
       return tu.db.Sample.create(sample1);
     })
-    .then(() => {
-      return tu.db.Sample.create(sample2);
-    })
+    .then(() => tu.db.Sample.create(sample2))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
