@@ -28,9 +28,7 @@ function isAdmin(req) {
     if (req.headers.authorization) {
       // use the token
       jwtUtil.getUsernameFromToken(req)
-      .then((username) => {
-        return User.findOne({ where: { name: username } });
-      })
+      .then((username) => User.findOne({ where: { name: username } }))
       .then((user) => {
         resolve(Profile.isAdmin(user.profileId));
       })
