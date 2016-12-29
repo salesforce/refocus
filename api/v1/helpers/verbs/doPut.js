@@ -50,6 +50,7 @@ function doPut(req, res, next, props) {
         o.set(key, toPut[key]);
       }
     }
+
     return o.save();
   })
   .then((o) => {

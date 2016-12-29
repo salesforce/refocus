@@ -116,7 +116,7 @@ module.exports = {
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
-    /**
+  /**
    * POST /tokens/{key}/revoke
    *
    * Revoke access for the specified token.

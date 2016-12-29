@@ -22,7 +22,6 @@ const loggingEnabled = (
   config.auditSamples === 'API' || config.auditSamples === 'ALL'
   ) || false;
 
-
 module.exports = {
   apiLinks: {
     DELETE: `Delete this ${m}`,

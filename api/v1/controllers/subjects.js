@@ -36,17 +36,19 @@ const ONE = 1;
  */
 function checkDuplicates(tagsArr) {
   const LEN = tagsArr.length - ONE;
-  // to store lowercase copies
-  const copyArr = [];
+  const copyArr = []; // store lowercase copies
   let toAdd;
   for (let i = LEN; i >= ZERO; i--) {
     toAdd = tagsArr[i].toLowerCase();
+
     // if duplicate found, return true
     if (copyArr.indexOf(toAdd) > -ONE) {
       return true;
     }
+
     copyArr.push(toAdd);
   }
+
   return false;
 }
 
@@ -66,9 +68,11 @@ function validateRequest(requestBody, params) {
     // params.tags.value is a comma delimited string, not empty.
     tags = params.tags.value ? params.tags.value.split(',') : [];
   }
+
   if (absolutePath) {
     throw new apiErrors.SubjectValidationError();
   }
+
   if (tags && tags.length) {
     if (checkDuplicates(tags)) {
       throw new apiErrors.DuplicateFieldError();
@@ -206,7 +210,7 @@ module.exports = {
     u.findAssociatedInstances(helper,
       params, helper.userModelAssociationName, options)
     .then((o) => {
-    // if the resolved object is an empty array, throw a ResourceNotFound error
+      // throw ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
         params.userNameOrId.value, userProps.modelName);
       const retval = u.responsify(o, helper, req.method);

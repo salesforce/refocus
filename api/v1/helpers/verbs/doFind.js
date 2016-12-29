@@ -82,6 +82,7 @@ function doFindAll(reqResNext, props, opts) {
     if (tags && tags.value && tags.value.length) {
       retval = fu.filterArrFromArr(retval, tags.value);
     }
+
     reqResNext.res.status(httpStatus.OK).json(retval);
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));

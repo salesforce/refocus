@@ -37,13 +37,11 @@ function getApiLinks(key, props, method) {
   }
 
   // Otherwise include all the methods specified for this resource
-  return Object.keys(props.apiLinks).map((i) => {
-    return {
-      href: props.baseUrl,
-      method: i,
-      rel: props.apiLinks[i],
-    };
-  });
+  return Object.keys(props.apiLinks).map((i) => ({
+    href: props.baseUrl,
+    method: i,
+    rel: props.apiLinks[i],
+  }));
 } // getApiLinks
 
 /**
