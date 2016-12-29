@@ -436,8 +436,8 @@ module.exports = function sample(seq, dataTypes) {
       }, // calculateStatus
 
       isWritableBy(who) {
-        return new seq.Promise((resolve, reject) => {
-          return this.getAspect()
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getAspect()
           .then((a) => a.getWriters())
           .then((writers) => {
             if (!writers.length) {
@@ -447,8 +447,7 @@ module.exports = function sample(seq, dataTypes) {
             const found = writers.filter((w) =>
               w.name === who || w.id === who);
             resolve(found.length === 1);
-          });
-        });
+          }));
       }, // isWritableBy
 
       setStatusChangedAt() {

@@ -161,20 +161,16 @@ module.exports = function subject(seq, dataTypes) {
             },
           ],
         });
-        Subject.addScope('id', (value) => {
-          return {
-            where: {
-              id: value,
-            },
-          };
-        });
-        Subject.addScope('absolutePath', (value) => {
-          return {
-            where: {
-              absolutePath: value,
-            },
-          };
-        });
+        Subject.addScope('id', (value) => ({
+          where: {
+            id: value,
+          },
+        }));
+        Subject.addScope('absolutePath', (value) => ({
+          where: {
+            absolutePath: value,
+          },
+        }));
         Subject.addScope('hierarchy', {
           where: {
             isPublished: true,
@@ -621,8 +617,8 @@ module.exports = function subject(seq, dataTypes) {
       }, // instanceMethods.deleteHierarchy
 
       isWritableBy(who) {
-        return new seq.Promise((resolve, reject) => {
-          return this.getWriters()
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
           .then((writers) => {
             if (!writers.length) {
               resolve(true);
@@ -631,8 +627,7 @@ module.exports = function subject(seq, dataTypes) {
             const found = writers.filter((w) =>
               w.name === who || w.id === who);
             resolve(found.length === 1);
-          });
-        });
+          }));
       }, // isWritableBy
     }, // instanceMethods
     paranoid: true,

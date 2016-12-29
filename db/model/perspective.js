@@ -173,8 +173,8 @@ module.exports = function perspective(seq, dataTypes) {
     ],
     instanceMethods: {
       isWritableBy(who) {
-        return new seq.Promise((resolve, reject) => {
-          return this.getWriters()
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
           .then((writers) => {
             if (!writers.length) {
               resolve(true);
@@ -183,8 +183,7 @@ module.exports = function perspective(seq, dataTypes) {
             const found = writers.filter((w) =>
               w.name === who || w.id === who);
             resolve(found.length === 1);
-          });
-        });
+          }));
       }, // isWritableBy
     },
     paranoid: true,
