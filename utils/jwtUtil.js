@@ -80,6 +80,7 @@ function getUsernameFromToken(req) {
         if (err !== null) {
           reject(err);
         }
+
         const username = decodedData.username;
         resolve(username);
       });
@@ -92,8 +93,10 @@ function getUsernameFromToken(req) {
 } // getUsernameFromToken
 
 /**
- * Create jwt token
- * @param  {object}   user - user object
+ * Create jwt token.
+ *
+ * @param {string} tokenName - the name of the token
+ * @param {string} userName - the name of the user
  * @returns {string} created token
  */
 function createToken(tokenName, userName) {
