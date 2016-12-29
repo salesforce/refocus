@@ -61,9 +61,8 @@ function createJob(jobName, data) {
   removeJobOnComplete(job);
   return job;
 } // createJob
+
 module.exports = {
-
   jobQueue,
-  createJob
-
+  createJob,
 }; // exports
