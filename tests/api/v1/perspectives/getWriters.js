@@ -21,7 +21,6 @@ const User = tu.db.User;
 const getWritersPath = '/v1/perspectives/{key}/writers';
 const getWriterPath = '/v1/perspectives/{key}/writers/{userNameOrId}';
 
-
 describe('api: perspective: get writers', () => {
   let perspective;
   let token;
@@ -33,7 +32,7 @@ describe('api: perspective: get writers', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -63,7 +62,7 @@ describe('api: perspective: get writers', () => {
       user = secUsr;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -78,10 +77,10 @@ describe('api: perspective: get writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -100,10 +99,10 @@ describe('api: perspective: get writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -118,10 +117,10 @@ describe('api: perspective: get writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -136,10 +135,10 @@ describe('api: perspective: get writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -150,10 +149,10 @@ describe('api: perspective: get writers', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
