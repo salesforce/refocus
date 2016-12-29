@@ -29,7 +29,7 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -38,7 +38,7 @@ describe(`api: PUT ${path}`, () => {
       lensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -52,11 +52,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.description).to.equal('changed description');
-      return done();
+      done();
     });
   });
 
@@ -67,11 +67,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.isPublished).to.not.be.true;
-      return done();
+      done();
     });
   });
 
@@ -82,11 +82,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal(res.body.sourceName);
-      return done();
+      done();
     });
   });
 });

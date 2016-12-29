@@ -29,7 +29,7 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -38,7 +38,7 @@ describe(`api: PATCH ${path}`, () => {
       lensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -51,11 +51,11 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal('changedName');
-      return done();
+      done();
     });
   });
 
@@ -66,11 +66,11 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.description).to.equal('changed description');
-      return done();
+      done();
     });
   });
 
@@ -81,11 +81,11 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.sourceDescription).to.equal('test Source Description');
-      return done();
+      done();
     });
   });
 
@@ -96,11 +96,11 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.isPublished).to.equal(false);
-      return done();
+      done();
     });
   });
 });
