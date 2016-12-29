@@ -59,9 +59,9 @@ function includeAssocToCreate(obj, props) {
   return includedAssoc;
 } // includeAssocToCreate
 
-
 /**
- * Function that capitalises the first letter of the string and returns it.
+ * Capitalize the first letter of the string and returns the modified string.
+ *
  * @param  {String} str - String that has to have its first letter capitalized
  * @returns {String} str - String with the first letter capitalized
  */
@@ -167,15 +167,11 @@ function getApiLinks(key, props, method) {
   }
 
   // Otherwise include all the methods specified for this resource
-  return Object.keys(props.apiLinks).map((i) => {
-    return {
-      href: i === 'POST' ?
-        props.baseUrl :
-        props.baseUrl + constants.SLASH + key,
-      method: i,
-      rel: props.apiLinks[i],
-    };
-  });
+  return Object.keys(props.apiLinks).map((i) => ({
+    href: i === 'POST' ? props.baseUrl : props.baseUrl + constants.SLASH + key,
+    method: i,
+    rel: props.apiLinks[i],
+  }));
 } // getApiLinks
 
 /**

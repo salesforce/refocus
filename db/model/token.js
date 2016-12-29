@@ -87,18 +87,17 @@ module.exports = function token(seq, dataTypes) {
     ],
     instanceMethods: {
       restore() {
-        return new Promise((resolve, reject) => {
-          return this.update({ isRevoked: 0 })
+        return new Promise((resolve, reject) =>
+          this.update({ isRevoked: 0 })
           .then(resolve)
-          .catch(reject);
-        });
+          .catch(reject));
       }, // restore
+
       revoke() {
-        return new Promise((resolve, reject) => {
-          return this.update({ isRevoked: Date.now() })
+        return new Promise((resolve, reject) =>
+          this.update({ isRevoked: Date.now() })
           .then(resolve)
-          .catch(reject);
-        });
+          .catch(reject));
       }, // revoke
     },
     paranoid: true,

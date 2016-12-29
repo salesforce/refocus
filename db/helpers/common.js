@@ -49,6 +49,7 @@ function augmentSampleWithSubjectAspectInfo(seq, inst) {
       if (sub) {
         inst.dataValues.absolutePath = sub.absolutePath;
       }
+
       inst.subject = sub;
     }).then(() => inst.getAspect())
     .then((asp) => {

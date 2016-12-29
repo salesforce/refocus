@@ -207,8 +207,8 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.changed('tags')) {
           return new seq.Promise((resolve, reject) => {
             inst.getSamples()
-            .each((samp) => {
-              return common.sampleAspectAndSubjectArePublished(seq, samp)
+            .each((samp) =>
+              common.sampleAspectAndSubjectArePublished(seq, samp)
               .then((published) => {
                 if (published) {
                   return common.augmentSampleWithSubjectAspectInfo(seq, samp)
@@ -218,8 +218,7 @@ module.exports = function aspect(seq, dataTypes) {
                 }
 
                 return seq.Promise.resolve(true);
-              });
-            })
+              }))
             .then(() => resolve(inst))
             .catch(reject);
           });
@@ -255,8 +254,8 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.changed('tags')) {
           return new seq.Promise((resolve, reject) => {
             inst.getSamples()
-            .each((samp) => {
-              return common.sampleAspectAndSubjectArePublished(seq, samp)
+            .each((samp) =>
+              common.sampleAspectAndSubjectArePublished(seq, samp)
               .then((published) => {
                 if (published) {
                   return common.augmentSampleWithSubjectAspectInfo(seq, samp)
@@ -266,8 +265,7 @@ module.exports = function aspect(seq, dataTypes) {
                 }
 
                 return seq.Promise.resolve(true);
-              });
-            })
+              }))
             .then(() => resolve(inst))
             .catch(reject);
           });
@@ -316,8 +314,8 @@ module.exports = function aspect(seq, dataTypes) {
     ],
     instanceMethods: {
       isWritableBy(who) {
-        return new seq.Promise((resolve, reject) => {
-          return this.getWriters()
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
           .then((writers) => {
             if (!writers.length) {
               resolve(true);
@@ -326,8 +324,7 @@ module.exports = function aspect(seq, dataTypes) {
             const found = writers.filter((w) =>
               w.name === who || w.id === who);
             resolve(found.length === 1);
-          });
-        });
+          }));
       }, // isWritableBy
     },
     paranoid: true,
