@@ -37,7 +37,7 @@ describe('api: aspects: post writers', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -69,7 +69,7 @@ describe('api: aspects: post writers', () => {
       return subject.addWriter(tUsr);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);

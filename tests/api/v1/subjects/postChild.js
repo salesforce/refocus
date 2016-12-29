@@ -32,7 +32,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach('create parent', (done) => {
@@ -41,7 +41,7 @@ describe(`api: POST ${path}`, () => {
       i0 = o.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -137,7 +137,7 @@ describe(`api: POST ${path}`, () => {
   (done) => {
     api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
     .set('Authorization', token)
-    .send({ 'name': 'test', 'isPublished': true })
+    .send({ name: 'test', isPublished: true })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {

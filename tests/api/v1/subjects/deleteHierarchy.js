@@ -34,7 +34,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -50,7 +50,7 @@ describe(`api: DELETE ${path}`, () => {
       return Subject.create(grn);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);

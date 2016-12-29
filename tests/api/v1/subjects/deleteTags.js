@@ -21,17 +21,14 @@ const Subject = tu.db.Subject;
 const allDeletePath = '/v1/subjects/{key}/tags';
 const oneDeletePath = '/v1/subjects/{key}/tags/{akey}';
 
-describe(`api: subjects: DELETE tags}`, () => {
+describe('api: subjects: DELETE tags', () => {
   let token;
   let i;
   const tag0 = 'tag0';
 
   const n = {
     name: `${tu.namePrefix}NorthAmerica`,
-    tags: [
-      'tag0',
-      'tag1'
-    ]
+    tags: ['tag0', 'tag1'],
   };
 
   before((done) => {
@@ -40,7 +37,7 @@ describe(`api: subjects: DELETE tags}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -49,7 +46,7 @@ describe(`api: subjects: DELETE tags}`, () => {
       i = subj.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);

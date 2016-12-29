@@ -31,7 +31,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(tu.forceDeleteUser);
@@ -70,7 +70,7 @@ describe(`api: DELETE ${path}`, () => {
         i = subj.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     afterEach(u.forceDelete);
@@ -243,7 +243,7 @@ describe(`api: DELETE ${path}`, () => {
         igrn = subj.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     afterEach(u.forceDelete);
@@ -349,15 +349,9 @@ describe('api: subjects: DELETE relatedLinks', () => {
   const n = {
     name: `${tu.namePrefix}NorthAmerica`,
     relatedLinks: [
-      {
-        name: 'rlink0',
-        url: 'https://samples.com'
-      },
-      {
-        name: 'rlink1',
-        url: 'https://samples.com',
-      },
-    ]
+      { name: 'rlink0', url: 'https://samples.com' },
+      { name: 'rlink1', url: 'https://samples.com' },
+    ],
   };
 
   before((done) => {
@@ -366,7 +360,7 @@ describe('api: subjects: DELETE relatedLinks', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -377,7 +371,7 @@ describe('api: subjects: DELETE relatedLinks', () => {
       i = subj.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -391,9 +385,10 @@ describe('api: subjects: DELETE relatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 
@@ -407,10 +402,10 @@ describe('api: subjects: DELETE relatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

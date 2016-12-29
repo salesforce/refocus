@@ -45,7 +45,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -75,7 +75,7 @@ describe(`api: GET ${path}`, () => {
       sample1.id = samp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -92,7 +92,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -111,7 +111,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -127,7 +127,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -141,8 +141,9 @@ describe(`api: GET ${path}`, () => {
       .expect('content-encoding', 'gzip')
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -156,6 +157,7 @@ describe(`api: GET ${path}`, () => {
       // parent level
       expect(res.body.samples).to.be.an('array');
       expect(res.body.children).to.have.length(res.body.childCount);
+
       // child level
       expect(res.body.children[0].samples).to.be.an('array');
       expect(res.body.children[0].children).to.be.an('array');
@@ -164,7 +166,7 @@ describe(`api: GET ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -179,6 +181,7 @@ describe(`api: GET ${path}`, () => {
       // parent level
       expect(res.body.samples).to.be.an('array');
       expect(res.body.children).to.have.length(res.body.childCount);
+
       // child level
       expect(res.body.children[0].samples).to.be.an('array');
       expect(res.body.children[0].children).to.be.an('array');
@@ -187,7 +190,7 @@ describe(`api: GET ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -200,7 +203,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -219,7 +222,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -228,7 +231,8 @@ describe(`api: GET ${path}`, () => {
 
     it('depth = -1', (done) => {
       const pth = path.replace('{key}', ipar);
-      const rex = /Request validation failed\: Parameter \(depth\) is less than the configured minimum \(0\)\: -1/;
+      const rex =
+        /Request validation failed\: Parameter \(depth\) is less than the configured minimum \(0\)\: -1/; // eslint-disable-line max-len
       api.get(`${pth}?depth=-1`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -239,7 +243,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -258,7 +262,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -276,7 +280,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -294,7 +298,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -312,7 +316,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -330,7 +334,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();

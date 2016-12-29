@@ -29,7 +29,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(tu.forceDeleteUser);
@@ -81,34 +81,35 @@ describe(`api: POST ${path}`, () => {
 
     after(u.forceDelete);
 
-    it('posted top-level subject has parentAbsolutePath field with value null',
-      (done) => {
+    it('posted top-level subject has parentAbsolutePath field' +
+    'with value null', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({ name: n2b.name })
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         const result = JSON.parse(res.text);
-        expect(Object.keys(result))
-        .to.contain('parentAbsolutePath');
+        expect(Object.keys(result)).to.contain('parentAbsolutePath');
         expect(result.parentAbsolutePath).to.equal.null;
         done();
       });
     });
 
-    it('post child object with parentAbsolutePath, contains parentAbsolutePath',
-      (done) => {
+    it('post child object with parentAbsolutePath, ' +
+    'contains parentAbsolutePath', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({ name: `${tu.namePrefix}Child`, parentAbsolutePath: n2b.name })
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         const result = JSON.parse(res.text);
         expect(Object.keys(result))
         .to.contain('parentAbsolutePath');
@@ -122,13 +123,12 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send({ name: n2b.name, parentId: '' })
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.text)
-        .to.contain('parentId');
+        expect(res.text).to.contain('parentId');
         done();
       });
     });
@@ -140,13 +140,12 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send({ name: n2b.name, parentId: null })
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.text)
-        .to.contain('parentId');
+        expect(res.text).to.contain('parentId');
         done();
       });
     });
@@ -220,7 +219,7 @@ describe(`api: POST ${path}`, () => {
         i0 = o.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     after(u.forceDelete);
@@ -260,15 +259,13 @@ describe(`api: POST ${path}`, () => {
       .then(() => {
         Subject.destroy({ where: n0, force: true });
       })
-      .then(() => {
-        return Subject.create(n0);
-      })
+      .then(() => Subject.create(n0))
       .then((subj) => {
         i0 = subj.id;
         return Subject.create({ name: n1.name, parentId: i0 });
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     afterEach(u.forceDelete);
@@ -332,9 +329,9 @@ describe(`api: POST ${path}`, () => {
         isPublished: false,
       })
       .expect(constants.httpStatus.CREATED)
-      .end((err, res ) => {
+      .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -346,13 +343,12 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send({ isPublished: false })
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
-        expect(res.text)
-        .to.contain('Missing required property: name');
+        expect(res.text).to.contain('Missing required property: name');
         done();
       });
     });
@@ -363,12 +359,12 @@ describe(`api: POST ${path}`, () => {
       .send({
         isPublished: false,
         absolutePath: 'dd',
-        name: `${tu.namePrefix}test`
+        name: `${tu.namePrefix}test`,
       })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         expect(res.text)
@@ -387,7 +383,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         expect(res.text)
@@ -404,7 +400,7 @@ describe(`api: POST ${path}`, () => {
       .expect(/Invalid content type/)
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -429,8 +425,9 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -450,8 +447,9 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -468,8 +466,9 @@ describe(`api: POST ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -486,8 +485,9 @@ describe(`api: POST ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -505,8 +505,9 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });

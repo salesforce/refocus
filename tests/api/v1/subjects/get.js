@@ -46,7 +46,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -65,7 +65,7 @@ describe(`api: GET ${path}`, () => {
       vt.id = createdVt.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -77,10 +77,11 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err, res) => {
+      .end((err/* , res */) => {
         if (err) {
           done(err);
         }
+
         done();
       });
     });
@@ -91,10 +92,11 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err, res) => {
+      .end((err/* , res */) => {
         if (err) {
           done(err);
         }
+
         done();
       });
     });
@@ -104,10 +106,11 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err, res) => {
+      .end((err /* , res */) => {
         if (err) {
           done(err);
         }
+
         done();
       });
     });
@@ -117,10 +120,11 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err, res) => {
+      .end((err/* , res */) => {
         if (err) {
           done(err);
         }
+
         done();
       });
     });
@@ -138,8 +142,8 @@ describe(`api: GET ${path}`, () => {
 
       expect(res.body[ZERO].absolutePath).to.equal(na.name);
       expect(res.body[ONE].absolutePath).to.equal(na.name + '.' + us.name);
-      expect(res.body[TWO].absolutePath).to.equal(na.name + '.' + us.name +
-        '.' + vt.name);
+      expect(res.body[TWO].absolutePath)
+        .to.equal(na.name + '.' + us.name + '.' + vt.name);
       done();
     });
   });
@@ -170,6 +174,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         done(err);
       }
+
       expect(res.body[TWO].name).to.equal(na.name);
       expect(res.body[ONE].name).to.equal(us.name);
       expect(res.body[ZERO].name).to.equal(vt.name);
@@ -260,6 +265,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         done(err);
       }
+
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].tags).to.deep.equal([]);
       done();
