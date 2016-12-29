@@ -12,7 +12,6 @@
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const filterArrFromArr = require('../../../../api/v1/helpers/verbs/findUtils.js').filterArrFromArr;
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -80,7 +79,7 @@ describe(`api: GET ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
         done();
       });
@@ -94,7 +93,7 @@ describe(`api: GET ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
         done();
       });
@@ -107,7 +106,7 @@ describe(`api: GET ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
         done();
       });
@@ -120,7 +119,7 @@ describe(`api: GET ${path}`, () => {
       .expect(/DuplicateFieldError/)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
         done();
       });
@@ -134,7 +133,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body[ZERO].absolutePath).to.equal(na.name);
@@ -152,7 +151,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body[ZERO].name).to.equal(na.name);
@@ -169,7 +168,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
       expect(res.body[TWO].name).to.equal(na.name);
       expect(res.body[ONE].name).to.equal(us.name);
@@ -184,7 +183,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       const result = JSON.parse(res.text);
@@ -200,7 +199,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       const absPath = res.body.absolutePath;
@@ -222,7 +221,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       const absPath = res.body.absolutePath;
@@ -244,7 +243,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.length).to.equal(TWO);
@@ -259,7 +258,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].tags).to.deep.equal([]);
@@ -273,8 +272,9 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].tags).to.deep.equal([]);
       done();
@@ -287,7 +287,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.length).to.equal(TWO);
@@ -303,7 +303,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
@@ -312,11 +312,26 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('returns expected fields when passing ?fields=...', (done) => {
+    api.get(`${path}?fields=isPublished,name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body[ZERO]).to.not.have.property('absolutePath');
+      expect(res.body[ZERO]).to.have.all
+        .keys(['apiLinks', 'id', 'isPublished', 'name']);
+      done();
+    });
+  });
+
   it('pagination tests');
   it('childCount, descendentCount');
   it('by id');
   it('by abs path');
-  it('returns expected fields when passing ?fields=...');
   it('returns expected fields when NOT passing ?fields=...');
   it('sort order');
 });

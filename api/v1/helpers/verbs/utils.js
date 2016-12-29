@@ -129,6 +129,7 @@ function handleAssociations(reqObj, inst, props, method) {
 /**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
+ * Always include the "id" field even if it was not explicitly requested.
  *
  * @param {Object} params - The request parameters
  * @returns {Object} - Sequelize options
@@ -137,6 +138,9 @@ function buildFieldList(params) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
+    if (!opts.attributes.includes('id')) {
+      opts.attributes.push('id');
+    }
   }
 
   return opts;
