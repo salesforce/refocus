@@ -22,12 +22,10 @@ const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
 const URL1 = 'https://samples.com';
-const URL2 = 'https://updatedsamples.com';
-const relatedLinks = [{
-  name: 'link1', url: URL1,
-}, {
-  name: 'link2', url: URL1,
-}];
+const relatedLinks = [
+  { name: 'link1', url: URL1 },
+  { name: 'link2', url: URL1 },
+];
 
 describe('api: POST ' + path, () => {
   let token;
@@ -40,7 +38,7 @@ describe('api: POST ' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -59,17 +57,17 @@ describe('api: POST ' + path, () => {
         timeout: '10m',
         valueType: 'BOOLEAN',
         okRange: [10, 100],
-      })
+      });
     })
     .then((aspectTwo) => {
       aspectIdTwo = aspectTwo.id;
       return Subject.create({
-      isPublished: true,
-      name: `${tu.namePrefix}Subject`,
-      })
+        isPublished: true,
+        name: `${tu.namePrefix}Subject`,
+      });
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -90,7 +88,7 @@ describe('api: POST ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -112,7 +110,7 @@ describe('api: POST ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -134,7 +132,7 @@ describe('api: POST ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -158,7 +156,7 @@ describe('api: POST ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -172,19 +170,23 @@ describe('api: POST ' + path, () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
         value: '2',
-        relatedLinks: [{ name: 'link2', url: 'https://samples.com' },
-                        { name: 'link2', url: 'https://samples.com' }]
+        relatedLinks: [
+          { name: 'link2', url: 'https://samples.com' },
+          { name: 'link2', url: 'https://samples.com' },
+        ],
       }, {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
         value: '4',
-        relatedLinks: [{ name: 'link2', url: 'https://samples.com' },
-                        { name: 'link2', url: 'https://samples.com' }]
+        relatedLinks: [
+          { name: 'link2', url: 'https://samples.com' },
+          { name: 'link2', url: 'https://samples.com' },
+        ],
       },
     ])
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -195,22 +197,24 @@ describe('api: POST ' + path, () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send([{
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
-        value: '6',
-      }])
+      .send([
+        {
+          name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+          value: '6',
+        },
+      ])
       .then(() => {
         api.get('/v1/samples?name=' +
           `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
         .end((err, res) => {
           if (err) {
-            return done(err);
+            done(err);
           }
 
           expect(res.body).to.have.length(1);
           expect(res.body[0].name)
           .to.equal(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
-          return done();
+          done();
         });
       });
     });
@@ -219,16 +223,19 @@ describe('api: POST ' + path, () => {
     'sample name in different case', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send([{
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase(),
-        value: '6',
-      }])
+      .send([
+        {
+          name:
+            `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase(),
+          value: '6',
+        },
+      ])
       .then(() => {
         api.get('/v1/samples?name=' +
           `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
         .end((err, res) => {
           if (err) {
-            return done(err);
+            done(err);
           }
 
           expect(res.body).to.have.length(1);
@@ -252,7 +259,7 @@ describe('api: POST ' + path, () => {
         isPublished: false,
       }))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('no samples created if aspect isPublished is false', (done) => {
@@ -270,17 +277,16 @@ describe('api: POST ' + path, () => {
       .expect(constants.httpStatus.OK)
       .end((err /* , res*/) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         Sample.findAll()
         .then((samp) => {
           expect(samp).to.have.length(0);
         })
-        .catch((_err) => done(_err));
+        .catch(done);
         done();
       });
     });
   });
 });
-

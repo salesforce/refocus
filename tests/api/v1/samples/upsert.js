@@ -29,23 +29,21 @@ describe(`api: POST ${path}`, () => {
   let token;
   const URL1 = 'https://samples.com';
   const URL2 = 'https://updatedsamples.com';
-  const relatedLinks = [{
-    name: 'link1', url: URL1,
-  }, {
-    name: 'link2', url: URL1,
-  }];
-  const updatedRelatedLinks = [{
-    name: 'link1', url: URL2,
-  }, {
-    name: 'link2', url: URL2,
-  }];
+  const relatedLinks = [
+    { name: 'link1', url: URL1 },
+    { name: 'link2', url: URL1 },
+  ];
+  const updatedRelatedLinks = [
+    { name: 'link1', url: URL2 },
+    { name: 'link2', url: URL2 },
+  ];
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -58,7 +56,7 @@ describe(`api: POST ${path}`, () => {
       subject = s;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -77,7 +75,7 @@ describe(`api: POST ${path}`, () => {
         updatedAspect = _aspect;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('sample upsert returns not found', (done) => {
@@ -90,10 +88,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
-        return done();
+        done();
       });
     });
   });
@@ -106,9 +104,9 @@ describe(`api: POST ${path}`, () => {
       value: '2',
     })
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body).to.be.an('object');
@@ -124,9 +122,9 @@ describe(`api: POST ${path}`, () => {
       name: `${subject.absolutePath}|${aspect.name}`,
       relatedLinks: updatedRelatedLinks,
     })
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(2);
@@ -144,9 +142,9 @@ describe(`api: POST ${path}`, () => {
       relatedLinks: withSameName,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       const { message, source } = res.body.errors[0];
@@ -166,7 +164,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -183,7 +181,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -199,7 +197,7 @@ describe(`api: POST ${path}`, () => {
         subjectId: subject.id,
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('value is updated', (done) => {
@@ -210,9 +208,9 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.OK)
-      .end((err , res) => {
+      .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         expect(res.body.status).to.equal(constants.statuses.Warning);
@@ -228,9 +226,9 @@ describe(`api: POST ${path}`, () => {
         value: '2',
         relatedLinks: updatedRelatedLinks,
       })
-      .end((getErr, res ) => {
-        if (getErr) {
-          return done(getErr);
+      .end((err, res) => {
+        if (err) {
+          done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(2);
@@ -250,12 +248,13 @@ describe(`api: POST ${path}`, () => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
         .end((err, res) => {
           if (err) {
-            return done(err);
+            done(err);
           }
+
           expect(res.body).to.have.length(1);
           expect(res.body[0].name)
-          .to.equal(`${subject.absolutePath}|${aspect.name}`);
-          return done();
+            .to.equal(`${subject.absolutePath}|${aspect.name}`);
+          done();
         });
       });
     });
@@ -277,20 +276,20 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       }))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('existing sample is not duplicated', (done) => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         expect(res.body).to.have.length(1);
         expect(res.body[0].name)
         .to.equal(`${subject.absolutePath}|${aspect.name}`.toLowerCase());
-        return done();
+        done();
       });
     });
   });

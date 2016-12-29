@@ -29,7 +29,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -38,7 +38,7 @@ describe(`api: POST ${path}`, () => {
       sampleToPost = samp;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -60,17 +60,18 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
   it('post samples with relatedLinks', (done) => {
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     sampleToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -81,16 +82,18 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 
   it('posting samples with duplicate relatedLinks should fail', (done) => {
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link1', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+    ];
     sampleToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -104,9 +107,10 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 
@@ -122,9 +126,10 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 });
@@ -139,7 +144,7 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -148,7 +153,7 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
       sampleToPost = samp;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -161,10 +166,10 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
