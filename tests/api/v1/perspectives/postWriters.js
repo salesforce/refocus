@@ -31,7 +31,7 @@ describe('api: perspectives: post writers', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -72,7 +72,7 @@ describe('api: perspectives: post writers', () => {
       return perspective.addWriter(tUsr);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -98,10 +98,10 @@ describe('api: perspectives: post writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -113,10 +113,10 @@ describe('api: perspectives: post writers', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
