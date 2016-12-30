@@ -28,7 +28,7 @@ describe(`api: authenticateUser`, () => {
     .send(u.fakeUserCredentials)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -42,13 +42,13 @@ describe(`api: authenticateUser`, () => {
     .send({
       email: 'unknown@abc.com',
       password: 'fakePasswd',
-      username: 'unknown'
+      username: 'unknown',
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -64,7 +64,7 @@ describe(`api: authenticateUser`, () => {
     .expect(/Missing required property: username/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -75,13 +75,13 @@ describe(`api: authenticateUser`, () => {
     .send({
       email: 'user1@abc.com',
       password: 'wrongPasswd',
-      username: 'user1'
+      username: 'user1',
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -93,13 +93,13 @@ describe(`api: authenticateUser`, () => {
     .send({
       email: 'user1@abc.com',
       password: 'wrongPasswd',
-      username: 'wrongusername'
+      username: 'wrongusername',
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -113,7 +113,7 @@ describe(`api: authenticateUser`, () => {
     .expect((res) => expect(res.body.success).to.be.true)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -121,27 +121,22 @@ describe(`api: authenticateUser`, () => {
   });
 });
 
-
 describe('api: authenticate sso user', () => {
   let ssoUser;
   beforeEach((done) => {
-    Profile.create({
-      name: tu.namePrefix + 1,
-    })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-        sso: true,
-      });
-    })
+    Profile.create({ name: tu.namePrefix + 1 })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+      sso: true,
+    }))
     .then((createdUser) => {
       ssoUser = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -157,7 +152,7 @@ describe('api: authenticate sso user', () => {
     .expect(/Invalid credentials/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

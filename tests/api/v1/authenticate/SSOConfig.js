@@ -28,7 +28,7 @@ describe('api: login ssoconfig', () => {
     })
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -47,12 +47,12 @@ describe('api: login ssoconfig', () => {
         })
         .end((err/* , res*/) => {
           if (err) {
-            return done(err);
+            done(err);
           }
         });
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
