@@ -27,7 +27,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -37,9 +37,10 @@ describe(`api: POST ${path}`, () => {
       name: `${tu.namePrefix}HeartRate`,
       timeout: '110s',
     };
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     aspectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -50,8 +51,9 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -61,9 +63,10 @@ describe(`api: POST ${path}`, () => {
       name: `${tu.namePrefix}Pressure`,
       timeout: '110s',
     };
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link1', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+    ];
     aspectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -76,8 +79,9 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -98,8 +102,9 @@ describe(`api: POST ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
