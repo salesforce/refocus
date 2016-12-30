@@ -18,6 +18,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: GET ${path}`, () => {
   let lensId;
@@ -66,16 +68,16 @@ describe(`api: GET ${path}`, () => {
         done(err);
       }
 
-      expect(res.body).to.have.length(1);
+      expect(res.body).to.have.length(ONE);
       expect(res.body).to.have.deep.property('[0].id');
       expect(res.body).to.have.deep.property(
         '[0].rootSubject', 'myMainSubject'
       );
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-      expect(res.body[0].aspectFilter).to.eql(['temperature', 'humidity']);
-      expect(res.body[0].aspectTagFilter).to.eql(['temp', 'hum']);
-      expect(res.body[0].subjectTagFilter).to.eql(['ea', 'na']);
-      expect(res.body[0].statusFilter).to.eql(['Critical', '-OK']);
+      expect(res.body[ZERO].aspectFilter).to.eql(['temperature', 'humidity']);
+      expect(res.body[ZERO].aspectTagFilter).to.eql(['temp', 'hum']);
+      expect(res.body[ZERO].subjectTagFilter).to.eql(['ea', 'na']);
+      expect(res.body[ZERO].statusFilter).to.eql(['Critical', '-OK']);
 
       done();
     });
@@ -123,6 +125,20 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('get by name is case-INsenstive', (done) => {
+    api.get(`${path}/${perspectiveName.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
+      done();
+    });
+  });
+
   it('get by name specifying fields to retrieve', (done) => {
     api.get(`${path}/${perspectiveName}?fields=name`)
     .set('Authorization', token)
@@ -148,10 +164,10 @@ describe(`api: GET ${path}`, () => {
         done(err);
       }
 
-      expect(res.body).to.have.length.of.at.least(1);
-      expect(res.body[0]).to.have.property('name');
-      expect(res.body[0]).to.have.property('rootSubject');
-      expect(res.body[0]).to.not.have.property('lens');
+      expect(res.body).to.have.length.of.at.least(ONE);
+      expect(res.body[ZERO]).to.have.property('name');
+      expect(res.body[ZERO]).to.have.property('rootSubject');
+      expect(res.body[ZERO]).to.not.have.property('lens');
       done();
     });
   });
