@@ -27,7 +27,7 @@ describe('db: aspect: delete: ', () => {
   beforeEach((done) => {
     u.createMedium()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -42,7 +42,7 @@ describe('db: aspect: delete: ', () => {
         done(new Error('expecting it to be soft-deleted'));
       }
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('with tags', (done) => {
@@ -61,14 +61,15 @@ describe('db: aspect: delete: ', () => {
         done(new Error('expecting it to be soft-deleted'));
       }
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('with relatedLinks', (done) => {
     Aspect.findOne({ where: { name: u.name } })
     .then((o) => {
-      o.relatedLinks = [{ name: 'destroyRelatedLink',
-      url: 'https://fakelink.com' }];
+      o.relatedLinks = [
+        { name: 'destroyRelatedLink', url: 'https://fakelink.com' },
+      ];
       return o.save();
     })
     .then(() => Aspect.findOne({ where: { name: u.name } }))
@@ -81,14 +82,12 @@ describe('db: aspect: delete: ', () => {
         .to.equal('https://fakelink.com');
         expect(o.dataValues).to.have.property('isDeleted').to.not.equal(0);
         expect(o.dataValues).to.have.property('deletedAt').to.not.equal(null);
-        // console.log(o.dataValues);
         done();
       } else {
-        // console.log(o.dataValues);
         done(new Error('expecting it to be soft-deleted'));
       }
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
 
@@ -110,7 +109,7 @@ describe('db: aspect: sample: ', () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('with sample', (done) => {
@@ -136,7 +135,7 @@ describe('db: aspect: sample: ', () => {
         done(new Error('expecting it to be soft-deleted'));
       }
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
 

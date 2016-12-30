@@ -30,7 +30,7 @@ describe('utility function tests:', () => {
         expect(obj).to.have.property('add');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('destory with a model', (done) => {
@@ -42,7 +42,7 @@ describe('utility function tests:', () => {
         expect(obj).to.have.property('delete');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('update a model instance', (done) => {
@@ -57,7 +57,7 @@ describe('utility function tests:', () => {
         expect(obj.update).to.have.property('new');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('update a fields in a model that' +
@@ -73,7 +73,7 @@ describe('utility function tests:', () => {
         expect(obj.update).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('update a model instance field with the same filed'+
@@ -89,7 +89,7 @@ describe('utility function tests:', () => {
         expect(obj.update).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
   describe('test sampleAspectAndSubjectArePublished and' +
@@ -110,7 +110,7 @@ describe('utility function tests:', () => {
         sub = s;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('sampleAspectAndSubjectArePublished : check for true', (done) => {
@@ -124,7 +124,7 @@ describe('utility function tests:', () => {
         expect(pub).to.equal(true);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('sampleAspectAndSubjectArePublished : check for false', (done) => {
@@ -140,7 +140,7 @@ describe('utility function tests:', () => {
         expect(pub).to.equal(false);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('augmentSampleWithSubjectAspectInfo : returned sample should have' +
@@ -158,7 +158,7 @@ describe('utility function tests:', () => {
         expect(sam.aspect.tags).to.to.be.instanceof(Array);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });

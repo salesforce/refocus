@@ -26,7 +26,7 @@ describe('db: Token: find', () => {
       tokenObj = createdTokenObj;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -40,7 +40,7 @@ describe('db: Token: find', () => {
       expect(returnedToken.isRevoked).to.be.equal(tokenObj.isRevoked);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Find by createdBy field', (done) => {
@@ -49,6 +49,6 @@ describe('db: Token: find', () => {
       expect(returnedTokens.length).to.be.eql(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

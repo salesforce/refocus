@@ -59,7 +59,7 @@ describe('db: sample: statusCalculation: ', () => {
       sample = samp;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -91,7 +91,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: [5, 10],
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range min', (done) => {
@@ -101,7 +101,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Warning))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range max', (done) => {
@@ -111,7 +111,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range min and max', (done) => {
@@ -121,7 +121,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Info))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value is between range min and max', (done) => {
@@ -131,7 +131,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value is greater than any of the range max values', (done) => {
@@ -141,7 +141,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value is less than any of the range min values', (done) => {
@@ -151,7 +151,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -164,7 +164,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: [1, 10],
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range min', (done) => {
@@ -174,7 +174,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range max', (done) => {
@@ -184,7 +184,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value = range min and max', (done) => {
@@ -194,7 +194,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value is between range min and max, after a null range', (done) => {
@@ -204,7 +204,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.OK))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('value is less than any of the range min values', (done) => {
@@ -214,7 +214,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -227,7 +227,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: null,
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('positive integer value should be -1', (done) => {
@@ -237,7 +237,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('negative integer value should be -1', (done) => {
@@ -247,7 +247,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('zero value should be -1', (done) => {
@@ -257,7 +257,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -270,7 +270,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: null,
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('between the cracks', (done) => {
@@ -280,7 +280,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('edge of a range', (done) => {
@@ -290,7 +290,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within a range', (done) => {
@@ -300,7 +300,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -313,7 +313,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: [-9, -1],
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within range 3', (done) => {
@@ -323,7 +323,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.OK))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within range 1', (done) => {
@@ -333,7 +333,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('max edge of range 0', (done) => {
@@ -343,7 +343,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -356,7 +356,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: null,
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within the first range only', (done) => {
@@ -366,7 +366,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within the overlap', (done) => {
@@ -376,7 +376,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within the second range only', (done) => {
@@ -386,7 +386,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -399,7 +399,7 @@ describe('db: sample: statusCalculation: ', () => {
           okRange: null,
         })
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within a non-infinite range', (done) => {
@@ -409,7 +409,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within the upper infinite bound', (done) => {
@@ -419,7 +419,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('within the lower infinite bound', (done) => {
@@ -429,7 +429,7 @@ describe('db: sample: statusCalculation: ', () => {
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
   }); // integer ranges
@@ -443,7 +443,7 @@ describe('db: sample: statusCalculation: ', () => {
         okRange: [1, 1],
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('lower case true => status OK', (done) => {
@@ -453,7 +453,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('upper case TRUE => status OK', (done) => {
@@ -463,7 +463,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('lower case false => status 0', (done) => {
@@ -473,7 +473,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('weird mixed case FalSe => status 0', (done) => {
@@ -483,7 +483,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('any other text => status -1', (done) => {
@@ -493,7 +493,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('empty string value => -1 status', (done) => {
@@ -503,7 +503,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('empty string for value => -1 status', (done) => {
@@ -513,7 +513,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   }); // booleans
 
@@ -560,7 +560,7 @@ describe('db: sample: statusCalculation: ', () => {
         okRange: [5, 10],
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('calculate invoked on create', (done) => {
@@ -577,7 +577,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.property('status', constants.statuses.Warning);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   }); // sample afterCreate hook
 
@@ -590,7 +590,7 @@ describe('db: sample: statusCalculation: ', () => {
         okRange: [16, 20],
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('calculate invoked on aspect update', (done) => {
@@ -604,7 +604,7 @@ describe('db: sample: statusCalculation: ', () => {
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   }); // aspect udpate hook
 });

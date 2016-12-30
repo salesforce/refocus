@@ -26,7 +26,7 @@ describe('db: subject: delete: ', () => {
         id = created.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     afterEach(u.forceDelete);
@@ -39,7 +39,7 @@ describe('db: subject: delete: ', () => {
         expect(s).to.be.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
@@ -79,7 +79,7 @@ describe('db: subject: delete: ', () => {
         child2 = o.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     afterEach(u.forceDelete);
@@ -108,7 +108,7 @@ describe('db: subject: delete: ', () => {
       .then(() => Subject.findById(grandparent))
       .then((s) => expect(s).to.be.null)
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
@@ -120,53 +120,48 @@ describe('db: subject: delete: ', () => {
     let otherParent;
 
     beforeEach((done) => {
-      const myParent1 = u
-      .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
+      const myParent1 = u.getSubjectPrototype(`${tu.namePrefix}parent1`, null);
       Subject.create(myParent1)
       .then((created1) => {
         grandParent = created1.id;
       })
       .then(() => {
         const myParent2 = u
-      .getSubjectPrototype(`${tu.namePrefix}parent2`, grandParent);
-        Subject.create(myParent2)
+          .getSubjectPrototype(`${tu.namePrefix}parent2`, grandParent);
+        return Subject.create(myParent2);
+      })
       .then((created1) => {
         theParent = created1.id;
-      })
-      .then(() => {
         const myChild1 = u
-        .getSubjectPrototype(`${tu.namePrefix}child1`, theParent);
+          .getSubjectPrototype(`${tu.namePrefix}child1`, theParent);
         return Subject.create(myChild1);
       })
       .then((c1) => {
         childId1 = c1.id;
       })
       .then(() => {
-        const myChild2 = u
-        .getSubjectPrototype(`${tu.namePrefix}child2`, childId1);
+        const myChild2 =
+          u.getSubjectPrototype(`${tu.namePrefix}child2`, childId1);
         return Subject.create(myChild2);
       })
       .then((c2) => {
         childId2 = c2.id;
-        return Subject.create(u
-        .getSubjectPrototype(`${tu.namePrefix}OtherParent`, null));
+        return Subject.create(
+          u.getSubjectPrototype(`${tu.namePrefix}OtherParent`, null));
       })
-      .then((op) =>{
+      .then((op) => {
         otherParent = op;
         done();
       })
-      .catch((err) => {
-        done(err);
-      });
-      });
+      .catch(done);
     });
+
     afterEach(u.forceDelete);
 
     it('clear description field on parent, should succeed', (done) => {
       Subject.findById(theParent)
       .then((parent1) => {
         const oldDescription = parent1.dataValues.description;
-        // console.log(parent1.dataValues.description);
         expect(parent1.dataValues.description).to.equal(oldDescription);
         return parent1.update({ description: null });
       })
@@ -175,7 +170,7 @@ describe('db: subject: delete: ', () => {
         expect(parent1.dataValues.description).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('clear helpEmail field on parent, should succeed', (done) => {
@@ -190,7 +185,7 @@ describe('db: subject: delete: ', () => {
         expect(parent1.dataValues.helpEmail).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('clear helpUrl field on parent, should succeed', (done) => {
@@ -206,7 +201,7 @@ describe('db: subject: delete: ', () => {
         expect(parent1.dataValues.helpUrl).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('clear imageUrl field on parent, should succeed', (done) => {
@@ -222,7 +217,7 @@ describe('db: subject: delete: ', () => {
         expect(parent1.dataValues.imageUrl).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('clear isPublished field on parent, should fail', (done) => {
@@ -261,7 +256,6 @@ describe('db: subject: delete: ', () => {
       Subject.findById(theParent)
       .then((parent1) => {
         const parentName = parent1.dataValues.name;
-        // console.log(parent1.dataValues.name);
         expect(parent1.dataValues.name).to.equal(parentName);
         return parent1.update({ name: null });
       })
@@ -276,27 +270,16 @@ describe('db: subject: delete: ', () => {
     it('clear child1 parentId, parent childCount should be 0', (done) => {
       Subject.findById(theParent)
       .then((parent1) => {
-        // console.log(parent1.dataValues.childCount);
-        // console.log(parent1.dataValues.id);
         expect(parent1.dataValues.childCount).to.equal(1);
       })
       .then(() => Subject.findById(childId1))
-      .then((child1) => {
-        // console.log(child1.dataValues.parentId);
-        return child1.update({ parentId: null });
-      })
-      // .then((child1) => {
-      // console.log(child1.dataValues.parentId);
-      // })
-      .then(() => {
-        return Subject.findById(theParent);
-      })
+      .then((child1) => child1.update({ parentId: null }))
+      .then(() => Subject.findById(theParent))
       .then((parent1) => {
-        // console.log(parent1.dataValues.childCount);
         expect(parent1.dataValues.childCount).to.equal(0);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('reparent subject: child count on new parent should' +
@@ -307,18 +290,14 @@ describe('db: subject: delete: ', () => {
         expect(op.dataValues.childCount).to.equal(0);
       });
       Subject.findById(theParent)
-      .then((sub) => {
-        return sub.update({ parentId: otherParent.id });
-      })
-      .then(() => {
-        return Subject.findById(otherParent.id);
-      })
+      .then((sub) => sub.update({ parentId: otherParent.id }))
+      .then(() => Subject.findById(otherParent.id))
       .then((op) => {
         // check the new child count again
         expect(op.dataValues.childCount).to.equal(1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('reparent subject: child count on old parent should' +
@@ -329,41 +308,32 @@ describe('db: subject: delete: ', () => {
         expect(gp.dataValues.childCount).to.equal(1);
       });
       Subject.findById(theParent)
-      .then((sub) => {
-        return sub.update({ parentId: otherParent.id });
-      })
-      .then(() => {
-        return Subject.findById(grandParent);
-      })
+      .then((sub) => sub.update({ parentId: otherParent.id }))
+      .then(() => Subject.findById(grandParent))
       .then((gp) => {
         // check the new child count again
         expect(gp.dataValues.childCount).to.equal(0);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('set child1 parentId to null, shouldnt affect child2', (done) => {
       Subject.findById(childId1)
       .then((child1) => {
         const child1ParentId = child1.dataValues.parentId;
-        // console.log(child1.dataValues.parentId);
         expect(child1.dataValues.parentId).to.equal(child1ParentId);
         return child1.update({ parentId: null });
       })
       .then((child1) => {
-        // console.log(child1.dataValues.parentId);
         expect(child1.dataValues.parentId).to.equal(null);
       })
-      .then(() => {
-        return Subject.findById(childId2);
-      })
+      .then(() => Subject.findById(childId2))
       .then((child2) => {
-        // console.log(child2.dataValues.parentId);
         expect(child2.dataValues.parentId).to.equal(childId1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });
