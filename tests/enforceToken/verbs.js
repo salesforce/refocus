@@ -10,8 +10,7 @@
  * tests/enforceToken/verbs.js
  *
  * Checks whether token-enforced path behaves as expected.
-*/
-
+ */
 const expect = require('chai').expect;
 const constants = require('../../api/v1/constants');
 const supertest = require('supertest');
@@ -27,16 +26,18 @@ describe('API verb token enforced tests', () => {
   it('GET docs without token should succeed', (done) => {
     api.get('/v1/docs/')
     .expect(constants.httpStatus.OK)
-    .end((err, res) => {
+    .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
 
   describe('CRUD should require tokens', () => {
     let defaultToken;
+
     // before: create a resource with NO token should succeed
     before((done) => {
       api.post(registerPath)
@@ -44,7 +45,7 @@ describe('API verb token enforced tests', () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         expect(res.body.token).to.be.defined;
@@ -63,7 +64,7 @@ describe('API verb token enforced tests', () => {
         .expect(constants.httpStatus.CREATED)
         .end((err, res) => {
           if (err) {
-            return done(err);
+            done(err);
           }
 
           expect(res.body.name).to.equal(NEW_SUBJECT);
@@ -84,56 +85,57 @@ describe('API verb token enforced tests', () => {
        */
       function testProtectedPath(verb, path, OBJ, expectedSuccessStatus) {
         const VERB = verb.toUpperCase();
-        it(VERB + ' ' + path + ' ' +
-          'missing token returns FORBIDDEN', (done) => {
+        it(`${VERB} ${path} missing token returns FORBIDDEN`, (done) => {
           const call = api[verb](path);
           if (OBJ) {
             call.send(OBJ);
           }
+
           call
           .expect(FORBIDDEN)
           .expect(/No authorization token was found/)
           .end((err /* res */) => {
             if (err) {
-              return done(err);
+              done(err);
             }
 
             done();
           });
         });
 
-        it(VERB + ' ' + path + ' ' +
-          'wrong token provided returns FORBIDDEN', (done) => {
+        it(`${VERB} ${path} wrong token provided returns FORBIDDEN`,
+        (done) => {
           const call = api[verb](path);
           if (OBJ) {
             call.send(OBJ);
           }
+
           call
           .set('Authorization', `${defaultToken}xyz`)
           .expect(FORBIDDEN)
           .expect(/Invalid Token/)
           .end((err) => {
             if (err) {
-              return done(err);
+              done(err);
             }
 
             done();
           });
         });
 
-        it(VERB + ' ' + path + ' ' +
-          'appropriate token returns OK', (done) => {
+        it(`${VERB} ${path} appropriate token returns OK`, (done) => {
           const call = api[verb](path);
           if (OBJ) {
             call.send(OBJ);
           }
+
           const expectedStatus = expectedSuccessStatus || OK;
           call
           .set('Authorization', defaultToken)
           .expect(expectedStatus)
           .end((err) => {
             if (err) {
-              return done(err);
+              done(err);
             }
 
             done();

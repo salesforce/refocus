@@ -34,7 +34,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
