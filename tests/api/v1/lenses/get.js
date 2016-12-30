@@ -18,6 +18,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: GET ${path}`, () => {
   let lensId;
@@ -55,10 +57,11 @@ describe(`api: GET ${path}`, () => {
         done(err);
       }
 
-      expect(res.body).to.have.length(1);
+      expect(res.body).to.have.length(ONE);
       expect(res.body).to.have.deep.property('[0].id');
       expect(res.body).to.not.have.deep.property('[0].library');
-      expect(res.body).to.have.deep.property('[0].name', `${tu.namePrefix}testLensName`);
+      expect(res.body).to.have.deep
+        .property('[0].name', `${tu.namePrefix}testLensName`);
 
       done();
     });
@@ -96,6 +99,20 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('basic get by name with different case', (done) => {
+    api.get(`${path}/${lensName.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.sourceName).to.equal('testSourceLensName');
+      done();
+    });
+  });
+
   it('Error if lens is not published', (done) => {
     api.patch(`${path}/${lensName}`)
     .set('Authorization', token)
@@ -113,7 +130,7 @@ describe(`api: GET ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.errors[0].description)
+        expect(res.body.errors[ZERO].description)
           .to.equal('Lens is not published. Please contact Refocus admin.');
         done();
       });

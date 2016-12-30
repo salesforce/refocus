@@ -18,6 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
   let token;
@@ -33,6 +34,48 @@ describe(`api: POST ${path}`, () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  describe('post duplicate fails', () => {
+    beforeEach((done) => {
+      u.doSetup()
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('with identical name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .field('name', u.name)
+      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .field('name', u.name)
+      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+  });
 
   it('OK', (done) => {
     api.post(path)
