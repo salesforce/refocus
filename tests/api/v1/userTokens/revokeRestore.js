@@ -30,20 +30,16 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
     Profile.create({
       name: `${tu.namePrefix}testProfile`,
     })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: uname,
-        email: uname,
-        password: 'user123password',
-      })
-    )
-    .then((user) => {
-      return Token.create({
-        name: tname,
-        createdBy: user.id,
-      });
-    })
+    .then((profile) => User.create({
+      profileId: profile.id,
+      name: uname,
+      email: uname,
+      password: 'user123password',
+    }))
+    .then((user) => Token.create({
+      name: tname,
+      createdBy: user.id,
+    }))
     .then(() => done())
     .catch(done);
   });
@@ -83,7 +79,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
     .set('Authorization', '???')
     .send({})
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
+    .end((err /* , res */) => {
       if (err) {
         done(err);
       } else {
@@ -107,7 +103,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
         .set('Authorization', '???')
         .send({})
         .expect(constants.httpStatus.BAD_REQUEST)
-        .end((err2, res2) => {
+        .end((err2 /* , res2 */) => {
           if (err2) {
             done(err2);
           } else {
