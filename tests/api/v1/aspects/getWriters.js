@@ -37,7 +37,7 @@ describe('api: aspects: get writer(s)', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -60,7 +60,7 @@ describe('api: aspects: get writer(s)', () => {
     .then(() => tu.createThirdUser())
     .then((tUsr) => aspect.addWriter(tUsr))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -75,10 +75,10 @@ describe('api: aspects: get writer(s)', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -96,14 +96,15 @@ describe('api: aspects: get writer(s)', () => {
       expect(firstUser.password).to.equal(undefined);
       expect(secondUser.password).to.equal(undefined);
       expect(thirdUser.password).to.equal(undefined);
+
       // TODO: see why sort by username fails on travis
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -118,10 +119,10 @@ describe('api: aspects: get writer(s)', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -136,10 +137,10 @@ describe('api: aspects: get writer(s)', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -150,10 +151,10 @@ describe('api: aspects: get writer(s)', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

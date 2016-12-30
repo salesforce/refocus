@@ -27,7 +27,7 @@ describe(`api: ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(tu.forceDeleteUser);
@@ -40,8 +40,9 @@ describe(`api: ${path}`, () => {
     })
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -52,8 +53,9 @@ describe(`api: ${path}`, () => {
     .expect(/Swagger UI/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -61,10 +63,10 @@ describe(`api: ${path}`, () => {
   it('No POST', (done) => {
     api.post(path)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND) 
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -77,7 +79,7 @@ describe(`api: ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -90,7 +92,7 @@ describe(`api: ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -103,12 +105,25 @@ describe(`api: ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
     });
   });
+});
 
-  it('/ should redirect to /v1');
+describe('api: /', () => {
+  it('/ should redirect to /perspectives', (done) => {
+    api.get('/')
+    .expect((res) => expect(res.redirect).to.be.true)
+    .expect((res) => expect(res.header.location).to.contain('/perspectives'))
+    .end((err) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
 });

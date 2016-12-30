@@ -42,6 +42,6 @@ module.exports = {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

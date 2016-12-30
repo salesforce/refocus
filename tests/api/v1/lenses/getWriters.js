@@ -31,7 +31,7 @@ describe('api: lenses: get writers}', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -54,7 +54,7 @@ describe('api: lenses: get writers}', () => {
       user = secUsr;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -70,10 +70,10 @@ describe('api: lenses: get writers}', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -90,10 +90,10 @@ describe('api: lenses: get writers}', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -108,10 +108,10 @@ describe('api: lenses: get writers}', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -126,10 +126,10 @@ describe('api: lenses: get writers}', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -140,10 +140,10 @@ describe('api: lenses: get writers}', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
