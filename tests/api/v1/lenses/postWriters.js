@@ -31,7 +31,7 @@ describe('api: lenses: post writers', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -63,7 +63,7 @@ describe('api: lenses: post writers', () => {
       return lens.addWriter(tUsr);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -89,10 +89,10 @@ describe('api: lenses: post writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -104,10 +104,10 @@ describe('api: lenses: post writers', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
