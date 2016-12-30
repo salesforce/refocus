@@ -22,6 +22,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const THREE = 3;
 
 describe(`api: GET ${path}`, () => {
   let token;
@@ -112,7 +113,7 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('with same name and different case succeeds', (done) => {
-      const name = toCreate[0].name;
+      const name = toCreate[ZERO].name;
       api.get(path + '?name=' + name.toUpperCase())
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -122,7 +123,7 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
-        expect(res.body[0].name).to.equal(name);
+        expect(res.body[ZERO].name).to.equal(name);
         done();
       });
     });
@@ -134,7 +135,7 @@ describe(`api: GET ${path}`, () => {
       .expect((res) => {
         expect(res.body.length).to.be.equal(TWO);
         res.body.map((aspect) => {
-          expect(aspect.name.slice(ZERO, 3)).to.equal(tu.namePrefix);
+          expect(aspect.name.slice(ZERO, THREE)).to.equal(tu.namePrefix);
         });
       })
       .end((err /* , res */) => done(err));

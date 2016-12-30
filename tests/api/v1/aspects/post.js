@@ -19,6 +19,8 @@ const u = require('./utils');
 const path = '/v1/aspects';
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: POST ${path}`, () => {
   let token;
@@ -48,13 +50,9 @@ describe(`api: POST ${path}`, () => {
   });
 
   describe('post duplicate fails', () => {
-    let aspectId;
     beforeEach((done) => {
       Aspect.create(u.toCreate)
-      .then((aspect) => {
-        aspectId = aspect.id;
-        done();
-      })
+      .then(() => done())
       .catch(done);
     });
 
@@ -72,7 +70,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.errors[0].type)
+        expect(res.body.errors[ZERO].type)
           .to.equal(tu.uniErrorName);
         done();
       });
@@ -92,7 +90,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.errors[0].type)
+        expect(res.body.errors[ZERO].type)
           .to.equal(tu.uniErrorName);
         done();
       });
@@ -136,7 +134,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
         expect(res.body).to.property('errors');
-        expect(res.body.errors[0].type)
+        expect(res.body.errors[ZERO].type)
           .to.equal(tu.schemaValidationErrorName);
       })
       .end((err /* , res */) => {
@@ -159,7 +157,7 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send(aspectToPost)
       .expect((res) => {
-        expect(res.body.tags).to.have.length(1);
+        expect(res.body.tags).to.have.length(ONE);
         expect(res.body.tags).to.include.members(tags);
       })
       .end((err /* , res */) => {
