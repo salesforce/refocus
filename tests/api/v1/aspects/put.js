@@ -104,6 +104,26 @@ describe('api: PUT aspects with related links', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('with same name and different case ' +
+    'successfully updates name', (done) => {
+    const toPut = {
+      name: u.toCreate.name.toLowerCase(),
+      timeout: '220s',
+    };
+    api.put(`${path}/${aspectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(toPut.name);
+      done();
+    });
+  });
+
   it('update to add related links', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,

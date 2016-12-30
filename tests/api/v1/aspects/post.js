@@ -17,6 +17,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/aspects';
+const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
 
 describe(`api: POST ${path}`, () => {
@@ -43,6 +44,58 @@ describe(`api: POST ${path}`, () => {
       }
 
       done();
+    });
+  });
+
+  describe('post duplicate fails', () => {
+    let aspectId;
+    beforeEach((done) => {
+      Aspect.create(u.toCreate)
+      .then((aspect) => {
+        aspectId = aspect.id;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('with identical name', (done) => {
+      const aspectToPost = {
+        name: u.toCreate.name,
+        timeout: '110s',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      const aspectToPost = {
+        name: u.toCreate.name.toLowerCase(),
+        timeout: '110s',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
     });
   });
 

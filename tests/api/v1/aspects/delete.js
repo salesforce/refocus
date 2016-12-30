@@ -73,6 +73,21 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('with same name and different case succeeds', (done) => {
+    api.delete(`${path}/${u.toCreate.name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect(bodyCheckIfDeleted)
+    .expect(notFound)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.name).to.equal(u.toCreate.name);
+      done();
+    });
+  });
+
   it('delete by id', (done) => {
     api.delete(`${path}/${i}`)
     .set('Authorization', token)

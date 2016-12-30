@@ -111,6 +111,22 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
+    it('with same name and different case succeeds', (done) => {
+      const name = toCreate[0].name;
+      api.get(path + '?name=' + name.toUpperCase())
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].name).to.equal(name);
+        done();
+      });
+    });
+
     it('trailing asterisk is treated as "starts with"', (done) => {
       api.get(`${path}?name=${tu.namePrefix}*`)
       .set('Authorization', token)
