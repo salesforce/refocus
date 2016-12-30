@@ -35,7 +35,7 @@ describe('sample api: FILTER' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
@@ -91,13 +91,11 @@ describe('sample api: FILTER' + path, () => {
       obj.messageCode = MESSAGE_CODE_1;
       return Sample.create(obj);
     })
-    .then((samp) => { // to test previousStatus
-      return samp.update({ value: String(ONE) });
-    })
+    .then((samp) => samp.update({ value: String(ONE) }))
     .then(() => { // sample updated
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -113,7 +111,6 @@ describe('sample api: FILTER' + path, () => {
     })
     .end((err /* , res */) => done(err));
   });
-
 
   it('no asterisk is treated as "equals" for name', (done) => {
     const NAME = tu.namePrefix + 'COFFEE|' + tu.namePrefix + 'POTATO';

@@ -30,19 +30,17 @@ describe('api: registerUser', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.email).to.be.equal(u.toCreate.email);
       expect(res.body.name).to.be.equal(u.toCreate.username);
-
       Token.findAll({ where: { name: res.body.name } })
       .then((tokens) => {
         expect(tokens.length).to.be.equal(1);
         expect(tokens[0].isRevoked).to.be.equal('0');
       })
-      .catch((_err) => done(_err));
-
+      .catch(done);
       done();
     });
   });
@@ -57,7 +55,7 @@ describe('api: registerUser', () => {
     .expect(/Missing required property: username/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -74,7 +72,7 @@ describe('api: registerUser', () => {
     .expect(/Missing required property: password/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -87,7 +85,7 @@ describe('api: registerUser', () => {
     .expect(/User already exists/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -99,13 +97,13 @@ describe('api: registerUser', () => {
     .send({
       email: 'wrongEmailFormat',
       password: 'fakePasswd',
-      username: 'myusername'
+      username: 'myusername',
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/ValidationError/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -119,20 +117,18 @@ describe('api: register sso user', () => {
     Profile.create({
       name: tu.namePrefix + 1,
     })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'ssopassword',
-        sso: true,
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'ssopassword',
+      sso: true,
+    }))
     .then((createdUser) => {
       ssoUser = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -147,7 +143,7 @@ describe('api: register sso user', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.be.equal(`${tu.namePrefix}1`);
@@ -157,4 +153,3 @@ describe('api: register sso user', () => {
     });
   });
 });
-
