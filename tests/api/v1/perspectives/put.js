@@ -30,7 +30,7 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -49,7 +49,7 @@ describe(`api: PUT ${path}`, () => {
       createdLensId = createdPersp.lensId;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -66,12 +66,12 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
       expect(res.body.aspectTagFilter).to.equal(undefined);
-      return done();
+      done();
     });
   });
 
@@ -87,12 +87,12 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
       expect(res.body.aspectTagFilter).to.eql(['_temp', '_hum']);
-      return done();
+      done();
     });
   });
 
@@ -109,10 +109,10 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -129,10 +129,10 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -149,10 +149,10 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -169,10 +169,10 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

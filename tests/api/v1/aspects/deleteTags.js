@@ -29,10 +29,7 @@ describe(`api: aspects: DELETE tags}`, () => {
   const n = {
     name: `${tu.namePrefix}ASPECTNAME`,
     timeout: '110s',
-    tags: [
-      'tag0',
-      'tag1'
-    ]
+    tags: ['tag0', 'tag1'],
   };
 
   before((done) => {
@@ -41,7 +38,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -50,7 +47,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       aspId = asp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -64,7 +61,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -81,7 +78,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -98,7 +95,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -115,7 +112,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

@@ -31,7 +31,7 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -72,7 +72,7 @@ describe(`api: PUT ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -90,7 +90,7 @@ describe('api: PUT aspects with related links', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -99,9 +99,7 @@ describe('api: PUT aspects with related links', () => {
       aspectId = aspect.id;
       done();
     })
-    .catch((err) => {
-      done(err);
-    });
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -110,7 +108,9 @@ describe('api: PUT aspects with related links', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }]
+      relatedLinks: [
+        { name: 'link1', url: 'https://samples.com' },
+      ],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -122,8 +122,9 @@ describe('api: PUT aspects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -132,7 +133,9 @@ describe('api: PUT aspects with related links', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      relatedLinks: [{ name: 'link1', url: 'https://samples.com' }]
+      relatedLinks: [
+        { name: 'link1', url: 'https://samples.com' },
+      ],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -144,8 +147,9 @@ describe('api: PUT aspects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -157,7 +161,7 @@ describe('api: PUT aspects with related links', () => {
       relatedLinks: [
         { name: 'link0', url: 'https://samples.com' },
         { name: 'link1', url: 'https://samples.com' },
-      ]
+      ],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -165,15 +169,16 @@ describe('api: PUT aspects with related links', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(2);
-      for (let k=0;k<res.body.relatedLinks.length;k++) {
-        expect(res.body.relatedLinks[k]).to.have.property('name',
-         'link'+k);
+      for (let k = 0; k < res.body.relatedLinks.length; k++) {
+        expect(res.body.relatedLinks[k])
+          .to.have.property('name', 'link' + k);
       }
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -189,7 +194,7 @@ describe('api: PUT aspects with tags', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -198,9 +203,7 @@ describe('api: PUT aspects with tags', () => {
       aspectId = aspect.id;
       done();
     })
-    .catch((err) => {
-      done(err);
-    });
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -209,7 +212,7 @@ describe('api: PUT aspects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: ['tagX']
+      tags: ['tagX'],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -221,8 +224,9 @@ describe('api: PUT aspects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -230,7 +234,7 @@ describe('api: PUT aspects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: ['-tagX']
+      tags: ['-tagX'],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -243,8 +247,9 @@ describe('api: PUT aspects with tags', () => {
       })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -252,7 +257,7 @@ describe('api: PUT aspects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: ['tagX']
+      tags: ['tagX'],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -264,8 +269,9 @@ describe('api: PUT aspects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
@@ -273,10 +279,7 @@ describe('api: PUT aspects with tags', () => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       timeout: '220s',
-      tags: [
-        'tag0',
-        'tag1'
-      ]
+      tags: ['tag0', 'tag1'],
     };
     api.put(`${path}/${aspectId}`)
     .set('Authorization', token)
@@ -288,8 +291,9 @@ describe('api: PUT aspects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       Aspect.findOne({ where: { id: aspectId } })
       .then((asp) => {
         expect(asp.tags).to.have.length(2);
@@ -314,13 +318,14 @@ describe('api: PUT aspects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       Aspect.findOne({ where: { id: aspectId } })
       .then((asp) => {
         expect(asp.tags).to.have.length(0);
       });
-      return done();
+      done();
     });
   });
 });
