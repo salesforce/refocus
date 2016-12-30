@@ -21,20 +21,18 @@ describe('realtime utils Tests:', () => {
     absolutePath: 'NA.US.CA.SF',
     name: 'SF',
   };
-
   const updatedSubject = {
     new: {
       absolutePath: 'NA.US.CA.SF',
       name: 'SF',
-      helpurl: 'helpme.com'
+      helpurl: 'helpme.com',
     },
     old: {
       absolutePath: 'NA.US.CA.SF',
       name: 'SF',
-      helpurl: ''
+      helpurl: '',
     },
   };
-
   const looksLikeSampleObjNA = {
     value: '10',
     name: 'NA|temperature',
@@ -42,15 +40,11 @@ describe('realtime utils Tests:', () => {
     status: 'OK',
     aspect: {
       name: 'temperature',
-      tags: [
-        'temp'
-      ]
+      tags: ['temp'],
     },
     subject: {
-      tags: [
-        'ea'
-      ],
-    }
+      tags: ['ea'],
+    },
   };
   const looksLikeSampleObjNAUS = {
     value: '1',
@@ -59,15 +53,11 @@ describe('realtime utils Tests:', () => {
     status: 'INVALID',
     aspect: {
       name: 'temperature',
-      tags: [
-        'temp'
-      ]
+      tags: ['temp'],
     },
     subject: {
-      tags: [
-        'ea',
-      ],
-    }
+      tags: ['ea'],
+    },
   };
   const rootSubjNAUS = 'NA.US';
   const rootSubjNA = 'NA';
@@ -114,10 +104,11 @@ describe('realtime utils Tests:', () => {
       persRootNAUSCA = pers3;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
+
   describe('utility function tests', () => {
     describe('shouldIEmitThisObject functon tests', () => {
       it('should return false for some randomSubjectRoot', () => {
@@ -125,12 +116,14 @@ describe('realtime utils Tests:', () => {
         expect(realtimeUtils.shouldIEmitThisObj(nspString, rootSubjNAUS))
           .to.equal(false);
       });
+
       it('should return true for pers rootNA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNA);
         expect(realtimeUtils
           .shouldIEmitThisObj(nspString, looksLikeSampleObjNA))
           .to.equal(true);
       });
+
       it('should return true for pers rootNAUS', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
@@ -143,12 +136,14 @@ describe('realtime utils Tests:', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
         expect(nspString).to.equal('/NA.US&INCLUDE&INCLUDE&INCLUDE&INCLUDE');
       });
+
       it('for perspective persNA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNA);
         expect(nspString)
           .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
             '&INCLUDE=temp;hum&INCLUDE=OK');
       });
+
       it('for perspective persNAUSCA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUSCA);
         expect(nspString)
@@ -174,6 +169,7 @@ describe('realtime utils Tests:', () => {
         const obj = realtimeUtils.parseObject(newSubject);
         expect(obj.hasOwnProperty('new')).to.equal(false);
       });
+
       it('parse newObject', () => {
         const obj = realtimeUtils.parseObject(updatedSubject);
         expect(obj.hasOwnProperty('new')).to.equal(false);
