@@ -33,8 +33,8 @@ module.exports = {
         library: willSendthis,
       };
       tu.db.Lens.create(lens)
-      .then((createdLens) => resolve(createdLens))
-      .catch((err) => reject(err));
+      .then(resolve)
+      .catch(reject);
     });
   },
 
@@ -42,6 +42,6 @@ module.exports = {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

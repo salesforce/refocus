@@ -31,7 +31,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -51,7 +51,7 @@ describe(`api: GET ${path}`, () => {
       perspectiveName = createdPersp.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -63,7 +63,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body).to.have.length(1);
@@ -77,7 +77,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body[0].subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body[0].statusFilter).to.eql(['Critical', '-OK']);
 
-      return done();
+      done();
     });
   });
 
@@ -87,7 +87,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
@@ -98,7 +98,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
 
-      return done();
+      done();
     });
   });
 
@@ -108,7 +108,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
@@ -119,7 +119,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
-      return done();
+      done();
     });
   });
 
@@ -129,13 +129,13 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body).to.not.have.property('rootSubject');
       expect(res.body).to.not.have.property('lens');
-      return done();
+      done();
     });
   });
 
@@ -145,14 +145,14 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body).to.have.length.of.at.least(1);
       expect(res.body[0]).to.have.property('name');
       expect(res.body[0]).to.have.property('rootSubject');
       expect(res.body[0]).to.not.have.property('lens');
-      return done();
+      done();
     });
   });
 });
