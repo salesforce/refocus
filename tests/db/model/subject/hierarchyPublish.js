@@ -67,37 +67,29 @@ describe('db: subject: get hierarchy: ', () => {
     .then(() => {
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
 
   describe('Subject isPublished tests: ', () => {
-    it('Subject should not be found once isPublished is '+
-      'set to false', (done) => {
+    it('Subject should not be found once isPublished is ' +
+    'set to false', (done) => {
       Subject.scope('hierarchy').findById(igrn)
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(igrn);
-      })
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => Subject.scope('hierarchy').findById(igrn))
       .then((sub) => {
         expect(sub).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('setting grand child to isPublished = false should not break' +
-      'the hierarchy from parent', (done) => {
+    'the hierarchy from parent', (done) => {
       Subject.findById(igrn)
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ipar);
-      })
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => Subject.scope('hierarchy').findById(ipar))
       .then((o) => {
         expect(o).to.not.equal(null);
         const parSub = o.get({ plain: true });
@@ -106,45 +98,33 @@ describe('db: subject: get hierarchy: ', () => {
         expect(childSub).to.not.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
-    it('setting child and grandChild to isPublished = false should not break' +
-      'the hierarchy from parent', (done) => {
+    it('setting child and grandChild to isPublished = false should not ' +
+    'break the hierarchy from parent', (done) => {
       Subject.findById(igrn)
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.findById(ichi);
-      })
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ipar);
-      })
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => Subject.findById(ichi))
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => Subject.scope('hierarchy').findById(ipar))
       .then((sub) => {
         expect(sub).to.not.equal(null);
         expect(sub.children).to.have.length(1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
-    it('setting otherGrn to isPublished = false should not break' +
-      'the enitre hierarchy from parent', (done) => {
+    it('setting otherGrn to isPublished = false should not break ' +
+    'the enitre hierarchy from parent', (done) => {
       Subject.scope('hierarchy').findById(ipar)
       .then((sub) => {
         expect(sub.children).to.have.length(2);
         return Subject.findById(otherChildId);
       })
-      .then((sub) => {
-        return sub.update({ isPublished: false });
-      })
-      .then(() => {
-        return Subject.scope('hierarchy').findById(ipar);
-      })
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => Subject.scope('hierarchy').findById(ipar))
       .then((sub) => {
         expect(sub).to.not.equal(null);
         expect(sub.children).to.have.length(1);
@@ -152,7 +132,7 @@ describe('db: subject: get hierarchy: ', () => {
         expect(o.children).to.have.length(1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     describe('Subject hierarchy with samples isPublished tests: ', () => {
@@ -163,7 +143,7 @@ describe('db: subject: get hierarchy: ', () => {
           expect(sub.samples[0].relatedLinks).to.exist;
           done();
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
 
@@ -175,7 +155,7 @@ describe('db: subject: get hierarchy: ', () => {
           expect(sub.samples[0].subject).to.equal(undefined);
           done();
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
     });
   });

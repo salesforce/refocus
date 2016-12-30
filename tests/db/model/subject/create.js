@@ -37,7 +37,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('parentAbsolutePath').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, unknown attribute is ignored', (done) => {
@@ -49,7 +49,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.not.have.property('x');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('should fail, missing name', (done) => {
@@ -102,7 +102,8 @@ describe('db: subject: create: ', () => {
     });
 
     it('should fail, name too long', (done) => {
-      const s = u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
+      const s =
+        u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since name is too long'));
@@ -145,7 +146,7 @@ describe('db: subject: create: ', () => {
       .then((o) => o.destroy())
       .then(() => Subject.create(s))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing description', (done) => {
@@ -156,7 +157,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('description').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, null description', (done) => {
@@ -167,7 +168,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('description').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing helpEmail and helpUrl', (done) => {
@@ -180,7 +181,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('helpUrl').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing imageUrl', (done) => {
@@ -191,7 +192,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('imageUrl').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing isPublished defaults to false', (done) => {
@@ -204,7 +205,7 @@ describe('db: subject: create: ', () => {
         .to.equal(false);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, null parentId', (done) => {
@@ -215,7 +216,7 @@ describe('db: subject: create: ', () => {
         expect(o.dataValues.parentId).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('should fail, parentId is not a UUID', (done) => {
@@ -241,7 +242,7 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.message.toLowerCase()).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
 
     it('geolocation array cannot contain less than two elements', (done) => {
@@ -254,7 +255,7 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.errors[0].path).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
 
     it('geolocation array cannot contain more than two elements', (done) => {
@@ -267,7 +268,7 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.errors[0].path).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
   });
 
@@ -282,7 +283,7 @@ describe('db: subject: create: ', () => {
         pId = o.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, child', (done) => {
@@ -299,7 +300,7 @@ describe('db: subject: create: ', () => {
         expect(created).to.have.property('parentAbsolutePath').to.equal(pName);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });

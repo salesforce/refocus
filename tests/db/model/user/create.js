@@ -26,19 +26,17 @@ describe('db: User: create', () => {
     Profile.create({
       name: tu.namePrefix + 1,
     })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+    }))
     .then((createdUser) => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);

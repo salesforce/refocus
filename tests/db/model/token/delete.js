@@ -25,7 +25,7 @@ describe('db: Token: delete', () => {
       tokenObj = createdTokenObj;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
 

@@ -31,7 +31,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 
   getSubjectPrototype(name, parentId) {

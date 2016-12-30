@@ -19,14 +19,12 @@ const Profile = tu.db.Profile;
 describe('db: user: find: ', () => {
   beforeEach((done) => {
     Profile.create({ name: `${tu.namePrefix}1` })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+    }))
     .then(() => done())
     .catch(done);
   });

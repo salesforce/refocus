@@ -19,7 +19,7 @@ describe('db: ssoconfig: update: ', () => {
   beforeEach((done) => {
     u.creatSSOConfig()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -32,6 +32,6 @@ describe('db: ssoconfig: update: ', () => {
       expect(o.samlIssuer).to.equal('passport-saml123');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

@@ -60,7 +60,7 @@ describe('db: sample: statusCalculation: ', () => {
       sample = samp;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -82,9 +82,7 @@ describe('db: sample: statusCalculation: ', () => {
     });
   } // setupRanges
 
-
   describe('status duration calculation: ', () => {
-
     beforeEach((done) => {
       setupRanges({
         criticalRange: [0, 1],
@@ -93,7 +91,7 @@ describe('db: sample: statusCalculation: ', () => {
         okRange: [5, 10],
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('on create', (done) => {
@@ -105,39 +103,37 @@ describe('db: sample: statusCalculation: ', () => {
       sample.update({ value: '0.25' })
       .should.eventually.have.property('previousStatus',
         constants.statuses.Invalid)
-      .then(() => sample.update({ 'value': '2' })
+      .then(() => sample.update({ value: '2' })
         .should.eventually.have.property('previousStatus',
         constants.statuses.Critical))
-      .then(() => sample.update({ 'value': '4' })
+      .then(() => sample.update({ value: '4' })
         .should.eventually.have.property('previousStatus',
         constants.statuses.Warning))
-      .then(() => sample.update({ 'value': '5' })
+      .then(() => sample.update({ value: '5' })
         .should.eventually.have.property('previousStatus',
         constants.statuses.Info))
-      .then(() => sample.update({ 'value': '0' })
+      .then(() => sample.update({ value: '0' })
         .should.eventually.have.property('previousStatus',
         constants.statuses.OK))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
-    it('previousStatus should not change when status does'+
-         ' not change', (done) => {
+    it('previousStatus should not change when status does ' +
+    'not change', (done) => {
       let prevStatus;
       sample.update({ value: '0.25' })
       .then((samp) => {
         prevStatus = samp.dataValues.previousStatus;
-        sample.update({ 'value': '0.50' })
+        sample.update({ value: '0.50' })
          .should.eventually.have.property('previousStatus', prevStatus);
       })
-      .then(() => sample.update({ 'value': '0.50' })
-        .should.eventually.have.property('previousStatus',
-        prevStatus))
-      .then(() => sample.update({ 'value': '0.75' })
-        .should.eventually.have.property('previousStatus',
-        prevStatus))
+      .then(() => sample.update({ value: '0.50' })
+        .should.eventually.have.property('previousStatus', prevStatus))
+      .then(() => sample.update({ value: '0.75' })
+        .should.eventually.have.property('previousStatus', prevStatus))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('statusChangeAt change during transition of status', (done) => {
@@ -149,7 +145,7 @@ describe('db: sample: statusCalculation: ', () => {
             .to.be.below(milliSecond * 2);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('statusChangeAt should not change when status' +
@@ -158,17 +154,17 @@ describe('db: sample: statusCalculation: ', () => {
       sample.update({ value: '0.25' })
       .then((samp) => {
         statusChangeAt = samp.statusChangedAt.getTime();
-        return sample.update({ 'value': '0.50' });
+        return sample.update({ value: '0.50' });
       })
       .then((samp) => {
         expect(samp.statusChangedAt.getTime()).to.equal(statusChangeAt);
-        return sample.update({ 'value': '0.75' });
+        return sample.update({ value: '0.75' });
       })
       .then((samp) => {
         expect(samp.statusChangedAt.getTime()).to.equal(statusChangeAt);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('previousStatus change with Aspect Range changes', (done) => {
@@ -183,7 +179,7 @@ describe('db: sample: statusCalculation: ', () => {
         expect(sample.previousStatus).to.equal(constants.statuses.Critical);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   }); // sample afterCreate hook
 });

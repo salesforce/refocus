@@ -21,8 +21,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: timeout: ', function() {
-
+describe('db: sample: timeout: ', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;
@@ -95,12 +94,13 @@ describe('db: sample: timeout: ', function() {
       updatedAt = s.updatedAt;
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 100 days in the future', (done) => {
     const mockUpdatedAt = updatedAt;
-    mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours*hundredDays);
+    mockUpdatedAt.setHours(updatedAt.getHours() +
+      (twentyFourhours * hundredDays));
     Sample.doTimeout(mockUpdatedAt)
     .then((msg) => {
       expect(msg).to.equal('Evaluated 4 samples; 4 were timed out.');
@@ -116,7 +116,7 @@ describe('db: sample: timeout: ', function() {
       expect(s.status).to.equal(defaultForStatus);
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 1 day in the future', (done) => {
@@ -150,7 +150,7 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 5 minutes in the future', (done) => {
@@ -184,7 +184,7 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 10 seconds in the past', (done) => {
@@ -218,7 +218,7 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('checktimeout scope should only return required fields' +
@@ -245,6 +245,6 @@ describe('db: sample: timeout: ', function() {
       expect(samp.deletedAt).to.equal(undefined);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
