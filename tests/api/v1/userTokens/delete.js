@@ -38,12 +38,10 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
         password: 'user123password',
       })
     )
-    .then((user) => {
-      return Token.create({
-        name: tname,
-        createdBy: user.id,
-      });
-    })
+    .then((user) => Token.create({
+      name: tname,
+      createdBy: user.id,
+    }))
     .then(() => done())
     .catch(done);
   });

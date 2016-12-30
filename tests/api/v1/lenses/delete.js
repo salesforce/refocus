@@ -29,7 +29,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -38,7 +38,7 @@ describe(`api: DELETE ${path}`, () => {
       lensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -50,11 +50,11 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.isDeleted).to.not.equal(0);
-      return done();
+      done();
     });
   });
 });

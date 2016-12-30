@@ -18,13 +18,13 @@ module.exports = {
   fakeUserCredentials: {
     email: 'user1@abc.com',
     password: 'fakePasswd',
-    username: 'user1@abc.com'
+    username: 'user1@abc.com',
   },
   forceDelete(done) {
     tu.forceDelete(tu.db.Token, testStartTime)
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

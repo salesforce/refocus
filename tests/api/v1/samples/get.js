@@ -34,14 +34,12 @@ describe(`api: GET ${path}`, () => {
 
   before((done) => {
     u.doSetup()
-    .then((samp) => {
-      return Sample.create(samp);
-    })
+    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleId = samp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -62,13 +60,12 @@ describe(`api: GET ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
     });
   });
-
 
   it('basic get by id', (done) => {
     api.get(`${path}/${sampleId}`)
@@ -85,7 +82,7 @@ describe(`api: GET ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
