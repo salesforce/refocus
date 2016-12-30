@@ -243,7 +243,7 @@ module.exports = function sample(seq, dataTypes) {
           })
           .then(() => resolve(`Evaluated ${numberEvaluated} samples; ` +
             `${numberTimedOut} were timed out.`))
-          .catch((err) => reject(err));
+          .catch(reject);
         });
       }, // doTimeout
     }, // classMethods

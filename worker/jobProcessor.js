@@ -9,20 +9,34 @@
 /**
  * /worker/jobProcessor.js
  *
- * The jobProcessor is a worker process which uses the "Kue" module to pull jobs
- * off the redis queue.
+ * The jobProcessor is a worker process which uses the "Kue" module to pull
+ * jobs off the redis queue.
+ *
+ * Add a new jobQueue.process(...) block for each new type of job.
  */
 'use strict'; // eslint-disable-line strict
 const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
 const workerStarted = 'Worker Process Started';
+const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
 
 console.log(workerStarted); // eslint-disable-line no-console
 
+// Process Sample Bulk Upsert Operations
 jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const samples = job.data;
-  console.log('Job id being processed: ' + // eslint-disable-line no-console
-                      job.id);
-  helper.model.bulkUpsertByName(samples).then(() => done());
+  const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
+    `with ${samples.length} samples`;
+  console.log(msg); // eslint-disable-line no-console
+  helper.model.bulkUpsertByName(samples)
+  .then(() => done());
+});
+
+// Process Sample Timeout Operations
+jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
+  const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
+  console.log(msg); // eslint-disable-line no-console
+  sampleTimeoutJob.execute()
+  .then(() => done());
 });

@@ -37,5 +37,6 @@ module.exports = {
   jobQueue,
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
+    SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },
 }; // exports
