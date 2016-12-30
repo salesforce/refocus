@@ -94,7 +94,7 @@ describe('sample name gets updated:', () => {
     })
     .each((s) => Sample.create(s))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   describe('when subject name/parentId gets updated:', () => {
@@ -119,7 +119,7 @@ describe('sample name gets updated:', () => {
         samp.get('name').should.match(/$__UDPATED|__Aspect[12]/);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
@@ -133,7 +133,7 @@ describe('sample name gets updated:', () => {
         samp.get('name').should.match(/.*|__UPDATED$/);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });

@@ -26,7 +26,7 @@ describe('db: Token: update', () => {
       tokenObj = createdTokenObj;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -38,7 +38,7 @@ describe('db: Token: update', () => {
       expect(updatedToken.name).to.be.equal('newTokenName');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Revoke a token', (done) => {
@@ -49,6 +49,6 @@ describe('db: Token: update', () => {
       expect(updatedToken.isRevoked).to.be.eql(date);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

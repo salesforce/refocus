@@ -33,15 +33,13 @@ describe('Admin User Tests:', () => {
       ap = found;
       return;
     })
-    .then(() => {
-      return User.findOne({
-        where: {
-          name: {
-            $iLike: conf.db.adminUser.name,
-          },
+    .then(() => User.findOne({
+      where: {
+        name: {
+          $iLike: conf.db.adminUser.name,
         },
-      });
-    })
+      },
+    }))
     .then((found) => {
       au = found;
       done();
@@ -57,9 +55,7 @@ describe('Admin User Tests:', () => {
     const a = conf.db.adminUser;
     a.profileId = ap.id;
     User.create(a)
-    .then((created) => {
-      done(new Error('Expecting SequelizeUniqueConstraintError'));
-    })
+    .then(() => done(new Error('Expecting SequelizeUniqueConstraintError')))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeUniqueConstraintError');
       done();
@@ -71,9 +67,7 @@ describe('Admin User Tests:', () => {
     a.name = conf.db.adminUser.name.toUpperCase();
     a.profileId = ap.id;
     User.create(a)
-    .then((created) => {
-      done(new Error('Expecting SequelizeUniqueConstraintError'));
-    })
+    .then(() => done(new Error('Expecting SequelizeUniqueConstraintError')))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeUniqueConstraintError');
       done();
@@ -82,9 +76,7 @@ describe('Admin User Tests:', () => {
 
   it('Cannot delete the out-of-the-box admin user', (done) => {
     au.destroy()
-    .then(() => {
-      done(new Error('Expecting AdminUpdateDeleteForbidden'));
-    })
+    .then(() => done(new Error('Expecting AdminUpdateDeleteForbidden')))
     .catch((err) => {
       expect(err.name).to.equal('AdminUpdateDeleteForbidden');
       done();
@@ -93,12 +85,8 @@ describe('Admin User Tests:', () => {
 
   it('Cannot change profile of the out-of-the-box admin user', (done) => {
     Profile.create({ name: `${tu.namePrefix}Profile` })
-    .then((p) => {
-      return au.update({ profileId: p.id });
-    })
-    .then(() => {
-      done(new Error('Expecting AdminUpdateDeleteForbidden'));
-    })
+    .then((p) => au.update({ profileId: p.id }))
+    .then(() => done(new Error('Expecting AdminUpdateDeleteForbidden')))
     .catch((err) => {
       expect(err.name).to.equal('AdminUpdateDeleteForbidden');
       done();

@@ -47,7 +47,7 @@ describe('Profile model with users', () => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -95,7 +95,7 @@ describe('Profile model with users', () => {
       expect(p.users.length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Update user profileId, decrements old profile\'s userCount',
@@ -111,7 +111,7 @@ describe('Profile model with users', () => {
       expect(!oldProfile.users);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Profile should have userCount of 0, after attaching, and detaching a ' +
@@ -129,7 +129,7 @@ describe('Profile model with users', () => {
       expect(!profile.dataValues.users);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Update user profileId, increments new profile userCount', (done) => {
@@ -149,7 +149,7 @@ describe('Profile model with users', () => {
       expect(newProfile.users.length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Deleting profile with user attached, throws error', (done) => {
@@ -163,7 +163,7 @@ describe('Profile model with users', () => {
       expect(err).to.have.property('profile');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('After attaching a user to a profile, get all profiles should contain ' +
@@ -182,6 +182,6 @@ describe('Profile model with users', () => {
       expect(p.get('users').length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

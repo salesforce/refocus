@@ -26,7 +26,7 @@ describe('db: SSOConfig: create', () => {
       ssoconfig = createdSSOConfig;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -48,7 +48,7 @@ describe('db: SSOConfig: create', () => {
       expect(foundSSOConfig).to.equal(null);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Adding new row should fail', (done) => {

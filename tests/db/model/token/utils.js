@@ -24,7 +24,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.Token, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 
   createTokenObject() {
@@ -39,13 +39,10 @@ module.exports = {
         password: 'user123password',
       })
     )
-    .then((returnedUser) => {
-      // create Token object
-      return tu.db.Token.create({
-        name: tokenName,
-        createdBy: returnedUser.id,
-      });
-    });
+    .then((returnedUser) => tu.db.Token.create({
+      name: tokenName,
+      createdBy: returnedUser.id,
+    }));
   },
 
   createSystemToken() {
@@ -60,12 +57,9 @@ module.exports = {
         password: 'user123password',
       })
     )
-    .then((returnedUser) => {
-      // create Token object
-      return tu.db.Token.create({
-        name: returnedUser.name,
-        createdBy: returnedUser.id,
-      });
-    });
+    .then((returnedUser) => tu.db.Token.create({
+      name: returnedUser.name,
+      createdBy: returnedUser.id,
+    }));
   },
 };

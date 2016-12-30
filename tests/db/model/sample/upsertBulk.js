@@ -45,7 +45,7 @@ describe('db: sample: upsertBulk: ', () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('all succeed part 1', (done) => {
@@ -64,7 +64,7 @@ describe('db: sample: upsertBulk: ', () => {
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
@@ -86,7 +86,7 @@ describe('db: sample: upsertBulk: ', () => {
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('some succeed, some fail', (done) => {
@@ -118,7 +118,7 @@ describe('db: sample: upsertBulk: ', () => {
       expect(errorCount).to.equal(1);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('all fail', (done) => {
@@ -137,7 +137,7 @@ describe('db: sample: upsertBulk: ', () => {
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('bulk upsertwith the same value should update' +
@@ -164,7 +164,7 @@ describe('db: sample: upsertBulk: ', () => {
       expect(updatedSampleUpdateTime).to.be.above(newSampleUpdateTime);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('case insensitive find by subject and aspect', (done) => {
@@ -183,7 +183,7 @@ describe('db: sample: upsertBulk: ', () => {
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
 
@@ -219,13 +219,8 @@ describe('db: sample: upsertBulk: many Aspects with Samples ', () => {
         return Aspect.bulkCreate(aspectsToCreate,
          { individualHooks: true, validate: true });
       })
-      .then(() => {
-        done();
-      })
-      .catch((err) => {
-        // console.log('catching err:', err);
-        done(err);
-      });
+      .then(() => done())
+      .catch(done);
   });
 
   it('Upsert many Aspects with a lot of samples', (done) => {
@@ -241,9 +236,8 @@ describe('db: sample: upsertBulk: many Aspects with Samples ', () => {
     .then((o) => {
       expect(o.length).to.equal(manySamples);
       expect(o[18].dataValues).to.have.property('value', '18');
-      // console.log(o);
     })
     .then(() => done())
-      .catch((err) => done(err));
+    .catch(done);
   });
 });

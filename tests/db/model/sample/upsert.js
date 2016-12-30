@@ -36,7 +36,7 @@ describe('db: sample: upsert: ', () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('when sample is new and when it already exists', (done) => {
@@ -51,7 +51,7 @@ describe('db: sample: upsert: ', () => {
     }))
     .should.eventually.have.deep.property('value', '2')
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('When subject name changed then sample name should be changed',
@@ -64,15 +64,10 @@ describe('db: sample: upsert: ', () => {
     .then((samp) => {
       newSample = samp;
     })
-    .then(() => {
-      return Subject.scope({ method: ['absolutePath',
-        `${tu.namePrefix}Subject`] }).find();
-    })
-    .then((subject) => {
-      return subject.update({
-        name: `${tu.namePrefix}Subject1`,
-      });
-    })
+    .then(() => Subject.scope({
+      method: ['absolutePath', `${tu.namePrefix}Subject`],
+    }).find())
+    .then((subject) => subject.update({ name: `${tu.namePrefix}Subject1` }))
     .then(() => {
       // use delay for getting updated version of sample because it
       // gets updated in afterUpdate. So we receive the change in subject
@@ -87,7 +82,7 @@ describe('db: sample: upsert: ', () => {
         });
       }, 500);
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('updateAt timestamp should change', (done) => {
@@ -109,7 +104,7 @@ describe('db: sample: upsert: ', () => {
       expect(updatedSampleUpdateTime).to.be.above(newSampleUpdateTime);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('subject does not exist', (done) => {

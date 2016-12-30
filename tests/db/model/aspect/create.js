@@ -1,11 +1,10 @@
-  /**
+/**
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 
 /**
  * tests/db/model/aspect/create.js
@@ -56,9 +55,7 @@ describe('db: aspect: create: ', () => {
         throw new Error('expecting default values for everything but name ' +
           'and timeout');
       })
-      .then(() => {
-        return asp.tags;
-      })
+      .then(() => asp.tags)
       .then((tags) => {
         if (tu.gotArrayWithExpectedLength(tags, 0)) {
           return;
@@ -66,9 +63,7 @@ describe('db: aspect: create: ', () => {
 
         throw new Error('expecting tags to be empty array');
       })
-      .then(() => {
-        return asp.relatedLinks;
-      })
+      .then(() => asp.relatedLinks)
       .then((relatedLinks) => {
         if (tu.gotArrayWithExpectedLength(relatedLinks, 0)) {
           return;
@@ -76,9 +71,7 @@ describe('db: aspect: create: ', () => {
 
         throw new Error('expecting relatedLinks to be empty array');
       })
-      .then(() => {
-        return asp.getSamples();
-      })
+      .then(() => asp.getSamples())
       .then((samples) => {
         if (tu.gotArrayWithExpectedLength(samples, 0)) {
           return;
@@ -89,7 +82,7 @@ describe('db: aspect: create: ', () => {
       .then(() => {
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     describe('description: ', () => {
@@ -105,7 +98,7 @@ describe('db: aspect: create: ', () => {
               'for "description"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -120,7 +113,7 @@ describe('db: aspect: create: ', () => {
               '"description"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length = 4096', (done) => {
@@ -145,7 +138,7 @@ describe('db: aspect: create: ', () => {
               '"description"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 4096', (done) => {
@@ -222,7 +215,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('helpEmail should be null'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -236,7 +229,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('helpEmail should be null'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length = 74', (done) => {
@@ -260,7 +253,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('helpEmail length should be 74 characters'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 74', (done) => {
@@ -284,7 +277,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isemail ' +
            'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string which is not email-address-y', (done) => {
@@ -298,7 +291,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isemail ' +
            'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an array', (done) => {
@@ -358,7 +351,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with a null "helpUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -372,7 +365,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with a null "helpUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length = 2082', (done) => {
@@ -398,7 +391,7 @@ describe('db: aspect: create: ', () => {
               '"helpUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 2082', (done) => {
@@ -423,7 +416,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string which is not url-y', (done) => {
@@ -437,7 +430,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an array', (done) => {
@@ -451,7 +444,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an object', (done) => {
@@ -465,7 +458,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
     });
 
@@ -602,7 +595,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('should have accepted a number-ish string'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a number', (done) => {
@@ -616,7 +609,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('should have accepted a number'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array', (done) => {
@@ -656,7 +649,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with a null "imageUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -670,7 +663,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with a null "imageUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length = 2082', (done) => {
@@ -696,7 +689,7 @@ describe('db: aspect: create: ', () => {
               '"imageUrl"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 2082', (done) => {
@@ -721,7 +714,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string which is not url-y', (done) => {
@@ -735,7 +728,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an array', (done) => {
@@ -749,7 +742,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('imageurl cannot be ' +
             'an array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an object', (done) => {
@@ -763,7 +756,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('imageurl cannot be ' +
             'an array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
     });
 
@@ -794,7 +787,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('ispublished cannot ' +
             'be null');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string value', (done) => {
@@ -824,7 +817,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting it to treat string "true" like boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string value of false', (done) => {
@@ -839,7 +832,7 @@ describe('db: aspect: create: ', () => {
               'boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string value of 0', (done) => {
@@ -853,7 +846,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting it to treat string "0" like boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string value of 1', (done) => {
@@ -867,7 +860,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting it to treat string "1" like boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a numeric value of 1', (done) => {
@@ -881,7 +874,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting it to treat numeric 1 like boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a numeric value of 0', (done) => {
@@ -895,7 +888,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting it to treat numeric 0 like boolean'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array', (done) => {
@@ -934,7 +927,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase()).to.contain('validation is failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -947,7 +940,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('notnull violation');
           expect(err.message.toLowerCase()).to.contain('name cannot be null');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string with valid characters (upper & lowercase letters, ' +
@@ -956,7 +949,7 @@ describe('db: aspect: create: ', () => {
         toCreate.name = `${u.name}01abC_-qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq`;
         Aspect.create(toCreate)
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with valid characters but length > 60', (done) => {
@@ -984,7 +977,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase()).to.contain('validation is failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string with invalid "|" (pipe) character', (done) => {
@@ -997,7 +990,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase()).to.contain('validation is failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string with invalid " " (space) character', (done) => {
@@ -1010,7 +1003,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase()).to.contain('validation is failed');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an array', (done) => {
@@ -1024,7 +1017,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('name cannot be an ' +
             'array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an object', (done) => {
@@ -1038,7 +1031,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('name cannot be an ' +
             'array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
     });
 
@@ -1066,7 +1059,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting null ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string', (done) => {
@@ -1235,7 +1228,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two equal numeric elements', (done) => {
@@ -1251,7 +1244,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two descending numeric elements', (done) => {
@@ -1298,7 +1291,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting null ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string', (done) => {
@@ -1471,7 +1464,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two equal numeric elements', (done) => {
@@ -1487,7 +1480,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two descending numeric elements', (done) => {
@@ -1530,7 +1523,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting null ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string', (done) => {
@@ -1703,7 +1696,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two equal numeric elements', (done) => {
@@ -1719,7 +1712,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two descending numeric elements', (done) => {
@@ -1762,7 +1755,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting null ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string', (done) => {
@@ -1927,7 +1920,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two equal numeric elements', (done) => {
@@ -1943,7 +1936,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting ok'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array with two descending numeric elements', (done) => {
@@ -1976,7 +1969,7 @@ describe('db: aspect: create: ', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -1987,10 +1980,11 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('notnull violation');
-          expect(err.message.toLowerCase()).to.contain('timeout cannot be '+
-            'null');
+          expect(err.message.toLowerCase())
+            .to.contain('timeout cannot be null');
           done();
-        }).catch((err) => done(err));
+        })
+        .catch(done);
       });
 
       it('provide a string with length = 10', (done) => {
@@ -1998,7 +1992,7 @@ describe('db: aspect: create: ', () => {
         toCreate.timeout = '123456789M';
         Aspect.create(toCreate)
         .then(() => done())
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 10', (done) => {
@@ -2010,7 +2004,7 @@ describe('db: aspect: create: ', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string without a leading [0-9]', (done) => {
@@ -2022,7 +2016,7 @@ describe('db: aspect: create: ', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide a string without a trailing [SMHDsmhd]', (done) => {
@@ -2034,7 +2028,7 @@ describe('db: aspect: create: ', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an array', (done) => {
@@ -2048,7 +2042,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('timeout cannot be ' +
             'an array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
 
       it('provide an object', (done) => {
@@ -2062,7 +2056,7 @@ describe('db: aspect: create: ', () => {
           expect(err.message.toLowerCase()).to.contain('timeout cannot ' +
               'be an array or an object');
           done();
-        }).catch((err) => done(err));
+        }).catch(done);
       });
     });
 
@@ -2079,7 +2073,7 @@ describe('db: aspect: create: ', () => {
               'for "valueLabel"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a null value', (done) => {
@@ -2094,7 +2088,7 @@ describe('db: aspect: create: ', () => {
               '"valueLabel"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length = 10', (done) => {
@@ -2109,7 +2103,7 @@ describe('db: aspect: create: ', () => {
               '"valueLabel"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with length > 10', (done) => {
@@ -2192,7 +2186,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with a null "valueType"'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide an array', (done) => {
@@ -2230,7 +2224,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with valueType BOOLEAN'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with valid enum value NUMERIC', (done) => {
@@ -2244,7 +2238,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with valueType NUMERIC'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with valid enum value PERCENT', (done) => {
@@ -2258,7 +2252,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('aspect should be created with valueType PERCENT'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('provide a string with a string which is an invalid  enum value',
@@ -2323,19 +2317,14 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting a tag'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('create with two tags', (done) => {
         const asp = u.getSmall();
-        asp.tags = [
-          '___foo',
-          '___bar'
-        ];
+        asp.tags = ['___foo', '___bar'];
         Aspect.create(asp)
-        .then((o) => {
-          return o.tags;
-        })
+        .then((o) => o.tags)
         .then((t) => {
           if (tu.gotArrayWithExpectedLength(t, 2)) {
             done();
@@ -2343,7 +2332,7 @@ describe('db: aspect: create: ', () => {
             done(new Error('expecting two tags'));
           }
         })
-        .catch((err) => done(err));
+        .catch(done);
       });
 
       it('create with a tag name that already exists, ' +
