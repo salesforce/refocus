@@ -81,27 +81,27 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('with related links', () => {
-    it('with same name and different case ' +
-      'successfully updates name', (done) => {
-      const toPut = {
-        name: u.toCreate.name.toLowerCase(),
-        timeout: '220s',
-      };
-      api.put(`${path}/${aspectId}`)
-      .set('Authorization', token)
-      .send(toPut)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('with same name and different case ' +
+    'successfully updates name', (done) => {
+    const toPut = {
+      name: u.toCreate.name.toLowerCase(),
+      timeout: '220s',
+    };
+    api.put(`${path}/${aspectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
 
-        expect(res.body.name).to.equal(toPut.name);
-        done();
-      });
+      expect(res.body.name).to.equal(toPut.name);
+      done();
     });
+  });
 
+  describe('with related links', () => {
     it('update to add related links', (done) => {
       const toPut = {
         name: `${tu.namePrefix}newName`,
