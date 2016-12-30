@@ -32,7 +32,7 @@ describe('api: POST ' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -54,9 +54,7 @@ describe('api: POST ' + path, () => {
       isPublished: true,
       name: `${tu.namePrefix}Subject`,
     }))
-    .then(() => Profile.create({
-      name: tu.namePrefix + 1,
-    }))
+    .then(() => Profile.create({ name: tu.namePrefix + 1 }))
     .then((createdProfile) => User.create({
       email: 'testToken@refocus.com',
       profileId: createdProfile.id,
@@ -64,7 +62,7 @@ describe('api: POST ' + path, () => {
       password: 'abcd',
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -85,7 +83,7 @@ describe('api: POST ' + path, () => {
     .expect(/ForbiddenError/)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -105,9 +103,9 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(200)
-    .end((err, res) => {
+    .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

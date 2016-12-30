@@ -25,7 +25,7 @@ describe('api: createToken', () => {
     .send(u.fakeUserCredentials)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       defaultToken = res.body.token;
@@ -42,7 +42,7 @@ describe('api: createToken', () => {
     .expect(/No authorization token was found/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -57,7 +57,7 @@ describe('api: createToken', () => {
     .expect(/Invalid Token/)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -71,7 +71,7 @@ describe('api: createToken', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.be.equal('newToken');
