@@ -32,7 +32,7 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -41,7 +41,7 @@ describe(`api: PATCH ${path}`, () => {
       i = aspect.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -64,7 +64,7 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -84,16 +84,19 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
 
   it('patch relatedLinks multiple', (done) => {
-    const relatedLinks = [{ name: 'link0', url: 'https://samples.com' },
-    { name: 'link1', url: 'https://samples.com' },
-    { name: 'link2', url: 'https://samples.com' }];
+    const relatedLinks = [
+      { name: 'link0', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     asp.relatedLinks = relatedLinks;
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
@@ -104,10 +107,10 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -124,17 +127,14 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });
   it('patch tags multiple', (done) => {
-    const tags = [
-      'tag0',
-      'tag1',
-      'tag2'
-    ];
+    const tags = ['tag0', 'tag1', 'tag2'];
     asp.tags = tags;
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
@@ -146,13 +146,14 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
     });
   });
 });
+
 describe(`api: PATCH ${path} isPublished`, () => {
   let i = 0;
   let token;
@@ -174,7 +175,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -199,7 +200,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
       Sample.create(samp2);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -219,7 +220,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -240,7 +241,7 @@ describe(`api: PATCH ${path} isPublished`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

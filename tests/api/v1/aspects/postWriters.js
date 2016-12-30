@@ -39,7 +39,7 @@ describe('api: aspects: post writers', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -68,7 +68,7 @@ describe('api: aspects: post writers', () => {
       userNameArray.push(thirdUser.name);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -97,10 +97,10 @@ describe('api: aspects: post writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -112,10 +112,10 @@ describe('api: aspects: post writers', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
