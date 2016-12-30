@@ -32,21 +32,19 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     u.doSetup()
-    .then((samp) => {
-      return Sample.create(samp);
-    })
+    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleId = samp.id;
       sampUpdatedAt = samp.updatedAt;
       sampleValue = samp.value;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -61,12 +59,13 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         const result = res.body;
         const dateToInt = new Date(result.updatedAt).getTime();
         expect(dateToInt).to.be.equal(sampUpdatedAt.getTime());
-        return done();
+        done();
       });
     });
 
@@ -78,12 +77,13 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         const result = res.body;
         const dateToInt = new Date(result.updatedAt).getTime();
         expect(dateToInt).to.be.above(sampUpdatedAt.getTime());
-        return done();
+        done();
       });
     });
   });
@@ -102,10 +102,10 @@ describe(`api: PATCH ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
-        return done();
+        done();
       });
     });
   });
@@ -120,55 +120,59 @@ describe(`api: PATCH ${path}`, () => {
       .set('Authorization', token)
       .send({
         value: '2',
-        relatedLinks: [{ name: 'link', url: 'https://samples.com' },
-        ]
+        relatedLinks: [
+          { name: 'link', url: 'https://samples.com' },
+        ],
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         expect(res.body.relatedLinks).to.have.length(1);
         expect(res.body.relatedLinks).to.have.deep.property('[0].name',
             'link');
-        return done();
+        done();
       });
     });
 
     it('multiple relatedlinks', (done) => {
       api.put(`${path}/${sampleId}`)
       .set('Authorization', token)
-      .send({
-        value: '2',
-        relatedLinks: []
-      })
+      .send({ value: '2', relatedLinks: [] })
       .expect(constants.httpStatus.OK)
       .end((err/* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         api.patch(`${path}/${sampleId}`)
         .set('Authorization', token)
         .send({
           value: '2',
-          relatedLinks: [{ name: 'link0', url: 'https://samples.com' },
-          { name: 'link1', url: 'https://samples.com' }]
+          relatedLinks: [
+            { name: 'link0', url: 'https://samples.com' },
+            { name: 'link1', url: 'https://samples.com' },
+          ],
         })
         .expect(constants.httpStatus.OK)
         .end((_err, res) => {
           if (err) {
-            return done(err);
+            done(err);
           }
+
           expect(res.body.relatedLinks).to.have.length(2);
-          for (let i=0;i<res.body.relatedLinks.length;i++) {
-           /*
-            * link names are starting from link0 to link1, so adding  the index
-            * at the end to get the name dynamically
-            */
-            expect(res.body.relatedLinks[i]).to.have.property('name',
-               'link'+i);
+          for (let i = 0; i < res.body.relatedLinks.length; i++) {
+            /*
+             * Link names are starting from link0 to link1 so adding the index
+             * at the end to get the name dynamically.
+             */
+            expect(res.body.relatedLinks[i])
+              .to.have.property('name', 'link' + i);
           }
-          return done();
+
+          done();
         });
       });
     });
@@ -177,8 +181,10 @@ describe(`api: PATCH ${path}`, () => {
       .set('Authorization', token)
       .send({
         value: '2',
-        relatedLinks: [{ name: 'link4', url: 'https://samples.com' },
-        { name: 'link4', url: 'https://samples.com' }]
+        relatedLinks: [
+          { name: 'link4', url: 'https://samples.com' },
+          { name: 'link4', url: 'https://samples.com' },
+        ],
       })
       .expect((res) => {
         expect(res.body).to.have.property('errors');
@@ -189,10 +195,10 @@ describe(`api: PATCH ${path}`, () => {
       })
       .end((err/* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
-        return done();
+        done();
       });
     });
   });
@@ -208,14 +214,12 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     u.doSetup()
-    .then((samp) => {
-      return Sample.create(samp);
-    })
+    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleId = samp.id;
       samp.getAspect()
@@ -227,7 +231,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
         throw err;
       });
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -240,10 +244,10 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

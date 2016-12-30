@@ -40,7 +40,7 @@ describe('db: Token: create', () => {
       userObj = returnedUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -56,7 +56,7 @@ describe('db: Token: create', () => {
       expect(createdToken.createdBy).to.be.equal(userObj.id);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('One user can create multiple tokens, and' +
@@ -80,9 +80,9 @@ describe('db: Token: create', () => {
         expect(returnedTokens[1].name).to.be.equal('tokenB');
         expect(returnedTokens[1].createdBy).to.be.equal(userObj.id);
       })
-      .catch((err) => done(err));
+      .catch(done);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

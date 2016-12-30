@@ -25,19 +25,17 @@ describe('db: user: update: ', () => {
     Profile.create({
       name: tu.namePrefix + 1,
     })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+    }))
     .then((createdUser) => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -46,20 +44,22 @@ describe('db: user: update: ', () => {
     user.update({ password: 'changedPwd789' })
     .then((returnedUser) => {
       bcrypt.compare('user123password', returnedUser.password, (err, res) => {
-        if(err){
+        if (err) {
           throw err;
         }
+
         expect(res).to.be.false;  // eslint-disable-line no-unused-expressions
       });
 
       bcrypt.compare('changedPwd789', returnedUser.password, (err, res) => {
-        if(err){
+        if (err) {
           throw err;
         }
+
         expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
       });
     })
-    .catch((err) => done(err));
+    .catch(done);
     done();
   });
 });

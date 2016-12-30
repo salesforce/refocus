@@ -45,15 +45,17 @@ module.exports = {
   fakeUserCredentials: {
     email: 'user1@abc.com',
     password: 'fakePasswd',
-    username: 'user1'
+    username: 'user1',
   },
+
   forceDeleteToken(done) {
     forceDelete(db.User, testStartTime)
     .then(() => forceDelete(db.Profile, testStartTime))
     .then(() => forceDelete(db.Token, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
+
   db,
   dbErrorName: 'SequelizeDatabaseError',
   dbError: new Error('expecting SequelizeDatabaseError'),
@@ -73,6 +75,7 @@ module.exports = {
   gotArrayWithExpectedLength(arr, len) {
     return Array.isArray(arr) && this.gotExpectedLength(arr, len);
   },
+
   // create one more user
   createThirdUser() {
     return db.Profile.create({
@@ -81,12 +84,13 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: userName+'third',
-        email: userName+'third',
+        name: userName + 'third',
+        email: userName + 'third',
         password: 'user123password',
       })
     );
   },
+
   // create another user
   createSecondUser() {
     return db.Profile.create({
@@ -95,12 +99,13 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: userName+'second',
-        email: userName+'second',
+        name: userName + 'second',
+        email: userName + 'second',
         password: 'user123password',
       })
     );
   },
+
   // create user and corresponding token to be used in api tests.
   createToken() {
     return db.Profile.create({
@@ -122,13 +127,14 @@ module.exports = {
     forceDelete(db.User, testStartTime)
     .then(() => forceDelete(db.Profile, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   }, // forceDeleteUser
+
   // delete users
   forceDeleteSubject(done) {
     forceDelete(db.Subject, testStartTime)
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   }, // forceDeleteUser
 
   toggleOverride(key, value) {

@@ -27,7 +27,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -39,7 +39,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -52,7 +52,7 @@ describe(`api: POST ${path}`, () => {
         name: `${tu.namePrefix}HeartRate`,
         timeout: '110s',
       };
-      const tags = ['___na','___continent'];
+      const tags = ['___na', '___continent'];
       aspectToPost.tags = tags;
       api.post(path)
       .set('Authorization', token)
@@ -63,11 +63,13 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
+
     it('cannot post aspect with tags names starting with -', (done) => {
       const aspectToPost = {
         name: `${tu.namePrefix}HeartRate`,
@@ -86,11 +88,13 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
+
     it('posting aspect with duplicate tags', (done) => {
       const aspectToPost = {
         name: `${tu.namePrefix}Pressure`,
@@ -107,8 +111,9 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });
@@ -129,8 +134,9 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
+
         done();
       });
     });

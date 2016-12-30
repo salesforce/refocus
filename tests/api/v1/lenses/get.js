@@ -30,7 +30,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -40,7 +40,7 @@ describe(`api: GET ${path}`, () => {
       lensName = lens.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -52,7 +52,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body).to.have.length(1);
@@ -60,7 +60,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body).to.not.have.deep.property('[0].library');
       expect(res.body).to.have.deep.property('[0].name', `${tu.namePrefix}testLensName`);
 
-      return done();
+      done();
     });
   });
 
@@ -70,7 +70,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testLensName`);
@@ -78,7 +78,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.library['lens.js']).to.exist;
       expect(res.body.library['lens.json']).to.exist;
 
-      return done();
+      done();
     });
   });
 
@@ -88,11 +88,11 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.sourceName).to.equal('testSourceLensName');
-      return done();
+      done();
     });
   });
 
@@ -102,7 +102,7 @@ describe(`api: GET ${path}`, () => {
     .send({ isPublished: false })
     .end((_err) => {
       if (_err) {
-        return done(_err);
+        done(_err);
       }
 
       api.get(`${path}/${lensName}`)
@@ -110,11 +110,12 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
-        expect(res.body.errors[0].description).to.equal('Lens is not published. Please contact Refocus admin.');
-        return done();
+        expect(res.body.errors[0].description)
+          .to.equal('Lens is not published. Please contact Refocus admin.');
+        done();
       });
     });
   });

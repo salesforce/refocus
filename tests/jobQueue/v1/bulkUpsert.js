@@ -89,19 +89,21 @@ describe('api: POST ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       // make sure only 1 job is created for each bulk upsert call
       expect(jobQueue.testMode.jobs.length).to.equal(1);
+
       // make sure the job type is correct
       expect(jobQueue.testMode.jobs[0].type)
-                            .to.equal(jobType.BULKUPSERTSAMPLES);
+        .to.equal(jobType.BULKUPSERTSAMPLES);
+
       // make sure the queue has the right data inside it
       expect(jobQueue.testMode.jobs[0].data).to.have.length(2);
       expect(jobQueue.testMode.jobs[0].data[0])
-                          .to.have.all.keys('name', 'value');
-      return done();
+        .to.have.all.keys('name', 'value');
+      done();
     });
   });
 
@@ -118,15 +120,13 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.status).to.contain('OK');
-    })
-    .end((err, res) => {
+    .expect((res) => expect(res.body.status).to.contain('OK'))
+    .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

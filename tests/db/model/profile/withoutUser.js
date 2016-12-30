@@ -25,7 +25,7 @@ describe('Profile model without users', () => {
       p = createdProfile;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -51,7 +51,7 @@ describe('Profile model without users', () => {
       expect(foundProfile).to.equal(null);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Get deleted profile by id, should return null, if find with paranoid ' +
@@ -65,7 +65,7 @@ describe('Profile model without users', () => {
       expect(!foundProfile);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Get deleted profile by id, should return null', (done) => {
@@ -75,7 +75,7 @@ describe('Profile model without users', () => {
       expect(foundProfile).to.equal(null);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Deleting profile without children, deletes successfully, and returns ' +
@@ -85,6 +85,6 @@ describe('Profile model without users', () => {
       expect(destroyedProfile.dataValues.name).to.equal(p.name);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

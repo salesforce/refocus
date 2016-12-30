@@ -34,7 +34,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
@@ -52,19 +52,17 @@ describe(`api: GET ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        testUserToken = res.body.token;
-        api.post(path)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({
-          key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
-          value: 'def',
-        })
-        .expect(constants.httpStatus.CREATED)
-        .end((err3, res3) => {
-          done();
-        });
       }
+
+      testUserToken = res.body.token;
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({
+        key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+        value: 'def',
+      })
+      .expect(constants.httpStatus.CREATED)
+      .end(() => done());
     });
   });
 
@@ -78,12 +76,12 @@ describe(`api: GET ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('key',
-          `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
-        expect(res.body).to.have.property('value', 'def');
-          done();
       }
+
+      expect(res.body).to.have.property('key',
+        `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
+      expect(res.body).to.have.property('value', 'def');
+      done();
     });
   });
 
@@ -92,6 +90,10 @@ describe(`api: GET ${path}`, () => {
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
       expect(res.body).to.have.property('key',
         `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
       expect(res.body).to.have.property('value', 'def');

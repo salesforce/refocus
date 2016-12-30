@@ -44,7 +44,7 @@ describe('socket io namespace setup Tests:', () => {
       statusFilter: ['OK'],
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -54,12 +54,15 @@ describe('socket io namespace setup Tests:', () => {
     .then((sio) => {
       // setupNamespace should return a socketio io object
       expect(sio.nsps).to.be.an('object');
+
       // the returned socketio object must contain the initialized namespace
-      expect(sio.nsps).to.contain.all.keys(['/',
-        `/${rootSubjNAUS}&INCLUDE&INCLUDE&INCLUDE&INCLUDE`]);
+      expect(sio.nsps).to.contain.all.keys([
+        '/',
+        `/${rootSubjNAUS}&INCLUDE&INCLUDE&INCLUDE&INCLUDE`,
+      ]);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('socketio nsp object must be initialized with namespace even if' +
@@ -68,13 +71,16 @@ describe('socket io namespace setup Tests:', () => {
     .then((sio) => {
       // setupNamespace should return a socketio io object
       expect(sio.nsps).to.be.an('object');
+
       // the returned socketio object must contain the initialized namespace
-      expect(sio.nsps).to.have.all.keys(['/',
+      expect(sio.nsps).to.have.all.keys([
+        '/',
         `/${rootSubjNAUS}&INCLUDE&INCLUDE&INCLUDE&INCLUDE`,
         `/${rootSubjNA}&INCLUDE=temperature;humidity&INCLUDE=ea;na&INCLUDE=` +
-        'temp;hum&INCLUDE=OK']);
+          'temp;hum&INCLUDE=OK',
+      ]);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
