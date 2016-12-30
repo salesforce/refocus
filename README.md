@@ -59,11 +59,7 @@ Non-SSO users should authenticate with Refocus as described above using Local Au
 If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO Login' button on login page. In case of local authentication with username/password, SSO users will be considered as unregistered user unless they sign up using register page or POST to /v1/register. Once an SSO user is registered with SSO username, the user can sign in using local authentication as well.
 
 ### Using API Access Tokens
-- A token is required for API calls when Refocus config has `useAccessToken` set to `true`.
-- New users should register to get API access token. A user can POST to the `/v1/register` endpoint to generate a token. Save this token for future use.
-- Existing users can POST to the `/v1/token` endpoint to retrieve new token.
-- To use the token for API access, add a Header with `Key:Authorization` and `Value: "token returned"` to your API call.
-- When using [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make an API call, set Body to raw and text to JSON.
+See [docs](https://salesforce.github.io/refocus/docs/10-security.html#api-tokens).
 
 ## Perspective Debugging
 If you are troubleshooting realtime event handling in a perspective, add query parameter `debug=REALTIME` to any perspective URL. This turns on console logging in the browser for all the realtime subject and sample events the perspective receives.
