@@ -22,6 +22,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const THREE = 3;
 
 describe(`api: GET ${path}`, () => {
   let token;
@@ -111,6 +112,22 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
+    it('with same name and different case succeeds', (done) => {
+      const name = toCreate[ZERO].name;
+      api.get(path + '?name=' + name.toUpperCase())
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].name).to.equal(name);
+        done();
+      });
+    });
+
     it('trailing asterisk is treated as "starts with"', (done) => {
       api.get(`${path}?name=${tu.namePrefix}*`)
       .set('Authorization', token)
@@ -118,7 +135,7 @@ describe(`api: GET ${path}`, () => {
       .expect((res) => {
         expect(res.body.length).to.be.equal(TWO);
         res.body.map((aspect) => {
-          expect(aspect.name.slice(ZERO, 3)).to.equal(tu.namePrefix);
+          expect(aspect.name.slice(ZERO, THREE)).to.equal(tu.namePrefix);
         });
       })
       .end((err /* , res */) => done(err));

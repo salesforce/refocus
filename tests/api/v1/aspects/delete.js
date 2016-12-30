@@ -22,34 +22,31 @@ const path = '/v1/aspects';
 const allDeletePath = '/v1/aspects/{key}/relatedLinks';
 const oneDeletePath = '/v1/aspects/{key}/relatedLinks/{akey}';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
-  let i = 0;
+  let aspectId;
   let token;
 
+  /**
+   * Throws error if response object's
+   * isDeleted value <= 0
+   * @param {Object} res THe response object
+   */
   function bodyCheckIfDeleted(res) {
-    const errors = [];
-    if (res.body.isDeleted === 0) {
-      errors.push(new Error('isDeleted should be > 0'));
-    }
-
-    if (errors.length) {
-      throw new Error(errors);
-    }
+    expect(res.body.isDeleted).to.be.above(ZERO);
   }
 
+  /**
+   * Throws error if aspect created for test
+   * was returned.
+   */
   function notFound() {
-    const errors = [];
-    Aspect.findById(i)
+    Aspect.findById(aspectId)
     .then((aspect) => {
-      if (aspect) {
-        errors.push(new Error('should not have found a record with this id'));
-      }
+      expect(aspect).to.not.be.defined();
     });
-
-    if (errors.length) {
-      throw new Error(errors);
-    }
   }
 
   before((done) => {
@@ -64,7 +61,7 @@ describe(`api: DELETE ${path}`, () => {
   beforeEach((done) => {
     Aspect.create(u.toCreate)
     .then((aspect) => {
-      i = aspect.id;
+      aspectId = aspect.id;
       done();
     })
     .catch(done);
@@ -73,8 +70,23 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('with same name and different case succeeds', (done) => {
+    api.delete(`${path}/${u.toCreate.name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect(bodyCheckIfDeleted)
+    .expect(notFound)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.name).to.equal(u.toCreate.name);
+      done();
+    });
+  });
+
   it('delete by id', (done) => {
-    api.delete(`${path}/${i}`)
+    api.delete(`${path}/${aspectId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect(bodyCheckIfDeleted)
@@ -153,7 +165,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(0);
+      expect(res.body.relatedLinks).to.have.length(ZERO);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -169,7 +181,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
     .end((err /* , res */) => {
@@ -186,7 +198,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
     .end((err /* , res */) => {
@@ -200,7 +212,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
 });
 
 describe(`api: DELETE ${path} with samples`, () => {
-  let i = 0;
+  let aspectId;
   let token;
 
   const subjectToCreateSecond = {
@@ -228,7 +240,7 @@ describe(`api: DELETE ${path} with samples`, () => {
     const samp2 = { value: '2' };
     Aspect.create(u.toCreate)
     .then((a) => {
-      i = a.id;
+      aspectId = a.id;
       samp1.aspectId = a.id;
       samp2.aspectId = a.id;
       return tu.db.Subject.create(u.subjectToCreate);
@@ -252,13 +264,13 @@ describe(`api: DELETE ${path} with samples`, () => {
   after(tu.forceDeleteUser);
 
   it('deleting aspect deletes its samples', (done) => {
-    api.delete(`${path}/${i}`)
+    api.delete(`${path}/${aspectId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect(() => {
       Sample.findAll()
       .then((samp) => {
-        expect(samp).to.have.length(0);
+        expect(samp).to.have.length(ZERO);
       })
       .catch((_err) => done(_err));
     })
