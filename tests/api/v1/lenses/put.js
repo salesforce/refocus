@@ -44,6 +44,23 @@ describe(`api: PUT ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('update name to different case', (done) => {
+    const newName = u.name.toLowerCase();
+    api.put(`${path}/${lensId}`)
+    .set('Authorization', token)
+    .field('name', newName)
+    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(newName);
+      done();
+    });
+  });
+
   it('update description', (done) => {
     api.put(`${path}/${lensId}`)
     .set('Authorization', token)
