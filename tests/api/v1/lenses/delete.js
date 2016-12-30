@@ -18,6 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: DELETE ${path}`, () => {
   let lensId;
@@ -32,7 +33,7 @@ describe(`api: DELETE ${path}`, () => {
     .catch(done);
   });
 
-  before((done) => {
+  beforeEach((done) => {
     u.doSetup()
     .then((lens) => {
       lensId = lens.id;
@@ -41,8 +42,21 @@ describe(`api: DELETE ${path}`, () => {
     .catch(done);
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('with same name and different case succeeds', (done) => {
+    api.delete(`${path}/${u.name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
 
   it('delete ok', (done) => {
     api.delete(`${path}/${lensId}`)
@@ -53,7 +67,7 @@ describe(`api: DELETE ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.isDeleted).to.not.equal(0);
+      expect(res.body.isDeleted).to.not.equal(ZERO);
       done();
     });
   });
