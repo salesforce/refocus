@@ -55,13 +55,13 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     Aspect.bulkCreate(toCreate)
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -85,7 +85,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -104,7 +104,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -136,7 +136,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -154,7 +154,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -172,7 +172,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -190,7 +190,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -208,7 +208,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();
@@ -228,7 +228,7 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          return done(err);
+          done(err);
         }
 
         done();

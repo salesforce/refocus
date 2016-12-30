@@ -28,7 +28,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -37,7 +37,7 @@ describe(`api: POST ${path}`, () => {
       createdLensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -54,10 +54,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -76,10 +76,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -93,10 +93,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -112,10 +112,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -131,10 +131,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -150,10 +150,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -169,10 +169,10 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });

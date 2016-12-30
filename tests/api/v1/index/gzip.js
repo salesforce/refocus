@@ -28,7 +28,7 @@ describe(`api: ${path}`, () => {
     .expect('content-encoding', gzipEncode)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -44,7 +44,7 @@ describe(`api: ${path}`, () => {
     .expect('content-encoding', deflateEncode)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
@@ -60,7 +60,7 @@ describe(`api: ${path}`, () => {
     .expect('content-encoding', gzipEncode)
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

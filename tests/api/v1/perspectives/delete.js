@@ -29,7 +29,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -43,23 +43,23 @@ describe(`api: DELETE ${path}`, () => {
       perspectiveId = createdPersp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-  
+
   it('delete ok', (done) => {
     api.delete(`${path}/${perspectiveId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       expect(res.body.isDeleted).to.not.equal(0);
-      return done();
+      done();
     });
   });
 });
