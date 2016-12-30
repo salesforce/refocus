@@ -23,6 +23,7 @@ describe(`api: PUT ${path}`, () => {
   let perspectiveId;
   let createdLensId;
   let token;
+  const name = 'testPersp';
 
   before((done) => {
     tu.createToken()
@@ -36,7 +37,7 @@ describe(`api: PUT ${path}`, () => {
   before((done) => {
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
-      name: 'testPersp',
+      name,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
@@ -54,6 +55,26 @@ describe(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('update name with different case succeeds', (done) => {
+    const newName = name.toUpperCase();
+    api.put(path + '/' + newName)
+    .set('Authorization', token)
+    .send({
+      name: newName,
+      lensId: createdLensId,
+      rootSubject: 'changedMainSubject',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(newName);
+      done();
+    });
+  });
 
   it('update root subject', (done) => {
     api.put(`${path}/${perspectiveId}`)
