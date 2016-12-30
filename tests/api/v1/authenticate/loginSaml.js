@@ -18,8 +18,7 @@ const api = supertest(require('../../../../index').app);
 const samlPath = '/loginSAML';
 const u = require('./utils');
 
-
-describe(`api: passport saml`, () => {
+describe('api: passport saml', () => {
   let ssoconfig;
   before((done) => {
     u.creatSSOConfig()
@@ -27,7 +26,7 @@ describe(`api: passport saml`, () => {
       ssoconfig = createdconfig;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDeleteSSOConfig);
@@ -37,14 +36,14 @@ describe(`api: passport saml`, () => {
     .expect(() => {
       api.get(samlPath)
       .expect((res) => expect(res.redirect).to.be.true)
-      .expect((res) => {
-        expect(res.header.location).to.contain(ssoconfig.samlEntryPoint);
-      });
+      .expect((res) =>
+        expect(res.header.location).to.contain(ssoconfig.samlEntryPoint));
     })
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
+
       done();
     });
   });

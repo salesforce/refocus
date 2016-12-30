@@ -25,7 +25,7 @@ describe('api: protected views', () => {
     })
     .end((err) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();
