@@ -37,9 +37,7 @@ describe(`api: DELETE ${path}`, () => {
 
   before((done) => {
     u.doSetup()
-    .then((samp) => {
-      return Sample.create(samp);
-    })
+    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleId = samp.id;
       done();
@@ -61,9 +59,10 @@ describe(`api: DELETE ${path}`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
-      return done();
+
+      done();
     });
   });
 });
@@ -116,10 +115,10 @@ describe('api: samples: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -131,14 +130,15 @@ describe('api: samples: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(1);
-      expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
+      expect(res.body.relatedLinks)
+        .to.have.deep.property('[0].name', 'rlink1');
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 
@@ -153,10 +153,10 @@ describe('api: samples: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
-      return done();
+      done();
     });
   });
 });
