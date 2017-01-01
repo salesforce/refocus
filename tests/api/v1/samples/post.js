@@ -100,9 +100,9 @@ describe(`api: POST ${path}`, () => {
     .send(sampleToPost)
     .expect((res) => {
       expect(res.body).to.have.property('errors');
-      expect(res.body.errors[0].message)
+      expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
-      expect(res.body.errors[0].source)
+      expect(res.body.errors[ZERO].source)
         .to.contain('relatedLinks');
     })
     .end((err /* , res */) => {

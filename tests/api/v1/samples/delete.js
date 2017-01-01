@@ -21,6 +21,8 @@ const path = '/v1/samples';
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
 const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
   let sampleId;
@@ -53,7 +55,7 @@ describe(`api: DELETE ${path}`, () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      if (tu.gotExpectedLength(res.body, 0)) {
+      if (tu.gotExpectedLength(res.body, ZERO)) {
         throw new Error('expecting sample');
       }
     })
@@ -65,7 +67,23 @@ describe(`api: DELETE ${path}`, () => {
       done();
     });
   });
+
+  it('is case in-sensitive', (done) => {
+    const name = u.sampleName;
+    api.delete(`${path}/${name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(name);
+      done();
+    });
+  });
 });
+
 describe('api: samples: DELETE RelatedLinks', () => {
   let token;
   let sampleId;
@@ -111,7 +129,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(0);
+      expect(res.body.relatedLinks).to.have.length(ZERO);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -129,7 +147,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks)
         .to.have.deep.property('[0].name', 'rlink1');
     })
@@ -148,7 +166,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
     .end((err /* , res */) => {
