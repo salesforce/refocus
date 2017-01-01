@@ -37,7 +37,7 @@ describe(`api: DELETE ${path}`, () => {
     .catch((err) => done(err));
   });
 
-  before((done) => {
+  beforeEach((done) => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
@@ -47,7 +47,7 @@ describe(`api: DELETE ${path}`, () => {
     .catch((err) => done(err));
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
   it('basic delete', (done) => {

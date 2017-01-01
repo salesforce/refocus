@@ -14,6 +14,9 @@
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
+const aspectName = `${tu.namePrefix}TEST_ASPECT`;
+const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
+const sampleName = subjectName + '|' + aspectName;
 
 const aspectToCreate = {
   description: 'this is a0 description',
@@ -33,7 +36,7 @@ const aspectToCreateNotPublished = {
   description: 'this is a0 description',
   imageUrl: 'http://www.bar.com/a0.jpg',
   isPublished: false,
-  name: `${tu.namePrefix}TEST_ASPECT`,
+  name: aspectName,
   timeout: '30s',
   valueLabel: 's',
   valueType: 'NUMERIC',
@@ -51,12 +54,12 @@ const subjectToCreate = {
   },
   imageUrl: 'http://www.bar.com/a0.jpg',
   isPublished: true,
-  name: `${tu.namePrefix}TEST_SUBJECT`,
+  name: subjectName,
 };
 
 module.exports = {
   aspectToCreate,
-
+  sampleName,
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       const samp = { value: '1' };
