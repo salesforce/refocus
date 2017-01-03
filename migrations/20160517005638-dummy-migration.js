@@ -9,11 +9,11 @@
 'use strict'; // eslint-disable-line strict
 
 module.exports = {
-  up: (queryInterface, Sequelize) => {
+  up(qi, Sequelize) {
     // no changes
   },
 
-  down: (queryInterface, Sequelize) => {
+  down(qi, Sequelize) {
     // no changes
-  }
+  },
 };

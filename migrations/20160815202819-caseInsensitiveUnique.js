@@ -9,171 +9,93 @@
 'use strict';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeIndex('Aspects', ['name', 'isDeleted'])
-      .then(() => {
-        return queryInterface.addIndex(
-          'Aspects',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
-          {
-            indexName: 'AspectUniqueLowercaseNameIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Lenses', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Lenses',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
-          {
-            indexName: 'LensUniqueLowercaseNameIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Perspectives', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Perspectives',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
-          {
-            indexName: 'PerspectiveUniqueLowercaseNameIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Profiles', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Profiles',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
-          {
-            indexName: 'ProfileUniqueLowercaseNameIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Subjects',
-          ['absolutePath', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Subjects',
-          [Sequelize.fn('lower', Sequelize.col('absolutePath')), 'isDeleted'],
-          {
-            indexName: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Tags',
-          ['name', 'isDeleted', 'associationId']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Tags',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted',
-            'associationId'],
-          {
-            indexName: 'TagUniqueLowercaseNameIsDeletedAssociationId',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Users', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Users',
-          [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
-          {
-            indexName: 'UserUniqueLowercaseNameIsDeleted',
-            indicesType: 'UNIQUE',
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Users', ['email']);
-      })
-      .then(() => {
-        return queryInterface.addIndex(
-          'Users',
-          [Sequelize.fn('lower', Sequelize.col('email'))],
-          {
-            indexName: 'UserLowercaseEmail',
-          }
-        );
-      });
-    });
+  up(qi, Sequelize) {
+    return qi.sequelize.transaction(() =>
+      qi.removeIndex('Aspects', ['name', 'isDeleted'])
+      .then(() => qi.addIndex('Aspects',
+        [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+        {
+          indexName: 'AspectUniqueLowercaseNameIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Lenses', ['name', 'isDeleted']))
+      .then(() => qi.addIndex('Lenses',
+        [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+        {
+          indexName: 'LensUniqueLowercaseNameIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Perspectives', ['name', 'isDeleted']))
+      .then(() => qi.addIndex('Perspectives',
+        [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+        {
+          indexName: 'PerspectiveUniqueLowercaseNameIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Profiles', ['name', 'isDeleted']))
+      .then(() => qi.addIndex('Profiles',
+        [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+        {
+          indexName: 'ProfileUniqueLowercaseNameIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Subjects', ['absolutePath', 'isDeleted']))
+      .then(() => qi.addIndex('Subjects',
+        [Sequelize.fn('lower', Sequelize.col('absolutePath')), 'isDeleted'],
+        {
+          indexName: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Tags',
+        ['name', 'isDeleted', 'associationId']))
+      .then(() => qi.addIndex('Tags', [
+        Sequelize.fn('lower', Sequelize.col('name')),
+        'isDeleted',
+        'associationId',
+      ], {
+        indexName: 'TagUniqueLowercaseNameIsDeletedAssociationId',
+        indicesType: 'UNIQUE',
+      }))
+      .then(() => qi.removeIndex('Users', ['name', 'isDeleted']))
+      .then(() => qi.addIndex('Users',
+        [Sequelize.fn('lower', Sequelize.col('name')), 'isDeleted'],
+        {
+          indexName: 'UserUniqueLowercaseNameIsDeleted',
+          indicesType: 'UNIQUE',
+        }
+      ))
+      .then(() => qi.removeIndex('Users', ['email']))
+      .then(() => qi.addIndex('Users',
+        [Sequelize.fn('lower', Sequelize.col('email'))],
+        { indexName: 'UserLowercaseEmail' })));
   }, // up
 
-  down: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeIndex('Aspects',
-        'AspectUniqueLowercaseNameIsDeleted')
-      .then(() => {
-        return queryInterface.addIndex('Aspects', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Lenses',
-          'LensUniqueLowercaseNameIsDeleted');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Lenses', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Perspectives',
-          'PerspectiveUniqueLowercaseNameIsDeleted');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Perspectives', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Profiles',
-          'ProfileUniqueLowercaseNameIsDeleted');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Profiles', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Subjects',
-          'SubjectUniqueLowercaseAbsolutePathIsDeleted');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Subjects', ['absolutePath', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Tags',
-          'TagUniqueLowercaseNameIsDeletedAssociationId');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Tags',
-          ['name', 'isDeleted', 'associationId']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Users',
-          'UserUniqueLowercaseNameIsDeleted');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Users', ['name', 'isDeleted']);
-      })
-      .then(() => {
-        return queryInterface.removeIndex('Users', 'UserLowercaseEmail');
-      })
-      .then(() => {
-        return queryInterface.addIndex('Users', ['email']);
-      });
-    });
+  down(qi /* , Sequelize */) {
+    return qi.sequelize.transaction(() =>
+      qi.removeIndex('Aspects', 'AspectUniqueLowercaseNameIsDeleted')
+      .then(() => qi.addIndex('Aspects', ['name', 'isDeleted']))
+      .then(() => qi.removeIndex('Lenses', 'LensUniqueLowercaseNameIsDeleted'))
+      .then(() => qi.addIndex('Lenses', ['name', 'isDeleted']))
+      .then(() => qi.removeIndex('Perspectives',
+        'PerspectiveUniqueLowercaseNameIsDeleted'))
+      .then(() => qi.addIndex('Perspectives', ['name', 'isDeleted']))
+      .then(() => qi.removeIndex('Profiles',
+        'ProfileUniqueLowercaseNameIsDeleted'))
+      .then(() => qi.addIndex('Profiles', ['name', 'isDeleted']))
+      .then(() => qi.removeIndex('Subjects',
+        'SubjectUniqueLowercaseAbsolutePathIsDeleted'))
+      .then(() => qi.addIndex('Subjects', ['absolutePath', 'isDeleted']))
+      .then(() => qi.removeIndex('Tags',
+        'TagUniqueLowercaseNameIsDeletedAssociationId'))
+      .then(() => qi.addIndex('Tags', ['name', 'isDeleted', 'associationId']))
+      .then(() => qi.removeIndex('Users', 'UserUniqueLowercaseNameIsDeleted'))
+      .then(() => qi.addIndex('Users', ['name', 'isDeleted']))
+      .then(() => qi.removeIndex('Users', 'UserLowercaseEmail'))
+      .then(() => qi.addIndex('Users', ['email'])));
   }, // down
 };
