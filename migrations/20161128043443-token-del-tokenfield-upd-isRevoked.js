@@ -5,38 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
+const TBL = 'Tokens';
 
 module.exports = {
-
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeColumn(
-        'Tokens',
-        'token'
-      ).then(() => queryInterface.renameColumn(
-        'Tokens',
-        'isDisabled',
-        'isRevoked'
-      ));
-    });
+  up(qi /* , Sequelize */) {
+    return qi.sequelize.transaction(() => qi.removeColumn(TBL, 'token')
+      .then(() => qi.renameColumn(TBL, 'isDisabled', 'isRevoked')));
   },
 
-  down: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.addColumn(
-        'Tokens',
-        'token',
-        {
-          type: Sequelize.STRING,
-          allowNull: false,
-          unique: true,
-        }
-      )
-      .then(() => queryInterface.renameColumn(
-        'Tokens',
-        'isRevoked',
-        'isDisabled'
-      ));
-    });
+  down(qi, Sequelize) {
+    return qi.sequelize.transaction(() => qi.addColumn(TBL, 'token', {
+      type: Sequelize.STRING,
+      allowNull: false,
+      unique: true,
+    })
+    .then(() => qi.renameColumn(TBL, 'isRevoked', 'isDisabled')));
   },
 };
