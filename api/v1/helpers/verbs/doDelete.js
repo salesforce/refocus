@@ -39,8 +39,8 @@ function doDelete(req, res, next, props) {
      * push it into the assocNames array
      */
     if (props.belongsToManyAssoc) {
-      Object.keys(props.belongsToManyAssoc).forEach((key) =>
-      assocNames.push(props.belongsToManyAssoc[key])
+      Object.keys(props.belongsToManyAssoc)
+      .forEach((key) => assocNames.push(props.belongsToManyAssoc[key])
     );
     }
 
