@@ -90,6 +90,23 @@ describe(`api: DELETE ${path}`, () => {
       });
     });
 
+    it('delete childless subject by absolutePath, different case',
+    (done) => {
+      api.delete(`${path}/${n.name.toLowerCase()}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect(bodyCheckIfDeleted)
+      .expect(notFound)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.absolutePath).to.equal(n.name);
+        done();
+      });
+    });
+
     it('delete childless subject by absolutePath', (done) => {
       api.delete(`${path}/${n.name}`)
       .set('Authorization', token)

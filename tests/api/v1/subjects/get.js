@@ -198,6 +198,20 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('GET with different case absolutePath succeeds', (done) => {
+    api.get(`${path}/${na.name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.absolutePath).to.equal(na.name);
+      done();
+    });
+  });
+
   it('GET returns parentAbsolutePath, from one level down', (done) => {
     api.get(`${path}/${us.id}`)
     .set('Authorization', token)

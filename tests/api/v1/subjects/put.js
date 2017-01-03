@@ -19,6 +19,9 @@ const u = require('./utils');
 const expect = require('chai').expect;
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
+const ZERO = 0;
+const ONE = 1;
+const TWO = 2;
 
 describe(`api: PUT ${path}`, () => {
   let token;
@@ -32,9 +35,9 @@ describe(`api: PUT ${path}`, () => {
   };
   const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
 
-  let i0 = 0;
-  let i1 = 0;
-  let i0a = 0;
+  let i0 = ZERO;
+  let i1 = ZERO;
+  let i0a = ZERO;
 
   function childCheckIfPut(res) {
     const errors = [];
@@ -50,7 +53,7 @@ describe(`api: PUT ${path}`, () => {
       errors.push(new Error('isPublished should be true'));
     }
 
-    if (res.body.isDeleted > 0) {
+    if (res.body.isDeleted > ZERO) {
       errors.push(new Error('isDeleted should be zero'));
     }
 
@@ -73,7 +76,7 @@ describe(`api: PUT ${path}`, () => {
       errors.push(new Error(`absolutePath should be ${p0.name}`));
     }
 
-    if (res.body.isDeleted > 0) {
+    if (res.body.isDeleted > ZERO) {
       errors.push(new Error('isDeleted should be zero'));
     }
 
@@ -94,12 +97,12 @@ describe(`api: PUT ${path}`, () => {
       ],
     })
     .then((s) => {
-      if (!s || !s.children || s.children.length !== 2) {
+      if (!s || !s.children || s.children.length !== TWO) {
         errors.push(new Error('Expecting 2 children'));
       } else {
-        for (var i = 0; i < s.children.length; i++) {
+        for (let i = 0; i < s.children.length; i++) {
           const k = s.children[i];
-          if (k.absolutePath.indexOf(p0.name) !== 0) {
+          if (k.absolutePath.indexOf(p0.name) !== ZERO) {
             errors.push(new Error('Child absolutePath should have been updated'));
           }
         }
@@ -126,13 +129,13 @@ describe(`api: PUT ${path}`, () => {
       ],
     })
     .then((s) => {
-      if (s.children.length !== 2) {
+      if (s.children.length !== TWO) {
         errors.push(new Error('Expecting 2 children'));
       }
 
-      for (var i = 0; i < s.children.length; i++) {
+      for (let i = 0; i < s.children.length; i++) {
         const k = s.children[i];
-        if (k.absolutePath.indexOf(`${n0a.name}.${n0.name}`) !== 0) {
+        if (k.absolutePath.indexOf(`${n0a.name}.${n0.name}`) !== ZERO) {
           errors.push(new Error('Child absolutePath should have been updated'));
         }
       }
@@ -175,6 +178,26 @@ describe(`api: PUT ${path}`, () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('puts with different absolutePath case succeeeds', (done) => {
+    const updatedName = n0.name.toLowerCase();
+    api.put(`${path}/${n0.name}`)
+    .set('Authorization', token)
+    .send({
+      name: updatedName,
+      // need isPublished here since descendants are published
+      isPublished: n0.isPublished,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.absolutePath).to.equal(updatedName);
+      done();
+    });
+  });
 
   it('puts a child', (done) => {
     api.put(`${path}/${i1}`)
@@ -269,7 +292,7 @@ describe('api: PUT subjects with related links', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'link1');
     })
     .end((err /* , res */) => {
@@ -291,7 +314,7 @@ describe('api: PUT subjects with related links', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'link1');
     })
     .end((err /* , res */) => {
@@ -316,7 +339,7 @@ describe('api: PUT subjects with related links', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(2);
+      expect(res.body.relatedLinks).to.have.length(TWO);
       for (let k = 0; k < res.body.relatedLinks.length; k++) {
         expect(res.body.relatedLinks[k]).to.have.property('name', 'link' + k);
       }
@@ -333,7 +356,7 @@ describe('api: PUT subjects with related links', () => {
 
 describe('api: PUT subjects with tags', () => {
   let token;
-  let subjectId = 0;
+  let subjectId = ZERO;
   const n0 = { name: `${tu.namePrefix}Canada` };
 
   before((done) => {
@@ -368,7 +391,7 @@ describe('api: PUT subjects with tags', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.tags).to.have.length(1);
+      expect(res.body.tags).to.have.length(ONE);
       expect(res.body.tags).to.deep.equal(toPut.tags);
     })
     .end((err /* , res */) => {
@@ -391,7 +414,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect((res) => {
       expect(res.body).to.property('errors');
-      expect(res.body.errors[0].type)
+      expect(res.body.errors[ZERO].type)
         .to.equal(tu.schemaValidationErrorName);
     })
     .end((err /* , res */) => {
@@ -451,7 +474,7 @@ describe('api: PUT subjects with tags', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.tags).to.have.length(1);
+      expect(res.body.tags).to.have.length(ONE);
       expect(res.body.tags).to.deep.equal(toPut.tags);
     })
     .end((err /* , res */) => {
@@ -505,7 +528,7 @@ describe('api: PUT subjects with tags', () => {
 
       Subject.findOne({ where: { id: subjectId } })
       .then((subj) => {
-        expect(subj.tags).to.have.length(2);
+        expect(subj.tags).to.have.length(TWO);
         expect(subj.tags).to.have.members(toPut.tags);
       });
       done();
@@ -523,7 +546,7 @@ describe('api: PUT subjects with tags', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.tags).to.have.length(0);
+      expect(res.body.tags).to.have.length(ZERO);
     })
     .end((err /* , res */) => {
       if (err) {
@@ -532,7 +555,7 @@ describe('api: PUT subjects with tags', () => {
 
       Subject.findOne({ where: { id: subjectId } })
       .then((subj) => {
-        expect(subj.tags).to.have.length(0);
+        expect(subj.tags).to.have.length(ZERO);
       });
       done();
     });
