@@ -120,7 +120,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
-      isInHerokuPrivateSpace: pe.IS_IN_HEROKU_PRIVATE_SPACE || false,
       redisUrl: pe.REDIS_URL,
       ipWhitelist: iplist,
       dialect: 'postgres',

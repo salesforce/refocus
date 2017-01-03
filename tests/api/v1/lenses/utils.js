@@ -16,8 +16,10 @@ const path = require('path');
 const fs = require('fs');
 
 const testStartTime = new Date();
+const name = `${tu.namePrefix}testLensName`;
 
 module.exports = {
+  name,
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       const willSendthis = fs.readFileSync(
@@ -25,7 +27,7 @@ module.exports = {
         '../apiTestsUtils/lens.zip')
       );
       const lens = {
-        name: `${tu.namePrefix}testLensName`,
+        name,
         sourceName: 'testSourceLensName',
         description: 'test Description',
         sourceDescription: 'test Source Description',
