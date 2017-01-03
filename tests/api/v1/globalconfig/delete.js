@@ -92,6 +92,23 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   it('sucessful delete by predefined admin user', (done) => {
+    const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
+    api.delete(path + '/' + config.toLowerCase())
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.key).to.equal(config);
+      expect(res.body).to.have.property('value', 'def');
+      expect(res.body.isDeleted).to.be.greaterThan(0);
+      done();
+    });
+  });
+
+  it('sucessful delete by predefined admin user', (done) => {
     api.delete(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)

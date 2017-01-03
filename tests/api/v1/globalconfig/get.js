@@ -69,6 +69,22 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('sucessful get by non-admin user with different case', (done) => {
+    const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
+    api.get(path + '/' + config.toLowerCase())
+    .set('Authorization', testUserToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.key).to.equal(config);
+      expect(res.body).to.have.property('value', 'def');
+      done();
+    });
+  });
+
   it('sucessful get by non-admin user', (done) => {
     api.get(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
     .set('Authorization', testUserToken)
