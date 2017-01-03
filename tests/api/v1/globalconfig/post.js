@@ -20,10 +20,12 @@ const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
   let testUserToken;
   let token;
+  const key = `${tu.namePrefix}_GLOBAL_CONFIG_ABC`;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
@@ -62,11 +64,57 @@ describe(`api: POST ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  describe('post duplicate fails', () => {
+    const DUMMY = {
+      key: `${tu.namePrefix}_DUMMY_KEY`,
+    };
+
+    beforeEach((done) => {
+      tu.db.GlobalConfig.create(DUMMY)
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+
+    it('with identical name', (done) => {
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(DUMMY)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(DUMMY)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+  });
+
   it('forbidden if not admin user', (done) => {
     api.post(path)
     .set('Authorization', testUserToken)
     .send({
-      key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+      key,
       value: 'def',
     })
     .expect(constants.httpStatus.FORBIDDEN)
@@ -86,7 +134,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', predefinedAdminUserToken)
     .send({
-      key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+      key,
       value: 'def',
     })
     .expect(constants.httpStatus.CREATED)
@@ -94,8 +142,7 @@ describe(`api: POST ${path}`, () => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('key',
-          `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
+        expect(res.body.key).to.equal(key);
         expect(res.body).to.have.property('value', 'def');
         done();
       }
