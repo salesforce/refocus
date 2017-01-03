@@ -79,7 +79,7 @@ module.exports = {
     // create token object in db
     return helper.model.create({
       name: tokenName,
-      createdby: req.user.id,
+      createdBy: req.user.id,
     })
     .then((createdToken) => {
       const tokenObj = u.responsify(createdToken, helper, req.method);
