@@ -18,7 +18,7 @@ module.exports = {
   execute() {
     if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
       const jobWrapper = require('../../jobQueue/jobWrapper');
-      const jobType = require('../../jobQueue/setup');
+      const jobType = require('../../jobQueue/setup').jobType;
       jobWrapper.createJob(jobType.SAMPLE_TIMEOUT);
       return Promise.resolve(true);
     }
