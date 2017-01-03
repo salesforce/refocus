@@ -29,6 +29,7 @@ describe(`api: DELETE ${path}`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
 
   before((done) => {
     tu.createToken()
@@ -78,7 +79,7 @@ describe(`api: DELETE ${path}`, () => {
   after(tu.forceDeleteUser);
 
   it('forbidden if not admin user', (done) => {
-    api.delete(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
+    api.delete(path + '/' + config)
     .set('Authorization', testUserToken)
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
@@ -93,8 +94,8 @@ describe(`api: DELETE ${path}`, () => {
     });
   });
 
-  it('sucessful delete by predefined admin user', (done) => {
-    const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
+  it('sucessful delete by predefined admin user with ' +
+  'lowercase key', (done) => {
     api.delete(path + '/' + config.toLowerCase())
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
@@ -111,7 +112,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   it('sucessful delete by predefined admin user', (done) => {
-    api.delete(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
+    api.delete(path + '/' + config)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

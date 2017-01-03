@@ -80,7 +80,6 @@ describe(`api: GET ${path}`, () => {
       }
 
       expect(res.body.key).to.equal(config);
-      expect(res.body).to.have.property('value', 'def');
       done();
     });
   });
