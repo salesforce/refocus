@@ -5,45 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 'use strict';
-
 const constants = require('../db/constants');
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up(qi, Sequelize) {
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
 
       Example:
-      return queryInterface.createTable('users', { id: Sequelize.INTEGER });
+      return qi.createTable('users', { id: Sequelize.INTEGER });
     */
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.addColumn(
-        'Aspects',
-        'tags',
-        {
-          type: Sequelize.ARRAY(Sequelize.STRING(constants.fieldlen.normalName)),
-          allowNull: true,
-          defaultValue: constants.defaultArrayValue
-        }
-      );
-    });
+    return qi.sequelize.transaction(() => qi.addColumn('Aspects', 'tags', {
+      type: Sequelize.ARRAY(Sequelize.STRING(constants.fieldlen.normalName)),
+      allowNull: true,
+      defaultValue: constants.defaultArrayValue,
+    }));
   },
-  down: function (queryInterface, Sequelize) {
+
+  down(qi /* , Sequelize */) {
     // /*
     //   Add reverting commands here.
     //   Return a promise to correctly handle asynchronicity.
 
     //   Example:
-    //   return queryInterface.dropTable('users');
+    //   return qi.dropTable('users');
     // */
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeColumn(
-        'Aspects',
-        'tags'
-      );
-    });
+    return qi.sequelize.transaction(() => qi.removeColumn('Aspects', 'tags'));
   },
 };
