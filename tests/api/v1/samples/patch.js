@@ -19,6 +19,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: PATCH ${path}`, () => {
   let sampleId;
@@ -108,6 +109,23 @@ describe(`api: PATCH ${path}`, () => {
         done();
       });
     });
+
+    it('updates case sensitive name successfully', (done) => {
+      const name = u.sampleName;
+      const updatedName = name.toUpperCase();
+      api.patch(`${path}/${name}`)
+      .set('Authorization', token)
+      .send({ name: updatedName })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(updatedName);
+        done();
+      });
+    });
   });
 
   //
@@ -163,7 +181,7 @@ describe(`api: PATCH ${path}`, () => {
           }
 
           expect(res.body.relatedLinks).to.have.length(2);
-          for (let i = 0; i < res.body.relatedLinks.length; i++) {
+          for (let i = ZERO; i < res.body.relatedLinks.length; i++) {
             /*
              * Link names are starting from link0 to link1 so adding the index
              * at the end to get the name dynamically.
@@ -188,9 +206,9 @@ describe(`api: PATCH ${path}`, () => {
       })
       .expect((res) => {
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[0].message)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
-        expect(res.body.errors[0].source)
+        expect(res.body.errors[ZERO].source)
           .to.contain('relatedLinks');
       })
       .end((err/* , res */) => {

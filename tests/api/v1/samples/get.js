@@ -18,6 +18,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Sample = tu.db.Sample;
 const path = '/v1/samples';
+const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: GET ${path}`, () => {
   let sampleId;
@@ -50,11 +52,11 @@ describe(`api: GET ${path}`, () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      if (tu.gotExpectedLength(res.body, 0)) {
+      if (tu.gotExpectedLength(res.body, ZERO)) {
         throw new Error('expecting sample');
       }
 
-      if (res.body[0].status !== constants.statuses.Critical) {
+      if (res.body[ZERO].status !== constants.statuses.Critical) {
         throw new Error('Incorrect Status Value');
       }
     })
@@ -72,7 +74,7 @@ describe(`api: GET ${path}`, () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      if (tu.gotExpectedLength(res.body, 0)) {
+      if (tu.gotExpectedLength(res.body, ZERO)) {
         throw new Error('expecting sample');
       }
 
@@ -85,6 +87,21 @@ describe(`api: GET ${path}`, () => {
         done(err);
       }
 
+      done();
+    });
+  });
+
+  it('by name is case in-sensitive', (done) => {
+    const name = u.sampleName;
+    api.get(`${path}/${name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(name);
       done();
     });
   });
