@@ -18,6 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/samples';
 const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
   let sampleToPost;
@@ -43,6 +44,46 @@ describe(`api: POST ${path}`, () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  describe('post duplicate fails', () => {
+    beforeEach((done) => {
+      tu.db.Sample.create(sampleToPost)
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('with identical name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send(sampleToPost)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send(sampleToPost)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+  });
 
   it('basic post /samples', (done) => {
     api.post(path)
@@ -100,9 +141,9 @@ describe(`api: POST ${path}`, () => {
     .send(sampleToPost)
     .expect((res) => {
       expect(res.body).to.have.property('errors');
-      expect(res.body.errors[0].message)
+      expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
-      expect(res.body.errors[0].source)
+      expect(res.body.errors[ZERO].source)
         .to.contain('relatedLinks');
     })
     .end((err /* , res */) => {
