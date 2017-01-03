@@ -27,6 +27,7 @@
     "dropdb": "node db/createOrDropDb.js --drop",
     "initdb": "node db/createOrDropDb.js --init",
     "jscs": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue migrations realtime tests utils view worker",
+    "jscs-enforce": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue realtime utils worker",
     "lint": "eslint view/admin",
     "migratedb": "node db/migrate.js",
     "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && node scripts/moveSocket.js",
