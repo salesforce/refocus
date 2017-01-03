@@ -176,6 +176,24 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('patch by name with different case succeeds',
+    (done) => {
+    const updatedName = n0.name.toLowerCase();
+    const reqBody = Object.assign(n0, { name: updatedName });
+    api.patch(`${path}/${n0.name}`)
+    .set('Authorization', token)
+    .send(reqBody)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(updatedName);
+      done();
+    });
+  });
+
   it('patch relatedLinks', (done) => {
     const relatedLinks = [{ name: 'link1', url: 'https://samples.com' }];
     p1.relatedLinks = relatedLinks;
