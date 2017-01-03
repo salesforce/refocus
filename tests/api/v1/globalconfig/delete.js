@@ -20,6 +20,8 @@ const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
   let testUserToken;
@@ -83,7 +85,7 @@ describe(`api: DELETE ${path}`, () => {
       if (err) {
         done(err);
       } else {
-        expect(res.body.errors).to.have.length(1);
+        expect(res.body.errors).to.have.length(ONE);
         expect(res.body.errors).to.have.deep.property('[0].type',
           'ForbiddenError');
         done();
@@ -103,7 +105,7 @@ describe(`api: DELETE ${path}`, () => {
 
       expect(res.body.key).to.equal(config);
       expect(res.body).to.have.property('value', 'def');
-      expect(res.body.isDeleted).to.be.greaterThan(0);
+      expect(res.body.isDeleted).to.be.greaterThan(ZERO);
       done();
     });
   });
@@ -119,7 +121,7 @@ describe(`api: DELETE ${path}`, () => {
         expect(res.body).to.have.property('key',
           `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
         expect(res.body).to.have.property('value', 'def');
-        expect(res.body.isDeleted).to.be.greaterThan(0);
+        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         done();
       }
     });

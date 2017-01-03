@@ -63,7 +63,7 @@ describe(`api: PATCH ${path}`, () => {
         value: 'def',
       })
       .expect(constants.httpStatus.CREATED)
-      .end((err3 /*, res3 */) => {
+      .end((err3 /*, res3 */ ) => {
         if (err3) {
           done(err3);
         }
@@ -114,7 +114,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   it('sucessful patch by predefined user with different case',
-    (done) => {
+  (done) => {
     const updatedConfig = GLOBAL_CONFIG.toLowerCase();
     api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', predefinedAdminUserToken)
