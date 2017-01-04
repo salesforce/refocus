@@ -211,7 +211,6 @@ function whereClauseForNameOrId(nameOrId) {
  */
 function whereClauseForNameInArr(arr) {
   const whr = {};
-
   whr.name = {};
   whr.name[constants.SEQ_IN] = arr;
   return whr;
@@ -536,6 +535,50 @@ function findByKey(props, params, extraAttributes) {
   return findByName(scopedModel, key, opts);
 } // findByKey
 
+/**
+ * Finds the associated instances of a given model
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Object} params - The request params
+ * @param  {String} association - Name of the associated model
+ * @param  {[type]} options - An optional object to apply a "where" clause or
+ * "scopes" to the associated model
+ * @returns {Promise} which resolves to the associated record found or rejects
+ * with ResourceNotFoundError if the given model(parent record) is not found.
+ */
+function findAssociatedInstances(props, params, association, options) {
+  return new Promise((resolve, reject) => {
+    findByKey(props, params)
+    .then((o) => {
+      if (o) {
+        const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
+        o[getAssocfuncName](options)
+        .then((assocArry) => resolve(assocArry));
+      }
+    })
+    .catch((err) => reject(err));
+  });
+}
+
+/**
+ * Deletes all the "belongs to many" associations of the model instance. The
+ * assocNames contains the name of the associations that are to be deleted.
+ * @param {Model} modelInst - The DB model instance that need to have all its
+ *  association removed
+ * @param {Array} assocNames - The name of the associations that are associated
+ * with the model
+ *
+ */
+function deleteAllAssociations(modelInst, assocNames) {
+  let functionName;
+  assocNames.forEach((assocName) => {
+    functionName = `set${capitalizeFirstLetter(assocName)}`;
+
+    // an empty array needs to be passed to the "setAssociations" function
+    // to delete all the associations.
+    modelInst[functionName]([]);
+  });
+} // deleteAllAssociations
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -566,29 +609,7 @@ module.exports = {
     return o;
   }, // responsify
 
-  /**
-   * Finds the associated instances of a given model
-   * @param {Object} props - The helpers/nouns module for the given DB model
-   * @param {Object} params - The request params
-   * @param  {String} association - Name of the associated model
-   * @param  {[type]} options - An optional object to apply a "where" clause or
-   * "scopes" to the associated model
-   * @returns {Promise} which resolves to the associated record found or rejects
-   * with ResourceNotFoundError if the given model(parent record) is not found.
-   */
-  findAssociatedInstances(props, params, association, options) {
-    return new Promise((resolve, reject) => {
-      findByKey(props, params)
-      .then((o) => {
-        if (o) {
-          const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
-          o[getAssocfuncName](options)
-          .then((writers) => resolve(writers));
-        }
-      })
-      .catch((err) => reject(err));
-    });
-  },
+  findAssociatedInstances,
 
   findByKey,
 
@@ -617,6 +638,8 @@ module.exports = {
     err.resource = modelName;
     next(err);
   },
+
+  deleteAllAssociations,
 
   looksLikeId,
 

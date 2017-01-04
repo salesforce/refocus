@@ -61,6 +61,7 @@ describe('api: subjects: get writers}', () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

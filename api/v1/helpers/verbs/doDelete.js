@@ -33,6 +33,20 @@ function doDelete(req, res, next, props) {
       logAPI(req, props.modelName, o);
     }
 
+    const assocNames = [];
+
+    /**
+     * If props.belongsToManyAssoc defined, take the values of the object and
+     * push it into the assocNames array
+     */
+    if (props.belongsToManyAssoc) {
+      Object.keys(props.belongsToManyAssoc)
+      .forEach((key) => assocNames.push(props.belongsToManyAssoc[key])
+    );
+    }
+
+    // when a resource is deleted, delete all its associations too
+    u.deleteAllAssociations(o, assocNames);
     return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
