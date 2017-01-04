@@ -85,4 +85,22 @@ describe('db: Token: create', () => {
     })
     .catch(done);
   });
+
+  it('Expect error on case-insensitive name/user dupe', (done) => {
+    Token.create({
+      name: tokenName,
+      createdBy: userObj.id,
+    })
+    .then((createdToken) => {
+      return Token.create({
+        name: createdToken.name.toLowerCase(),
+        createdBy: userObj.id,
+      });
+    })
+    .then(done)
+    .catch((err) => {
+      expect(err).to.have.property('name', 'SequelizeUniqueConstraintError');
+      done();
+    });
+  });
 });

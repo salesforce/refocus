@@ -9,78 +9,89 @@
 /**
  * view/tokens/new.js
  *
- * Posts the token with authorization token.
- * CHanges DOM to show user the received token.
+ * Creates a new token for the current user and display the token to the user.
  */
-
 import request from 'superagent';
 const u = require('../utils');
 const Authorization = u.getCookie('Authorization');
 
 // set up constants
+const PATH = '/v1/tokens';
+const SUCCESS_MSG = 'Copy and paste this new token somewhere safe--you will ' +
+  'not be able to see it again!';
 const input = document.loginform.elements;
 const errorInfo = document.getElementById('errorInfo');
 const successInfo = document.getElementById('successInfo');
 const tokenInfo = document.getElementById('tokenInfo');
+const tokenName = document.createElement('p');
+const tokenValue = document.createElement('p');
+tokenInfo.appendChild(tokenName);
+tokenInfo.appendChild(tokenValue);
 const formGroup = document.getElementById('formGroup');
-toggleVisibility(tokenInfo, false);
 successInfo.innerHTML = 'Max length 60 characters';
 
-document.loginform.addEventListener('submit', (evt) => {
-  const name = input.name.value;
-  evt.preventDefault();
-  const jsonData = { name };
-  post(jsonData, '/v1/tokens');
-});
-
 /**
- * Toggles DOM element visibility in-place, based on boolean input
- * @param {Boolean} visibility If true, set the element to visible.
- * Else hide element
+ * Toggles DOM element visibility in-place based on boolean input.
+ *
+ * @param {Object} elem - The elememt to show/hide.
+ * @param {Boolean} visible - The visibility state to set (true => show,
+ *  false => hidden).
  */
-function toggleVisibility(elem, visibility) {
+function toggleVisibility(elem, visible) {
   // sets className to show or hidden
-  elem.className = visibility ? 'show' : 'hidden';
+  elem.className = visible ? 'show' : 'hidden';
 }
 
 /**
- * Post request with given JSON, to given endpoint
- * Show token if succeeded, else display error.
- * @param {Object} jsonData JSON object payload
- * @param {String} address API endpoint
+ * Render error message. If the response has a JSON "text" attribute which
+ * contains an array of errors, display the error type and message for the
+ * first item in that array, otherwise just display a generic message.
+ *
+ * @param {Object} res - The response object
  */
-function post(jsonData, address) {
-  request
-  .post(address)
-  .send(jsonData)
+function handleError(res) {
+  try {
+    const e = JSON.parse(res.text).errors.shift();
+    errorInfo.innerHTML = `${e.type} for "${e.value}": ${e.message}.`;
+  } catch (ex) {
+    errorInfo.innerHTML = 'An unexpected error occurred.';
+  }
+
+  toggleVisibility(errorInfo, true);
+  toggleVisibility(successInfo, false);
+  toggleVisibility(tokenInfo, false);
+} // handleError
+
+/**
+ * Send a POST /v1/tokens request with given payload. Display the token on
+ * success or error message on failure.
+ *
+ * @param {Object} data - The request payload. Expecting JSON with a "name"
+ *  attribute.
+ */
+function post(data) {
+  request.post(PATH)
+  .send(data)
   .set('Authorization', Authorization)
-  .end((error, res) => {
-    if (error) {
-      toggleVisibility(errorInfo, true);
-      errorInfo.innerHTML = 'An unexpected error occurred';
-      toggleVisibility(successInfo, false);
-      toggleVisibility(tokenInfo, false);
+  .end((err, res) => {
+    if (err) {
+      handleError(res);
     } else {
       toggleVisibility(successInfo, true);
-      successInfo.innerHTML = 'Copy and paste your new token ' +
-        'somewhere safe--you will not be able to see it again!';
-
+      successInfo.innerHTML = SUCCESS_MSG;
       toggleVisibility(tokenInfo, true);
-      const para_name = document.createElement("p");
-      const para_value = document.createElement("p");
-      const token_name = document.createTextNode("Token name: " + res.body.name);
-      const token_value = document.createTextNode("Token value: " + res.body.token);
-      para_name.appendChild(token_name);
-      para_value.appendChild(token_value);
-
-      tokenInfo.appendChild(para_name);
-      tokenInfo.appendChild(para_value);
-
+      tokenName.innerHTML = 'Token name: ' + res.body.name;
+      tokenValue.innerHTML = 'Token value: ' + res.body.token;
       toggleVisibility(errorInfo, false);
-      // add margin-top
-      toggleVisibility(formGroup, true);
-      // reset value
-      input.name.value = '';
+      toggleVisibility(formGroup, true); // add margin-top
+      input.name.value = ''; // reset value
     }
   });
 }
+
+toggleVisibility(tokenInfo, false); // default hidden
+
+document.loginform.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+  post({ name: input.name.value });
+});
