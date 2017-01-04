@@ -1,17 +1,13 @@
 'use strict';
 
+const TBL = 'Samples';
+
 module.exports = {
-  up: function (queryInterface, Sequelize) {
-    queryInterface.removeIndex('Samples', 'SampleName');
+  up(qi /* , Sequelize */) {
+    qi.removeIndex(TBL, 'SampleName');
   },
 
-  down: function (queryInterface, Sequelize) {
-    queryInterface.addIndex(
-      'Samples',
-      ['name'],
-      {
-        indexName: 'SampleName',
-      }
-    );
-  }
+  down(qi /* , Sequelize */) {
+    qi.addIndex(TBL, ['name'], { indexName: 'SampleName' });
+  },
 };
