@@ -15,6 +15,7 @@ module.exports = {
   httpStatus: {
     OK: 200,
     CREATED: 201,
+    NO_CONTENT: 204,
     REDIRECT: 301,
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,

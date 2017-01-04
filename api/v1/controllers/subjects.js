@@ -13,6 +13,10 @@
 
 const helper = require('../helpers/nouns/subjects');
 const userProps = require('../helpers/nouns/users');
+const doDeleteAllAssoc =
+                    require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc =
+                    require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -119,6 +123,34 @@ module.exports = {
   },
 
   /**
+   * DELETE /subjects/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteSubjectWriters(req, res, next) {
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+  },
+
+  /**
+   * DELETE /subjects/{keys}/writers/userNameOrId
+   *
+   * Deletes a user from an perspective’s list of authorized writers.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteSubjectWriter(req, res, next) {
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
+  },
+
+  /**
    * GET /subjects
    *
    * Finds zero or more subjects and sends them back in the response.
@@ -185,7 +217,7 @@ module.exports = {
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
@@ -208,7 +240,7 @@ module.exports = {
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
-      params, helper.userModelAssociationName, options)
+      params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
       // throw ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
