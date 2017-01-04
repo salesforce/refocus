@@ -19,7 +19,6 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doGet = require('../helpers/verbs/doGet');
 const doFind = require('../helpers/verbs/doFind');
-const apiErrors = require('../apiErrors');
 const u = require('../helpers/verbs/utils');
 const jwtUtil = require('../../../utils/jwtUtil');
 
@@ -42,13 +41,6 @@ function isAdmin(req) {
   });
 } // isAdmin
 
-function forbidden(next) {
-  const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
-  });
-  u.handleError(next, err, helper.modelName);
-} // forbidden
-
 module.exports = {
 
   /**
@@ -67,11 +59,11 @@ module.exports = {
       if (ok) {
         doDelete(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 
@@ -119,11 +111,11 @@ module.exports = {
       if (ok) {
         doPatch(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 
@@ -143,11 +135,11 @@ module.exports = {
       if (ok) {
         doPost(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 

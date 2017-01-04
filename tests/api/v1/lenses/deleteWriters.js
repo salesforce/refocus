@@ -24,6 +24,7 @@ const writerPath = '/v1/lenses/{key}/writers/{userNameOrId}';
 describe('api: lens: delete writer(s)', () => {
   let lens;
   let token;
+  let otherValidToken;
   let user;
 
   beforeEach((done) => {
@@ -54,6 +55,11 @@ describe('api: lens: delete writer(s)', () => {
       lens.addWriter(secUsr);
       user = secUsr;
     })
+    .then(() => tu.createThirdUser())
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
+    })
     .then(() => done())
     .catch((err) => done(err));
   });
@@ -69,6 +75,7 @@ describe('api: lens: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', lens.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -86,6 +93,32 @@ describe('api: lens: delete writer(s)', () => {
     });
   });
 
+  it('return 403 when a token is not passed to the header', (done) => {
+    api.delete(writersPath.replace('{key}', lens.id))
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 when deleteting writers using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writersPath.replace('{key}', lens.id))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('remove write permission using username', (done) => {
     api.delete(writerPath.replace('{key}', lens.id)
       .replace('{userNameOrId}', user.name))
@@ -95,6 +128,7 @@ describe('api: lens: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', lens.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -121,6 +155,7 @@ describe('api: lens: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', lens.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -147,6 +182,7 @@ describe('api: lens: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', lens.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -161,6 +197,21 @@ describe('api: lens: delete writer(s)', () => {
       return done();
     });
       return null;
+    });
+  });
+
+  it('return 403 when deleteting a writer using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writerPath.replace('{key}', lens.id)
+      .replace('{userNameOrId}', 'invalidUserName'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
     });
   });
 });

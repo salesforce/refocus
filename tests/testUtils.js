@@ -105,6 +105,11 @@ module.exports = {
       })
     );
   },
+  // create a token with the given userName
+  createTokenFromUserName(usrName) {
+    return jwtUtil.createToken(usrName, usrName);
+  }, // createToken
+
 
   // create user and corresponding token to be used in api tests.
   createToken() {
@@ -140,4 +145,7 @@ module.exports = {
   toggleOverride(key, value) {
     featureToggles._toggles[key] = value;
   }, // toggleOverride
+
+  // username used to create the token in all the tests
+  userName,
 }; // exports

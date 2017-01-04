@@ -12,11 +12,24 @@
 'use strict'; // eslint-disable-line strict
 
 const jwt = require('jsonwebtoken');
-const u = require('../api/v1/helpers/verbs/utils');
 const apiErrors = require('../api/v1/apiErrors');
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const User = require('../db/index').User;
+
+/**
+ * Attaches the resource type to the error and passes it on to the next
+ * handler.
+ *
+ * @param {Function} next - The next middleware function in the stack
+ * @param {Error} err - The error to handle
+ * @param {String} modelName - The DB model name, used to disambiguate field
+ *  names
+ */
+function handleError(next, err, modelName) {
+  err.resource = modelName;
+  next(err);
+}
 
 /**
  * create and handle Invalid Token error
@@ -26,7 +39,7 @@ function handleInvalidToken(cb) {
   const err = new apiErrors.ForbiddenError({
     explanation: 'Invalid Token.',
   });
-  u.handleError(cb, err, 'ApiToken');
+  handleError(cb, err, 'ApiToken');
 }
 
 /**
@@ -62,7 +75,7 @@ function verifyToken(req, cb) {
     const err = new apiErrors.ForbiddenError({
       explanation: 'No authorization token was found',
     });
-    u.handleError(cb, err, 'ApiToken');
+    handleError(cb, err, 'ApiToken');
   }
 }
 

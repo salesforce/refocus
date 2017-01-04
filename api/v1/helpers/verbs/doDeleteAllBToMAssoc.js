@@ -30,10 +30,19 @@ const httpStatus = require('../../constants').httpStatus;
  */
 function doDeleteAllBToMAssoc(req, res, next, props, assocName) { // eslint-disable-line
   const params = req.swagger.params;
+  let modelInst;
   u.findByKey(props, params)
   .then((o) => {
-    u.deleteAllAssociations(o, [assocName]);
-    res.status(httpStatus.NO_CONTENT).json();
+    modelInst = o;
+    return u.isWritable(req, o);
+  })
+  .then((ok) => {
+    if (ok) {
+      u.deleteAllAssociations(modelInst, [assocName]);
+      res.status(httpStatus.NO_CONTENT).json();
+    } else {
+      u.forbidden(next);
+    }
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

@@ -918,6 +918,8 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -1256,7 +1258,7 @@ paths:
         401:
           $ref: "#/responses/401"
         403:
-          $ref: "#/responses/404"
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -1696,6 +1698,8 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -2341,6 +2345,8 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -4483,6 +4489,8 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
