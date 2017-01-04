@@ -46,7 +46,7 @@ describe('api: lens: delete writer(s)', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) =>
       lens.addWriter(usr))
     .then(() =>

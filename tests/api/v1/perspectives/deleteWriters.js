@@ -55,7 +55,7 @@ describe('api: perspectives: delete writer(s)', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => perspective.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
