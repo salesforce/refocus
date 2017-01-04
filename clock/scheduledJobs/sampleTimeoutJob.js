@@ -13,18 +13,29 @@
  * a job, otherwise just executes work directly in this process.
  */
 const featureToggles = require('feature-toggles');
+const dbSample = require('../../db/index').Sample;
+
+/**
+ * Execute the call to check for sample timeouts.
+ *
+ * @returns {Promise}
+ */
+function execute() {
+  return dbSample.doTimeout();
+} // execute
 
 module.exports = {
-  execute() {
+  enqueue() {
     if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
       const jobWrapper = require('../../jobQueue/jobWrapper');
       const jobType = require('../../jobQueue/setup').jobType;
-      jobWrapper.createJob(jobType.SAMPLE_TIMEOUT);
+      jobWrapper.createJob(jobType.SAMPLE_TIMEOUT, {});
       return Promise.resolve(true);
     }
 
-    const dbSample =
-      require('../../db/index').Sample; // eslint-disable-line global-require
-    return dbSample.doTimeout();
+    // If not using worker process, execute directly;
+    return execute();
   },
+
+  execute,
 };

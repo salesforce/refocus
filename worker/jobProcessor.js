@@ -19,7 +19,6 @@ const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
 const workerStarted = 'Worker Process Started';
-const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
 
 console.log(workerStarted); // eslint-disable-line no-console
 
@@ -35,6 +34,7 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
 // Process Sample Timeout Operations
 jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
+  const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
   const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
   console.log(msg); // eslint-disable-line no-console
   sampleTimeoutJob.execute()

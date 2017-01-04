@@ -26,4 +26,4 @@ const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 /*
  * Add all the scheduled work here.
  */
-setInterval(sampleTimeoutJob.execute, env.checkTimeoutIntervalMillis);
+setInterval(sampleTimeoutJob.enqueue, env.checkTimeoutIntervalMillis);
