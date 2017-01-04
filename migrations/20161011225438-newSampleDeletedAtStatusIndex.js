@@ -5,28 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
+const TBL = 'Samples';
 
 module.exports = {
-
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.addIndex(
-        'Samples',
-        [
-          'deletedAt',
-          'status',
-        ],
-        {
-          indexName: 'SampleStatusDeletedAt',
-        }
-      );
-    });
+  up(qi /* , Sequelize */) {
+    return qi.sequelize.transaction(() => qi.addIndex(TBL,
+      ['deletedAt', 'status'], { indexName: 'SampleStatusDeletedAt' }));
   },
 
-  down: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeIndex('Samples',
-        'SampleStatusDeletedAt');
-    });
-  }
+  down(qi /* , Sequelize */) {
+    return qi.sequelize.transaction(() =>
+      qi.removeIndex(TBL, 'SampleStatusDeletedAt'));
+  },
 };

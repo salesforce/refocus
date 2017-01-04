@@ -14,27 +14,25 @@
  * GlobalConfigs table will be created properly.
  */
 'use strict';
-const tableName = 'GlobalConfigs';
+const TBL = 'GlobalConfigs';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.describeTable(tableName)
-    .then((attributes) => {
-      return 'createdAt' in attributes;
-    })
+  up(qi /* , Sequelize */) {
+    return qi.describeTable(TBL)
+    .then((attributes) => ('createdAt' in attributes))
     .then((hasCreatedAtField) => {
       if (!hasCreatedAtField) {
-        return queryInterface.dropTable(tableName);
+        return qi.dropTable(TBL);
       }
 
       return true;
     });
   },
 
-  down: function (queryInterface, Sequelize) {
+  down(/* qi, Sequelize */) {
     /*
      * There is no "down" function defined in this migration, i.e. there is
      * nothing to undo here to restore the database to a desired state.
      */
-  }
+  },
 };

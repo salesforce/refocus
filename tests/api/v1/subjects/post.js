@@ -19,6 +19,7 @@ const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
+const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
   let token;
@@ -80,6 +81,50 @@ describe(`api: POST ${path}`, () => {
     }
 
     after(u.forceDelete);
+
+    describe('post duplicate fails', () => {
+      const DUMMY = { name: `${tu.namePrefix}DUMMY` };
+
+      beforeEach((done) => {
+        tu.db.Subject.create(DUMMY)
+        .then(() => done())
+        .catch(done);
+      });
+
+      afterEach(u.forceDelete);
+
+      it('with identical name', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send(DUMMY)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.errors[ZERO].type)
+            .to.equal(tu.uniErrorName);
+          done();
+        });
+      });
+
+      it('with case different name', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send(DUMMY)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.errors[ZERO].type)
+            .to.equal(tu.uniErrorName);
+          done();
+        });
+      });
+    });
 
     it('posted top-level subject has parentAbsolutePath field' +
     'with value null', (done) => {
@@ -442,7 +487,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
         expect(res.body).to.property('errors');
-        expect(res.body.errors[0].type)
+        expect(res.body.errors[ZERO].type)
           .to.equal(tu.schemaValidationErrorName);
       })
       .end((err /* , res */) => {

@@ -5,101 +5,68 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 'use strict';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up(qi, Sequelize) {
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
 
       Example:
-      return queryInterface.createTable('users', { id: Sequelize.INTEGER });
+      return qi.createTable('users', { id: Sequelize.INTEGER });
     */
-    return queryInterface.changeColumn(
-      'Subjects',
-      'name',
-      {
-        type: Sequelize.STRING(60),
-        allowNull: false,
-        validate: {
-          is: /^[0-9a-z_-]+$/i,
-        },
-      }
-    )
-    .then(() => {
-      return queryInterface.changeColumn(
-        'Aspects',
-        'name',
-        {
-          type: Sequelize.STRING(60),
-          allowNull: false,
-          validate: {
-            is: /^[0-9a-z_-]+$/i,
-          },
-        }
-      )
+    return qi.changeColumn('Subjects', 'name', {
+      type: Sequelize.STRING(60),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
     })
-    .then(() => {
-      return queryInterface.changeColumn(
-        'Tags',
-        'name',
-        {
-          type: Sequelize.STRING(60),
-          allowNull: false,
-          validate: {
-            is: /^[0-9a-z_-]+$/i,
-          },
-        }
-      )
-    });
+    .then(() => qi.changeColumn('Aspects', 'name', {
+      type: Sequelize.STRING(60),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
+    }))
+    .then(() => qi.changeColumn('Tags', 'name', {
+      type: Sequelize.STRING(60),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
+    }));
   },
 
-  down: function (queryInterface, Sequelize) {
+  down(qi, Sequelize) {
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.
 
       Example:
-      return queryInterface.dropTable('users');
+      return qi.dropTable('users');
     */
-    return queryInterface.changeColumn(
-      'Subjects',
-      'name',
-      {
-        type: Sequelize.STRING(20),
-        allowNull: false,
-        validate: {
-          is: /^[0-9a-z_-]+$/i,
-        },
-      }
-    )
-    .then(() => {
-      return queryInterface.changeColumn(
-        'Aspects',
-        'name',
-        {
-          type: Sequelize.STRING(20),
-          allowNull: false,
-          validate: {
-            is: /^[0-9a-z_-]+$/i,
-          },
-        }
-      )
+    return qi.changeColumn('Subjects', 'name', {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
     })
-    .then(() => {
-      return queryInterface.changeColumn(
-        'Tags',
-        'name',
-        {
-          type: Sequelize.STRING(20),
-          allowNull: false,
-          validate: {
-            is: /^[0-9a-z_-]+$/i,
-          },
-        }
-      )
-    });
-  }
+    .then(() => qi.changeColumn('Aspects', 'name', {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
+    }))
+    .then(() => qi.changeColumn('Tags', 'name', {
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      validate: {
+        is: /^[0-9a-z_-]+$/i,
+      },
+    }));
+  },
 };

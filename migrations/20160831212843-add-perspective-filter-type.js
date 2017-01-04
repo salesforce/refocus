@@ -7,79 +7,38 @@
  */
 
 'use strict';
+const TBL = 'Perspectives';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.addColumn(
-        'Perspectives',
-        'aspectFilterType',
-        {
-          type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
-          defaultValue: 'INCLUDE',
-          allowNull: false,
-        }
-      )
-      .then(() => {
-        return queryInterface.addColumn(
-          'Perspectives',
-          'aspectTagFilterType',
-          {
-            type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
-            defaultValue: 'INCLUDE',
-            allowNull: false,
-          }
-        );
+  up(qi, Sequelize) {
+    return qi.sequelize.transaction(() =>
+      qi.addColumn(TBL, 'aspectFilterType', {
+        type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
+        defaultValue: 'INCLUDE',
+        allowNull: false,
       })
-      .then(() => {
-        return queryInterface.addColumn(
-          'Perspectives',
-          'subjectTagFilterType',
-          {
-            type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
-            defaultValue: 'INCLUDE',
-            allowNull: false,
-          }
-        );
-      })
-      .then(() => {
-        return queryInterface.addColumn(
-          'Perspectives',
-          'statusFilterType',
-          {
-            type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
-            defaultValue: 'INCLUDE',
-            allowNull: false,
-          }
-        );
-      });
-    }); // up
-  },
+      .then(() => qi.addColumn(TBL, 'aspectTagFilterType', {
+        type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
+        defaultValue: 'INCLUDE',
+        allowNull: false,
+      }))
+      .then(() => qi.addColumn(TBL, 'subjectTagFilterType', {
+        type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
+        defaultValue: 'INCLUDE',
+        allowNull: false,
+      }))
+      .then(() => qi.addColumn(TBL, 'statusFilterType', {
+        type: Sequelize.ENUM('INCLUDE', 'EXCLUDE'),
+        defaultValue: 'INCLUDE',
+        allowNull: false,
+      })));
+  }, // up
 
-  down: function (queryInterface, Sequelize) {
-    return queryInterface.sequelize.transaction((t) => {
-      return queryInterface.removeColumn(
-        'Perspectives',
-        'aspectFilterType'
-      )
-      .then(() => {
-        return queryInterface.removeColumn(
-        'Perspectives',
-        'aspectTagFilterType'
-        );
-      })
-      .then(() => {
-        return queryInterface.removeColumn(
-        'Perspectives',
-        'subjectTagFilterType'
-        );
-      })
-      .then(() => {
-        return queryInterface.removeColumn(
-        'Perspectives',
-        'statusFilterType'
-        );
-      })
-    }); // down
-  },
+  down(qi /* , Sequelize */) {
+    return qi.sequelize.transaction(() =>
+      qi.removeColumn(TBL, 'aspectFilterType')
+      .then(() => qi.removeColumn(TBL, 'aspectTagFilterType'))
+      .then(() => qi.removeColumn(TBL, 'subjectTagFilterType'))
+      .then(() => qi.removeColumn(TBL, 'statusFilterType')));
+  }, // down
 };
