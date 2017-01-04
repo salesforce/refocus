@@ -7059,23 +7059,24 @@ parameters:
     items:
       type: string
       enum:
+        - createdAt
+        - criticalRange
         - description
         - helpEmail
         - helpUrl
         - id
         - imageUrl
+        - infoRange
         - isPublished
         - name
-        - criticalRange
-        - warningRange
-        - infoRange
         - okRange
+        - relatedLinks
         - tags
         - timeout
+        - updatedAt
         - valueLabel
         - valueType
-        - createdAt
-        - updatedAt
+        - warningRange
 
   LensesFieldsParam:
     name: fields
@@ -7088,16 +7089,21 @@ parameters:
     items:
       type: string
       enum:
+        - createdAt
         - description
         - helpEmail
         - helpUrl
         - id
-        - isCustom
-        - name
-        - thumbnailUrl
         - installedBy
-        - createdAt
+        - isCustom
+        - isPublished
+        - name
+        - sourceDescription
+        - sourceName
+        - sourceVersion
+        - thumbnailUrl
         - updatedAt
+        - version
 
   PerspectivesFieldsParam:
     name: fields
@@ -7110,16 +7116,20 @@ parameters:
     items:
       type: string
       enum:
+        - createdAt
+        - createdBy
+        - aspectFilter
+        - aspectFilterType
+        - aspectTagFilter
+        - aspectTagFilterType
         - id
+        - lensId
         - name
         - rootSubject
-        - aspectFilter
-        - aspectTagFilter
-        - subjectTagFilter
         - statusFilter
-        - lensId
-        - createdBy
-        - createdAt
+        - statusFilterType
+        - subjectTagFilter
+        - subjectTagFilterType
         - updatedAt
 
   ProfilesFieldsParam:
@@ -7159,18 +7169,19 @@ parameters:
     items:
       type: string
       enum:
+        - createdAt
         - id
         - messageBody
         - messageCode
         - name
+        - previousStatus
         - provider
+        - relatedLinks
         - status
+        - statusChangedAt
         - tags
-        - value
-        - createdAt
         - updatedAt
-        - aspect
-        - subject
+        - value
 
   SubjectsFieldsParam:
     name: fields
@@ -7184,7 +7195,10 @@ parameters:
       type: string
       enum:
         - absolutePath
+        - createdAt
+        - createdBy
         - description
+        - geolocation
         - helpEmail
         - helpUrl
         - id
@@ -7193,9 +7207,7 @@ parameters:
         - name
         - parentAbsolutePath
         - parentId
-        #- childCount
-        - createdBy
-        - createdAt
+        - relatedLinks
         - updatedAt
 
   TokensFieldsParam:
@@ -7229,6 +7241,7 @@ parameters:
         - name
         - createdBy
         - createdAt
+        - sso
         - updatedAt
 
   SSOConfigFieldsParam:
