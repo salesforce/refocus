@@ -36,16 +36,20 @@ function doDeleteOneBtoMAssoc(req, res, next, props, assocName, nameOrId) { // e
   u.findByKey(props, params)
   .then((o) => {
     modelInst = o;
+
     // if assocName is "writers", it resolves to "getWriters"
     const getAssocfuncName = `get${u.capitalizeFirstLetter(assocName)}`;
     return o[getAssocfuncName](options);
   })
   .then((_o) => {
+
     // if the resolved object is an empty array, throw a ResourceNotFound error
     u.throwErrorForEmptyArray(_o,
         params.userNameOrId.value, assocName);
+
     // if assocName is "writers", it resolves to "removeWriters"
     const functionName = `remove${u.capitalizeFirstLetter(assocName)}`;
+
     // if the assocName is "writers", it resolves to modelInst.removeWriters(_o)
     modelInst[functionName](_o);
     res.status(httpStatus.NO_CONTENT).json();

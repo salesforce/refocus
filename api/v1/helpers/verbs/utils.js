@@ -572,6 +572,7 @@ function deleteAllAssociations(modelInst, assocNames) {
   let functionName;
   assocNames.forEach((assocName) => {
     functionName = `set${capitalizeFirstLetter(assocName)}`;
+
     // an empty array needs to be passed to the "setAssociations" function
     // to delete all the associations.
     modelInst[functionName]([]);

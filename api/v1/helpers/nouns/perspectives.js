@@ -29,6 +29,7 @@ module.exports = {
   },
   model: Perspective,
   modelName: 'Perspective',
+
   // define the associations that are to be deleted here
   belongsToManyAssoc: {
     users: 'writers',

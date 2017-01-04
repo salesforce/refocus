@@ -32,6 +32,7 @@ function doDelete(req, res, next, props) {
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);
     }
+
     const assocNames = [];
 
     /**

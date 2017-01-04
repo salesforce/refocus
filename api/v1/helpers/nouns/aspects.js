@@ -33,6 +33,7 @@ module.exports = {
   },
   model: Aspect,
   modelName: 'Aspect',
+
   // define the associations that are to be deleted here
   belongsToManyAssoc: {
     users: 'writers',

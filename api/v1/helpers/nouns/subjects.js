@@ -301,6 +301,7 @@ module.exports = {
   model: Subject,
   modelName: 'Subject',
   nameFinder: 'absolutePath',
+
   // define the associations that are to be deleted here
   belongsToManyAssoc: {
     users: 'writers',
