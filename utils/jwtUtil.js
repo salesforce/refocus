@@ -67,9 +67,35 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Verify jwt token.
+ * Return token name from token
  * @param  {object}   req - request object
- * @param  {Function} cb - callback function
+ * @returns {String} token name
+ */
+function getTokenNameFromToken(reqOrCookies) {
+  return new Promise((resolve, reject) => {
+    const authorization = reqOrCookies.Authorization ||
+      reqOrCookies.headers.authorization;
+    if (authorization) {
+      jwt.verify(authorization, env.tokenSecret, {},
+      (err, decodedData) => {
+        if (err !== null) {
+          reject(err);
+        }
+        const tokenname = decodedData.tokenname;
+        console.log('FROM TOKEN', tokenname);
+        resolve(tokenname);
+      });
+    } else {
+      reject(new apiErrors.ForbiddenError({
+        explanation: 'No authorization token was found',
+      }));
+    }
+  });
+} // getTokenNameFromToken
+
+/**
+ * Return username from token
+ * @param  {object}   req - request object
  * @returns {User}
  */
 function getUsernameFromToken(req) {
@@ -113,4 +139,5 @@ module.exports = {
   verifyToken,
   createToken,
   getUsernameFromToken,
+  getTokenNameFromToken,
 };
