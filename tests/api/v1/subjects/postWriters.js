@@ -24,6 +24,7 @@ const postWritersPath = '/v1/subjects/{key}/writers';
 describe('api: aspects: post writers', () => {
   let subject;
   let token;
+  let otherValidToken;
   const userNameArray = [];
 
   const subjectToCreate = {
@@ -50,9 +51,15 @@ describe('api: aspects: post writers', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       userNameArray.push(usr.name);
+
+      /*
+       * user is added to make sure users are not given write
+       * permission twice
+       */
+      return subject.addWriter(usr);
     })
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -61,12 +68,11 @@ describe('api: aspects: post writers', () => {
     })
     .then((tUsr) => {
       userNameArray.push(tUsr.name);
-
-      /*
-       * third user is added to make sure users are not given write
-       * permission twice
-       */
-      return subject.addWriter(tUsr);
+      return tu.createUser('myUNiqueUser');
+    })
+    .then((fusr) => tu.createTokenFromUserName(fusr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
     })
     .then(() => done())
     .catch(done);
@@ -99,6 +105,21 @@ describe('api: aspects: post writers', () => {
       }
 
       return done();
+    });
+  });
+
+  it('return 403 for adding writers using an user that is not ' +
+    'already a writer of that resource', (done) => {
+    api.post(postWritersPath.replace('{key}', subject.id))
+    .set('Authorization', otherValidToken)
+    .send(userNameArray)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
     });
   });
 

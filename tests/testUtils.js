@@ -105,11 +105,26 @@ module.exports = {
       })
     );
   },
+
   // create a token with the given userName
   createTokenFromUserName(usrName) {
     return jwtUtil.createToken(usrName, usrName);
   }, // createToken
 
+  // create user object from a given user name
+  createUser(usrName) {
+    return db.Profile.create({
+      name: `${pfx}`+usrName+'profile',
+    })
+    .then((createdProfile) =>
+      db.User.create({
+        profileId: createdProfile.id,
+        name: usrName,
+        email: usrName+'@'+usrName+'.com',
+        password: usrName,
+      })
+    );
+  },
 
   // create user and corresponding token to be used in api tests.
   createToken() {
