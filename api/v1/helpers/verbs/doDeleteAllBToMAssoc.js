@@ -16,8 +16,7 @@ const httpStatus = require('../../constants').httpStatus;
 
 /**
  * Deletes all the associations of the resource and sends back no content
- * with a status of code 204. When a "value" is passed only the name or the id
- * of the association matching the resouce will be deleted.
+ * with a status of code 204.
  *
  * @param {IncomingMessage} req - The request object`
  * @param {ServerResponse} res - The response object

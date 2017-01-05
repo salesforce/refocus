@@ -71,7 +71,6 @@ describe('api: perspectives: delete writer(s)', () => {
     .catch((err) => done(err));
   });
 
-
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 

@@ -17,6 +17,8 @@ const doDeleteAllAssoc =
                     require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc =
                     require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostAssoc =
+                    require('../helpers/verbs/doPostBtoMAssoc');
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -155,23 +157,11 @@ module.exports = {
     const params = req.swagger.params;
     const toPost = params.queryBody.value;
     const options = {};
-    let usersInsts;
     options.where = u.whereClauseForNameInArr(toPost);
     userProps.model.findAll(options)
     .then((usrs) => {
-      usersInsts = usrs;
-      return u.findByKey(helper, req.swagger.params);
-    })
-    .then((pers) => pers.addWriters(usersInsts))
-    .then((o) => {
-      /*
-       * The resolved object is either an array of arrays (when
-       * writers are added) or just an empty array when no writers are added.
-       * The popping is done to get the array from the array of arrays
-       */
-      let retval = o.length ? o.pop() : o;
-      retval = u.responsify(retval, helper, req.method);
-      res.status(httpStatus.CREATED).json(retval);
+      doPostAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, usrs);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // postPerspectiveWriters
