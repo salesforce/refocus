@@ -24,6 +24,7 @@ const writerPath = '/v1/aspects/{key}/writers/{userNameOrId}';
 
 describe('api: aspects: delete writer(s)', () => {
   let token;
+  let otherValidToken;
   let aspect;
   let user;
   const aspectToCreate = {
@@ -50,7 +51,7 @@ describe('api: aspects: delete writer(s)', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -58,7 +59,10 @@ describe('api: aspects: delete writer(s)', () => {
       user = secUsr;
     })
     .then(() => tu.createThirdUser())
-    .then((tUsr) => aspect.addWriter(tUsr))
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
+    })
     .then(() => done())
     .catch((err) => done(err));
   });
@@ -73,6 +77,7 @@ describe('api: aspects: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -90,6 +95,32 @@ describe('api: aspects: delete writer(s)', () => {
     });
   });
 
+  it('return 403 when a token is not passed to the header', (done) => {
+    api.delete(writersPath.replace('{key}', aspect.id))
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 when deleteting writers using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writersPath.replace('{key}', aspect.id))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('remove write permission using username', (done) => {
     api.delete(writerPath.replace('{key}', aspect.id)
       .replace('{userNameOrId}', user.name))
@@ -99,11 +130,12 @@ describe('api: aspects: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(2);
+      expect(res.body).to.have.length(1);
     })
     .end((_err /* , res */) => {
       if (_err) {
@@ -125,11 +157,12 @@ describe('api: aspects: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(2);
+      expect(res.body).to.have.length(1);
     })
     .end((_err /* , res */) => {
       if (_err) {
@@ -151,11 +184,12 @@ describe('api: aspects: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(3);
+      expect(res.body).to.have.length(2);
     })
     .end((_err /* , res */) => {
       if (_err) {
@@ -165,6 +199,21 @@ describe('api: aspects: delete writer(s)', () => {
       return done();
     });
       return null;
+    });
+  });
+
+  it('return 403 when deleteting a writer using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writerPath.replace('{key}', aspect.id)
+      .replace('{userNameOrId}', 'invalidUserName'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
     });
   });
 });

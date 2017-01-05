@@ -15,6 +15,7 @@ const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
+const jwtUtil = require('../../../../utils/jwtUtil');
 
 /**
  * This function adds the association scope name to the as the to all
@@ -145,6 +146,32 @@ function buildFieldList(params) {
 
   return opts;
 } // buildFieldList
+
+/**
+ * Checks if the model instance is writable by a user. The username is extracted
+ * from the header if present, if not the user name of the logged in user is
+ * used
+ * @param  {Object} req  - The request object
+ * @param  {Object}  modelInst - DB Model instance
+ * @returns {Boolean} - Returns true if the model instance is writable
+ */
+function isWritable(req, modelInst) {
+  return new Promise((resolve, reject) => {
+    if (req.headers.authorization) {
+      jwtUtil.getUsernameFromToken(req)
+      .then((userName) => {
+        resolve(modelInst.isWritableBy(userName));
+      })
+      .catch((err) => reject(err));
+    } else if (req.user) {
+
+      // try to use the logged-in user
+      resolve(modelInst.isWritable(req.user.name));
+    } else {
+      resolve(false);
+    }
+  });
+} // isWritable
 
 /**
  * Builds the API links to send back in the response.
@@ -579,6 +606,35 @@ function deleteAllAssociations(modelInst, assocNames) {
   });
 } // deleteAllAssociations
 
+/**
+ * Attaches the resource type to the error and passes it on to the next
+ * handler.
+ *
+ * @param {Function} next - The next middleware function in the stack
+ * @param {Error} err - The error to handle
+ * @param {String} modelName - The DB model name, used to disambiguate field
+ *  names
+ */
+function handleError(next, err, modelName) {
+  err.resource = modelName;
+  next(err);
+}
+
+/**
+ * Attaches the resource type to the error and passes it on to the next
+ * handler.
+ *
+ * @param {Function} next - The next middleware function in the stack
+ * @param {String} modelName - The DB model name, used to disambiguate field
+ *  names
+ */
+function forbidden(next, modelName) {
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'Forbidden.',
+  });
+  handleError(next, err, modelName);
+} // forbidden
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -613,9 +669,13 @@ module.exports = {
 
   findByKey,
 
+  forbidden,
+
   getScopedModel,
 
   includeAssocToCreate,
+
+  isWritable,
 
   handleAssociations,
 
@@ -625,19 +685,7 @@ module.exports = {
 
   mergeDuplicateArrayElements,
 
-  /**
-   * Attaches the resource type to the error and passes it on to the next
-   * handler.
-   *
-   * @param {Function} next - The next middleware function in the stack
-   * @param {Error} err - The error to handle
-   * @param {String} modelName - The DB model name, used to disambiguate field
-   *  names
-   */
-  handleError(next, err, modelName) {
-    err.resource = modelName;
-    next(err);
-  },
+  handleError,
 
   deleteAllAssociations,
 
