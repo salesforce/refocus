@@ -1003,6 +1003,8 @@ paths:
           $ref: "#/responses/401"
         403:
           $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
 
@@ -1783,6 +1785,8 @@ paths:
             $ref: "#/responses/401"
           403:
             $ref: "#/responses/403"
+          404:
+            $ref: "#/responses/404"
           default:
             $ref: "#/responses/genericError"
 
@@ -2430,6 +2434,8 @@ paths:
           $ref: "#/responses/401"
         403:
           $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
 # ---------------------------------------------------------------------------
@@ -4573,6 +4579,8 @@ paths:
           401:
             $ref: "#/responses/401"
           403:
+            $ref: "#/responses/403"
+          404:
             $ref: "#/responses/403"
           default:
             $ref: "#/responses/genericError"

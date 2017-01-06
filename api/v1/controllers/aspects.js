@@ -18,6 +18,8 @@ const doDeleteAllAssoc =
                     require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc =
                     require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostAssoc =
+                    require('../helpers/verbs/doPostBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
@@ -127,25 +129,12 @@ module.exports = {
     const params = req.swagger.params;
     const toPost = params.queryBody.value;
     const options = {};
-    let usersInsts;
     options.where = u.whereClauseForNameInArr(toPost);
     userProps.model.findAll(options)
     .then((usrs) => {
-      usersInsts = usrs;
-      return u.findByKey(helper, req.swagger.params);
-    })
-    .then((asp) => asp.addWriters(usersInsts))
-    .then((o) => {
-      /*
-       * The resolved object is either an array of arrays (when
-       * writers are added) or just an empty array when no writers are added.
-       * The popping is done to get the array from the array of arrays
-       */
-      let retval = o.length ? o.pop() : o;
-      retval = u.responsify(retval, helper, req.method);
-      res.status(httpStatus.CREATED).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      doPostAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, usrs);
+    });
   }, // postAspectWriters
 
   /**

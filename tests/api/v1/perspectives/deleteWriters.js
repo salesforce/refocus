@@ -71,7 +71,6 @@ describe('api: perspectives: delete writer(s)', () => {
     .catch((err) => done(err));
   });
 
-
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
@@ -214,6 +213,19 @@ describe('api: perspectives: delete writer(s)', () => {
       .replace('{userNameOrId}', 'invalidUserName'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 404 when trying to delete an invalidResource', (done) => {
+    api.delete(writersPath.replace('{key}', 'invalidResource'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
         done(err);

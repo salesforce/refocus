@@ -23,6 +23,7 @@ const postWritersPath = '/v1/lenses/{key}/writers';
 describe('api: lenses: post writers', () => {
   let lens;
   let token;
+  let otherValidToken;
   const userNameArray = [];
 
   before((done) => {
@@ -44,9 +45,15 @@ describe('api: lenses: post writers', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       userNameArray.push(usr.name);
+
+      /*
+       * user is added to make sure users are not given write
+       * permission twice
+       */
+      return lens.addWriter(usr);
     })
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -55,12 +62,11 @@ describe('api: lenses: post writers', () => {
     })
     .then((tUsr) => {
       userNameArray.push(tUsr.name);
-
-      /*
-       * third user is added to make sure users are not given write
-       * permission twice
-       */
-      return lens.addWriter(tUsr);
+      return tu.createUser('myUNiqueUser');
+    })
+    .then((fusr) => tu.createTokenFromUserName(fusr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
     })
     .then(() => done())
     .catch(done);
@@ -87,6 +93,21 @@ describe('api: lenses: post writers', () => {
       expect(userTwo.lensId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 for adding writers using an user that is not ' +
+    'already a writer of that resource', (done) => {
+    api.post(postWritersPath.replace('{key}', lens.id))
+    .set('Authorization', otherValidToken)
+    .send(userNameArray)
+    .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* , res */) => {
       if (err) {
         done(err);

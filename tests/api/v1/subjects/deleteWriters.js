@@ -123,6 +123,7 @@ describe('api: aspects: delete writer(s)', () => {
     });
   });
 
+
   it('remove write permission using username', (done) => {
     api.delete(writerPath.replace('{key}', subject.id)
       .replace('{userNameOrId}', user.name))
@@ -210,6 +211,19 @@ describe('api: aspects: delete writer(s)', () => {
       .replace('{userNameOrId}', 'invalidUserName'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 404 when trying to delete an invalidResource', (done) => {
+    api.delete(writersPath.replace('{key}', 'invalidResource'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
         done(err);
