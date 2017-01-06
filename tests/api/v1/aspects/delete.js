@@ -45,7 +45,7 @@ describe(`api: DELETE ${path}`, () => {
   function notFound() {
     Aspect.findById(aspectId)
     .then((aspect) => {
-      expect(aspect).to.not.be.defined();
+      expect(aspect).to.equal(null);
     });
   }
 

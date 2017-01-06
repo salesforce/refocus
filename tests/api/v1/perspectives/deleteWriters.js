@@ -24,6 +24,7 @@ const writerPath = '/v1/perspectives/{key}/writers/{userNameOrId}';
 describe('api: perspectives: delete writer(s)', () => {
   let perspective;
   let token;
+  let otherValidToken;
   let user;
 
   beforeEach((done) => {
@@ -54,17 +55,21 @@ describe('api: perspectives: delete writer(s)', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => perspective.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
       perspective.addWriter(secUsr);
       user = secUsr;
     })
+    .then(() => tu.createThirdUser())
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
+    })
     .then(() => done())
     .catch((err) => done(err));
   });
-
 
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
@@ -77,6 +82,7 @@ describe('api: perspectives: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', perspective.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -93,6 +99,7 @@ describe('api: perspectives: delete writer(s)', () => {
       return null;
     });
   });
+
   it('remove write permission using username', (done) => {
     api.delete(writerPath.replace('{key}', perspective.id)
       .replace('{userNameOrId}', user.name))
@@ -102,6 +109,7 @@ describe('api: perspectives: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', perspective.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -119,6 +127,32 @@ describe('api: perspectives: delete writer(s)', () => {
     });
   });
 
+  it('return 403 when a token is not passed to the header', (done) => {
+    api.delete(writersPath.replace('{key}', perspective.id))
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 when deleteting writers using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writersPath.replace('{key}', perspective.id))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('remove write permission using user id', (done) => {
     api.delete(writerPath.replace('{key}', perspective.id)
       .replace('{userNameOrId}', user.id))
@@ -128,6 +162,7 @@ describe('api: perspectives: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', perspective.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -154,6 +189,7 @@ describe('api: perspectives: delete writer(s)', () => {
       if (err) {
         return done(err);
       }
+
       api.get(writersPath.replace('{key}', perspective.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -168,6 +204,34 @@ describe('api: perspectives: delete writer(s)', () => {
       return done();
     });
       return null;
+    });
+  });
+
+  it('return 403 when deleteting a writer using a token generated for a user ' +
+    'not already in the list of writers', (done) => {
+    api.delete(writerPath.replace('{key}', perspective.id)
+      .replace('{userNameOrId}', 'invalidUserName'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 404 when trying to delete an invalidResource', (done) => {
+    api.delete(writersPath.replace('{key}', 'invalidResource'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
     });
   });
 });

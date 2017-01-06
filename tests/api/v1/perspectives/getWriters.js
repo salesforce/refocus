@@ -143,6 +143,20 @@ describe('api: perspective: get writers', () => {
     });
   });
 
+  it('Writer not found for invalid resource but valid writers', (done) => {
+    api.get(getWriterPath.replace('{key}', 'invalidresource')
+      .replace('{userNameOrId}', user.id))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('Writer not found for invalid username', (done) => {
     api.get(getWriterPath.replace('{key}', perspective.name)
       .replace('{userNameOrId}', 'invalidUser'))

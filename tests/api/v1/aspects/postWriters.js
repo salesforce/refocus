@@ -26,7 +26,7 @@ describe('api: aspects: post writers', () => {
   let aspect;
   let firstUser;
   let secondUser;
-  let thirdUser;
+  let otherValidToken;
   const userNameArray = [];
   const aspectToCreate = {
     name: `${tu.namePrefix}ASPECTNAME`,
@@ -52,7 +52,7 @@ describe('api: aspects: post writers', () => {
        * tu.createToken creates an user and an admin user is already created,
        * so one use of these.
        */
-      User.findOne())
+      User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       firstUser = usr;
       userNameArray.push(firstUser.name);
@@ -64,8 +64,10 @@ describe('api: aspects: post writers', () => {
       return tu.createThirdUser();
     })
     .then((tUsr) => {
-      thirdUser = tUsr;
-      userNameArray.push(thirdUser.name);
+      return tu.createTokenFromUserName(tUsr.name);
+    })
+    .then((tkn) => {
+      otherValidToken = tkn;
     })
     .then(() => done())
     .catch(done);
@@ -80,21 +82,32 @@ describe('api: aspects: post writers', () => {
     .send(userNameArray)
     .expect(constants.httpStatus.CREATED)
     .expect((res) => {
-      expect(res.body).to.have.length(3);
+      expect(res.body).to.have.length(2);
 
       const userOne = res.body[0];
       const userTwo = res.body[1];
-      const userThree = res.body[2];
 
       expect(userOne.aspectId).to.not.equal(undefined);
       expect(userOne.userId).to.not.equal(undefined);
 
       expect(userTwo.aspectId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
-
-      expect(userThree.aspectId).to.not.equal(undefined);
-      expect(userThree.userId).to.not.equal(undefined);
     })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 for adding writers using an user that is not '+
+    'already a writer of that resource', (done) => {
+    api.post(postWritersPath.replace('{key}', aspect.id))
+    .set('Authorization', otherValidToken)
+    .send(userNameArray)
+    .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* , res */) => {
       if (err) {
         done(err);

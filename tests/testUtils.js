@@ -66,6 +66,7 @@ module.exports = {
   uniError: new Error('expecting SequelizeUniqueConstraintError'),
   valErrorName: 'SequelizeValidationError',
   valError: new Error('expecting SequelizeValidationError'),
+  malFormedTokenError: new Error('expecting the token to be malformed'),
   forceDelete,
   schemaValidationErrorName: 'SCHEMA_VALIDATION_FAILED',
   gotExpectedLength(stringOrArray, len) {
@@ -106,6 +107,26 @@ module.exports = {
     );
   },
 
+  // create a token with the given userName
+  createTokenFromUserName(usrName) {
+    return jwtUtil.createToken(usrName, usrName);
+  }, // createToken
+
+  // create user object from a given user name
+  createUser(usrName) {
+    return db.Profile.create({
+      name: `${pfx}`+usrName+'profile',
+    })
+    .then((createdProfile) =>
+      db.User.create({
+        profileId: createdProfile.id,
+        name: usrName,
+        email: usrName+'@'+usrName+'.com',
+        password: usrName,
+      })
+    );
+  },
+
   // create user and corresponding token to be used in api tests.
   createToken() {
     return db.Profile.create({
@@ -122,7 +143,7 @@ module.exports = {
     .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
 
-  // delete users
+  // delete user
   forceDeleteUser(done) {
     forceDelete(db.User, testStartTime)
     .then(() => forceDelete(db.Profile, testStartTime))
@@ -130,14 +151,17 @@ module.exports = {
     .catch(done);
   }, // forceDeleteUser
 
-  // delete users
+  // delete subject
   forceDeleteSubject(done) {
     forceDelete(db.Subject, testStartTime)
     .then(() => done())
     .catch(done);
-  }, // forceDeleteUser
+  }, // forceDeleteSubject
 
   toggleOverride(key, value) {
     featureToggles._toggles[key] = value;
   }, // toggleOverride
+
+  // username used to create the token in all the tests
+  userName,
 }; // exports
