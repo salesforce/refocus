@@ -27,7 +27,8 @@ const httpStatus = require('../../constants').httpStatus;
  * model
  *
  */
-function doDeleteAllBToMAssoc(req, res, next, props, assocName) { // eslint-disable-line
+function doDeleteAllBToMAssoc(req, res, next, // eslint-disable-line max-params
+              props, assocName) {
   const params = req.swagger.params;
   let modelInst;
   u.findByKey(props, params)

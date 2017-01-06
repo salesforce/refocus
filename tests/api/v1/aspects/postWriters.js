@@ -26,7 +26,6 @@ describe('api: aspects: post writers', () => {
   let aspect;
   let firstUser;
   let secondUser;
-  let thirdUser;
   let otherValidToken;
   const userNameArray = [];
   const aspectToCreate = {
@@ -65,7 +64,6 @@ describe('api: aspects: post writers', () => {
       return tu.createThirdUser();
     })
     .then((tUsr) => {
-      thirdUser = tUsr;
       return tu.createTokenFromUserName(tUsr.name);
     })
     .then((tkn) => {

@@ -15,11 +15,11 @@ const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 
 /**
- * Creates an one to many association between a instance of the model name
+ * Creates a one to many association between a instance of the model name
  * identified by "props.Name" and the instances of the model in assocArray. The
  * association is defined through "assocName"
  *
- * @param {IncomingMessage} req - The request object`
+ * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  * @param {Module} props - The module containing the properties of the resource
@@ -28,9 +28,9 @@ const httpStatus = require('../../constants').httpStatus;
  * model
  * @param {Array} assocArray - The instances of a model for which the
  * association has to be created.
- *
  */
-function doPostBToMAssoc(req, res, next, props, assocName, assocArray) { // eslint-disable-line
+function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
+              props, assocName, assocArray) {
   const params = req.swagger.params;
   let modelInst;
   u.findByKey(props, params)

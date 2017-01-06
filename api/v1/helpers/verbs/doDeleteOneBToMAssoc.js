@@ -28,7 +28,8 @@ const httpStatus = require('../../constants').httpStatus;
  * @param {String} nameOrId - The name or id of the association to be deleted
  *
  */
-function doDeleteOneBtoMAssoc(req, res, next, props, assocName, nameOrId) { // eslint-disable-line
+function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
+              props, assocName, nameOrId) {
   const params = req.swagger.params;
   const options = {};
   options.where = u.whereClauseForNameOrId(nameOrId);
