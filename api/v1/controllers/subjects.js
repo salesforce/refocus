@@ -271,8 +271,7 @@ module.exports = {
     .then((usrs) => {
       doPostAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, usrs);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    });
   }, // postSubjectWriters
 
   /**
