@@ -110,11 +110,12 @@ function start() { // eslint-disable-line max-statements
     });
   }
 
-  // if the clock dyno is not enabled run the Sample timeout query here.
+  /*
+   * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
+   * from here.
+   */
   if (!featureToggles.isFeatureEnabled('enableClockDyno')) {
-    // require the sample model only if we want to run the timeout query here
-    const dbSample = require('./db/index').Sample;
-    setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
+    require('./clock/index'); // eslint-disable-line global-require
   }
 
   // View engine setup

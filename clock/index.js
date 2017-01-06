@@ -9,18 +9,21 @@
 /**
  * clock/index.js
  *
- * Main module to start the clock process. To just start the clock process,
- * use "npm run start-clock". To start both the web and the clock process
+ * Defines all the scheduled processes to execute on regular intervals.
+ *
+ * If a separate clock dyno is enabled ("enableClockDyno"), this is the main
+ * module to start the clock process. To just start the clock process,
+ * use "npm run start-clock". To start both the web and the clock processes
  * locally, use "heroku local".
+ *
+ * If a separate clock dyno is NOT enabled, this module is just loaded from
+ * inside the main web process.
  */
-const featureToggles = require('feature-toggles');
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
-const dbSample = require('../db/index').Sample;
+const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 
-const clockStarted = 'Clock process started';
-console.log(clockStarted); // eslint-disable-line no-console
-
-if (featureToggles.isFeatureEnabled('enableClockDyno')) {
-  setInterval(() => dbSample.doTimeout(), env.checkTimeoutIntervalMillis);
-}
+/*
+ * Add all the scheduled work here.
+ */
+setInterval(sampleTimeoutJob.enqueue, env.checkTimeoutIntervalMillis);
