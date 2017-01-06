@@ -90,12 +90,12 @@ function getUsernameFromToken(req) {
     if (req && req.headers && req.headers.authorization) {
       jwt.verify(req.headers.authorization, env.tokenSecret, {},
       (err, decodedData) => {
-        if (err !== null) {
-          reject(err);
+        if (err !== null || !decodedData) {
+          return reject(err);
         }
 
         const username = decodedData.username;
-        resolve(username);
+        return resolve(username);
       });
     } else {
       reject(new apiErrors.ForbiddenError({
