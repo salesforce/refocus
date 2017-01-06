@@ -221,4 +221,17 @@ describe('api: perspectives: delete writer(s)', () => {
       done();
     });
   });
+
+  it('return 404 when trying to delete an invalidResource', (done) => {
+    api.delete(writersPath.replace('{key}', 'invalidResource'))
+    .set('Authorization', otherValidToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
 });
