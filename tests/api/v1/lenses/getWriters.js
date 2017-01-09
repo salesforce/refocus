@@ -77,6 +77,15 @@ describe('api: lenses: get writers}', () => {
     });
   });
 
+  it('Writers not found for invalid lens', (done) => {
+    api.get(getWritersPath.replace('{key}', 'invalidLensId'))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err /* , res */) => {
+      return err ? done(err) : done();
+    });
+  });
+
   it('find Writers and make sure the passwords are not returned', (done) => {
     api.get(getWritersPath.replace('{key}', lens.name))
     .set('Authorization', token)

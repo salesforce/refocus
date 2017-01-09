@@ -13,6 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const featureToggles = require('feature-toggles');
 
 /**
  * Deletes the associated record of the model which is identified by the
@@ -37,23 +38,20 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
   u.findByKey(props, params)
   .then((o) => {
     modelInst = o;
-    return u.isWritable(req, o);
+    return u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission'));
   })
-  .then((ok) => {
-    if (ok) {
+  .then((o) => {
 
-      // if assocName is "writers", it resolves to "getWriters"
-      const getAssocfuncName = `get${u.capitalizeFirstLetter(assocName)}`;
-      return modelInst[getAssocfuncName](options);
-    }
-
-    return u.forbidden(next);
+    // if assocName is "writers", it resolves to "getWriters"
+    const getAssocfuncName = `get${u.capitalizeFirstLetter(assocName)}`;
+    return o[getAssocfuncName](options);
   })
-  .then((_o) => {
-    if (_o) {
+  .then((o) => {
+    if (o) {
 
       // if the resolved object is an empty array, throw a ResourceNotFound error
-      u.throwErrorForEmptyArray(_o,
+      u.throwErrorForEmptyArray(o,
           params.userNameOrId.value, assocName);
 
       // if assocName is "writers", it resolves to "removeWriters"
@@ -61,9 +59,9 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
 
       /*
        * if the assocName is "writers", it resolves to
-       * modelInst.removeWriters(_o)
+       * modelInst.removeWriters(o)
        */
-      modelInst[functionName](_o);
+      modelInst[functionName](o);
       res.status(httpStatus.NO_CONTENT).json();
     }
   })

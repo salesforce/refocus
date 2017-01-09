@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const logAPI = require('../../../../utils/loggingUtil').logAPI;
@@ -33,6 +34,8 @@ function doPut(req, res, next, props) {
   const puttableFields =
     req.swagger.params.queryBody.schema.schema.properties;
   u.findByKey(props, req.swagger.params)
+  .then((o) => u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
     const keys = Object.keys(puttableFields);
     for (let i = 0; i < keys.length; i++) {
@@ -58,7 +61,7 @@ function doPut(req, res, next, props) {
       logAPI(req, props.modelName, o);
     }
 
-    return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+    res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

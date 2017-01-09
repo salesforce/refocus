@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/subjects');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc =
@@ -358,6 +359,8 @@ module.exports = {
   deleteSubjectTags(req, res, next) {
     const params = req.swagger.params;
     u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o,
+        featureToggles.isFeatureEnabled('enforceWritePermission')))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
@@ -392,6 +395,8 @@ module.exports = {
   deleteSubjectRelatedLinks(req, res, next) {
     const params = req.swagger.params;
     u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o,
+        featureToggles.isFeatureEnabled('enforceWritePermission')))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

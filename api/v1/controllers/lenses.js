@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -326,6 +327,8 @@ module.exports = {
   patchLens(req, res, next) {
     const requestBody = req.swagger.params.queryBody.value;
     u.findByKey(helper, req.swagger.params)
+    .then((o) => u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission')))
     .then((o) => {
       if (requestBody.name === '') {
         if (o.sourceName) {
@@ -408,6 +411,9 @@ module.exports = {
   putLens(req, res, next) {
     const reqObj = req.swagger.params;
     u.findByKey(helper, req.swagger.params)
+    .then((o) =>
+      u.isWritable(req, o,
+        featureToggles.isFeatureEnabled('enforceWritePermission')))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value === undefined) {

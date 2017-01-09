@@ -22,7 +22,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe('api: POST using worker process' + path, () => {
   let token;
 
   before((done) => {
@@ -100,8 +100,8 @@ describe('api: POST ' + path, () => {
         .to.equal(jobType.BULKUPSERTSAMPLES);
 
       // make sure the queue has the right data inside it
-      expect(jobQueue.testMode.jobs[0].data).to.have.length(2);
-      expect(jobQueue.testMode.jobs[0].data[0])
+      expect(jobQueue.testMode.jobs[0].data.upsertData).to.have.length(2);
+      expect(jobQueue.testMode.jobs[0].data.upsertData[0])
         .to.have.all.keys('name', 'value');
       done();
     });

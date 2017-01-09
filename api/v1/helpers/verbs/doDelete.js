@@ -13,6 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const featureToggles = require('feature-toggles');
 const logAPI = require('../../../../utils/loggingUtil').logAPI;
 
 /**
@@ -27,6 +28,8 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  */
 function doDelete(req, res, next, props) {
   u.findByKey(props, req.swagger.params)
+  .then((o) => u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => o.destroy())
   .then((o) => {
     if (props.loggingEnabled) {

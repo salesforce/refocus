@@ -24,11 +24,12 @@ console.log(workerStarted); // eslint-disable-line no-console
 
 // Process Sample Bulk Upsert Operations
 jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
-  const samples = job.data;
+  const samples = job.data.upsertData;
+  const userName = job.data.userName;
   const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
     `with ${samples.length} samples`;
   console.log(msg); // eslint-disable-line no-console
-  helper.model.bulkUpsertByName(samples)
+  helper.model.bulkUpsertByName(samples, userName)
   .then(() => done());
 });
 
