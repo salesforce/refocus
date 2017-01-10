@@ -30,35 +30,31 @@ describe(`api: POST ${path}`, () => {
     adminUser.name, adminUser.name
   );
 
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
-
   /**
    * Register a non-admin user and an admin user; grab the predefined admin
    * user's token
    */
   before((done) => {
-    api.post('/v1/register')
-    .set('Authorization', token)
-    .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
-      password: 'abcdefghijklmnopqrstuvwxyz',
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      api.post('/v1/register')
+      .set('Authorization', token)
+      .send({
+        username: `${tu.namePrefix}test@test.com`,
+        email: `${tu.namePrefix}test@test.com`,
+        password: 'abcdefghijklmnopqrstuvwxyz',
+      })
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        } else {
+          testUserToken = res.body.token;
+          done();
+        }
+      });
     })
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        testUserToken = res.body.token;
-        done();
-      }
-    });
+    .catch(done);
   });
 
   after(u.forceDelete);

@@ -21,8 +21,13 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
+const jwtUtil = require('../../../../utils/jwtUtil');
+const adminUser = require('../../../../config').db.adminUser;
 
 describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
 
@@ -46,9 +51,9 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
 
   after(u.forceDelete);
 
-  it('ok', (done) => {
+  it('admin user, ok', (done) => {
     api.post(`${path}/${uname}/tokens/${tname}/revoke`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -58,7 +63,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
         expect(res.body).to.have.property('name', tname);
         expect(res.body.isRevoked > '0').to.be.true;
         api.post(`${path}/${uname}/tokens/${tname}/restore`)
-        .set('Authorization', '???')
+        .set('Authorization', predefinedAdminUserToken)
         .send({})
         .expect(constants.httpStatus.OK)
         .end((err2, res2) => {
@@ -74,9 +79,10 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
     });
   });
 
-  it('try to restore a token if it was not already revoked', (done) => {
+  it('admin user, try to restore a token if it was not already revoked',
+  (done) => {
     api.post(`${path}/${uname}/tokens/${tname}/restore`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
@@ -88,9 +94,10 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
     });
   });
 
-  it('try to revoke a token if it was already revoked', (done) => {
+  it('admin user, try to revoke a token if it was already revoked',
+  (done) => {
     api.post(`${path}/${uname}/tokens/${tname}/revoke`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -100,7 +107,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
         expect(res.body).to.have.property('name', tname);
         expect(res.body.isRevoked > '0').to.be.true;
         api.post(`${path}/${uname}/tokens/${tname}/revoke`)
-        .set('Authorization', '???')
+        .set('Authorization', predefinedAdminUserToken)
         .send({})
         .expect(constants.httpStatus.BAD_REQUEST)
         .end((err2 /* , res2 */) => {

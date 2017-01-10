@@ -21,8 +21,13 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
+const jwtUtil = require('../../../../utils/jwtUtil');
+const adminUser = require('../../../../config').db.adminUser;
 
 describe(`api: DELETE ${path}/U/tokens/T`, () => {
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
 
@@ -48,9 +53,9 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
 
   after(u.forceDelete);
 
-  it('user and token found', (done) => {
+  it('admin user, user and token found', (done) => {
     api.delete(`${path}/${uname}/tokens/${tname}`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -63,17 +68,24 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     });
   });
 
-  it('user not found', (done) => {
+  it('admin user, user not found', (done) => {
     api.delete(`${path}/who@what.com/tokens/foo`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end(() => done());
   });
 
-  it('user found but token name not found', (done) => {
+  it('admin user, user found but token name not found', (done) => {
+    api.delete(`${path}/${uname}/tokens/foo`)
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('not admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', '???')
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.FORBIDDEN)
     .end(() => done());
   });
 });
