@@ -14,8 +14,7 @@
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client;
-
-const SECS_IN_MIN = 60;
+const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 
 /**
  * Retrieves a record and sends it back in the json response with status code
@@ -51,7 +50,7 @@ function doGet(req, res, next, props) {
           // cache the object by cacheKey. Store the key-value pair in cache
           // with an expiry of 1 minute (60s)
           const strObj = JSON.stringify(o);
-          redisCache.setex(cacheKey, SECS_IN_MIN, strObj);
+          redisCache.setex(cacheKey, cacheExpiry, strObj);
         })
         .catch((err) => u.handleError(next, err, props.modelName));
       } else {

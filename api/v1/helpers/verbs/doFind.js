@@ -16,7 +16,7 @@ const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client;
-const SECS_IN_MIN = 60;
+const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -134,7 +134,7 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
       // cache the object by cacheKey. Store the key-value pair in cache
       // with an expiry of 1 minute (60s)
       const strObj = JSON.stringify(retval);
-      redisCache.setex(cacheKey, SECS_IN_MIN, strObj);
+      redisCache.setex(cacheKey, cacheExpiry, strObj);
     }
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));

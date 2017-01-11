@@ -41,6 +41,9 @@ const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
 const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
 const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 
+// Expiry time used for redis cache
+const CACHE_EXPIRY_IN_SECS = 60;
+
 module.exports = {
 
   api: {
@@ -162,4 +165,5 @@ module.exports = {
   auditSubjects,
   auditSamples,
   auditAspects,
+  CACHE_EXPIRY_IN_SECS,
 };
