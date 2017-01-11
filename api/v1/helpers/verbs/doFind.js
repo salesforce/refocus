@@ -14,7 +14,9 @@
 const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
+const getTokenNameFromToken = require('../../../../utils/jwtUtil').getTokenNameFromToken;
 const httpStatus = require('../../constants').httpStatus;
+const sizeof = require('object-sizeof');
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -62,6 +64,18 @@ function doFindAndCountAll(reqResNext, props, opts) {
  *  find command
  */
 function doFindAll(reqResNext, props, opts) {
+  const START_TIME = Date.now();
+  const { method, user, url, headers, swagger, cookies,
+  connection, hostname, ip, ips } = reqResNext.req;
+  // TODO: move into constructor
+  const logObj = {
+    activity: 'api',
+    method: method,
+    requestBytes: 0, // change
+    user: user.name,
+    uri: url,
+    token: getTokenNameFromToken(cookies),
+  }
   if (opts.where && opts.where.tags && opts.where.tags.$contains.length) {
     // change to filter at the API level
     opts.where.tags.$contains = [];
@@ -69,21 +83,30 @@ function doFindAll(reqResNext, props, opts) {
 
   u.getScopedModel(props, opts.attributes).findAll(opts)
   .then((o) => {
+    // GET DBTIME
+    logObj.dbTime = Date.now() - START_TIME;
+    logObj.recordCount = o.length;
     reqResNext.res.set(COUNT_HEADER_NAME, o.length);
+
     let retval = o.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
       }
-
-      return u.responsify(row, props, reqResNext.req.method);
+      return u.responsify(row, props, method);
     });
 
-    const { tags } = reqResNext.req.swagger.params;
+    const { tags } = swagger.params;
     if (tags && tags.value && tags.value.length) {
       retval = fu.filterArrFromArr(retval, tags.value);
     }
+    logObj.responseBytes = 0; // change
+    const status = httpStatus.OK;
+    logObj.status = status;
 
-    reqResNext.res.status(httpStatus.OK).json(retval);
+    // GET TOTAL TIME
+    logObj.totalTime = Date.now() - START_TIME;
+    console.log(logObj, hostname, ip, ips, connection.remoteAddress);
+    reqResNext.res.status(status).json(retval);
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAll
