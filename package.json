@@ -38,10 +38,9 @@
     "test-api": "mocha -R dot --recursive tests/api",
     "test-disablehttp": "DISABLE_HTTP=true mocha -R dot --recursive tests/disableHttp",
     "test-enforced": "USE_ACCESS_TOKEN=true mocha -R dot --recursive tests/enforceToken",
-    "test-cache-persp": "ENABLE_CACHE_PERSPECTIVE=true mocha -R dot --recursive tests/enableCache",
     "test-db": "npm run checkdb && mocha -R dot --recursive tests/db",
     "test-view": "NODE_ENV=build mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/clock tests/config tests/db tests/jobQueue tests/realtime tests/tokenNotReq && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-disablehttp && npm run test-enforced && npm run test-cache-persp",
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive tests/api tests/clock tests/config tests/db tests/jobQueue tests/realtime tests/tokenNotReq tests/enableCache && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage && npm run test-view && npm run test-disablehttp && npm run test-enforced",
     "undo-migratedb": "node db/migrateUndo.js",
     "view": "NODE_ENV=production gulp browserifyViews && npm start"
   },

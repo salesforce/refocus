@@ -34,21 +34,19 @@ const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
  *  find command
  */
 function doFindAndCountAll(reqResNext, props, opts) {
-  return new Promise((resolve, reject) => {
-    u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
-    .then((o) => {
-      reqResNext.res.set(COUNT_HEADER_NAME, o.count);
-      const retval = o.rows.map((row) => {
-        if (props.modelName === 'Lens') {
-          delete row.dataValues.library;
-        }
+  return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
+  .then((o) => {
+    reqResNext.res.set(COUNT_HEADER_NAME, o.count);
+    const retval = o.rows.map((row) => {
+      if (props.modelName === 'Lens') {
+        delete row.dataValues.library;
+      }
 
-        return u.responsify(row, props, reqResNext.req.method);
-      });
-      resolve(retval);
-    })
-    .catch((err) => reject(err));
-  });
+      return u.responsify(row, props, reqResNext.req.method);
+    });
+    return retval;
+  })
+  .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAndCountAll
 
 /**
@@ -71,27 +69,25 @@ function doFindAll(reqResNext, props, opts) {
     opts.where.tags.$contains = [];
   }
 
-  return new Promise((resolve, reject) => {
-    u.getScopedModel(props, opts.attributes).findAll(opts)
-    .then((o) => {
-      reqResNext.res.set(COUNT_HEADER_NAME, o.length);
-      let retval = o.map((row) => {
-        if (props.modelName === 'Lens') {
-          delete row.dataValues.library;
-        }
-
-        return u.responsify(row, props, reqResNext.req.method);
-      });
-
-      const { tags } = reqResNext.req.swagger.params;
-      if (tags && tags.value && tags.value.length) {
-        retval = fu.filterArrFromArr(retval, tags.value);
+  return u.getScopedModel(props, opts.attributes).findAll(opts)
+  .then((o) => {
+    reqResNext.res.set(COUNT_HEADER_NAME, o.length);
+    let retval = o.map((row) => {
+      if (props.modelName === 'Lens') {
+        delete row.dataValues.library;
       }
 
-      resolve(retval);
-    })
-    .catch((err) => reject(err));
-  });
+      return u.responsify(row, props, reqResNext.req.method);
+    });
+
+    const { tags } = reqResNext.req.swagger.params;
+    if (tags && tags.value && tags.value.length) {
+      retval = fu.filterArrFromArr(retval, tags.value);
+    }
+
+    return retval;
+  })
+  .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAll
 
 /**

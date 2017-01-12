@@ -26,20 +26,15 @@ describe(`api: GET ${path}`, () => {
   let lensId;
   let token;
   let perspectiveId;
-  // let perspectiveName;
 
   before((done) => {
+    tu.toggleOverride('enableCachePerspective', true);
     redisCache.flushdb();
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    u.doSetup()
+    .then(() => u.doSetup())
     .then((createdLens) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
       lensId: createdLens.id,
@@ -52,7 +47,6 @@ describe(`api: GET ${path}`, () => {
     .then((createdPersp) => {
       lensId = createdPersp.lensId;
       perspectiveId = createdPersp.id;
-      // perspectiveName = createdPersp.name;
       done();
     })
     .catch(done);
@@ -60,6 +54,9 @@ describe(`api: GET ${path}`, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+  after(() => {
+    tu.toggleOverride('enableCachePerspective', false);
+  });
 
   it('basic get', (done) => {
     api.get(path)
