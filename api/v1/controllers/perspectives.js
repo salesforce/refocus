@@ -27,6 +27,7 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const featureToggles = require('feature-toggles');
 
 module.exports = {
 
@@ -81,6 +82,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
+    helper.cacheEnabled = featureToggles
+    .isFeatureEnabled('enableCachePerspective');
     doFind(req, res, next, helper);
   },
 
@@ -94,6 +97,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspective(req, res, next) {
+    helper.cacheEnabled = featureToggles
+    .isFeatureEnabled('enableCachePerspective');
     doGet(req, res, next, helper);
   },
 
