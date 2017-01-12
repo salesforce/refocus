@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const logAPI = require('../../../../utils/loggingUtil').logAPI;
@@ -31,7 +32,10 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
 function doPatch(req, res, next, props) {
   const requestBody = req.swagger.params.queryBody.value;
   u.findByKey(props, req.swagger.params)
+  .then((o) => u.isWritable(req, o,
+    featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
+
     // To avoid timeouts when patching samples; force the update, even if
     // the value has not changed. Adding this to the "before update hook" does
     // give the needed effect; so adding it here!!!.

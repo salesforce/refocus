@@ -12,6 +12,7 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
+
 const helper = require('../helpers/nouns/samples');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -118,7 +119,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    helper.model.upsertByName(req.swagger.params.queryBody.value)
+    u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    .then((userName) =>
+      helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
+    )
     .then((o) => {
       if (helper.loggingEnabled) {
         logAPI(req, helper.modelName, o);
@@ -143,18 +148,28 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res /* , next */) {
-    if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
-      const jobType = require('../../../jobQueue/setup').jobType;
-      const jobWrapper = require('../../../jobQueue/jobWrapper');
-      jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
-        req.swagger.params.queryBody.value);
-    } else {
-      helper.model.bulkUpsertByName(req.swagger.params.queryBody.value);
-    }
+    u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    .then((userName) => {
+      if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+        const jobType = require('../../../jobQueue/setup').jobType;
+        const jobWrapper = require('../../../jobQueue/jobWrapper');
 
-    if (helper.loggingEnabled) {
-      logAPI(req, helper.modelName);
-    }
+        const wrappedBulkUpsertData = {};
+        wrappedBulkUpsertData.upsertData = req.swagger.params.queryBody.value;
+        wrappedBulkUpsertData.userName = userName;
+
+        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+          wrappedBulkUpsertData);
+      } else {
+        helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
+          userName);
+      }
+
+      if (helper.loggingEnabled) {
+        logAPI(req, helper.modelName);
+      }
+    });
 
     return res.status(httpStatus.OK).json({ status: 'OK' });
   },
@@ -173,6 +188,8 @@ module.exports = {
   deleteSampleRelatedLinks(req, res, next) {
     const params = req.swagger.params;
     u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o,
+        featureToggles.isFeatureEnabled('enforceWritePermission')))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

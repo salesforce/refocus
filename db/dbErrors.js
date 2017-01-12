@@ -147,6 +147,16 @@ dbErrors.create({
   explanation: 'Unauthorized.',
 });
 
+dbErrors.create({
+  code: 10501,
+  status: 403,
+  name: 'UpdateDeleteForbidden',
+  parent: dbErrors.FocusDatabaseError,
+  range: [],
+  defaultMessage: 'Unauthorized.',
+  explanation: 'Unauthorized.',
+});
+
 // ----------------------------------------------------------------------------
 
 module.exports = dbErrors;

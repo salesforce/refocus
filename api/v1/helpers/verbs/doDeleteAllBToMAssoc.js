@@ -13,6 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const featureToggles = require('feature-toggles');
 
 /**
  * Deletes all the associations of the resource and sends back no content
@@ -30,19 +31,12 @@ const httpStatus = require('../../constants').httpStatus;
 function doDeleteAllBToMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName) {
   const params = req.swagger.params;
-  let modelInst;
   u.findByKey(props, params)
+  .then((o) => u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
-    modelInst = o;
-    return u.isWritable(req, o);
-  })
-  .then((ok) => {
-    if (ok) {
-      u.deleteAllAssociations(modelInst, [assocName]);
-      res.status(httpStatus.NO_CONTENT).json();
-    } else {
-      u.forbidden(next);
-    }
+    u.deleteAllAssociations(o, [assocName]);
+    res.status(httpStatus.NO_CONTENT).json();
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

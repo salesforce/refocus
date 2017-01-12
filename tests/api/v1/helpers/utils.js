@@ -41,24 +41,67 @@ describe('util function tests', () => {
 
   after(tu.forceDeleteSubject);
   after(tu.forceDeleteUser);
+  describe('isWritable function tests', () => {
+    it('return true when no writers are added to the object', (done) => {
+      const fakeReq = { headers: { authorization: token } };
+      apiUtils.isWritable(fakeReq, subject)
+      .then((ok) => {
+        expect(ok).to.equal(subject);
+        done();
+      })
+      .catch((err) => done(err));
+    });
 
-  it('return true when no writers are added to the object', (done) => {
-    const fakeReq = { headers: { authorization: token } };
-    apiUtils.isWritable(fakeReq, subject)
-    .then((ok) => {
-      expect(ok).to.equal(true);
-      done();
-    })
-    .catch((err) => done(err));
+    it('must throw an error for invalid tokens', (done) => {
+      const fakeReq = { headers: { authorization: 'invalidtoken' } };
+      apiUtils.isWritable(fakeReq, subject, true)
+      .then(() => done(tu.malFormedTokenError))
+      .catch((err) => {
+        expect(err).to.not.equal('undefined');
+        done();
+      });
+    });
   });
 
-  it('must throw an error for invalid tokens', (done) => {
-    const fakeReq = { headers: { authorization: 'invalidtoken' } };
-    apiUtils.isWritable(fakeReq, subject)
-    .then(() => done(tu.malFormedTokenError))
-    .catch((err) => {
-      expect(err).to.not.equal('undefined');
-      done();
+  describe('getUserNameFromToken function tests', () => {
+    it('doDecode is false', (done) => {
+      const fakeReq = { headers: { authorization: token } };
+      apiUtils.getUserNameFromToken(fakeReq, false)
+      .then((ok) => {
+        expect(ok).to.equal(true);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('doDecode is true: should return the username', (done) => {
+      const fakeReq = { headers: { authorization: token } };
+      apiUtils.getUserNameFromToken(fakeReq, true)
+      .then((ok) => {
+        expect(ok).to.equal('___myUNiqueUser');
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('with req object containing username', (done) => {
+      const fakeReq = { user: { name: 'myUserName' } };
+      apiUtils.getUserNameFromToken(fakeReq, true)
+      .then((ok) => {
+        expect(ok).to.equal('myUserName');
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('must throw an error for invalid tokens', (done) => {
+      const fakeReq = { headers: { authorization: 'invalidtoken' } };
+      apiUtils.getUserNameFromToken(fakeReq, true)
+      .then(() => done(tu.malFormedTokenError))
+      .catch((err) => {
+        expect(err).to.not.equal('undefined');
+        done();
+      });
     });
   });
 });

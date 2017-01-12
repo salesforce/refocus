@@ -10,10 +10,13 @@
  * db/model/sample.js
  */
 'use strict'; // eslint-disable-line strict
+
+const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
 const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
+const UpdateDeleteForbidden = require('../dbErrors').UpdateDeleteForbidden;
 const config = require('../../config');
 const eventName = {
   add: 'refocus.internal.realtime.sample.add',
@@ -163,11 +166,20 @@ module.exports = function sample(seq, dataTypes) {
       },
 
       /**
+       * NOTE:
+       * This sequelize method also has a check to make sure that the user
+       * performing the upsert operation is authorized to do so.
+       * The check is done in the DB layer to avoid extra calls to the aspect
+       * model every time an upsert is done. For example, if we are making
+       * a bulk upsert call with 1000 samples, we do not want to be making a
+       * 1000 calls in the API layer and a 1000 calls again in the DB layer.
+       *
        * Pseudo-upserts a sample using its name to look up its associated
        * subject and aspect. We can't use a "real" upsert because upsert
        * doesn't invoke hooks, and we rely on hooks to publish the change.
        *
        * @param {Sample} toUpsert - The sample to upsert
+       * @param {String} userName - The user performing the write operation
        * @param {Boolean} isBulk - true when used with bulk upsert, false
        *  otherwise
        * @returns {Promise} which resolves to the newly-created or -updated
@@ -175,22 +187,30 @@ module.exports = function sample(seq, dataTypes) {
        *  looking up the associated subject and aspect, or if an error was
        *  encountered while performing the sample upsert operation itself.
        */
-      upsertByName(toUpsert, isBulk) {
+      upsertByName(toUpsert, userName, isBulk) {
         let subjasp;
         return new seq.Promise((resolve, reject) => {
-          u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)
+          u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
           .then((sa) => {
             subjasp = sa;
             toUpsert.subjectId = sa.subject.id;
             toUpsert.aspectId = sa.aspect.id;
+            return featureToggles.isFeatureEnabled('enforceWritePermission') ?
+                 sa.aspect.isWritableBy(userName) : true;
           })
-          .then(() => Sample.findOne({
-            where: {
-              subjectId: subjasp.subject.id,
-              aspectId: subjasp.aspect.id,
-              isDeleted: NO,
-            },
-          }))
+          .then((ok) => {
+            if (!ok) {
+              throw new UpdateDeleteForbidden();
+            }
+
+            return Sample.findOne({
+              where: {
+                subjectId: subjasp.subject.id,
+                aspectId: subjasp.aspect.id,
+                isDeleted: NO,
+              },
+            });
+          })
           .then((o) => {
             if (o === null) {
               return Sample.create(toUpsert);
@@ -213,9 +233,9 @@ module.exports = function sample(seq, dataTypes) {
         });
       }, // upsertByName
 
-      bulkUpsertByName(toUpsert) {
+      bulkUpsertByName(toUpsert, userName) {
         const promises = toUpsert.map((s) =>
-          this.upsertByName(s, true)
+          this.upsertByName(s, userName, true)
         );
         return seq.Promise.all(promises);
       }, // bulkUpsertByName

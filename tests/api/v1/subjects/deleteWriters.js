@@ -21,8 +21,9 @@ const Subject = tu.db.Subject;
 const User = tu.db.User;
 const writersPath = '/v1/subjects/{key}/writers';
 const writerPath = '/v1/subjects/{key}/writers/{userNameOrId}';
+const subjectPath = '/v1/subjects/{key}';
 
-describe('api: aspects: delete writer(s)', () => {
+describe('api: subject: permissions', () => {
   let token;
   let subject;
   let user;
@@ -34,6 +35,7 @@ describe('api: aspects: delete writer(s)', () => {
   };
 
   beforeEach((done) => {
+    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -71,165 +73,182 @@ describe('api: aspects: delete writer(s)', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  it('remove write permission associated with the resource', (done) => {
-    api.delete(writersPath.replace('{key}', subject.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.NO_CONTENT)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+  describe('delete resource without permission', () => {
+    it('return 403 when deleting aspect without permission', (done) => {
+      api.delete(subjectPath.replace('{key}', subject.id))
+      .set('Authorization', otherValidToken)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      api.get(writersPath.replace('{key}', subject.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body).to.have.length(0);
-    })
-    .end((_err /* , res */) => {
-      if (_err) {
-        return done(_err);
-      }
-
-      return done();
-    });
-      return null;
+        done();
+      });
     });
   });
 
-  it('return 403 when a token is not passed to the header', (done) => {
-    api.delete(writersPath.replace('{key}', subject.id))
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
+  describe('delete writer(s)', () => {
+    it('remove write permission associated with the resource', (done) => {
+      api.delete(writersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NO_CONTENT)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
 
-      done();
+        api.get(writersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.length(0);
+      })
+      .end((_err /* , res */) => {
+        if (_err) {
+          return done(_err);
+        }
+
+        return done();
+      });
+        return null;
+      });
     });
-  });
 
-  it('return 403 when deleteting writers using a token generated for a user ' +
-    'not already in the list of writers', (done) => {
-    api.delete(writersPath.replace('{key}', subject.id))
-    .set('Authorization', otherValidToken)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
+    it('return 403 when a token is not passed to the header', (done) => {
+      api.delete(writersPath.replace('{key}', subject.id))
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      done();
+        done();
+      });
     });
-  });
 
+    it('return 403 when deleteting writers using a token ' +
+      'generated for a user not already in the list of writers', (done) => {
+      api.delete(writersPath.replace('{key}', subject.id))
+      .set('Authorization', otherValidToken)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-  it('remove write permission using username', (done) => {
-    api.delete(writerPath.replace('{key}', subject.id)
-      .replace('{userNameOrId}', user.name))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.NO_CONTENT)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      api.get(writersPath.replace('{key}', subject.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body).to.have.length(1);
-    })
-    .end((_err /* , res */) => {
-      if (_err) {
-        return done(_err);
-      }
-
-      return done();
+        done();
+      });
     });
-      return null;
+
+
+    it('remove write permission using username', (done) => {
+      api.delete(writerPath.replace('{key}', subject.id)
+        .replace('{userNameOrId}', user.name))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NO_CONTENT)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.get(writersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.length(1);
+      })
+      .end((_err /* , res */) => {
+        if (_err) {
+          return done(_err);
+        }
+
+        return done();
+      });
+        return null;
+      });
     });
-  });
 
-  it('remove write permission using user id', (done) => {
-    api.delete(writerPath.replace('{key}', subject.id)
-      .replace('{userNameOrId}', user.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.NO_CONTENT)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+    it('remove write permission using user id', (done) => {
+      api.delete(writerPath.replace('{key}', subject.id)
+        .replace('{userNameOrId}', user.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NO_CONTENT)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
 
-      api.get(writersPath.replace('{key}', subject.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body).to.have.length(1);
-    })
-    .end((_err /* , res */) => {
-      if (_err) {
-        return done(_err);
-      }
+        api.get(writersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.length(1);
+      })
+      .end((_err /* , res */) => {
+        if (_err) {
+          return done(_err);
+        }
 
-      return done();
+        return done();
+      });
+        return null;
+      });
     });
-      return null;
+
+    it('Write permissions should not be effected for invalid user', (done) => {
+      api.delete(writerPath.replace('{key}', subject.id)
+        .replace('{userNameOrId}', 'invalidUserName'))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.get(writersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.length(2);
+      })
+      .end((_err /* , res */) => {
+        if (_err) {
+          return done(_err);
+        }
+
+        return done();
+      });
+        return null;
+      });
     });
-  });
 
-  it('Write permissions should not be effected for invalid user', (done) => {
-    api.delete(writerPath.replace('{key}', subject.id)
-      .replace('{userNameOrId}', 'invalidUserName'))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+    it('return 403 when deleteting a writer using a token ' +
+      'generated for a user not already in the list of writers', (done) => {
+      api.delete(writerPath.replace('{key}', subject.id)
+        .replace('{userNameOrId}', 'invalidUserName'))
+      .set('Authorization', otherValidToken)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      api.get(writersPath.replace('{key}', subject.id))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body).to.have.length(2);
-    })
-    .end((_err /* , res */) => {
-      if (_err) {
-        return done(_err);
-      }
-
-      return done();
+        done();
+      });
     });
-      return null;
-    });
-  });
 
-  it('return 403 when deleteting a writer using a token generated for a user ' +
-    'not already in the list of writers', (done) => {
-    api.delete(writerPath.replace('{key}', subject.id)
-      .replace('{userNameOrId}', 'invalidUserName'))
-    .set('Authorization', otherValidToken)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
+    it('return 404 when trying to delete an invalidResource', (done) => {
+      api.delete(writersPath.replace('{key}', 'invalidResource'))
+      .set('Authorization', otherValidToken)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      done();
-    });
-  });
-
-  it('return 404 when trying to delete an invalidResource', (done) => {
-    api.delete(writersPath.replace('{key}', 'invalidResource'))
-    .set('Authorization', otherValidToken)
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
+        done();
+      });
     });
   });
 });
