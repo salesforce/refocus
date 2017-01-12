@@ -120,7 +120,7 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: usrName,
+        name: `${pfx}`+usrName,
         email: usrName+'@'+usrName+'.com',
         password: usrName,
       })

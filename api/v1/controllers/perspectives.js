@@ -119,7 +119,7 @@ module.exports = {
     .then((o) => {
       const retval = u.responsify(o, helper, req.method);
       res.status(httpStatus.OK).json(retval);
-    });
+    }).catch((err) => u.handleError(next, err, helper.modelName));
   }, // getPerspectiveWriters
 
   /**

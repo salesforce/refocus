@@ -150,28 +150,67 @@ function buildFieldList(params) {
 /**
  * Checks if the model instance is writable by a user. The username is extracted
  * from the header if present, if not the user name of the logged in user is
- * used
- * @param  {Object} req  - The request object
- * @param  {Object}  modelInst - DB Model instance
- * @returns {Boolean} - Returns true if the model instance is writable
+ * used. This always resolves to the model instance if isEnabled is set to
+ * false.
+ * @param {Object} req  - The request object
+ * @param {Object}  modelInst - DB Model instance
+ * @param {isEnabled} isEnabled - A flag, when set, lets the caller of this
+ * function check if model instance is writable or not. A feature flag is
+ * passed by the function caller in its place.
+ * @returns {Promise} - A promise which resolves to the modle instance when
+ * the model instance is writable or rejects with a forbidden error
  */
-function isWritable(req, modelInst) {
+function isWritable(req, modelInst, isEnabled) {
   return new Promise((resolve, reject) => {
-    if (req.headers.authorization) {
+    if (!isEnabled || typeof modelInst.isWritableBy !== 'function') {
+      resolve(modelInst);
+    }
+
+    if (req.headers && req.headers.authorization) {
       jwtUtil.getUsernameFromToken(req)
-      .then((userName) => {
-        resolve(modelInst.isWritableBy(userName));
-      })
+      .then((userName) => modelInst.isWritableBy(userName))
+      .then((ok) => ok ? resolve(modelInst) :
+          reject(new apiErrors.ForbiddenError())
+      )
       .catch((err) => reject(err));
     } else if (req.user) {
 
       // try to use the logged-in user
-      resolve(modelInst.isWritable(req.user.name));
+      resolve(modelInst.isWritableBy(req.user.name));
+    } else {
+      reject(new apiErrors.ForbiddenError());
+    }
+  });
+}
+
+/**
+ * This is a wrapper for the function with the same name in jwtUtil.
+ * @param  {Object} req  - The request object
+ * @param  {Boolean} doDecode - A flag to decide if the username has to be coded
+ * from the token.
+ * @returns {Promise} - A promise object which resolves to a username if the
+ * doDecode flag is set
+ */
+function getUserNameFromToken(req, doDecode) {
+  return new Promise((resolve, reject) => {
+    if (!doDecode) {
+      resolve(true);
+    }
+
+    if (req.headers && req.headers.authorization) {
+      jwtUtil.getUsernameFromToken(req)
+      .then((userName) => {
+        resolve(userName);
+      })
+      .catch((err) => reject(err));
+    } else if (req.user) {
+      // try to use the logged-in user
+      resolve(req.user.name);
     } else {
       resolve(false);
     }
   });
-} // isWritable
+} // getUserNameFromToken
 
 /**
  * Builds the API links to send back in the response.
@@ -676,6 +715,8 @@ module.exports = {
   includeAssocToCreate,
 
   isWritable,
+
+  getUserNameFromToken,
 
   handleAssociations,
 

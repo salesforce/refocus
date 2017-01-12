@@ -13,6 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const featureToggles = require('feature-toggles');
 
 /**
  * Creates a one to many association between a instance of the model name
@@ -32,33 +33,23 @@ const httpStatus = require('../../constants').httpStatus;
 function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName, assocArray) {
   const params = req.swagger.params;
-  let modelInst;
   u.findByKey(props, params)
+  .then((o) => u.isWritable(req, o,
+      featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
-    modelInst = o;
-    return u.isWritable(req, o);
-  })
-  .then((ok) => {
-    if (ok) {
-      const addAssocfuncName = `add${u.capitalizeFirstLetter(assocName)}`;
-      return modelInst[addAssocfuncName](assocArray);
-    }
-
-    return u.forbidden(next);
+    const addAssocfuncName = `add${u.capitalizeFirstLetter(assocName)}`;
+    return o[addAssocfuncName](assocArray);
   })
   .then((o) => {
-    if (o) {
 
-      /**
-       *
-       * The resolved object is either an array of arrays (when
-       * writers are added) or just an empty array when no writers are added.
-       * The popping is done to get the array from the array of arrays
-       */
-      let retval = o.length ? o.pop() : o;
-      retval = u.responsify(retval, props, req.method);
-      res.status(httpStatus.CREATED).json(retval);
-    }
+    /*
+     * The resolved object is either an array of arrays (when
+     * writers are added) or just an empty array when no writers are added.
+     * The popping is done to get the array from the array of arrays
+     */
+    let retval = o.length ? o.pop() : o;
+    retval = u.responsify(retval, props, req.method);
+    res.status(httpStatus.CREATED).json(retval);
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
