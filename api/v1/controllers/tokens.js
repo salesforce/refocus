@@ -19,20 +19,46 @@ const jwtUtil = require('../../../utils/jwtUtil');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const resourceName = 'token';
+const authUtils = require('../helpers/authUtils');
 
 module.exports = {
 
   /**
    * DELETE /tokens/{key}
    *
-   * Deletes the token metadata record and sends it back in the response.
+   * Deletes the token metadata record and sends it back in the response. Only
+   * permitted for an admin user or the owner of the token being deleted.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteTokenById(req, res, next) {
-    doDelete(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doDelete(req, res, next, helper);
+      } else {
+        // also OK if user is NOT admin but is deleting own token
+        let userId;
+        authUtils.getUser(req)
+        .then((user) => {
+          userId = user.id;
+          const id = req.swagger.params.key.value;
+          return helper.model.findById(id);
+        })
+        .then((o) => {
+          if (o && o.createdBy === userId) {
+            doDelete(req, res, next, helper);
+          } else {
+            u.forbidden(next);
+          }
+        });
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -93,52 +119,72 @@ module.exports = {
    * POST /tokens/{key}/restore
    *
    * Restore access for the specified token if access had previously been
-   * revoked.
+   * revoked. Only permitted for an admin user.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenById(req, res, next) {
-    const id = req.swagger.params.key.value;
-    helper.model.findById(id)
-    .then((o) => {
-      if (o.isRevoked === '0') {
-        throw new apiErrors.InvalidTokenActionError();
-      }
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const id = req.swagger.params.key.value;
+        helper.model.findById(id)
+        .then((o) => {
+          if (o.isRevoked === '0') {
+            throw new apiErrors.InvalidTokenActionError();
+          }
 
-      return o.restore();
+          return o.restore();
+        })
+        .then((o) => {
+          const retval = u.responsify(o, helper, req.method);
+          res.status(httpStatus.OK).json(retval);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
+      }
     })
-    .then((o) => {
-      const retval = u.responsify(o, helper, req.method);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * POST /tokens/{key}/revoke
    *
-   * Revoke access for the specified token.
+   * Revoke access for the specified token. Only permitted for an admin user.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenById(req, res, next) {
-    const id = req.swagger.params.key.value;
-    helper.model.findById(id)
-    .then((o) => {
-      if (o.isRevoked > '0') {
-        throw new apiErrors.InvalidTokenActionError();
-      }
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const id = req.swagger.params.key.value;
+        helper.model.findById(id)
+        .then((o) => {
+          if (o.isRevoked > '0') {
+            throw new apiErrors.InvalidTokenActionError();
+          }
 
-      return o.revoke();
+          return o.revoke();
+        })
+        .then((o) => {
+          const retval = u.responsify(o, helper, req.method);
+          res.status(httpStatus.OK).json(retval);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
+      }
     })
-    .then((o) => {
-      const retval = u.responsify(o, helper, req.method);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 }; // exports

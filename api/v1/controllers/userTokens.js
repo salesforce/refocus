@@ -16,6 +16,7 @@ const apiErrors = require('../apiErrors');
 const cnstnts = require('../constants');
 const u = require('../helpers/verbs/utils');
 const httpStatus = cnstnts.httpStatus;
+const authUtils = require('../helpers/authUtils');
 
 function whereClauseForUser(user) {
   const whr = {};
@@ -44,30 +45,63 @@ module.exports = {
   /**
    * DELETE /users/{key}/tokens/{tokenName}
    *
-   * Deletes the token metadata record and sends it back in the response.
+   * Deletes the token metadata record and sends it back in the response. Only
+   * permitted for an admin user or the owner of the token being deleted.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteUserToken(req, res, next) {
-    const user = req.swagger.params.key.value;
-    const tokenName = req.swagger.params.tokenName.value;
-    const whr = whereClauseForUserAndTokenName(user, tokenName);
-    helper.model.findOne(whr)
-    .then((o) => {
-      if (o) {
-        return o.destroy();
-      }
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const user = req.swagger.params.key.value;
+        const tokenName = req.swagger.params.tokenName.value;
+        const whr = whereClauseForUserAndTokenName(user, tokenName);
+        helper.model.findOne(whr)
+        .then((o) => {
+          if (o) {
+            return o.destroy();
+          }
 
-      const err = new apiErrors.ResourceNotFoundError();
-      err.resource = helper.model.name;
-      err.key = user + ', ' + tokenName;
-      throw err;
+          const err = new apiErrors.ResourceNotFoundError();
+          err.resource = helper.model.name;
+          err.key = user + ', ' + tokenName;
+          throw err;
+        })
+        .then((o) => res.status(httpStatus.OK)
+          .json(u.responsify(o, helper, req.method)))
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        // also OK if user is NOT admin but is deleting own token
+        let userId;
+        authUtils.getUser(req)
+        .then((currentUser) => {
+          userId = currentUser.id;
+          const user = req.swagger.params.key.value;
+          const tokenName = req.swagger.params.tokenName.value;
+          const whr = whereClauseForUserAndTokenName(user, tokenName);
+          helper.model.findOne(whr)
+          .then((o) => {
+            if (o && o.createdBy === userId) {
+              return o.destroy();
+            }
+
+            const err = new apiErrors.ResourceNotFoundError();
+            err.resource = helper.model.name;
+            err.key = user + ', ' + tokenName;
+            throw err;
+          })
+          .then((o) => res.status(httpStatus.OK)
+            .json(u.responsify(o, helper, req.method)))
+          .catch((err) => u.handleError(next, err, helper.modelName));
+        });
+      }
     })
-    .then((o) => res.status(httpStatus.OK)
-      .json(u.responsify(o, helper, req.method)))
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -116,56 +150,76 @@ module.exports = {
    * POST /users/{key}tokens/{tokenName}/restore
    *
    * Restore access for the specified token if access had previously been
-   * revoked.
+   * revoked. Only permitted for an admin user.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenByName(req, res, next) {
-    const user = req.swagger.params.key.value;
-    const tokenName = req.swagger.params.tokenName.value;
-    const whr = whereClauseForUserAndTokenName(user, tokenName);
-    helper.model.findOne(whr)
-    .then((o) => {
-      if (o.isRevoked === '0') {
-        throw new apiErrors.InvalidTokenActionError();
-      }
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const user = req.swagger.params.key.value;
+        const tokenName = req.swagger.params.tokenName.value;
+        const whr = whereClauseForUserAndTokenName(user, tokenName);
+        helper.model.findOne(whr)
+        .then((o) => {
+          if (o.isRevoked === '0') {
+            throw new apiErrors.InvalidTokenActionError();
+          }
 
-      return o.restore();
+          return o.restore();
+        })
+        .then((o) => {
+          const retval = u.responsify(o, helper, req.method);
+          res.status(httpStatus.OK).json(retval);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
+      }
     })
-    .then((o) => {
-      const retval = u.responsify(o, helper, req.method);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * POST /users/{key}tokens/{tokenName}/revoke
    *
-   * Revoke access for the specified token.
+   * Revoke access for the specified token. Only permitted for an admin user.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenByName(req, res, next) {
-    const user = req.swagger.params.key.value;
-    const tokenName = req.swagger.params.tokenName.value;
-    const whr = whereClauseForUserAndTokenName(user, tokenName);
-    helper.model.findOne(whr)
-    .then((o) => {
-      if (o.isRevoked > '0') {
-        throw new apiErrors.InvalidTokenActionError();
-      }
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const user = req.swagger.params.key.value;
+        const tokenName = req.swagger.params.tokenName.value;
+        const whr = whereClauseForUserAndTokenName(user, tokenName);
+        helper.model.findOne(whr)
+        .then((o) => {
+          if (o.isRevoked > '0') {
+            throw new apiErrors.InvalidTokenActionError();
+          }
 
-      return o.revoke();
+          return o.revoke();
+        })
+        .then((o) => {
+          const retval = u.responsify(o, helper, req.method);
+          res.status(httpStatus.OK).json(retval);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
+      }
     })
-    .then((o) => {
-      const retval = u.responsify(o, helper, req.method);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 }; // exports

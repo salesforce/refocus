@@ -21,8 +21,13 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
+const jwtUtil = require('../../../../utils/jwtUtil');
+const adminUser = require('../../../../config').db.adminUser;
 
 describe(`api: DELETE ${path}`, () => {
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
   let usr;
   let tid;
 
@@ -54,9 +59,9 @@ describe(`api: DELETE ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('found', (done) => {
+  it('admin user, found', (done) => {
     api.delete(`${path}/${tid}`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -69,10 +74,23 @@ describe(`api: DELETE ${path}`, () => {
     });
   });
 
-  it('not found', (done) => {
+  it('admin user, not found', (done) => {
     api.delete(`${path}/123-abc`)
-    .set('Authorization', '???')
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end(() => done());
+  });
+
+  it('invalid token', (done) => {
+    api.delete(`${path}/${tid}`)
+    .set('Authorization', '???')
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
   });
 });
