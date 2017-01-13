@@ -42,9 +42,29 @@ describe('util function tests', () => {
   after(tu.forceDeleteSubject);
   after(tu.forceDeleteUser);
   describe('isWritable function tests', () => {
-    it('return true when no writers are added to the object', (done) => {
+    it('return the instance when called with a false toggle flag', (done) => {
       const fakeReq = { headers: { authorization: token } };
-      apiUtils.isWritable(fakeReq, subject)
+      apiUtils.isWritable(fakeReq, subject, false)
+      .then((ok) => {
+        expect(ok).to.equal(subject);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('return the instance no writers are added to the object', (done) => {
+      const fakeReq = { headers: { authorization: token } };
+      apiUtils.isWritable(fakeReq, subject, true)
+      .then((ok) => {
+        expect(ok).to.equal(subject);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('with req object containing username', (done) => {
+      const fakeReq = { user: { name: 'myUserName' } };
+      apiUtils.isWritable(fakeReq, subject, true)
       .then((ok) => {
         expect(ok).to.equal(subject);
         done();

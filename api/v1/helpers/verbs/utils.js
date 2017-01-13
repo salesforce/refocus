@@ -176,7 +176,11 @@ function isWritable(req, modelInst, isEnabled) {
     } else if (req.user) {
 
       // try to use the logged-in user
-      resolve(modelInst.isWritableBy(req.user.name));
+      modelInst.isWritableBy(req.user.name)
+      .then((ok) => ok ? resolve(modelInst) :
+          reject(new apiErrors.ForbiddenError())
+      )
+      .catch((err) => reject(err));
     } else {
       reject(new apiErrors.ForbiddenError());
     }
