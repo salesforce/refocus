@@ -104,7 +104,7 @@ describe('db: sample: upsertBulk: ', () => {
       let successObj;
       for (let i = 0; i < o.length; i++) {
         const s = o[i];
-        if (util.isError(s)) {
+        if (util.isError(s.explanation)) {
           errorCount++;
         }
 
@@ -132,7 +132,7 @@ describe('db: sample: upsertBulk: ', () => {
       },
     ])
     .each((o) => {
-      if (!util.isError(o)) {
+      if (!util.isError(o.explanation)) {
         throw new Error('expecting error');
       }
     })
