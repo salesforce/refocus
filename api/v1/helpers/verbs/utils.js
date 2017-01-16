@@ -678,6 +678,26 @@ function forbidden(next, modelName) {
   handleError(next, err, modelName);
 } // forbidden
 
+/**
+ * Get IP Address from request.
+ * @param  {Object} req - Request object
+ * @returns {String} - IP Address
+ */
+function getIPAddrFromReq(req) {
+  let ipAddr = null;
+  if (req) {
+    if (req.connection && req.connection.remoteAddress) {
+      ipAddr = req.connection.remoteAddress;
+    }
+
+    if (req.headers && req.headers['x-forwarded-for']) {
+      ipAddr = req.headers['x-forwarded-for'];
+    }
+  }
+
+  return ipAddr;
+}
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -751,5 +771,7 @@ module.exports = {
   patchArrayFields,
 
   getApiLinks,
+
+  getIPAddrFromReq,
 
 }; // exports
