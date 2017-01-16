@@ -18,8 +18,9 @@
 const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
-const workerStarted = 'Worker Process Started';
+const featureToggles = require('feature-toggles');
 
+const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
 
 // Process Sample Bulk Upsert Operations
@@ -33,13 +34,43 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
    * the new ones look like this
    *  {data: {upsertData: [sample1,sample2], userName: 'name'}}
    */
+  const jobStartTime = Date.now();
   const samples = job.data.length ? job.data : job.data.upsertData;
   const userName = job.data.userName;
+  const reqStartTime = job.data.reqStartTime;
+
   const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
     `with ${samples.length} samples`;
   console.log(msg); // eslint-disable-line no-console
+
+  const dbStartTime = Date.now();
   helper.model.bulkUpsertByName(samples, userName)
-  .then(() => done());
+  .then((results) => {
+    if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+      const dbEndTime = Date.now();
+      const objToReturn = {};
+
+      // add dbTime, queueTime to log object
+      objToReturn.dbTime = dbEndTime - dbStartTime;
+      objToReturn.queueTime = jobStartTime - reqStartTime;
+
+      // calculate failed promises
+      let errorCount = 0;
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].isFailed) {
+          errorCount++;
+        }
+      }
+
+      // add workTime, recordCount, errorCount to log object
+      objToReturn.recordCount = results.length - errorCount;
+      objToReturn.errorCount = errorCount;
+      objToReturn.workTime = dbEndTime - jobStartTime;
+      done(null, objToReturn);
+    } else {
+      done();
+    }
+  });
 });
 
 // Process Sample Timeout Operations
