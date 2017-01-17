@@ -61,6 +61,16 @@ apiErrors.create({
   defaultMessage: 'Tags are case-insensitive. Duplicates found',
 });
 
+apiErrors.create({
+  code: 11103,
+  status: 400,
+  name: 'InvalidPerspectiveError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You tried to create a filter with Include equal to ' +
+  ' an empty array. This is not a valid filter combination ',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

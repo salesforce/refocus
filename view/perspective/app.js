@@ -249,7 +249,7 @@ function getFilterQuery(p) {
 
   if (p.aspectFilter && p.aspectFilter.length) {
     const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspect' + '=' + sign + 
+    q += 'aspect' + '=' + sign +
         p.aspectFilter.join().replace(/,/g, ',' + sign);
   }
 
@@ -259,7 +259,7 @@ function getFilterQuery(p) {
     }
 
     const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspectTags' + '=' + sign + 
+    q += 'aspectTags' + '=' + sign +
         p.aspectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
@@ -269,7 +269,7 @@ function getFilterQuery(p) {
     }
 
     const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'subjectTags' + '=' + sign + 
+    q += 'subjectTags' + '=' + sign +
         p.subjectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
@@ -279,7 +279,7 @@ function getFilterQuery(p) {
     }
 
     const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
-    q += 'status' + '=' + sign + 
+    q += 'status' + '=' + sign +
         p.statusFilter.join().replace(/,/g, ',' + sign);
   }
 
@@ -393,7 +393,7 @@ function getAllParams() {
         responseObject[filterA[i]] = currentVal.split(',');
       }
     } else { // filter is empty or is not in params
-      responseObject[filterA[i] + 'Type'] = 'INCLUDE';
+      responseObject[filterA[i] + 'Type'] = 'EXCLUDE';
       responseObject[filterA[i]] = [];
     }
   }

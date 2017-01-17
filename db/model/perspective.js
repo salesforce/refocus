@@ -40,38 +40,42 @@ module.exports = function perspective(seq, dataTypes) {
     },
     aspectFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
-      defaultValue: 'INCLUDE',
+      defaultValue: 'EXCLUDE',
       allowNull: false,
     },
     aspectFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      defaultValue: constants.defaultArrayValue,
       allowNull: true,
     },
     aspectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
-      defaultValue: 'INCLUDE',
+      defaultValue: 'EXCLUDE',
       allowNull: false,
     },
     aspectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      defaultValue: constants.defaultArrayValue,
       allowNull: true,
     },
     subjectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
-      defaultValue: 'INCLUDE',
+      defaultValue: 'EXCLUDE',
       allowNull: false,
     },
     subjectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      defaultValue: constants.defaultArrayValue,
       allowNull: true,
     },
     statusFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
-      defaultValue: 'INCLUDE',
+      defaultValue: 'EXCLUDE',
       allowNull: false,
     },
     statusFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING),
+      defaultValue: constants.defaultArrayValue,
       allowNull: true,
     },
   }, {

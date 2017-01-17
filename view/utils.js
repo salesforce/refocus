@@ -12,6 +12,11 @@
 'use strict'; // eslint-disable-line strict
 
 const constants = require('./constants');
+const filters = ['aspectFilter',
+                  'subjectTagFilter',
+                  'aspectTagFilter',
+                  'statusFilter',
+                ];
 
 /**
  * [Sets Cookie]
@@ -60,37 +65,20 @@ function getNamespaceString(inst) {
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
-  if (inst.aspectFilter) {
-    namespace += constants.filterSeperator + inst.aspectFilterType +
+
+  for (let i = 0; i < filters.length; i++) {
+    if (inst[filters[i]] && inst[filters[i]].length) {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
                 constants.fieldTypeFieldSeparator +
-                inst.aspectFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectFilterType;
-  }
-  if (inst.subjectTagFilter) {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.subjectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType;
-  }
-  if (inst.aspectTagFilter) {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.aspectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType;
-  }
-  if (inst.statusFilter) {
-    namespace += constants.filterSeperator + inst.statusFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.statusFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.statusFilterType;
+                inst[filters[i]].join(constants.valuesSeparator);
+    } else {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
+    }
   }
 
   return namespace;
 }
+
 
 module.exports = {
   setCookie,
