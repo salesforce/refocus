@@ -83,6 +83,21 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
+  it('cannot patch filter with include = []', (done) => {
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .send({ subjectTagFilter: [],
+    aspectFilterType: 'INCLUDE', })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].type).to.equal('InvalidPerspectiveError');
+      done();
+    });
+  });
+
   it('validates aspectFilter', (done) => {
     api.patch(`${path}/${perspectiveId}`)
     .set('Authorization', token)

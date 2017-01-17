@@ -39,9 +39,13 @@ describe('socket io namespace setup Tests:', () => {
       lensId: createdLensId,
       rootSubject: rootSubjNA,
       aspectFilter: ['temperature', 'humidity'],
+      aspectFilterType: 'INCLUDE',
       aspectTagFilter: ['temp', 'hum'],
+      aspectTagFilterType: 'INCLUDE',
       subjectTagFilter: ['ea', 'na'],
+      subjectTagFilterType: 'INCLUDE',
       statusFilter: ['OK'],
+      statusFilterType: 'INCLUDE'
     }))
     .then(() => done())
     .catch(done);
@@ -58,7 +62,7 @@ describe('socket io namespace setup Tests:', () => {
       // the returned socketio object must contain the initialized namespace
       expect(sio.nsps).to.contain.all.keys([
         '/',
-        `/${rootSubjNAUS}&INCLUDE&INCLUDE&INCLUDE&INCLUDE`,
+        `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
       ]);
       done();
     })
@@ -75,7 +79,7 @@ describe('socket io namespace setup Tests:', () => {
       // the returned socketio object must contain the initialized namespace
       expect(sio.nsps).to.have.all.keys([
         '/',
-        `/${rootSubjNAUS}&INCLUDE&INCLUDE&INCLUDE&INCLUDE`,
+        `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
         `/${rootSubjNA}&INCLUDE=temperature;humidity&INCLUDE=ea;na&INCLUDE=` +
           'temp;hum&INCLUDE=OK',
       ]);

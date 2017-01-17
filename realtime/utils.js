@@ -18,6 +18,12 @@ const eventName = {
   del: 'refocus.internal.realtime.subject.remove',
 };
 
+const filters = ['aspectFilter',
+                  'subjectTagFilter',
+                  'aspectTagFilter',
+                  'statusFilter',
+                ];
+
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
@@ -99,7 +105,7 @@ function isPresent(filterValueSet, objValueArr) {
  * The filterString is used to extract the filterType and filter values and
  * the object is compared against the extracted filter to check if the field
  * of the object matches the filter criteria.
- * @param  {String} filterString - String of the form filterType|values.
+ * @param  {String} filterString - String of the form filterType=values.
  * @param  {String|Array} objValues - The values of the object, that is to be
  * matched against a filter criteria
  * @returns {Boolean} - true if the object matches the filter criteria, false
@@ -183,7 +189,7 @@ function shouldIEmitThisObj(nspString, obj) {
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
 
-  // extract absolute path from the message object
+  // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 
   if ((absolutePathObj).startsWith(absPathNsp)) {
@@ -231,36 +237,14 @@ function getNamespaceString(inst) {
     namespace += inst.rootSubject;
   }
 
-  if (inst.aspectFilter) {
-    namespace += constants.filterSeperator + inst.aspectFilterType +
+  for (let i = 0; i < filters.length; i++) {
+    if (inst[filters[i]] && inst[filters[i]].length) {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
                 constants.fieldTypeFieldSeparator +
-                inst.aspectFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectFilterType;
-  }
-
-  if (inst.subjectTagFilter) {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.subjectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType;
-  }
-
-  if (inst.aspectTagFilter) {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.aspectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType;
-  }
-
-  if (inst.statusFilter) {
-    namespace += constants.filterSeperator + inst.statusFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.statusFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.statusFilterType;
+                inst[filters[i]].join(constants.valuesSeparator);
+    } else {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
+    }
   }
 
   return namespace;

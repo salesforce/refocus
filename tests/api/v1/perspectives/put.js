@@ -117,6 +117,25 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
+  it('cannot update an perspective with include = [] ', (done) => {
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .send({
+      name: 'testPersp',
+      lensId: createdLensId,
+      rootSubject: 'changedMainSubject',
+      aspectTagFilter: [],
+      aspectTagFilterType: 'INCLUDE',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].type).to.equal('InvalidPerspectiveError');
+      done();
+    });
+  });
   it('validates aspectFilter', (done) => {
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)

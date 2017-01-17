@@ -85,9 +85,13 @@ describe('realtime utils Tests:', () => {
         lensId: createdLensId,
         rootSubject: rootSubjNA,
         aspectFilter: ['temperature', 'humidity'],
+        aspectFilterType: 'INCLUDE',
         aspectTagFilter: ['temp', 'hum'],
+        aspectTagFilterType: 'INCLUDE',
         subjectTagFilter: ['ea', 'na'],
+        subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
+        statusFilterType: 'INCLUDE'
       });
     })
     .then((pers2) => {
@@ -134,7 +138,8 @@ describe('realtime utils Tests:', () => {
     describe('getNamespaceString tests', () => {
       it('for perspective persNAUS', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
-        expect(nspString).to.equal('/NA.US&INCLUDE&INCLUDE&INCLUDE&INCLUDE');
+        expect(nspString).to
+          .equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
 
       it('for perspective persNA', () => {
@@ -147,8 +152,8 @@ describe('realtime utils Tests:', () => {
       it('for perspective persNAUSCA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUSCA);
         expect(nspString)
-          .to.equal('/NA.US.CA&INCLUDE=temperature;humidity' +
-                                  '&INCLUDE&INCLUDE&INCLUDE=OK');
+          .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
+                                  '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
       });
     });
 
