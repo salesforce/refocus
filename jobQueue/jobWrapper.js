@@ -15,6 +15,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const jobQueue = require('./setup').jobQueue;
+const jwtUtil = require('../utils/jwtUtil');
+const featureToggles = require('feature-toggles');
+const u = require('../api/v1/helpers/verbs/utils');
+const activityLogUtil = require('../utils/activityLog');
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
@@ -25,23 +29,105 @@ const jobQueue = require('./setup').jobQueue;
 const delayToRemoveJobs = 3000;
 
 /**
+ * Set log object params from job results.
+ * @param  {Object} jobResultObj - Job result object
+ * @param  {Object} logObject - Log object
+ */
+function mapJobResultsToLogObject(jobResultObj, logObject) {
+  if (jobResultObj.reqStartTime) {
+    logObject.totalTime = `${Date.now() - jobResultObj.reqStartTime}ms`;
+  }
+
+  if (jobResultObj.queueTime) {
+    logObject.queueTime = `${jobResultObj.queueTime}ms`;
+  }
+
+  if (jobResultObj.workTime) {
+    logObject.workTime = `${jobResultObj.workTime}ms`;
+  }
+
+  if (jobResultObj.dbTime) {
+    logObject.dbTime = `${jobResultObj.dbTime}ms`;
+  }
+
+  if (jobResultObj.recordCount) {
+    logObject.recordCount = jobResultObj.recordCount;
+  }
+
+  if (jobResultObj.errorCount) {
+    logObject.errorCount = jobResultObj.errorCount;
+  }
+}
+
+/**
  * Listen for a job completion event and clean up (remove) the job. The delay
- * is introduced to avoid the job.id leakage.
+ * is introduced to avoid the job.id leakage. If activity logs are enabled,
+ * update logObject and print log
  *
  * TODO: This needs to be moved to the clock process, once we start exposing
  * APIs to monitor the jobs.
  *
  * @param {Object} job - Job object to be cleaned up from the queue
  */
-function removeJobOnComplete(job) {
+function processJobOnComplete(job, logObject) {
   if (job) {
-    job.on('complete', () => {
+    job.on('complete', (jobResultObj) => {
       setTimeout(() => {
         job.remove();
       }, delayToRemoveJobs);
+
+      // if enableWorkerActivityLogs is enabled, update logObject
+      if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+       jobResultObj && logObject) {
+        mapJobResultsToLogObject(jobResultObj, logObject);
+
+        // The second argument should match the activity type in
+        // /config/activityLog.js
+        activityLogUtil.printActivityLogString(logObject, 'worker');
+      }
     });
   }
 } // removeJobOnComplete
+
+/**
+ * Logs worker activity and remove job when complete
+ * @param  {Object} job - Worker job and job type
+ * @param  {Object} req - Request object
+ */
+function logAndRemoveJobOnComplete(req, job) {
+  // if activity logs are enabled, log activity and remove job
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+    // create worker activity log object
+    const logObject = {};
+    logObject.jobType = job.type;
+
+    // if req object, then extract user, token and ipaddress and update log
+    //  object
+    if (req) {
+      u.getUserNameFromToken(req, true)
+      .then((username) => {
+        if (username) {
+          logObject.user = username;
+        }
+      })
+      .then(() => jwtUtil.getTokenNameFromToken(req))
+      .then((tokenName) => {
+        logObject.token = tokenName;
+        logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+      })
+      .then(() => processJobOnComplete(job, logObject))
+      .catch((err) => {
+        throw new Error(err);
+      });
+    } else {
+      // no req object, i.e clock process
+      processJobOnComplete(job, logObject);
+    }
+  } else {
+    // no activity logs, remove job
+    processJobOnComplete(job);
+  }
+}
 
 /**
  * Creates a job to be processed using the KUE api, given the jobName and
@@ -50,10 +136,11 @@ function removeJobOnComplete(job) {
  * @param {String} jobName - The job name. A worker process will be
  *  listening for this jobName to process the jobs.
  * @param {Object} data - Data for the job to work with.
+ * @param {Object} req - Request object.
  * @returns {Object} - A job object. The job object will be null when the
  *  jobQueue is created in the test mode.
  */
-function createJob(jobName, data) {
+function createJob(jobName, data, req) {
   const job = jobQueue.create(jobName, data).save((err) => {
     if (err) {
       const msg =
@@ -61,7 +148,8 @@ function createJob(jobName, data) {
       throw new Error(msg);
     }
   });
-  removeJobOnComplete(job);
+
+  logAndRemoveJobOnComplete(req, job);
   return job;
 } // createJob
 

@@ -66,6 +66,7 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
       objToReturn.recordCount = results.length - errorCount;
       objToReturn.errorCount = errorCount;
       objToReturn.workTime = dbEndTime - jobStartTime;
+      objToReturn.reqStartTime = reqStartTime;
       done(null, objToReturn);
     } else {
       done();

@@ -23,45 +23,6 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAPI = require('../../../utils/loggingUtil').logAPI;
-const WorkerLog = require('../../../utils/activityLogs/workerLog');
-const jwtUtil = require('../../../utils/jwtUtil');
-
-/**
- * Logs worker activity
- * @param  {Object} reqNext - The request object and The next middleware
- * function in the stack
- * @param  {Object} jobDetails - Worker job and job type
- * @param  {Integer} reqStartTime - Time in ms when req is received
- */
-function logWorkerActivity(reqNext, jobDetails, reqStartTime) {
-  // create worker activity log object
-  const workerLogObj = new WorkerLog(jobDetails.jobType.BULKUPSERTSAMPLES);
-  u.getUserNameFromToken(reqNext.req, true)
-  .then((username) => {
-    if (username) {
-      workerLogObj.user = username;
-    }
-  })
-  .then(() => jwtUtil.getTokenNameFromToken(reqNext.req))
-  .then((tokenName) => {
-    workerLogObj.token = tokenName;
-  })
-  .then(() => {
-    workerLogObj.ipAddress = u.getIPAddrFromReq(reqNext.req);
-  })
-  .then(() => {
-    jobDetails.job.on('complete', (result) => {
-      workerLogObj.totalTime = Date.now() - reqStartTime;
-      workerLogObj.queueTime = result.queueTime;
-      workerLogObj.workTime = result.workTime;
-      workerLogObj.dbTime = result.dbTime;
-      workerLogObj.recordCount = result.recordCount;
-      workerLogObj.errorCount = result.errorCount;
-      workerLogObj.toLogString();
-    });
-  })
-  .catch((err) => u.handleError(reqNext.next, err, helper.modelName));
-}
 
 module.exports = {
 
@@ -186,7 +147,7 @@ module.exports = {
    * @returns {ServerResponse} - The response object indicating merely that the
    *  bulk upsert request has been received.
    */
-  bulkUpsertSample(req, res, next) {
+  bulkUpsertSample(req, res/* , next */) {
     const reqStartTime = Date.now();
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
@@ -200,12 +161,8 @@ module.exports = {
         wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
 
-        const job = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
-          wrappedBulkUpsertData);
-
-        if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
-          logWorkerActivity({ req, next }, { job, jobType }, reqStartTime);
-        }
+        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+          wrappedBulkUpsertData, req);
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);

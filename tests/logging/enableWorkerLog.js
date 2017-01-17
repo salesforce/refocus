@@ -18,6 +18,7 @@ const u = require('./utils');
 const constants = require('../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const path = '/v1/samples/upsert/bulk';
+const jobQueue = require('../../jobQueue/setup').jobQueue;
 
 // replicated api bulk upsert basic tests with enableWorkerActivityLogs enabled
 // to execute worker activity logging and test that it does not interfere with
@@ -26,6 +27,8 @@ describe('api: POST ' + path, () => {
   let token;
 
   before((done) => {
+    jobQueue.testMode.enter();
+    tu.toggleOverride('useWorkerProcess', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -50,7 +53,9 @@ describe('api: POST ' + path, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
+    tu.toggleOverride('useWorkerProcess', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
+    jobQueue.testMode.clear();
   });
 
   it('all succeed', (done) => {
