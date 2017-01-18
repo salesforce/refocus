@@ -80,7 +80,7 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Get token details: username, token name and timestamp from Token.
+ * Get token details: username, token name from Token.
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
  * @returns {User}
@@ -97,7 +97,6 @@ function getTokenDetailsFromToken(req) {
         const resObj = {
           username: decodedData.username,
           tokenname: decodedData.tokenname,
-          timestamp: decodedData.timestamp,
         };
         return resolve(resObj);
       });
