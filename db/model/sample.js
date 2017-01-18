@@ -225,8 +225,8 @@ module.exports = function sample(seq, dataTypes) {
           .then((o) => resolve(o))
           .catch((err) => {
             if (isBulk) {
-              // adding isFailed:true to differentiate failed results from
-              // success results in bulk upsert
+              /* adding isFailed:true to differentiate failed results from
+               success results in bulk upsert */
               resolve({ explanation: err, isFailed: true });
             } else {
               reject(err);

@@ -20,9 +20,9 @@ const Aspect = tu.db.Aspect;
 const path = '/v1/samples/upsert/bulk';
 const jobQueue = require('../../jobQueue/setup').jobQueue;
 
-// replicated api bulk upsert basic tests with enableWorkerActivityLogs enabled
-// to execute worker activity logging and test that it does not interfere with
-// the existing code.
+/* replicated api bulk upsert basic tests with enableWorkerActivityLogs enabled
+ to execute worker activity logging and test that it does not interfere with
+ the existing code. */
 describe('api: POST ' + path, () => {
   let token;
 

@@ -17,7 +17,6 @@
 const jobQueue = require('./setup').jobQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
-const u = require('../api/v1/helpers/verbs/utils');
 const activityLogUtil = require('../utils/activityLog');
 
 /*
@@ -81,8 +80,8 @@ function processJobOnComplete(job, logObject) {
        jobResultObj && logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
 
-        // The second argument should match the activity type in
-        // /config/activityLog.js
+        /* The second argument should match the activity type in
+         /config/activityLog.js */
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
     });
@@ -91,7 +90,7 @@ function processJobOnComplete(job, logObject) {
 
 /**
  * Logs worker activity and remove job when complete
- * @param  {Object} job - Worker job and job type
+ * @param  {Object} job - Worker job
  * @param  {Object} req - Request object
  */
 function logAndRemoveJobOnComplete(req, job) {
@@ -99,28 +98,22 @@ function logAndRemoveJobOnComplete(req, job) {
   if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
     // create worker activity log object
     const logObject = {};
-    logObject.jobType = job.type;
+    if (job.type) {
+      logObject.jobType = job.type;
+    }
 
-    // if req object, then extract user, token and ipaddress and update log
-    //  object
+    logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+
+    /* if req object, then extract user, token and ipaddress and update log
+      object */
     if (req) {
-      u.getUserNameFromToken(req, true)
-      .then((username) => {
-        if (username) {
-          logObject.user = username;
-        }
-      })
-      .then(() => jwtUtil.getTokenNameFromToken(req))
-      .then((tokenName) => {
-        logObject.token = tokenName;
-        logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
-      })
-      .then(() => processJobOnComplete(job, logObject))
-      .catch((err) => {
-        throw new Error(err);
+      jwtUtil.getTokenDetailsFromToken(req)
+      .then((resObj) => {
+        logObject.user = resObj.username;
+        logObject.token = resObj.tokenname;
       });
-    } else {
-      // no req object, i.e clock process
+
+      // continue to update and print logObject on job completion.
       processJobOnComplete(job, logObject);
     }
   } else {
@@ -156,4 +149,6 @@ function createJob(jobName, data, req) {
 module.exports = {
   jobQueue,
   createJob,
+  mapJobResultsToLogObject,
+  logAndRemoveJobOnComplete,
 }; // exports

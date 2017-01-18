@@ -80,12 +80,12 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Get user name from Token.
+ * Get token details: username, token name and timestamp from Token.
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
  * @returns {User}
  */
-function getUsernameFromToken(req) {
+function getTokenDetailsFromToken(req) {
   return new Promise((resolve, reject) => {
     if (req && req.headers && req.headers.authorization) {
       jwt.verify(req.headers.authorization, env.tokenSecret, {},
@@ -94,8 +94,12 @@ function getUsernameFromToken(req) {
           return reject(err);
         }
 
-        const username = decodedData.username;
-        return resolve(username);
+        const resObj = {
+          username: decodedData.username,
+          tokenname: decodedData.tokenname,
+          timestamp: decodedData.timestamp,
+        };
+        return resolve(resObj);
       });
     } else {
       reject(new apiErrors.ForbiddenError({
@@ -122,32 +126,8 @@ function createToken(tokenName, userName) {
   return createdToken;
 }
 
-/**
- * Get token name from Token
- * @param  {object}   req - request object
- * @param  {Function} cb - callback function
- * @returns {string} - Token name if token provided, else null.
- */
-function getTokenNameFromToken(req) {
-  return new Promise((resolve, reject) => {
-    if (req && req.headers && req.headers.authorization) {
-      jwt.verify(req.headers.authorization, env.tokenSecret, {},
-      (err, decodedData) => {
-        if (err !== null || !decodedData) {
-          return reject(err);
-        }
-
-        return resolve(decodedData.tokenname);
-      });
-    } else {
-      resolve(null);
-    }
-  });
-} // getTokenNameFromToken
-
 module.exports = {
   verifyToken,
   createToken,
-  getUsernameFromToken,
-  getTokenNameFromToken,
+  getTokenDetailsFromToken,
 };
