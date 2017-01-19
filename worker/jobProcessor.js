@@ -24,7 +24,16 @@ console.log(workerStarted); // eslint-disable-line no-console
 
 // Process Sample Bulk Upsert Operations
 jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
-  const samples = job.data.upsertData;
+
+  /*
+   * The shape of the old jobs objects in redis is different from the shape
+   * of the new job objects that will be inserted in redis. The following
+   * check is done to get the sample data based on the shape of the object.
+   *  The old job objects look like this {data : [sample1, sample2]} and
+   * the new ones look like this
+   *  {data: {upsertData: [sample1,sample2], userName: 'name'}}
+   */
+  const samples = job.data.length ? job.data : job.data.upsertData;
   const userName = job.data.userName;
   const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
     `with ${samples.length} samples`;
