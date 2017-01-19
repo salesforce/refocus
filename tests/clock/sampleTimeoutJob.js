@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/clock/sampleTimeoutJobs.js
+ * tests/clock/sampleTimeoutJob.js
  */
 const expect = require('chai').expect;
 const j = require('../../clock/scheduledJobs/sampleTimeoutJob');
@@ -16,7 +16,8 @@ describe('sampleTimeoutJob', () => {
   it('ok', (done) => {
     j.execute()
     .then((resp) => {
-      expect(resp).to.match(/Evaluated \d+ samples; \d+ were timed out\./);
+      expect(resp).to.be.an('object');
+      expect(resp).to.include.keys('numberEvaluated', 'numberTimedOut');
       done();
     })
     .catch(done);

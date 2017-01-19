@@ -102,8 +102,8 @@ describe('db: sample: timeout: ', () => {
     mockUpdatedAt.setHours(updatedAt.getHours() +
       (twentyFourhours * hundredDays));
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 4 were timed out.');
+    .then((res) => {
+      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 4 });
     })
     .then(() => Sample.findAll({
       where: {
@@ -123,8 +123,8 @@ describe('db: sample: timeout: ', () => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 3 were timed out.');
+    .then((res) => {
+      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 3 });
     })
     .then(() => Sample.findAll({
       where: {
@@ -157,8 +157,8 @@ describe('db: sample: timeout: ', () => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setMinutes(updatedAt.getMinutes() + fiveMinutes);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 2 were timed out.');
+    .then((res) => {
+      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 2 });
     })
     .then(() => Sample.findAll({
       where: {
@@ -191,8 +191,8 @@ describe('db: sample: timeout: ', () => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setSeconds(updatedAt.getSeconds() - tenSeconds);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 0 were timed out.');
+    .then((res) => {
+      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 0 });
     })
     .then(() => Sample.findAll({
       where: {

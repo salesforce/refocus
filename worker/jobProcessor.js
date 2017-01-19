@@ -76,9 +76,34 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
 // Process Sample Timeout Operations
 jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
+  const jobStartTime = Date.now();
+  const reqStartTime = job.data.reqStartTime;
+
   const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
   const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
   console.log(msg); // eslint-disable-line no-console
+
+  const dbStartTime = Date.now();
   sampleTimeoutJob.execute()
-  .then(() => done());
+  .then((dbRes) => {
+    if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+      const dbEndTime = Date.now();
+      const objToReturn = {};
+
+      // update log Object params
+      objToReturn.dbTime = dbEndTime - dbStartTime;
+      objToReturn.queueTime = jobStartTime - reqStartTime;
+
+      // recordCount = number of successul timeouts
+      objToReturn.recordCount = dbRes.numberTimedOut;
+
+      // errorCount = number of samples that did not time out
+      objToReturn.errorCount = dbRes.numberEvaluated - dbRes.numberTimedOut;
+      objToReturn.workTime = dbEndTime - jobStartTime;
+      objToReturn.reqStartTime = reqStartTime;
+      done(null, objToReturn);
+    } else {
+      done();
+    }
+  });
 });
