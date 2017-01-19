@@ -80,12 +80,12 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Verify jwt token.
+ * Get token details: username, token name from Token.
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
  * @returns {User}
  */
-function getUsernameFromToken(req) {
+function getTokenDetailsFromToken(req) {
   return new Promise((resolve, reject) => {
     if (req && req.headers && req.headers.authorization) {
       jwt.verify(req.headers.authorization, env.tokenSecret, {},
@@ -94,8 +94,11 @@ function getUsernameFromToken(req) {
           return reject(err);
         }
 
-        const username = decodedData.username;
-        return resolve(username);
+        const resObj = {
+          username: decodedData.username,
+          tokenname: decodedData.tokenname,
+        };
+        return resolve(resObj);
       });
     } else {
       reject(new apiErrors.ForbiddenError({
@@ -125,5 +128,5 @@ function createToken(tokenName, userName) {
 module.exports = {
   verifyToken,
   createToken,
-  getUsernameFromToken,
+  getTokenDetailsFromToken,
 };

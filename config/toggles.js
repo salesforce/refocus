@@ -69,6 +69,10 @@ const longTermToggles = {
   enforceWritePermission: environmentVariableTrue(pe,
                                         'ENFORCE_WRITE_PERMISSION'),
 
+  // Enable worker activity logging
+  enableWorkerActivityLogs: environmentVariableTrue(pe,
+                                        'ENABLE_WORKER_ACTIVITY_LOGS'),
+
 }; // longTermToggles
 
 /*

@@ -147,7 +147,8 @@ module.exports = {
    * @returns {ServerResponse} - The response object indicating merely that the
    *  bulk upsert request has been received.
    */
-  bulkUpsertSample(req, res /* , next */) {
+  bulkUpsertSample(req, res/* , next */) {
+    const reqStartTime = Date.now();
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
@@ -158,9 +159,10 @@ module.exports = {
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = req.swagger.params.queryBody.value;
         wrappedBulkUpsertData.userName = userName;
+        wrappedBulkUpsertData.reqStartTime = reqStartTime;
 
         jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
-          wrappedBulkUpsertData);
+          wrappedBulkUpsertData, req);
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);

@@ -167,14 +167,13 @@ function isWritable(req, modelInst, isEnabled) {
     }
 
     if (req.headers && req.headers.authorization) {
-      jwtUtil.getUsernameFromToken(req)
-      .then((userName) => modelInst.isWritableBy(userName))
+      jwtUtil.getTokenDetailsFromToken(req)
+      .then((resObj) => modelInst.isWritableBy(resObj.username))
       .then((ok) => ok ? resolve(modelInst) :
           reject(new apiErrors.ForbiddenError())
       )
       .catch((err) => reject(err));
     } else if (req.user) {
-
       // try to use the logged-in user
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) :
@@ -202,9 +201,9 @@ function getUserNameFromToken(req, doDecode) {
     }
 
     if (req.headers && req.headers.authorization) {
-      jwtUtil.getUsernameFromToken(req)
-      .then((userName) => {
-        resolve(userName);
+      jwtUtil.getTokenDetailsFromToken(req)
+      .then((resObj) => {
+        resolve(resObj.username);
       })
       .catch((err) => reject(err));
     } else if (req.user) {
