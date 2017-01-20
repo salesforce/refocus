@@ -22,7 +22,6 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
 function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
-
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
 
@@ -41,6 +40,16 @@ function start() { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
+  const client = require('redis').createClient();
+  const limiter = require('express-limiter')(app, client);
+  limiter({
+    path: '*',
+    method: 'all',
+    lookup: ['connection.remoteAddress'],
+    // 150 requests per minute
+    total: 3,
+    expire: 1000 * 60
+  });
 
   /*
    * Compress(gzip) all the api responses and all the static files.
