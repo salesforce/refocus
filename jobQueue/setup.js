@@ -18,7 +18,7 @@ const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const urlParser = require('url');
 const kue = require('kue');
-const ttlForJobs = conf.TIME_TO_LIVE;
+const ttlForJobs = conf.JOB_QUEUE_TTL_SECONDS;
 let redisUrl = env.redisUrl;
 const redisOptions = {};
 if (redisUrl) {
