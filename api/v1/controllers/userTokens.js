@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/userTokens.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/tokens');
 const apiErrors = require('../apiErrors');
@@ -18,25 +18,35 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = cnstnts.httpStatus;
 const authUtils = require('../helpers/authUtils');
 
-function whereClauseForUser(user) {
+/**
+ * where clause to get user tokens
+ * @param  {String} userNameOrId - User name or id
+ * @returns {Object} - where clause
+ */
+function whereClauseForUser(userNameOrId) {
   const whr = {};
-  whr[cnstnts.SEQ_OR] = [
-    {
-      'user.name': {},
-    },
-    {
-      'user.id': {},
-    },
-  ];
-  whr[cnstnts.SEQ_OR][0]['user.name'][cnstnts.SEQ_LIKE] = user;
-  whr[cnstnts.SEQ_OR][1]['user.id'][cnstnts.SEQ_LIKE] = user;
+  if (u.looksLikeId()) {
+    // need to use '$table.field$' for association fields
+    whr.where = { '$User.id$': {} };
+    whr.where['$User.id$'][cnstnts.SEQ_LIKE] = userNameOrId;
+  } else {
+    whr.where = { '$User.name$': {} };
+    whr.where['$User.name$'][cnstnts.SEQ_LIKE] = userNameOrId;
+  }
+
   return whr;
 } // whereClauseForUser
 
+/**
+ * where clause to get a token for a user
+ * @param  {String} user - User name or id
+ * @param  {Str} tokenName - Token name
+ * @returns {Object} - where clause
+ */
 function whereClauseForUserAndTokenName(user, tokenName) {
   const whr = whereClauseForUser(user);
-  whr.name = {};
-  whr.name[cnstnts.SEQ_LIKE] = tokenName;
+  whr.where.name = {};
+  whr.where.name[cnstnts.SEQ_LIKE] = tokenName;
   return whr;
 } // whereClauseForUserAndTokenName
 
@@ -119,6 +129,13 @@ module.exports = {
     const whr = whereClauseForUserAndTokenName(user, tokenName);
     helper.model.findOne(whr)
     .then((o) => {
+      if (!o) {
+        const err = new apiErrors.ResourceNotFoundError();
+        err.resource = helper.model.name;
+        err.key = user + ', ' + tokenName;
+        throw err;
+      }
+
       res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -165,6 +182,13 @@ module.exports = {
         const whr = whereClauseForUserAndTokenName(user, tokenName);
         helper.model.findOne(whr)
         .then((o) => {
+          if (!o) {
+            const err = new apiErrors.ResourceNotFoundError();
+            err.resource = helper.model.name;
+            err.key = user + ', ' + tokenName;
+            throw err;
+          }
+
           if (o.isRevoked === '0') {
             throw new apiErrors.InvalidTokenActionError();
           }
@@ -203,6 +227,13 @@ module.exports = {
         const whr = whereClauseForUserAndTokenName(user, tokenName);
         helper.model.findOne(whr)
         .then((o) => {
+          if (!o) {
+            const err = new apiErrors.ResourceNotFoundError();
+            err.resource = helper.model.name;
+            err.key = user + ', ' + tokenName;
+            throw err;
+          }
+
           if (o.isRevoked > '0') {
             throw new apiErrors.InvalidTokenActionError();
           }
