@@ -80,25 +80,23 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Get token details: username, token name from Token.
- * @param  {object}   req - request object
- * @param  {Function} cb - callback function
- * @returns {User}
+ * Get token details: username, token name from the token string.
+ *
+ * @param  {String} s - The token string
+ * @returns {Promise} - Resolves to an object containing "username" and
+ *  "tokenname" attributes.
  */
-function getTokenDetailsFromToken(req) {
+function getTokenDetailsFromTokenString(s) {
   return new Promise((resolve, reject) => {
-    if (req && req.headers && req.headers.authorization) {
-      jwt.verify(req.headers.authorization, env.tokenSecret, {},
-      (err, decodedData) => {
+    if (s) {
+      jwt.verify(s, env.tokenSecret, {}, (err, decodedData) => {
         if (err !== null || !decodedData) {
           return reject(err);
         }
 
-        const resObj = {
-          username: decodedData.username,
-          tokenname: decodedData.tokenname,
-        };
-        return resolve(resObj);
+        const username = decodedData.username;
+        const tokenname = decodedData.tokenname;
+        return resolve({ username, tokenname });
       });
     } else {
       reject(new apiErrors.ForbiddenError({
@@ -106,7 +104,22 @@ function getTokenDetailsFromToken(req) {
       }));
     }
   });
-} // getUsernameFromToken
+} // getTokenDetailsFromTokenString
+
+/**
+ * Get token details (user name and token name) from the request.
+ *
+ * @param {Object} req - The request object.
+ * @returns {Promise} - Resolves to an object containing "username" and
+ *  "tokenname" attributes.
+ */
+function getTokenDetailsFromToken(req) {
+  let t = null;
+  if (req && req.headers && req.headers.authorization) {
+    t = req.headers.authorization;
+  }
+  return getTokenDetailsFromTokenString(t);
+} // getTokenDetailsFromToken
 
 /**
  * Create jwt token.
@@ -129,4 +142,5 @@ module.exports = {
   verifyToken,
   createToken,
   getTokenDetailsFromToken,
+  getTokenDetailsFromTokenString,
 };
