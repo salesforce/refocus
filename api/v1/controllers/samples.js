@@ -163,7 +163,6 @@ module.exports = {
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
-        console.log(`Job ${j.id} ${jobType.BULKUPSERTSAMPLES} created.`);
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);

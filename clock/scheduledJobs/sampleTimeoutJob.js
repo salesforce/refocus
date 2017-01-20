@@ -32,7 +32,6 @@ module.exports = {
       const j = jobWrapper.createJob(
         jobType.SAMPLE_TIMEOUT, { reqStartTime: Date.now() }
       );
-      console.log(`Job ${j.id} ${jobType.SAMPLE_TIMEOUT} created.`);
       return Promise.resolve(true);
     }
 
