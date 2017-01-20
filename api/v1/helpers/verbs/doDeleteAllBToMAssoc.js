@@ -30,12 +30,17 @@ const featureToggles = require('feature-toggles');
  */
 function doDeleteAllBToMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName) {
+  const resultObj = { reqStartTime: new Date() };
   const params = req.swagger.params;
   u.findByKey(props, params)
   .then((o) => u.isWritable(req, o,
       featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     u.deleteAllAssociations(o, [assocName]);
+    resultObj.retval = o.dataValues;
+    u.logAPI(req, resultObj);
     res.status(httpStatus.NO_CONTENT).json();
   })
   .catch((err) => u.handleError(next, err, props.modelName));

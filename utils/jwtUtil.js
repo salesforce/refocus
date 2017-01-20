@@ -87,8 +87,17 @@ function verifyToken(req, cb) {
  */
 function getTokenDetailsFromToken(req) {
   return new Promise((resolve, reject) => {
-    if (req && req.headers && req.headers.authorization) {
-      jwt.verify(req.headers.authorization, env.tokenSecret, {},
+    let authorization;
+    if (req) {
+      if (req.headers && req.headers.authorization) {
+        authorization = req.headers.authorization;
+      } else if (req.cookies && req.cookies.Authorization) {
+        authorization = req.cookies.Authorization;
+      }
+    }
+
+    if (authorization) {
+      jwt.verify(authorization, env.tokenSecret, {},
       (err, decodedData) => {
         if (err !== null || !decodedData) {
           return reject(err);
@@ -101,6 +110,7 @@ function getTokenDetailsFromToken(req) {
         return resolve(resObj);
       });
     } else {
+      // no req or authorization
       reject(new apiErrors.ForbiddenError({
         explanation: 'No authorization token was found',
       }));
