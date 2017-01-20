@@ -75,7 +75,17 @@ function processJobOnComplete(job, logObject) {
     job.on('complete', (jobResultObj) => {
       setTimeout(() => {
         try {
-          job.remove();
+          console.log('Ready to ' + // eslint-disable-line no-console
+            `remove job ${job.id}`);
+          job.remove((err) => {
+            if (err) {
+              console.log('Error removing ' + // eslint-disable-line no-console
+                `${job.id}`, err);
+            } else {
+              console.log('Removed ' + // eslint-disable-line no-console
+                `completed job ${job.id}`);
+            }
+          });
         } catch (err) {
           console.log('Error removing ' + // eslint-disable-line no-console
             'kue job', job, err);
