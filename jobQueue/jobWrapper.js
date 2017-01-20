@@ -72,7 +72,12 @@ function processJobOnComplete(job, logObject) {
   if (job) {
     job.on('complete', (jobResultObj) => {
       setTimeout(() => {
-        job.remove();
+        try {
+          job.remove();
+        } catch (err) {
+          console.log( // eslint-disable-line no-console
+            'Error removing kue job', job, err);
+        }
       }, delayToRemoveJobs);
 
       // if enableWorkerActivityLogs is enabled, update logObject
@@ -86,12 +91,13 @@ function processJobOnComplete(job, logObject) {
       }
     });
   }
-} // removeJobOnComplete
+} // processJobOnComplete
 
 /**
- * Logs worker activity and remove job when complete
- * @param  {Object} job - Worker job
+ * Logs worker activity and remove job when complete.
+ *
  * @param  {Object} req - Request object
+ * @param  {Object} job - Worker job
  */
 function logAndRemoveJobOnComplete(req, job) {
   // if activity logs are enabled, log activity and remove job
