@@ -19,7 +19,7 @@ const jobWrapper = require('../../jobQueue/jobWrapper');
 const jobQueue = require('../../jobQueue/jobWrapper').jobQueue;
 const sinon = require('sinon');
 
-describe('jobWrapper: functions ' + path, () => {
+describe('jobWrapper: functions ', () => {
   let token;
 
   before((done) => {
