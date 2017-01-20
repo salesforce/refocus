@@ -14,15 +14,15 @@
  * worker process.
  */
 'use strict'; // eslint-disable-line strict
-const jobSetUp = require('./setup');
-const jobQueue = jobSetUp.jobQueue;
+const jobSetup = require('./setup');
+const jobQueue = jobSetup.jobQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 
 // ttl converted to milliseconds
 const TIME_TO_LIVE =
-      1000 * jobSetUp.ttlForJobs; // eslint-disable-line no-magic-numbers
+      1000 * jobSetup.ttlForJobs; // eslint-disable-line no-magic-numbers
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
