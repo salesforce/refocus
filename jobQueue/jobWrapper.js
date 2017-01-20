@@ -112,10 +112,10 @@ function logAndRemoveJobOnComplete(req, job) {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;
       });
-
-      // continue to update and print logObject on job completion.
-      processJobOnComplete(job, logObject);
     }
+
+    // continue to update and print logObject on job completion.
+    processJobOnComplete(job, logObject);
   } else {
     // no activity logs, remove job
     processJobOnComplete(job);

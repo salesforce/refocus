@@ -63,4 +63,36 @@ module.exports = {
     // print the log
     winston.log('info', logStr);
   },
+
+  /**
+   * Update the result object parameters calculated from job object params.
+   * @param  {Object} resultObj - Result object to be returned after
+   * processing job
+   * @param  {Object} tempObj - Object passed for calculating result object
+   */
+  updateActivityLogParams(resultObj, tempObj) {
+    if (tempObj.dbEndTime) {
+      if (tempObj.dbStartTime) {
+        /* aggregate sequelize time, not necessarily continuous, e.g. the worker
+        can make multiple sequelize calls--this should measure the sum of all
+        the time spent in sequelize calls */
+        resultObj.dbTime = tempObj.dbEndTime - tempObj.dbStartTime;
+      }
+
+      if (tempObj.jobStartTime) {
+        // time spent from when the job is pulled off the queue to completion
+        resultObj.workTime = tempObj.dbEndTime - tempObj.jobStartTime;
+      }
+    }
+
+    if (tempObj.reqStartTime) {
+      // reqStartTime, when job request was placed
+      resultObj.reqStartTime = tempObj.reqStartTime;
+
+      if (tempObj.jobStartTime) {
+        // queueTime, time spent in the queue
+        resultObj.queueTime = tempObj.jobStartTime - tempObj.reqStartTime;
+      }
+    }
+  },
 };

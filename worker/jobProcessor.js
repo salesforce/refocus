@@ -19,6 +19,7 @@ const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
 const featureToggles = require('feature-toggles');
+const activityLogUtil = require('../utils/activityLog');
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -50,10 +51,6 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
       const dbEndTime = Date.now();
       const objToReturn = {};
 
-      // add dbTime, queueTime to log object
-      objToReturn.dbTime = dbEndTime - dbStartTime;
-      objToReturn.queueTime = jobStartTime - reqStartTime;
-
       // calculate failed promises
       let errorCount = 0;
       for (let i = 0; i < results.length; i++) {
@@ -62,11 +59,21 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
         }
       }
 
-      // add workTime, recordCount, errorCount to log object
+      // number of successful upserts
       objToReturn.recordCount = results.length - errorCount;
+
+      // number of failed upserts
       objToReturn.errorCount = errorCount;
-      objToReturn.workTime = dbEndTime - jobStartTime;
-      objToReturn.reqStartTime = reqStartTime;
+
+      const tempObj = {
+        jobStartTime,
+        reqStartTime,
+        dbStartTime,
+        dbEndTime,
+      };
+
+      // update time parameters in object to return.
+      activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
       done(null, objToReturn);
     } else {
       done();
@@ -76,9 +83,37 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
 // Process Sample Timeout Operations
 jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
+  const jobStartTime = Date.now();
+  const reqStartTime = job.data.reqStartTime;
+
   const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
   const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
   console.log(msg); // eslint-disable-line no-console
+
+  const dbStartTime = Date.now();
   sampleTimeoutJob.execute()
-  .then(() => done());
+  .then((dbRes) => {
+    if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+      const dbEndTime = Date.now();
+      const objToReturn = {};
+
+      // recordCount = number of successul timeouts
+      objToReturn.recordCount = dbRes.numberTimedOut;
+
+      // errorCount = number of samples that did not time out
+      objToReturn.errorCount = dbRes.numberEvaluated - dbRes.numberTimedOut;
+      const tempObj = {
+        jobStartTime,
+        reqStartTime,
+        dbStartTime,
+        dbEndTime,
+      };
+
+      // update time parameters in object to return.
+      activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      done(null, objToReturn);
+    } else {
+      done();
+    }
+  });
 });

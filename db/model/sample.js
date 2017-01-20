@@ -263,8 +263,7 @@ module.exports = function sample(seq, dataTypes) {
               return s.update({ value: constants.statuses.Timeout });
             }
           })
-          .then(() => resolve(`Evaluated ${numberEvaluated} samples; ` +
-            `${numberTimedOut} were timed out.`))
+          .then(() => resolve({ numberEvaluated, numberTimedOut }))
           .catch(reject);
         });
       }, // doTimeout

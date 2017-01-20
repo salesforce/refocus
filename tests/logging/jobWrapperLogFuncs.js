@@ -14,13 +14,12 @@
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const u = require('./utils');
-const Aspect = tu.db.Aspect;
 const path = '/v1/samples/upsert/bulk';
 const jobWrapper = require('../../jobQueue/jobWrapper');
 const jobQueue = require('../../jobQueue/jobWrapper').jobQueue;
 const sinon = require('sinon');
 
-describe('jobWrapper: functions ' + path, () => {
+describe('jobWrapper: functions ', () => {
   let token;
 
   before((done) => {
@@ -31,18 +30,6 @@ describe('jobWrapper: functions ' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    Aspect.create({
-      isPublished: true,
-      name: `${tu.namePrefix}Aspect1`,
-      timeout: '30s',
-      valueType: 'NUMERIC',
-      criticalRange: [0, 1],
-    })
-    .then(() => done())
     .catch(done);
   });
 
