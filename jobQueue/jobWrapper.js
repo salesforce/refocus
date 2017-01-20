@@ -160,6 +160,9 @@ function createJob(jobName, data, req) {
         `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
       throw new Error(msg);
     }
+
+    console.log(`Job ${job.id} ` + // eslint-disable-line no-console
+      `(${jobName}) created`);
   });
 
   logAndRemoveJobOnComplete(req, job);
