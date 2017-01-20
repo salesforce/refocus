@@ -22,7 +22,7 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const logAPI = require('../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 
 module.exports = {
 
@@ -126,7 +126,7 @@ module.exports = {
     )
     .then((o) => {
       if (helper.loggingEnabled) {
-        logAPI(req, helper.modelName, o);
+        logAuditAPI(req, helper.modelName, o);
       }
 
       return res.status(httpStatus.OK)
@@ -169,7 +169,7 @@ module.exports = {
       }
 
       if (helper.loggingEnabled) {
-        logAPI(req, helper.modelName);
+        logAuditAPI(req, helper.modelName);
       }
     });
 
@@ -203,7 +203,7 @@ module.exports = {
     })
     .then((o) => {
       if (helper.loggingEnabled) {
-        logAPI(req, 'SampleRelatedLinks', o);
+        logAuditAPI(req, 'SampleRelatedLinks', o);
       }
 
       const retval = u.responsify(o, helper, req.method);

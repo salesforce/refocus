@@ -73,6 +73,10 @@ const longTermToggles = {
   enableRealtimeActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
 
+  // Enable api activity logging
+  enableApiActivityLogs: environmentVariableTrue(pe,
+                                        'ENABLE_API_ACTIVITY_LOGS'),
+
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),

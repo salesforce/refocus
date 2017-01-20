@@ -14,7 +14,7 @@
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const logAPI = require('../../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../../utils/loggingUtil').logAuditAPI;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -30,6 +30,7 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  *  resource type to put.
  */
 function doPut(req, res, next, props) {
+  const resultObj = { reqStartTime: new Date() };
   const toPut = req.swagger.params.queryBody.value;
   const puttableFields =
     req.swagger.params.queryBody.schema.schema.properties;
@@ -57,10 +58,14 @@ function doPut(req, res, next, props) {
     return o.save();
   })
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
-      logAPI(req, props.modelName, o);
+      logAuditAPI(req, props.modelName, o);
     }
 
+    resultObj.retval = o.dataValues;
+    u.logAPI(req, resultObj);
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
