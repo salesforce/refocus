@@ -26,7 +26,6 @@ console.log(workerStarted); // eslint-disable-line no-console
 
 // Process Sample Bulk Upsert Operations
 jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
-
   /*
    * The shape of the old jobs objects in redis is different from the shape
    * of the new job objects that will be inserted in redis. The following
@@ -74,10 +73,10 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
-      done(null, objToReturn);
-    } else {
-      done();
+      return done(null, objToReturn);
     }
+
+    return done();
   });
 });
 
@@ -111,9 +110,9 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
-      done(null, objToReturn);
-    } else {
-      done();
+      return done(null, objToReturn);
     }
+
+    return done();
   });
 });

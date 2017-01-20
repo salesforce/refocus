@@ -29,9 +29,10 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
       const jobWrapper = require('../../jobQueue/jobWrapper');
       const jobType = require('../../jobQueue/setup').jobType;
-      jobWrapper.createJob(
+      const j = jobWrapper.createJob(
         jobType.SAMPLE_TIMEOUT, { reqStartTime: Date.now() }
       );
+      console.log(`Job ${j.id} ${jobType.SAMPLE_TIMEOUT} created.`);
       return Promise.resolve(true);
     }
 
