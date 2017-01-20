@@ -18,6 +18,8 @@ const jobQueue = require('./setup').jobQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const TIME_TO_LIVE = // one hour
+  1000 * 60 * 60; // eslint-disable-line no-magic-numbers
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
@@ -140,7 +142,9 @@ function logAndRemoveJobOnComplete(req, job) {
  *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
-  const job = jobQueue.create(jobName, data).save((err) => {
+  const job = jobQueue.create(jobName, data)
+  .ttl(TIME_TO_LIVE)
+  .save((err) => {
     if (err) {
       const msg =
         `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
