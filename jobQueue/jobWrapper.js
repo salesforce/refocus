@@ -75,8 +75,8 @@ function processJobOnComplete(job, logObject) {
         try {
           job.remove();
         } catch (err) {
-          console.log( // eslint-disable-line no-console
-            'Error removing kue job', job, err);
+          console.log('Error removing ' + // eslint-disable-line no-console
+            'kue job', job, err);
         }
       }, delayToRemoveJobs);
 
