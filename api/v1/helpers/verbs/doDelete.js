@@ -27,6 +27,7 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  *  resource type to delete.
  */
 function doDelete(req, res, next, props) {
+  const resultObj = { reqStartTime: new Date() };
   u.findByKey(props, req.swagger.params)
   .then((o) => u.isWritable(req, o,
       featureToggles.isFeatureEnabled('enforceWritePermission')))
@@ -36,6 +37,8 @@ function doDelete(req, res, next, props) {
       logAPI(req, props.modelName, o);
     }
 
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     const assocNames = [];
 
     /**
@@ -50,6 +53,8 @@ function doDelete(req, res, next, props) {
 
     // when a resource is deleted, delete all its associations too
     u.deleteAllAssociations(o, assocNames);
+    resultObj.retval = o.dataValues;
+    u.logAPI(req, resultObj);
     return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
