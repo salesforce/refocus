@@ -44,6 +44,11 @@ const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
+const DEFAULT_TTL = 3600;
+
+// set time to live for "kue" jobs
+const TIME_TO_LIVE = pe.TTL_KUE_JOBS || DEFAULT_TTL;
+
 module.exports = {
 
   api: {
@@ -166,4 +171,5 @@ module.exports = {
   auditSamples,
   auditAspects,
   CACHE_EXPIRY_IN_SECS,
+  TIME_TO_LIVE,
 };
