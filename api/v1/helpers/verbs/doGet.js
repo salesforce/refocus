@@ -31,6 +31,7 @@ const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
  *  resource type to retrieve.
  */
 function doGet(req, res, next, props) {
+  const resultObj = { reqStartTime: new Date() };
   if (props.cacheEnabled) {
     const reqParams = req.swagger.params;
     let cacheKey = reqParams.key.value;
@@ -55,13 +56,23 @@ function doGet(req, res, next, props) {
         .catch((err) => u.handleError(next, err, props.modelName));
       } else {
         // get from cache
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        resultObj.recordCount = 1;
         const dbObj = JSON.parse(reply);
+        // dbObj is a sequelize obj, get dataValues obj
+        resultObj.retval = dbObj.dataValues;
+        u.logAPI(req, resultObj);
         res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
       }
     });
   } else {
     u.findByKey(props, req.swagger.params)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      resultObj.recordCount = 1;
+      // o is a sequelize obj, get dataValues obj
+      resultObj.retval = o.dataValues;
+      u.logAPI(req, resultObj);
       res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
     })
     .catch((err) => u.handleError(next, err, props.modelName));
