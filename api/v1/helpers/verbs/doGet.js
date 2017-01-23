@@ -59,6 +59,7 @@ function doGet(req, res, next, props) {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
         resultObj.recordCount = 1;
         const dbObj = JSON.parse(reply);
+
         // dbObj is a sequelize obj, get dataValues obj
         resultObj.retval = dbObj.dataValues;
         u.logAPI(req, resultObj);
@@ -70,6 +71,7 @@ function doGet(req, res, next, props) {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       resultObj.recordCount = 1;
+
       // o is a sequelize obj, get dataValues obj
       resultObj.retval = o.dataValues;
       u.logAPI(req, resultObj);
