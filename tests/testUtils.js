@@ -42,6 +42,7 @@ function forceDelete(model, testStartTime) {
 } // forceDelete
 
 module.exports = {
+  userName,
   fakeUserCredentials: {
     email: 'user1@abc.com',
     password: 'fakePasswd',
