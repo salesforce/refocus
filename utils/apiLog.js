@@ -75,11 +75,11 @@ function combineAndLog(resultObj, logObject) {
  */
 function logAPI(req, resultObj) {
   // if api logs are enabled, log api
-  if (req && featureToggles.isFeatureEnabled('enableApiLogs')) {
+  if (req && featureToggles.isFeatureEnabled('enableApiWorkerLogs')) {
     // create api activity log object
     const logObject = {
       ipAddress: activityLogUtil.getIPAddrFromReq(req),
-      responseBytes: getSize(req.body),
+      requestBytes: getSize(req.body),
       uri: req.url,
       method: req.method,
     };
