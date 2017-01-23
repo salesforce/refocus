@@ -28,8 +28,8 @@ function getSize(obj) {
 
 /**
  * Set log object params from API results.
- * @param  {Object} resultObj - Job result object
- * @param  {Object} logObject - Log object
+ * @param {Object} resultObj - API result object
+ * @param {Object} logObject - from the request object
  */
 function mapApiResultsToLogObject(resultObj, logObject) {
 
@@ -56,10 +56,22 @@ function mapApiResultsToLogObject(resultObj, logObject) {
 }
 
 /**
+ * Combine params from the api and request
+ * and log the result
+ * @param {Object} resultObj - API result object
+ * @param {Object} logObject - from the request object
+ */
+function combineAndLog(resultObj, logObject) {
+  // in-place modification of logObject
+  mapApiResultsToLogObject(resultObj, logObject);
+  activityLogUtil.printActivityLogString(logObject, 'api');
+}
+
+/**
  * Combines input obj with values from the request object
  * then logs
- * @param  {Object} req - Request object
- * @param  {Object} resultObj - Object with the rest of the fields to print
+ * @param {Object} req - the request object
+ * @param {Object} resultObj - Object with the rest of the fields to print
  */
 function logAPI(req, resultObj) {
   // if api logs are enabled, log api
@@ -71,16 +83,21 @@ function logAPI(req, resultObj) {
       uri: req.url,
       method: req.method,
     };
-    /* extract user, token and ipaddress and update log object */
-    jwtUtil.getTokenDetailsFromToken(req)
-    .then((resObj) => {
-      logObject.user = resObj.username;
-      logObject.token = resObj.tokenname;
 
-      // in-place modification of logObject
-      mapApiResultsToLogObject(resultObj, logObject);
-      activityLogUtil.printActivityLogString(logObject, 'api');
-    });
+    if (!featureToggles.isFeatureEnabled('enforceApiToken')) {
+      // log with no token or user info
+      combineAndLog(resultObj, logObject);
+    } else {
+      // if enforcing API token,
+      // extract user, token to update log object
+      jwtUtil.getTokenDetailsFromToken(req)
+      .then((resObj) => {
+        logObject.user = resObj.username;
+        logObject.token = resObj.tokenname;
+        // log with the token
+        combineAndLog(resultObj, logObject);
+      });
+    }
   }
 }
 
