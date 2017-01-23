@@ -30,6 +30,7 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  *  resource type to patch.
  */
 function doPatch(req, res, next, props) {
+  const resultObj = { reqStartTime: new Date() };
   const requestBody = req.swagger.params.queryBody.value;
   u.findByKey(props, req.swagger.params)
   .then((o) => u.isWritable(req, o,
@@ -48,10 +49,14 @@ function doPatch(req, res, next, props) {
     return o.update(requestBody);
   })
   .then((retVal) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, retVal);
     }
 
+    resultObj.retVal = retVal;
+    u.logAPI(req, resultObj);
     return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));
   })

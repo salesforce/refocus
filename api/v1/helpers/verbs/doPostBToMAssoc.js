@@ -32,6 +32,7 @@ const featureToggles = require('feature-toggles');
  */
 function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName, assocArray) {
+  const resultObj = { reqStartTime: new Date() };
   const params = req.swagger.params;
   u.findByKey(props, params)
   .then((o) => u.isWritable(req, o,
@@ -41,6 +42,8 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
     return o[addAssocfuncName](assocArray);
   })
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
 
     /*
      * The resolved object is either an array of arrays (when
@@ -49,6 +52,8 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
      */
     let retval = o.length ? o.pop() : o;
     retval = u.responsify(retval, props, req.method);
+    resultObj.retval = retval;
+    u.logAPI(req, resultObj);
     res.status(httpStatus.CREATED).json(retval);
   })
   .catch((err) => u.handleError(next, err, props.modelName));

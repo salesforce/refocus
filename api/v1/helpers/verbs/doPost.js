@@ -26,14 +26,19 @@ const logAPI = require('../../../../utils/loggingUtil').logAPI;
  *  resource type to post.
  */
 function doPost(req, res, next, props) {
+  const resultObj = { reqStartTime: new Date() };
   const toPost = req.swagger.params.queryBody.value;
   u.mergeDuplicateArrayElements(toPost, props);
   props.model.create(toPost)
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);
     }
 
+    resultObj.retval = o.dataValues;
+    u.logAPI(req, resultObj);
     return res.status(httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   })
