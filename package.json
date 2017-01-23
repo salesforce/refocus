@@ -14,7 +14,10 @@
   },
   "watch": {
     "test-view": {
-      "patterns": ["view/perspective", "tests/view/components"],
+      "patterns": [
+        "view/perspective",
+        "tests/view/components"
+      ],
       "extensions": "js,jsx",
       "quiet": true
     }
@@ -74,6 +77,7 @@
     "express": "^4.13.3",
     "express-enforces-ssl": "^1.1.0",
     "express-ipfilter": "^0.0.24",
+    "express-rate-limit": "^2.6.0",
     "express-session": "^1.13.0",
     "extract-text-webpack-plugin": "^0.8.2",
     "feature-toggles": "^1.4.0",
