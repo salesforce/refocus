@@ -36,7 +36,7 @@
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/jobProcessor.js",
     "test-api": "mocha -R dot --recursive tests/api",
-    "test-api-log": "ENABLE_API_LOGS=true mocha -R dot --recursive tests/api",
+    "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true mocha -R dot --recursive tests/api",
     "test-disablehttp": "DISABLE_HTTP=true mocha -R dot --recursive tests/disableHttp",
     "test-enforced": "USE_ACCESS_TOKEN=true mocha -R dot --recursive tests/enforceToken",
     "test-db": "npm run checkdb && mocha -R dot --recursive tests/db",

@@ -70,7 +70,7 @@ const longTermToggles = {
                                         'ENFORCE_WRITE_PERMISSION'),
 
   // Enable api activity logging
-  enableApiLogs: environmentVariableTrue(pe,
+  enableApiWorkerLogs: environmentVariableTrue(pe,
                                         'ENABLE_API_ACTIVITY_LOGS'),
 
   // Enable worker activity logging

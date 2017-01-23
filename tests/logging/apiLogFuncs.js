@@ -30,7 +30,7 @@ describe('apiLogUtil: functions ', () => {
   };
 
   before((done) => {
-    tu.toggleOverride('enableApiLogs', true);
+    tu.toggleOverride('enableApiWorkerLogs', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -41,7 +41,7 @@ describe('apiLogUtil: functions ', () => {
 
   after(tu.forceDeleteUser);
   after(() => {
-    tu.toggleOverride('enableApiLogs', false);
+    tu.toggleOverride('enableApiWorkerLogs', false);
   });
 
   it('mapApiResultsToLogObject maps values as expected', (done) => {
