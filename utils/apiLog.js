@@ -85,7 +85,7 @@ function logAPI(req, resultObj) {
     };
 
     if (!featureToggles.isFeatureEnabled('enforceApiToken')) {
-      // log with no token or user info
+      // no token or user info
       combineAndLog(resultObj, logObject);
     } else {
       // if enforcing API token,
@@ -94,6 +94,7 @@ function logAPI(req, resultObj) {
       .then((resObj) => {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;
+
         // log with the token
         combineAndLog(resultObj, logObject);
       });
