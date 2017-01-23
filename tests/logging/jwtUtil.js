@@ -39,8 +39,8 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
     };
 
     jwtUtil.getTokenDetailsFromToken(cookies).then((res) => {
-      expect(res.tokenname).to.be.defined;
-      expect(res.usernname).to.be.defined;
+      expect(res.tokenname).to.equal(tu.userName);
+      expect(res.usernname).to.equal(tu.userName);
       done();
     })
     .catch(done);
@@ -54,8 +54,8 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
     };
 
     jwtUtil.getTokenDetailsFromToken(req).then((res) => {
-      expect(res.tokenname).to.be.defined;
-      expect(res.usernname).to.be.defined;
+      expect(res.tokenname).to.equal(tu.userName);
+      expect(res.usernname).to.equal(tu.userName);
       done();
     })
     .catch(done);
