@@ -74,7 +74,6 @@ function combineAndLog(resultObj, logObject) {
  * @param {Object} resultObj - Object with the rest of the fields to print
  */
 function logAPI(req, resultObj) {
-  // if api logs are enabled, log api
   if (req && featureToggles.isFeatureEnabled('enableApiWorkerLogs')) {
     // create api activity log object
     const logObject = {
@@ -84,21 +83,17 @@ function logAPI(req, resultObj) {
       method: req.method,
     };
 
-    if (!featureToggles.isFeatureEnabled('enforceApiToken')) {
-      // no token or user info
-      combineAndLog(resultObj, logObject);
-    } else {
-      // if enforcing API token,
-      // extract user, token to update log object
-      jwtUtil.getTokenDetailsFromToken(req)
-      .then((resObj) => {
-        logObject.user = resObj.username;
-        logObject.token = resObj.tokenname;
+    // if API token enabled,
+    // extract user, token to update log object
+    jwtUtil.getTokenDetailsFromToken(req)
+    .then((resObj) => {
+      logObject.user = resObj.username;
+      logObject.token = resObj.tokenname;
 
-        // log with the token
-        combineAndLog(resultObj, logObject);
-      });
-    }
+      // log with the token
+      combineAndLog(resultObj, logObject);
+    })
+    .catch(() => combineAndLog(resultObj, logObject));
   }
 }
 
