@@ -26,7 +26,8 @@ const authUtils = require('../helpers/authUtils');
 function whereClauseForUser(userNameOrId) {
   const whr = {};
   if (u.looksLikeId(userNameOrId)) {
-    // need to use '$table.field$' for association fields
+    /* need to use '$table.field$' for association fields. User IDs in the url
+    are case-sensitve. */
     whr.where = { '$User.id$': {} };
     whr.where['$User.id$'] = userNameOrId;
   } else {
