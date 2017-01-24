@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/userTokens/get.js
+ * tests/api/v1/userTokens/revokeRestore.js
  */
 'use strict';
 
@@ -118,6 +118,38 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
           }
         });
       }
+    });
+  });
+
+  it('admin user, token to be restored not found',
+  (done) => {
+    api.post(`${path}/${uname}/tokens/foo/restore`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({})
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        throw err;
+      }
+
+      expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
+      done();
+    });
+  });
+
+  it('admin user, token to be revoked not found',
+  (done) => {
+    api.post(`${path}/${uname}/tokens/foo/revoke`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({})
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        throw err;
+      }
+
+      expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
+      done();
     });
   });
 });
