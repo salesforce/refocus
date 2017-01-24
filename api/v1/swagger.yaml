@@ -5631,7 +5631,8 @@ paths:
           name: key
           in: path
           description: >-
-            The id or username of the user whose tokens you to retrieve.
+            The id or username of the user whose tokens you to retrieve. User 
+            IDs are case-sensitive.
           required: true
           type: string
         -
@@ -5684,7 +5685,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the user.
+            The id or name of the user. User IDs are case-sensitve.
           required: true
           type: string
         -
@@ -5748,7 +5749,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the user.
+            The id or name of the user. User IDs are case-sensitve.
           required: true
           type: string
         -
@@ -5810,7 +5811,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the user.
+            The id or name of the user. User IDs are case-sensitve.
           required: true
           type: string
         -
@@ -5871,7 +5872,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the user.
+            The id or name of the user. User IDs are case-sensitve.
           required: true
           type: string
         -
