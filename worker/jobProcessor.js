@@ -39,9 +39,9 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
 
-  const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
-    `with ${samples.length} samples`;
-  console.log(msg); // eslint-disable-line no-console
+  // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
+  //   `with ${samples.length} samples`;
+  // console.log(msg); // eslint-disable-line no-console
 
   const dbStartTime = Date.now();
   helper.model.bulkUpsertByName(samples, userName)
@@ -86,8 +86,8 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
   const reqStartTime = job.data.reqStartTime;
 
   const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
-  const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
-  console.log(msg); // eslint-disable-line no-console
+  // const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
+  // console.log(msg); // eslint-disable-line no-console
 
   const dbStartTime = Date.now();
   sampleTimeoutJob.execute()
