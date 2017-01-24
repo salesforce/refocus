@@ -78,16 +78,16 @@ function processJobOnComplete(job, logObject) {
     job.on('complete', (jobResultObj) => {
       setTimeout(() => {
         try {
-          console.log('Ready to ' + // eslint-disable-line no-console
-            `remove job ${job.id}`);
+          // console.log('Ready to ' + // eslint-disable-line no-console
+          //   `remove job ${job.id}`);
           job.remove((err) => {
             if (err) {
               console.log('Error removing ' + // eslint-disable-line no-console
                 `${job.id}`, err);
-            } else {
+            } /* else {
               console.log('Removed ' + // eslint-disable-line no-console
                 `completed job ${job.id}`);
-            }
+            } */
           });
         } catch (err) {
           console.log('Error removing ' + // eslint-disable-line no-console
@@ -164,8 +164,8 @@ function createJob(jobName, data, req) {
       throw new Error(msg);
     }
 
-    console.log(`Job ${job.id} ` + // eslint-disable-line no-console
-      `(${jobName}) created`);
+    // console.log(`Job ${job.id} ` + // eslint-disable-line no-console
+    //   `(${jobName}) created`);
   });
 
   logAndRemoveJobOnComplete(req, job);
