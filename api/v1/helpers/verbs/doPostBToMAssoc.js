@@ -43,7 +43,6 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
   })
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
 
     /*
      * The resolved object is either an array of arrays (when
@@ -52,8 +51,7 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
      */
     let retval = o.length ? o.pop() : o;
     retval = u.responsify(retval, props, req.method);
-    resultObj.retval = retval;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, retval);
     res.status(httpStatus.CREATED).json(retval);
   })
   .catch((err) => u.handleError(next, err, props.modelName));

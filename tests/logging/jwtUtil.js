@@ -50,7 +50,7 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
     const req = {
       headers: {
         authorization: token,
-      }
+      },
     };
 
     jwtUtil.getTokenDetailsFromToken(req).then((res) => {

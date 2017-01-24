@@ -59,13 +59,11 @@ function doPut(req, res, next, props) {
   })
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);
     }
 
-    resultObj.retval = o.dataValues;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, o.dataValues);
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));

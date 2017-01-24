@@ -32,13 +32,11 @@ function doPost(req, res, next, props) {
   props.model.create(toPost)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, o);
     }
 
-    resultObj.retval = o.dataValues;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, o.dataValues);
     return res.status(httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   })

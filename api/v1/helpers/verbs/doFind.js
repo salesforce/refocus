@@ -38,7 +38,6 @@ function doFindAndCountAll(reqResNext, props, opts) {
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = o.count;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
     const retval = o.rows.map((row) => {
       if (props.modelName === 'Lens') {
@@ -47,8 +46,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
 
       return u.responsify(row, props, reqResNext.req.method);
     });
-    resultObj.retval = retval;
-    u.logAPI(reqResNext.req, resultObj);
+    u.logAPI(reqResNext.req, resultObj, retval);
     return retval;
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
@@ -78,7 +76,6 @@ function doFindAll(reqResNext, props, opts) {
   return u.getScopedModel(props, opts.attributes).findAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = o.count;
     reqResNext.res.set(COUNT_HEADER_NAME, o.length);
     let retval = o.map((row) => {
       if (props.modelName === 'Lens') {
@@ -93,8 +90,7 @@ function doFindAll(reqResNext, props, opts) {
       retval = fu.filterArrFromArr(retval, tags.value);
     }
 
-    resultObj.retval = retval;
-    u.logAPI(reqResNext.req, resultObj);
+    u.logAPI(reqResNext.req, resultObj, retval);
     return retval;
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));

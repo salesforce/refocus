@@ -37,10 +37,8 @@ function doDeleteAllBToMAssoc(req, res, next, // eslint-disable-line max-params
       featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
     u.deleteAllAssociations(o, [assocName]);
-    resultObj.retval = o.dataValues;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, o.dataValues);
     res.status(httpStatus.NO_CONTENT).json();
   })
   .catch((err) => u.handleError(next, err, props.modelName));

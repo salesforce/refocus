@@ -75,11 +75,14 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     helper.model.findOne()
     .then((o) => {
       if (o) {
         o.destroy()
         .then((destroyedObj) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, destroyedObj);
           res.status(httpStatus.OK)
           .json(responsify(destroyedObj, helper, req.method));
         });
@@ -102,9 +105,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     helper.model.findOne()
     .then((o) => {
       if (o) {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
         res.status(httpStatus.OK).json(responsify(o, helper, req.method));
       } else {
         const err = new apiErrors.ResourceNotFoundError({
@@ -130,6 +136,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     helper.model.findOne()
     .then((o) => {
       if (o) {
@@ -143,6 +150,8 @@ module.exports = {
 
         o.update(requestBody)
         .then((updatedObj) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
           res.status(httpStatus.OK)
           .json(responsify(updatedObj, helper, req.method));
         });
@@ -166,12 +175,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const toPost = req.swagger.params.queryBody.value;
     const assocToCreate = u.includeAssocToCreate(toPost, helper);
     helper.model.create(toPost, assocToCreate)
-    .then((o) =>
-      res.status(httpStatus.CREATED).json(responsify(o, helper, req.method))
-    )
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o.dataValues);
+      res.status(httpStatus.CREATED).json(responsify(o, helper, req.method));
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -186,6 +198,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const toPut = req.swagger.params.queryBody.value;
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
@@ -211,6 +224,8 @@ module.exports = {
 
         o.save()
         .then((savedObj) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, savedObj);
           res.status(httpStatus.OK)
           .json(responsify(savedObj, helper, req.method));
         });

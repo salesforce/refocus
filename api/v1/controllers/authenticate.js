@@ -29,6 +29,7 @@ module.exports = {
    *
    */
   authenticateUser(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     configuredPassport.authenticate('local-login', (err, user/* , info */) => {
       if (err) {
         return u.handleError(next, err, resourceName);
@@ -45,10 +46,12 @@ module.exports = {
       const createdToken = jwtUtil.createToken(user.name, user.name);
 
       req.logIn(user, (_err) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
+        u.logAPI(req, resultObj, createdToken);
         return res.status(httpStatus.OK).json({
           success: true,
           message: 'authentication succeeded',

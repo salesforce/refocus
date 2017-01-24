@@ -57,12 +57,10 @@ function doGet(req, res, next, props) {
       } else {
         // get from cache
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        resultObj.recordCount = 1;
         const dbObj = JSON.parse(reply);
 
         // dbObj is a sequelize obj, get dataValues obj
-        resultObj.retval = dbObj.dataValues;
-        u.logAPI(req, resultObj);
+        u.logAPI(req, resultObj, dbObj.dataValues);
         res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
       }
     });
@@ -70,11 +68,9 @@ function doGet(req, res, next, props) {
     u.findByKey(props, req.swagger.params)
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      resultObj.recordCount = 1;
 
       // o is a sequelize obj, get dataValues obj
-      resultObj.retval = o.dataValues;
-      u.logAPI(req, resultObj);
+      u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
     })
     .catch((err) => u.handleError(next, err, props.modelName));

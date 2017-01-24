@@ -50,13 +50,11 @@ function doPatch(req, res, next, props) {
   })
   .then((retVal) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
     if (props.loggingEnabled) {
       logAPI(req, props.modelName, retVal);
     }
 
-    resultObj.retVal = retVal;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, retVal);
     return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));
   })

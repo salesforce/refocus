@@ -64,6 +64,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteUserToken(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -81,8 +82,12 @@ module.exports = {
           err.key = user + ', ' + tokenName;
           throw err;
         })
-        .then((o) => res.status(httpStatus.OK)
-          .json(u.responsify(o, helper, req.method)))
+        .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
+          res.status(httpStatus.OK)
+            .json(u.responsify(o, helper, req.method));
+        })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         // also OK if user is NOT admin but is deleting own token
@@ -104,8 +109,12 @@ module.exports = {
             err.key = user + ', ' + tokenName;
             throw err;
           })
-          .then((o) => res.status(httpStatus.OK)
-            .json(u.responsify(o, helper, req.method)))
+          .then((o) => {
+            resultObj.dbTime = new Date() - resultObj.reqStartTime;
+            u.logAPI(req, resultObj, o.dataValues);
+            res.status(httpStatus.OK)
+              .json(u.responsify(o, helper, req.method))
+          })
           .catch((err) => u.handleError(next, err, helper.modelName));
         });
       }
@@ -125,11 +134,13 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getUserToken(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const user = req.swagger.params.key.value;
     const tokenName = req.swagger.params.tokenName.value;
     const whr = whereClauseForUserAndTokenName(user, tokenName);
     helper.model.findOne(whr)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (!o) {
         const err = new apiErrors.ResourceNotFoundError();
         err.resource = helper.model.name;
@@ -137,6 +148,7 @@ module.exports = {
         throw err;
       }
 
+      u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -153,12 +165,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getUserTokens(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const user = req.swagger.params.key.value;
     const whr = whereClauseForUser(user);
     helper.model.findAll(whr)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       res.set(cnstnts.COUNT_HEADER_NAME, o.length);
       const retval = o.map((row) => u.responsify(row, helper, req.method));
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -175,6 +190,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenByName(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -197,8 +213,10 @@ module.exports = {
           return o.restore();
         })
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           const retval = u.responsify(o, helper, req.method);
           res.status(httpStatus.OK).json(retval);
+          u.logAPI(req, resultObj, retval);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
@@ -220,6 +238,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenByName(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -242,7 +261,9 @@ module.exports = {
           return o.revoke();
         })
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           const retval = u.responsify(o, helper, req.method);
+          u.logAPI(req, resultObj, retval);
           res.status(httpStatus.OK).json(retval);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));

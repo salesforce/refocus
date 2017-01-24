@@ -86,6 +86,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postToken(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     // req.user is set when verifying token with user details. If req.user is
     // not set, then return error.
     if (!req.user || !req.user.name) {
@@ -108,8 +109,10 @@ module.exports = {
       createdBy: req.user.id,
     })
     .then((createdToken) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const tokenObj = u.responsify(createdToken, helper, req.method);
       tokenObj.token = tokenValue;
+      u.logAPI(req, resultObj, tokenObj);
       return res.status(httpStatus.CREATED).json(tokenObj);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -126,6 +129,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenById(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -139,7 +143,9 @@ module.exports = {
           return o.restore();
         })
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           const retval = u.responsify(o, helper, req.method);
+          u.logAPI(req, resultObj, retval);
           res.status(httpStatus.OK).json(retval);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
@@ -162,6 +168,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenById(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -175,7 +182,9 @@ module.exports = {
           return o.revoke();
         })
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           const retval = u.responsify(o, helper, req.method);
+          u.logAPI(req, resultObj, retval);
           res.status(httpStatus.OK).json(retval);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));

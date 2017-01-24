@@ -55,7 +55,6 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
       // if the resolved object is an empty array, throw a ResourceNotFound error
       u.throwErrorForEmptyArray(o,
           params.userNameOrId.value, assocName);
-      resultObj.recordCount = o.length; // not 0
 
       // if assocName is "writers", it resolves to "removeWriters"
       const functionName = `remove${u.capitalizeFirstLetter(assocName)}`;
@@ -65,8 +64,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
        * modelInst.removeWriters(o)
        */
       modelInst[functionName](o);
-      resultObj.retval = o[0].dataValues;
-      u.logAPI(req, resultObj);
+      u.logAPI(req, resultObj, o[0].dataValues);
       res.status(httpStatus.NO_CONTENT).json();
     }
   })

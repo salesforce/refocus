@@ -81,12 +81,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAspectWriters(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -103,16 +106,20 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAspectWriter(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
       // throw a ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
         params.userNameOrId.value, userProps.modelName);
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -221,6 +228,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectTags(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>
@@ -236,7 +244,9 @@ module.exports = {
       return o.update({ tags: updatedTagArray });
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -254,6 +264,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectRelatedLinks(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>
@@ -269,7 +280,9 @@ module.exports = {
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

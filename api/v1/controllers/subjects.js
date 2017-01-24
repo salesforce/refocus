@@ -112,14 +112,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectHierarchy(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params, ['hierarchy'])
     .then((o) => o.deleteHierarchy())
     .then(() => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
         logAPI(req, 'SubjectHierarchy');
       }
 
+      u.logAPI(req, resultObj, {});
       return res.status(httpStatus.OK).json({});
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -191,17 +194,20 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectHierarchy(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const depth = Number(params.depth.value);
 
     u.findByKey(helper, params, ['hierarchy', 'samples'])
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       let retval = u.responsify(o, helper, req.method);
       if (depth > ZERO) {
         retval = helper.deleteChildren(retval, depth);
       }
 
       retval = helper.modifyAPIResponse(retval, params);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -217,12 +223,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriters(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -239,16 +248,20 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriter(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
       // throw ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
         params.userNameOrId.value, userProps.modelName);
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -357,6 +370,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectTags(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o,
@@ -371,11 +385,13 @@ module.exports = {
       return o.update({ tags: updatedTagArray });
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
         logAPI(req, 'SubjectTags', o);
       }
 
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -393,6 +409,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectRelatedLinks(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o,
@@ -407,11 +424,13 @@ module.exports = {
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
         logAPI(req, 'SubjectRelatedLinks', o);
       }
 
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

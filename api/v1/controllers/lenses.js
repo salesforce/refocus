@@ -203,12 +203,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriters(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -225,16 +228,20 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriter(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const options = {};
     options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
     u.findAssociatedInstances(helper,
       params, helper.belongsToManyAssoc.users, options)
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
       // throw a ResourceNotFound error if resolved object is empty array
       u.throwErrorForEmptyArray(o,
         params.userNameOrId.value, userProps.modelName);
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -271,6 +278,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLens(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
+
     // try to get cached entry
     redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
       if (reply) {
@@ -293,6 +302,7 @@ module.exports = {
         // no reply, go to db to get lens object.
         u.findByKey(helper, req.swagger.params, ['lensLibrary'])
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           if (o.isPublished === false) {
             const eStr = 'Lens is not published. Please contact Refocus admin.';
             throw new apiErrors.ResourceNotFoundError({
@@ -303,6 +313,7 @@ module.exports = {
           return responsify(o, helper, req.method);
         })
         .then((responseObj) => {
+          u.logAPI(req, resultObj, responseObj);
           res.status(httpStatus.OK).json(responseObj);
 
           // cache the lens by id and name.
@@ -325,6 +336,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchLens(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const requestBody = req.swagger.params.queryBody.value;
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o,
@@ -351,8 +363,11 @@ module.exports = {
       return o.update(requestBody);
     })
     .then((o) => u.handleAssociations(requestBody, o, helper, req.method))
-    .then((retVal) =>
-      res.status(httpStatus.OK).json(u.responsify(retVal, helper, req.method)))
+    .then((retVal) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, retVal);
+      res.status(httpStatus.OK).json(u.responsify(retVal, helper, req.method));
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -366,6 +381,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postLens(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
     const seqObj = {};
     try {
@@ -385,7 +401,9 @@ module.exports = {
       const assocToCreate = u.includeAssocToCreate(seqObj, helper);
       helper.model.create(seqObj, assocToCreate)
       .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
         delete o.dataValues.library;
+        u.logAPI(req, resultObj, o.dataValues);
         res.status(httpStatus.CREATED).json(
           u.responsify(o, helper, req.method)
         );
@@ -409,6 +427,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putLens(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
     u.findByKey(helper, req.swagger.params)
     .then((o) =>
@@ -447,7 +466,9 @@ module.exports = {
       return o.save();
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       delete o.dataValues.library;
+      u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK).json(
         u.responsify(o, helper, req.method)
       );
