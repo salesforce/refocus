@@ -75,8 +75,23 @@ describe(`api: GET ${path}/U/tokens/T`, () => {
 
   after(u.forceDelete);
 
-  it('user and token found', (done) => {
+  it('user by name and token found', (done) => {
     api.get(`${path}/${uname}/tokens/${tname1}`)
+    .set('Authorization', '???')
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body).to.have.property('name', tname1);
+        expect(res.body.isDeleted).to.not.equal(0);
+        done();
+      }
+    });
+  });
+
+  it('user by Id and token found', (done) => {
+    api.get(`${path}/${userId}/tokens/${tname1}`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
