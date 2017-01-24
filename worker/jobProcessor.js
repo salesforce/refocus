@@ -86,6 +86,7 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
   const reqStartTime = job.data.reqStartTime;
 
   const sampleTimeoutJob = require('../clock/scheduledJobs/sampleTimeoutJob');
+
   // const msg = `Processing ${jobType.SAMPLE_TIMEOUT} job ${job.id}`;
   // console.log(msg); // eslint-disable-line no-console
 
