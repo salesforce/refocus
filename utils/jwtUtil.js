@@ -113,13 +113,13 @@ function getTokenDetailsFromTokenString(s) {
  * @returns {Promise} - Resolves to an object containing "username" and
  *  "tokenname" attributes.
  */
-function getTokenDetailsFromToken(req) {
+function getTokenDetailsFromRequest(req) {
   let t = null;
   if (req && req.headers && req.headers.authorization) {
     t = req.headers.authorization;
   }
   return getTokenDetailsFromTokenString(t);
-} // getTokenDetailsFromToken
+} // getTokenDetailsFromRequest
 
 /**
  * Create jwt token.
@@ -141,6 +141,6 @@ function createToken(tokenName, userName) {
 module.exports = {
   verifyToken,
   createToken,
-  getTokenDetailsFromToken,
+  getTokenDetailsFromRequest,
   getTokenDetailsFromTokenString,
 };

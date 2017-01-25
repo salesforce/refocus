@@ -27,7 +27,7 @@ function getUser(req) {
     if (req.user) {
       resolve(req.user);
     } else if (req.headers.authorization) { // use the token
-      jwtUtil.getTokenDetailsFromToken(req)
+      jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => User.findOne({ where: { name: resObj.username } }))
       .then((user) => {
         resolve(user);

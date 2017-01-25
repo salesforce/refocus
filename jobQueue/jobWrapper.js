@@ -107,7 +107,7 @@ function logAndRemoveJobOnComplete(req, job) {
     /* if req object, then extract user, token and ipaddress and update log
       object */
     if (req) {
-      jwtUtil.getTokenDetailsFromToken(req)
+      jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;

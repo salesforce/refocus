@@ -17,7 +17,7 @@ const perspective = require('../db/index').Perspective;
 const jwtUtil = require('../utils/jwtUtil');
 const rtUtils = require('./utils');
 const redisClient = require('../cache/redisCache').client;
-const activityLogUtil = require('../activityLog');
+const activityLogUtil = require('../utils/activityLog');
 const featureToggles = require('feature-toggles');
 const logEnabled =
   featureToggles.isFeatureEnabled('enableRealtimeActivityLogs');
@@ -86,9 +86,11 @@ function setupNamespace(io) {
  * disconnect, write out the activity log.
  *
  * @param {Socket.io} io - socket.io's server-side object
+ * @returns {Promise} - Returns a promise that resolves to the socket.io
+ *  server-side object with the namespace initialized. (This is returned for
+ *  testability.)
  */
 function init(io) {
-  setupNamespace(io);
   io.sockets.on('connection', (socket) => {
     if (logEnabled) {
       const toLog = {
@@ -148,6 +150,7 @@ function init(io) {
       }); // on disconnect
     } // if logEnabled
   }); // on connect
+  return setupNamespace(io);
 } // init
 
 module.exports = {
