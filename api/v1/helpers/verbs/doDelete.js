@@ -38,6 +38,8 @@ function doDelete(req, res, next, props) {
       logAPI(req, props.modelName, o);
     }
 
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = 1;
     const assocNames = [];
 
     /**
