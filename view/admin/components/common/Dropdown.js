@@ -193,7 +193,9 @@ class Dropdown extends React.Component {
                   <use xlinkHref={'../static/icons/custom-sprite' +
                     '/svg/symbols.svg#custom39'}></use>
                 </svg>
+              <a href= { optionsName }>
                 { optionsName }
+              </a>
             </li>
           );
         }
