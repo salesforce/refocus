@@ -91,6 +91,10 @@ module.exports = function aspect(seq, dataTypes) {
         rangeOk: u.validateStatusRange,
       },
     },
+    rank: {
+      type: dataTypes.INTEGER,
+      allowNull: true,
+    },
     timeout: {
       type: dataTypes.STRING(timeoutLength),
       allowNull: false,
