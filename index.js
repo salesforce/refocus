@@ -39,6 +39,7 @@ function start() { // eslint-disable-line max-statements
   // set up sever side socket.io and redis publisher
   const express = require('express');
   const enforcesSSL = require('express-enforces-ssl');
+  const RateLimit = require('express-rate-limit');
 
   const app = express();
 
@@ -85,7 +86,15 @@ function start() { // eslint-disable-line max-statements
     app.enable('trust proxy');
     app.use(enforcesSSL());
   }
+  const limiter = new RateLimit({
+    windowMs: 15*60*1000, // 15 minutes
+    max: 5, // limit each IP to 100 requests per windowMs
+    delayMs: 2 * 1000, // slow down subsequent responses by 2 seconds per request
+    delayAfter: 1, // start delaying after these many requests
+  });
 
+  //  apply to all requests
+  app.use(limiter);
   // Set the IP restricitions defined in config.js
   app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
 
