@@ -87,6 +87,7 @@ module.exports = {
    */
   postToken(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
+
     // req.user is set when verifying token with user details. If req.user is
     // not set, then return error.
     if (!req.user || !req.user.name) {

@@ -113,7 +113,7 @@ module.exports = {
             resultObj.dbTime = new Date() - resultObj.reqStartTime;
             u.logAPI(req, resultObj, o.dataValues);
             res.status(httpStatus.OK)
-              .json(u.responsify(o, helper, req.method))
+              .json(u.responsify(o, helper, req.method));
           })
           .catch((err) => u.handleError(next, err, helper.modelName));
         });
