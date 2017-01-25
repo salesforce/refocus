@@ -161,7 +161,7 @@ module.exports = {
         wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
 
-        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+        const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,

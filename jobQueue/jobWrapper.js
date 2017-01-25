@@ -14,10 +14,15 @@
  * worker process.
  */
 'use strict'; // eslint-disable-line strict
-const jobQueue = require('./setup').jobQueue;
+const jobSetup = require('./setup');
+const jobQueue = jobSetup.jobQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+
+// ttl converted to milliseconds
+const TIME_TO_LIVE =
+      1000 * jobSetup.ttlForJobs; // eslint-disable-line no-magic-numbers
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
@@ -72,7 +77,22 @@ function processJobOnComplete(job, logObject) {
   if (job) {
     job.on('complete', (jobResultObj) => {
       setTimeout(() => {
-        job.remove();
+        try {
+          // console.log('Ready to ' + // eslint-disable-line no-console
+          //   `remove job ${job.id}`);
+          job.remove((err) => {
+            if (err) {
+              console.log('Error removing ' + // eslint-disable-line no-console
+                `${job.id}`, err);
+            } /* else {
+              console.log('Removed ' + // eslint-disable-line no-console
+                `completed job ${job.id}`);
+            } */
+          });
+        } catch (err) {
+          console.log('Error removing ' + // eslint-disable-line no-console
+            'kue job', job, err);
+        }
       }, delayToRemoveJobs);
 
       // if enableWorkerActivityLogs is enabled, update logObject
@@ -86,12 +106,13 @@ function processJobOnComplete(job, logObject) {
       }
     });
   }
-} // removeJobOnComplete
+} // processJobOnComplete
 
 /**
- * Logs worker activity and remove job when complete
- * @param  {Object} job - Worker job
+ * Logs worker activity and remove job when complete.
+ *
  * @param  {Object} req - Request object
+ * @param  {Object} job - Worker job
  */
 function logAndRemoveJobOnComplete(req, job) {
   // if activity logs are enabled, log activity and remove job
@@ -134,12 +155,17 @@ function logAndRemoveJobOnComplete(req, job) {
  *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
-  const job = jobQueue.create(jobName, data).save((err) => {
+  const job = jobQueue.create(jobName, data)
+  .ttl(TIME_TO_LIVE)
+  .save((err) => {
     if (err) {
       const msg =
         `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
       throw new Error(msg);
     }
+
+    // console.log(`Job ${job.id} ` + // eslint-disable-line no-console
+    //   `(${jobName}) created`);
   });
 
   logAndRemoveJobOnComplete(req, job);
