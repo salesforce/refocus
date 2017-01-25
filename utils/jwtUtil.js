@@ -118,6 +118,7 @@ function getTokenDetailsFromRequest(req) {
   if (req && req.headers && req.headers.authorization) {
     t = req.headers.authorization;
   }
+
   return getTokenDetailsFromTokenString(t);
 } // getTokenDetailsFromRequest
 

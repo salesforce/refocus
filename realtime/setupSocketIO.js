@@ -124,8 +124,8 @@ function init(io) {
         // Retrieve the logging info for this socket.
         redisClient.get(socket.id, (getErr, getResp) => {
           if (getErr) {
-            console.log( // eslint-disable-line no-console
-              `Error retrieving socket id ${socket.id} from redis on client ` +
+            console.log('Error ' + // eslint-disable-line no-console
+              `retrieving socket id ${socket.id} from redis on client ` +
               'disconnect:', getErr);
           } else {
             // Calculate the totalTime and write out the log line.
@@ -136,13 +136,13 @@ function init(io) {
             // Remove the redis key for this socket.
             redisClient.del(socket.id, (delErr, delResp) => {
               if (delErr) {
-                console.log( // eslint-disable-line no-console
-                  `Error deleting socket id ${socket.id} from redis on ` +
+                console.log('Error ' + // eslint-disable-line no-console
+                  `deleting socket id ${socket.id} from redis on ` +
                   'client disconnect:', delErr);
               } else if (delResp !== ONE) {
-                console.log( // eslint-disable-line no-console
-                  `Expecting unique socket id ${socket.id} to delete from ` +
-                  `redis on client disconnect, but ${delResp} were deleted.`);
+                console.log('Expecting' + // eslint-disable-line no-console
+                  `unique socket id ${socket.id} to delete from redis on ` +
+                  `client disconnect, but ${delResp} were deleted.`);
               }
             }); // redisClient.del
           }
