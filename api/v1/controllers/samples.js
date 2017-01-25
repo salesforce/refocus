@@ -151,10 +151,12 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
+    const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
@@ -169,6 +171,7 @@ module.exports = {
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);
+        u.logAPI(req, resultObj, req.swagger.params.queryBody.value);
       }
 
       if (helper.loggingEnabled) {
