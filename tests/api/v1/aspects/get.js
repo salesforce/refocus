@@ -37,6 +37,7 @@ describe(`api: GET ${path}`, () => {
       timeout: '30s',
       valueLabel: 'ms',
       valueType: 'NUMERIC',
+      rank: 2,
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -47,6 +48,17 @@ describe(`api: GET ${path}`, () => {
       timeout: '1m',
       valueLabel: '%',
       valueType: 'PERCENT',
+      rank: 1,
+    },
+    {
+      description: 'this is a2 description',
+      helpEmail: 'a1@bar.com',
+      helpUrl: 'http://www.bar.com/a1',
+      imageUrl: 'http://www.bar.com/a1.jpg',
+      isPublished: false,
+      name: `${tu.namePrefix}a2`,
+      timeout: '1m',
+      rank: 3,
     },
   ];
 
@@ -133,7 +145,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.length).to.be.equal(TWO);
+        expect(res.body.length).to.be.equal(THREE);
         res.body.map((aspect) => {
           expect(aspect.name.slice(ZERO, THREE)).to.equal(tu.namePrefix);
         });
@@ -165,7 +177,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        if (!tu.gotArrayWithExpectedLength(res.body, TWO)) {
+        if (!tu.gotArrayWithExpectedLength(res.body, THREE)) {
           throw new Error('expecting 2 aspects');
         }
       })
@@ -257,7 +269,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.length).to.be.equal(TWO);
+        expect(res.body.length).to.be.equal(THREE);
         res.body.map((aspect) => {
           expect(aspect.name).to.contain('a');
         });
@@ -265,4 +277,42 @@ describe(`api: GET ${path}`, () => {
       .end((err /* , res */) => done(err));
     });
   }); // Lists
+
+  describe('Aspect Sorting by rank: ', () => {
+    it('sort ascending', (done) => {
+      api.get(`${path}?sort=rank`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.length).to.equal(THREE);
+        expect(res.body[ZERO].rank).to.equal(ONE);
+        expect(res.body[ONE].rank).to.equal(TWO);
+        expect(res.body[TWO].rank).to.equal(THREE);
+
+        done();
+      });
+    });
+
+    it('sort descending', (done) => {
+      api.get(`${path}?sort=-rank`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.length).to.equal(THREE);
+        expect(res.body[ZERO].rank).to.equal(THREE);
+        expect(res.body[ONE].rank).to.equal(TWO);
+        expect(res.body[TWO].rank).to.equal(ONE);
+
+        done();
+      });
+    });
+  }); // aspect rank
 });
