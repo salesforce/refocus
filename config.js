@@ -44,6 +44,12 @@ const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
+// request limiter settings
+const rateLimit = pe.RATE_LIMIT;
+const rateWindow = pe.RATE_WINDOW;
+const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
+const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
+
 const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
 
 // set time to live for "kue" jobs
@@ -172,4 +178,9 @@ module.exports = {
   auditAspects,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
+  rateLimit,
+  rateWindow,
+  endpointToLimit,
+  httpMethodToLimit,
+
 };
