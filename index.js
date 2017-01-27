@@ -40,10 +40,12 @@ function start() { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
-  const client = require('redis').createClient();
+
+  // redis client to for request limiter
+  const limiterRedisClient = require('redis').createClient(env.redisUrl);
 
   // request limiter setting
-  const limiter = require('express-limiter')(app, client);
+  const limiter = require('express-limiter')(app, limiterRedisClient);
   limiter({
     path: conf.endpointToLimit,
     method: conf.httpMethodToLimit,
