@@ -66,7 +66,7 @@ function start() { // eslint-disable-line max-statements
 
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
-  socketIOSetup.setupNamespace(io);
+  socketIOSetup.init(io);
   const sub = require('./pubsub').sub;
   require('./realtime/redisSubscriber')(io, sub);
 

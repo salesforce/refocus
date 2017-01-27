@@ -13,18 +13,26 @@
 
 module.exports = {
   activityType: {
-    worker: {
-      jobType: 'None',
-      activity: 'worker',
-      user: 'None',
-      token: 'None',
+    realtime: {
+      activity: 'realtime',
       ipAddress: 'None',
+      perspective: 'None',
+      token: 'None',
       totalTime: 'None',
-      queueTime: 'None',
-      workTime: 'None',
+      user: 'None',
+    },
+    worker: {
+      activity: 'worker',
       dbTime: 'None',
-      recordCount: 0,
       errorCount: 0,
+      ipAddress: 'None',
+      jobType: 'None',
+      queueTime: 'None',
+      recordCount: 0,
+      token: 'None',
+      totalTime: 'None',
+      user: 'None',
+      workTime: 'None',
     },
   },
 };
