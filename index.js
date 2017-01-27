@@ -43,12 +43,11 @@ function start() { // eslint-disable-line max-statements
   const client = require('redis').createClient();
   const limiter = require('express-limiter')(app, client);
   limiter({
-    path: '*',
-    method: 'all',
-    lookup: ['connection.remoteAddress'],
-    // 150 requests per minute
-    total: 3,
-    expire: 1000 * 60
+    path: undefined,
+    method: undefined,
+    lookup: ['headers.x-forwarded-for'],
+    total: undefined,
+    expire: undefined,
   });
 
   /*

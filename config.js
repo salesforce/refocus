@@ -41,6 +41,12 @@ const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
 const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
 const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 
+// request limiter settings
+const rateLimit = pe.RATE_LIMIT;
+const rateWindow = pe.RATE_WINDOW;
+const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
+const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
+
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
@@ -166,4 +172,9 @@ module.exports = {
   auditSamples,
   auditAspects,
   CACHE_EXPIRY_IN_SECS,
+  rateLimit,
+  rateWindow,
+  endpointToLimit,
+  httpMethodToLimit,
+
 };
