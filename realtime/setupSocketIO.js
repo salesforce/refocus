@@ -92,18 +92,21 @@ function setupNamespace(io) {
  */
 function init(io) {
   io.sockets.on('connection', (socket) => {
-    console.log(socket); // eslint-disable-line no-console
-    console.log(socket.handshake); // eslint-disable-line no-console
     if (logEnabled) {
       const toLog = {
         starttime: Date.now(),
       };
-      if (socket.handshake.address) {
-        toLog.ipAddress = socket.handshake.address;
-      }
+      if (socket.handshake) {
+        if (socket.handshake.headers &&
+          socket.handshake.headers['x-forwarded-for']) {
+          toLog.ipAddress = socket.handshake.headers['x-forwarded-for'];
+        } else if (socket.handshake.address) {
+          toLog.ipAddress = socket.handshake.address;
+        }
 
-      if (socket.handshake.query && socket.handshake.query.p) {
-        toLog.perspective = socket.handshake.query.p;
+        if (socket.handshake.query && socket.handshake.query.p) {
+          toLog.perspective = socket.handshake.query.p;
+        }
       }
 
       extractTokenInfo(socket)
