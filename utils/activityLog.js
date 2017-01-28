@@ -24,10 +24,10 @@ module.exports = {
   getIPAddrFromReq(req) {
     let ipAddr = null;
     if (req) {
-      if (req.connection && req.connection.remoteAddress) {
-        ipAddr = req.connection.remoteAddress;
-      } else if (req.headers && req.headers['x-forwarded-for']) {
+      if (req.headers && req.headers['x-forwarded-for']) {
         ipAddr = req.headers['x-forwarded-for'];
+      } else if (req.connection && req.connection.remoteAddress) {
+        ipAddr = req.connection.remoteAddress;
       }
     }
 
