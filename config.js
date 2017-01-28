@@ -52,6 +52,16 @@ const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
 
 const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
 
+/*
+ * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
+ * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of ip addresses if
+ * you want to prioritize or deprioritize jobs from a particular user ip
+ * address (or multiple users' ip addresses). Has no effect if you're not
+ * using worker dynos.
+ */
+const prioritizeJobsFrom = configUtil.csvToArray(pe.PRIORITIZE_JOBS_FROM);
+const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
+
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
 
@@ -182,5 +192,6 @@ module.exports = {
   rateWindow,
   endpointToLimit,
   httpMethodToLimit,
-
+  prioritizeJobsFrom,
+  deprioritizeJobsFrom,
 };
