@@ -92,6 +92,8 @@ function setupNamespace(io) {
  */
 function init(io) {
   io.sockets.on('connection', (socket) => {
+    console.log(socket); // eslint-disable-line no-console
+    console.log(socket.handshake); // eslint-disable-line no-console
     if (logEnabled) {
       const toLog = {
         starttime: Date.now(),
