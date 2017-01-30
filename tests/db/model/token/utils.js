@@ -44,22 +44,4 @@ module.exports = {
       createdBy: returnedUser.id,
     }));
   },
-
-  createSystemToken() {
-    return tu.db.Profile.create({
-      name: `${pfx}testProfile`,
-    })
-    .then((createdProfile) =>
-      tu.db.User.create({
-        profileId: createdProfile.id,
-        name: `${pfx}test@refocus.com`,
-        email: `${pfx}test@refocus.com`,
-        password: 'user123password',
-      })
-    )
-    .then((returnedUser) => tu.db.Token.create({
-      name: returnedUser.name,
-      createdBy: returnedUser.id,
-    }));
-  },
 };

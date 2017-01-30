@@ -90,6 +90,11 @@ module.exports = function user(seq, dataTypes) {
           through: 'SubjectWriters',
           foreignKey: 'userId',
         });
+        assoc.tokens = User.hasMany(models.Token, {
+          as: 'tokens',
+          foreignKey: 'createdBy',
+          hooks: true,
+        });
         User.addScope('defaultScope', {
           attributes: {
             exclude: ['password'],
@@ -152,6 +157,8 @@ module.exports = function user(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           inst.getProfile()
           .then((p) => p.decrement('userCount'))
+          .then(() => inst.getTokens())
+          .each((token) => token.destroy())
           .then(() => common.setIsDeleted(seq.Promise, inst))
           .then(() => resolve(inst))
           .catch((err) => reject(err))

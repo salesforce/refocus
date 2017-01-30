@@ -38,6 +38,7 @@ describe('api: registerUser', () => {
       Token.findAll({ where: { name: res.body.name } })
       .then((tokens) => {
         expect(tokens.length).to.be.equal(1);
+        expect(tokens[0].createdBy).to.be.equal(res.body.id);
         expect(tokens[0].isRevoked).to.be.equal('0');
       })
       .catch(done);

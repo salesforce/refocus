@@ -43,25 +43,3 @@ describe('db: Token: delete', () => {
     .catch(done);
   });
 });
-
-describe('db: System Token: delete', () => {
-  let t;
-  beforeEach((done) => {
-    u.createSystemToken()
-    .then((token) => {
-      t = token;
-      done();
-    })
-    .catch(done);
-  });
-  afterEach(u.forceDelete);
-  it('Not allowed to delete system token', (done) => {
-    Token.findOne({ where: { name: t.name } })
-    .then((token) => token.destroy())
-    .then(() => done('expecting error here'))
-    .catch((err) => {
-      expect(err).to.have.property('name', 'TokenDeleteConstraintError');
-      done();
-    });
-  });
-});

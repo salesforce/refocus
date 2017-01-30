@@ -62,6 +62,7 @@ function verifyToken(req, cb) {
       } else {
         User.findOne({ where: { name: decodedData.username } })
         .then((user) => {
+          // set user in request
           if (user) {
             req.user = user;
             return cb();

@@ -23,45 +23,127 @@ const User = tu.db.User;
 const Token = tu.db.Token;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
+const regPath = '/v1/register';
+const tokenPath = '/v1/tokens';
 
 describe(`api: DELETE ${path}/U/tokens/T`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+
+  /* user uname has 2 tokens: Voldemort and Tom
+   user with unameOther has 1 token: Dumbledore */
   const uname = `${tu.namePrefix}test@refocus.com`;
-  const tname = `${tu.namePrefix}Voldemort`;
+  const tname1 = `${tu.namePrefix}Voldemort`;
+  const tname2 = `${tu.namePrefix}Tom`;
+  const unameOther = `${tu.namePrefix}testOther@refocus.com`;
+  const tnameOther = `${tu.namePrefix}Dumbledore`;
+  let unameToken;
+  let unameOtherToken;
 
   before((done) => {
-    Profile.create({
-      name: `${tu.namePrefix}testProfile`,
+    // create user __test@refocus.com
+    api.post(regPath)
+    .send({
+      email: uname,
+      password: 'fakePasswd',
+      username: uname,
     })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: uname,
-        email: uname,
-        password: 'user123password',
-      })
-    )
-    .then((user) => Token.create({
-      name: tname,
-      createdBy: user.id,
-    }))
-    .then(() => done())
-    .catch(done);
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      unameToken = res.body.token;
+
+      // create token ___Voldemort
+      api.post(tokenPath)
+      .set('Authorization', res.body.token)
+      .send({ name: tname1 })
+      .end((err1, res1) => {
+        if (err1) {
+          done(err1);
+        }
+
+        // create token ___Tom
+        api.post(tokenPath)
+        .set('Authorization', res.body.token)
+        .send({ name: tname2 })
+        .end((err2, res2) => {
+          if (err2) {
+            done(err2);
+          }
+
+          // create user __testOther@refocus.com
+          api.post(regPath)
+          .send({
+            email: unameOther,
+            password: 'fakePasswd',
+            username: unameOther,
+          })
+          .end((err3, res3) => {
+            if (err3) {
+              done(err3);
+            }
+
+            unameOtherToken = res3.body.token;
+
+            // create token ___Tom
+            api.post(tokenPath)
+            .set('Authorization', res3.body.token)
+            .send({ name: tnameOther })
+            .end((err4, res4) => {
+              if (err4) {
+                done(err4);
+              }
+
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 
   after(u.forceDelete);
 
   it('admin user, user and token found', (done) => {
-    api.delete(`${path}/${uname}/tokens/${tname}`)
+    api.delete(`${path}/${uname}/tokens/${tname1}`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.property('name', tname);
+        expect(res.body).to.have.property('name', tname1);
+        expect(res.body.isDeleted).to.not.equal(0);
+        done();
+      }
+    });
+  });
+
+  it('non-admin user, cannot delete other users token', (done) => {
+    api.delete(`${path}/${uname}/tokens/${tname2}`)
+    .set('Authorization', unameOtherToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
+
+  it('non-admin user, can delete its own token', (done) => {
+    api.delete(`${path}/${uname}/tokens/${tname2}`)
+    .set('Authorization', unameToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body).to.have.property('name', tname2);
         expect(res.body.isDeleted).to.not.equal(0);
         done();
       }
@@ -72,20 +154,64 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     api.delete(`${path}/who@what.com/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
   });
 
   it('admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
   });
 
   it('not admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', '???')
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
+
+  it('admin user, cannot delete default token', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end(() => done());
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
+
+  it('non-admin user, cannot delete default token', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', unameToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
   });
 });
