@@ -41,10 +41,6 @@ function getIndexFromArray(options, defaultValue) {
   let index = -ONE; // default: no options in dropdown
   if (options.length) {
     index = options.indexOf(defaultValue);
-    // indexOf might return 0
-    if (index < ZERO) {
-      index = ZERO;
-    }
   }
   return index;
 }
@@ -74,11 +70,12 @@ class Dropdown extends React.Component {
     super(props);
     this.state = {
       open: false, // dropdown is open or closed
-      data: [], // data in dropdown
-      highlightedIndex: getIndexFromArray(props.options, props. defaultValue),
+      data: props.options, // data in dropdown
+      highlightedIndex: getIndexFromArray(props.options, props.defaultValue),
     };
     this.toggle = this.toggle.bind(this);
   }
+
   componentDidMount() {
     // click anywhere outside of container
     // to hide dropdown
@@ -100,6 +97,7 @@ class Dropdown extends React.Component {
       open: bool,
     });
   }
+
   handleFocus() {
     // show all options
     this.setState({
@@ -107,6 +105,7 @@ class Dropdown extends React.Component {
       data: this.props.options,
     });
   }
+
   handleKeyUp(evt) {
     const Key = {
       UP: 38,
@@ -160,6 +159,7 @@ class Dropdown extends React.Component {
   }
   render () {
     const {
+      options,
       newButtonText,
       dropDownStyle,
       allOptionsLabel,
@@ -168,37 +168,46 @@ class Dropdown extends React.Component {
       showSearchIcon,
       onAddNewButton,
       onClickItem,
+      onEdit,
       showInputElem,
       children, // react elements
       defaultValue,
+      showEditIcon,
+      renderAsLink, //boolean
     } = this.props;
     const { data } = this.state;
     let outputUL = '';
     // if options exist, load them
     if (data.length) {
-      outputUL = <ul className='slds-lookup__list' role='presentation'>
+      outputUL = <ul className="slds-dropdown__list" role="menu">
         {data.map((optionsName, index) => {
-          let className = 'slds-lookup__item-action ' +
-            'slds-media slds-media--center';
+          let listClassName = 'slds-dropdown__item';
           if (index === this.state.highlightedIndex) {
-            className += ' highlighted';
+            listClassName += ' slds-is-selected';
           }
-          return (
-            <li key={ optionsName }
-                onClick={ onClickItem }
-                className={ className }>
-                <svg aria-hidden='true'
-                  className={'slds-icon slds-icon-standard-account' +
-                    ' slds-icon--small slds-media__figure'}>
-                  <use xlinkHref={'../static/icons/custom-sprite' +
-                    '/svg/symbols.svg#custom39'}></use>
-                </svg>
-              <a href= { optionsName }>
-                { optionsName }
-              </a>
-            </li>
-          );
-        }
+          const itemOutput = !renderAsLink ? optionsName : <a
+            href= { optionsName }>
+            { optionsName }
+          </a>;
+          // TODO: refactor to get selected item out of props
+          return <li key={ optionsName }
+          onClick={ onClickItem }
+          className={ listClassName } role='presentation'>
+            <a href={ '/perspectives/' + optionsName } role='menuitemcheckbox' aria-checked='true'>
+              <span className='slds-truncate'>
+                <svg className={'slds-icon slds-icon--selected slds-icon--x-small ' +
+                'slds-icon-text-default slds-m-right--x-small'} aria-hidden='true'>
+                  <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#check'></use>
+                </svg>{ optionsName }</span>
+                {showEditIcon && <svg onClick={ onEdit.bind(this) }
+                  className={'slds-icon slds-icon--x-small slds-icon-text-default' +
+                  ' slds-m-left--small slds-shrink-none'} aria-hidden='true'>
+                    <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#edit'></use>
+                  </svg>
+                }
+            </a>
+          </li>
+          }
         )}
       </ul>;
     }
@@ -224,7 +233,7 @@ class Dropdown extends React.Component {
         className={'slds-form-element__control ' +
           'slds-grid slds-wrap slds-grid--pull-padded'}
       >
-      <div className="slds-col--padded slds-size--1-of-1">
+      <div className='slds-col--padded slds-size--1-of-1'>
        { !children && inputElem}
        { children }
        { (children && showInputElem) && inputElem }
@@ -281,11 +290,13 @@ Dropdown.propTypes = {
   placeholderText: PropTypes.string,
   defaultValue: PropTypes.string,
   onAddNewButton: PropTypes.func,
+  onEdit: PropTypes.func,
   onClickItem: PropTypes.func.isRequired,
   children: PropTypes.element,
   showSearchIcon: PropTypes.bool,
   showInputElem: PropTypes.bool,
   close: PropTypes.bool, // if true, close dropdown
+  renderAsLink: PropTypes.bool, // render list item as link
 };
 
 export default Dropdown;

@@ -11,72 +11,94 @@
  */
 
 import { expect } from 'chai';
-import CreatePerspective from '../../../view/perspective/CreatePerspective.js';
-import { getArray } from '../../../view/perspective/configCreatePerspective.js';
+import { getArray,
+  getTagsFromResources,
+  getConfig,
+  filteredArray,
+} from '../../../view/perspective/configCreatePerspective';
+import { getSubjects } from './utils';
 
-describe('Test static functions', () => {
+describe('Config perspective functions', () => {
   const ZERO = 0;
+  const NUM = 10;
   const POPULAR_SAYING = 'The quick brown fox jumps over the lazy dog';
+  const ARR = POPULAR_SAYING.split(' ');
+  const WORD = 'fox';
 
-  /**
-   * Returns an array of resources with identical
-   * isPublished property, with
-   * fieldName field == index in loop
-   *
-   * @param {Integer} INT Make this many resources
-   * @param {String} fieldName The field of each resource
-   * @param {Boolean} isPublished All resources have
-   * this value of isPublished
-   * @returns {Array} Array with all published resources
-   */
-  function getSubjects(INT, fieldName, isPublished) {
-    let subjects = [];
-    for (let i = INT; i > ZERO; i--) {
-      const obj = {
-        isPublished,
-        absolutePath: i,
-      };
-      obj[fieldName] = i;
-      subjects.push(obj);
-    }
-    return subjects;
-  }
-
-  it('getArray returns only published resources', () => {
-    const NUM = 10;
-    const unPublished = getArray(
-      'absolutePath',
-      getSubjects(NUM, 'absolutePath')
-    );
-    expect(unPublished.length).to.be.empty;
-
-    const published = getArray(
-      'absolutePath',
-      getSubjects(NUM, 'absolutePath', true)
-    );
-    expect(published.length).to.equal(NUM);
-    // input is in decreasing order
-    // should preserve order
-    expect(published[ZERO]).to.equal(NUM);
-  });
-
-  it('getArray should preserve order of input resources', () => {
-    const NUM = 10;
-    const published = getArray(
-      'absolutePath',
-      getSubjects(NUM, 'absolutePath', true),
-    );
-    // input is in decreasing order
-    expect(published[ZERO]).to.equal(NUM);
+  it('getTagsFromResources does not return duplicates', () => {
+    const arr = [
+      { tags: [ WORD ] },
+      { tags: [] },
+      { tags: [ WORD ] },
+    ];
+    const resultArr = getTagsFromResources(arr);
+    expect(resultArr.length).to.equal(1);
+    expect(resultArr).to.deep.equal([WORD]);
   });
 
   it('on select option, dropdown removes that option ' +
     'from available options', () => {
     // remove empty spaces
-    const filteredArray = CreatePerspective.filteredArray(
+    const arr = filteredArray(
       POPULAR_SAYING.split(''),
       ' ',
     );
-    expect(filteredArray).to.not.contain(' ');
+    expect(arr).to.not.contain(' ');
+  });
+
+  describe('getConfig', () => {
+    it('config options contain the expected number of options', () => {
+      const key = 'statusFilter'; // any string
+      const values = {};
+      values[key] = POPULAR_SAYING.split(' ');
+      const value = [WORD];
+      const config = getConfig(values, key, value);
+      expect(config.options.length).to.equal(values[key].length - 1);
+    });
+
+    it('options contain only values not in field', () => {
+      const key = 'statusFilter'; // any string
+      const values = {};
+      values[key] = POPULAR_SAYING.split(' ');
+      const value = [WORD];
+      const config = getConfig(values, key, value);
+      expect(config.options).to.not.contain(WORD);
+    });
+  });
+
+  describe('getArray', () => {
+    it('returns all items except ' +
+      'for the item whose field === third param key');
+
+    it('does not return unPublished resources', () => {
+      const unPublished = getArray(
+        'absolutePath',
+        // unpublished
+        getSubjects(NUM, 'absolutePath', false)
+      );
+      expect(unPublished.length).to.be.empty;
+    });
+
+    it('returns published resources', () => {
+      const published = getArray(
+        'absolutePath',
+        // published
+        getSubjects(NUM, 'absolutePath', true)
+      );
+      expect(published.length).to.equal(NUM);
+      // input is in decreasing order
+      // should preserve order
+      expect(published[ZERO]).to.equal(NUM);
+    });
+
+    it('preserves the order of input resources', () => {
+      const published = getArray(
+        'absolutePath',
+        // published
+        getSubjects(NUM, 'absolutePath', true),
+      );
+      // input is in decreasing order
+      expect(published[ZERO]).to.equal(NUM);
+    });
   });
 });

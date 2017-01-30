@@ -13,7 +13,7 @@
  */
 /**
  * Given array of objects, returns array of strings or primitives
- * of values of the field key
+ * of arrayOfObjects[i][field].
  *
  * @param {String} field The field of each value to return
  * @param {array} arrayOfObjects The array of objects to
@@ -33,26 +33,105 @@ function getArray(field, arrayOfObjects) {
 
   return arr;
 }
+
+/**
+ *  Ie. 'thisStringIsGood' --> This String Is Good
+ * @param {String} string The string to split
+ * @returns {String} The converted string, includes spaces.
+ */
+function convertCamelCase(string) {
+  return string
+      // insert a space before all caps
+    .replace(/([A-Z])/g, ' $1')
+    // uppercase the first character
+    .replace(/^./, function(str) {
+      return str.toUpperCase();
+    });
+}
+
+/**
+ * Given array of objects, returns array without
+ * the input elements
+ *
+ * @param {Array} arr The array to filter from
+ * @param {String} removeThis The elem to remove from array.
+ * Multiple elements may be removed
+ * get new array from
+ * @returns {Array} The array of strings or primitives
+ */
+function filteredArray(arr, removeThis) {
+  return arr.filter((elem) => {
+    return elem !== removeThis;
+  });
+}
+
+
+/**
+ * Returns array of objects with tags
+ * @param {Array} array The array of reosurces to get tags from.
+ * @returns {Object} array of tags
+ */
+function getTagsFromResources(array) {
+  // get all tags
+  let cumulativeArr = [];
+  for (var i = array.length - 1; i >= 0; i--) {
+    if (array[i].tags.length) {
+      cumulativeArr.push(...array[i].tags);
+    }
+  }
+
+  return cumulativeArr.filter((item, pos) => {
+    return cumulativeArr.indexOf(item) !== pos;
+  });
+}
+
+/**
+ * Return array of items that are from one array and
+ * not in another
+ *
+ * @param {Array} options Return a subset of this
+ * @param {Array} value Array of data to exclude
+ * @returns {Array} Contains items from options
+ */
+function getOptions(options, value) {
+  let leftovers = []; // populate from options
+  if (Array.isArray(value)) {
+    for (var i = options.length - 1; i >= 0; i--) {
+      if (value.indexOf(options[i]) < 0) {
+        leftovers.push(options[i]);
+      }
+    }
+  }
+  return leftovers;
+}
 /**
  * Returns config object for the key in values array.
  *
  * @param {Array} values Data to get resource config.
  * From props
  * @param {String} key The key of the resource, in values array
- * @param {Array} value Current state's values
- * @param {String} convertedText For resource config
+ * @param {Array} value Update state to this value
  * @returns {Object} The resource configuration object
  */
-function getConfig(values, key, value, convertedText) {
-  const config = {};
+function getConfig(values, key, value) {
   const ZERO = 0;
+  const options = getOptions(values[key] || [], value);
+  const convertedText = convertCamelCase(key);
+  let config = {
+    title: key,
+    options,
+    showSearchIcon: false,
+  };
+
   if (key === 'subjects') {
-    config.options = getArray('absolutePath', values[key]);
+    let options = getArray('absolutePath', values[key]);
+    config.options = filteredArray(options, value);
     config.placeholderText = 'Select a Subject...';
     config.isArray = false;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
-    config.options = getArray('name', values[key]);
+    let options = getArray('name', values[key]);
+    config.options = filteredArray(options, value);
     config.isArray = false;
   } else if (key.slice(-6) === 'Filter') {
     // if key ends with Filter
@@ -60,17 +139,19 @@ function getConfig(values, key, value, convertedText) {
     config.allOptionsLabel = 'All ' +
       convertedText.replace(' Filter', '') + 's';
     config.isArray = true;
-    if (key === 'aspectFilter') {
-      config.options = getArray('name', values[key]);
-      config.allOptionsLabel = 'All ' +
-        convertedText.replace(' Filter', '') + ' Tags';
-    } else if (key === 'statusFilter') {
+    if (key === 'statusFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 'es';
+    } else if (key === 'aspectFilter') {
+      config.allOptionsLabel = 'All ' +
+        convertedText.replace(' Filter', '') + 's';
+      let options = getArray('name', values[key]);
+      config.options = filteredArray(options, value);
     }
     delete config.placeholderText;
     // remove value[i] if not in all appropriate values
     let notAllowedTags = [];
+
     for (let i = ZERO; i < value.length; i++) {
       if (!values[key] || values[key].indexOf(value[i]) < ZERO) {
         notAllowedTags.push(value[i]);
@@ -95,6 +176,9 @@ function getConfig(values, key, value, convertedText) {
 }
 
 export {
+  getOptions, // for testing
+  filteredArray,
   getConfig,
-  getArray
+  getArray,
+  getTagsFromResources,
 };
