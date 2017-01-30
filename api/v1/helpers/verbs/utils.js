@@ -16,6 +16,7 @@ const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
 const jwtUtil = require('../../../../utils/jwtUtil');
+const logAPI = require('../../../../utils/apiLog').logAPI;
 
 /**
  * This function adds the association scope name to the as the to all
@@ -680,7 +681,7 @@ function forbidden(next, modelName) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
-
+  logAPI,
   buildFieldList,
 
   /**

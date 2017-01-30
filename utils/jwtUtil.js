@@ -91,7 +91,9 @@ function getTokenDetailsFromTokenString(s) {
     if (s) {
       jwt.verify(s, env.tokenSecret, {}, (err, decodedData) => {
         if (err !== null || !decodedData) {
-          return reject(err);
+          return reject(new apiErrors.ForbiddenError({
+            explanation: 'No authorization token was found',
+          }));
         }
 
         const username = decodedData.username;

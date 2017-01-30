@@ -29,7 +29,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
-const logAPI = require('../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 const ZERO = 0;
 const ONE = 1;
 
@@ -117,7 +117,7 @@ module.exports = {
     .then((o) => o.deleteHierarchy())
     .then(() => {
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectHierarchy');
+        logAuditAPI(req, 'SubjectHierarchy');
       }
 
       return res.status(httpStatus.OK).json({});
@@ -372,7 +372,7 @@ module.exports = {
     })
     .then((o) => {
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectTags', o);
+        logAuditAPI(req, 'SubjectTags', o);
       }
 
       const retval = u.responsify(o, helper, req.method);
@@ -408,7 +408,7 @@ module.exports = {
     })
     .then((o) => {
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectRelatedLinks', o);
+        logAuditAPI(req, 'SubjectRelatedLinks', o);
       }
 
       const retval = u.responsify(o, helper, req.method);

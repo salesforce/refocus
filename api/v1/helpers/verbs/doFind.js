@@ -34,8 +34,11 @@ const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
  *  find command
  */
 function doFindAndCountAll(reqResNext, props, opts) {
+  const resultObj = { reqStartTime: new Date() };
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = o.count;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
     const retval = o.rows.map((row) => {
       if (props.modelName === 'Lens') {
@@ -44,6 +47,8 @@ function doFindAndCountAll(reqResNext, props, opts) {
 
       return u.responsify(row, props, reqResNext.req.method);
     });
+    resultObj.retval = retval;
+    u.logAPI(reqResNext.req, resultObj);
     return retval;
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
@@ -64,6 +69,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
  *  find command
  */
 function doFindAll(reqResNext, props, opts) {
+  const resultObj = { reqStartTime: new Date() };
   if (opts.where && opts.where.tags && opts.where.tags.$contains.length) {
     // change to filter at the API level
     opts.where.tags.$contains = [];
@@ -71,6 +77,8 @@ function doFindAll(reqResNext, props, opts) {
 
   return u.getScopedModel(props, opts.attributes).findAll(opts)
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    resultObj.recordCount = o.count;
     reqResNext.res.set(COUNT_HEADER_NAME, o.length);
     let retval = o.map((row) => {
       if (props.modelName === 'Lens') {
@@ -85,6 +93,8 @@ function doFindAll(reqResNext, props, opts) {
       retval = fu.filterArrFromArr(retval, tags.value);
     }
 
+    resultObj.retval = retval;
+    u.logAPI(reqResNext.req, resultObj);
     return retval;
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
