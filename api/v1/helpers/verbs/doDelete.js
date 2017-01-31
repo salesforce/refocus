@@ -38,7 +38,6 @@ function doDelete(req, res, next, props) {
       logAuditAPI(req, props.modelName, o);
     }
 
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const assocNames = [];
 
     /**

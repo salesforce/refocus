@@ -11,13 +11,11 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const sinon = require('sinon');
-const DUMMY_STR = 'COOL_NAME';
 const expect = require('chai').expect;
 const jwtUtil = require('../../utils/jwtUtil');
 const tu = require('../testUtils');
 
-describe('jwtUtil getTokenDetailsFromToken test', (done) => {
+describe('jwtUtil getTokenDetailsFromTokenString test', (done) => {
   // setup
   let token;
   const FORBIDDEN = 403;
@@ -33,27 +31,8 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
 
   after(tu.forceDeleteUser);
 
-  it('works with valid Authorization from cookie', () => {
-    const cookies = {
-      Authorization: token,
-    };
-
-    jwtUtil.getTokenDetailsFromToken(cookies).then((res) => {
-      expect(res.tokenname).to.equal(tu.userName);
-      expect(res.usernname).to.equal(tu.userName);
-      done();
-    })
-    .catch(done);
-  });
-
-  it('works with valid Authorization from request header', () => {
-    const req = {
-      headers: {
-        authorization: token,
-      },
-    };
-
-    jwtUtil.getTokenDetailsFromToken(req).then((res) => {
+  it('works with valid token', () => {
+    jwtUtil.getTokenDetailsFromTokenString(token).then((res) => {
       expect(res.tokenname).to.equal(tu.userName);
       expect(res.usernname).to.equal(tu.userName);
       done();
@@ -63,8 +42,8 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
 
   // if a timeout occurs here, print out error
   it('fails with invalid format', (done) => {
-    const req = { authorization: DUMMY_STR };
-    jwtUtil.getTokenDetailsFromToken(req).then((res) =>
+    const INVALID_TOKEN = token.split('').reverse().join('');
+    jwtUtil.getTokenDetailsFromTokenString(INVALID_TOKEN).then((res) =>
       done(new Error('expected error here')))
     .catch((err) => {
       expect(err.status).to.equal(FORBIDDEN);
@@ -74,7 +53,7 @@ describe('jwtUtil getTokenDetailsFromToken test', (done) => {
 
   // if a timeout occurs here, print out error
   it('fails with undefined input', (done) => {
-    jwtUtil.getTokenDetailsFromToken().then((res) =>
+    jwtUtil.getTokenDetailsFromTokenString().then((res) =>
       done(new Error('expected error here')))
     .catch((err) => {
       expect(err.status).to.equal(FORBIDDEN);

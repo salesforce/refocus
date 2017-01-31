@@ -94,7 +94,7 @@ function logAPI(req, resultObj, retval) {
 
     // if API token enabled,
     // extract user, token to update log object
-    jwtUtil.getTokenDetailsFromToken(req)
+    jwtUtil.getTokenDetailsFromRequest(req)
     .then((resObj) => {
       logObject.user = resObj.username;
       logObject.token = resObj.tokenname;
