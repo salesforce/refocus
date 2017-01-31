@@ -132,6 +132,7 @@ module.exports = function sample(seq, dataTypes) {
                 'valueType',
                 'relatedLinks',
                 'tags',
+                'rank',
               ],
             },
 

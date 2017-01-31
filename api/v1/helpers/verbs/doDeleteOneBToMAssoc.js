@@ -55,6 +55,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
       // if the resolved object is an empty array, throw a ResourceNotFound error
       u.throwErrorForEmptyArray(o,
           params.userNameOrId.value, assocName);
+      resultObj.recordCount = o.length; // not 0
 
       // if assocName is "writers", it resolves to "removeWriters"
       const functionName = `remove${u.capitalizeFirstLetter(assocName)}`;

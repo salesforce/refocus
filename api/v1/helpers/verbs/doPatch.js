@@ -14,7 +14,7 @@
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const logAPI = require('../../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../../utils/loggingUtil').logAuditAPI;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -51,7 +51,7 @@ function doPatch(req, res, next, props) {
   .then((retVal) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     if (props.loggingEnabled) {
-      logAPI(req, props.modelName, retVal);
+      logAuditAPI(req, props.modelName, retVal);
     }
 
     u.logAPI(req, resultObj, retVal);

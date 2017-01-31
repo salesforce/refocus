@@ -30,8 +30,8 @@
  * (5) call "loadExtraStuffForCreatePerspective" to start loading all the extra
  *     data we'll need for the "CreatePerspective" component
  *
- * If config var "eventThrottleMillis" > 0, we start a timer to flush the
- * realtime event queue on that defined interval.
+ * If config var "realtimeEventThrottleMilliseconds" > 0, we start a timer to
+ * flush the realtime event queue on that defined interval.
  *
  * Whenever we get the response back with the lens, we dispatch the lens.load
  * event to the lens.
@@ -54,15 +54,12 @@ let gotLens = false;
 const lensLoadEvent = new CustomEvent('refocus.lens.load');
 let hierarchyLoadEvent;
 const pcValues = {};
-
 const ZERO = 0;
 const ONE = 1;
-
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
 const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
   .includes('protocol=websocket');
-
 const REQ_HEADERS = {
   Authorization: u.getCookie('Authorization'),
   'X-Requested-With': 'XMLHttpRequest',
@@ -82,8 +79,11 @@ const ERROR_INFO_DIV = document.getElementById('errorInfo');
 const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
 
-// Note: realtimeEventThrottleMilliseconds is defined in perspective.pug
-const eventThrottleMillis = realtimeEventThrottleMilliseconds;
+// Note: these are declared in perspective.pug:
+const _realtimeEventThrottleMilliseconds =
+  realtimeEventThrottleMilliseconds;  // eslint-disable-line no-undef
+const _transProtocol = transProtocol; // eslint-disable-line no-undef
+const _io = io; // eslint-disable-line no-undef
 
 /**
  * Add error message to the errorInfo div in the page.
@@ -115,7 +115,7 @@ function handleEvent(eventData, eventTypeName) {
   }
 
   eventsQueue.enqueueEvent(eventTypeName, j[eventTypeName]);
-  if (eventThrottleMillis === ZERO) {
+  if (_realtimeEventThrottleMilliseconds === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
     eventsQueue.queue.length = ZERO;
   }
@@ -128,36 +128,32 @@ function handleEvent(eventData, eventTypeName) {
  * @param  {Object} persBody - Perspective object
  */
 function setupSocketIOClient(persBody) {
-  const namespace = u.getNamespaceString(persBody);
+  /*
+   * Add the perspective name as a query param so that it's available server-
+   * side on connect.
+   */
+  const namespace = u.getNamespaceString(persBody) +
+    `?p=${persBody.name}`;
 
   /*
-   * if the transprotocol is set, initialize the socketio client with
-   *  the transport protocol options. The transProtocol variable is set in
-   *  perspective.pug
+   * If transProtocol is set, initialize the socket.io client with the
+   * transport protocol options. The "options" object is used to set the
+   * transport type. For example, to specify websockets as the only transport
+   * protocol, the options object will be { transports: ['websocket'] }.
+   * The regex is used to trim whitespace from around any commas in the
+   * clientProtocol string. Finally, we split the comma-seperated values into
+   * an array.
    */
   const options = {};
-  const clientProtocol = transProtocol;
-  if (clientProtocol) {
-    /*
-     * options is used here to set the transport type. For example to only use
-     * websockets as the transport protocol the options object will be
-     * { transports: ['websocket'] }. The regex is used to trim the white spaces
-     * and since clientProtocol is a string of comma seperated values,
-     * the split function is used to split them out by comma and convert
-     * it to an array.
-     */
-    options.transports = clientProtocol.replace(/\s*,\s*/g, ',').split(',');
+  if (_transProtocol) {
+    options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
 
-  /*
-   * Note: The "io" variable is defined by the "/socket.io.js" script included
-   * in perspective.pug.
-   */
   let socket;
   if (WEBSOCKET_ONLY) {
-    socket = io(namespace, { transports: ['websocket'] });
+    socket = _io(namespace, { transports: ['websocket'] });
   } else {
-    socket = io(namespace, options);
+    socket = _io(namespace, options);
   }
 
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
@@ -633,8 +629,8 @@ window.onload = () => {
   getPerspectiveNames();
 };
 
-if (eventThrottleMillis !== ZERO) {
-  eventsQueue.scheduleFlushQueue(LENS_DIV, eventThrottleMillis);
+if (_realtimeEventThrottleMilliseconds !== ZERO) {
+  eventsQueue.scheduleFlushQueue(LENS_DIV, _realtimeEventThrottleMilliseconds);
 }
 
 /**

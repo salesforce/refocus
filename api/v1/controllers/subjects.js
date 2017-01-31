@@ -29,7 +29,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
-const logAPI = require('../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 const ZERO = 0;
 const ONE = 1;
 
@@ -119,7 +119,7 @@ module.exports = {
     .then(() => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectHierarchy');
+        logAuditAPI(req, 'SubjectHierarchy');
       }
 
       u.logAPI(req, resultObj, {});
@@ -387,7 +387,7 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectTags', o);
+        logAuditAPI(req, 'SubjectTags', o);
       }
 
       const retval = u.responsify(o, helper, req.method);
@@ -426,7 +426,7 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
-        logAPI(req, 'SubjectRelatedLinks', o);
+        logAuditAPI(req, 'SubjectRelatedLinks', o);
       }
 
       const retval = u.responsify(o, helper, req.method);

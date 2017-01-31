@@ -44,7 +44,23 @@ const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
+// request limiter settings
+const rateLimit = pe.RATE_LIMIT;
+const rateWindow = pe.RATE_WINDOW;
+const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
+const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
+
 const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
+
+/*
+ * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
+ * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of ip addresses if
+ * you want to prioritize or deprioritize jobs from a particular user ip
+ * address (or multiple users' ip addresses). Has no effect if you're not
+ * using worker dynos.
+ */
+const prioritizeJobsFrom = configUtil.csvToArray(pe.PRIORITIZE_JOBS_FROM);
+const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
@@ -172,4 +188,10 @@ module.exports = {
   auditAspects,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
+  rateLimit,
+  rateWindow,
+  endpointToLimit,
+  httpMethodToLimit,
+  prioritizeJobsFrom,
+  deprioritizeJobsFrom,
 };

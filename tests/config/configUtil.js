@@ -77,3 +77,35 @@ describe('IP List', () => {
     done();
   });
 });
+
+describe('csvToArray', () => {
+  it('undefined string', (done) => {
+    expect(configUtil.csvToArray(undefined))
+    .to.be.eql([]);
+    done();
+  });
+
+  it('null string', (done) => {
+    expect(configUtil.csvToArray(null))
+    .to.be.eql([]);
+    done();
+  });
+
+  it('zero-length string', (done) => {
+    expect(configUtil.csvToArray(''))
+    .to.be.eql([]);
+    done();
+  });
+
+  it('single element', (done) => {
+    expect(configUtil.csvToArray('abc'))
+    .to.be.eql(['abc']);
+    done();
+  });
+
+  it('multiple elements with extra left and right padding', (done) => {
+    expect(configUtil.csvToArray('abc,def , ghi'))
+    .to.be.eql(['abc', 'def', 'ghi']);
+    done();
+  });
+}); // csvToArray

@@ -20,71 +20,144 @@ const httpServer = require('http').Server(app);
 const io = require('socket.io')(httpServer);
 const u = require('./utils');
 
-describe('socket io namespace setup Tests:', () => {
-  const rootSubjNAUS = 'NA.US';
-  const rootSubjNA = 'NA';
-  let createdLensId;
-  before((done) => {
-    u.doSetup()
-    .then((createdLens) => {
-      createdLensId = createdLens.id;
-    })
-    .then(() => tu.db.Perspective.create({
-      name: `${tu.namePrefix}firstPersp`,
-      lensId: createdLensId,
-      rootSubject: rootSubjNAUS,
-    }))
-    .then(() => tu.db.Perspective.create({
-      name: `${tu.namePrefix}secondPersp`,
-      lensId: createdLensId,
-      rootSubject: rootSubjNA,
-      aspectFilter: ['temperature', 'humidity'],
-      aspectFilterType: 'INCLUDE',
-      aspectTagFilter: ['temp', 'hum'],
-      aspectTagFilterType: 'INCLUDE',
-      subjectTagFilter: ['ea', 'na'],
-      subjectTagFilterType: 'INCLUDE',
-      statusFilter: ['OK'],
-      statusFilterType: 'INCLUDE'
-    }))
-    .then(() => done())
-    .catch(done);
-  });
+describe('socket.io setup', () => {
+  describe('with logging disabled', () => {
+    const rootSubjNAUS = 'NA.US';
+    const rootSubjNA = 'NA';
+    let createdLensId;
+    before((done) => {
+      u.doSetup()
+      .then((createdLens) => {
+        createdLensId = createdLens.id;
+      })
+      .then(() => tu.db.Perspective.create({
+        name: `${tu.namePrefix}firstPersp`,
+        lensId: createdLensId,
+        rootSubject: rootSubjNAUS,
+      }))
+      .then(() => tu.db.Perspective.create({
+        name: `${tu.namePrefix}secondPersp`,
+        lensId: createdLensId,
+        rootSubject: rootSubjNA,
+        aspectFilter: ['temperature', 'humidity'],
+        aspectFilterType: 'INCLUDE',
+        aspectTagFilter: ['temp', 'hum'],
+        aspectTagFilterType: 'INCLUDE',
+        subjectTagFilter: ['ea', 'na'],
+        subjectTagFilterType: 'INCLUDE',
+        statusFilter: ['OK'],
+        statusFilterType: 'INCLUDE'
+      }))
+      .then(() => done())
+      .catch(done);
+    });
 
-  after(u.forceDelete);
+    after(u.forceDelete);
 
-  it('socketio nsp object must be initialized with namespaces', (done) => {
-    socketIOSetup.setupNamespace(io)
-    .then((sio) => {
-      // setupNamespace should return a socketio io object
-      expect(sio.nsps).to.be.an('object');
+    it('socketio nsp object must be initialized with namespaces', (done) => {
+      socketIOSetup.init(io)
+      .then((sio) => {
+        // init should return a socketio io object
+        expect(sio.nsps).to.be.an('object');
 
-      // the returned socketio object must contain the initialized namespace
-      expect(sio.nsps).to.contain.all.keys([
-        '/',
-        `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
-      ]);
-      done();
-    })
-    .catch(done);
-  });
+        // the returned socketio object must contain the initialized namespace
+        expect(sio.nsps).to.contain.all.keys([
+          '/',
+          `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
+        ]);
+        done();
+      })
+      .catch(done);
+    });
 
-  it('socketio nsp object must be initialized with namespace even if' +
-        'the filters are set', (done) => {
-    socketIOSetup.setupNamespace(io)
-    .then((sio) => {
-      // setupNamespace should return a socketio io object
-      expect(sio.nsps).to.be.an('object');
+    it('socketio nsp object must be initialized with namespace even if' +
+          'the filters are set', (done) => {
+      socketIOSetup.init(io)
+      .then((sio) => {
+        // init should return a socketio io object
+        expect(sio.nsps).to.be.an('object');
 
-      // the returned socketio object must contain the initialized namespace
-      expect(sio.nsps).to.have.all.keys([
-        '/',
-        `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
-        `/${rootSubjNA}&INCLUDE=temperature;humidity&INCLUDE=ea;na&INCLUDE=` +
-          'temp;hum&INCLUDE=OK',
-      ]);
-      done();
-    })
-    .catch(done);
-  });
+        // the returned socketio object must contain the initialized namespace
+        expect(sio.nsps).to.have.all.keys([
+          '/',
+          `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
+          `/${rootSubjNA}&INCLUDE=temperature;humidity&INCLUDE=ea;na&INCLUDE=` +
+            'temp;hum&INCLUDE=OK',
+        ]);
+        done();
+      })
+      .catch(done);
+    });
+  }); // with logging disabled
+
+  describe('with logging enabled', () => {
+    const rootSubjNAUS = 'NA.US';
+    const rootSubjNA = 'NA';
+    let createdLensId;
+    before((done) => {
+      tu.toggleOverride('enableRealtimeActivityLogs', true);
+      u.doSetup()
+      .then((createdLens) => {
+        createdLensId = createdLens.id;
+      })
+      .then(() => tu.db.Perspective.create({
+        name: `${tu.namePrefix}firstPersp`,
+        lensId: createdLensId,
+        rootSubject: rootSubjNAUS,
+      }))
+      .then(() => tu.db.Perspective.create({
+        name: `${tu.namePrefix}secondPersp`,
+        lensId: createdLensId,
+        rootSubject: rootSubjNA,
+        aspectFilter: ['temperature', 'humidity'],
+        aspectFilterType: 'INCLUDE',
+        aspectTagFilter: ['temp', 'hum'],
+        aspectTagFilterType: 'INCLUDE',
+        subjectTagFilter: ['ea', 'na'],
+        subjectTagFilterType: 'INCLUDE',
+        statusFilter: ['OK'],
+        statusFilterType: 'INCLUDE'
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    after(u.forceDelete);
+    after(() => tu.toggleOverride('enableRealtimeActivityLogs', true));
+
+    it('socketio nsp object must be initialized with namespaces', (done) => {
+      socketIOSetup.init(io)
+      .then((sio) => {
+        // init should return a socketio io object
+        expect(sio.nsps).to.be.an('object');
+
+        // the returned socketio object must contain the initialized namespace
+        expect(sio.nsps).to.contain.all.keys([
+          '/',
+          `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
+        ]);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('socketio nsp object must be initialized with namespace even if' +
+          'the filters are set', (done) => {
+      socketIOSetup.init(io)
+      .then((sio) => {
+        // init should return a socketio io object
+        expect(sio.nsps).to.be.an('object');
+
+        // the returned socketio object must contain the initialized namespace
+        expect(sio.nsps).to.have.all.keys([
+          '/',
+          `/${rootSubjNAUS}&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE`,
+          `/${rootSubjNA}&INCLUDE=temperature;humidity&INCLUDE=ea;na&INCLUDE=` +
+            'temp;hum&INCLUDE=OK',
+        ]);
+        done();
+      })
+      .catch(done);
+    });
+  }); // with logging enabled
 });

@@ -31,6 +31,7 @@ describe(`api: GET ${path}`, () => {
     name: 'temperature',
     timeout: '30s',
     isPublished: true,
+    rank: 10,
   };
 
   const sample1 = { value: '10' };
@@ -117,6 +118,27 @@ describe(`api: GET ${path}`, () => {
         done();
       });
     });
+
+    it('aspect rank must be included in the hierarchy', (done) => {
+      api.get(path.replace('{key}', ipar))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.children[0].children[0].samples).to.be
+          .an('array');
+        expect(res.body.children[0].children[0].samples).to.have.lengthOf(1);
+        expect(res.body.children[0].children[0].samples[0].aspect.rank).
+          to.equal(10);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
+    });
+
     it('should be a non empty object at the 1st  of grandchild', (done) => {
       api.get(path.replace('{key}', igrn))
       .set('Authorization', token)

@@ -13,7 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const logAPI = require('../../../../utils/loggingUtil').logAPI;
+const logAuditAPI = require('../../../../utils/loggingUtil').logAuditAPI;
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -33,7 +33,7 @@ function doPost(req, res, next, props) {
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     if (props.loggingEnabled) {
-      logAPI(req, props.modelName, o);
+      logAuditAPI(req, props.modelName, o);
     }
 
     u.logAPI(req, resultObj, o.dataValues);

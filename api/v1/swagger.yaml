@@ -99,6 +99,7 @@ paths:
               - id
               - isPublished
               - name
+              - rank
               - timeout
               - valueLabel
               - valueType
@@ -114,6 +115,7 @@ paths:
               - -valueLabel
               - -valueType
               - -createdAt
+              - -rank
               - -updatedAt
         -
           $ref: "#/parameters/limitParam"
@@ -147,6 +149,13 @@ paths:
             Filter by aspect isPublished (true|false).
           required: false
           type: boolean
+        -
+          name: rank
+          in: query
+          description: >-
+            Filter by aspect rank.
+          required: false
+          type: string
         -
           name: timeout
           in: query
@@ -327,6 +336,12 @@ paths:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              rank:
+                type: number
+                description: >
+                  Provide guidance for how a lens should display aspects--ascending order by
+                  rank (numeric, nulls last) then within rank in ascending order by name
+                  (alphanumeric).
             required:
               - name
               - timeout
@@ -558,6 +573,12 @@ paths:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              rank:
+                type: number
+                description: >
+                  Provide guidance for how a lens should display aspects--ascending order by
+                  rank (numeric, nulls last) then within rank in ascending order by name
+                  (alphanumeric).
       responses:
         200:
           description: Success, returns the updated aspect.
@@ -720,6 +741,12 @@ paths:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              rank:
+                type: number
+                description: >
+                  Provide guidance for how a lens should display aspects--ascending order by
+                  rank (numeric, nulls last) then within rank in ascending order by name
+                  (alphanumeric).
             required:
               - name
       responses:

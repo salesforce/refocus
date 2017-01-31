@@ -19,10 +19,11 @@ const jobQueue = jobSetup.jobQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const conf = require('../config');
 
 // ttl converted to milliseconds
 const TIME_TO_LIVE =
-      1000 * jobSetup.ttlForJobs; // eslint-disable-line no-magic-numbers
+  1000 * jobSetup.ttlForJobs; // eslint-disable-line no-magic-numbers
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
@@ -128,7 +129,7 @@ function logAndRemoveJobOnComplete(req, job) {
     /* if req object, then extract user, token and ipaddress and update log
       object */
     if (req) {
-      jwtUtil.getTokenDetailsFromToken(req)
+      jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;
@@ -144,6 +145,28 @@ function logAndRemoveJobOnComplete(req, job) {
 }
 
 /**
+ * Prioritize jobs based on job type, size, and ip address.
+ *
+ * @param {String} jobName - the type of the job
+ * @param {Object} data - the job payload
+ * @param {Object} req - the request object
+ * @returns {String} kue priority
+ */
+function calculateJobPriority(jobName, data, req) {
+  // low=10, normal=0, medium=-5, high=-10, critical=-15
+  const ipAddress = activityLogUtil.getIPAddrFromReq(req);
+  if (conf.prioritizeJobsFrom.includes(ipAddress)) {
+    return 'high';
+  }
+
+  if (conf.deprioritizeJobsFrom.includes(ipAddress)) {
+    return 'low';
+  }
+
+  return 'normal';
+} // calculateJobPriority
+
+/**
  * Creates a job to be processed using the KUE api, given the jobName and
  * data to be processed by the job.
  *
@@ -155,8 +178,10 @@ function logAndRemoveJobOnComplete(req, job) {
  *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
+  const jobPriority = calculateJobPriority(jobName, data, req);
   const job = jobQueue.create(jobName, data)
   .ttl(TIME_TO_LIVE)
+  .priority(jobPriority)
   .save((err) => {
     if (err) {
       const msg =

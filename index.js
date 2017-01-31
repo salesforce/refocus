@@ -22,7 +22,6 @@ const WORKERS = process.env.WEB_CONCURRENCY || 1;
 function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
-
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
 
@@ -42,6 +41,19 @@ function start() { // eslint-disable-line max-statements
 
   const app = express();
 
+  // redis client to for request limiter
+  const limiterRedisClient = require('redis').createClient(env.redisUrl);
+
+  // request limiter setting
+  const limiter = require('express-limiter')(app, limiterRedisClient);
+  limiter({
+    path: conf.endpointToLimit,
+    method: conf.httpMethodToLimit,
+    lookup: ['headers.x-forwarded-for'],
+    total: conf.rateLimit,
+    expire: conf.rateWindow,
+  });
+
   /*
    * Compress(gzip) all the api responses and all the static files.
    * Since this is called before the static pages and the API routes, this will
@@ -54,7 +66,7 @@ function start() { // eslint-disable-line max-statements
 
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
-  socketIOSetup.setupNamespace(io);
+  socketIOSetup.init(io);
   const sub = require('./pubsub').sub;
   require('./realtime/redisSubscriber')(io, sub);
 

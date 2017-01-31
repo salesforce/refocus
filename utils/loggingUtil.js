@@ -23,7 +23,7 @@ const winston = require('winston');
  * @param  {string} associationInfo - changes corresponding to object
  * associations like tags
  */
-function logAPI(req, modelName, obj, associationInfo) {
+function logAuditAPI(req, modelName, obj, associationInfo) {
   let username;
   let objName;
   let objId;
@@ -76,6 +76,6 @@ function logDB(instanceIdentifier, action, changedVals) {
 }
 
 module.exports = {
-  logAPI,
+  logAuditAPI,
   logDB,
 };
