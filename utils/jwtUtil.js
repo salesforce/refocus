@@ -80,43 +80,49 @@ function verifyToken(req, cb) {
 }
 
 /**
- * Get token details: username, token name from Token.
- * @param  {object}   req - request object
- * @param  {Function} cb - callback function
- * @returns {User}
+ * Get token details: username, token name from the token string.
+ *
+ * @param  {String} s - The token string
+ * @returns {Promise} - Resolves to an object containing "username" and
+ *  "tokenname" attributes.
  */
-function getTokenDetailsFromToken(req) {
+function getTokenDetailsFromTokenString(s) {
   return new Promise((resolve, reject) => {
-    let authorization;
-    if (req) {
-      if (req.headers && req.headers.authorization) {
-        authorization = req.headers.authorization;
-      } else if (req.cookies && req.cookies.Authorization) {
-        authorization = req.cookies.Authorization;
-      }
-    }
-
-    if (authorization) {
-      jwt.verify(authorization, env.tokenSecret, {},
-      (err, decodedData) => {
+    if (s) {
+      jwt.verify(s, env.tokenSecret, {}, (err, decodedData) => {
         if (err !== null || !decodedData) {
-          return reject(err);
+          return reject(new apiErrors.ForbiddenError({
+            explanation: 'No authorization token was found',
+          }));
         }
 
-        const resObj = {
-          username: decodedData.username,
-          tokenname: decodedData.tokenname,
-        };
-        return resolve(resObj);
+        const username = decodedData.username;
+        const tokenname = decodedData.tokenname;
+        return resolve({ username, tokenname });
       });
     } else {
-      // no req or authorization
       reject(new apiErrors.ForbiddenError({
         explanation: 'No authorization token was found',
       }));
     }
   });
-} // getUsernameFromToken
+} // getTokenDetailsFromTokenString
+
+/**
+ * Get token details (user name and token name) from the request.
+ *
+ * @param {Object} req - The request object.
+ * @returns {Promise} - Resolves to an object containing "username" and
+ *  "tokenname" attributes.
+ */
+function getTokenDetailsFromRequest(req) {
+  let t = null;
+  if (req && req.headers && req.headers.authorization) {
+    t = req.headers.authorization;
+  }
+
+  return getTokenDetailsFromTokenString(t);
+} // getTokenDetailsFromRequest
 
 /**
  * Create jwt token.
@@ -138,5 +144,6 @@ function createToken(tokenName, userName) {
 module.exports = {
   verifyToken,
   createToken,
-  getTokenDetailsFromToken,
+  getTokenDetailsFromRequest,
+  getTokenDetailsFromTokenString,
 };

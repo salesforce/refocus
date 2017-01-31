@@ -66,16 +66,20 @@ const longTermToggles = {
   useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
 
   // Enforce write permission on records
-  enforceWritePermission: environmentVariableTrue(pe,
-                                        'ENFORCE_WRITE_PERMISSION'),
+  enforceWritePermission:
+    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
+
+  // Enable realtime activity logging
+  enableRealtimeActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
 
   // Enable api activity logging
   enableApiActivityLogs: environmentVariableTrue(pe,
                                         'ENABLE_API_ACTIVITY_LOGS'),
 
   // Enable worker activity logging
-  enableWorkerActivityLogs: environmentVariableTrue(pe,
-                                        'ENABLE_WORKER_ACTIVITY_LOGS'),
+  enableWorkerActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
 
 }; // longTermToggles
 

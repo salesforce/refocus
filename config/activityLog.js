@@ -13,6 +13,14 @@
 
 module.exports = {
   activityType: {
+    realtime: {
+      activity: 'realtime',
+      ipAddress: 'None',
+      perspective: 'None',
+      token: 'None',
+      totalTime: 'None',
+      user: 'None',
+    },
     api: {
       activity: 'api',
       user: 'None',
@@ -27,17 +35,17 @@ module.exports = {
       recordCount: 0,
     },
     worker: {
-      jobType: 'None',
       activity: 'worker',
-      user: 'None',
-      token: 'None',
-      ipAddress: 'None',
-      totalTime: 'None',
-      queueTime: 'None',
-      workTime: 'None',
       dbTime: 'None',
-      recordCount: 0,
       errorCount: 0,
+      ipAddress: 'None',
+      jobType: 'None',
+      queueTime: 'None',
+      recordCount: 0,
+      token: 'None',
+      totalTime: 'None',
+      user: 'None',
+      workTime: 'None',
     },
   },
 };

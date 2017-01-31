@@ -168,7 +168,7 @@ function isWritable(req, modelInst, isEnabled) {
     }
 
     if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromToken(req)
+      jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => modelInst.isWritableBy(resObj.username))
       .then((ok) => ok ? resolve(modelInst) :
           reject(new apiErrors.ForbiddenError())
@@ -202,7 +202,7 @@ function getUserNameFromToken(req, doDecode) {
     }
 
     if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromToken(req)
+      jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
         resolve(resObj.username);
       })
