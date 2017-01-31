@@ -22,11 +22,11 @@ const sinon = require('sinon');
 describe('apiLogUtil: functions ', () => {
   let token;
   const currTime = Date.now();
+  const ZERO = 0;
+  const DUMMY_ARRAY = 'qwerty'.split('');
   const jobResultObj = {
     reqStartTime: currTime - 10,
     dbTime: 16,
-    recordCount: 4,
-    retval: { a: 'string'},
   };
 
   before((done) => {
@@ -44,14 +44,29 @@ describe('apiLogUtil: functions ', () => {
     tu.toggleOverride('enableApiWorkerLogs', false);
   });
 
-  it('mapApiResultsToLogObject maps values as expected', (done) => {
+  it('mapApiResultsToLogObject maps the returned Array recordCount as Array.length', () => {
     const logObject = {};
+    apiLogUtil.mapApiResultsToLogObject(jobResultObj, logObject, DUMMY_ARRAY);
+    expect(logObject.recordCount).to.equal(DUMMY_ARRAY.length);
+  });
 
+  it('mapApiResultsToLogObject maps the returned Object recordCount as 1', () => {
+    const logObject = {};
+    apiLogUtil.mapApiResultsToLogObject(jobResultObj, logObject, { a: 'string' });
+    expect(logObject.recordCount).to.equal(1);
+  });
+
+  it('mapApiResultsToLogObject maps the empty returned Object recordCount as 0', () => {
+    const logObject = {};
+    apiLogUtil.mapApiResultsToLogObject(jobResultObj, logObject, {});
+    expect(logObject.recordCount).to.equal(ZERO);
+  });
+
+  it('mapApiResultsToLogObject without optional retval param works expected', () => {
+    const logObject = {};
     apiLogUtil.mapApiResultsToLogObject(jobResultObj, logObject);
     expect(logObject.totalTime).to.be.a('string');
     expect(logObject.dbTime).to.equal(`${jobResultObj.dbTime}ms`);
-    expect(logObject.recordCount).to.equal(jobResultObj.recordCount);
-    expect(logObject.responseBytes).to.be.above(0);
-    done();
+    expect(logObject.responseBytes).to.be.undefined;
   });
 });

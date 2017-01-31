@@ -30,28 +30,35 @@ function getSize(obj) {
  * Set log object params from API results.
  * @param {Object} resultObj - API result object
  * @param {Object} logObject - from the request object
+ * @param {Object or Array} retval - the returned object
  */
-function mapApiResultsToLogObject(resultObj, logObject) {
+function mapApiResultsToLogObject(resultObj, logObject, retval) {
+  const { reqStartTime, dbTime } = resultObj;
 
   // set the totalTime: duration in ms between start time and now
-  if (resultObj.reqStartTime) {
-    logObject.totalTime = `${Date.now() - resultObj.reqStartTime}ms`;
+  if (reqStartTime) {
+    logObject.totalTime = `${Date.now() - reqStartTime}ms`;
   }
 
   // set the duration for the database call(s), in ms
-  if (resultObj.dbTime) {
-    logObject.dbTime = `${resultObj.dbTime}ms`;
+  if (dbTime) {
+    logObject.dbTime = `${dbTime}ms`;
   }
 
-  // set the record count integer,
-  // based on the number of records returned
-  if (resultObj.recordCount) {
-    logObject.recordCount = resultObj.recordCount;
-  }
+  // set the size of the returned JSON value, and the number of
+  // records returned
+  if (retval) {
+    // if retval is array, recordCount is array size
+    let recordCount = 0;
+    if (Array.isArray(retval)) {
+      recordCount = retval.length;
+    } else if (Object.keys(retval).length) {
+      // if retval is a non-emty object, set recordCount to 1
+      recordCount = 1;
+    }
 
-  // set the size of the returned JSON value
-  if (resultObj.retval) {
-    logObject.responseBytes = getSize(resultObj.retval);
+    logObject.recordCount = recordCount;
+    logObject.responseBytes = getSize(retval);
   }
 }
 
@@ -60,10 +67,11 @@ function mapApiResultsToLogObject(resultObj, logObject) {
  * and log the result
  * @param {Object} resultObj - API result object
  * @param {Object} logObject - from the request object
+ * @param {Object or Array} retval - the returned object
  */
-function combineAndLog(resultObj, logObject) {
+function combineAndLog(resultObj, logObject, retval) {
   // in-place modification of logObject
-  mapApiResultsToLogObject(resultObj, logObject);
+  mapApiResultsToLogObject(resultObj, logObject, retval);
   activityLogUtil.printActivityLogString(logObject, 'api');
 }
 
@@ -72,6 +80,7 @@ function combineAndLog(resultObj, logObject) {
  * then logs
  * @param {Object} req - the request object
  * @param {Object} resultObj - Object with the rest of the fields to print
+ * @param {Object or Array} retval - the returned object
  */
 function logAPI(req, resultObj, retval) {
   if (req && featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
@@ -91,9 +100,9 @@ function logAPI(req, resultObj, retval) {
       logObject.token = resObj.tokenname;
 
       // log with the token
-      combineAndLog(resultObj, logObject);
+      combineAndLog(resultObj, logObject, retval);
     })
-    .catch(() => combineAndLog(resultObj, logObject));
+    .catch(() => combineAndLog(resultObj, logObject, retval));
   }
 }
 

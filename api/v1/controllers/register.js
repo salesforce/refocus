@@ -29,7 +29,9 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     configuredPassport.authenticate('local-signup', (err, user) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (err) {
         return u.handleError(next, err, resourceName);
       }
@@ -50,6 +52,7 @@ module.exports = {
 
         const userObj = u.responsify(user, helper, req.method);
         userObj.token = tokenToReturn;
+        u.logAPI(req, resultObj, userObj);
         return res.status(httpStatus.CREATED).json(userObj);
       });
     })(req, res, next);

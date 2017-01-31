@@ -33,12 +33,11 @@ function doDelete(req, res, next, props) {
       featureToggles.isFeatureEnabled('enforceWritePermission')))
   .then((o) => o.destroy())
   .then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     if (props.loggingEnabled) {
       logAuditAPI(req, props.modelName, o);
     }
 
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    resultObj.recordCount = 1;
     const assocNames = [];
 
     /**
@@ -53,8 +52,7 @@ function doDelete(req, res, next, props) {
 
     // when a resource is deleted, delete all its associations too
     u.deleteAllAssociations(o, assocNames);
-    resultObj.retval = o.dataValues;
-    u.logAPI(req, resultObj);
+    u.logAPI(req, resultObj, o.dataValues);
     return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));

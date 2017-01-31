@@ -65,8 +65,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
        * modelInst.removeWriters(o)
        */
       modelInst[functionName](o);
-      resultObj.retval = o[0].dataValues;
-      u.logAPI(req, resultObj);
+      u.logAPI(req, resultObj, o[0].dataValues);
       res.status(httpStatus.NO_CONTENT).json();
     }
   })

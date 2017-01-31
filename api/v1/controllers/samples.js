@@ -119,16 +119,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) =>
       helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
     )
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
         logAuditAPI(req, helper.modelName, o);
       }
 
+      u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(o, helper, req.method));
     })
@@ -148,10 +151,12 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
+    const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
@@ -166,6 +171,7 @@ module.exports = {
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);
+        u.logAPI(req, resultObj, req.swagger.params.queryBody.value);
       }
 
       if (helper.loggingEnabled) {
@@ -188,6 +194,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSampleRelatedLinks(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o,
@@ -202,11 +209,13 @@ module.exports = {
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (helper.loggingEnabled) {
         logAuditAPI(req, 'SampleRelatedLinks', o);
       }
 
       const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
