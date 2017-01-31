@@ -30,6 +30,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
   const tname2 = `${tu.namePrefix}Tom`;
   const tnameOther = `${tu.namePrefix}Dumbledore`;
   let userId;
+  let unameToken;
 
   before((done) => {
     // create user __test@refocus.com
@@ -45,6 +46,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
       }
 
       userId = res.body.id;
+      unameToken = res.body.token;
 
       // create token ___Voldemort
       api.post(tokenPath)
@@ -97,7 +99,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user by name and token found', (done) => {
     api.get(`${path}/${uname}/tokens/${tname1}`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -112,7 +114,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user by Id and token found', (done) => {
     api.get(`${path}/${userId}/tokens/${tname1}`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -127,7 +129,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user not found, one token', (done) => {
     api.get(`${path}/who@what.com/tokens/foo`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
@@ -141,7 +143,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user not found, all tokens', (done) => {
     api.get(`${path}/who@what.com/tokens`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -155,7 +157,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user found but token name not found', (done) => {
     api.get(`${path}/${uname}/tokens/foo`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
@@ -169,7 +171,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user found, token found, but token of different user', (done) => {
     api.get(`${path}/${uname}/tokens/${tnameOther}`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
@@ -183,7 +185,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
 
   it('user, get all tokens', (done) => {
     api.get(`${path}/${uname}/tokens`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {

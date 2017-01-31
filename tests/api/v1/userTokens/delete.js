@@ -18,9 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/users';
 const expect = require('chai').expect;
-const Profile = tu.db.Profile;
-const User = tu.db.User;
-const Token = tu.db.Token;
+
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 const regPath = '/v1/register';
@@ -176,9 +174,9 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     });
   });
 
-  it('not admin user, user found but token name not found', (done) => {
+  it('non-admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
-    .set('Authorization', '???')
+    .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {

@@ -83,7 +83,9 @@ module.exports = {
 
       // Default token cannot be deleted
       if (token.name === token.User.name) {
-        u.forbidden(next);
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Forbidden.',
+        });
       }
 
       tokenToDel = token;
@@ -97,6 +99,7 @@ module.exports = {
         return tokenToDel.destroy();
       }
 
+      // Get user details from req
       return authUtils.getUser(req)
       .then((currentUser) => {
         // OK to delete if user is NOT admin but is deleting own token
@@ -105,7 +108,9 @@ module.exports = {
         }
 
         // else forbidden
-        return u.forbidden(next);
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Forbidden.',
+        });
       })
       .catch((err) => {
         throw err;
@@ -114,8 +119,14 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.OK)
-      .json(u.responsify(o, helper, req.method));
+      if (o) {
+        // object deleted successfully
+        res.status(httpStatus.OK)
+        .json(u.responsify(o, helper, req.method));
+      } else if (o instanceof Error) {
+        // forbidden err
+        throw o;
+      }
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
