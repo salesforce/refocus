@@ -20,7 +20,7 @@ const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
-const NOT_FOUND = 404;
+const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 
 // protected urls
@@ -169,9 +169,9 @@ module.exports = function loadView(app, passport) {
           return next();
         }
 
-        return res.status(NOT_FOUND).send('Page not found');
+        return res.status(httpStatus.NOT_FOUND).send('Page not found');
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     passport.authenticate(
@@ -203,9 +203,9 @@ module.exports = function loadView(app, passport) {
           return next();
         }
 
-        return res.status(NOT_FOUND).send('Page not found');
+        return res.status(httpStatus.NOT_FOUND).send('Page not found');
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     passport.authenticate('saml',
@@ -215,13 +215,7 @@ module.exports = function loadView(app, passport) {
     (_req, _res) => {
       if (_req.user && _req.user.name) {
         const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _res.cookie(
-          'Authorization',
-          token, {
-            secure: true,
-            httpOnly: true,
-          }
-        )
+        _res.cookie('Authorization', token, { secure: true, httpOnly: true });
       }
 
       if (_req.body.RelayState) {
@@ -270,12 +264,12 @@ module.exports = function loadView(app, passport) {
       SSOConfig.findOne()
       .then((ssoconfig) => {
         if (ssoconfig) {
-          return res.status(NOT_FOUND).send('Page not found');
+          return res.status(httpStatus.NOT_FOUND).send('Page not found');
         }
 
         return next();
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     (req, res/* , next*/) => {
@@ -284,6 +278,41 @@ module.exports = function loadView(app, passport) {
       });
     }
   );
+
+  // Login and return token in response
+  app.post('/authenticate', (req, res, next) => {
+    passport.authenticate('local-login', (err, user/* , info */) => {
+      if (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+          message: JSON.stringify(err),
+        });
+      }
+
+      // no user with given credentials
+      if (!user || !user.name) {
+        return res.status(httpStatus.NOT_FOUND).json({
+          message: 'Invalid credentials',
+        });
+      }
+
+      // login and set req.user
+      return req.logIn(user, (_err) => {
+        // req.user not set
+        if (_err || !req.user || !req.user.name) {
+          return res.status(httpStatus.BAD_REQUEST).json({
+            message: JSON.stringify(err),
+          });
+        }
+
+        // return token
+        const token = jwtUtil.createToken(req.user.name, req.user.name);
+        return res.status(httpStatus.OK).json({
+          message: 'Authentication succeeded',
+          token,
+        });
+      });
+    })(req, res, next);
+  });
 
   // Redirect '/v1' to '/v1/docs'.
   app.get('/v1', (req, res) => res.redirect('/v1/docs'));
