@@ -196,6 +196,9 @@ The `timeout` field refers to the acceptable lapse in time between an update. Yo
 
 Another interesting attribute to note is `tags`. Tags are useful because they can help categorize your aspects. In this case, we’ve included the tag “economic” for our GDP aspect.
 
+If you care about the order in which aspects are displayed, you can assign a “rank” to each aspect: lenses can render aspects sorted in ascending order by rank (numeric, nulls last) then within rank in ascending order by name (alphanumeric).
+For example, given a list of aspects like this: [{ name: “Zebra”, rank: 1, ... }, { name: “Elephant”, rank: 10, ... }, { name: “Aardvark”, rank: null, … }, { name: “Lion”, rank: 1, …}] you would expect a lens to order aspects like this: [“Lion”, “Zebra”, “Elephant”, “Aardvark”].
+
 *Nice job! We've set up the subject hierarchy and monitored aspects.*
 
 ### Step 3: Use the API to send a sample.
