@@ -23,16 +23,16 @@ module.exports = {
     },
     api: {
       activity: 'api',
-      user: 'None',
-      token: 'None',
+      dbTime: '0ms',
       ipAddress: 'None',
-      totalTime: 'None',
       method: 'None', // one of HTTP verbs
-      uri: 'None',
-      dbTime: 'None',
+      recordCount: 0,
       requestBytes: 0,
       responseBytes: 0,
-      recordCount: 0,
+      token: 'None',
+      totalTime: '0ms',
+      uri: 'None',
+      user: 'None',
     },
     worker: {
       activity: 'worker',

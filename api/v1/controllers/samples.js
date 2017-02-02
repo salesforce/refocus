@@ -156,7 +156,6 @@ module.exports = {
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
@@ -171,7 +170,6 @@ module.exports = {
       } else {
         helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
           userName);
-        u.logAPI(req, resultObj, req.swagger.params.queryBody.value);
       }
 
       if (helper.loggingEnabled) {
@@ -179,7 +177,9 @@ module.exports = {
       }
     });
 
-    return res.status(httpStatus.OK).json({ status: 'OK' });
+    const body = { status: 'OK' };
+    u.logAPI(req, resultObj, body);
+    return res.status(httpStatus.OK).json(body);
   },
 
   /**

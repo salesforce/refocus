@@ -18,49 +18,83 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/tokens';
 const expect = require('chai').expect;
-const Profile = tu.db.Profile;
-const User = tu.db.User;
-const Token = tu.db.Token;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
+const regPath = '/v1/register';
+const tokenPath = '/v1/tokens';
+const Token = tu.db.Token;
 
 describe(`api: DELETE ${path}`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
-  let usr;
-  let tid;
+
+  /* user uname has 2 tokens: Voldemort and Tom
+   user with unameOther has 1 token: Dumbledore */
+  const uname = `${tu.namePrefix}test@refocus.com`;
+  const tname1 = `${tu.namePrefix}Voldemort`;
+  const tname2 = `${tu.namePrefix}Tom`;
+  let userToken;
+  let tid1;
+  let tid2;
+  let defaultTokenID;
 
   before((done) => {
-    Profile.create({
-      name: `${tu.namePrefix}testProfile`,
+    // create user __test@refocus.com
+    api.post(regPath)
+    .send({
+      email: uname,
+      password: 'fakePasswd',
+      username: uname,
     })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: `${tu.namePrefix}test@refocus.com`,
-        email: `${tu.namePrefix}test@refocus.com`,
-        password: 'user123password',
-      })
-    )
-    .then((user) => {
-      usr = user;
-      return Token.create({
-        name: `${tu.namePrefix}Voldemort`,
-        createdBy: usr.id,
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      userToken = res.body.token;
+
+      // create token ___Voldemort
+      api.post(tokenPath)
+      .set('Authorization', res.body.token)
+      .send({ name: tname1 })
+      .end((err1, res1) => {
+        if (err1) {
+          done(err1);
+        }
+
+        tid1 = res1.body.id;
+
+        // create token ___Tom
+        api.post(tokenPath)
+        .set('Authorization', res.body.token)
+        .send({ name: tname2 })
+        .end((err2, res2) => {
+          if (err2) {
+            done(err2);
+          }
+
+          tid2 = res2.body.id;
+
+          Token.findOne(
+            { where: { name: res.body.name, createdBy: res.body.id } }
+          )
+          .then((tokenObj) => {
+            defaultTokenID = tokenObj.id;
+            done();
+          })
+          .catch((err3) => {
+            done(err3);
+          });
+        });
       });
-    })
-    .then((token) => {
-      tid = token.id;
-      done();
-    })
-    .catch(done);
+    });
   });
 
   after(u.forceDelete);
 
-  it('admin user, found', (done) => {
-    api.delete(`${path}/${tid}`)
+  it('admin user, token found, delete ok', (done) => {
+    api.delete(`${path}/${tid1}`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -74,7 +108,7 @@ describe(`api: DELETE ${path}`, () => {
     });
   });
 
-  it('admin user, not found', (done) => {
+  it('admin user, token not found', (done) => {
     api.delete(`${path}/123-abc`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
@@ -82,9 +116,37 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   it('invalid token', (done) => {
-    api.delete(`${path}/${tid}`)
+    api.delete(`${path}/${tid2}`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
+
+  it('non admin user can delete own token', (done) => {
+    api.delete(`${path}/${tid2}`)
+    .set('Authorization', userToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body).to.have.property('name',
+          `${tu.namePrefix}Tom`);
+        done();
+      }
+    });
+  });
+
+  it('non admin user cannot delete default token', (done) => {
+    api.delete(`${path}/${defaultTokenID}`)
+    .set('Authorization', userToken)
+    .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
         done(err);

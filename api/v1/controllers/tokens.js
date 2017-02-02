@@ -18,7 +18,6 @@ const doGet = require('../helpers/verbs/doGet');
 const jwtUtil = require('../../../utils/jwtUtil');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const resourceName = 'token';
 const authUtils = require('../helpers/authUtils');
 
 module.exports = {
@@ -87,27 +86,22 @@ module.exports = {
    */
   postToken(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
+    let tokenValue;
 
-    // req.user is set when verifying token with user details. If req.user is
-    // not set, then return error.
-    if (!req.user || !req.user.name) {
-      const tokenErr = new apiErrors.LoginError({
-        explanation: 'Unable to parse token. Please make sure that you ' +
-         'include an Authorization header (i.e. Authorization=YOUR_TOKEN) ' +
-         'with your POST request.',
+    // get user details from req
+    authUtils.getUser(req)
+    .then((user) => {
+      // create token to be returned in response.
+      const tokenName = req.swagger.params.queryBody.value.name;
+      tokenValue = jwtUtil.createToken(
+        tokenName, user.name
+      );
+
+      // create token object in db
+      return helper.model.create({
+        name: tokenName,
+        createdBy: user.id,
       });
-      tokenErr.resource = resourceName;
-      return u.handleError(next, tokenErr, resourceName);
-    }
-
-    // create token to be returned in response.
-    const tokenName = req.swagger.params.queryBody.value.name;
-    const tokenValue = jwtUtil.createToken(tokenName, req.user.name);
-
-    // create token object in db
-    return helper.model.create({
-      name: tokenName,
-      createdBy: req.user.id,
     })
     .then((createdToken) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

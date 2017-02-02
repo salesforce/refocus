@@ -65,63 +65,70 @@ module.exports = {
    */
   deleteUserToken(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        const user = req.swagger.params.key.value;
-        const tokenName = req.swagger.params.tokenName.value;
-        const whr = whereClauseForUserAndTokenName(user, tokenName);
-        helper.model.findOne(whr)
-        .then((o) => {
-          if (o) {
-            return o.destroy();
-          }
+    const user = req.swagger.params.key.value;
+    const tokenName = req.swagger.params.tokenName.value;
+    const whr = whereClauseForUserAndTokenName(user, tokenName);
+    let tokenToDel;
 
-          const err = new apiErrors.ResourceNotFoundError();
-          err.resource = helper.model.name;
-          err.key = user + ', ' + tokenName;
-          throw err;
-        })
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, o.dataValues);
-          res.status(httpStatus.OK)
-            .json(u.responsify(o, helper, req.method));
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        // also OK if user is NOT admin but is deleting own token
-        let userId;
-        authUtils.getUser(req)
-        .then((currentUser) => {
-          userId = currentUser.id;
-          const user = req.swagger.params.key.value;
-          const tokenName = req.swagger.params.tokenName.value;
-          const whr = whereClauseForUserAndTokenName(user, tokenName);
-          helper.model.findOne(whr)
-          .then((o) => {
-            if (o && o.createdBy === userId) {
-              return o.destroy();
-            }
+    // get user token
+    helper.model.findOne(whr)
+    .then((token) => {
+      // if no token found, return error
+      if (!token) {
+        const err = new apiErrors.ResourceNotFoundError();
+        err.resource = helper.model.name;
+        err.key = user + ', ' + tokenName;
+        throw err;
+      }
 
-            const err = new apiErrors.ResourceNotFoundError();
-            err.resource = helper.model.name;
-            err.key = user + ', ' + tokenName;
-            throw err;
-          })
-          .then((o) => {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, o.dataValues);
-            res.status(httpStatus.OK)
-              .json(u.responsify(o, helper, req.method));
-          })
-          .catch((err) => u.handleError(next, err, helper.modelName));
+      // Default token cannot be deleted
+      if (token.name === token.User.name) {
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Forbidden.',
         });
       }
+
+      tokenToDel = token;
+
+      // Check if requesting user is Admin
+      return authUtils.isAdmin(req);
     })
-    .catch((err) => {
-      u.forbidden(next);
-    });
+    .then((isAdmin) => {
+      // if admin, delete the token
+      if (isAdmin) {
+        return tokenToDel.destroy();
+      }
+
+      // Get user details from req
+      return authUtils.getUser(req)
+      .then((currentUser) => {
+        // OK to delete if user is NOT admin but is deleting own token
+        if (tokenToDel && tokenToDel.createdBy === currentUser.id) {
+          return tokenToDel.destroy();
+        }
+
+        // else forbidden
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Forbidden.',
+        });
+      })
+      .catch((err) => {
+        throw err;
+      });
+    })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o.dataValues);
+      if (o) {
+        // object deleted successfully
+        res.status(httpStatus.OK)
+        .json(u.responsify(o, helper, req.method));
+      } else if (o instanceof Error) {
+        // forbidden err
+        throw o;
+      }
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

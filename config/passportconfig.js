@@ -76,7 +76,7 @@ module.exports = (passportModule) => {
         newUserCreated = newUser;
         return Token.create({
           name: newUser.name,
-          createdby: newUser.id,
+          createdBy: newUser.id,
         });
       })
       .then(() => {
