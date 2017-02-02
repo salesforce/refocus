@@ -23,14 +23,14 @@ module.exports = {
     },
     api: {
       activity: 'api',
-      dbTime: 'None',
+      dbTime: '0ms',
       ipAddress: 'None',
       method: 'None', // one of HTTP verbs
       recordCount: 0,
       requestBytes: 0,
       responseBytes: 0,
       token: 'None',
-      totalTime: 'None',
+      totalTime: '0ms',
       uri: 'None',
       user: 'None',
     },
