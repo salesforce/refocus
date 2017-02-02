@@ -40,6 +40,7 @@ module.exports = {
       errorCount: 0,
       ipAddress: 'None',
       jobType: 'None',
+      jobId: 'None',
       queueTime: 'None',
       recordCount: 0,
       token: 'None',

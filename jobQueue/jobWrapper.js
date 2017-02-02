@@ -124,6 +124,10 @@ function logAndRemoveJobOnComplete(req, job) {
       logObject.jobType = job.type;
     }
 
+    if (job.id) {
+      logObject.jobId = job.id;
+    }
+
     logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
 
     /* if req object, then extract user, token and ipaddress and update log
