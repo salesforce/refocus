@@ -39,6 +39,7 @@ module.exports = {
       dbTime: 'None',
       errorCount: 0,
       ipAddress: 'None',
+      jobId: 'None',
       jobType: 'None',
       queueTime: 'None',
       recordCount: 0,
