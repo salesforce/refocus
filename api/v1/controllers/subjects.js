@@ -62,22 +62,22 @@ function checkDuplicates(tagsArr) {
 /**
  * Validates the correct filter of Subject Tags
  * passed in query parameters
- * @param {Array} validateSubjectTags Subject Tags Array
+ * @param {Array} subjectTagsArray Subject Tags Array
  */
-function subjectTagsValidation(validateSubjectTags) {
+function validateSubjectTags(subjectTagsArray) {
   let subjectTagsCounter = 0;
 
-  for (let i = 0; i < validateSubjectTags.length; i++) {
-    if (validateSubjectTags[i][0] === '-') {
+  for (let i = 0; i < subjectTagsArray.length; i++) {
+    if (subjectTagsArray[i][0] === '-') {
       subjectTagsCounter++;
     }
   }
 
-  if (subjectTagsCounter === 1 && validateSubjectTags[0][0] !== '-') {
+  if (subjectTagsCounter === 1 && subjectTagsArray[0][0] !== '-') {
     throw new apiErrors.InvalidSubjectTagsParameterError();
   }
 
-  if (subjectTagsCounter < validateSubjectTags.length && subjectTagsCounter > 1) {
+  if (subjectTagsCounter < subjectTagsArray.length && subjectTagsCounter > 1) {
     throw new apiErrors.InvalidSubjectTagsParameterError();
   }
 }
@@ -224,7 +224,7 @@ module.exports = {
 
     // Subject Tags Validation which is passed in Query parameters
     if (subjectTags) {
-      subjectTagsValidation(subjectTags.split(','));
+      validateSubjectTags(subjectTags.split(','));
     }
 
     u.findByKey(helper, params, ['hierarchy', 'samples'])
