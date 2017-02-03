@@ -237,6 +237,44 @@ describe(`api: GET ${path}:`, () => {
         done();
       });
     });
+
+    it('Multiple Query Params: Tags should be passed as include filter' +
+    'or exclude filter not the combination of both', (done) => {
+      const endpoint = path.replace('{key}', gp.id) +
+        '?subjectTags=-cold,ea,-verycold';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors[0].type).to.equal('InvalidSubjectTagsParameterError');
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+
+    it('Multiple Query Params: If Tags are passed as exclude filter' +
+    'than it is ok to have just first tag as exclude filter ', (done) => {
+      const endpoint = path.replace('{key}', gp.id) +
+        '?subjectTags=-verycold,ea,cold';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.children).to.have.length(3);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
   });
   describe('Aspect Filter on Hierarchy', () => {
     it('should return samples with temperature and humidity aspects',

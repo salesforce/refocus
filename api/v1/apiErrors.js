@@ -71,6 +71,16 @@ apiErrors.create({
   ' an empty array. This is not a valid filter combination ',
 });
 
+apiErrors.create({
+  code: 11101,
+  status: 400,
+  name: 'InvalidSubjectTagsParameterError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'Subject Tags should be passed in query parameter as ' +
+  'include filter or exclude filter not the combination of both.',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

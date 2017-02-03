@@ -60,6 +60,29 @@ function checkDuplicates(tagsArr) {
 }
 
 /**
+ * Validates the correct filter of Subject Tags
+ * passed in query parameters
+ * @param {Array} subjectTagsArray Subject Tags Array
+ */
+function subjectTagsValidation(subjectTagsArray) {
+  let subjectTagsCounter = 0;
+
+  for (let i = 0; i < subjectTagsArray.length; i++) {
+    if (subjectTagsArray[i][0] === '-') {
+      subjectTagsCounter++;
+    }
+  }
+
+  if (subjectTagsCounter === 1 && subjectTagsArray[0][0] !== '-') {
+    throw new apiErrors.InvalidSubjectTagsParameterError();
+  }
+
+  if (subjectTagsCounter < subjectTagsArray.length && subjectTagsCounter > 1) {
+    throw new apiErrors.InvalidSubjectTagsParameterError();
+  }
+}
+
+/**
  * Validates the given fields from request body or url.
  * If fails, throws a corresponding error.
  * @param {Object} requestBody Fields from request body
@@ -197,6 +220,10 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const depth = Number(params.depth.value);
+    const subjectTags = req.swagger.params.subjectTags.value;
+
+    // Subject Tags Validation which is passed in Query parameters
+    subjectTagsValidation(subjectTags.split(','));
 
     u.findByKey(helper, params, ['hierarchy', 'samples'])
     .then((o) => {
