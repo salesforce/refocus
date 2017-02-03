@@ -78,7 +78,7 @@ apiErrors.create({
   parent: apiErrors.ValidationError,
   fields: [],
   defaultMessage: 'Subject Tags should be passed in query parameter as ' +
-  'include filter or exclude filter not the combination of both.',
+  'an include filter or an exclude filter, but not the combination of both.',
 });
 
 // ----------------------------------------------------------------------------

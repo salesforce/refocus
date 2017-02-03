@@ -4359,8 +4359,8 @@ paths:
            sign to indicate that the subject having tags with those names will
            be excluded. For example, ?subjectTags=-TAG3,-TAG4 will return the
            subject hierarchy without subjects having tags -  TAG3 and TAG4.
-           Tags should be passed as include or exclude filter not the combination
-           of both
+           Tags should be passed as an include filter or as an exclude filter 
+           but not the combination of both.
           type: string
         -
           $ref: "#/parameters/SubjectsFieldsParam"

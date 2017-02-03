@@ -276,6 +276,26 @@ describe(`api: GET ${path}:`, () => {
         done();
       });
     });
+
+    it('Multiple Query Params: Tags should be passed as include filter' +
+    'or exclude filter not the combination of both', (done) => {
+      const endpoint = path.replace('{key}', gp.id) +
+        '?subjectTags=cold,-ea,verycold';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors[0].type).to
+        .equal('InvalidSubjectTagsParameterError');
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
   });
 
   describe('Aspect Filter on Hierarchy', () => {
