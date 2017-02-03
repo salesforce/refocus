@@ -246,7 +246,8 @@ describe(`api: GET ${path}:`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
-        expect(res.body.errors[0].type).to.equal('InvalidSubjectTagsParameterError');
+        expect(res.body.errors[0].type).to
+        .equal('InvalidSubjectTagsParameterError');
       })
       .end((err /* , res */) => {
         if (err) {
@@ -276,6 +277,7 @@ describe(`api: GET ${path}:`, () => {
       });
     });
   });
+
   describe('Aspect Filter on Hierarchy', () => {
     it('should return samples with temperature and humidity aspects',
     (done) => {

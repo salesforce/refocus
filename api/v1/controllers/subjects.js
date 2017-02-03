@@ -223,7 +223,9 @@ module.exports = {
     const subjectTags = req.swagger.params.subjectTags.value;
 
     // Subject Tags Validation which is passed in Query parameters
-    subjectTagsValidation(subjectTags.split(','));
+    if (subjectTags) {
+      subjectTagsValidation(subjectTags.split(','));
+    }
 
     u.findByKey(helper, params, ['hierarchy', 'samples'])
     .then((o) => {
