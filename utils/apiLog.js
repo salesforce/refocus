@@ -51,6 +51,7 @@ function mapApiResultsToLogObject(resultObj, logObject, retval, customRecordCoun
   if (retval) {
     // if retval is array, recordCount is array size
     let recordCount = 0;
+
     // custom recordCount takes precedence
     if (customRecordCount) {
       recordCount = customRecordCount;
