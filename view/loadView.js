@@ -215,7 +215,7 @@ module.exports = function loadView(app, passport) {
     (_req, _res) => {
       if (_req.user && _req.user.name) {
         const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _res.cookie('Authorization', token, { secure: true, httpOnly: true });
+        _res.cookie('Authorization', token);
       }
 
       if (_req.body.RelayState) {
