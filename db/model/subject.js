@@ -101,6 +101,13 @@ module.exports = function subject(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.longish),
       allowNull: true,
     },
+    sortBy: {
+      type: dataTypes.STRING(constants.fieldlen.longish),  
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+    },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,

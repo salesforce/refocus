@@ -21,6 +21,7 @@ const subjectPrototype = {
   helpUrl: 'http://www.bar.com',
   imageUrl: 'http://www.bar.com/foo.jpg',
   isPublished: true,
+  sortBy: ''
 };
 
 module.exports = {

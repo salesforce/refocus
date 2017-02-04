@@ -139,6 +139,48 @@ describe('db: subject: create: ', () => {
         done();
       });
     });
+      
+    it('should fail, invalid value for sort by', (done) => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}sortByContainsInvalidCharacters`, null);
+      s.sortBy = 'x@yz123$'
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by contains invalid ' +
+          'characters'));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
+
+    it('should fail, space in sort by', (done) => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}sortByWithSpaces`, null);
+      s.sortBy = 'abc_'
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by contains invalid ' +
+          'characters'));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
+      
+    it('should fail, sort by too long', (done) => {
+      var strGreaterThan4096 = new Array(4098).join('a');
+      const s =
+        u.getSubjectPrototype(`${tu.namePrefix}sortByWithWrongLength`, null);
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by is too long'));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
 
     it('recreate OK', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}RecreateMe`, null);
@@ -298,6 +340,7 @@ describe('db: subject: create: ', () => {
         expect(created).to.have.property('name').to.equal(s.name);
         expect(created).to.have.property('parentId').to.equal(s.parentId);
         expect(created).to.have.property('parentAbsolutePath').to.equal(pName);
+        expect(created).to.have.property('sortBy').to.equal(s.sortBy);
         done();
       })
       .catch(done);

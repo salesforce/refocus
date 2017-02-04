@@ -218,6 +218,22 @@ describe('db: subject: update: ', () => {
       })
       .catch(done);
     });
+      
+    it('update parent sort By, should not change child sort By',
+    (done) => {
+      Subject.findById(subjId1)
+      .then((parent) => {
+        expect(parent.get('sortBy')).to.equal('abc');
+        parent.update({ sortBy: 'xyz' });
+        expect(parent.get('sortBy')).to.equal('xyz');
+      })
+      .then(() => Subject.findById(childId1))
+      .then((child) => {
+        expect(child.get('sortBy')).to.equal('abc');
+        done();
+      })
+      .catch(done);
+    });
 
     it('update parent helpUrl, should not change child subject',
     (done) => {
@@ -316,6 +332,22 @@ describe('db: subject: update: ', () => {
       .then(() => Subject.findById(childId1))
       .then((parent) => {
         expect(parent.get('isPublished')).to.equal(true);
+        done();
+      })
+      .catch(done);
+    });
+      
+    it('update child sort By, should not change parent sort By',
+    (done) => {
+      Subject.findById(childId2)
+      .then((child) => {
+        expect(child.get('sortBy')).to.equal('abc');
+        child.update({ sortBy: 'xyz' });
+        expect(child.get('sortBy')).to.equal('xyz');
+      })
+      .then(() => Subject.findById(childId1))
+      .then((parent) => {
+        expect(parent.get('sortBy')).to.equal('abc');
         done();
       })
       .catch(done);
