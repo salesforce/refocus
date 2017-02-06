@@ -157,11 +157,10 @@ describe('db: subject: create: ', () => {
 
     it('should fail, space in sort by', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}sortByWithSpaces`, null);
-      s.sortBy = 'abc_'
+      s.sortBy = 'abc xyz'
       Subject.create(s)
       .then(() => {
-        done(new Error('should have failed since sort by contains invalid ' +
-          'characters'));
+        done(new Error('should have failed since sort by contains space '));
       })
       .catch((err) => {
         expect(err);
