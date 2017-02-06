@@ -110,12 +110,13 @@ describe(`api: authenticateUser`, () => {
     api.post(authPath)
     .send(u.fakeUserCredentials)
     .expect(constants.httpStatus.OK)
-    .expect((res) => expect(res.body.success).to.be.true)
-    .end((err) => {
+    .end((err, res) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.success).to.be.true;
+      expect(res.body.token).to.be.equal(undefined);
       done();
     });
   });
@@ -156,6 +157,44 @@ describe('api: authenticate sso user', () => {
       }
 
       done();
+    });
+  });
+});
+
+describe('loadView: /authenticate route', () => {
+  let tokenVal;
+
+  before((done) => {
+    api.post(registerPath)
+    .send(u.fakeUserCredentials)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      tokenVal = res.body.token;
+      done();
+    });
+  });
+
+  after(u.forceDelete);
+
+  it('/authenticate returns token', (done) => {
+    api
+    .post('/authenticate')
+    .type('form')
+    .send({
+      username: u.fakeUserCredentials.username,
+      password: u.fakeUserCredentials.password,
+    })
+    .end((error, res) => {
+      if (error) {
+        done(error);
+      } else {
+        expect(res.body).to.have.property('token')
+        .and.not.equal(undefined);
+        done();
+      }
     });
   });
 });

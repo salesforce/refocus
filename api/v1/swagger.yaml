@@ -6998,11 +6998,6 @@ definitions:
         maxLength: 2082
         description: >
           Authentication success message.
-      token:
-        type: string
-        readOnly: true
-        description: >
-          API token.
 
   AspectWriterResponse:
     type: object
