@@ -153,6 +153,7 @@ module.exports = {
   bulkUpsertSample(req, res/* , next */) {
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
+    const value = req.swagger.params.queryBody.value;
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
@@ -161,14 +162,14 @@ module.exports = {
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
-        wrappedBulkUpsertData.upsertData = req.swagger.params.queryBody.value;
+        wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        helper.model.bulkUpsertByName(req.swagger.params.queryBody.value,
+        helper.model.bulkUpsertByName(value,
           userName);
       }
 
@@ -178,7 +179,7 @@ module.exports = {
     });
 
     const body = { status: 'OK' };
-    u.logAPI(req, resultObj, body);
+    u.logAPI(req, resultObj, body, value.length);
     return res.status(httpStatus.OK).json(body);
   },
 
