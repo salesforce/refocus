@@ -101,13 +101,6 @@ module.exports = function subject(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.longish),
       allowNull: true,
     },
-    sortBy: {
-      type: dataTypes.STRING(constants.fieldlen.longish),  
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
-    },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
@@ -122,6 +115,14 @@ module.exports = function subject(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
+    },
+    sortBy: {
+      type: dataTypes.STRING(constants.fieldlen.sortField),  
+      allowNull: true,
+      defaultValue: constants.defaultSortByValue,
+      validate: {
+        is: constants.nameRegex,
+      },
     },
   }, {
     classMethods: {

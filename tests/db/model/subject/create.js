@@ -15,6 +15,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
+const constants = require('../../../../db/constants');
 
 describe('db: subject: create: ', () => {
   after(u.forceDelete);
@@ -169,9 +170,10 @@ describe('db: subject: create: ', () => {
     });
       
     it('should fail, sort by too long', (done) => {
-      var strGreaterThan4096 = new Array(4098).join('a');
+      var invalidLengthSortBy = new Array(constants.fieldlen.sortField).join('a');
       const s =
         u.getSubjectPrototype(`${tu.namePrefix}sortByWithWrongLength`, null);
+      s.sortBy = invalidLengthSortBy;
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since sort by is too long'));
