@@ -21,11 +21,12 @@ const sinon = require('sinon');
 
 describe('apiLogUtil: functions ', () => {
   let token;
+  const TEN = 10;
   const currTime = Date.now();
   const ZERO = 0;
   const DUMMY_ARRAY = 'qwerty'.split('');
   const jobResultObj = {
-    reqStartTime: currTime - 10,
+    reqStartTime: currTime - TEN,
     dbTime: 16,
   };
 
@@ -42,6 +43,12 @@ describe('apiLogUtil: functions ', () => {
   after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableApiWorkerLogs', false);
+  });
+
+  it('mapApiResultsToLogObject sets recordCount to custom record Count', () => {
+    const logObject = {};
+    apiLogUtil.mapApiResultsToLogObject(jobResultObj, logObject, DUMMY_ARRAY, TEN);
+    expect(logObject.recordCount).to.equal(TEN);
   });
 
   it('mapApiResultsToLogObject maps the returned Array recordCount as Array.length', () => {
