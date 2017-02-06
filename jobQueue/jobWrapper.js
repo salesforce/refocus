@@ -193,11 +193,9 @@ function createJob(jobName, data, req) {
       throw new Error(msg);
     }
 
-    // console.log(`Job ${job.id} ` + // eslint-disable-line no-console
-    //   `(${jobName}) created`);
+    logAndRemoveJobOnComplete(req, job);
   });
 
-  logAndRemoveJobOnComplete(req, job);
   return job;
 } // createJob
 
