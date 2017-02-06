@@ -14,7 +14,7 @@
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
 const configUtil = require('./config/configUtil');
-const defaultPort = 3001;
+const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
 const nodeEnv = pe.NODE_ENV || 'development';
