@@ -50,6 +50,15 @@ const rateWindow = pe.RATE_WINDOW;
 const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
 const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
 
+/*
+ * name of the environment variable containing the read-only
+ * database names as CSV
+ */
+const replicaConfigLabel = 'REPLICAS';
+
+// an array of read-only data base URLs
+const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
+
 const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
 
 /*
@@ -194,4 +203,5 @@ module.exports = {
   httpMethodToLimit,
   prioritizeJobsFrom,
   deprioritizeJobsFrom,
+  readReplicas,
 };

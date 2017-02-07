@@ -20,10 +20,8 @@ const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
-const seq = new Sequelize(env.dbUrl, {
-  logging: env.dbLogging,
-});
 const DB_URL = env.dbUrl;
+
 const SQL_DROP_SEQUELIZE_META = 'DROP TABLE IF EXISTS public."SequelizeMeta"';
 const SQL_INSERT_SEQUELIZE_META = 'INSERT INTO "SequelizeMeta"(name) VALUES';
 const SQL_CREATE_SEQUELIZE_META = 'CREATE TABLE public."SequelizeMeta" ' +
@@ -51,6 +49,99 @@ function dbConfigObjectFromDbURL(dbUrl) {
     port: u.port,
   };
 } // dbConfigObjectFromDbURL
+
+/**
+ * Returns an array of database config object, that is mapped to the read
+ * property of the sequelize replication option.
+ * @param  {Array} readReplicas - An array of database urls
+ * @returns {Array} - any array of database config object parsed from
+ * dbConfigObjectFromDbURL function
+ */
+function getReadOnlyDBConfig(readReplicas) {
+  let readConfig;
+  if (Array.isArray(readReplicas) && readReplicas.length) {
+    readConfig = [];
+    readReplicas.forEach((replicaUrl) => {
+      const dbConfObj = dbConfigObjectFromDbURL(replicaUrl);
+      readConfig.push({
+        host: dbConfObj.host,
+        port: dbConfObj.port,
+        username: dbConfObj.user,
+        password: dbConfObj.password,
+      });
+    });
+  }
+
+  return readConfig;
+} // getReadOnlyDBConfig
+
+/**
+ * Returns the configuration object for the "replication" option in sequelize.
+ * The primary database config object is mapped to the write property of the
+ * sequelize replication option. If any read-only replicas are configured, they
+ * are mapped to the read property of the sequelize replication option. For,
+ * example when the read-only replica is configured, the returned object is
+ * of the form
+ * {write : {
+ *   'host': host,
+ *   'port': port,
+ *   'username': username,
+ *   'password': password,
+ *   },
+ *  read: [{
+ *   'host': host,
+ *   'port': port,
+ *   'username': username,
+ *   'password': password,
+ *   }]
+ * }
+ * @param  {Object}primaryDBConfObj  - The primary database config object
+ * parsed from dbConfigObjectFromDbURL function
+ * @returns {Object} - an object of the shape shown above
+ */
+function getDBReplicationObject(primaryDBConfObj) {
+  const repObj = {};
+  repObj.write = {
+    host: primaryDBConfObj.host,
+    port: primaryDBConfObj.port,
+    username: primaryDBConfObj.user,
+    password: primaryDBConfObj.password,
+  };
+  const readReplicaObject = getReadOnlyDBConfig(conf.readReplicas);
+  if (Array.isArray(readReplicaObject) && readReplicaObject.length) {
+    repObj.read = readReplicaObject;
+  }
+
+  return repObj;
+} // getDBReplicationObject
+
+// this is the master database where the writes happen
+const primaryDb = dbConfigObjectFromDbURL();
+
+// create the sequelize object from the constructor.
+let seq;
+if (conf.readReplicas) {
+
+  /*
+   * The sequelize object is constructed this way if read-only replicas are
+   * configured.
+   * this usage is of the form new Sequelize('database',
+   * 'username' 'password , options)
+   * the username and password are passed to the constructor through the
+   * replication property of options
+   */
+  seq = new Sequelize(primaryDb.name, null, null, {
+    dialect: env.dialect,
+
+    replication: getDBReplicationObject(primaryDb),
+
+    logging: env.dbLogging,
+  });
+} else {
+  seq = new Sequelize(env.dbUrl, {
+    logging: env.dbLogging,
+  });
+}
 
 /**
  * A console logging wrapper for stuff running from the command line.
@@ -283,4 +374,6 @@ module.exports = {
   reset,
   seq,
   Sequelize,
+  getDBReplicationObject,
+  getReadOnlyDBConfig,
 };
