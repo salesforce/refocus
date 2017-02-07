@@ -169,7 +169,7 @@ describe('db: subject: create: ', () => {
     });
       
     it('should fail, sort by too long', (done) => {
-      var invalidLengthSortBy = new Array(constants.fieldlen.sortField).join('a');
+      var invalidLengthSortBy = new Array(constants.fieldlen.sortField + 10).join('a');
       const s =
         u.getSubjectPrototype(`${tu.namePrefix}sortByWithWrongLength`, null);
       s.sortBy = invalidLengthSortBy;
