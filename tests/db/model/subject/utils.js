@@ -20,7 +20,7 @@ const subjectPrototype = {
   helpEmail: 'foo@bar.com',
   helpUrl: 'http://www.bar.com',
   imageUrl: 'http://www.bar.com/foo.jpg',
-  isPublished: true,
+  isPublished: true
 };
 
 module.exports = {
@@ -38,6 +38,7 @@ module.exports = {
     const s = JSON.parse(JSON.stringify(subjectPrototype));
     s.name = name;
     s.parentId = parentId;
+    s.sortBy = null
     return s;
   },
 };

@@ -13,6 +13,7 @@
 module.exports = {
   fieldlen: {
     email: 254,
+    sortField: 254,
     longish: 4096,
     normalName: 60,
     reallyShort: 5,
@@ -23,6 +24,7 @@ module.exports = {
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
+  defaultSortByValue: null,
   statuses: {
     Critical: 'Critical',
     Invalid: 'Invalid',
