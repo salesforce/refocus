@@ -42,21 +42,18 @@ module.exports = {
         return u.handleError(next, loginErr, resourceName);
       }
 
-      // Create a new token on login.
-      const createdToken = jwtUtil.createToken(user.name, user.name);
-
       req.logIn(user, (_err) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
-        u.logAPI(req, resultObj, createdToken);
-        return res.status(httpStatus.OK).json({
+        const retObj = {
           success: true,
           message: 'authentication succeeded',
-          token: createdToken,
-        });
+        };
+        u.logAPI(req, resultObj, retObj);
+        return res.status(httpStatus.OK).json(retObj);
       });
     })(req, res, next);
   },

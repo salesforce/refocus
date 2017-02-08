@@ -44,13 +44,14 @@ function getQueryParams(qs) {
 function sendData(jsonData) {
   let returnUrl = {};
   request
-  .post('/v1/authenticate/')
+  .post('/authenticate')
+  .type('form')
   .send(jsonData)
+  .set('Accept', 'application/json')
   .end((error, res) => {
     if (error) {
       let errorText = 'An unexpected error occurred';
-      if (error.response.body.errors[0].description === 'Invalid credentials' ||
-        error.response.body.errors[0].message === 'Invalid credentials') {
+      if (error.body && error.body.message === 'Invalid credentials') {
         errorText = 'Invalid credentials';
       }
 
