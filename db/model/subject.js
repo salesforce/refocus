@@ -116,6 +116,13 @@ module.exports = function subject(seq, dataTypes) {
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
     },
+    sortBy: {
+      type: dataTypes.STRING(constants.fieldlen.sortField),
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+    },
   }, {
     classMethods: {
       getSubjectAssociations() {
