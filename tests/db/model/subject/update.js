@@ -17,6 +17,7 @@ const u = require('./utils');
 const Subject = tu.db.Subject;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
+const constants = require('../../../../db/constants');
 
 describe('db: subject: update: ', () => {
   after(u.forceDelete);
@@ -218,6 +219,60 @@ describe('db: subject: update: ', () => {
       })
       .catch(done);
     });
+      
+    it('update parent sort By, should not change child sort By',
+    (done) => {
+      Subject.findById(subjId1)
+      .then((parent) => {
+        expect(parent.get('sortBy')).to.equal(null);
+        parent.update({ sortBy: 'xyz' });
+        expect(parent.get('sortBy')).to.equal('xyz');
+      })
+      .then(() => Subject.findById(childId1))
+      .then((child) => {
+        expect(child.get('sortBy')).to.equal(null);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('update sort By field to a non empty string from null and it should be accepted',
+        (done) => {
+              Subject.findById(subjId1)
+                  .then((parent) => {
+                      expect(parent.get('sortBy')).to.equal(null);
+                      parent.update({ sortBy: 'xyz' });
+                      expect(parent.get('sortBy')).to.equal('xyz');
+                      done();
+                  })
+                  .catch(done);
+    });
+
+    it('update sort By field to null from non empty string and it should be accepted',
+          (done) => {
+              Subject.findById(subjId1)
+                  .then((parent) => {
+                      parent.sortBy = 'abc';
+                      expect(parent.get('sortBy')).to.equal('abc');
+                      parent.update({ sortBy: null });
+                      expect(parent.get('sortBy')).to.equal(null);
+                      done();
+                  })
+                  .catch(done)
+          });
+
+      it('update sort By field to empty string from non empty string and it should be accepted',
+          (done) => {
+              Subject.findById(subjId1)
+                  .then((parent) => {
+                      parent.sortBy = 'abc';
+                      expect(parent.get('sortBy')).to.equal('abc');
+                      parent.update({ sortBy: '' });
+                      expect(parent.get('sortBy')).to.equal('');
+                      done();
+                  })
+                  .catch(done)
+          });
 
     it('update parent helpUrl, should not change child subject',
     (done) => {
@@ -316,6 +371,22 @@ describe('db: subject: update: ', () => {
       .then(() => Subject.findById(childId1))
       .then((parent) => {
         expect(parent.get('isPublished')).to.equal(true);
+        done();
+      })
+      .catch(done);
+    });
+      
+    it('update child sort By, should not change parent sort By',
+    (done) => {
+      Subject.findById(childId2)
+      .then((child) => {
+        expect(child.get('sortBy')).to.equal(null);
+        child.update({ sortBy: 'xyz' });
+        expect(child.get('sortBy')).to.equal('xyz');
+      })
+      .then(() => Subject.findById(childId1))
+      .then((parent) => {
+        expect(parent.get('sortBy')).to.equal(null);
         done();
       })
       .catch(done);

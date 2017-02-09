@@ -38,6 +38,7 @@ module.exports = {
     const s = JSON.parse(JSON.stringify(subjectPrototype));
     s.name = name;
     s.parentId = parentId;
+    s.sortBy = null;
     return s;
   },
 };
