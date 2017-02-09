@@ -49,7 +49,7 @@ function purge() {
   })
   .then((res) => {
     console.log(`REDIS RESPONSE: ${res}`);
-    console.log('completed purge')
+    console.log('completed purge');
     return true;
   })
   .catch((err) => {
@@ -60,7 +60,7 @@ function purge() {
 
 /**
  * Purges the sample store then populates it anew from the db.
- * 
+ *
  * @returns {Promise} - Resolves to true or rejects on error.
  */
 function init() {
