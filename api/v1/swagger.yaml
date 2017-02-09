@@ -3666,6 +3666,7 @@ paths:
               - id
               - isPublished
               - name
+              - sortBy
               - parentAbsolutePath
               - parentId
               #- childCount
@@ -3679,6 +3680,7 @@ paths:
               - -id
               - -isPublished
               - -name
+              - -sortBy
               - -parentAbsolutePath
               - -parentId
               #- -childCount
@@ -3736,6 +3738,13 @@ paths:
           in: query
           description: >-
             Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: sortBy
+          in: query
+          description: >-
+            Filter by sortBy; asterisk (*) wildcards ok.
           required: false
           type: string
         -
@@ -3828,6 +3837,13 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                maxLength: 256
+                description: >
+                  Max 256 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4000,6 +4016,13 @@ paths:
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                maxLength: 256
+                description: >
+                  Max 256 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4104,6 +4127,13 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                maxLength: 256
+                description: >
+                  Max 256 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4214,6 +4244,13 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                maxLength: 256
+                description: >
+                  Max 256 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               tags:
                 type: array
@@ -6760,6 +6797,14 @@ definitions:
         description: >
           Max 60 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-).
+      sortBy:
+        type: string
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{1,256}$
+        maxLength: 256
+        description: >
+          Max 256 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
       parentId:
         type: string
         readOnly: true
@@ -6998,6 +7043,11 @@ definitions:
         maxLength: 2082
         description: >
           Authentication success message.
+      token:
+        type: string
+        readOnly: true
+        description: >
+          API token.
 
   AspectWriterResponse:
     type: object
@@ -7280,6 +7330,7 @@ parameters:
         - imageUrl
         - isPublished
         - name
+        - sortBy
         - parentAbsolutePath
         - parentId
         - relatedLinks
