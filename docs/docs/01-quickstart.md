@@ -241,7 +241,7 @@ Almost, but not quite. We need to set up our lens and perspectives to visualize 
 
 Different lenses enable you to focus on different things, so it’s important to completely understand what you want to focus on. For now, the process of installing a lens is available only by using the API. However, the UI is coming soon, we promise!
 
-At this step, you need to select the lens best suited for your use. We’re going to  use the MultiTable lens. A lens is deployed as a zip file. To get the MultiTable lens, git clone [this repository](https://github.com/salesforce/refocus). The lens zip archive is under the dist folder.
+At this step, you need to select the lens best suited for your use. We’re going to  use the MultiTable lens. A lens is deployed as a zip file. To get the MultiTable lens, git clone [this repository](https://github.com/salesforce/refocus-lens-multitable). The lens zip archive is under the dist folder.
 
 Upload the MultiTable lens that you downloaded earlier to your Refocus deployment. Ensure that headers in Postman are disabled. Do a new POST request with the endpoint set to `/v1/lenses`.
 
