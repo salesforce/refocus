@@ -125,16 +125,14 @@ if (conf.readReplicas) {
   /*
    * The sequelize object is constructed this way if read-only replicas are
    * configured.
-   * this usage is of the form new Sequelize('database',
-   * 'username' 'password , options)
-   * the username and password are passed to the constructor through the
-   * replication property of options
+   * This usage is of the form new Sequelize('database',
+   * 'username' 'password , options).
+   * The username and password are passed to the constructor through the
+   * replication property of options.
    */
   seq = new Sequelize(primaryDb.name, null, null, {
     dialect: env.dialect,
-
     replication: getDBReplicationObject(primaryDb),
-
     logging: env.dbLogging,
   });
 } else {
