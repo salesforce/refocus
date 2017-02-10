@@ -199,17 +199,18 @@ module.exports = {
       }
     }
 
-    u.findByKey(helper, params, ['hierarchy', 'samples'])
+    u.findByKey(helper, params, ['hierarchy'])
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       let retval = u.responsify(o, helper, req.method);
       if (depth > ZERO) {
         retval = helper.deleteChildren(retval, depth);
       }
-
-      retval = helper.modifyAPIResponse(retval, params);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
+      helper.modifyAPIResponse(retval, params)
+      .then((_retval) => {
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(_retval);
+      });
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // getSubjectHierarchy

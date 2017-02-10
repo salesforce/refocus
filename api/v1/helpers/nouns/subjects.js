@@ -15,6 +15,10 @@ const Subject = require('../../../../db/index').Subject;
 const constants = require('../../constants');
 const m = 'subject';
 const config = require('../../../../config');
+const redisClient = require('../../../../cache/redisCache').client;
+const PFX = 'samsto';
+const SEP = ':';
+const SUBJECT_SET = PFX + SEP + 'subjects';
 
 /*
  * All the query params that can be expected in the hierarchy endpoint are
@@ -194,6 +198,61 @@ function applyFilters(key, filterBy) {
 } // applyFilters
 
 /**
+ * Prune a node by applying filters to it. FOR NOW NO FILTERING IS DONE
+ *
+ * @param {Object} res - Node to be pruned
+ * @returns {Integer} - Returns zero only if the filters is set and all the
+ *  samples are filtered.
+ */
+function pruneNodeV2(res) {
+  return new Promise((resolve, reject) => {
+    const sampArr = [];
+    const key = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
+    redisClient.hvalsAsync(key)
+    .then((cachedSamples) => {
+      if (cachedSamples && cachedSamples.length) {
+        // console.log('--these are the caches samples--' + cachedSamples);
+        cachedSamples.forEach((value) => {
+          try {
+            const sample = JSON.parse(value);
+
+            sampArr.push(sample);
+          } catch (parsErr) {
+           // console.log('malformed json' + value);
+          }
+        });
+      }
+      res.samples = sampArr;
+      // console.log('--value of res.samples' + res.samples);
+      resolve(res);
+    })
+    .catch((err) => reject(err));
+  });
+} // pruneNodeV2
+
+/**
+ * This recursive function does a bottom up traversal of the hierarchy tree. For
+ * each node of the hierarchy, get the samples and aspects from the REDIS Store
+ * @param {ServerResponse} res - The subject response
+ * @returns {Integer} - 0 if this node was filtered out, i.e. it should not be
+ *  part of the final hierarchy tree.
+ */
+function traverseHierarchyV2(res) {
+  return new Promise((resolve, reject) => {
+    if (res.children) {
+      for (let i = 0; i < res.children.length; i++) {
+        traverseHierarchyV2(res.children[i]);
+      }
+    }
+
+    pruneNodeV2(res)
+    .then(() => {
+      resolve(pruneNodeV2(res));
+    })
+    .catch((err) => reject(err));
+  });
+} // traverseHierarchy
+/**
  * Prune a node by applying filters to it.
  *
  * @param {Object} res - Node to be pruned
@@ -244,6 +303,7 @@ function pruneNode(res) {
  *  part of the final hierarchy tree.
  */
 function traverseHierarchy(res) {
+
   const filteredChildrenArr = [];
   if (res.children) {
     for (let i = 0; i < res.children.length; i++) {
@@ -257,7 +317,7 @@ function traverseHierarchy(res) {
   }
 
   // return 0 only if both filteredChildrenArr.length and pruneNode return zero
-  return pruneNode(res) || filteredChildrenArr.length;
+  return pruneNodeV2(res) || filteredChildrenArr.length;
 } // traverseHierarchy
 
 /**
@@ -272,16 +332,19 @@ function traverseHierarchy(res) {
  * @returns {ServerResponse} res - The modified subject response
  */
 function modifyAPIResponse(res, params) {
-  for (const key in filters) {
-    if (key && params[key].value) {
-      setFilters(params);
-      traverseHierarchy(res);
-      resetFilters();
-      break;
-    }
-  }
+  return traverseHierarchyV2(res);
 
-  return res;
+  // for (const key in filters) {
+    // if (key && params[key].value) {
+      // setFilters(params);
+      // return traverseHierarchy(res);
+
+      // resetFilters();
+      // break;
+    // }
+  // }
+
+  // return res;
 } // modifyAPIResponse
 
 module.exports = {
