@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/users/patch.js
+ * tests/api/v1/users/put.js
  */
 'use strict';
 
@@ -23,7 +23,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: PATCH ${path}`, () => {
+describe.only(`api: PUT ${path}`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -73,15 +73,19 @@ describe(`api: PATCH ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('admin user can change their profileId', (done) => {
-    api.patch(path + '/' + adminUser.name)
+  it.only('admin user can change their profileId', (done) => {
+    const newName = tname + userOne;
+    api.put(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
       profileId: profileOneId,
-      name: tname + userOne, // TODO: should not be required
+      name: newName,
+      email: newName,
+      password: newName,
     })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      console.log(err, res)
       if (err) {
         done(err);
       }
@@ -91,9 +95,9 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('normal user can patch if request body does not include profileId', (done) => {
+  it('normal user can put if request body does not include profileId', (done) => {
     const newName = tname + userTwo;
-    api.patch(path + '/' + userTwo)
+    api.put(path + '/' + userTwo)
     .set('Authorization', adminUserToken)
     .send({
       name: newName,
@@ -110,7 +114,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   it('normal user FORBIDDEN from changing their profileId', (done) => {
-    api.patch(path + '/' + userOne)
+    api.put(path + '/' + userOne)
     .set('Authorization', normalUserToken)
     .send({
       profileId: profileOneId, // switching from profile one to two
