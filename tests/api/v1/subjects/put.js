@@ -505,6 +505,52 @@ describe('api: PUT subjects with tags', () => {
     });
   });
 
+  it('put subject with sortBy', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      absolutePath: 'test',
+      sortBy: '_1'
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.sortBy).to.have.length(ONE);
+      expect(res.body.sortBy).to.equal('_1');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('put subject with no sortBy parameter', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      absolutePath: 'test',
+    };
+    api.put(`${path}/${subjectId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.sortBy).to.have.length(ZERO);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+
+
   it('update tags with some additions and deletions', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,

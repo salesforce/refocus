@@ -23,9 +23,9 @@ const expect = require('chai').expect;
 describe(`api: PATCH ${path}`, () => {
   let token;
 
-  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
-  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
-  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
+  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true, sortBy: '_1' };
+  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true, sortBy: '_2' };
+  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true, sortBy: '_3' };
   const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = {
     name: `${tu.namePrefix}Quebec`,
@@ -272,6 +272,61 @@ describe(`api: PATCH ${path}`, () => {
     .send(p1)
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(0);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('patch sortBy', (done) => {
+    p1.sortBy = '_4';
+    api.patch(`${path}/${n0.name}`)
+    .set('Authorization', token)
+    .send(p1)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.sortBy).to.have.length(1);
+      expect(res.body.sortBy).to.equal('_4');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('patch with no parameter sortBy', (done) => {
+    api.patch(`${path}/${n0.name}`)
+    .set('Authorization', token)
+    .send(p1)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.sortBy).to.have.length(1);
+      expect(res.body.sortBy).to.equal('_1');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('patch empty sortBy', (done) => {
+    p1.sortBy = '';
+    api.patch(`${path}/${n0.name}`)
+    .set('Authorization', token)
+    .send(p1)
+    .expect((res) => {
+      expect(res.body.sortBy).to.have.length(0);
+      expect(res.body.sortBy).to.equal('');
     })
     .end((err /* , res */) => {
       if (err) {
