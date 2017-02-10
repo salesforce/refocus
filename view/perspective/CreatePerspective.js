@@ -95,6 +95,7 @@ class CreatePerspective extends React.Component {
       // operating on a named, saved perspective
       if (values && Array.isArray(values.perspectives) && values.perspectives.length) {
         const perspective = values.perspectives.filter((pers) => pers.name === name)[0];
+        console.log('perspective is', perspective)
         this.setState({
           // defaults
           name,
@@ -108,9 +109,9 @@ class CreatePerspective extends React.Component {
           aspectTagFilterType: perspective.aspectTagFilterType || 'EXCLUDE',
           aspectFilter: perspective.aspectFilter || [],
           aspectFilterType: perspective.aspectFilterType || 'EXCLUDE',
+        }, () => {
+          this.updateDropdownConfig(perspective);
         });
-
-        this.updateDropdownConfig(perspective);
       }
     } else {
         // unnamed perspective defined in url
@@ -127,9 +128,9 @@ class CreatePerspective extends React.Component {
           aspectTagFilterType: params.aspectTagFilterType || 'EXCLUDE',
           aspectFilter: params.aspectFilter || [],
           aspectFilterType: params.aspectFilterType || 'EXCLUDE',
+        }, () => {
+          this.updateDropdownConfig(params);
         });
-
-        this.updateDropdownConfig(params);
     }
   }
 

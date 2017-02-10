@@ -114,6 +114,7 @@ function getOptions(options, value) {
  * @returns {Object} The resource configuration object
  */
 function getConfig(values, key, value) {
+  console.log(key, values[key], value)
   const ZERO = 0;
   const options = getOptions(values[key] || [], value);
   const convertedText = convertCamelCase(key);
@@ -149,27 +150,6 @@ function getConfig(values, key, value) {
       config.options = filteredArray(options, value);
     }
     delete config.placeholderText;
-    // remove value[i] if not in all appropriate values
-    let notAllowedTags = [];
-
-    for (let i = ZERO; i < value.length; i++) {
-      if (!values[key] || values[key].indexOf(value[i]) < ZERO) {
-        notAllowedTags.push(value[i]);
-      }
-    }
-    if (notAllowedTags.length) {
-      // remove from state
-      const newVals = value.filter((item) => {
-        return notAllowedTags.indexOf(item) < ZERO;
-      });
-      const errorMessage = ' ' + convertedText + ' ' +
-        notAllowedTags.join(', ') + ' does not exist.';
-      const stateRule = {
-        error: errorMessage
-      };
-      stateRule[key] = newVals;
-      this.setState(stateRule);
-    }
   }
 
   return config;
