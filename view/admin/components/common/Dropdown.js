@@ -179,7 +179,7 @@ class Dropdown extends React.Component {
     let outputUL = '';
     // if options exist, load them
     if (data.length) {
-      outputUL = <ul className="slds-dropdown__list" role="menu">
+      outputUL = <ul className="slds-lookup__list" role="menu">
         {data.map((optionsName, index) => {
           // by default do not redirect page onclick
           const link = renderAsLink ? '/perspectives/' + optionsName : 'javascript:void(0)';

@@ -123,10 +123,6 @@ body {
     padding-top: 100;
 }
 
-.slds-dropdown__item {
-    overflow: scroll;
-}
-
 .slds-dropdown {
     overflow: scroll;
     margin-left: 5px;
