@@ -135,7 +135,7 @@ class Dropdown extends React.Component {
           false,
         ),
       });
-    } else if (keycode === Key.ENTER) {
+    } else if (keycode === Key.ENTER && this.props.renderAsLink) {
       const persName = options[highlightedIndex];
       window.location.href = '/perspectives/' + persName;
     } else {
@@ -181,6 +181,8 @@ class Dropdown extends React.Component {
     if (data.length) {
       outputUL = <ul className="slds-dropdown__list" role="menu">
         {data.map((optionsName, index) => {
+          // by default do not redirect page onclick
+          const link = renderAsLink ? '/perspectives/' + optionsName : 'javascript:void(0)';
           let listClassName = 'slds-dropdown__item';
           if (index === this.state.highlightedIndex) {
             listClassName += ' slds-is-selected';
@@ -193,7 +195,7 @@ class Dropdown extends React.Component {
           return <li key={ optionsName }
           onClick={ onClickItem }
           className={ listClassName } role='presentation'>
-            <a href={ '/perspectives/' + optionsName } role='menuitemcheckbox' aria-checked='true'>
+            <a href={ link } role='menuitemcheckbox' aria-checked='true'>
               <span className='slds-truncate'>
                 <svg className={'slds-icon slds-icon--selected slds-icon--x-small ' +
                 'slds-icon-text-default slds-m-right--x-small'} aria-hidden='true'>
