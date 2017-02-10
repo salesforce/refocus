@@ -18,7 +18,7 @@ import Dropdown from '../admin/components/common/Dropdown';
 import ControlledInput from '../admin/components/common/ControlledInput';
 import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
-import { getConfig, filteredArray } from './configCreatePerspective';
+import { filteredArray, getConfig } from './configCreatePerspective';
 
 const ZERO = 0;
 
@@ -151,7 +151,7 @@ class CreatePerspective extends React.Component {
       dropdownConfig[key] = config;
     }
 
-    this.setState({ dropdownConfig });
+    this.setState({dropdownConfig });
   }
 
   handleRadioButtonClick(event) {

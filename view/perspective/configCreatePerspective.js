@@ -104,6 +104,7 @@ function getOptions(options, value) {
   }
   return leftovers;
 }
+
 /**
  * Returns config object for the key in values array.
  *
@@ -114,7 +115,6 @@ function getOptions(options, value) {
  * @returns {Object} The resource configuration object
  */
 function getConfig(values, key, value) {
-  console.log(key, values[key], value)
   const ZERO = 0;
   const options = getOptions(values[key] || [], value);
   const convertedText = convertCamelCase(key);
