@@ -191,15 +191,15 @@ module.exports = function subject(seq, dataTypes) {
               where: {
                 isPublished: true,
               },
-              include: [
-                {
-                  model: models.Sample,
-                  as: 'samples',
-                  attributes: {
-                    exclude: ['subjectId'],
-                  },
-                },
-              ],
+              // include: [
+              //   {
+              //     model: models.Sample,
+              //     as: 'samples',
+              //     attributes: {
+              //       exclude: ['subjectId'],
+              //     },
+              //   },
+              // ],
             },
           ],
         });
