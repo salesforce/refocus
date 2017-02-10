@@ -147,7 +147,8 @@ function getConfig(values, key, value) {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
       let options = getArray('name', values[key]);
-      config.options = filteredArray(options, value);
+      config.options = getOptions(options, value);
+  console.log(key, values[key], options, value, config.options)
     }
     delete config.placeholderText;
   }

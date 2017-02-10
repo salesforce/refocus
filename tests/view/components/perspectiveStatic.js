@@ -15,6 +15,7 @@ import { getArray,
   getTagsFromResources,
   getConfig,
   filteredArray,
+  getOptions,
 } from '../../../view/perspective/configCreatePerspective';
 import { getSubjects } from './utils';
 
@@ -36,7 +37,16 @@ describe('Config perspective functions', () => {
     expect(resultArr).to.deep.equal([WORD]);
   });
 
-  it('on select option, dropdown removes that option ' +
+  it('dropdown removes all options, if values === options', () => {
+    // remove empty spaces
+    const arr = getOptions(
+      ARR,
+      ARR,
+    );
+    expect(arr).to.be.empty;
+  });
+
+  it('dropdown removes existing option ' +
     'from available options', () => {
     // remove empty spaces
     const arr = filteredArray(
