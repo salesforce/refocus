@@ -213,44 +213,7 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
-
-    it('post subject with sortBy', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({ name: n0.name, sortBy: '_1' })
-      .expect(constants.httpStatus.CREATED)
-      .expect((res) => {
-        expect(res.body.sortBy).to.have.length(1);
-        expect(res.body.sortBy).to.equal('_1');
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('post subject without sortBy parameter', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({ name: n0.name})
-      .expect(constants.httpStatus.CREATED)
-      .expect((res) => {
-        expect(res.body.sortBy).to.have.length(ZERO);
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
   }); // Simple
-
 
   describe('With a Parent', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };
@@ -431,21 +394,6 @@ describe(`api: POST ${path}`, () => {
         }
 
         expect(res.text).to.contain('Missing required property: name');
-        done();
-      });
-    });
-
-    it('invalid sortBy value', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({ name: 'sample_name', description: 'sample description', sortBy: 'abc abc' })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.text).to.contain('sortBy');
         done();
       });
     });

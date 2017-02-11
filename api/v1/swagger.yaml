@@ -3840,7 +3840,7 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                pattern: ^[0-9A-Za-z_\\-]{0,256}$
                 maxLength: 256
                 description: >
                   Max 256 characters; case insensitive; allows alpha-numeric characters,
@@ -4018,7 +4018,7 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                pattern: ^[0-9A-Za-z_\\-]{0,256}$
                 maxLength: 256
                 description: >
                   Max 256 characters; case insensitive; allows alpha-numeric characters,
@@ -4130,7 +4130,7 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                pattern: ^[0-9A-Za-z_\\-]{0,256}$
                 maxLength: 256
                 description: >
                   Max 256 characters; case insensitive; allows alpha-numeric characters,
@@ -4247,7 +4247,7 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{1,256}$
+                pattern: ^[0-9A-Za-z_\\-]{0,256}$
                 maxLength: 256
                 description: >
                   Max 256 characters; case insensitive; allows alpha-numeric characters,
@@ -5695,7 +5695,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or username of the user whose tokens you to retrieve. User 
+            The id or username of the user whose tokens you to retrieve. User
             IDs are case-sensitive.
           required: true
           type: string
@@ -6800,7 +6800,7 @@ definitions:
       sortBy:
         type: string
         readOnly: true
-        pattern: ^[0-9A-Za-z_\\-]{1,256}$
+        pattern: ^[0-9A-Za-z_\\-]{0,256}$
         maxLength: 256
         description: >
           Max 256 characters; case insensitive; allows alpha-numeric characters,
