@@ -23,9 +23,9 @@ const expect = require('chai').expect;
 describe(`api: PATCH ${path}`, () => {
   let token;
 
-  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
-  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
-  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
+  const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true, sortBy: '_1' };
+  const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true, sortBy: '_2' };
+  const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true, sortBy: '_3' };
   const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = {
     name: `${tu.namePrefix}Quebec`,
@@ -613,4 +613,46 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
+
+  it('patch sortBy', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      sortBy: '_4',
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.sortBy).to.have.length(2);
+      expect(res.body.sortBy).to.equal('_4');
+      done();
+    });
+  });
+
+  it('patch with no parameter sortBy', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.sortBy).to.have.length(2);
+      expect(res.body.sortBy).to.equal('_2');
+      done();
+    });
+  });
+
 });

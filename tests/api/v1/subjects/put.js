@@ -199,6 +199,46 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
+  it('put subject with sortBy', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      sortBy: '_1',
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.sortBy).to.have.length(2);
+      expect(res.body.sortBy).to.equal('_1');
+      done();
+    });
+  });
+
+  it('put subject with no sortBy parameter', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.not.have.property('sortBy');
+      done();
+    });
+  });
+
   it('puts a child', (done) => {
     api.put(`${path}/${i1}`)
     .set('Authorization', token)
