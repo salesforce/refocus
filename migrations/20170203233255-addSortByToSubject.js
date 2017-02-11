@@ -10,8 +10,9 @@ module.exports = {
     return qi.sequelize.transaction(() => qi.addColumn('Subjects', 'sortBy', {
       type: Sequelize.STRING(constants.fieldlen.sortField),
       allowNull: true,
+      defaultValue: '',
       validate: {
-        is: /^[0-9a-z_-]+$/i,
+        is: /^[0-9a-z_-]*$/i,
       },
     }));
   },
