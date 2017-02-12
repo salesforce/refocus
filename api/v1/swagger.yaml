@@ -3840,10 +3840,10 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{0,256}$
-                maxLength: 256
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
                 description: >
-                  Max 256 characters; case insensitive; allows alpha-numeric characters,
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4018,10 +4018,10 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{0,256}$
-                maxLength: 256
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
                 description: >
-                  Max 256 characters; case insensitive; allows alpha-numeric characters,
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4130,10 +4130,10 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{0,256}$
-                maxLength: 256
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
                 description: >
-                  Max 256 characters; case insensitive; allows alpha-numeric characters,
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4247,10 +4247,10 @@ paths:
                   underscore (_) and dash (-).
               sortBy:
                 type: string
-                pattern: ^[0-9A-Za-z_\\-]{0,256}$
-                maxLength: 256
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
                 description: >
-                  Max 256 characters; case insensitive; allows alpha-numeric characters,
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               tags:
                 type: array
@@ -6800,10 +6800,10 @@ definitions:
       sortBy:
         type: string
         readOnly: true
-        pattern: ^[0-9A-Za-z_\\-]{0,256}$
-        maxLength: 256
+        pattern: ^[0-9A-Za-z_\\-]{0,254}$
+        maxLength: 254
         description: >
-          Max 256 characters; case insensitive; allows alpha-numeric characters,
+          Max 254 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-).
       parentId:
         type: string
