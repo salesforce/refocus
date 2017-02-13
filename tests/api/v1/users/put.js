@@ -74,7 +74,7 @@ describe.only(`api: PUT ${path}`, () => {
   after(u.forceDelete);
 
   it('admin user can change their profileId', (done) => {
-    const newName = tname + userOne;
+    const newName = 'adsaadadadadda' + userOne;
     api.put(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
@@ -96,7 +96,7 @@ describe.only(`api: PUT ${path}`, () => {
   });
 
   it('normal user FORBIDDEN from changing their profileId', (done) => {
-    const newName = tname + userTwo;
+    const newName = 'rwewewewewewew' + userTwo;
     api.put(path + '/' + userOne)
     .set('Authorization', normalUserToken)
     .send({
