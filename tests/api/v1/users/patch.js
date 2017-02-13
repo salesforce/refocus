@@ -23,7 +23,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: PATCH ${path}`, () => {
+describe.only(`api: PATCH ${path}`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -32,6 +32,7 @@ describe(`api: PATCH ${path}`, () => {
   const adminUser = require('../../../../config').db.adminUser;
   const userOne = `${tu.namePrefix}test@refocus.com`;
   const userTwo = `${tu.namePrefix}poop@refocus.com`;
+  const userThree = `${tu.namePrefix}quote@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
   const normalUserToken = jwtUtil.createToken(
@@ -57,14 +58,21 @@ describe(`api: PATCH ${path}`, () => {
         profileId: profile.id,
         name: userOne,
         email: userOne,
-        password: 'user123password',
+        password: userOne,
       })
     }) // another normal user
     .then(() => User.create({
         profileId: profileTwoId,
         name: userTwo,
         email: userTwo,
-        password: 'user123password',
+        password: userTwo,
+      })
+    ) // another normal user
+    .then(() => User.create({
+        profileId: profileTwoId,
+        name: userThree,
+        email: userThree,
+        password: userThree,
       })
     )
     .then(() => done())
@@ -73,28 +81,44 @@ describe(`api: PATCH ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('admin user can change their profileId', (done) => {
-    api.patch(path + '/' + adminUser.name)
+  it('admin user can change a normal user"s profileId', (done) => {
+    api.patch(path + '/' + userOne)
     .set('Authorization', adminUserToken)
     .send({
-      profileId: profileOneId,
-      name: tname + userOne, // TODO: should not be required
+      name: 'poiuy' + userTwo,
+      profileId: profileOneId, // switching from profile one to two
     })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         done(err);
       }
-
       expect(res.body.profileId).to.equal(profileOneId);
       done();
     });
   });
 
-  it('normal user can patch if request body does not include profileId', (done) => {
+  it('admin can change their profileId', (done) => {
+    api.patch(path + '/' + adminUser.name)
+    .set('Authorization', adminUserToken)
+    .send({
+      profileId: profileOneId,
+      name: 'wqertyuiop' + userOne, // TODO: should not be required
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        done();
+      }
+    });
+  });
+
+  it('normal user can patch its own fields, other than profileId', (done) => {
     const newName = tname + userTwo;
     api.patch(path + '/' + userTwo)
-    .set('Authorization', adminUserToken)
+    .set('Authorization', normalUserToken)
     .send({
       name: newName,
     })
@@ -110,7 +134,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   it('normal user FORBIDDEN from changing their profileId', (done) => {
-    api.patch(path + '/' + userOne)
+    api.patch(path + '/' + userThree)
     .set('Authorization', normalUserToken)
     .send({
       profileId: profileOneId, // switching from profile one to two
