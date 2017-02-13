@@ -110,6 +110,10 @@ module.exports = {
    *
    * Updates a user and sends it back in the response. If any attributes are
    * missing from the body of the request, those attributes are cleared.
+   * If the user is an admin, they can put to any user except for
+   * the out of box admin.
+   * Else if the user is not an admin, they can only PUT themself, if the
+   * profileId does not change
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -121,12 +125,22 @@ module.exports = {
       if (ok) {
         doPut(req, res, next, helper);
       } else {
-        u.forbidden(next);
+
+        // normal user
+        // allow iff user PUTTing themself AND profileId does not change
+        authUtils.getUser(req)
+        .then((user) => {
+          if (req.swagger.params.key.value === user.dataValues.name &&
+            user.dataValues.profileId === req.body.profileId) {
+            doPut(req, res, next, helper);
+          } else {
+            u.forbidden(next);
+          }
+        });
       }
     })
     .catch((err) => {
       u.forbidden(next);
     });
   },
-
 }; // exports

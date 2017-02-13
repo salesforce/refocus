@@ -50,7 +50,7 @@ describe(`api: PATCH ${path}`, () => {
       profileOneId = profile.id;
       return Profile.create({
         name: pname + TWO,
-      })
+      });
     })
     .then((profile) => {
       profileTwoId = profile.id;
@@ -59,7 +59,7 @@ describe(`api: PATCH ${path}`, () => {
         name: userOne,
         email: userOne,
         password: userOne,
-      })
+      });
     }) // another normal user
     .then(() => User.create({
         profileId: profileTwoId,
@@ -81,7 +81,83 @@ describe(`api: PATCH ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('admin FORBIDDEN from changing their profileId', (done) => {
+  describe('with non-out of box admin:', () => {
+    const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
+    const userZero = `${tu.namePrefix}fffffff@refocus.com`;
+    const adminUserToken = jwtUtil.createToken(
+      userFour, userFour
+    );
+
+    before((done) => {
+      let adminProfileId = '';
+      User.findOne({
+        where: {
+          name: {
+            $iLike: adminUser.name,
+          },
+        },
+      })
+      .then((OBAdminUser) =>
+        adminProfileId = OBAdminUser.profileId
+      ) // create a normal user
+      .then(() => User.create({
+          profileId: profileOneId,
+          name: userZero,
+          email: userZero,
+          password: userZero,
+        })
+      ) // create a normal user
+      .then(() => User.create({
+          profileId: profileOneId,
+          name: userFour,
+          email: userFour,
+          password: userFour,
+        })
+      )
+
+      .then((normalUser) =>
+        normalUser.update({ profileId: adminProfileId })
+      )
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('admin user can change a normal user"s profileId', (done) => {
+      api.patch(path + '/' + userZero)
+      .set('Authorization', adminUserToken)
+      .send({
+        profileId: profileTwoId,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.profileId).to.equal(profileTwoId);
+        done();
+      });
+    });
+
+    it('admin user can change its own profileId', (done) => {
+      api.patch(path + '/' + userFour)
+      .set('Authorization', adminUserToken)
+      .send({
+        profileId: profileTwoId,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.profileId).to.equal(profileTwoId);
+        done();
+      });
+    });
+  });
+
+  it('out of box admin FORBIDDEN from changing their profileId', (done) => {
     api.patch(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
@@ -92,7 +168,7 @@ describe(`api: PATCH ${path}`, () => {
       if (err) {
         done(err);
       }
-      console.log(res.body.errors)
+
       expect(res.body.errors).to.have.length(1);
       expect(res.body.errors).to.have.deep.property('[0].type',
         'AdminUpdateDeleteForbidden');
@@ -111,6 +187,7 @@ describe(`api: PATCH ${path}`, () => {
       if (err) {
         done(err);
       }
+
       expect(res.body.profileId).to.equal(profileTwoId);
       done();
     });

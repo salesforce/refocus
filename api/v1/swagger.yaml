@@ -5015,6 +5015,8 @@ paths:
                   First and last name.
               password:
                 type: string
+              profileId:
+                type: string
             required:
               - name
       responses:
