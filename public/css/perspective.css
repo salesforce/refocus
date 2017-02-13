@@ -87,10 +87,6 @@ body {
     margin: -5px 0 0 0;
 }
 
-.slds-lookup__item-action.slds-media.highlighted {
-    background: #e0e5ee;
-}
-
 /* radio button width */
 
 .slds-modal .slds-grid {
@@ -125,10 +121,6 @@ body {
 
 .slds-panel__section {
     padding-top: 100;
-}
-
-.slds-dropdown__item {
-    overflow: scroll;
 }
 
 .slds-dropdown {
