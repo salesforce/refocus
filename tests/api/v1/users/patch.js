@@ -85,8 +85,7 @@ describe.only(`api: PATCH ${path}`, () => {
     api.patch(path + '/' + userOne)
     .set('Authorization', adminUserToken)
     .send({
-      name: 'poiuy' + userTwo,
-      profileId: profileOneId, // switching from profile one to two
+      profileId: profileOneId,
     })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -98,20 +97,21 @@ describe.only(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('admin can change their profileId', (done) => {
+  it.skip('admin can change their profileId', (done) => {
     api.patch(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
       profileId: profileOneId,
-      name: 'wqertyuiop' + userOne, // TODO: should not be required
     })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      console.log(res)
       if (err) {
         done(err);
-      } else {
-        done();
       }
+
+      expect(res.body.profileId).to.equal(profileOneId);
+      done();
     });
   });
 
@@ -137,8 +137,7 @@ describe.only(`api: PATCH ${path}`, () => {
     api.patch(path + '/' + userThree)
     .set('Authorization', normalUserToken)
     .send({
-      profileId: profileOneId, // switching from profile one to two
-      name: tname, // TODO: should not be required
+      profileId: profileOneId,
     })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {

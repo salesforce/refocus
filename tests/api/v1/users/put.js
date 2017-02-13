@@ -73,7 +73,7 @@ describe.only(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('admin user can change their profileId', (done) => {
+  it.skip('admin user can change their profileId', (done) => {
     const newName = 'adsaadadadadda' + userOne;
     api.put(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
