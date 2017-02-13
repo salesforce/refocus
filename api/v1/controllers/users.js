@@ -18,6 +18,8 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const authUtils = require('../helpers/authUtils');
+const u = require('../helpers/verbs/utils');
 
 module.exports = {
 
@@ -72,7 +74,22 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchUser(req, res, next) {
-    doPatch(req, res, next, helper);
+    // default undefined
+    if (req.body.profileId) {
+      authUtils.isAdmin(req)
+      .then((ok) => {
+        if (ok) {
+          doPatch(req, res, next, helper);
+        } else {
+          u.forbidden(next);
+        }
+      })
+      .catch((err) => {
+        u.forbidden(next);
+      });
+    } else {
+      doPatch(req, res, next, helper);
+    }
   },
 
   /**
@@ -99,7 +116,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putUser(req, res, next) {
-    doPut(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doPut(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
 }; // exports
