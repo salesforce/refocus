@@ -97,20 +97,21 @@ describe.only(`api: PATCH ${path}`, () => {
     });
   });
 
-  it.skip('admin can change their profileId', (done) => {
+  it('admin FORBIDDEN from changing their profileId', (done) => {
     api.patch(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
       profileId: profileOneId,
     })
-    .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
-      console.log(res)
       if (err) {
         done(err);
       }
 
-      expect(res.body.profileId).to.equal(profileOneId);
+      expect(res.body.errors).to.have.length(1);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'AdminUpdateDeleteForbidden');
       done();
     });
   });
@@ -143,12 +144,12 @@ describe.only(`api: PATCH ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
-        done();
       }
+
+      expect(res.body.errors).to.have.length(1);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'ForbiddenError');
+      done();
     });
   });
 });

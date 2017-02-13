@@ -54,7 +54,7 @@ describe.only(`api: PUT ${path}`, () => {
     .then((profile) => {
       profileTwoId = profile.id;
       User.create({
-        profileId: profile.id,
+        profileId: profileOneId,
         name: userOne,
         email: userOne,
         password: 'user123password',
@@ -73,13 +73,36 @@ describe.only(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
 
-  it.skip('admin user can change their profileId', (done) => {
+  it.skip('admin FORBIDDEN from changing their profileId', (done) => {
     const newName = 'adsaadadadadda' + userOne;
     api.put(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
     .send({
       profileId: profileOneId,
       name: newName,
+      email: newName,
+      password: newName,
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors).to.have.length(1);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'AdminUpdateDeleteForbidden');
+      done();
+    });
+  });
+
+  it.only('admin user can PUT normal user', (done) => {
+    const newName = 'rwewewewewewew' + userTwo;
+    api.put(path + '/' + userOne)
+    .set('Authorization', adminUserToken)
+    .send({
+      profileId: profileTwoId, // switching from profile one to two
+      name: newName, // TODO: should not be required
       email: newName,
       password: newName,
     })
@@ -90,8 +113,8 @@ describe.only(`api: PUT ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.profileId).to.equal(profileOneId);
-      done();
+      expect(res.body.profileId).to.equal(profileTwoId);
+      done()
     });
   });
 
