@@ -23,7 +23,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe.only(`api: PATCH ${path}`, () => {
+describe(`api: PATCH ${path}`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -55,7 +55,7 @@ describe.only(`api: PATCH ${path}`, () => {
     .then((profile) => {
       profileTwoId = profile.id;
       User.create({
-        profileId: profile.id,
+        profileId: profileOneId,
         name: userOne,
         email: userOne,
         password: userOne,
@@ -81,22 +81,6 @@ describe.only(`api: PATCH ${path}`, () => {
 
   after(u.forceDelete);
 
-  it('admin user can change a normal user"s profileId', (done) => {
-    api.patch(path + '/' + userOne)
-    .set('Authorization', adminUserToken)
-    .send({
-      profileId: profileOneId,
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-      expect(res.body.profileId).to.equal(profileOneId);
-      done();
-    });
-  });
-
   it('admin FORBIDDEN from changing their profileId', (done) => {
     api.patch(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
@@ -108,10 +92,26 @@ describe.only(`api: PATCH ${path}`, () => {
       if (err) {
         done(err);
       }
-
+      console.log(res.body.errors)
       expect(res.body.errors).to.have.length(1);
       expect(res.body.errors).to.have.deep.property('[0].type',
         'AdminUpdateDeleteForbidden');
+      done();
+    });
+  });
+
+  it('admin user can change a normal user"s profileId', (done) => {
+    api.patch(path + '/' + userOne)
+    .set('Authorization', adminUserToken)
+    .send({
+      profileId: profileTwoId,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.profileId).to.equal(profileTwoId);
       done();
     });
   });

@@ -73,54 +73,9 @@ describe.only(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
 
-  it.skip('admin FORBIDDEN from changing their profileId', (done) => {
-    const newName = 'adsaadadadadda' + userOne;
-    api.put(path + '/' + adminUser.name)
-    .set('Authorization', adminUserToken)
-    .send({
-      profileId: profileOneId,
-      name: newName,
-      email: newName,
-      password: newName,
-    })
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      expect(res.body.errors).to.have.length(1);
-      expect(res.body.errors).to.have.deep.property('[0].type',
-        'AdminUpdateDeleteForbidden');
-      done();
-    });
-  });
-
-  it.only('admin user can PUT normal user', (done) => {
-    const newName = 'rwewewewewewew' + userTwo;
-    api.put(path + '/' + userOne)
-    .set('Authorization', adminUserToken)
-    .send({
-      profileId: profileTwoId, // switching from profile one to two
-      name: newName, // TODO: should not be required
-      email: newName,
-      password: newName,
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      console.log(err, res)
-      if (err) {
-        done(err);
-      }
-
-      expect(res.body.profileId).to.equal(profileTwoId);
-      done()
-    });
-  });
-
   it('normal user FORBIDDEN from changing their profileId', (done) => {
     const newName = 'rwewewewewewew' + userTwo;
-    api.put(path + '/' + userOne)
+    api.put(path + '/' + userTwo)
     .set('Authorization', normalUserToken)
     .send({
       profileId: profileOneId, // switching from profile one to two
@@ -138,6 +93,52 @@ describe.only(`api: PUT ${path}`, () => {
           'ForbiddenError');
         done();
       }
+    });
+  });
+
+  it('admin user can PUT normal user', (done) => {
+    const newName = 'rwewewewewewew' + userTwo;
+    api.put(path + '/' + userOne)
+    .set('Authorization', adminUserToken)
+    .send({
+      profileId: profileTwoId, // switching from profile one to two
+      name: newName, // TODO: should not be required
+      email: newName,
+      password: newName,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      // console.log(err, res)
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.profileId).to.equal(profileTwoId);
+      done()
+    });
+  });
+
+  it('admin FORBIDDEN from changing their profileId', (done) => {
+    const newName = 'adsaadadadadda' + userOne;
+    api.put(path + '/' + adminUser.name)
+    .set('Authorization', adminUserToken)
+    .send({
+      profileId: profileOneId,
+      name: newName,
+      email: newName,
+      password: newName,
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      console.log(res.body.errors)
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors).to.have.length(1);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'ForbiddenError');
+      done();
     });
   });
 });
