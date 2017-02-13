@@ -73,7 +73,7 @@ describe.only(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
 
-  it.only('admin user can change their profileId', (done) => {
+  it('admin user can change their profileId', (done) => {
     const newName = tname + userOne;
     api.put(path + '/' + adminUser.name)
     .set('Authorization', adminUserToken)
@@ -95,30 +95,15 @@ describe.only(`api: PUT ${path}`, () => {
     });
   });
 
-  it('normal user can put if request body does not include profileId', (done) => {
-    const newName = tname + userTwo;
-    api.put(path + '/' + userTwo)
-    .set('Authorization', adminUserToken)
-    .send({
-      name: newName,
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      expect(res.body.name).to.equal(newName);
-      done();
-    });
-  });
-
   it('normal user FORBIDDEN from changing their profileId', (done) => {
+    const newName = tname + userTwo;
     api.put(path + '/' + userOne)
     .set('Authorization', normalUserToken)
     .send({
       profileId: profileOneId, // switching from profile one to two
-      name: tname, // TODO: should not be required
+      name: newName, // TODO: should not be required
+      email: newName,
+      password: newName,
     })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
