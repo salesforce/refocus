@@ -25,6 +25,7 @@ function getArray(field, arrayOfObjects) {
   if (!arrayOfObjects) {
     return arr;
   }
+
   for (let i = 0; i < arrayOfObjects.length; i++) {
     if (arrayOfObjects[i].isPublished) {
       arr.push(arrayOfObjects[i][field]);
@@ -40,11 +41,12 @@ function getArray(field, arrayOfObjects) {
  * @returns {String} The converted string, includes spaces.
  */
 function convertCamelCase(string) {
+
+  // insert a space before all caps
+  // then uppercase the first character
   return string
-      // insert a space before all caps
     .replace(/([A-Z])/g, ' $1')
-    // uppercase the first character
-    .replace(/^./, function(str) {
+    .replace(/^./, (str) => {
       return str.toUpperCase();
     });
 }
@@ -64,7 +66,6 @@ function filteredArray(arr, removeThis) {
     return elem !== removeThis;
   });
 }
-
 
 /**
  * Returns array of objects with tags
@@ -102,6 +103,7 @@ function getOptions(options, value) {
       }
     }
   }
+
   return leftovers;
 }
 
@@ -148,8 +150,8 @@ function getConfig(values, key, value) {
         convertedText.replace(' Filter', '') + 's';
       let options = getArray('name', values[key]);
       config.options = getOptions(options, value);
-  console.log(key, values[key], options, value, config.options)
     }
+
     delete config.placeholderText;
   }
 

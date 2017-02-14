@@ -7,7 +7,7 @@
  */
 
 /**
- * view/admin/index.js
+ * view/admin/app.js
  *
  * Passes store and history to the rendered Root element.
  */

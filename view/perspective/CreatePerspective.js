@@ -73,17 +73,19 @@ class CreatePerspective extends React.Component {
         retval = el;
         break;
       }
+
       el = el.parentNode;
     }
+
     return retval;
   }
 
-/**
- * Gets the style object, given a state
- * @param {object} state of an instance of this react element
- * @param {string} dropdownKey The key to the property in state
- * @returns {Object} the style object
- */
+  /**
+   * Gets the style object, given a state
+   * @param {object} state of an instance of this react element
+   * @param {string} dropdownKey The key to the property in state
+   * @returns {Object} the style object
+   */
   static getDropdownStyle(state, dropdownKey) {
     return state.dropdownConfig ?
       state.dropdownConfig[dropdownKey].dropDownStyle : {};
@@ -92,12 +94,11 @@ class CreatePerspective extends React.Component {
   componentDidMount() {
     const { values, name, isEditing, params } = this.props;
     if (isEditing) {
+
       // operating on a named, saved perspective
       if (values && Array.isArray(values.perspectives) && values.perspectives.length) {
         const perspective = values.perspectives.filter((pers) => pers.name === name)[0];
-        console.log('perspective is', perspective)
         this.setState({
-          // defaults
           name,
           lenses: perspective.lens.name || '',
           subjects: perspective.rootSubject || '',
@@ -114,36 +115,39 @@ class CreatePerspective extends React.Component {
         });
       }
     } else {
-        // unnamed perspective defined in url
-        this.setState({
-          // defaults
-          name: '',
-          lenses: params.lenses || '',
-          subjects: params.subjects || '',
-          statusFilterType: params.statusFilterType || 'EXCLUDE',
-          statusFilter: params.statusFilter || [],
-          subjectTagFilter: params.subjectTagFilter || [],
-          subjectTagFilterType: params.subjectTagFilterType || 'EXCLUDE',
-          aspectTagFilter: params.aspectTagFilter || [],
-          aspectTagFilterType: params.aspectTagFilterType || 'EXCLUDE',
-          aspectFilter: params.aspectFilter || [],
-          aspectFilterType: params.aspectFilterType || 'EXCLUDE',
-        }, () => {
-          this.updateDropdownConfig(params);
-        });
+
+      // unnamed perspective defined in url
+      this.setState({
+        name: '',
+        lenses: params.lenses || '',
+        subjects: params.subjects || '',
+        statusFilterType: params.statusFilterType || 'EXCLUDE',
+        statusFilter: params.statusFilter || [],
+        subjectTagFilter: params.subjectTagFilter || [],
+        subjectTagFilterType: params.subjectTagFilterType || 'EXCLUDE',
+        aspectTagFilter: params.aspectTagFilter || [],
+        aspectTagFilterType: params.aspectTagFilterType || 'EXCLUDE',
+        aspectFilter: params.aspectFilter || [],
+        aspectFilterType: params.aspectFilterType || 'EXCLUDE',
+      }, () => {
+        this.updateDropdownConfig(params);
+      });
     }
   }
 
   updateDropdownConfig(perspective) {
+
     // attach config to keys, keys to dropdownConfig
     const { dropdownConfig } = this.state;
     const { values, BLOCK_SIZE } = this.props;
 
     let stateObject = getStateDataOnly(this.state);
     for (let key in stateObject) {
-      let value = this.state[key]; //default
+      let value = this.state[key];
+
       //  if perspective passed in, may amend value based on key
       let config = getConfig(values, key, value);
+
       // if this dropdown is multi-pill, move the dropdown menu lower
       let marginTop = !config.isArray ? ZERO : value.length * BLOCK_SIZE;
       config.dropDownStyle = { marginTop },
@@ -151,7 +155,7 @@ class CreatePerspective extends React.Component {
       dropdownConfig[key] = config;
     }
 
-    this.setState({dropdownConfig });
+    this.setState({ dropdownConfig });
   }
 
   handleRadioButtonClick(event) {
@@ -159,6 +163,7 @@ class CreatePerspective extends React.Component {
       event.target,
       'slds-button-group',
     );
+
     const filterType = buttonGroup.title;
     const stateRule = {};
     stateRule[filterType] = event.target.textContent.toUpperCase();
@@ -167,12 +172,14 @@ class CreatePerspective extends React.Component {
 
   showError(error) {
     let displayError = error;
+
     // if error message is from the API, parse it for content
     if (typeof error === 'object') {
       displayError = 'status code: ' +
         error.status + '. Error: ' +
         JSON.parse(error.response.text).errors[ZERO].message;
     }
+
     this.setState({ error: displayError });
   }
 
@@ -182,7 +189,6 @@ class CreatePerspective extends React.Component {
 
   onInputValueChange(event) {
     const { name, value } = event;
-    // update state
     let stateRule = {};
     stateRule[name] = value;
     this.setState(stateRule);
@@ -199,27 +205,34 @@ class CreatePerspective extends React.Component {
     const fieldElem = findCommonAncestor(event.target, 'slds-form-element__control');
     const dropdownTitle = fieldElem.title;
     const valueInState = this.state[dropdownTitle];
+
     // copy config into new object
     let newState = { dropdownConfig: this.state.dropdownConfig };
+
     // pills
     if (newState.dropdownConfig[dropdownTitle].isArray) {
       const styleObj = getDropdownStyle(newState, dropdownTitle);
       if (valueInState) {
+
         // remove pill from array of pills
         newState[dropdownTitle] = filteredArray(valueInState, labelContent);
         styleObj.marginTop -= this.props.BLOCK_SIZE;
       } else {
+
         // no pill, set default marginTop
         styleObj.marginTop = 0;
       }
     } else {
+
       // single pill
       newState[dropdownTitle] = '';
     }
+
     // add selected option to available options in dropdown
     if (newState.dropdownConfig[dropdownTitle].options.indexOf(labelContent) < 0) {
       newState.dropdownConfig[dropdownTitle].options.push(labelContent);
     }
+
     // sort in-place by alphabetical order.
     newState.dropdownConfig[dropdownTitle].options.sort();
     this.setState(newState);
@@ -235,10 +248,13 @@ class CreatePerspective extends React.Component {
     const dropdownTitle = fieldElem.title;
     const valueInState = this.state[dropdownTitle];
     const config = this.state.dropdownConfig[dropdownTitle];
+
     // copy config into new object
     let newState = { dropdownConfig: this.state.dropdownConfig };
+
     // if expected value is string
     newState[dropdownTitle] = valueToAppend;
+
     // if expected value is array
     if (config.isArray) {
       newState.dropdownConfig[dropdownTitle].dropDownStyle.marginTop += BLOCK_SIZE;
@@ -248,17 +264,22 @@ class CreatePerspective extends React.Component {
       } else {
         newState[dropdownTitle] = [valueToAppend];
       }
-    } else { // single pill input
+    } else {
+
+      // single pill input
       // close the dropdown
       config.close = true;
+
       // field had value,
       // add replaced value into options
       if (valueInState) {
         config.options.push(valueInState);
       }
     }
+
     // remove selected option from available options in dropdown
     const arr = filteredArray(config.options || [], valueToAppend);
+
     // order options alphabetically
     config.options = arr.sort();
     newState = Object.assign(this.state, newState);
@@ -269,6 +290,7 @@ class CreatePerspective extends React.Component {
   doCreate() {
     const { values, sendResource, isEditing, name } = this.props;
     const postObject = getStateDataOnly(this.state);
+
     if (!postObject.lenses.length) {
       this.showError('Please enter a valid lens.');
     } else if (!postObject.subjects.length) {
@@ -276,32 +298,40 @@ class CreatePerspective extends React.Component {
     } else if (!postObject.name.length) {
       this.showError('Please enter a name for this perspective.');
     } else {
+
       // check if lens field is uid. if not, need to get uid for lens name
       const regexpUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!regexpUUID.test(postObject.lenses)) {
         let lens = values.lenses.filter((_lens) => {
           return _lens.name === postObject.lenses;
         });
+
         if (!lens.length) {
           this.showError('Please enter a valid lens name. No lens with name '
             + postObject.lenses + ' found');
         }
+
         postObject.lenses = lens[ZERO].id;
       }
+
       // for create perspectives, rename key lenses --> lensId,
       // and perspectives --> name. Start with deep copy values obj
       postObject.lensId = postObject.lenses;
       postObject.rootSubject = postObject.subjects;
       delete postObject.lenses;
       delete postObject.subjects;
+
       // go to created perspective page
       let method = 'POST'; // default
       postObject.url = '/v1/perspectives';
+
       if (isEditing) {
         method = 'PUT';
+
         // use the original perspective name
-        postObject.url = postObject.url + '/' + name
+        postObject.url = postObject.url + '/' + name;
       }
+
       sendResource(method, postObject, this.showError);
     }
   }
@@ -320,6 +350,7 @@ class CreatePerspective extends React.Component {
     </span>;
 
     for (let key in dropdownConfig) {
+
       // if no default value, no pill
       let pillOutput = '';
       const value = this.state[key];
@@ -331,6 +362,7 @@ class CreatePerspective extends React.Component {
           onClick: this.handleRadioButtonClick,
         };
       }
+
       // if display value is array, use multi pill
       // else single pill
       // showInputElem {Bool} if true, show additional
@@ -351,6 +383,7 @@ class CreatePerspective extends React.Component {
           />;
         }
       }
+
       const _config = Object.assign({}, dropdownConfig[key], { showInputElem });
       dropdownObj[key] = (
         <Dropdown { ..._config } >
@@ -358,6 +391,7 @@ class CreatePerspective extends React.Component {
         </Dropdown>
       );
     }
+
     const errorMessage = this.state.error ? <ErrorRender
         hide={this.closeError.bind(this)}
         error={ this.state.error } /> :
@@ -366,7 +400,7 @@ class CreatePerspective extends React.Component {
     return (
       <Modal
         id='createPerspectiveModal'
-        title={ isEditing ? 'Edit Perspective': 'New Perspective' }
+        title={ isEditing ? 'Edit Perspective' : 'New Perspective' }
         onSave={ this.doCreate.bind(this) }
         onHide={ cancelCreate }
         primaryBtnTxt={ isEditing ? 'Save' : 'Create' }
