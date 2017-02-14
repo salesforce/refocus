@@ -654,5 +654,4 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
-
 });

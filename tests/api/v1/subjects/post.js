@@ -217,7 +217,7 @@ describe(`api: POST ${path}`, () => {
     it('post subject with sortBy', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send({ name: 'sample_name1', isPublished: true, sortBy: '_1' })
+      .send({ name: 's1', isPublished: true, sortBy: '_1' })
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -233,7 +233,7 @@ describe(`api: POST ${path}`, () => {
     it('post subject without sortBy parameter', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send({ name: 'sample_name2', isPublished: true })
+      .send({ name: 's2', isPublished: true })
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -248,7 +248,7 @@ describe(`api: POST ${path}`, () => {
     it('invalid sortBy value', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send({ name: 'sample_name3', isPublished: true, description: 'sample description', sortBy: 'abc abc' })
+      .send({ name: 's3', isPublished: true, description: 'sample description', sortBy: ' ' })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
@@ -259,9 +259,7 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
-
   }); // Simple
-
 
   describe('With a Parent', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };

@@ -185,6 +185,7 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({
       name: updatedName,
+
       // need isPublished here since descendants are published
       isPublished: n0.isPublished,
     })
