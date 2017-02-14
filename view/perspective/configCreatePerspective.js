@@ -25,6 +25,7 @@ function getArray(field, arrayOfObjects) {
   if (!arrayOfObjects) {
     return arr;
   }
+
   for (let i = 0; i < arrayOfObjects.length; i++) {
     if (arrayOfObjects[i].isPublished) {
       arr.push(arrayOfObjects[i][field]);
@@ -40,11 +41,12 @@ function getArray(field, arrayOfObjects) {
  * @returns {String} The converted string, includes spaces.
  */
 function convertCamelCase(string) {
+
+  // insert a space before all caps
+  // then uppercase the first character
   return string
-      // insert a space before all caps
     .replace(/([A-Z])/g, ' $1')
-    // uppercase the first character
-    .replace(/^./, function(str) {
+    .replace(/^./, (str) => {
       return str.toUpperCase();
     });
 }
@@ -65,7 +67,6 @@ function filteredArray(arr, removeThis) {
   });
 }
 
-
 /**
  * Returns array of objects with tags
  * @param {Array} array The array of reosurces to get tags from.
@@ -74,7 +75,7 @@ function filteredArray(arr, removeThis) {
 function getTagsFromResources(array) {
   // get all tags
   let cumulativeArr = [];
-  for (var i = array.length - 1; i >= 0; i--) {
+  for (let i = array.length - 1; i >= 0; i--) {
     if (array[i].tags.length) {
       cumulativeArr.push(...array[i].tags);
     }
@@ -96,12 +97,13 @@ function getTagsFromResources(array) {
 function getOptions(options, value) {
   let leftovers = []; // populate from options
   if (Array.isArray(value)) {
-    for (var i = options.length - 1; i >= 0; i--) {
+    for (let i = options.length - 1; i >= 0; i--) {
       if (value.indexOf(options[i]) < 0) {
         leftovers.push(options[i]);
       }
     }
   }
+
   return leftovers;
 }
 
@@ -148,8 +150,8 @@ function getConfig(values, key, value) {
         convertedText.replace(' Filter', '') + 's';
       let options = getArray('name', values[key]);
       config.options = getOptions(options, value);
-  console.log(key, values[key], options, value, config.options)
     }
+
     delete config.placeholderText;
   }
 
