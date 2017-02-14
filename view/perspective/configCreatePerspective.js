@@ -75,7 +75,7 @@ function filteredArray(arr, removeThis) {
 function getTagsFromResources(array) {
   // get all tags
   let cumulativeArr = [];
-  for (var i = array.length - 1; i >= 0; i--) {
+  for (let i = array.length - 1; i >= 0; i--) {
     if (array[i].tags.length) {
       cumulativeArr.push(...array[i].tags);
     }
@@ -97,7 +97,7 @@ function getTagsFromResources(array) {
 function getOptions(options, value) {
   let leftovers = []; // populate from options
   if (Array.isArray(value)) {
-    for (var i = options.length - 1; i >= 0; i--) {
+    for (let i = options.length - 1; i >= 0; i--) {
       if (value.indexOf(options[i]) < 0) {
         leftovers.push(options[i]);
       }

@@ -89,8 +89,8 @@ function getInputsAndSelects(form) {
   const allInputs = form.getElementsByTagName('input');
   const selects = form.getElementsByTagName('select');
   const fieldSets = form.getElementsByTagName('fieldset');
-  for (var i = allInputs.length - 1; i >= 0; i--) {
-    for (var j = fieldSets.length - 1; j >= 0; j--) {
+  for (let i = allInputs.length - 1; i >= 0; i--) {
+    for (let j = fieldSets.length - 1; j >= 0; j--) {
       // add to array if input is not in any fieldset
       if (!fieldSets[j].contains(allInputs[i])) {
         inputs.push(allInputs[i]);
