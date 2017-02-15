@@ -81,11 +81,11 @@ function init() {
       commands.push(['hset', subkey, samkey, JSON.stringify(sample)]);
     });
     commands.push(['sadd', SUBJECT_SET, Array.from(subjectKeys)]);
-    console.log('REDIS COMMANDS (BATCH):', commands);
+    // console.log('REDIS COMMANDS (BATCH):', commands);
     return r.batch(commands).execAsync();
   })
   .then((res) => {
-    console.log('REDIS RESPONSES (BATCH):', res);
+    // console.log('REDIS RESPONSES (BATCH):', res);
     console.log('Finished initializing the sample store');
     return true;
   })
