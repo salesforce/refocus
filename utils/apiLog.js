@@ -31,8 +31,10 @@ function getSize(obj) {
  * @param {Object} resultObj - API result object
  * @param {Object} logObject - from the request object
  * @param {Object or Array} retval - the returned object
+ * @param {Integer} [recordCountOverride] - override the
+ * default recordCount. optional
  */
-function mapApiResultsToLogObject(resultObj, logObject, retval) {
+function mapApiResultsToLogObject(resultObj, logObject, retval, recordCountOverride) {
   const { reqStartTime, dbTime } = resultObj;
 
   // set the totalTime: duration in ms between start time and now
@@ -50,7 +52,11 @@ function mapApiResultsToLogObject(resultObj, logObject, retval) {
   if (retval) {
     // if retval is array, recordCount is array size
     let recordCount = 0;
-    if (Array.isArray(retval)) {
+
+    // custom recordCount takes precedence
+    if (recordCountOverride) {
+      recordCount = recordCountOverride;
+    } else if (Array.isArray(retval)) {
       recordCount = retval.length;
     } else if (Object.keys(retval).length) {
       // if retval is a non-emty object, set recordCount to 1
@@ -68,10 +74,12 @@ function mapApiResultsToLogObject(resultObj, logObject, retval) {
  * @param {Object} resultObj - API result object
  * @param {Object} logObject - from the request object
  * @param {Object or Array} retval - the returned object
+ * @param {Integer} [recordCountOverride] - override the
+ * default recordCount. optional
  */
-function combineAndLog(resultObj, logObject, retval) {
+function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
   // in-place modification of logObject
-  mapApiResultsToLogObject(resultObj, logObject, retval);
+  mapApiResultsToLogObject(resultObj, logObject, retval, recordCountOverride);
   activityLogUtil.printActivityLogString(logObject, 'api');
 }
 
@@ -81,8 +89,10 @@ function combineAndLog(resultObj, logObject, retval) {
  * @param {Object} req - the request object
  * @param {Object} resultObj - Object with the rest of the fields to print
  * @param {Object or Array} retval - the returned object
+ * @param {Integer} [recordCountOverride] - override the
+ * default recordCount. optional
  */
-function logAPI(req, resultObj, retval) {
+function logAPI(req, resultObj, retval, recordCountOverride) {
   if (req && featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
     // create api activity log object
     const logObject = {
@@ -100,9 +110,9 @@ function logAPI(req, resultObj, retval) {
       logObject.token = resObj.tokenname;
 
       // log with the token
-      combineAndLog(resultObj, logObject, retval);
+      combineAndLog(resultObj, logObject, retval, recordCountOverride);
     })
-    .catch(() => combineAndLog(resultObj, logObject, retval));
+    .catch(() => combineAndLog(resultObj, logObject, retval, recordCountOverride));
   }
 }
 
