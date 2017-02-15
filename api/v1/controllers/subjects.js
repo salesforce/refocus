@@ -66,12 +66,10 @@ function checkDuplicates(tagsArr) {
  */
 function validateFilterParams(filterParams) {
   let subjectTagsCounter = 0;
+  const EXCLUDE_SYMBOL = '-';
 
-  for (let i = 0; i < filterParams.length; i++) {
-    if (filterParams[i][ZERO] === '-') {
-      subjectTagsCounter++;
-    }
-  }
+  subjectTagsCounter = filterParams
+    .filter((i) => i.startsWith(EXCLUDE_SYMBOL)).length;
 
   if (subjectTagsCounter !== ZERO &&
     filterParams.length !== subjectTagsCounter) {
