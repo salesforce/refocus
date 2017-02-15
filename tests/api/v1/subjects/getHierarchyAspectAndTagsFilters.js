@@ -368,18 +368,17 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it('filter should apply to all levels of hierarchy', (done) => {
+    it.only('filter should apply to all levels of hierarchy', (done) => {
       const endpoint2 = path.replace('{key}', par.id) +
         '?aspect=humidity,temperature';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        console.log(res.body.children[0].children);
         expect(res.body).to.not.equal(null);
         expect(res.body.samples).to.have.length(2);
         expect(res.body.samples[1]).to.have.deep
-          .property('aspect.name', 'humidity');
+          .property('aspect.name', 'temperature');
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(0);
