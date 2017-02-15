@@ -74,7 +74,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchUser(req, res, next) {
-    // default undefined
+
+    // Only an admin may modify a user's profile
     if (req.body.profileId) {
       authUtils.isAdmin(req)
       .then((ok) => {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -122,7 +122,7 @@ describe(`api: PATCH ${path}`, () => {
       .catch(done);
     });
 
-    it('admin user can change a normal user"s profileId', (done) => {
+    it('admin user can change a normal user\'s profileId', (done) => {
       api.patch(path + '/' + userZero)
       .set('Authorization', adminUserToken)
       .send({
@@ -176,7 +176,7 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('admin user can change a normal user"s profileId', (done) => {
+  it('admin user can change a normal user\'s profileId', (done) => {
     api.patch(path + '/' + userOne)
     .set('Authorization', adminUserToken)
     .send({

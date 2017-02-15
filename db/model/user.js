@@ -182,7 +182,7 @@ module.exports = function user(seq, dataTypes) {
         }
 
         // inst name may be changed. Use previous name for comparison
-        if (inst._previousDataValues.name.toLowerCase() ===
+        if (inst.previous('name').toLowerCase() ===
           common.dbconf.adminUser.name.toLowerCase() &&
           inst.changed('profileId')) {
           throw new AdminUpdateDeleteForbidden();

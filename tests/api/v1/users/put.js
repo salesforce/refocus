@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -126,7 +126,7 @@ describe(`api: PUT ${path}`, () => {
       .catch(done);
     });
 
-    it('admin user can change a normal user"s profileId', (done) => {
+    it('admin user can change a normal user\'s profileId', (done) => {
       const newName = 'llllllllllll' + userZero;
       api.put(path + '/' + userZero)
       .set('Authorization', adminUserToken)
@@ -203,7 +203,7 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-    it('normal user FORBIDDEN from changing another user"s profileId', (done) => {
+    it('normal user FORBIDDEN from changing another user\'s profileId', (done) => {
       const userOneToken = jwtUtil.createToken(
         userOne, userOne
       );
@@ -230,7 +230,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('out of box admin :', () => {
+  describe('out of box admin:', () => {
     it('admin user can PUT normal user', (done) => {
       const newName = 'rwewewewewewew' + userOne;
       api.put(path + '/' + userOne)
