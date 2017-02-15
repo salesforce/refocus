@@ -72,14 +72,7 @@ module.exports = (passportModule) => {
         email: req.body.email,
         password: userPassword,
       })
-      .then((newUser) => {
-        newUserCreated = newUser;
-        return Token.create({
-          name: newUser.name,
-          createdBy: newUser.id,
-        });
-      })
-      .then(() => {
+      .then((newUserCreated) => {
         done(null, newUserCreated);
       })
       .catch((_err) => done(_err));

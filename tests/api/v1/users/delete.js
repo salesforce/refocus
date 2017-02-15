@@ -58,7 +58,7 @@ describe(`api: DELETE ${path}/:id`, () => {
 
   afterEach(u.forceDelete);
 
-  it('deletion of user deletes default token', (done) => {
+  it('deletion of user does not return default token', (done) => {
     api.delete(`${path}/${uname}`)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

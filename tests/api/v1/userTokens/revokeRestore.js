@@ -93,34 +93,6 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
     });
   });
 
-  it('admin user, default token, ok', (done) => {
-    api.post(`${path}/${uname}/tokens/${uname}/revoke`)
-    .set('Authorization', predefinedAdminUserToken)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', uname);
-        expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${uname}/tokens/${uname}/restore`)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({})
-        .expect(constants.httpStatus.OK)
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            expect(res2.body).to.have.property('name', uname);
-            expect(res2.body).to.have.property('isRevoked', '0');
-            done();
-          }
-        });
-      }
-    });
-  });
-
   it('admin user, try to restore a token if it was not already revoked',
   (done) => {
     api.post(`${path}/${uname}/tokens/${tname}/restore`)

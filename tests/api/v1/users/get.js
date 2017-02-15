@@ -25,6 +25,7 @@ const Token = tu.db.Token;
 describe(`api: GET ${path}`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
+  let userId = '';
 
   before((done) => {
     Profile.create({
@@ -38,11 +39,34 @@ describe(`api: GET ${path}`, () => {
         password: 'user123password',
       })
     )
-    .then(() => done())
+    .then((user) => {
+      userId = user.id;
+      done();
+    })
     .catch(done);
   });
 
   after(u.forceDelete);
+
+  it('does not return default token', (done) => {
+    api.get(`${path}/${uname}`)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      Token.findOne({ where: { name: uname, createdBy: userId } })
+      .then((tobj) => {
+        if (tobj) {
+          done(new Error('Default token should not be returned'));
+        }
+
+        done();
+      })
+      .catch((err1) => done(err1));
+    });
+  });
 
   it('user found', (done) => {
     api.get(`${path}/${uname}`)
@@ -50,12 +74,12 @@ describe(`api: GET ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('name', uname);
-        expect(res.body).to.not.have.property('password');
-        expect(res.body.isDeleted).to.not.equal(0);
-        done();
       }
+
+      expect(res.body).to.have.property('name', uname);
+      expect(res.body).to.not.have.property('password');
+      expect(res.body.isDeleted).to.not.equal(0);
+      done();
     });
   });
 
@@ -65,11 +89,11 @@ describe(`api: GET ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.be.instanceof(Array);
-        expect(res.body[0]).to.not.have.property('password');
-        done();
       }
+
+      expect(res.body).to.be.instanceof(Array);
+      expect(res.body[0]).to.not.have.property('password');
+      done();
     });
   });
 

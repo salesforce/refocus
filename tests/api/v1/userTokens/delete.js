@@ -186,30 +186,4 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
       }
     });
   });
-
-  it('admin user, cannot delete default token', (done) => {
-    api.delete(`${path}/${uname}/tokens/${uname}`)
-    .set('Authorization', predefinedAdminUserToken)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
-  });
-
-  it('non-admin user, cannot delete default token', (done) => {
-    api.delete(`${path}/${uname}/tokens/${uname}`)
-    .set('Authorization', unameToken)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
-  });
 });
