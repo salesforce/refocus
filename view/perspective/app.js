@@ -48,6 +48,7 @@ import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
+import { getTagsFromResources } from './configCreatePerspective';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 let gotLens = false;
@@ -255,7 +256,7 @@ function getFilterQuery(p) {
     }
 
     const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspectTags' + '=' + sign +
+    q += 'aspectTagFilter' + '=' + sign +
         p.aspectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
@@ -397,30 +398,6 @@ function getAllParams() {
   return responseObject;
 } // getAllParams
 
-/**
- * Returns array of objects with tags
- * @param {Array} array The array of reosurces to get tags from.
- * @returns {Object} array of tags
- */
-function getTagsFromResources(array) {
-  // get all tags
-  const allTags = [];
-  array.map((obj) => {
-    if (obj.tags.length) {
-      allTags.push(...obj.tags);
-    }
-  });
-  const tagNames = [];
-
-  // get through tags, get all names
-  allTags.map((tagObj) => {
-    if (tagNames.indexOf(tagObj.toLowerCase()) === -1) {
-      tagNames.push(tagObj);
-    }
-  });
-  return tagNames;
-}
-
 function getPublishedObjectsbyField(array, field) {
   return array.filter((obj) =>
    obj.isPublished).map((obj) => obj[field])
@@ -431,14 +408,10 @@ function getPublishedObjectsbyField(array, field) {
  */
 function loadPerspective(perspective, params) {
   pcValues.name = perspective.name;
-  const stateObject = Object.assign(
-    { perspectives: perspective ? perspective.name : '' },
-    params
-  );
   getPromiseWithUrl('perspectives', '/v1/perspectives')
   .then((values) => {
     pcValues.perspectives = values.res;
-    loadController(pcValues, stateObject);
+    loadController(pcValues, params);
   });
 } // loadPerspective
 
@@ -451,10 +424,6 @@ function loadPerspective(perspective, params) {
 function loadExtraStuffForCreatePerspective(perspective, params, promisesArr,
   getRoot, getLens) {
   pcValues.name = perspective.name;
-  const stateObject = Object.assign(
-    { perspectives: perspective ? perspective.name : '' },
-    params
-  );
   const pArr = promisesArr || [];
 
   const getAllSubjectsPromise = getPromiseWithUrl('subjects', '/v1/subjects');
@@ -508,9 +477,9 @@ function loadExtraStuffForCreatePerspective(perspective, params, promisesArr,
     }
 
     pcValues.statusFilter = statusFilter;
-    pcValues.aspectTags = getTagsFromResources(pcValues.aspectFilter);
+    pcValues.aspectTagFilter = getTagsFromResources(pcValues.aspectFilter);
     pcValues.subjectTagFilter = getTagsFromResources(pcValues.subjects);
-    loadController(pcValues, stateObject);
+    loadController(pcValues, params);
   });
 } // loadExtraStuffForCreatePerspective
 
@@ -637,13 +606,13 @@ if (_realtimeEventThrottleMilliseconds !== ZERO) {
  * Passes data on to Controller to pass onto renderers.
  *
  * @param {Object} values Data returned from AJAX.
- * @param {Object} stateObject Data from queryParams.
+ * @param {Object} params Data from queryParams.
  */
-function loadController(values, stateObject) {
+function loadController(values, params) {
   ReactDOM.render(
     <PerspectiveController
       values={ values }
-      stateObject={ stateObject }
+      params={ params }
     />,
     PERSPECTIVE_CONTAINER
   );
