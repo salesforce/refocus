@@ -368,7 +368,7 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
-    it.only('filter should apply to all levels of hierarchy', (done) => {
+    it('filter should apply to all levels of hierarchy', (done) => {
       const endpoint2 = path.replace('{key}', par.id) +
         '?aspect=humidity,temperature';
       api.get(endpoint2)
