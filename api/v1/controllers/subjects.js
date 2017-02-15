@@ -60,25 +60,22 @@ function checkDuplicates(tagsArr) {
 }
 
 /**
- * Validates the correct filter of Subject Tags
+ * Validates the correct filter parameter
  * passed in query parameters
- * @param {Array} subjectTagsArray Subject Tags Array
+ * @param {Array} filterParams Filter Tags Array
  */
-function validateSubjectTags(subjectTagsArray) {
+function validateFilterParams(filterParams) {
   let subjectTagsCounter = 0;
 
-  for (let i = 0; i < subjectTagsArray.length; i++) {
-    if (subjectTagsArray[i][0] === '-') {
+  for (let i = 0; i < filterParams.length; i++) {
+    if (filterParams[i][ZERO] === '-') {
       subjectTagsCounter++;
     }
   }
 
-  if (subjectTagsCounter === 1 && subjectTagsArray[0][0] !== '-') {
-    throw new apiErrors.InvalidSubjectTagsParameterError();
-  }
-
-  if (subjectTagsCounter < subjectTagsArray.length && subjectTagsCounter > 1) {
-    throw new apiErrors.InvalidSubjectTagsParameterError();
+  if (subjectTagsCounter !== ZERO &&
+    filterParams.length !== subjectTagsCounter) {
+    throw new apiErrors.InvalidFilterParameterError();
   }
 }
 
@@ -220,11 +217,13 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const depth = Number(params.depth.value);
-    const subjectTags = req.swagger.params.subjectTags.value;
+    const filterParams = ['subjectTags', 'aspectTags', 'aspect', 'status'];
 
-    // Subject Tags Validation which is passed in Query parameters
-    if (subjectTags) {
-      validateSubjectTags(subjectTags.split(','));
+    // Filter Parameter Validation
+    for (let i = 0; i < filterParams.length; i++) {
+      if (params[filterParams[i]].value) {
+        validateFilterParams(params[filterParams[i]].value.split(','));
+      }
     }
 
     u.findByKey(helper, params, ['hierarchy', 'samples'])

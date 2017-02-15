@@ -247,26 +247,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
         expect(res.body.errors[0].type).to
-        .equal('InvalidSubjectTagsParameterError');
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('Multiple Query Params: If Tags are passed as exclude filter' +
-    'than it is ok to have just first tag as exclude filter ', (done) => {
-      const endpoint = path.replace('{key}', gp.id) +
-        '?subjectTags=-verycold,ea,cold';
-      api.get(endpoint)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.children).to.have.length(3);
+        .equal('InvalidFilterParameterError');
       })
       .end((err /* , res */) => {
         if (err) {
@@ -286,7 +267,7 @@ describe(`api: GET ${path}:`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
         expect(res.body.errors[0].type).to
-        .equal('InvalidSubjectTagsParameterError');
+        .equal('InvalidFilterParameterError');
       })
       .end((err /* , res */) => {
         if (err) {
@@ -389,20 +370,21 @@ describe(`api: GET ${path}:`, () => {
 
     it('filter should apply to all levels of hierarchy', (done) => {
       const endpoint2 = path.replace('{key}', par.id) +
-        '?aspect=-humidity,temperature';
+        '?aspect=humidity,temperature';
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
+        console.log(res.body.children[0].children);
         expect(res.body).to.not.equal(null);
-        expect(res.body.samples).to.have.length(1);
-        expect(res.body.samples[0]).to.have.deep
-          .property('aspect.name', 'temperature');
+        expect(res.body.samples).to.have.length(2);
+        expect(res.body.samples[1]).to.have.deep
+          .property('aspect.name', 'humidity');
         expect(res.body.children).to.have.length(1);
-        expect(res.body.children[0].samples).to.have.length(0);
-        expect(res.body.children[0].children).to.have.length(1);
-        expect(res.body.children[0].children[0].samples[0]).to.have.deep
-          .property('aspect.name', 'wind-speed');
+        expect(res.body.children[0].samples).to.have.length(1);
+        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].samples[0]).to.have.deep
+          .property('aspect.name', 'humidity');
       })
       .end((err /* , res */) => {
         if (err) {
