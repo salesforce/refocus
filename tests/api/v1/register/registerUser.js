@@ -24,7 +24,7 @@ const path = '/v1/register';
 describe('api: registerUser', () => {
   after(u.forceDelete);
 
-  it('register user successfully', (done) => {
+  it('successful user registration does not return default token', (done) => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
@@ -37,9 +37,7 @@ describe('api: registerUser', () => {
       expect(res.body.name).to.be.equal(u.toCreate.username);
       Token.findAll({ where: { name: res.body.name } })
       .then((tokens) => {
-        expect(tokens.length).to.be.equal(1);
-        expect(tokens[0].createdBy).to.be.equal(res.body.id);
-        expect(tokens[0].isRevoked).to.be.equal('0');
+        expect(tokens.length).to.be.equal(0);
       })
       .catch(done);
       done();

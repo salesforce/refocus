@@ -37,7 +37,6 @@ describe(`api: DELETE ${path}`, () => {
   let userToken;
   let tid1;
   let tid2;
-  let defaultTokenID;
 
   before((done) => {
     // create user __test@refocus.com
@@ -75,17 +74,7 @@ describe(`api: DELETE ${path}`, () => {
           }
 
           tid2 = res2.body.id;
-
-          Token.findOne(
-            { where: { name: res.body.name, createdBy: res.body.id } }
-          )
-          .then((tokenObj) => {
-            defaultTokenID = tokenObj.id;
-            done();
-          })
-          .catch((err3) => {
-            done(err3);
-          });
+          done();
         });
       });
     });
@@ -138,19 +127,6 @@ describe(`api: DELETE ${path}`, () => {
       } else {
         expect(res.body).to.have.property('name',
           `${tu.namePrefix}Tom`);
-        done();
-      }
-    });
-  });
-
-  it('non admin user cannot delete default token', (done) => {
-    api.delete(`${path}/${defaultTokenID}`)
-    .set('Authorization', userToken)
-    .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      } else {
         done();
       }
     });

@@ -191,10 +191,9 @@ describe(`api: GET ${path}/U/tokens`, () => {
       if (err) {
         done(err);
       } else {
-        expect(res.body).to.have.length(3);
+        expect(res.body).to.have.length(2);
         expect(res.body[0].User).to.have.property('name', uname);
         expect(res.body[1].User).to.have.property('name', uname);
-        expect(res.body[2].User).to.have.property('name', uname);
         done();
       }
     });
