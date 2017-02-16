@@ -198,7 +198,32 @@ function applyFilters(key, filterBy) {
 } // applyFilters
 
 /**
- * Prune a node by applying filters to it. FOR NOW NO FILTERING IS DONE
+ * Get the aspect information from the redis and attach it to the sample object
+ * @param  {String} aspectName - Aspect name
+ * @param  {Object} sample   - Sample object
+ * @returns {Promise} - which resolves to a sample object with its aspect
+ * information
+ */
+function getAspectFromRedis(aspectName, sample) {
+  const aspectKey = 'refocache:aspects:' + aspectName.toLowerCase();
+  return new Promise((resolve, reject) => {
+    redisClient.getAsync(aspectKey)
+    .then((cachedAspect) => {
+      if (cachedAspect) {
+        sample.aspect = JSON.parse(cachedAspect);
+      }
+      resolve(sample);
+    })
+    .catch((err) => reject(err));
+  });
+} // getAspectFromRedis
+
+/**
+ *
+ * Prune a node by applying filters to it. FOR NOW NO FILTERING IS DONE.
+ * For each of the subject passed to this function, it gets the
+ * corresponding samples if any from Redis and for each of the samples, the
+ * corresponding aspect object is attached to it.
  *
  * @param {Object} res - Node to be pruned
  * @returns {Integer} - Returns zero only if the filters is set and all the
@@ -207,8 +232,8 @@ function applyFilters(key, filterBy) {
 function pruneNodeV2(res) {
   return new Promise((resolve, reject) => {
     const sampArr = [];
-    const key = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
-    redisClient.hvalsAsync(key)
+    const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
+    redisClient.hvalsAsync(subjectKey)
     .then((cachedSamples) => {
       if (cachedSamples && cachedSamples.length) {
         // console.log('--these are the caches samples--' + cachedSamples);
@@ -224,7 +249,19 @@ function pruneNodeV2(res) {
       }
       res.samples = sampArr;
       // console.log('--value of res.samples' + res.samples);
-      resolve(res);
+    })
+    .then(() => {
+      if (sampArr.length) {
+        const promises = sampArr.map((sample) =>
+          getAspectFromRedis(sample.name.split('|')[1], sample)
+        );
+        Promise.all(promises)
+        .then(() => {
+          resolve(res);
+        });
+      } else {
+        resolve(res);
+      }
     })
     .catch((err) => reject(err));
   });
@@ -251,7 +288,7 @@ function traverseHierarchyV2(res) {
     })
     .catch((err) => reject(err));
   });
-} // traverseHierarchy
+} // traverseHierarchyV2
 /**
  * Prune a node by applying filters to it.
  *
