@@ -100,6 +100,10 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable redis operations
+  enableRedisOps: environmentVariableTrue(pe,
+    'ENABLE_REDIS_OPS'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

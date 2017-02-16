@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
 const Subject = require('../../../../db/index').Subject;
 const constants = require('../../constants');
 const m = 'subject';
@@ -369,19 +370,20 @@ function traverseHierarchy(res) {
  * @returns {ServerResponse} res - The modified subject response
  */
 function modifyAPIResponse(res, params) {
-  return traverseHierarchyV2(res);
+  if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+    return traverseHierarchyV2(res);
+  }
 
-  // for (const key in filters) {
-    // if (key && params[key].value) {
-      // setFilters(params);
-      // return traverseHierarchy(res);
+  for (const key in filters) {
+    if (key && params[key].value) {
+      setFilters(params);
+      traverseHierarchy(res);
+      resetFilters();
+      break;
+    }
+  }
 
-      // resetFilters();
-      // break;
-    // }
-  // }
-
-  // return res;
+  return res;
 } // modifyAPIResponse
 
 module.exports = {
