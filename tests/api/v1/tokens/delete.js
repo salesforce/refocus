@@ -25,16 +25,15 @@ const tokenPath = '/v1/tokens';
 const Token = tu.db.Token;
 
 describe(`api: DELETE ${path}`, () => {
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
-
   /* user uname has 2 tokens: Voldemort and Tom
    user with unameOther has 1 token: Dumbledore */
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname1 = `${tu.namePrefix}Voldemort`;
   const tname2 = `${tu.namePrefix}Tom`;
-  let userToken;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  let userToken = '';
   let tid1;
   let tid2;
 
@@ -55,7 +54,7 @@ describe(`api: DELETE ${path}`, () => {
 
       // create token ___Voldemort
       api.post(tokenPath)
-      .set('Authorization', res.body.token)
+      .set('Authorization', userToken)
       .send({ name: tname1 })
       .end((err1, res1) => {
         if (err1) {
@@ -66,7 +65,7 @@ describe(`api: DELETE ${path}`, () => {
 
         // create token ___Tom
         api.post(tokenPath)
-        .set('Authorization', res.body.token)
+        .set('Authorization', userToken)
         .send({ name: tname2 })
         .end((err2, res2) => {
           if (err2) {
@@ -89,11 +88,11 @@ describe(`api: DELETE ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
-        done();
       }
+
+      expect(res.body).to.have.property('name',
+        `${tu.namePrefix}Voldemort`);
+      done();
     });
   });
 
@@ -111,9 +110,9 @@ describe(`api: DELETE ${path}`, () => {
     .end((err /* , res */) => {
       if (err) {
         done(err);
-      } else {
-        done();
       }
+
+      done();
     });
   });
 
@@ -124,11 +123,11 @@ describe(`api: DELETE ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Tom`);
-        done();
       }
+
+      expect(res.body).to.have.property('name',
+        `${tu.namePrefix}Tom`);
+      done();
     });
   });
 });

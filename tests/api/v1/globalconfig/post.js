@@ -23,12 +23,13 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
-  let testUserToken;
   let token;
   const key = `${tu.namePrefix}_GLOBAL_CONFIG_ABC`;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  const uname = `${tu.namePrefix}test@test.com`;
+  let testUserToken = '';
 
   /**
    * Register a non-admin user and an admin user; grab the predefined admin
@@ -41,17 +42,17 @@ describe(`api: POST ${path}`, () => {
       api.post('/v1/register')
       .set('Authorization', token)
       .send({
-        username: `${tu.namePrefix}test@test.com`,
-        email: `${tu.namePrefix}test@test.com`,
+        username: uname,
+        email: uname,
         password: 'abcdefghijklmnopqrstuvwxyz',
       })
       .end((err, res) => {
         if (err) {
           done(err);
-        } else {
-          testUserToken = res.body.token;
-          done();
         }
+
+        testUserToken = res.body.token;
+        done();
       });
     })
     .catch(done);

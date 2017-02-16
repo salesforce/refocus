@@ -33,6 +33,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;
+  let unameToken = '';
 
   before((done) => {
     // create user __test@refocus.com
@@ -48,10 +49,11 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
       }
 
       userId = res.body.id;
+      unameToken = res.body.token;
 
       // create token ___Voldemort
       api.post(tokenPath)
-      .set('Authorization', res.body.token)
+      .set('Authorization', unameToken)
       .send({ name: tname })
       .end((err1, res1) => {
         if (err1) {

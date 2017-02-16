@@ -148,6 +148,32 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     });
   });
 
+  it('non-admin user, delete default token returns not found', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', unameToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('admin user, delete default token returns not found', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('admin user, user not found', (done) => {
     api.delete(`${path}/who@what.com/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
@@ -155,9 +181,9 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        done();
       }
+
+      done();
     });
   });
 

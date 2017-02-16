@@ -24,7 +24,7 @@ const path = '/v1/register';
 describe('api: registerUser', () => {
   after(u.forceDelete);
 
-  it('successful user registration does not return default token', (done) => {
+  it('successful user registration does not persist token', (done) => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)

@@ -72,9 +72,7 @@ module.exports = (passportModule) => {
         email: req.body.email,
         password: userPassword,
       })
-      .then((newUserCreated) => {
-        done(null, newUserCreated);
-      })
+      .then((newUserCreated) => done(null, newUserCreated))
       .catch((_err) => done(_err));
     })
     .catch((err) => done(err));
