@@ -156,17 +156,9 @@ describe(`api: POST ${path}`, () => {
       api.post(path)
       .set('Authorization', token)
       .send(aspectToPost)
-      .expect((res) => {
-        expect(res.body.tags).to.have.length(ONE);
-        expect(res.body.tags).to.include.members(tags);
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end(() => done());
     });
 
     it('post aspect with tags of size zero', (done) => {

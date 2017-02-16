@@ -12,7 +12,7 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
-
+const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/aspects');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');

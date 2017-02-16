@@ -81,16 +81,49 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  describe('duplicate tags fail', () => {
+    it('GET with tag EXCLUDE filter', (done) => {
+      api.get(`${path}?tags=-Foo,-Foo`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end(() => done());
+    });
+
+    it('GET with tag EXCLUDE filter case-sensitive', (done) => {
+      api.get(`${path}?tags=-Foo,foo`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end(() => done());
+    });
+
+    it('GET with tag INCLUDE filter', (done) => {
+      api.get(`${path}?tags=Foo,Foo`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end(() => done());
+    });
+
+    it('GET with tag INCLUDE filter case-sensitive', (done) => {
+      api.get(`${path}?tags=Foo,foo`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(/DuplicateFieldError/)
+      .end(() => done());
+    });
+  });
+
   describe('Single Values: ', () => {
-
-    // TODO: test for duplicate tags
-
     it('filter by EXCLUDE tags returns expected values', (done) => {
       api.get(path + '?tags=-foo')
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[1].tags).to.not.contain('foo');
       })
       .end((err /* , res */) => done(err));
     });
@@ -101,6 +134,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
       })
       .end((err /* , res */) => done(err));
     });
