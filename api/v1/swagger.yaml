@@ -196,9 +196,11 @@ paths:
              case-insensitive. For example, ?tags=FOO,BAR will only return
              subjects with tags FOO or BAR. Prefix each of the tag name with
              a negative sign to indicate that a subject with that tag should
-             be excluded. For example, ?tags=-BAZ,-FOO will return only the
-             subjects with tag name not equal to BAZ or FOO. Subjects without
-             tags are not included in the result set.
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             subjects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. Aspects without tags are not included in the
+             include result set.
           type: string
           required: false
       responses:
