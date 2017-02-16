@@ -38,6 +38,7 @@ describe(`api: GET ${path}`, () => {
       valueLabel: 'ms',
       valueType: 'NUMERIC',
       rank: 2,
+      tags: ['foo', 'bar']
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -81,6 +82,29 @@ describe(`api: GET ${path}`, () => {
   after(tu.forceDeleteUser);
 
   describe('Single Values: ', () => {
+
+    // TODO: test for duplicate tags
+
+    it('filter by EXCLUDE tags returns expected values', (done) => {
+      api.get(path + '?tags=-foo')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+      })
+      .end((err /* , res */) => done(err));
+    });
+
+    it('filter by INCLUDE tags returns expected values', (done) => {
+      api.get(path + '?tags=foo')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+      })
+      .end((err /* , res */) => done(err));
+    });
+
     it('filter by BOOLEAN returns expected values', (done) => {
       api.get(path + '?valueType=PERCENT') // BOOLEAN is default
       .set('Authorization', token)

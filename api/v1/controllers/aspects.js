@@ -29,6 +29,56 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const ZERO = 0;
+const ONE = 1;
+/**
+ * Given an array, return true if there
+ * are duplicates. False otherwise.
+ *
+ * @param {Array} tagsArr The input array
+ * @returns {Boolean} whether input array
+ * contains duplicates
+ */
+function checkDuplicates(tagsArr) {
+  const LEN = tagsArr.length - ONE;
+  const copyArr = []; // store lowercase copies
+  let toAdd;
+  for (let i = LEN; i >= ZERO; i--) {
+    toAdd = tagsArr[i].toLowerCase();
+
+    // if duplicate found, return true
+    if (copyArr.indexOf(toAdd) > -ONE) {
+      return true;
+    }
+
+    copyArr.push(toAdd);
+  }
+
+  return false;
+}
+
+/**
+ * Validates the given fields from request body or url.
+ * If fails, throws a corresponding error.
+ * @param {Object} requestBody Fields from request body
+ * @param {Object} params Fields from url
+ */
+function validateRequest(requestBody, params) {
+  let absolutePath = '';
+  let tags = [];
+  if (requestBody) {
+    tags = requestBody.tags;
+  } else if (params) {
+    // params.tags.value is a comma delimited string, not empty.
+    tags = params.tags.value ? params.tags.value.split(',') : [];
+  }
+
+  if (tags && tags.length) {
+    if (checkDuplicates(tags)) {
+      throw new apiErrors.DuplicateFieldError();
+    }
+  }
+}
 
 module.exports = {
 
@@ -55,6 +105,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findAspects(req, res, next) {
+    validateRequest(null, req.swagger.params);
     doFind(req, res, next, helper);
   },
 
@@ -158,6 +209,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchAspect(req, res, next) {
+    validateRequest(req.body);
     doPatch(req, res, next, helper);
   },
 
@@ -171,6 +223,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postAspect(req, res, next) {
+    validateRequest(req.body);
     doPost(req, res, next, helper);
   },
 
@@ -185,6 +238,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putAspect(req, res, next) {
+    validateRequest(req.body);
     doPut(req, res, next, helper);
   },
 

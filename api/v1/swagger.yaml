@@ -184,6 +184,23 @@ paths:
             Filter by aspect status.
           required: false
           type: string
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             subjects with tags FOO or BAR. Prefix each of the tag name with
+             a negative sign to indicate that a subject with that tag should
+             be excluded. For example, ?tags=-BAZ,-FOO will return only the
+             subjects with tag name not equal to BAZ or FOO. Subjects without
+             tags are not included in the result set.
+          type: string
+          required: false
       responses:
         200:
           description: >-
@@ -5658,7 +5675,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or username of the user whose tokens you to retrieve. User 
+            The id or username of the user whose tokens you to retrieve. User
             IDs are case-sensitive.
           required: true
           type: string
