@@ -41,10 +41,16 @@ const ONE = 1;
  */
 function checkDuplicates(tagsArr) {
   const LEN = tagsArr.length - ONE;
-  const copyArr = []; // store lowercase copies
+
+  // store lowercase copies
+  const copyArr = [];
   let toAdd;
   for (let i = LEN; i >= ZERO; i--) {
-    toAdd = tagsArr[i].toLowerCase();
+    let string = tagsArr[i];
+
+    // if the string begins with -, use the rest of the string for omparison
+    toAdd = string[0] === '-' ? string.slice(1).toLowerCase() :
+      string.toLowerCase();
 
     // if duplicate found, return true
     if (copyArr.indexOf(toAdd) > -ONE) {

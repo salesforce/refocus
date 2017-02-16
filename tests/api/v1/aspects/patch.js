@@ -133,6 +133,22 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
+
+  it('with same tags fails', (done) => {
+    asp.tags = ['tag1', 'tag1'];
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send(asp)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+      done();
+    });
+  });
+
   it('patch tags multiple', (done) => {
     const tags = ['tag0', 'tag1', 'tag2'];
     asp.tags = tags;
@@ -140,15 +156,13 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send(asp)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.tags).to.have.length(tags.length);
-      expect(res.body.tags).to.have.members(tags);
-    })
-    .end((err /* , res */) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.tags).to.have.length(tags.length);
+      expect(res.body.tags).to.have.members(tags);
       done();
     });
   });

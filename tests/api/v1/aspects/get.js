@@ -82,36 +82,60 @@ describe(`api: GET ${path}`, () => {
   after(tu.forceDeleteUser);
 
   describe('duplicate tags fail', () => {
-    it('GET with tag EXCLUDE filter', (done) => {
+    it('EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-Foo,-Foo`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/DuplicateFieldError/)
-      .end(() => done());
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+        done();
+      });
     });
 
-    it('GET with tag EXCLUDE filter case-sensitive', (done) => {
+    it('EXCLUDE filter case-sensitive', (done) => {
       api.get(`${path}?tags=-Foo,foo`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/DuplicateFieldError/)
-      .end(() => done());
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+        done();
+      });
     });
 
-    it('GET with tag INCLUDE filter', (done) => {
+    it('INCLUDE filter', (done) => {
       api.get(`${path}?tags=Foo,Foo`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/DuplicateFieldError/)
-      .end(() => done());
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+        done();
+      });
     });
 
-    it('GET with tag INCLUDE filter case-sensitive', (done) => {
+    it('INCLUDE filter case-sensitive', (done) => {
       api.get(`${path}?tags=Foo,foo`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(/DuplicateFieldError/)
-      .end(() => done());
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+        done();
+      });
     });
   });
 

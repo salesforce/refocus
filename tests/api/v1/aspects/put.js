@@ -284,6 +284,28 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
+    it('duplicate tags fails', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Pressure`,
+        timeout: '110s',
+      };
+      const tags = ['___na', '___na'];
+      aspectToPost.tags = tags;
+
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
+        done();
+      });
+    });
+
     it('update to remove all tags', (done) => {
       const toPut = {
         name: `${tu.namePrefix}newName`,
