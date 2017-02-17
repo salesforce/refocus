@@ -158,6 +158,7 @@ module.exports = {
    */
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: findSamples');
       // get all subjects from db
       Subject.findAll()
       .then((subjects) => {
@@ -197,6 +198,7 @@ module.exports = {
         });
       });
     } else {
+      console.log('NO REDIS: findSamples');
       doFind(req, res, next, helper);
     }
   },
@@ -212,6 +214,7 @@ module.exports = {
    */
   getSample(req, res, next) {
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: getSample');
       const sampleName = req.swagger.params.key.value;
       const subjectName = sampleName.split('|')[0].toLowerCase();
       const aspectName = sampleName.split('|')[1].toLowerCase();
@@ -223,6 +226,7 @@ module.exports = {
         .json(u.responsify(jsonRes, helper, req.method));
       });
     } else {
+      console.log('USING REDIS: getSample');
       doGet(req, res, next, helper);
     }
   },
@@ -282,8 +286,10 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: upsertSample');
       upsertSampleInRedis(req, res, next);
     } else {
+      console.log('NO REDIS: upsertSample');
       const resultObj = { reqStartTime: new Date() };
       u.getUserNameFromToken(req,
         featureToggles.isFeatureEnabled('enforceWritePermission'))
@@ -318,8 +324,10 @@ module.exports = {
    */
   bulkUpsertSample(req, res/* , next */) {
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: bulkUpsertSample');
       bulkUpsertSamplesInRedis(req, res);
     } else {
+      console.log('NO REDIS: bulkUpsertSample');
       const resultObj = { reqStartTime: new Date() };
       const reqStartTime = Date.now();
       const value = req.swagger.params.queryBody.value;

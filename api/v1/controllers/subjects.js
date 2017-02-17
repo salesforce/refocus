@@ -206,11 +206,18 @@ module.exports = {
       if (depth > ZERO) {
         retval = helper.deleteChildren(retval, depth);
       }
-      helper.modifyAPIResponse(retval, params)
-      .then((_retval) => {
+
+      if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+        helper.modifyAPIResponse(retval, params)
+        .then((_retval) => {
+          u.logAPI(req, resultObj, retval);
+          res.status(httpStatus.OK).json(_retval);
+        });
+      } else {
+        retval = helper.modifyAPIResponse(retval, params);
         u.logAPI(req, resultObj, retval);
-        res.status(httpStatus.OK).json(_retval);
-      });
+        res.status(httpStatus.OK).json(retval);
+      }
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // getSubjectHierarchy
