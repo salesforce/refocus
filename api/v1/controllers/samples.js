@@ -71,6 +71,7 @@ function upsertSampleInRedis(req, res /*, next*/) {
       console.log('Sample updated:', sampResponseObj.name);
     }
 
+    console.timeEnd('upsertSample');
     res.status(httpStatus.OK)
     .json(u.responsify(sampResponseObj, helper, req.method));
   });
@@ -128,6 +129,7 @@ function bulkUpsertSamplesInRedis(req, res, next) {
   .then(() => r.batch(commands).execAsync())
   .then((response) => {
     console.log('Bulk upsert response', response);
+    console.timeEnd('bulkUpsertSample');
     res.status(httpStatus.OK).json({ status: 'OK' });
   });
 }
@@ -157,6 +159,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
+    console.time('getALLSamples');
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       console.log('USING REDIS: findSamples');
       // get all subjects from db
@@ -194,12 +197,14 @@ module.exports = {
               responseObj.push(sampleJson);
             });
           });
+          console.timeEnd('getALLSamples');
           res.status(httpStatus.OK).json(responseObj);
         });
       });
     } else {
       console.log('NO REDIS: findSamples');
       doFind(req, res, next, helper);
+      console.timeEnd('getALLSamples');
     }
   },
 
@@ -213,21 +218,33 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
+    console.time('getSample');
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       console.log('USING REDIS: getSample');
       const sampleName = req.swagger.params.key.value;
       const subjectName = sampleName.split('|')[0].toLowerCase();
       const aspectName = sampleName.split('|')[1].toLowerCase();
+      let response;
 
+      // get sample
       r.hgetAsync('samsto:subjects:' + subjectName, aspectName)
-      .then((sampRedis) => {
-        const jsonRes = JSON.parse(sampRedis);
+      .then((sampleRes) => {
+        const jsonSamp = JSON.parse(sampleRes);
+        response = jsonSamp;
+        return r.getAsync('refocache:aspects:' + aspectName);
+      })
+      .then((aspectFromRedis) => {
+        // get aspect and attach to sample
+        response.aspect = JSON.parse(aspectFromRedis);
         res.status(httpStatus.OK)
-        .json(u.responsify(jsonRes, helper, req.method));
+        .json(u.responsify(response, helper, req.method));
+
+        console.timeEnd('getSample');
       });
     } else {
       console.log('USING REDIS: getSample');
       doGet(req, res, next, helper);
+      console.timeEnd('getSample');
     }
   },
 
@@ -285,6 +302,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
+    console.time('upsertSample');
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       console.log('USING REDIS: upsertSample');
       upsertSampleInRedis(req, res, next);
@@ -303,6 +321,7 @@ module.exports = {
         }
 
         u.logAPI(req, resultObj, o.dataValues);
+        console.timeEnd('upsertSample');
         return res.status(httpStatus.OK)
           .json(u.responsify(o, helper, req.method));
       })
@@ -323,6 +342,7 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
+    console.time('bulkUpsertSample');
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       console.log('USING REDIS: bulkUpsertSample');
       bulkUpsertSamplesInRedis(req, res);
@@ -357,6 +377,7 @@ module.exports = {
 
       const body = { status: 'OK' };
       u.logAPI(req, resultObj, body, value.length);
+      console.timeEnd('bulkUpsertSample');
       return res.status(httpStatus.OK).json(body);
     }
   },
