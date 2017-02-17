@@ -118,7 +118,7 @@ function verifyToken(req, cb) {
               where: {
                 name: decodedData.tokenname,
                 createdBy: user.id,
-              }
+              },
             })
             .then(checkTokenRecord)
             .then((ok) => {
@@ -128,9 +128,7 @@ function verifyToken(req, cb) {
                 return handleInvalidToken(cb);
               }
             })
-            .catch((tokenError) => {
-              return handleError(cb, tokenError, 'ApiToken');
-            });
+            .catch((tokenError) => handleError(cb, tokenError, 'ApiToken'));
           } else { // eslint-disable-line no-else-return
             return handleInvalidToken(cb);
           }
