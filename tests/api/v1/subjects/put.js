@@ -185,6 +185,7 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({
       name: updatedName,
+
       // need isPublished here since descendants are published
       isPublished: n0.isPublished,
     })
@@ -195,6 +196,46 @@ describe(`api: PUT ${path}`, () => {
       }
 
       expect(res.body.absolutePath).to.equal(updatedName);
+      done();
+    });
+  });
+
+  it('put subject with sortBy', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      sortBy: '_1',
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.sortBy).to.have.length(2);
+      expect(res.body.sortBy).to.equal('_1');
+      done();
+    });
+  });
+
+  it('put subject with no sortBy parameter', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.not.have.property('sortBy');
       done();
     });
   });
