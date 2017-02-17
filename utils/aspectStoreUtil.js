@@ -39,16 +39,16 @@ function getAbsolutePath(name) {
  */
 function purge() {
   console.log('the purge begins');
-  console.log(`REDIS COMMAND: smembers ${ASPECT_SET}`);
+  // console.log(`REDIS COMMAND: smembers ${ASPECT_SET}`);
   return r.smembersAsync(ASPECT_SET)
   .then((aspectKeys) => {
-    console.log(`REDIS RESPONSE: ${aspectKeys}`);
+    // console.log(`REDIS RESPONSE: ${aspectKeys}`);
     aspectKeys.push(ASPECT_SET);
-    console.log(`REDIS COMMAND: del ${aspectKeys}`);
+    // console.log(`REDIS COMMAND: del ${aspectKeys}`);
     return r.delAsync(aspectKeys);
   })
   .then((res) => {
-    console.log(`REDIS RESPONSE: ${res}`);
+    // console.log(`REDIS RESPONSE: ${res}`);
     console.log('completed purge');
     return true;
   })
@@ -79,11 +79,11 @@ function init() {
       commands.push(['set', aspectkey, JSON.stringify(aspect)]);
     });
     commands.push(['sadd', ASPECT_SET, Array.from(aspectKeys)]);
-    console.log('REDIS COMMANDS (BATCH):', commands);
+    // console.log('REDIS COMMANDS (BATCH):', commands);
     return r.batch(commands).execAsync();
   })
   .then((res) => {
-    console.log('REDIS RESPONSES (BATCH):', res);
+    // console.log('REDIS RESPONSES (BATCH):', res);
     console.log('Finished initializing the aspect store');
     return true;
   })

@@ -116,18 +116,18 @@ module.exports = function errorHandler(err, req, res, next) {
       }
     }
 
-    // console.log('\n-----ERROR HANDLER------------------------------------');
-    // console.log('ERROR STATUS: ', err.status);
-    // console.log('ERROR RESPONSE: ', errResponse);
-    // console.log('REQUEST BODY: ', req.body);
-    // console.log('STACK: ', err.stack);
-    // console.log('------------------------------------------------------\n');
+    console.log('\n-----ERROR HANDLER------------------------------------');
+    console.log('ERROR STATUS: ', err.status);
+    console.log('ERROR RESPONSE: ', errResponse);
+    console.log('REQUEST BODY: ', req.body);
+    console.log('STACK: ', err.stack);
+    console.log('------------------------------------------------------\n');
     res.status(err.status).json(errResponse);
   } catch (err2) {
-    // console.log('\n-----ERROR HANDLER CATCH------------------------------');
-    // console.log(err2);
-    // console.log('STACK: ', util.isError(err2) && err2.stack);
-    // console.log('------------------------------------------------------\n');
+    console.log('\n-----ERROR HANDLER CATCH------------------------------');
+    console.log(err2);
+    console.log('STACK: ', util.isError(err2) && err2.stack);
+    console.log('------------------------------------------------------\n');
     return next;
   }
 };

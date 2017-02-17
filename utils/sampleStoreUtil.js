@@ -39,16 +39,16 @@ function getAbsolutePath(name) {
  */
 function purge() {
   console.log('the purge begins');
-  console.log(`REDIS COMMAND: smembers ${SUBJECT_SET}`);
+  // console.log(`REDIS COMMAND: smembers ${SUBJECT_SET}`);
   return r.smembersAsync(SUBJECT_SET)
   .then((subjectKeys) => {
-    console.log(`REDIS RESPONSE: ${subjectKeys}`);
+    // console.log(`REDIS RESPONSE: ${subjectKeys}`);
     subjectKeys.push(SUBJECT_SET);
-    console.log(`REDIS COMMAND: del ${subjectKeys}`);
+    // console.log(`REDIS COMMAND: del ${subjectKeys}`);
     return r.delAsync(subjectKeys);
   })
   .then((res) => {
-    console.log(`REDIS RESPONSE: ${res}`);
+    // console.log(`REDIS RESPONSE: ${res}`);
     console.log('completed purge');
     return true;
   })

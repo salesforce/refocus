@@ -72,6 +72,7 @@ function doGet(req, res, next, props) {
       // o is a sequelize obj, get dataValues obj
       u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+      console.timeEnd('getSample');
     })
     .catch((err) => u.handleError(next, err, props.modelName));
   }

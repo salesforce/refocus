@@ -71,7 +71,7 @@ function upsertSampleInRedis(req, res /*, next*/) {
       console.log('Sample updated:', sampResponseObj.name);
     }
 
-    console.timeEnd('upsertSample');
+    // console.timeEnd('upsertSample');
     res.status(httpStatus.OK)
     .json(u.responsify(sampResponseObj, helper, req.method));
   });
@@ -109,12 +109,8 @@ function bulkUpsertSamplesInRedis(req, res, next) {
         }
 
         // we can improve this by using hmset on same subject
-        commands.push([
-          'hset',
-          'samsto:subjects:' + subjectName,
-          aspectName,
-          JSON.stringify(sampleObj),
-        ]);
+
+
 
         // resolve promise
         return Promise.resolve('success');
@@ -175,6 +171,7 @@ module.exports = {
             if (allAspSamples) {
               for (const aspect in allAspSamples) {
                 if (allAspSamples.hasOwnProperty(aspect)) {
+                  // TODO: add aspect to samples
                   const sampleJsonObj = JSON.parse(allAspSamples[aspect]);
                   subSamples.push(
                     u.responsify(sampleJsonObj, helper, req.method)
@@ -225,26 +222,29 @@ module.exports = {
       const subjectName = sampleName.split('|')[0].toLowerCase();
       const aspectName = sampleName.split('|')[1].toLowerCase();
       let response;
+      const commands = [];
 
-      // get sample
-      r.hgetAsync('samsto:subjects:' + subjectName, aspectName)
-      .then((sampleRes) => {
-        const jsonSamp = JSON.parse(sampleRes);
-        response = jsonSamp;
-        return r.getAsync('refocache:aspects:' + aspectName);
-      })
-      .then((aspectFromRedis) => {
-        // get aspect and attach to sample
-        response.aspect = JSON.parse(aspectFromRedis);
+      commands.push([
+        'hget',
+        'samsto:subjects:' + subjectName,
+        aspectName,
+      ]);
+      commands.push([
+        'get',
+        'refocache:aspects:' + aspectName,
+      ]);
+
+      r.batch(commands).execAsync()
+      .then((responses) => {
+        const sampObj = JSON.parse(responses[0]);
+        sampObj.aspect = JSON.parse(responses[1]);
         res.status(httpStatus.OK)
-        .json(u.responsify(response, helper, req.method));
-
+        .json(u.responsify(sampObj, helper, req.method));
         console.timeEnd('getSample');
       });
     } else {
-      console.log('USING REDIS: getSample');
+      console.log('NO REDIS: getSample');
       doGet(req, res, next, helper);
-      console.timeEnd('getSample');
     }
   },
 
@@ -302,7 +302,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    console.time('upsertSample');
+    // console.time('upsertSample');
     if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       console.log('USING REDIS: upsertSample');
       upsertSampleInRedis(req, res, next);
@@ -321,7 +321,7 @@ module.exports = {
         }
 
         u.logAPI(req, resultObj, o.dataValues);
-        console.timeEnd('upsertSample');
+        // console.timeEnd('upsertSample');
         return res.status(httpStatus.OK)
           .json(u.responsify(o, helper, req.method));
       })
@@ -377,7 +377,6 @@ module.exports = {
 
       const body = { status: 'OK' };
       u.logAPI(req, resultObj, body, value.length);
-      console.timeEnd('bulkUpsertSample');
       return res.status(httpStatus.OK).json(body);
     }
   },
