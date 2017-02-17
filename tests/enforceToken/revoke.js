@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/tokenReq/api/token/createtoken.js
+ * tests/tokenReq/api/token/revoke.js
  */
 const expect = require('chai').expect;
 const supertest = require('supertest');
