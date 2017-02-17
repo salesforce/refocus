@@ -245,15 +245,13 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect((res) => {
-        expect(res.body.errors[0].type).to
-        .equal('InvalidFilterParameterError');
-      })
-      .end((err /* , res */) => {
+      .end((err, res ) => {
         if (err) {
           return done(err);
         }
 
+        expect(res.body.errors[0].type).to
+        .equal('InvalidFilterParameterError');
         done();
       });
     });
@@ -374,7 +372,11 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
+      .end((err, res ) => {
+        if (err) {
+          return done(err);
+        }
+
         expect(res.body).to.not.equal(null);
         expect(res.body.samples).to.have.length(2);
         expect(res.body.samples[1]).to.have.deep
@@ -384,12 +386,6 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children).to.have.length(0);
         expect(res.body.children[0].samples[0]).to.have.deep
           .property('aspect.name', 'humidity');
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
         done();
       });
     });

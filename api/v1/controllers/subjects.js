@@ -195,11 +195,7 @@ module.exports = {
     // Filter Parameter Validation
     for (let i = 0; i < filterParams.length; i++) {
       if (params[filterParams[i]].value) {
-        
-        
-        
-        
-        (params[filterParams[i]].value.split(','));
+        validateFilterParams(params[filterParams[i]].value.split(','));
       }
     }
 
