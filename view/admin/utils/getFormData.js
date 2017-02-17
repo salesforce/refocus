@@ -35,10 +35,12 @@ function fromBooleanInput(inputs, jsonData) {
         for (let j = ZERO; j < arr.length; j++) {
           intArr.push(parseInt(arr[j], 10));
         }
+
         jsonData[inputs[i].name] = intArr;
       }
     }
   }
+
   return jsonData;
 }
 
@@ -56,8 +58,9 @@ function fromTextInput(inputs, jsonData, alterDataFunc) {
     const name = inputs[i].name;
     const lastIndex = name.lastIndexOf('_');
     const key = name.substring(ZERO, lastIndex);
+
     // get the number after _
-    const index = parseInt(name.substring(lastIndex+ONE, name.length), 10);
+    const index = parseInt(name.substring(lastIndex + ONE, name.length), 10);
 
     if (inputs[i].getAttribute('type') === 'text' && key) {
       delete jsonData[name]; // ie. okRange_1
@@ -67,10 +70,12 @@ function fromTextInput(inputs, jsonData, alterDataFunc) {
         if (!jsonData[key]) {
           jsonData[key] = [];
         }
+
         jsonData[key][index] = intVal; // ie. 1, 2, 12.45
       }
     }
   }
+
   return jsonData;
 }
 
@@ -80,9 +85,19 @@ function fromTextInput(inputs, jsonData, alterDataFunc) {
  * @returns {Object} with keys to particular DOM elements
  */
 function getInputsAndSelects(form) {
-  const inputs = form.getElementsByTagName('input');
+  let inputs = [];
+  const allInputs = form.getElementsByTagName('input');
   const selects = form.getElementsByTagName('select');
   const fieldSets = form.getElementsByTagName('fieldset');
+  for (let i = allInputs.length - 1; i >= 0; i--) {
+    for (let j = fieldSets.length - 1; j >= 0; j--) {
+      // add to array if input is not in any fieldset
+      if (!fieldSets[j].contains(allInputs[i])) {
+        inputs.push(allInputs[i]);
+      }
+    }
+  }
+
   return { inputs, fieldSets, inputsAndSelects: [...inputs, ...selects] };
 }
 
@@ -99,9 +114,11 @@ function addData(fieldSets) {
     let dataObject = {};
     dataObject[objName] = [];
     const rows = fieldSets[i].getElementsByClassName('slds-form-element__row');
+
     // for each row, make new object
     for (let j = rows.length - ONE; j >= ZERO; j--) {
       const innerInputs = rows[j].getElementsByTagName('input');
+
       // if there's one field per row,
       // check whether input name === fieldset name,
       // if so add input value to dataObject
@@ -112,13 +129,17 @@ function addData(fieldSets) {
         for (let k = innerInputs.length - ONE; k >= ZERO; k--) {
           tempObj[innerInputs[k].name] = innerInputs[k].value;
         }
+
         dataObject[objName].push(tempObj);
       }
+
       tempObj = {}; // reset
     }
+
     // add fieldSet data to JSON
     jsonData[objName] = dataObject[objName];
   }
+
   return jsonData;
 }
 
@@ -131,8 +152,10 @@ function addData(fieldSets) {
  */
 function getFormData(form, aspectRangeFormat, propertyMetaData) {
   const { inputs, fieldSets, inputsAndSelects } = getInputsAndSelects(form);
+
   // for tags, relatedLinks
   const jsonData = addData(fieldSets);
+
   // check propertyMetaData for customOutput,
   // if so, get value by customValueQuery
   for (let i = propertyMetaData.length - ONE; i >= ZERO; i--) {
@@ -143,9 +166,11 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
   }
 
   for (let i = inputsAndSelects.length - ONE; i >= ZERO; i--) {
+
     // add all values together, wkthout duplicates
     if (inputsAndSelects[i].name &&
       !jsonData.hasOwnProperty(inputsAndSelects[i].name)) {
+
       // do not include radio button values
       jsonData[inputsAndSelects[i].name] = inputsAndSelects[i].value;
     }
@@ -154,14 +179,11 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
   if (aspectRangeFormat === 'BOOLEAN') {
     fromBooleanInput(inputs, jsonData);
   } else if (aspectRangeFormat === 'NUMERIC') {
-    fromTextInput(inputs, jsonData, function(value) {
-      return parseFloat(value);
-    });
+    fromTextInput(inputs, jsonData, (value) => parseFloat(value));
   } else if (aspectRangeFormat === 'PERCENT') {
-    fromTextInput(inputs, jsonData, function(value) {
-      return value/100;
-    });
+    fromTextInput(inputs, jsonData, (value) => value / 100);
   }
+
   return jsonData;
 }
 
@@ -203,7 +225,7 @@ function checkValidation(propertyMetadata, jsonData) {
         }
       }
     }
-  }).reduce(function(accumulatorObj, propertyMetadataObj) {
+  }).reduce((accumulatorObj, propertyMetadataObj) => {
     const name = propertyMetadataObj.propertyName;
     accumulatorObj[name] = jsonData[name];
     return accumulatorObj;
