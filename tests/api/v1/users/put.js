@@ -36,7 +36,8 @@ describe(`api: PUT ${path}`, () => {
   const userFive = `${tu.namePrefix}bbbbb@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
-  const adminUserToken = jwtUtil.createToken(
+  // out of the box admin user token
+  const OBAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
 
@@ -126,8 +127,31 @@ describe(`api: PUT ${path}`, () => {
       .catch(done);
     });
 
-    it('admin user can change a normal user\'s profileId', (done) => {
-      const newName = 'llllllllllll' + userZero;
+    it('cannot put to OB Admin', (done) => {
+      const newName = `${tu.namePrefix}` + userFour;
+      api.put(path + '/' + adminUser.name)
+      .set('Authorization', adminUserToken)
+      .send({
+        profileId: profileTwoId,
+        name: newName,
+        email: newName,
+        password: newName,
+      })
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors).to.have.length(1);
+        expect(res.body.errors).to.have.deep.property('[0].type',
+          'AdminUpdateDeleteForbidden');
+        done();
+      });
+    });
+
+    it('can change a normal user\'s profileId', (done) => {
+      const newName = `${tu.namePrefix}` + userFour;
       api.put(path + '/' + userZero)
       .set('Authorization', adminUserToken)
       .send({
@@ -149,12 +173,12 @@ describe(`api: PUT ${path}`, () => {
   });
 
   describe('normal user:', () => {
-    it('normal user cannot change its profileId',
+    it('cannot change its profileId',
       (done) => {
       const normalUserToken = jwtUtil.createToken(
         userFive, userFive
       );
-      const newName = 'llllllllllll' + userFive;
+      const newName = `${tu.namePrefix}` + userFive;
       api.put(path + '/' + userFive)
       .set('Authorization', normalUserToken)
       .send({
@@ -177,12 +201,12 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-    it('normal user can PUT, when its new profileId === old profileId',
+    it('can PUT, when its new profileId === old profileId',
       (done) => {
       const normalUserToken = jwtUtil.createToken(
         userThree, userThree
       );
-      const newName = 'llllllllllll' + userThree;
+      const newName = `${tu.namePrefix}` + userThree;
       api.put(path + '/' + userThree)
       .set('Authorization', normalUserToken)
       .send({
@@ -203,11 +227,11 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-    it('normal user FORBIDDEN from changing another user\'s profileId', (done) => {
+    it('FORBIDDEN from changing another user\'s profileId', (done) => {
       const userOneToken = jwtUtil.createToken(
         userOne, userOne
       );
-      const newName = 'rwewewewewewew' + userTwo;
+      const newName = `${tu.namePrefix}` + userTwo;
       api.put(path + '/' + userTwo)
       .set('Authorization', userOneToken)
       .send({
@@ -231,10 +255,10 @@ describe(`api: PUT ${path}`, () => {
   });
 
   describe('out of box admin:', () => {
-    it('admin user can PUT normal user', (done) => {
-      const newName = 'rwewewewewewew' + userOne;
+    it('can PUT normal user', (done) => {
+      const newName = `${tu.namePrefix}` + userOne;
       api.put(path + '/' + userOne)
-      .set('Authorization', adminUserToken)
+      .set('Authorization', OBAdminUserToken)
       .send({
         profileId: profileTwoId,
         name: newName,
@@ -253,10 +277,10 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-    it('admin FORBIDDEN from changing their profileId', (done) => {
-      const newName = 'adsaadadadadda' + userOne;
+    it('FORBIDDEN from changing own profileId', (done) => {
+      const newName = `${tu.namePrefix}` + userOne;
       api.put(path + '/' + adminUser.name)
-      .set('Authorization', adminUserToken)
+      .set('Authorization', OBAdminUserToken)
       .send({
         profileId: profileOneId,
         name: newName,
