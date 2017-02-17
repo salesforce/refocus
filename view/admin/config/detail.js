@@ -51,7 +51,7 @@ const aspectMetaData = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "object" }
+      type={ 'object' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ ['url', 'name'] }
@@ -64,7 +64,7 @@ const aspectMetaData = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "string" }
+      type={ 'string' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ [] }
@@ -188,6 +188,10 @@ const subjectMetaData = [
     propertyName: 'description',
     displayName: 'Description',
   }, {
+    propertyName: 'sortBy',
+    displayName: 'Sort By',
+    validate: /^[0-9A-Za-z_\\-]{0,254}$/,
+  }, {
     propertyName: 'helpEmail',
     displayName: 'Help Email',
   }, {
@@ -203,7 +207,7 @@ const subjectMetaData = [
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
-        type={ "object" }
+        type={ 'object' }
         disabled={ object.disabled }
         values={ object.value }
         fields={ ['url', 'name'] }
@@ -216,7 +220,7 @@ const subjectMetaData = [
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
-        type={ "string" }
+        type={ 'string' }
         disabled={ object.disabled }
         values={ object.value }
         fields={ [] }

@@ -52,6 +52,7 @@ obj.subjects = [{
   propsFromForm: ['subjects', 'parentAbsolutePath'],
   customOutput: (object) => {
     const { subjects, parentAbsolutePath } = object;
+
     // the default value is parentAbsolutePath,
     // input value updates to the subject's absolutePath, since that is
     // its child's parentAbsolutePath
@@ -68,18 +69,22 @@ obj.subjects = [{
   propertyName: 'description',
   displayName: 'Description',
 }, {
-  propertyName: 'helpEmail',
-  displayName: 'Help Email',
+  propertyName: 'sortBy',
+  displayName: 'Sort By',
+  validate: /^[0-9A-Za-z_\\-]{0,254}$/,
 }, {
   propertyName: 'helpUrl',
   displayName: 'Help Url',
+}, {
+  propertyName: 'helpEmail',
+  displayName: 'Help Email',
 }, {
   propertyName: 'relatedLinks',
   displayName: 'Related links',
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "object" }
+      type={ 'object' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ ['url', 'name'] }
@@ -92,7 +97,7 @@ obj.subjects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "string" }
+      type={ 'string' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ [] }
@@ -128,7 +133,7 @@ obj.aspects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "object" }
+      type={ 'object' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ ['url', 'name'] }
@@ -141,7 +146,7 @@ obj.aspects = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
-      type={ "string" }
+      type={ 'string' }
       disabled={ object.disabled }
       values={ object.value }
       fields={ [] }
@@ -193,6 +198,7 @@ obj.aspects = [{
       disabled={ false }
     />;
   },
-}];
+},
+];
 
 module.exports = obj;
