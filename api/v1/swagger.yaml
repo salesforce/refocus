@@ -3854,6 +3854,8 @@ paths:
                   provide any string value. Max 254 characters; case insensitive;
                   allows alpha-numeric characters, + underscore (_) and dash (-).
                   Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4036,6 +4038,8 @@ paths:
                   provide any string value. Max 254 characters; case insensitive;
                   allows alpha-numeric characters, + underscore (_) and dash (-).
                   Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4152,6 +4156,8 @@ paths:
                   provide any string value. Max 254 characters; case insensitive;
                   allows alpha-numeric characters, + underscore (_) and dash (-).
                   Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4273,6 +4279,8 @@ paths:
                   provide any string value. Max 254 characters; case insensitive;
                   allows alpha-numeric characters, + underscore (_) and dash (-).
                   Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               tags:
                 type: array
                 items:
@@ -5018,8 +5026,6 @@ paths:
                   First and last name.
               password:
                 type: string
-            required:
-              - name
       responses:
         200:
           description: >-
@@ -5076,6 +5082,8 @@ paths:
                 description: >
                   First and last name.
               password:
+                type: string
+              profileId:
                 type: string
             required:
               - name
@@ -6832,6 +6840,8 @@ definitions:
           provide any string value. Max 254 characters; case insensitive;
           allows alpha-numeric characters, + underscore (_) and dash (-).
           Filter by sortBy; asterisk (*) wildcards ok.
+          Max 254 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
       parentId:
         type: string
         readOnly: true
