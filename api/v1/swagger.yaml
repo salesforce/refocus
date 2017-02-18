@@ -4997,8 +4997,6 @@ paths:
                   First and last name.
               password:
                 type: string
-            required:
-              - name
       responses:
         200:
           description: >-
@@ -5055,6 +5053,8 @@ paths:
                 description: >
                   First and last name.
               password:
+                type: string
+              profileId:
                 type: string
             required:
               - name
