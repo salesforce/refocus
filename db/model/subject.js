@@ -119,8 +119,9 @@ module.exports = function subject(seq, dataTypes) {
     sortBy: {
       type: dataTypes.STRING(constants.fieldlen.sortField),
       allowNull: true,
+      defaultValue: '',
       validate: {
-        is: constants.nameRegex,
+        is: constants.sortByRegex,
       },
     },
   }, {
