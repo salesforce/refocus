@@ -14,8 +14,9 @@
 const jwt = require('jsonwebtoken');
 const apiErrors = require('../api/v1/apiErrors');
 const conf = require('../config');
-const env = conf.environment[conf.nodeEnv];
+const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
+const Token = require('../db/index').Token;
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -43,7 +44,47 @@ function handleInvalidToken(cb) {
 }
 
 /**
- * Verify jwt token.
+ * Verify jwt token. If verify successful, also check the token record in the
+ * db (exists AND is not revoked) and load the user record from the db and add
+ * to the request. (Skip the token record check if the token is the default UI
+ * token.)
+ *
+ * @param {object} t - The Token object from the db
+ * @returns {boolean} true if ok, otherwise throws error
+ */
+function checkTokenRecord(t) {
+  if (t && t.isRevoked === '0') {
+    return true;
+  }
+
+  if (!t) {
+    const err = new apiErrors.ForbiddenError({
+      explanation: 'Missing user for the specified token. ' +
+        'Please contact your Refocus administrator.',
+    });
+    throw err;
+  }
+
+  if (t.isRevoked !== '0') {
+    const err = new apiErrors.ForbiddenError({
+      explanation: 'Token was revoked. Please contact your ' +
+        'Refocus administrator.',
+    });
+    throw err;
+  }
+
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'Invalid Token.',
+  });
+  throw err;
+} // checkTokenRecord
+
+/**
+ * Verify jwt token. If verify successful, also check the token record in the
+ * db (exists AND is not revoked) and load the user record from the db and add
+ * to the request. (Skip the token record check if the token is the default UI
+ * token.)
+ *
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
  */
@@ -56,25 +97,47 @@ function verifyToken(req, cb) {
   }
 
   if (token) {
-    jwt.verify(token, env.tokenSecret, {}, (err, decodedData) => {
+    jwt.verify(token, secret, {}, (err, decodedData) => {
       if (err) {
-        handleInvalidToken(cb);
-      } else {
-        User.findOne({ where: { name: decodedData.username } })
+        return handleInvalidToken(cb);
+      } else { // eslint-disable-line no-else-return
+        return User.findOne({ where: { name: decodedData.username } })
         .then((user) => {
-          // set user in request
           if (user) {
-            req.user = user;
-            return cb();
-          }
+            req.user = user; // set user in request
 
-          return handleInvalidToken(cb);
+            /*
+             * No need to check the token record if this is the default UI
+             * token.
+             */
+            if (decodedData.username === decodedData.tokenname) {
+              return cb();
+            }
+
+            return Token.findOne({
+              where: {
+                name: decodedData.tokenname,
+                createdBy: user.id,
+              },
+            })
+            .then(checkTokenRecord)
+            .then((ok) => {
+              if (ok) {
+                return cb();
+              } else { // eslint-disable-line no-else-return
+                return handleInvalidToken(cb);
+              }
+            })
+            .catch((tokenError) => handleError(cb, tokenError, 'ApiToken'));
+          } else { // eslint-disable-line no-else-return
+            return handleInvalidToken(cb);
+          }
         });
       }
     });
   } else {
     const err = new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found',
+      explanation: 'No authorization token was found.',
     });
     handleError(cb, err, 'ApiToken');
   }
@@ -90,7 +153,7 @@ function verifyToken(req, cb) {
 function getTokenDetailsFromTokenString(s) {
   return new Promise((resolve, reject) => {
     if (s) {
-      jwt.verify(s, env.tokenSecret, {}, (err, decodedData) => {
+      jwt.verify(s, secret, {}, (err, decodedData) => {
         if (err !== null || !decodedData) {
           return reject(new apiErrors.ForbiddenError({
             explanation: 'No authorization token was found',
@@ -138,7 +201,7 @@ function createToken(tokenName, userName) {
     username: userName,
     timestamp: Date.now,
   };
-  const createdToken = jwt.sign(jwtClaim, env.tokenSecret);
+  const createdToken = jwt.sign(jwtClaim, secret);
   return createdToken;
 }
 
