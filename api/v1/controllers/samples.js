@@ -77,7 +77,7 @@ function upsertSampleInRedis(req, res /*, next*/) {
   });
 }
 
-function bulkUpsertSamplesInRedis(req, res, next) {
+function bulkUpsertSamplesInRedis(req, res, rnStr) {
   const sampleQueryBody = req.swagger.params.queryBody.value;
   const commands = [];
 
@@ -109,8 +109,12 @@ function bulkUpsertSamplesInRedis(req, res, next) {
         }
 
         // we can improve this by using hmset on same subject
-
-
+        commands.push([
+          'hset',
+          'samsto:subjects:' + subjectName,
+          aspectName,
+          JSON.stringify(sampleObj),
+        ]);
 
         // resolve promise
         return Promise.resolve('success');
@@ -124,8 +128,87 @@ function bulkUpsertSamplesInRedis(req, res, next) {
   Promise.all(promises)
   .then(() => r.batch(commands).execAsync())
   .then((response) => {
-    console.log('Bulk upsert response', response);
-    console.timeEnd('bulkUpsertSample');
+    // console.log('Bulk upsert response', response);
+    console.timeEnd(rnStr);
+    res.status(httpStatus.OK).json({ status: 'OK' });
+  });
+}
+
+function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
+  const sampleQueryBody = req.swagger.params.queryBody.value;
+  const commands = [];
+
+  // promises for each sample upsert
+  const promises = sampleQueryBody.map((sampleReq) => {
+    const sampleName = sampleReq.name.toLowerCase();
+    // const subjectName = sampleReq.name.split('|')[0].toLowerCase();
+    const aspectName = sampleReq.name.split('|')[1].toLowerCase();
+    let sampStatusFromRedis;
+
+    // get sample from redis
+    return r.hgetAsync('samsto:samples:' + sampleName, 'status')
+    .then((sampleValFromRedis) => {
+      sampStatusFromRedis = sampleValFromRedis;
+      // get aspect from redis
+      return r.getAsync('refocache:aspects:' + aspectName);
+    })
+    .then((aspectFromRedis) => {
+      // is sample exists, parse aspect and sample, update sample
+      if (sampStatusFromRedis) {
+        // const sampleObj = JSON.parse(sampFromRedis);
+        const aspObject = JSON.parse(aspectFromRedis);
+
+        // calc status
+        const newStatus = sampleUtils.computeStatus(aspObject, sampleReq.value);
+        if (sampStatusFromRedis !== newStatus) {
+          // console.log('changing status:', newStatus);
+          commands.push([
+            'hmset',
+            'samsto:samples:' + sampleName,
+            'previousStatus',
+            sampStatusFromRedis,
+            'status',
+            newStatus,
+            'statusChangedAt',
+            new Date().toString(),
+            'updatedAt',
+            new Date().toString(),
+          ]);
+          // commands.push([
+          //   'hset',
+          //   'samsto:samples:' + sampleName,
+          //   'status',
+          //   newStatus,
+          // ]);
+          // commands.push([
+          //   'hset',
+          //   'samsto:samples:' + sampleName,
+          //   'statusChangedAt',
+          //   new Date().toString(),
+          // ]);
+        } else {
+          commands.push([
+            'hset',
+            'samsto:samples:' + sampleName,
+            'updatedAt',
+            new Date().toString(),
+          ]);
+        }
+
+        // resolve promise
+        return Promise.resolve('success');
+      }
+
+      // TODO: create sample, currently not required for testing writes
+      return Promise.resolve('success');
+    });
+  });
+
+  Promise.all(promises)
+  .then(() => r.batch(commands).execAsync())
+  .then((response) => {
+    // console.log('Bulk upsert response', response);
+    console.timeEnd(rnStr);
     res.status(httpStatus.OK).json({ status: 'OK' });
   });
 }
@@ -342,10 +425,15 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
-    console.time('bulkUpsertSample');
-    if (featureToggles.isFeatureEnabled('enableRedisOps')) {
-      console.log('USING REDIS: bulkUpsertSample');
-      bulkUpsertSamplesInRedis(req, res);
+    const rn = Math.floor((Math.random() * 1000) + 1);
+    const rnStr = rn.toString() + 'bulkUpsertSample';
+    console.time(rnStr);
+    if (featureToggles.isFeatureEnabled('enableRedisKV')) {
+      // console.log('USING REDIS: bulkUpsertSampleKV');
+      bulkUpsertSamplesInRedisKV(req, res, rnStr);
+    } else if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      // console.log('USING REDIS: bulkUpsertSample');
+      bulkUpsertSamplesInRedis(req, res, rnStr);
     } else {
       console.log('NO REDIS: bulkUpsertSample');
       const resultObj = { reqStartTime: new Date() };
