@@ -21,6 +21,7 @@ module.exports = {
     url: 2082, // sequelize validator default
   },
   nameRegex: /^[0-9a-z_-]+$/i,
+  sortByRegex: /^[0-9a-z_-]*$/i,
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],

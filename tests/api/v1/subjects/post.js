@@ -213,6 +213,52 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
+
+    it('post subject with sortBy', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, sortBy: '_1' })
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.sortBy).to.have.length(2);
+        expect(res.body.sortBy).to.equal('_1');
+        done();
+      });
+    });
+
+    it('post subject without sortBy parameter', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s2` })
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body).to.have.property('sortBy');
+        done();
+      });
+    });
+
+    it('invalid sortBy value', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s3`, description: 'sample description', sortBy: ' ' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.text).to.contain('sortBy');
+        done();
+      });
+    });
   }); // Simple
 
   describe('With a Parent', () => {

@@ -104,7 +104,8 @@ describe('db: subject: create: ', () => {
 
     it('should fail, name too long', (done) => {
       const s =
-        u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
+        u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcde' +
+            'fghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since name is too long'));
@@ -140,10 +141,10 @@ describe('db: subject: create: ', () => {
         done();
       });
     });
-      
+
     it('should fail, invalid value for sort by', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}sortByContainsInvalidCharacters`, null);
-      s.sortBy = 'x@yz123$'
+      s.sortBy = 'x@yz123$';
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since sort by contains invalid ' +
@@ -157,7 +158,7 @@ describe('db: subject: create: ', () => {
 
     it('should fail, space in sort by', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}sortByWithSpaces`, null);
-      s.sortBy = 'abc xyz'
+      s.sortBy = 'abc xyz';
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since sort by contains space '));
@@ -167,7 +168,7 @@ describe('db: subject: create: ', () => {
         done();
       });
     });
-      
+
     it('should fail, sort by too long', (done) => {
       var invalidLengthSortBy = new Array(constants.fieldlen.sortField + 10).join('a');
       const s =
