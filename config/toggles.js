@@ -108,6 +108,9 @@ const shortTermToggles = {
   enableRedisKV: environmentVariableTrue(pe,
     'ENABLE_REDIS_KV'),
 
+  // Enable redis operations
+  populateDB: environmentVariableTrue(pe,
+    'POPULATE_DB'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

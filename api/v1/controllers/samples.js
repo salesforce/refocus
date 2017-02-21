@@ -130,7 +130,6 @@ function bulkUpsertSamplesInRedis(req, res, rnStr) {
   .then((response) => {
     // console.log('Bulk upsert response', response);
     console.timeEnd(rnStr);
-    res.status(httpStatus.OK).json({ status: 'OK' });
   });
 }
 
@@ -209,7 +208,6 @@ function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
   .then((response) => {
     // console.log('Bulk upsert response', response);
     console.timeEnd(rnStr);
-    res.status(httpStatus.OK).json({ status: 'OK' });
   });
 }
 
@@ -462,11 +460,11 @@ module.exports = {
           logAuditAPI(req, helper.modelName);
         }
       });
-
-      const body = { status: 'OK' };
-      u.logAPI(req, resultObj, body, value.length);
-      return res.status(httpStatus.OK).json(body);
     }
+
+    const body = { status: 'OK' };
+    // u.logAPI(req, resultObj, body, value.length);
+    return res.status(httpStatus.OK).json(body);
   },
 
   /**
