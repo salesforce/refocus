@@ -40,7 +40,6 @@ const ONE = 1;
  * @param {Object} params Fields from url
  */
 function validateTags(requestBody, params) {
-  let absolutePath = '';
   let tags = [];
   if (requestBody) {
     tags = requestBody.tags;

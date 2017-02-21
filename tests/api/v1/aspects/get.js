@@ -26,6 +26,7 @@ const THREE = 3;
 
 describe(`api: GET ${path}`, () => {
   let token;
+  const EXPECTED_ARR = ['toot', 'poop'];
   const toCreate = [
     {
       description: 'this is a0 description',
@@ -38,7 +39,7 @@ describe(`api: GET ${path}`, () => {
       valueLabel: 'ms',
       valueType: 'NUMERIC',
       rank: 2,
-      tags: ['foo', 'bar']
+      tags: ['foo']
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -50,6 +51,7 @@ describe(`api: GET ${path}`, () => {
       valueLabel: '%',
       valueType: 'PERCENT',
       rank: 1,
+      tags: ['bar']
     },
     {
       description: 'this is a2 description',
@@ -60,6 +62,7 @@ describe(`api: GET ${path}`, () => {
       name: `${tu.namePrefix}a2`,
       timeout: '1m',
       rank: 3,
+      tags: EXPECTED_ARR,
     },
   ];
 
@@ -81,7 +84,67 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('duplicate tags fail', () => {
+  describe('filter with tags', () => {
+    it('filter by single EXCLUDE tags returns expected values', (done) => {
+      api.get(path + '?tags=-foo')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[1].tags).to.not.contain('foo');
+      })
+      .end((err /* , res */) => done(err));
+    });
+
+    it('filter by multiple EXCLUDE tags returns expected values', (done) => {
+      api.get(path + '?tags=-foo,bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[0].tags).to.not.contain('bar');
+      })
+      .end((err /* , res */) => done(err));
+    });
+
+    it('filter by single INCLUDE tags returns single aspect', (done) => {
+      api.get(path + '?tags=foo')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end((err /* , res */) => done(err));
+    });
+
+    it('filter by multiple INCLUDE tags returns no aspects', (done) => {
+      api.get(path + '?tags=foo,bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+
+        // none of aspects contain BOTH foo and bar tags
+        expect(res.body.length).to.equal(ZERO);
+      })
+      .end((err /* , res */) => done(err));
+    });
+
+    it('filter by multiple INCLUDE tags returns aspects with both tags', (done) => {
+      api.get(path + '?tags=toot,poop')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR)
+      })
+      .end((err /* , res */) => done(err));
+    });
+  });
+
+  describe('filter with duplicate tags fail', () => {
     it('EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-Foo,-Foo`)
       .set('Authorization', token)
@@ -140,29 +203,6 @@ describe(`api: GET ${path}`, () => {
   });
 
   describe('Single Values: ', () => {
-    it('filter by EXCLUDE tags returns expected values', (done) => {
-      api.get(path + '?tags=-foo')
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.length).to.equal(TWO);
-        expect(res.body[0].tags).to.not.contain('foo');
-        expect(res.body[1].tags).to.not.contain('foo');
-      })
-      .end((err /* , res */) => done(err));
-    });
-
-    it('filter by INCLUDE tags returns expected values', (done) => {
-      api.get(path + '?tags=foo')
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.length).to.equal(ONE);
-        expect(res.body[0].tags).to.contain('foo');
-      })
-      .end((err /* , res */) => done(err));
-    });
-
     it('filter by BOOLEAN returns expected values', (done) => {
       api.get(path + '?valueType=PERCENT') // BOOLEAN is default
       .set('Authorization', token)

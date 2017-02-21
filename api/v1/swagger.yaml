@@ -194,10 +194,10 @@ paths:
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
-             subjects with tags FOO or BAR. Prefix each of the tag name with
-             a negative sign to indicate that a subject with that tag should
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
              be excluded. For example, ?tags=-BAZ,FOO will return only the
-             subjects with tag name not equal to BAZ or FOO. A mix of tag
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
              names with and without minus signs, for example ?tags=BAZ,-FOO
              are not allowed. Aspects without tags are not included in the
              include result set.
@@ -4378,7 +4378,7 @@ paths:
            sign to indicate that the subject having tags with those names will
            be excluded. For example, ?subjectTags=-TAG3,-TAG4 will return the
            subject hierarchy without subjects having tags -  TAG3 and TAG4.
-           Tags should be passed as an include filter or as an exclude filter 
+           Tags should be passed as an include filter or as an exclude filter
            but not the combination of both.
           type: string
         -

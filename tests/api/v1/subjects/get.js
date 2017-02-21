@@ -271,7 +271,7 @@ describe(`api: GET ${path}`, () => {
 
   it('GET with tag EXCLUDE filter :: multiple tags missing ' +
     '- on subsequent tag should still EXCLUDE successfully', (done) => {
-    api.get(`${path}?tags=-US,NE`)
+    api.get(`${path}?tags=-US,-NE`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
