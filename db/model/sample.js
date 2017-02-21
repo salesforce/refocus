@@ -30,6 +30,8 @@ const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
 const NO = 0;
+const maxSampleNameLength = constants.fieldlen.longish +
+  constants.fieldlen.normalName + 1; // eslint-disable-line no-magic-numbers
 
 module.exports = function sample(seq, dataTypes) {
   const Sample = seq.define('Sample', {
@@ -50,7 +52,7 @@ module.exports = function sample(seq, dataTypes) {
       type: dataTypes.STRING(messageCodeLen),
     },
     name: {
-      type: dataTypes.STRING(constants.fieldlen.longish),
+      type: dataTypes.STRING(maxSampleNameLength),
     },
     status: {
       type: dataTypes.ENUM(Object.keys(constants.statuses)),
