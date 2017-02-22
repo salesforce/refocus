@@ -22,8 +22,9 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe(`api: PATCH ${path}`, () => {
-  let testUserToken;
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
+  let testUserToken = '';
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
@@ -46,8 +47,8 @@ describe(`api: PATCH ${path}`, () => {
     api.post('/v1/register')
     .set('Authorization', token)
     .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
+      username: uname,
+      email: uname,
       password: 'abcdefghijklmnopqrstuvwxyz',
     })
     .end((err, res) => {
@@ -56,6 +57,7 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       testUserToken = res.body.token;
+
       api.post(path)
       .set('Authorization', predefinedAdminUserToken)
       .send({

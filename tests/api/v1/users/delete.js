@@ -15,6 +15,7 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
+const jwtUtil = require('../../../../utils/jwtUtil');
 const u = require('./utils');
 const path = '/v1/users';
 const expect = require('chai').expect;
@@ -26,6 +27,7 @@ describe(`api: DELETE ${path}/:id`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;
+  let testUserToken = '';
 
   before((done) => {
     // create user __test@refocus.com
@@ -41,10 +43,11 @@ describe(`api: DELETE ${path}/:id`, () => {
       }
 
       userId = res.body.id;
+      testUserToken = res.body.token;
 
       // create token ___Voldemort
       api.post(tokenPath)
-      .set('Authorization', res.body.token)
+      .set('Authorization', testUserToken)
       .send({ name: tname })
       .end((err1, res1) => {
         if (err1) {
@@ -58,27 +61,27 @@ describe(`api: DELETE ${path}/:id`, () => {
 
   afterEach(u.forceDelete);
 
-  it('deletion of user deletes default token', (done) => {
+  it('deletion of user does not return default token', (done) => {
     api.delete(`${path}/${uname}`)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('name', uname);
-        expect(res.body).to.not.have.property('password');
-        expect(res.body.isDeleted).to.not.equal(0);
-
-        Token.findOne({ where: { name: uname, createdBy: userId } })
-        .then((tobj) => {
-          if (tobj) {
-            done(new Error('Default token should have been deleted'));
-          }
-
-          done();
-        })
-        .catch((err1) => done(err1));
       }
+
+      expect(res.body).to.have.property('name', uname);
+      expect(res.body).to.not.have.property('password');
+      expect(res.body.isDeleted).to.not.equal(0);
+
+      Token.findOne({ where: { name: uname, createdBy: userId } })
+      .then((tobj) => {
+        if (tobj) {
+          done(new Error('Default token should have been deleted'));
+        }
+
+        done();
+      })
+      .catch((err1) => done(err1));
     });
   });
 });

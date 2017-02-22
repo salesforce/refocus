@@ -24,11 +24,12 @@ const ZERO = 0;
 const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
-  let testUserToken;
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  let testUserToken = '';
   const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
 
   before((done) => {
@@ -48,30 +49,31 @@ describe(`api: DELETE ${path}`, () => {
     api.post('/v1/register')
     .set('Authorization', token)
     .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
+      username: uname,
+      email: uname,
       password: 'abcdefghijklmnopqrstuvwxyz',
     })
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        testUserToken = res.body.token;
-        api.post(path)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({
-          key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
-          value: 'def',
-        })
-        .expect(constants.httpStatus.CREATED)
-        .end((err3 /* , res3*/) => {
-          if (err3) {
-            done(err3);
-          } else {
-            done();
-          }
-        });
       }
+
+      testUserToken = res.body.token;
+
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({
+        key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+        value: 'def',
+      })
+      .expect(constants.httpStatus.CREATED)
+      .end((err3 /* , res3*/) => {
+        if (err3) {
+          done(err3);
+        }
+
+        done();
+      });
     });
   });
 
