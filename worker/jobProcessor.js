@@ -49,7 +49,6 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   // helper.model.bulkUpsertByName(samples, userName)
   bulkUpsertRedisHashDS(samples)
   .then((results) => {
-    console.log('Got results:: :', results);
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};
