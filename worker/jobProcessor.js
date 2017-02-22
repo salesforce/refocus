@@ -17,9 +17,11 @@
 'use strict'; // eslint-disable-line strict
 const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
-const helper = require('../api/v1/helpers/nouns/samples');
+// const helper = require('../api/v1/helpers/nouns/samples');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const bulkUpsertRedisHashDS = require('../api/v1/controllers/samples')
+                              .bulkUpsertRedisHashDS;
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -36,7 +38,7 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
    */
   const jobStartTime = Date.now();
   const samples = job.data.length ? job.data : job.data.upsertData;
-  const userName = job.data.userName;
+  // const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
 
   // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
@@ -44,8 +46,10 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   // console.log(msg); // eslint-disable-line no-console
 
   const dbStartTime = Date.now();
-  helper.model.bulkUpsertByName(samples, userName)
+  // helper.model.bulkUpsertByName(samples, userName)
+  bulkUpsertRedisHashDS(samples, reqStartTime)
   .then((results) => {
+    console.log('Got results:: Time taken::', Date.now() - reqStartTime, "ms");
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};

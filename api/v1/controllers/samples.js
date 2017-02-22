@@ -133,15 +133,14 @@ function bulkUpsertSamplesInRedis(req, res, rnStr) {
   });
 }
 
-function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
-  const sampleQueryBody = req.swagger.params.queryBody.value;
+function bulkUpsertRedisHashDS(sampleQueryBody, rnStr) {
+  // console.log("In bulkUpsertRedisHashDS");
   const commands = [];
 
   // promises for each sample upsert
   const promises = sampleQueryBody.map((sampleReq) => {
     const sampleName = sampleReq.name.toLowerCase();
-    // const subjectName = sampleReq.name.split('|')[0].toLowerCase();
-    const aspectName = sampleReq.name.split('|')[1].toLowerCase();
+    const aspectName = sampleName.split('|')[1];
     let sampStatusFromRedis;
 
     // get sample from redis
@@ -152,15 +151,20 @@ function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
       return r.getAsync('refocache:aspects:' + aspectName);
     })
     .then((aspectFromRedis) => {
-      // is sample exists, parse aspect and sample, update sample
+      // if sample exists, parse aspect and sample, update sample
       if (sampStatusFromRedis) {
-        // const sampleObj = JSON.parse(sampFromRedis);
         const aspObject = JSON.parse(aspectFromRedis);
 
         // calc status
         const newStatus = sampleUtils.computeStatus(aspObject, sampleReq.value);
-        if (sampStatusFromRedis !== newStatus) {
-          // console.log('changing status:', newStatus);
+        if (sampStatusFromRedis === newStatus) {
+          commands.push([
+            'hset',
+            'samsto:samples:' + sampleName,
+            'updatedAt',
+            new Date().toString(),
+          ]);
+        } else {
           commands.push([
             'hmset',
             'samsto:samples:' + sampleName,
@@ -170,25 +174,6 @@ function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
             newStatus,
             'statusChangedAt',
             new Date().toString(),
-            'updatedAt',
-            new Date().toString(),
-          ]);
-          // commands.push([
-          //   'hset',
-          //   'samsto:samples:' + sampleName,
-          //   'status',
-          //   newStatus,
-          // ]);
-          // commands.push([
-          //   'hset',
-          //   'samsto:samples:' + sampleName,
-          //   'statusChangedAt',
-          //   new Date().toString(),
-          // ]);
-        } else {
-          commands.push([
-            'hset',
-            'samsto:samples:' + sampleName,
             'updatedAt',
             new Date().toString(),
           ]);
@@ -203,11 +188,11 @@ function bulkUpsertSamplesInRedisKV(req, res, rnStr) {
     });
   });
 
-  Promise.all(promises)
+  return Promise.all(promises)
   .then(() => r.batch(commands).execAsync())
   .then((response) => {
     // console.log('Bulk upsert response', response);
-    console.timeEnd(rnStr);
+    return response;
   });
 }
 
@@ -423,15 +408,32 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
-    const rn = Math.floor((Math.random() * 1000) + 1);
-    const rnStr = rn.toString() + 'bulkUpsertSample';
-    console.time(rnStr);
+    // const rn = Math.floor((Math.random() * 1000) + 1);
+    // const rnStr = rn.toString() + 'bulkUpsertSample';
+    // console.time(rnStr);
+    const reqStartTime = Date.now();
+    
     if (featureToggles.isFeatureEnabled('enableRedisKV')) {
       // console.log('USING REDIS: bulkUpsertSampleKV');
-      bulkUpsertSamplesInRedisKV(req, res, rnStr);
+
+      if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+        const jobType = require('../../../jobQueue/setup').jobType;
+        const jobWrapper = require('../../../jobQueue/jobWrapper');
+
+        const wrappedBulkUpsertData = {};
+        wrappedBulkUpsertData.upsertData = req.swagger.params.queryBody.value;
+        // wrappedBulkUpsertData.timeString = rnStr;
+        // wrappedBulkUpsertData.userName = userName;
+        wrappedBulkUpsertData.reqStartTime = reqStartTime;
+
+        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+          wrappedBulkUpsertData, req);
+      } else {
+        bulkUpsertRedisHashDS(req.swagger.params.queryBody.value, reqStartTime);
+      }
     } else if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       // console.log('USING REDIS: bulkUpsertSample');
-      bulkUpsertSamplesInRedis(req, res, rnStr);
+      bulkUpsertSamplesInRedis(req, res, reqStartTime);
     } else {
       console.log('NO REDIS: bulkUpsertSample');
       const resultObj = { reqStartTime: new Date() };
@@ -505,5 +507,7 @@ module.exports = {
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
+
+  bulkUpsertRedisHashDS,
 
 }; // exports
