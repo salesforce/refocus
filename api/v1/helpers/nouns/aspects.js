@@ -41,4 +41,5 @@ module.exports = {
   fieldsWithArrayType,
   fieldsWithJsonArrayType,
   fieldsWithEnum,
+  tagFilterName: 'tags',
 }; // exports

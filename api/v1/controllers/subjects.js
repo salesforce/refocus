@@ -12,6 +12,7 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
+const utils = require('./utils');
 const helper = require('../helpers/nouns/subjects');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc =
@@ -32,32 +33,6 @@ const apiErrors = require('../apiErrors');
 const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 const ZERO = 0;
 const ONE = 1;
-
-/**
- * Given an array, return true if there
- * are duplicates. False otherwise.
- *
- * @param {Array} tagsArr The input array
- * @returns {Boolean} whether input array
- * contains duplicates
- */
-function checkDuplicates(tagsArr) {
-  const LEN = tagsArr.length - ONE;
-  const copyArr = []; // store lowercase copies
-  let toAdd;
-  for (let i = LEN; i >= ZERO; i--) {
-    toAdd = tagsArr[i].toLowerCase();
-
-    // if duplicate found, return true
-    if (copyArr.indexOf(toAdd) > -ONE) {
-      return true;
-    }
-
-    copyArr.push(toAdd);
-  }
-
-  return false;
-}
 
 /**
  * Validates the correct filter parameter
@@ -83,7 +58,7 @@ function validateFilterParams(filterParams) {
  * @param {Object} requestBody Fields from request body
  * @param {Object} params Fields from url
  */
-function validateRequest(requestBody, params) {
+function validateTags(requestBody, params) {
   let absolutePath = '';
   let tags = [];
   if (requestBody) {
@@ -99,7 +74,7 @@ function validateRequest(requestBody, params) {
   }
 
   if (tags && tags.length) {
-    if (checkDuplicates(tags)) {
+    if (utils.hasDuplicates(tags)) {
       throw new apiErrors.DuplicateFieldError();
     }
   }
@@ -184,7 +159,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSubjects(req, res, next) {
-    validateRequest(null, req.swagger.params);
+    validateTags(null, req.swagger.params);
     doFind(req, res, next, helper);
   },
 
@@ -326,7 +301,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSubject(req, res, next) {
-    validateRequest(req.body);
+    validateTags(req.body);
     doPatch(req, res, next, helper);
   },
 
@@ -340,7 +315,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSubject(req, res, next) {
-    validateRequest(req.body);
+    validateTags(req.body);
     doPost(req, res, next, helper);
   },
 
@@ -380,7 +355,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSubject(req, res, next) {
-    validateRequest(req.body);
+    validateTags(req.body);
     doPut(req, res, next, helper);
   },
 

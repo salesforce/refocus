@@ -89,8 +89,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag EXCLUDE filter :: case-sensitive tags return ' +
-      'non-case-sensitive result', (done) => {
+    it('GET with tag EXCLUDE filter :: different case tags', (done) => {
       api.get(`${path}?tags=-US,-us`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -104,7 +103,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag INCLUDE filter :: duplicate tags pass', (done) => {
+    it('GET with tag INCLUDE filter', (done) => {
       api.get(`${path}?tags=US,US`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -118,7 +117,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag INCLUDE filter :: case-sensitive tags pass', (done) => {
+    it('GET with tag INCLUDE filter :: different case tags', (done) => {
       api.get(`${path}?tags=US,us`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -292,7 +291,7 @@ describe(`api: GET ${path}`, () => {
 
   it('GET with tag EXCLUDE filter :: multiple tags missing ' +
     '- on subsequent tag should still EXCLUDE successfully', (done) => {
-    api.get(`${path}?tags=-US,NE`)
+    api.get(`${path}?tags=-US,-NE`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

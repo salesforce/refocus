@@ -56,6 +56,7 @@ function toSequelizeWildcards(val) {
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
+
   // given array, return { $in: array }
   if (Array.isArray(val) && props.isEnum) {
     const inClause = {};
