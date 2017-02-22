@@ -133,7 +133,7 @@ function bulkUpsertSamplesInRedis(req, res, rnStr) {
   });
 }
 
-function bulkUpsertRedisHashDS(sampleQueryBody, rnStr) {
+function bulkUpsertRedisHashDS(sampleQueryBody) {
   // console.log("In bulkUpsertRedisHashDS");
   const commands = [];
 
@@ -411,7 +411,9 @@ module.exports = {
     // const rn = Math.floor((Math.random() * 1000) + 1);
     // const rnStr = rn.toString() + 'bulkUpsertSample';
     // console.time(rnStr);
+    const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
+    const value = req.swagger.params.queryBody.value;
     
     if (featureToggles.isFeatureEnabled('enableRedisKV')) {
       // console.log('USING REDIS: bulkUpsertSampleKV');
@@ -421,7 +423,7 @@ module.exports = {
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
-        wrappedBulkUpsertData.upsertData = req.swagger.params.queryBody.value;
+        wrappedBulkUpsertData.upsertData = value;
         // wrappedBulkUpsertData.timeString = rnStr;
         // wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
@@ -429,16 +431,13 @@ module.exports = {
         jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        bulkUpsertRedisHashDS(req.swagger.params.queryBody.value, reqStartTime);
+        bulkUpsertRedisHashDS(value);
       }
     } else if (featureToggles.isFeatureEnabled('enableRedisOps')) {
       // console.log('USING REDIS: bulkUpsertSample');
       bulkUpsertSamplesInRedis(req, res, reqStartTime);
     } else {
       console.log('NO REDIS: bulkUpsertSample');
-      const resultObj = { reqStartTime: new Date() };
-      const reqStartTime = Date.now();
-      const value = req.swagger.params.queryBody.value;
       u.getUserNameFromToken(req,
         featureToggles.isFeatureEnabled('enforceWritePermission'))
       .then((userName) => {
@@ -465,7 +464,7 @@ module.exports = {
     }
 
     const body = { status: 'OK' };
-    // u.logAPI(req, resultObj, body, value.length);
+    u.logAPI(req, resultObj, body, value.length);
     return res.status(httpStatus.OK).json(body);
   },
 

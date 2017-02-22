@@ -47,9 +47,9 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
   const dbStartTime = Date.now();
   // helper.model.bulkUpsertByName(samples, userName)
-  bulkUpsertRedisHashDS(samples, reqStartTime)
+  bulkUpsertRedisHashDS(samples)
   .then((results) => {
-    console.log('Got results:: Time taken::', Date.now() - reqStartTime, "ms");
+    console.log('Got results:: :', results);
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};
@@ -57,7 +57,7 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
       // calculate failed promises
       let errorCount = 0;
       for (let i = 0; i < results.length; i++) {
-        if (results[i].isFailed) {
+        if (results[i] !== 0 && results[i] !== 'OK') {
           errorCount++;
         }
       }
