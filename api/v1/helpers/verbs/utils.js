@@ -7,7 +7,7 @@
  */
 
 /**
- * api/v1/controllers/utils.js
+ * api/v1/helpers/verbs/utils.js
  */
 'use strict';
 

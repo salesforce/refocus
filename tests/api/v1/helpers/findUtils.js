@@ -22,6 +22,12 @@ describe('filter subject array with tags array', () => {
     expect(result).to.deep.equal([sArr[ZERO]]);
   });
 
+  it('filter returns one element with INCLUDE', () => {
+    const sArr = [{ tags: ['a'] }, { tags: ['b', 'c'] }];
+    const result = filterArrFromArr(sArr, 'b,c');
+    expect(result).to.deep.equal([sArr[ONE]]);
+  });
+
   it('filter returns no elements with multiple INCLUDE', () => {
     const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
     const result = filterArrFromArr(sArr, 'a,b');
