@@ -15,6 +15,15 @@
 'use strict'; // eslint-disable-line strict
 
 const redis = require('redis');
+
+/*
+ * This will add "...Async" to all node_redis functions (e.g. return
+ * client.getAsync().then(...)).
+ */
+const bluebird = require('bluebird');
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 
