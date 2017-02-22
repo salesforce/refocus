@@ -15,6 +15,11 @@ const Subject = require('../../../../db/index').Subject;
 const constants = require('../../constants');
 const m = 'subject';
 const config = require('../../../../config');
+const redisClient = require('../../../../cache/redisCache').client;
+const PFX = 'samsto';
+const SEP = ':';
+const SUBJECT_SET = PFX + SEP + 'subjects';
+const SAMPLE_SET = PFX + SEP + 'samples';
 
 /*
  * All the query params that can be expected in the hierarchy endpoint are
@@ -194,6 +199,105 @@ function applyFilters(key, filterBy) {
 } // applyFilters
 
 /**
+ * Get the sample information from Redis
+ * @param  {String} sampleKey - Sample key
+ * @returns {Promise} - which resolves to a sample object
+ */
+function getSampleFromRedis(sampleKey) {
+  return redisClient.hgetallAsync(sampleKey)
+    .then((samp) => {
+      samp.relatedLinks = JSON.parse(samp.relatedLinks);
+      return samp;
+    });
+} // getSampleFromReids
+
+/**
+ * Get the aspect information from the redis and attach it to the sample object
+ * @param  {String} aspectName - Aspect name
+ * @param  {Object} sample   - Sample object
+ * @returns {Promise} - which resolves to a sample object with its aspect
+ * information
+ */
+function getAspectFromRedis(aspectName, sample) {
+  const aspectKey = 'refocache:aspects:' + aspectName.toLowerCase();
+  return redisClient.getAsync(aspectKey)
+    .then((cachedAspect) => {
+      if (cachedAspect) {
+        sample.aspect = JSON.parse(cachedAspect);
+      }
+      return sample;
+    });
+} // getAspectFromRedis
+
+/**
+ *
+ * Prune a node by applying filters to it. FOR NOW NO FILTERING IS DONE.
+ *
+ * For each of the subject passed to this function, it gets the
+ * corresponding samples if any from Redis and for each of the samples, the
+ * corresponding aspect object is attached to it.
+ *
+ * @param {Object} res - Node to be pruned
+ * @returns {Integer} - Returns zero only if the filters is set and all the
+ *  samples are filtered.
+ */
+function pruneNodeV2(res) {
+  return new Promise((resolve, reject) => {
+    let sampArr = [];
+    res.samples = [];
+    const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
+    redisClient.smembersAsync(subjectKey)
+    .then((aspectNames) => {
+      if (aspectNames && aspectNames.length) {
+        const promises = aspectNames.map((aspect) => {
+          const sampleKey = SAMPLE_SET + SEP + res.absolutePath.toLowerCase() +
+           '|' + aspect;
+          return getSampleFromRedis(sampleKey);
+        });
+        Promise.all(promises)
+        .then((retArr) => {
+          res.samples = retArr;
+          sampArr = retArr;
+          return sampArr;
+        })
+        .then((_sampArr) => {
+          if (_sampArr.length) {
+            const _promises = sampArr.map((sample) =>
+              getAspectFromRedis(sample.name.split('|')[1], sample)
+            );
+            return Promise.all(_promises);
+          }
+        });
+      }
+      return resolve(res);
+    })
+    .catch((err) => reject(err));
+  });
+} // pruneNodeV2
+
+/**
+ * This recursive function does a bottom up traversal of the hierarchy tree. For
+ * each node of the hierarchy, get the samples and aspects from the REDIS Store
+ * @param {ServerResponse} res - The subject response
+ * @returns {Integer} - 0 if this node was filtered out, i.e. it should not be
+ *  part of the final hierarchy tree.
+ */
+function traverseHierarchyV2(res) {
+  return new Promise((resolve, reject) => {
+    if (res.children) {
+      for (let i = 0; i < res.children.length; i++) {
+        traverseHierarchyV2(res.children[i]);
+      }
+    }
+
+    pruneNodeV2(res)
+    .then(() => {
+      resolve(pruneNodeV2(res));
+    })
+    .catch((err) => reject(err));
+  });
+} // traverseHierarchyV2
+/**
  * Prune a node by applying filters to it.
  *
  * @param {Object} res - Node to be pruned
@@ -244,6 +348,7 @@ function pruneNode(res) {
  *  part of the final hierarchy tree.
  */
 function traverseHierarchy(res) {
+
   const filteredChildrenArr = [];
   if (res.children) {
     for (let i = 0; i < res.children.length; i++) {
@@ -272,16 +377,19 @@ function traverseHierarchy(res) {
  * @returns {ServerResponse} res - The modified subject response
  */
 function modifyAPIResponse(res, params) {
-  for (const key in filters) {
-    if (key && params[key].value) {
-      setFilters(params);
-      traverseHierarchy(res);
-      resetFilters();
-      break;
-    }
-  }
+  return traverseHierarchyV2(res);
 
-  return res;
+  // for (const key in filters) {
+    // if (key && params[key].value) {
+      // setFilters(params);
+      // return traverseHierarchy(res);
+
+      // resetFilters();
+      // break;
+    // }
+  // }
+
+  // return res;
 } // modifyAPIResponse
 
 module.exports = {

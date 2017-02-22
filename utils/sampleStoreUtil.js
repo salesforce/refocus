@@ -94,7 +94,7 @@ function init() {
       commands.push(['sadd', subkey, samkey]);
 
       // push each of the sample into its own hash map
-      const sampleHashKey = SAMPLE_SET + SEP + sample.name;
+      const sampleHashKey = SAMPLE_SET + SEP + sample.name.toLowerCase();
       const sampleFileds = Object.keys(sample);
       sampleKeys.add(sampleHashKey);
       sampleFileds.forEach((field) => {

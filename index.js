@@ -89,6 +89,8 @@ function start() { // eslint-disable-line max-statements
   app.set('port', PORT);
 
   // ******************** USIING REDIS AS A DATA STORE ***********************
+  // INITIALIZING ASPECTS INTO REDIS
+  require('./utils/aspectStoreUtil.js').init();
 
   // INITIALIZING SAMPLES INTO REDIS
   require('./utils/sampleStoreUtil.js').init();

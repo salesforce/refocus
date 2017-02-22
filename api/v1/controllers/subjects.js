@@ -60,24 +60,6 @@ function checkDuplicates(tagsArr) {
 }
 
 /**
- * Validates the correct filter parameter
- * passed in query parameters
- * @param {Array} filterParams Filter Tags Array
- */
-function validateFilterParams(filterParams) {
-  let subjectTagsCounter = 0;
-  const EXCLUDE_SYMBOL = '-';
-
-  subjectTagsCounter = filterParams
-    .filter((i) => i.startsWith(EXCLUDE_SYMBOL)).length;
-
-  if (subjectTagsCounter !== ZERO &&
-    filterParams.length !== subjectTagsCounter) {
-    throw new apiErrors.InvalidFilterParameterError();
-  }
-}
-
-/**
  * Validates the given fields from request body or url.
  * If fails, throws a corresponding error.
  * @param {Object} requestBody Fields from request body
@@ -215,26 +197,19 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const depth = Number(params.depth.value);
-    const filterParams = ['subjectTags', 'aspectTags', 'aspect', 'status'];
 
-    // Filter Parameter Validation
-    for (let i = 0; i < filterParams.length; i++) {
-      if (params[filterParams[i]].value) {
-        validateFilterParams(params[filterParams[i]].value.split(','));
-      }
-    }
-
-    u.findByKey(helper, params, ['hierarchy', 'samples'])
+    u.findByKey(helper, params, ['hierarchy'])
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       let retval = u.responsify(o, helper, req.method);
       if (depth > ZERO) {
         retval = helper.deleteChildren(retval, depth);
       }
-
-      retval = helper.modifyAPIResponse(retval, params);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
+      helper.modifyAPIResponse(retval, params)
+      .then((_retval) => {
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(_retval);
+      });
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // getSubjectHierarchy
