@@ -28,16 +28,19 @@ describe(`api: GET ${path}`, () => {
   const na = {
     name: `${tu.namePrefix}NorthAmerica`,
     description: 'continent',
+    sortBy: '_1',
   };
   const us = {
     name: `${tu.namePrefix}UnitedStates`,
     description: 'country',
     tags: ['US'],
+    sortBy: '_a',
   };
   const vt = {
     name: `${tu.namePrefix}Vermont`,
     description: 'state',
     tags: ['US', 'NE'],
+    sortBy: '_b',
   };
 
   before((done) => {
@@ -86,8 +89,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag EXCLUDE filter :: case-sensitive tags return ' +
-      'non-case-sensitive result', (done) => {
+    it('GET with tag EXCLUDE filter :: different case tags', (done) => {
       api.get(`${path}?tags=-US,-us`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -101,7 +103,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag INCLUDE filter :: duplicate tags pass', (done) => {
+    it('GET with tag INCLUDE filter', (done) => {
       api.get(`${path}?tags=US,US`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -115,7 +117,7 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('GET with tag INCLUDE filter :: case-sensitive tags pass', (done) => {
+    it('GET with tag INCLUDE filter :: different case tags', (done) => {
       api.get(`${path}?tags=US,us`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -144,6 +146,23 @@ describe(`api: GET ${path}`, () => {
       expect(res.body[ONE].absolutePath).to.equal(na.name + '.' + us.name);
       expect(res.body[TWO].absolutePath)
         .to.equal(na.name + '.' + us.name + '.' + vt.name);
+      done();
+    });
+  });
+
+  it('Check return result of get in alphabetical order of' +
+  'sortBy when use of ?sort=sortBy', (done) => {
+    api.get(`${path}?sort=sortBy`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body[ZERO].sortBy).to.equal(na.sortBy);
+      expect(res.body[ONE].sortBy).to.equal(us.sortBy);
+      expect(res.body[TWO].sortBy).to.equal(vt.sortBy);
       done();
     });
   });
@@ -272,7 +291,7 @@ describe(`api: GET ${path}`, () => {
 
   it('GET with tag EXCLUDE filter :: multiple tags missing ' +
     '- on subsequent tag should still EXCLUDE successfully', (done) => {
-    api.get(`${path}?tags=-US,NE`)
+    api.get(`${path}?tags=-US,-NE`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -333,7 +352,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   it('returns expected fields when passing ?fields=...', (done) => {
-    api.get(`${path}?fields=isPublished,name`)
+    api.get(`${path}?fields=isPublished,name,sortBy`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -343,7 +362,35 @@ describe(`api: GET ${path}`, () => {
 
       expect(res.body[ZERO]).to.not.have.property('absolutePath');
       expect(res.body[ZERO]).to.have.all
-        .keys(['apiLinks', 'id', 'isPublished', 'name']);
+        .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
+      done();
+    });
+  });
+
+  it('returns expected fields when passing no fields=...', (done) => {
+    api.get(`${path}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body[ZERO]).to.have.property('sortBy');
+      done();
+    });
+  });
+
+  it('returns expected fields when not passing sortBy parameter...', (done) => {
+    api.get(`${path}?fields=isPublished,name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body[ZERO]).to.not.have.property('sortBy');
       done();
     });
   });

@@ -71,6 +71,16 @@ apiErrors.create({
   ' an empty array. This is not a valid filter combination ',
 });
 
+apiErrors.create({
+  code: 11101,
+  status: 400,
+  name: 'InvalidFilterParameterError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'Filter should be passed in query parameter as ' +
+  'an include filter or an exclude filter, but not the combination of both.',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

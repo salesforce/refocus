@@ -427,6 +427,26 @@ describe(`api: GET ${path}:`, () => {
       });
     });
 
+    it('filter :: subjectTags=na, -ea and aspect=humidity,wind-speed&,' +
+    'aspectTags=hum gives error because of mismatch of filter', (done) => {
+      const endpoint = path.replace('{key}', gp.id) +
+              '?subjectTags=na,-ea&aspect=temperature&aspectTags=temp,hum';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors[0].type).to
+        .equal('InvalidFilterParameterError');
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
+    });
+
     it('filter :: subjectTags=na and aspect=humidity,wind-speed and ' +
     'aspectTags=hum and status = Critical', (done) => {
       const endpoint = path.replace('{key}', gp.id) +

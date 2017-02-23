@@ -22,11 +22,12 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe(`api: GET ${path}`, () => {
-  let testUserToken;
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  let testUserToken = '';
 
   before((done) => {
     tu.createToken()
@@ -45,8 +46,8 @@ describe(`api: GET ${path}`, () => {
     api.post('/v1/register')
     .set('Authorization', token)
     .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
+      username: uname,
+      email: uname,
       password: 'abcdefghijklmnopqrstuvwxyz',
     })
     .end((err, res) => {

@@ -33,6 +33,7 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;
+  let unameToken = '';
 
   before((done) => {
     // create user __test@refocus.com
@@ -48,10 +49,11 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
       }
 
       userId = res.body.id;
+      unameToken = res.body.token;
 
       // create token ___Voldemort
       api.post(tokenPath)
-      .set('Authorization', res.body.token)
+      .set('Authorization', unameToken)
       .send({ name: tname })
       .end((err1, res1) => {
         if (err1) {
@@ -85,34 +87,6 @@ describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
             done(err2);
           } else {
             expect(res2.body).to.have.property('name', tname);
-            expect(res2.body).to.have.property('isRevoked', '0');
-            done();
-          }
-        });
-      }
-    });
-  });
-
-  it('admin user, default token, ok', (done) => {
-    api.post(`${path}/${uname}/tokens/${uname}/revoke`)
-    .set('Authorization', predefinedAdminUserToken)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', uname);
-        expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${uname}/tokens/${uname}/restore`)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({})
-        .expect(constants.httpStatus.OK)
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            expect(res2.body).to.have.property('name', uname);
             expect(res2.body).to.have.property('isRevoked', '0');
             done();
           }

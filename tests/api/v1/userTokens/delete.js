@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -148,6 +148,32 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     });
   });
 
+  it('non-admin user, delete default token returns not found', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', unameToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('admin user, delete default token returns not found', (done) => {
+    api.delete(`${path}/${uname}/tokens/${uname}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('admin user, user not found', (done) => {
     api.delete(`${path}/who@what.com/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
@@ -155,9 +181,9 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        done();
       }
+
+      done();
     });
   });
 
@@ -178,32 +204,6 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
-  });
-
-  it('admin user, cannot delete default token', (done) => {
-    api.delete(`${path}/${uname}/tokens/${uname}`)
-    .set('Authorization', predefinedAdminUserToken)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
-  });
-
-  it('non-admin user, cannot delete default token', (done) => {
-    api.delete(`${path}/${uname}/tokens/${uname}`)
-    .set('Authorization', unameToken)
-    .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
         done(err);

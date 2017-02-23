@@ -156,15 +156,13 @@ describe(`api: POST ${path}`, () => {
       api.post(path)
       .set('Authorization', token)
       .send(aspectToPost)
-      .expect((res) => {
-        expect(res.body.tags).to.have.length(ONE);
-        expect(res.body.tags).to.include.members(tags);
-      })
-      .end((err /* , res */) => {
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
         if (err) {
           done(err);
         }
 
+        expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
         done();
       });
     });

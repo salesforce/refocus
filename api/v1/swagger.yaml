@@ -184,6 +184,25 @@ paths:
             Filter by aspect status.
           required: false
           type: string
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. Aspects without tags are not included in the
+             include result set.
+          type: string
+          required: false
       responses:
         200:
           description: >-
@@ -3666,6 +3685,7 @@ paths:
               - id
               - isPublished
               - name
+              - sortBy
               - parentAbsolutePath
               - parentId
               #- childCount
@@ -3679,6 +3699,7 @@ paths:
               - -id
               - -isPublished
               - -name
+              - -sortBy
               - -parentAbsolutePath
               - -parentId
               #- -childCount
@@ -3736,6 +3757,18 @@ paths:
           in: query
           description: >-
             Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: sortBy
+          in: query
+          description: >-
+            The sortBy string can be used to define the sort order of subjects
+            which a lens developer can choose to honor when rendering the data.
+            The attribute is defaulted to an empty string when the user does not
+            provide any string value. Max 254 characters; case insensitive;
+            allows alpha-numeric characters, + underscore (_) and dash (-).
+            Filter by sortBy; asterisk (*) wildcards ok.
           required: false
           type: string
         -
@@ -3828,6 +3861,19 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
+                description: >
+                  The sortBy string can be used to define the sort order of subjects
+                  which a lens developer can choose to honor when rendering the data.
+                  The attribute is defaulted to an empty string when the user does not
+                  provide any string value. Max 254 characters; case insensitive;
+                  allows alpha-numeric characters, + underscore (_) and dash (-).
+                  Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4000,6 +4046,19 @@ paths:
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
+                description: >
+                  The sortBy string can be used to define the sort order of subjects
+                  which a lens developer can choose to honor when rendering the data.
+                  The attribute is defaulted to an empty string when the user does not
+                  provide any string value. Max 254 characters; case insensitive;
+                  allows alpha-numeric characters, + underscore (_) and dash (-).
+                  Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4104,6 +4163,19 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
+                description: >
+                  The sortBy string can be used to define the sort order of subjects
+                  which a lens developer can choose to honor when rendering the data.
+                  The attribute is defaulted to an empty string when the user does not
+                  provide any string value. Max 254 characters; case insensitive;
+                  allows alpha-numeric characters, + underscore (_) and dash (-).
+                  Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               parentId:
                 type: string
@@ -4214,6 +4286,19 @@ paths:
                 maxLength: 60
                 description: >
                   Max 60 characters; case insensitive; allows alpha-numeric characters,
+                  underscore (_) and dash (-).
+              sortBy:
+                type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,254}$
+                maxLength: 254
+                description: >
+                  The sortBy string can be used to define the sort order of subjects
+                  which a lens developer can choose to honor when rendering the data.
+                  The attribute is defaulted to an empty string when the user does not
+                  provide any string value. Max 254 characters; case insensitive;
+                  allows alpha-numeric characters, + underscore (_) and dash (-).
+                  Filter by sortBy; asterisk (*) wildcards ok.
+                  Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
               tags:
                 type: array
@@ -4359,6 +4444,8 @@ paths:
            sign to indicate that the subject having tags with those names will
            be excluded. For example, ?subjectTags=-TAG3,-TAG4 will return the
            subject hierarchy without subjects having tags -  TAG3 and TAG4.
+           Tags should be passed as an include filter or as an exclude filter
+           but not the combination of both.
           type: string
         -
           $ref: "#/parameters/SubjectsFieldsParam"
@@ -4958,8 +5045,6 @@ paths:
                   First and last name.
               password:
                 type: string
-            required:
-              - name
       responses:
         200:
           description: >-
@@ -5016,6 +5101,8 @@ paths:
                 description: >
                   First and last name.
               password:
+                type: string
+              profileId:
                 type: string
             required:
               - name
@@ -5658,7 +5745,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or username of the user whose tokens you to retrieve. User 
+            The id or username of the user whose tokens you to retrieve. User
             IDs are case-sensitive.
           required: true
           type: string
@@ -6760,6 +6847,20 @@ definitions:
         description: >
           Max 60 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-).
+      sortBy:
+        type: string
+        readOnly: true
+        pattern: ^[0-9A-Za-z_\\-]{0,254}$
+        maxLength: 254
+        description: >
+          The sortBy string can be used to define the sort order of subjects
+          which a lens developer can choose to honor when rendering the data.
+          The attribute is defaulted to an empty string when the user does not
+          provide any string value. Max 254 characters; case insensitive;
+          allows alpha-numeric characters, + underscore (_) and dash (-).
+          Filter by sortBy; asterisk (*) wildcards ok.
+          Max 254 characters; case insensitive; allows alpha-numeric characters,
+          underscore (_) and dash (-).
       parentId:
         type: string
         readOnly: true
@@ -7280,6 +7381,7 @@ parameters:
         - imageUrl
         - isPublished
         - name
+        - sortBy
         - parentAbsolutePath
         - parentId
         - relatedLinks

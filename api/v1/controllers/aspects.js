@@ -12,7 +12,8 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
-
+const utils = require('./utils');
+const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/aspects');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -29,6 +30,30 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const ZERO = 0;
+const ONE = 1;
+
+/**
+ * Validates the given fields from request body or url.
+ * If fails, throws a corresponding error.
+ * @param {Object} requestBody Fields from request body
+ * @param {Object} params Fields from url
+ */
+function validateTags(requestBody, params) {
+  let tags = [];
+  if (requestBody) {
+    tags = requestBody.tags;
+  } else if (params) {
+    // params.tags.value is a comma delimited string, not empty.
+    tags = params.tags.value ? params.tags.value.split(',') : [];
+  }
+
+  if (tags && tags.length) {
+    if (utils.hasDuplicates(tags)) {
+      throw new apiErrors.DuplicateFieldError();
+    }
+  }
+}
 
 module.exports = {
 
@@ -55,6 +80,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findAspects(req, res, next) {
+    validateTags(null, req.swagger.params);
     doFind(req, res, next, helper);
   },
 
@@ -158,6 +184,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchAspect(req, res, next) {
+    validateTags(req.body);
     doPatch(req, res, next, helper);
   },
 
@@ -171,6 +198,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postAspect(req, res, next) {
+    validateTags(req.body);
     doPost(req, res, next, helper);
   },
 
@@ -185,6 +213,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putAspect(req, res, next) {
+    validateTags(req.body);
     doPut(req, res, next, helper);
   },
 

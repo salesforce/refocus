@@ -68,7 +68,9 @@ function doFindAndCountAll(reqResNext, props, opts) {
  */
 function doFindAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: new Date() };
-  if (opts.where && opts.where.tags && opts.where.tags.$contains.length) {
+  if (opts.where && opts.where.tags &&
+    opts.where.tags.$contains && opts.where.tags.$contains.length) {
+
     // change to filter at the API level
     opts.where.tags.$contains = [];
   }
