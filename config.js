@@ -214,6 +214,9 @@ module.exports = {
     },
   },
 
+  auditSubjects,
+  auditSamples,
+  auditAspects,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
   deprioritizeJobsFrom,
