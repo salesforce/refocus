@@ -204,11 +204,19 @@ function applyFilters(key, filterBy) {
  * @returns {Promise} - which resolves to a sample object
  */
 function getSampleFromRedis(sampleKey) {
+  let sample;
   return redisClient.hgetallAsync(sampleKey)
     .then((samp) => {
       samp.relatedLinks = JSON.parse(samp.relatedLinks);
-      return samp;
+      sample = samp;
+      return sample;
+      return getAspectFromRedis(sample.name.split('|')[1], sample);
     });
+    // .then((asp)=> {
+    //   console.log('returned aspect' + asp);
+    //   sample.aspect = JSON.parse(asp);
+    //   return (sample);
+    // });
 } // getSampleFromReids
 
 /**
@@ -220,11 +228,16 @@ function getSampleFromRedis(sampleKey) {
  */
 function getAspectFromRedis(aspectName, sample) {
   const aspectKey = 'refocache:aspects:' + aspectName.toLowerCase();
+  console.log('getAspectFromRedis-------------' + aspectKey);
+  console.log('sample object --------');
   return redisClient.getAsync(aspectKey)
-    .then((cachedAspect) => {
-      if (cachedAspect) {
-        sample.aspect = JSON.parse(cachedAspect);
+    .then((aspect) => {
+      if (aspect) {
+        // sample.aspect = JSON.parse(aspect);
+        console.log('this is the aspect-----' + JSON.stringify(sample.aspect.name, null, 2));
+        return (aspect);
       }
+      console.log('this is the sample-----' + JSON.stringify(sample.name, null, 2));
       return sample;
     });
 } // getAspectFromRedis
@@ -242,11 +255,9 @@ function getAspectFromRedis(aspectName, sample) {
  *  samples are filtered.
  */
 function pruneNodeV2(res) {
-  return new Promise((resolve, reject) => {
-    let sampArr = [];
     res.samples = [];
     const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
-    redisClient.smembersAsync(subjectKey)
+  return redisClient.smembersAsync(subjectKey)
     .then((aspectNames) => {
       if (aspectNames && aspectNames.length) {
         const promises = aspectNames.map((aspect) => {
@@ -255,24 +266,15 @@ function pruneNodeV2(res) {
           return getSampleFromRedis(sampleKey);
         });
         Promise.all(promises)
-        .then((retArr) => {
-          res.samples = retArr;
-          sampArr = retArr;
-          return sampArr;
-        })
-        .then((_sampArr) => {
-          if (_sampArr.length) {
-            const _promises = sampArr.map((sample) =>
-              getAspectFromRedis(sample.name.split('|')[1], sample)
-            );
-            return Promise.all(_promises);
-          }
+        .then((arr) => {
+          res.samples = arr;
+          console.log('samples finally resolved into an array'+ arr);
+          return Promise.resolve(res);
         });
       }
-      return resolve(res);
-    })
-    .catch((err) => reject(err));
-  });
+      return Promise.resolve(res);
+    });
+
 } // pruneNodeV2
 
 /**
