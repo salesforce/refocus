@@ -75,6 +75,23 @@ const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
 
+const redisUrls = {
+  cache: pe.REDIS_CACHE && pe[pe.REDIS_CACHE] ?
+    pe[pe.REDIS_CACHE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  limiter: pe.REDIS_LIMITER && pe[pe.REDIS_LIMITER] ?
+    pe[pe.REDIS_LIMITER] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  pubsub: pe.REDIS_PUBSUB && pe[pe.REDIS_PUBSUB] ?
+    pe[pe.REDIS_PUBSUB] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  queue: pe.REDIS_QUEUE && pe[pe.REDIS_QUEUE] ?
+    pe[pe.REDIS_QUEUE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  realtimeLogging: pe.REDIS_REALTIME_LOGGING && pe[pe.REDIS_REALTIME_LOGGING] ?
+    pe[pe.REDIS_REALTIME_LOGGING] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  sampleStore: pe.REDIS_SAMPLE_STORE && pe[pe.REDIS_SAMPLE_STORE] ?
+    pe[pe.REDIS_SAMPLE_STORE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?
+    pe[pe.REDIS_SESSION] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+};
+
 module.exports = {
   api: {
     defaults: {
@@ -114,20 +131,13 @@ module.exports = {
   redis: {
     channelName: 'focus',
     instanceUrl: {
-      cache:
-        pe.REDIS_CACHE || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      limiter:
-        pe.REDIS_LIMITER || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      pubsub:
-        pe.REDIS_PUBSUB || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      queue:
-        pe.REDIS_QUEUE || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      realtimeLogging:
-        pe.REDIS_REALTIME_LOGGING || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      sampleStore:
-        pe.REDIS_SAMPLE_STORE || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
-      session:
-        pe.REDIS_SESSION || pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL,
+      cache: redisUrls.cache,
+      limiter: redisUrls.limiter,
+      pubsub: redisUrls.pubsub,
+      queue: redisUrls.queue,
+      realtimeLogging: redisUrls.realtimeLogging,
+      sampleStore: redisUrls.sampleStore,
+      session: redisUrls.session,
     },
   },
 
