@@ -95,7 +95,6 @@ const redisUrls = {
   session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?
     pe[pe.REDIS_SESSION] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
 };
-
 module.exports = {
   api: {
     defaults: {
