@@ -75,6 +75,10 @@ const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
 
+/*
+ * Assigns each of the different redis uses cases to a particular redis
+ * instance, if configured, or falls back to the primary redis instance.
+ */
 const redisUrls = {
   cache: pe.REDIS_CACHE && pe[pe.REDIS_CACHE] ?
     pe[pe.REDIS_CACHE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
