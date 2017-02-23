@@ -12,7 +12,7 @@
 
 const common = require('../helpers/common');
 const constants = require('../constants');
-const redisCache = require('../../cache/redisCache').client;
+const redisCache = require('../../cache/redisCache').client.cache;
 const lensUtil = require('../../utils/lensUtil');
 
 const assoc = {};

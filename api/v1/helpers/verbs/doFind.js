@@ -10,12 +10,11 @@
  * api/v1/helpers/verbs/doFind.js
  */
 'use strict';
-
 const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
-const redisCache = require('../../../../cache/redisCache').client;
+const redisCache = require('../../../../cache/redisCache').client.cache;
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 
 /**
@@ -65,6 +64,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Object} opts - The "options" object to pass into the Sequelize
  *  find command
+ * @returns {Array} of matching records
  */
 function doFindAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: new Date() };
