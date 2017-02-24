@@ -239,7 +239,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleName = samp.id;
+      sampleName = samp.name;
       samp.getAspect()
       .then((asp) => {
         asp.update({ isPublished: false });

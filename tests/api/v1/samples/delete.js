@@ -115,7 +115,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
       );
     })
     .then((samp) => {
-      sampleName = samp.id;
+      sampleName = samp.name;
       done();
     })
     .catch((err) => done(err));
@@ -124,7 +124,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('delete all related links', (done) => {
+  it('delete all related links', (done) => {
     api.delete(allDeletePath.replace('{key}', sampleName))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -132,7 +132,6 @@ describe('api: samples: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(ZERO);
     })
     .end((err, res ) => {
-      console.log(res.error)
       if (err) {
         done(err);
       }
