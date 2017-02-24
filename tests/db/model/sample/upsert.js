@@ -74,7 +74,7 @@ describe('db: sample: upsert: ', () => {
       // as soon as it gets updated but sample update / heirarchy update
       // it does in background.
       setTimeout(() => {
-        Sample.findById(newSample.dataValues.id)
+        Sample.findById(newSample.dataValues.name)
         .then((sample) => {
           expect(sample.dataValues.name).to.contain(
             `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`);

@@ -35,11 +35,6 @@ const maxSampleNameLength = constants.fieldlen.longish +
 
 module.exports = function sample(seq, dataTypes) {
   const Sample = seq.define('Sample', {
-    id: {
-      type: dataTypes.UUID,
-      primaryKey: true,
-      defaultValue: dataTypes.UUIDV4,
-    },
     isDeleted: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
@@ -53,6 +48,7 @@ module.exports = function sample(seq, dataTypes) {
     },
     name: {
       type: dataTypes.STRING(maxSampleNameLength),
+      primaryKey: true,
     },
     status: {
       type: dataTypes.ENUM(Object.keys(constants.statuses)),
@@ -313,13 +309,14 @@ module.exports = function sample(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         let samp;
+        console.log('sample is in afterCreate', inst.dataValues.name);
 
         // log instance creation
         if (dbLoggingEnabled) {
           common.createDBLog(inst, common.changeType.add);
         }
 
-        Sample.findById(inst.dataValues.id)
+        Sample.findById(inst.dataValues.name)
         .then((found) => {
           samp = found;
           return common.sampleAspectAndSubjectArePublished(seq, samp);
@@ -373,6 +370,7 @@ module.exports = function sample(seq, dataTypes) {
           );
         }
 
+        console.log('sample is in afterUpdate', inst.dataValues.name);
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
           if (published) {

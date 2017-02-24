@@ -76,7 +76,7 @@ describe('db: sample: statusCalculation: ', () => {
   function setupRanges(ranges) {
     globalAspect.set(ranges);
     return globalAspect.save()
-    .then(() => Sample.findById(sample.id))
+    .then(() => Sample.findById(sample.name))
     .then((found) => {
       sample = found;
     });

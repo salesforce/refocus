@@ -94,7 +94,10 @@ describe('sample name gets updated:', () => {
     })
     .each((s) => Sample.create(s))
     .then(() => done())
-    .catch(done);
+    .catch((err) => {
+      console.log(err);
+      done(err)
+    });
   });
 
   describe('when subject name/parentId gets updated:', () => {

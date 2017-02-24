@@ -225,7 +225,6 @@ describe('db: sample: timeout: ', () => {
       'from sample model', (done) => {
     Sample.scope('checkTimeout').findOne()
     .then((samp) => {
-      expect(samp.id).to.not.equal(undefined);
       expect(samp.value).to.not.equal(undefined);
       expect(samp.updatedAt).to.not.equal(undefined);
       expect(samp.name).to.not.equal(undefined);
