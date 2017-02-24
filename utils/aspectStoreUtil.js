@@ -16,7 +16,7 @@
  * with the value being the stringified sample.
  */
 'use strict'; // eslint-disable-line strict
-const r = require('../cache/redisCache').client;
+const r = require('../cache/redisCache').client.cache;
 const Aspect = require('../db').Aspect;
 const PFX = 'refocache';
 const SEP = ':';
