@@ -25,6 +25,7 @@ const Token = tu.db.Token;
 describe(`api: GET ${path}`, () => {
   let usr;
   let tid;
+  const username = `${tu.namePrefix}test@refocus.com`;
 
   before((done) => {
     Profile.create({
@@ -33,8 +34,8 @@ describe(`api: GET ${path}`, () => {
     .then((profile) =>
       User.create({
         profileId: profile.id,
-        name: `${tu.namePrefix}test@refocus.com`,
-        email: `${tu.namePrefix}test@refocus.com`,
+        name: username,
+        email: username,
         password: 'user123password',
       })
     )
@@ -54,6 +55,21 @@ describe(`api: GET ${path}`, () => {
 
   after(u.forceDelete);
 
+  it('contains createdBy and user name', (done) => {
+    api.get(`${path}/${tid}`)
+    .set('Authorization', '???')
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.User.name).to.equal(username);
+      expect(res.body.createdBy).to.be.defined;
+      done();
+    });
+  });
+
   it('found', (done) => {
     api.get(`${path}/${tid}`)
     .set('Authorization', '???')
@@ -61,12 +77,11 @@ describe(`api: GET ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
-        expect(res.body).to.have.property('isRevoked', '0');
-        done();
       }
+
+      expect(res.body.name).to.equal(`${tu.namePrefix}Voldemort`);
+      expect(res.body.isRevoked).to.equal('0');
+      done();
     });
   });
 
