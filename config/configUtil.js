@@ -65,10 +65,12 @@ function csvToArray(str) {
 
 /**
  * Returns all the DB URLs of the configured read-only replicas as an array.
- * @param  {Object} pe - Node process environment variable(process.env)
- * @param  {String} replicaLabel - "Config variable name" that contains that
- * name of the databases configured as read-only replicas
- * @returns {Array} an array of all the dburls configured as read-only replicas.
+ *
+ * @param {Object} pe - Node process environment variable(process.env)
+ * @param {String} replicaLabel - "Config variable name" that contains that
+ *  name of the databases configured as read-only replicas
+ * @returns {Array} an array of all the dburls configured as read-only
+ *  replicas.
  */
 function getReadReplicas(pe, replicaLabel) {
   let replicas;

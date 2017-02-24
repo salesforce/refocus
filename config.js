@@ -28,6 +28,7 @@ const pghost = pe.PGHOST || 'localhost';
 const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
+const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -74,8 +75,28 @@ const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
 
-module.exports = {
+/*
+ * Assigns each of the different redis uses cases to a particular redis
+ * instance, if configured, or falls back to the primary redis instance.
+ */
+const redisUrls = {
+  cache: pe.REDIS_CACHE && pe[pe.REDIS_CACHE] ?
+    pe[pe.REDIS_CACHE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  limiter: pe.REDIS_LIMITER && pe[pe.REDIS_LIMITER] ?
+    pe[pe.REDIS_LIMITER] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  pubsub: pe.REDIS_PUBSUB && pe[pe.REDIS_PUBSUB] ?
+    pe[pe.REDIS_PUBSUB] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  queue: pe.REDIS_QUEUE && pe[pe.REDIS_QUEUE] ?
+    pe[pe.REDIS_QUEUE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  realtimeLogging: pe.REDIS_REALTIME_LOGGING && pe[pe.REDIS_REALTIME_LOGGING] ?
+    pe[pe.REDIS_REALTIME_LOGGING] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  sampleStore: pe.REDIS_SAMPLE_STORE && pe[pe.REDIS_SAMPLE_STORE] ?
+    pe[pe.REDIS_SAMPLE_STORE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?
+    pe[pe.REDIS_SESSION] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+};
 
+module.exports = {
   api: {
     defaults: {
       limit: 10,
@@ -91,9 +112,6 @@ module.exports = {
       },
     },
     sessionSecret: 'refocusrockswithgreenowls',
-  },
-  redis: {
-    channelName: 'focus',
   },
   db: {
     adminProfile: {
@@ -114,6 +132,18 @@ module.exports = {
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,
   },
+  redis: {
+    channelName: 'focus',
+    instanceUrl: {
+      cache: redisUrls.cache,
+      limiter: redisUrls.limiter,
+      pubsub: redisUrls.pubsub,
+      queue: redisUrls.queue,
+      realtimeLogging: redisUrls.realtimeLogging,
+      sampleStore: redisUrls.sampleStore,
+      session: redisUrls.session,
+    },
+  },
 
   // When adding new environment, consider adding it to /config/migrationConfig
   // as well to enable database migraton in the environment.
@@ -123,7 +153,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: iplist.push('::ffff:127.0.0.1'),
@@ -136,7 +165,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      redisUrl: '//127.0.0.1:6379',
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: iplist,
@@ -153,7 +181,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
-      redisUrl: pe.REDIS_URL,
       ipWhitelist: iplist,
       dialect: 'postgres',
       protocol: 'postgres',
@@ -168,7 +195,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: iplist,
@@ -180,7 +206,6 @@ module.exports = {
         DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
-      redisUrl: pe.REDIS_URL,
       defaultNodePort: defaultPort,
       host: '127.0.0.1',
       ipWhitelist: [''],
@@ -189,19 +214,19 @@ module.exports = {
     },
   },
 
-  nodeEnv,
-  port,
-  payloadLimit,
   auditSubjects,
   auditSamples,
   auditAspects,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
-  rateLimit,
-  rateWindow,
+  deprioritizeJobsFrom,
   endpointToLimit,
   httpMethodToLimit,
+  nodeEnv,
+  payloadLimit,
+  port,
   prioritizeJobsFrom,
-  deprioritizeJobsFrom,
+  rateLimit,
+  rateWindow,
   readReplicas,
 };

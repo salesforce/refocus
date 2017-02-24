@@ -15,18 +15,15 @@ const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
-const doDeleteAllAssoc =
-                    require('../helpers/verbs/doDeleteAllBToMAssoc');
-const doDeleteOneAssoc =
-                    require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc =
-                    require('../helpers/verbs/doPostBToMAssoc');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
-const redisCache = require('../../../cache/redisCache').client;
+const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
 
 const ZERO = 0;

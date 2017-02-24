@@ -18,7 +18,7 @@ const tu = require('../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
-const redisCache = require('../../cache/redisCache').client;
+const redisCache = require('../../cache/redisCache').client.cache;
 const ZERO = 0;
 const ONE = 1;
 

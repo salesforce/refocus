@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../pubsub').pub;
+const pub = require('../../cache/redisCache').client.pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
 const logDB = require('../../utils/loggingUtil').logDB;

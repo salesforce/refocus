@@ -7,19 +7,23 @@
  */
 
 /**
- * ./redisCache.js
+ * ./cache/redisCache.js
  *
- * Redis Cache
+ * Set up redis client connections.
  */
-
 'use strict'; // eslint-disable-line strict
-
 const redis = require('redis');
-const conf = require('../config');
-const env = conf.environment[conf.nodeEnv];
-
-const client = redis.createClient(env.redisUrl);
+const rconf = require('../config').redis;
+const sub = redis.createClient(rconf.instanceUrl.pubsub);
+sub.subscribe(rconf.channelName);
 
 module.exports = {
-  client,
+  client: {
+    cache: redis.createClient(rconf.instanceUrl.cache),
+    limiter: redis.createClient(rconf.instanceUrl.limiter),
+    pub: redis.createClient(rconf.instanceUrl.pubsub),
+    realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging),
+    sampleStore: redis.createClient(rconf.instanceUrl.sampleStore),
+    sub,
+  },
 };
