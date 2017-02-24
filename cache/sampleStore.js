@@ -49,7 +49,32 @@ function toKey(type, name) {
 } // toKey
 
 /**
+<<<<<<< 066702573bcb1cdca06f133a1f318c44c8b857c3
  * Remove null fields; stringify array fields.
+=======
+ * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
+ * redis.
+ *
+ * @returns {Promise} upon completion.
+ */
+function eradicate() {
+  const promises = Object.getOwnPropertyNames(constants.indexKey)
+    .map((s) => redisClient.smembersAsync(constants.indexKey[s])
+    .then((keys) => {
+      keys.push(constants.indexKey[s]);
+      return redisClient.delAsync(keys);
+    })
+    .catch((err) => {
+      // NO-OP
+      console.error(err); // eslint-disable-line no-console
+      Promise.resolve(true);
+    }));
+  return Promise.all(promises);
+} // eradicate
+
+/**
+ * Remove nulls and stringify arrays.
+>>>>>>> no message
  *
  * @param {Object} obj - The object to clean.
  * @param {Array} arrayFields - List of array fields to stringify.
