@@ -14,8 +14,8 @@
  * use "heroku local"
  */
 
-/* eslint-disable global-require */ // allowing it here in index.js
-/* eslint-disable no-process-env */ // allowing it here in index.js
+/* eslint-disable global-require */
+/* eslint-disable no-process-env */
 
 const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
