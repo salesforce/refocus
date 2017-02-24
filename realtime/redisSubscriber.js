@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
+const sub = require('../cache/redisCache').client.sub;
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -18,7 +19,7 @@ const emitter = require('./socketIOEmitter');
  * @param {Socket.io} io - Socket.io's Server API
  * @param {Object} sub - Redis subscriber instance
  */
-module.exports = (io, sub) => {
+module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);

@@ -42,7 +42,7 @@ function start() { // eslint-disable-line max-statements
   const app = express();
 
   // redis client to for request limiter
-  const limiterRedisClient = require('redis').createClient(env.redisUrl);
+  const limiterRedisClient = require('./cache/redisCache').client.limiter;
 
   // request limiter setting
   const limiter = require('express-limiter')(app, limiterRedisClient);
@@ -67,8 +67,7 @@ function start() { // eslint-disable-line max-statements
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
   socketIOSetup.init(io);
-  const sub = require('./pubsub').sub;
-  require('./realtime/redisSubscriber')(io, sub);
+  require('./realtime/redisSubscriber')(io);
 
   // modules for authentication
   const passportModule = require('passport');
@@ -200,7 +199,7 @@ function start() { // eslint-disable-line max-statements
   app.use(cookieParser());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(session({
-    store: new RedisStore({ url: env.redisUrl }),
+    store: new RedisStore({ url: conf.redis.instanceUrl.session }),
     secret: conf.api.sessionSecret,
     resave: false,
     saveUninitialized: false,

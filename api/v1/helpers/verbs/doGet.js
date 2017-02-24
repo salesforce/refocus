@@ -13,7 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const redisCache = require('../../../../cache/redisCache').client;
+const redisCache = require('../../../../cache/redisCache').client.cache;
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 
 /**

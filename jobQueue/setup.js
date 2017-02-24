@@ -12,32 +12,24 @@
  * Setup the "Kue" library to process background jobs. Declare all job types to
  * be processed by the workers in the jobType object.
  */
-
 'use strict'; // eslint-disable-line strict
+const PROTOCOL_PREFIX = 'redis:';
 const conf = require('../config');
-const env = conf.environment[conf.nodeEnv];
 const urlParser = require('url');
 const kue = require('kue');
-const ttlForJobs = conf.JOB_QUEUE_TTL_SECONDS;
-let redisUrl = env.redisUrl;
-const redisOptions = {};
-if (redisUrl) {
-  const redisInfo = urlParser.parse(redisUrl, true);
-  if (redisInfo.protocol !== 'redis:') {
-    redisUrl = 'redis:' + redisUrl;
-  }
-
-  redisOptions.redis = redisUrl;
+const redisOptions = {
+  redis: conf.redis.instanceUrl.queue,
+};
+const redisInfo = urlParser.parse(redisOptions.redis, true);
+if (redisInfo.protocol !== PROTOCOL_PREFIX) {
+  redisOptions.redis = 'redis:' + redisOptions.redis;
 }
 
-// create a job queue using the redis options specified
-const jobQueue = kue.createQueue(redisOptions);
-
 module.exports = {
-  jobQueue,
+  jobQueue: kue.createQueue(redisOptions),
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },
-  ttlForJobs,
+  ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,
 }; // exports
