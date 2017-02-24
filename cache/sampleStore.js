@@ -14,25 +14,42 @@
 'use strict'; // eslint-disable-line strict
 const redisClient = require('./redisCache').client.sampleStore;
 const Sample = require('../db').Sample;
+const featureToggles = require('feature-toggles');
 const PFX = 'samsto';
 const SEP = ':';
-const ASPECT_IDX = PFX + SEP + 'aspects';
-const ASPECT_PFX = PFX + SEP + 'aspect' + SEP;
-const SAMPLE_IDX = PFX + SEP + 'samples';
-const SAMPLE_PFX = PFX + SEP + 'sample' + SEP;
-const SUBJECT_IDX = PFX + SEP + 'subjects';
-const SUBJECT_PFX = PFX + SEP + 'subject' + SEP;
-const SAMPLE_FIELDS_TO_STRINGIFY = [
-  'relatedLinks',
-];
-const ASPECT_FIELDS_TO_STRINGIFY = [
-  'relatedLinks',
-  'tags',
-  'criticalRange',
-  'warningRange',
-  'infoRange',
-  'okRange',
-];
+const constants = {
+  featureName: 'enableRedisSampleStore',
+  fieldsToStringify: {
+    aspect: [
+      'relatedLinks',
+      'tags',
+      'criticalRange',
+      'warningRange',
+      'infoRange',
+      'okRange',
+    ],
+    sample: ['relatedLinks'],
+  },
+  indexKey: {
+    aspect: PFX + SEP + 'aspects',
+    sample: PFX + SEP + 'samples',
+    subject: PFX + SEP + 'subjects',
+  },
+  objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject' },
+  prefix: PFX,
+  separator: SEP,
+};
+
+/**
+ * Generates redis key for given object type and name.
+ *
+ * @param {String} type - The object type (aspect, sample, subject).
+ * @param {String} name - The object's name or absolutePath.
+ * @returns {String} the generated redis key
+ */
+function toKey(type, name) {
+  return PFX + SEP + type + SEP + name.toLowerCase();
+} // toKey
 
 /**
  * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
@@ -40,9 +57,9 @@ const ASPECT_FIELDS_TO_STRINGIFY = [
  *
  * @returns {Promise} upon completion.
  */
-function clean() {
-  const promises = [ASPECT_IDX, SAMPLE_IDX, SUBJECT_IDX].map((s) => {
-    return redisClient.smembersAsync(s)
+function eradicate() {
+  const promises = Object.getOwnPropertyNames(constants.indexKey)
+    .map((s) => redisClient.smembersAsync(s)
     .then((keys) => {
       keys.push(s);
       return redisClient.delAsync(s);
@@ -51,10 +68,9 @@ function clean() {
       // NO-OP
       console.error(err); // eslint-disable-line no-console
       Promise.resolve(true);
-    });
-  });
+    }));
   return Promise.all(promises);
-} // clean
+} // eradicate
 
 /**
  * Remove nulls and stringify arrays.
@@ -82,7 +98,8 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
  */
 function cleanAspect(a) {
   let retval = a.get();
-  retval = removeNullsAndStringifyArrays(retval, ASPECT_FIELDS_TO_STRINGIFY);
+  retval = removeNullsAndStringifyArrays(retval,
+    constants.fieldsToStringify.aspect);
   return retval;
 } // cleanAspect
 
@@ -95,16 +112,22 @@ function cleanAspect(a) {
 function cleanSample(s) {
   let retval = s.get();
   delete retval.aspect;
-  retval = removeNullsAndStringifyArrays(retval, SAMPLE_FIELDS_TO_STRINGIFY);
+  retval = removeNullsAndStringifyArrays(retval,
+    constants.fieldsToStringify.sample);
   return retval;
 } // cleanSample
 
 /**
  * Populate the redis sample store from the db.
  *
- * @returns {Promise} which resolves to the redis response.
+ * @returns {Promise} which resolves to the list of redis batch responses, or
+ *  false if the feature is not enabled.
  */
 function populate() {
+  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+    return Promise.resolve(false);
+  }
+
   return Sample.findAll()
   .then((samples) => {
     const subjectIdx = new Set();
@@ -116,76 +139,107 @@ function populate() {
 
     samples.forEach((s) => {
       const nameParts = s.name.split('|');
-      const absPath = nameParts[0].toLowerCase();
-      const aspectName = nameParts[1].toLowerCase();
-      const subKey = SUBJECT_PFX + absPath;
-      const aspKey = ASPECT_PFX + aspectName;
-      const samKey = SAMPLE_PFX + s.name.toLowerCase();
-      subjectIdx.add(subKey);
+
+      // Generate the redis keys for this aspect, sample and subject.
+      const aspKey = toKey(constants.objectType.aspect,
+        nameParts[1]); // eslint-disable-line no-magic-numbers
+      const samKey = toKey(constants.objectType.sample, s.name);
+      const subKey = toKey(constants.objectType.subject,
+        nameParts[0]); // eslint-disable-line no-magic-numbers
+
+      // Track each of these in the master indexes for each object type.
       aspectIdx.add(aspKey);
       sampleIdx.add(samKey);
+      subjectIdx.add(subKey);
+
+      // For creating each individual subject set...
       if (subjectSets.hasOwnProperty(subKey)) {
         subjectSets[subKey].push(aspKey);
       } else {
         subjectSets[subKey] = [aspKey];
       }
 
+      // For creating each individual aspect hash...
       if (!aspectHashes.hasOwnProperty(aspKey)) {
         aspectHashes[aspKey] = cleanAspect(s.aspect);
       }
 
+      // For creating each individual sample hash...
       sampleHashes[samKey] = cleanSample(s);
     });
 
-    const commands = [];
-    commands.push(['sadd', SUBJECT_IDX, Array.from(subjectIdx)]);
-    commands.push(['sadd', ASPECT_IDX, Array.from(aspectIdx)]);
-    commands.push(['sadd', SAMPLE_IDX, Array.from(sampleIdx)]);
-    Object.keys(subjectSets).forEach((key) => {
-      commands.push(['sadd', key, subjectSets[key]]);
-    });
-    Object.keys(aspectHashes).forEach((key) => {
-      commands.push(['hmset', key, aspectHashes[key]]);
-    });
-    Object.keys(sampleHashes).forEach((key) => {
-      commands.push(['hmset', key, sampleHashes[key]]);
-    });
-    return redisClient.batch(commands).execAsync();
+    // Batch of commands to create the master indexes..
+    const indexCmds = [
+      ['sadd', constants.indexKey.subject, Array.from(subjectIdx)],
+      ['sadd', constants.indexKey.aspect, Array.from(aspectIdx)],
+      ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
+    ];
+    const batchPromises = [redisClient.batch(indexCmds).execAsync()];
+
+    // Batch of commands to create each individal aspect hash...
+    const aspectCmds = Object.keys(aspectHashes)
+      .map((key) => ['hmset', key, aspectHashes[key]]);
+    batchPromises.push(redisClient.batch(aspectCmds).execAsync());
+
+    // Batch of commands to create each individal subject set...
+    const subjectCmds = Object.keys(subjectSets)
+      .map((key) => ['sadd', key, subjectSets[key]]);
+    batchPromises.push(redisClient.batch(subjectCmds).execAsync());
+
+    // Batch of commands to create each individal sample hash...
+    const sampleCmds = Object.keys(sampleHashes)
+      .map((key) => ['hmset', key, sampleHashes[key]]);
+    batchPromises.push(redisClient.batch(sampleCmds).execAsync());
+
+    // Return once all batches have completed.
+    return Promise.all(batchPromises);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populate
 
 /**
- * Returns true if all three index keys exist in redis.
+ * Checks whether all three index keys (samples, subjects, aspects) exist in
+ * redis.
  *
  * @returns {Promise} which resolves to true if all three index keys exist in
  *  redis.
  */
 function indexKeysExist() {
   const EXPECTED = 3;
-  return redisClient.existsAsync(SUBJECT_IDX, SAMPLE_IDX, ASPECT_IDX)
+  return redisClient.existsAsync(constants.indexKey.aspect,
+    constants.indexKey.sample, constants.indexKey.subject)
   .then((num) => (num === EXPECTED));
 } // indexKeysExist
 
 /**
- * Initializes the redis sample store from the db if the sample store index
- * keys do not already exist.
+ * Initializes the redis sample store from the db if the feature is enabled and
+ * the sample store index keys do not already exist.
  *
- * @returns {Promise} which resolves to true upon completion.
+ * @returns {Promise} which resolves to true if sample store is enabled and
+ *  has completed initialization; resolves to false if feature is not
+ *  enabled.
  */
 function init() {
+  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+    return Promise.resolve(false);
+  }
+
   return indexKeysExist()
   .then((keysAlreadyExist) => {
     if (keysAlreadyExist) {
-      return true;
+      return Promise.resolve(true);
     }
 
-    return db2redis();
+    return populate();
   });
 } // init
 
 module.exports = {
+  eradicate,
+  cleanAspect,
+  cleanSample,
+  constants,
   init,
   populate,
-  clean,
+  toKey,
 };

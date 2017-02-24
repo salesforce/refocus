@@ -20,6 +20,7 @@
 const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
+const sampleStore = require('./cache/sampleStore');
 
 /**
  * Entry point for each newly clustered process
@@ -126,15 +127,8 @@ function start() { // eslint-disable-line max-statements
     });
   }
 
-  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-    const sampleStore = require('./cache/sampleStore');
-
-    /*
-     * Populates the redis sample store from db if the sample store does not
-     * already exist.
-     */
-    sampleStore.init();
-  } // redis sample store
+  // Make sure sample store is initialized if feature is enabled.
+  sampleStore.init();
 
   /*
    * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
