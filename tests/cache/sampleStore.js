@@ -19,7 +19,16 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 
-describe('sampleStore:', () => {
+describe('sampleStore (feature off):', () => {
+  it('init', (done) => {
+    sampleStore.init()
+    .then((res) => expect(res).to.be.false)
+    .then(() => done())
+    .catch(done);
+  });
+});
+
+describe('sampleStore (feature on):', () => {
   let a1;
   let a2;
   let s1;
@@ -98,11 +107,8 @@ describe('sampleStore:', () => {
 
   it('eradicate and populate', (done) => {
     sampleStore.eradicate()
-    .then(() =>
-      redisClient.keysAsync(sampleStore.constants.prefix + '*'))
-    .then((res) => {
-      expect(res.length).to.eql(0);
-    })
+    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then((res) => expect(res.length).to.eql(0))
     .then(() => sampleStore.populate())
     .then(() =>
       redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
@@ -128,6 +134,8 @@ describe('sampleStore:', () => {
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
     })
+    .then(() => sampleStore.init())
+    .then((res) => expect(res).to.be.true)
     .then(() => {
       done();
     })

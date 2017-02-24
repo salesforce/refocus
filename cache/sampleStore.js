@@ -59,10 +59,10 @@ function toKey(type, name) {
  */
 function eradicate() {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
-    .map((s) => redisClient.smembersAsync(s)
+    .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
-      keys.push(s);
-      return redisClient.delAsync(s);
+      keys.push(constants.indexKey[s]);
+      return redisClient.delAsync(keys);
     })
     .catch((err) => {
       // NO-OP
