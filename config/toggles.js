@@ -73,9 +73,13 @@ const longTermToggles = {
   enableRealtimeActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
 
+  // Use redis sampleStore with postgres db backup.
+  enableRedisSampleStore:
+    environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
+
   // Enable api activity logging
-  enableApiActivityLogs: environmentVariableTrue(pe,
-                                        'ENABLE_API_ACTIVITY_LOGS'),
+  enableApiActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
 
   // Enable worker activity logging
   enableWorkerActivityLogs:

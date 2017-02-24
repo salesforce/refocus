@@ -13,8 +13,13 @@
  * web process use "node index.js". To start both the web and the clock process
  * use "heroku local"
  */
+
+/* eslint-disable global-require */ // allowing it here in index.js
+/* eslint-disable no-process-env */ // allowing it here in index.js
+
 const throng = require('throng');
-const WORKERS = process.env.WEB_CONCURRENCY || 1;
+const DEFAULT_WEB_CONCURRENCY = 1;
+const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 
 /**
  * Entry point for each newly clustered process
@@ -35,7 +40,7 @@ function start() { // eslint-disable-line max-statements
   const ENCODING = 'utf8';
   const compress = require('compression');
 
-  // set up sever side socket.io and redis publisher
+  // set up server side socket.io and redis publisher
   const express = require('express');
   const enforcesSSL = require('express-enforces-ssl');
 
@@ -120,6 +125,16 @@ function start() { // eslint-disable-line max-statements
       console.log(listening, PORT); // eslint-disable-line no-console
     });
   }
+
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    const sampleStore = require('./cache/sampleStore');
+
+    /*
+     * Populates the redis sample store from db if the sample store does not
+     * already exist.
+     */
+    sampleStore.init();
+  } // redis sample store
 
   /*
    * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
