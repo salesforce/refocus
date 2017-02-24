@@ -68,20 +68,9 @@ describe('db: sample: upsert: ', () => {
       method: ['absolutePath', `${tu.namePrefix}Subject`],
     }).find())
     .then((subject) => subject.update({ name: `${tu.namePrefix}Subject1` }))
-    .then(() => {
-      // use delay for getting updated version of sample because it
-      // gets updated in afterUpdate. So we receive the change in subject
-      // as soon as it gets updated but sample update / heirarchy update
-      // it does in background.
-      setTimeout(() => {
-        Sample.findById(newSample.dataValues.name)
-        .then((sample) => {
-          expect(sample.dataValues.name).to.contain(
-            `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`);
-          done();
-        });
-      }, 500);
-    })
+    .then(() => Sample.findById(newSample.dataValues.name))
+    .should.eventually.have.property('name', `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`)
+    .then(() => done())
     .catch(done);
   });
 

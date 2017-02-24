@@ -115,7 +115,6 @@ module.exports = function sample(seq, dataTypes) {
             {
               association: assoc.aspect,
               attributes: [
-                'id',
                 'description',
                 'isPublished',
                 'helpEmail',
@@ -142,7 +141,6 @@ module.exports = function sample(seq, dataTypes) {
         });
         Sample.addScope('checkTimeout', {
           attributes: [
-            'id',
             'updatedAt',
             'value',
             'subjectId',
@@ -279,15 +277,18 @@ module.exports = function sample(seq, dataTypes) {
        *   records, or increment the sample count in each
        */
       beforeCreate(inst /* , opts */) {
+        let name = '';
         return new seq.Promise((resolve, reject) =>
           inst.getSubject()
           .then((s) => {
-            inst.name = s.absolutePath + constants.sampleNameSeparator;
+            name += s.absolutePath + constants.sampleNameSeparator;
           })
           .then(() => inst.getAspect())
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
-              inst.name += a.name;
+              console.log('aspect in beforeCreate', name, a.name, inst.name);
+              name += a.name;
+              inst.name = name;
               inst.status = u.computeStatus(a, inst.value);
             } else {
               const err = new ResourceNotFoundError();
@@ -308,8 +309,8 @@ module.exports = function sample(seq, dataTypes) {
        * @param {Sample} inst - The newly-created instance
        */
       afterCreate(inst /* , opts */) {
+        console.log('afterCreate');
         let samp;
-        console.log('sample is in afterCreate', inst.dataValues.name);
 
         // log instance creation
         if (dbLoggingEnabled) {
@@ -370,7 +371,6 @@ module.exports = function sample(seq, dataTypes) {
           );
         }
 
-        console.log('sample is in afterUpdate', inst.dataValues.name);
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
           if (published) {
