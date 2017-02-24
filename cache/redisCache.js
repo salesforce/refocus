@@ -16,6 +16,13 @@ const redis = require('redis');
 const rconf = require('../config').redis;
 const sub = redis.createClient(rconf.instanceUrl.pubsub);
 sub.subscribe(rconf.channelName);
+/*
+ * This will add "...Async" to all node_redis functions (e.g. return
+ * client.getAsync().then(...)).
+ */
+const bluebird = require('bluebird');
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
 
 module.exports = {
   client: {

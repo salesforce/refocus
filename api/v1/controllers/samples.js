@@ -23,7 +23,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
-const r = require('../../../cache/redisCache').client;
+const r = require('../../../cache/redisCache').client.cache;
 const Subject = require('../../../db').Subject;
 const sampleUtils = require('../../../db/helpers/sampleUtils');
 
