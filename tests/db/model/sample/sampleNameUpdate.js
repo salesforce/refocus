@@ -77,6 +77,7 @@ describe('sample name gets updated:', () => {
       return Subject.create(xb2);
     })
     .then((b) => {
+      console.log('subject', xb2.name, ' created')
       b2 = b;
       xb3.parentId = b2.id;
       return Subject.create(xb3);
@@ -92,10 +93,13 @@ describe('sample name gets updated:', () => {
         { aspectId: a2.id, subjectId: b3.id },
       ];
     })
-    .each((s) => Sample.create(s))
+    .each((s) => {
+      console.log('creating', s.subjectId)
+      return Sample.create(s)
+    })
     .then(() => done())
     .catch((err) => {
-      console.log(err);
+      // console.log(err);
       done(err)
     });
   });

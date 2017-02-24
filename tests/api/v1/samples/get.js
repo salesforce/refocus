@@ -22,7 +22,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe(`api: GET ${path}`, () => {
-  let sampleId;
+  let sampleName;
   let token;
 
   before((done) => {
@@ -38,7 +38,7 @@ describe(`api: GET ${path}`, () => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       done();
     })
     .catch(done);
@@ -70,7 +70,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   it('basic get by id', (done) => {
-    api.get(`${path}/${sampleId}`)
+    api.get(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {

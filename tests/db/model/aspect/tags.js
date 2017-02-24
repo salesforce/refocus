@@ -18,11 +18,11 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 
-describe('db: aspect: tags: update', () => {
+describe('db: aspect: tags:', () => {
   beforeEach((done) => {
     Aspect.create({
       isPublished: true,
-      name: `${tu.namePrefix}A`,
+      name: `${tu.namePrefix}Aspect`,
       timeout: '1s',
       valueType: 'NUMERIC',
       criticalRange: [0, 0],
@@ -33,7 +33,7 @@ describe('db: aspect: tags: update', () => {
     })
     .then(() => Aspect.create({
       isPublished: true,
-      name: `${tu.namePrefix}B`,
+      name: `${tu.namePrefix}Beta`,
       timeout: '2m',
       valueType: 'NUMERIC',
       criticalRange: [0, 0],
@@ -47,26 +47,30 @@ describe('db: aspect: tags: update', () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => Sample.bulkUpsertByName([
-      { name: `${tu.namePrefix}Subject|${tu.namePrefix}A`, value: 1 },
-      { name: `${tu.namePrefix}Subject|${tu.namePrefix}B`, value: 2 },
+      { name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`, value: 1 },
+      { name: `${tu.namePrefix}Subject|${tu.namePrefix}Beta`, value: 2 },
     ]))
     .then(() => done())
-    .catch(done);
+    .catch((err) => {
+      console.log(err);
+      done(err)
+    });
   });
 
   afterEach(u.forceDelete);
 
   it('update an aspect tag, samples have it next time they are loaded',
   (done) => {
-    Aspect.findOne({ name: `${tu.namePrefix}A` })
+    Aspect.findOne({ name: `${tu.namePrefix}Aspect` })
     .then((o) => {
       o.tags = ['T3'];
       return o.save();
     })
     .then(() => Sample.findOne({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}A`,
+      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
     }))
     .then((s) => {
+      // got T2, expected T3
       expect(s.dataValues.aspect.tags).to.deep.equal(['T3']);
       done();
     })
