@@ -20,6 +20,7 @@ const PFX = 'samsto';
 const SEP = ':';
 const SUBJECT_SET = PFX + SEP + 'subjects';
 const SAMPLE_SET = PFX + SEP + 'samples';
+const Promise = require('bluebird');
 
 /*
  * All the query params that can be expected in the hierarchy endpoint are
@@ -199,6 +200,25 @@ function applyFilters(key, filterBy) {
 } // applyFilters
 
 /**
+ * Get the aspect information from the redis and attach it to the sample object
+ * @param  {String} aspectName - Aspect name
+ * @param  {Object} sample   - Sample object
+ * @returns {Promise} - which resolves to a sample object with its aspect
+ * information
+ */
+function getAspectFromRedis(aspectName) {
+  const aspectKey = 'refocache:aspects:' + aspectName.toLowerCase();
+  return redisClient.getAsync(aspectKey)
+    .then((aspect) => {
+      if (aspect) {
+        console.log('3 this is the aspect-----' + aspect);
+        return aspect;
+      }
+      return aspect;
+    });
+} // getAspectFromRedis
+
+/**
  * Get the sample information from Redis
  * @param  {String} sampleKey - Sample key
  * @returns {Promise} - which resolves to a sample object
@@ -209,38 +229,11 @@ function getSampleFromRedis(sampleKey) {
     .then((samp) => {
       samp.relatedLinks = JSON.parse(samp.relatedLinks);
       sample = samp;
+      console.log('2' + sample);
       return sample;
-      return getAspectFromRedis(sample.name.split('|')[1], sample);
     });
-    // .then((asp)=> {
-    //   console.log('returned aspect' + asp);
-    //   sample.aspect = JSON.parse(asp);
-    //   return (sample);
-    // });
-} // getSampleFromReids
 
-/**
- * Get the aspect information from the redis and attach it to the sample object
- * @param  {String} aspectName - Aspect name
- * @param  {Object} sample   - Sample object
- * @returns {Promise} - which resolves to a sample object with its aspect
- * information
- */
-function getAspectFromRedis(aspectName, sample) {
-  const aspectKey = 'refocache:aspects:' + aspectName.toLowerCase();
-  console.log('getAspectFromRedis-------------' + aspectKey);
-  console.log('sample object --------');
-  return redisClient.getAsync(aspectKey)
-    .then((aspect) => {
-      if (aspect) {
-        // sample.aspect = JSON.parse(aspect);
-        console.log('this is the aspect-----' + JSON.stringify(sample.aspect.name, null, 2));
-        return (aspect);
-      }
-      console.log('this is the sample-----' + JSON.stringify(sample.name, null, 2));
-      return sample;
-    });
-} // getAspectFromRedis
+} // getSampleFromReids
 
 /**
  *
@@ -255,26 +248,32 @@ function getAspectFromRedis(aspectName, sample) {
  *  samples are filtered.
  */
 function pruneNodeV2(res) {
-    res.samples = [];
-    const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
+  res.samples = [];
+  const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
   return redisClient.smembersAsync(subjectKey)
     .then((aspectNames) => {
       if (aspectNames && aspectNames.length) {
-        const promises = aspectNames.map((aspect) => {
+        aspectNames.forEach((aspect) => {
+          console.log('1')
           const sampleKey = SAMPLE_SET + SEP + res.absolutePath.toLowerCase() +
            '|' + aspect;
-          return getSampleFromRedis(sampleKey);
-        });
-        Promise.all(promises)
-        .then((arr) => {
-          res.samples = arr;
-          console.log('samples finally resolved into an array'+ arr);
-          return Promise.resolve(res);
+          const sample = getSampleFromRedis(sampleKey);
+          const aspectObj = getAspectFromRedis(aspect);
+          let a;
+          Promise.join(sample, aspectObj, () => {
+            a = JSON.parse(aspectObj.value());
+            return sample;
+          })
+          .then((_sample) => {
+            const s = _sample;
+            s.aspect = a;
+            res.samples.push(s);
+          });
         });
       }
+      console.log('4 returned finally');
       return Promise.resolve(res);
     });
-
 } // pruneNodeV2
 
 /**
