@@ -198,24 +198,25 @@ function populate() {
 } // populate
 
 /**
- * Checks whether all three index keys (samples, subjects, aspects) exist in
- * redis.
+ * Checks whether the sample store exists by counting the members of the three
+ * index keys (samples, subjects, aspects). If any has more than one member,
+ * consider the sample store as existing.
  *
- * @returns {Promise} which resolves to true if all three index keys exist in
- *  redis.
+ * @returns {Promise} which resolves to true if the sample store already
+ *  exists.
  */
-function indexKeysExist() {
+function sampleStoreExists() {
   const cmds = [
-    ['exists', constants.indexKey.aspect],
-    ['exists', constants.indexKey.sample],
-    ['exists', constants.indexKey.subject],
+    ['scard', constants.indexKey.aspect],
+    ['scard', constants.indexKey.sample],
+    ['scard', constants.indexKey.subject],
   ];
   return redisClient.batch(cmds).execAsync()
   .then((batchResponse) =>
-    batchResponse[0] === 1 && // eslint-disable-line no-magic-numbers
-    batchResponse[1] === 1 && // eslint-disable-line no-magic-numbers
-    batchResponse[2] === 1); // eslint-disable-line no-magic-numbers
-} // indexKeysExist
+    batchResponse[0] > 0 || // eslint-disable-line no-magic-numbers
+    batchResponse[1] > 0 || // eslint-disable-line no-magic-numbers
+    batchResponse[2] > 0); // eslint-disable-line no-magic-numbers
+} // sampleStoreExists
 
 /**
  * Initializes the redis sample store from the db if the feature is enabled and
@@ -230,9 +231,9 @@ function init() {
     return Promise.resolve(false);
   }
 
-  return indexKeysExist()
-  .then((keysAlreadyExist) => {
-    if (keysAlreadyExist) {
+  return sampleStoreExists()
+  .then((exists) => {
+    if (exists) {
       return Promise.resolve(true);
     }
 
