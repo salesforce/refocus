@@ -206,8 +206,11 @@ function populate() {
  */
 function indexKeysExist() {
   const EXPECTED = 3;
-  return redisClient.existsAsync([constants.indexKey.aspect,
-    constants.indexKey.sample, constants.indexKey.subject])
+  return redisClient.existsAsync([
+    constants.indexKey.aspect,
+    constants.indexKey.sample,
+    constants.indexKey.subject,
+  ])
   .then((num) => (num === EXPECTED));
 } // indexKeysExist
 
