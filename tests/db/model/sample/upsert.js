@@ -54,11 +54,12 @@ describe('db: sample: upsert: ', () => {
     .catch(done);
   });
 
-  it.skip('When subject name changed then sample name should be changed',
+  it('When subject name changed then sample name should be changed',
   (done) => {
+    const sampleName = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`;
     let newSample;
     Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: sampleName,
       value: '1',
     })
     .then((samp) => {
@@ -68,11 +69,18 @@ describe('db: sample: upsert: ', () => {
       method: ['absolutePath', `${tu.namePrefix}Subject`],
     }).find())
     .then((subject) => subject.update({ name: `${tu.namePrefix}Subject1` }))
-    .then((subject) => {
-      console.log('new subject name', subject.dataValues.name)
-      return Sample.findById(newSample.dataValues.name);
+    .then(() => Sample.findById(newSample.dataValues.name))
+    .then((sample) => {
+      // use delay for getting updated version of sample because it
+      // gets updated in afterUpdate. So we receive the change in subject
+      // as soon as it gets updated but sample update / heirarchy update
+      // it does in background.
+      setTimeout(() => {
+          expect(sample.dataValues.name).to.equal(
+            `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`);
+          done();
+      }, 700);
     })
-    .should.eventually.have.property('name', `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`)
     .then(() => done())
     .catch(done);
   });
