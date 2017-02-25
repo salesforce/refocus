@@ -205,13 +205,16 @@ function populate() {
  *  redis.
  */
 function indexKeysExist() {
-  const EXPECTED = 3;
-  return redisClient.existsAsync([
-    constants.indexKey.aspect,
-    constants.indexKey.sample,
-    constants.indexKey.subject,
-  ])
-  .then((num) => (num === EXPECTED));
+  const cmds = [
+    ['exists', constants.indexKey.aspect],
+    ['exists', constants.indexKey.sample],
+    ['exists', constants.indexKey.subject],
+  ];
+  return redisClient.batch(cmds).execAsync()
+  .then((batchResponse) =>
+    batchResponse[0] === 1 && // eslint-disable-line no-magic-numbers
+    batchResponse[1] === 1 && // eslint-disable-line no-magic-numbers
+    batchResponse[2] === 1); // eslint-disable-line no-magic-numbers
 } // indexKeysExist
 
 /**
