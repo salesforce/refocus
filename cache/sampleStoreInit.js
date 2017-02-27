@@ -39,7 +39,6 @@ function eradicate() {
   return Promise.all(promises);
 } // eradicate
 
-
 /**
  * Populate the redis sample store from the db.
  *
