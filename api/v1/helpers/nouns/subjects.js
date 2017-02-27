@@ -248,6 +248,11 @@ function getSampleFromRedis(sampleKey) {
  *  samples are filtered.
  */
 function pruneNodeV2(res) {
+  const filterOnSubject = applyTagFilters(res.tags, 'subjectTags');
+  console.log('filtered on subject boolen'+ filterOnSubject);
+  if (!filterOnSubject) {
+    return Promise.resolve(filterOnSubject);
+  }
   res.samples = [];
   const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
   return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
@@ -265,7 +270,6 @@ function pruneNodeV2(res) {
 
     return Promise.all(sampleAspectPromise);
   }).then((saArray) => {
-    console.log('-returned array from promisel all------'+ saArray.length);
     for (let i = 0; i < saArray.length; i=i+2) {
 
       const sample = saArray[i];
@@ -273,10 +277,11 @@ function pruneNodeV2(res) {
       sample.aspect = JSON.parse(asp);
       res.samples.push(sample);
     }
-    Promise.resolve(res);
+    return Promise.resolve(filterOnSubject);
   }).catch((err) => {
     throw err;
   });
+
 } // pruneNodeV2
 
 /**
@@ -288,17 +293,25 @@ function pruneNodeV2(res) {
  */
 function traverseHierarchyV2(res) {
   const traveHP = [];
+  const filteredChildrenArr = [];
   if (res.children) {
     for (let i =0;i<res.children.length;i++) {
       traveHP.push(traverseHierarchyV2(res.children[i]));
     }
   }
   return Promise.all(traveHP)
-  .then(() => {
+  .then((values) => {
+    console.log('values array returned from promisall in traverseHierarchyV2---->' + values);
+    for (let i = 0; i < values.length; i++) {
+      if (values[i]) {
+        filteredChildrenArr.push(res.children[i]);
+      }
+    }
+    res.children = filteredChildrenArr;
     return pruneNodeV2(res);
   }).then((_res) => {
     console.log('res resturned from pruneNodeV2' + res.name);
-    Promise.resolve(_res);
+    return Promise.resolve(_res || filteredChildrenArr.length);
   });
 } // traverseHierarchyV2
 
@@ -382,23 +395,23 @@ function traverseHierarchy(res) {
  * @returns {ServerResponse} res - The modified subject response
  */
 function modifyAPIResponse(res, params) {
-  const p = traverseHierarchyV2(res);
-  p.then(() => {
-    console.log('5 -------------------------- exiting modifyAPIResponse');
-  });
 
-  return p;
-
-  // for (const key in filters) {
-    // if (key && params[key].value) {
-      // setFilters(params);
+  for (const key in filters) {
+    if (key && params[key].value) {
+      setFilters(params);
       // return traverseHierarchy(res);
 
       // resetFilters();
-      // break;
-    // }
-  // }
+      break;
+    }
+  }
+   const p = traverseHierarchyV2(res);
+    p.then(() => {
+    console.log('5 -------------------------- exiting modifyAPIResponse');
+    resetFilters();
 
+  });
+    return p;
   // return res;
 } // modifyAPIResponse
 
