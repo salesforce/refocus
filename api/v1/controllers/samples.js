@@ -23,6 +23,9 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
+const sampleStore = require('../../../cache/sampleStore');
+const constants = sampleStore.constants;
+const redisModelSample = require('../../../cache/models/samples');
 
 module.exports = {
 
@@ -49,7 +52,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    doFind(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+      redisModelSample.findSamplesFromRedis(req, res, next);
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
@@ -62,7 +69,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
-    doGet(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+      redisModelSample.getSampleFromRedis(req, res, next);
+    } else {
+      doGet(req, res, next, helper);
+    }
   },
 
   /**

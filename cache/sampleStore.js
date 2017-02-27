@@ -49,6 +49,23 @@ function toKey(type, name) {
 } // toKey
 
 /**
+ * Convert array strings to json from redis object
+ * @param  {Object} obj - Object to convert
+ * @param  {Object} arrayFields - List of array fields which were stringified.
+ * @returns {Object} - Converted object
+ */
+function arrayStringsToJson(obj, arrayFields) {
+  Object.keys(obj).forEach((key) => {
+    // Some array fields might have already been parsed in previous calls
+    // because of pass-by-reference behaviour of object, hence array check
+    if (arrayFields.includes(key) && (!Array.isArray(obj[key]))) {
+      obj[key] = JSON.parse(obj[key]);
+    }
+  });
+  return obj;
+} // arrayStringsToJson
+
+/**
  * Remove null fields; stringify array fields.
  *
  * @param {Object} obj - The object to clean.
@@ -100,4 +117,5 @@ module.exports = {
   cleanSample,
   constants,
   toKey,
+  arrayStringsToJson,
 };
