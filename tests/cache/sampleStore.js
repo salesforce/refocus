@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const sampleStore = require('../../cache/sampleStore');
+const samstoinit = require('../../cache/sampleStoreInit');
 const redisClient = require('../../cache/redisCache').client.sampleStore;
 const expect = require('chai').expect;
 const tu = require('../testUtils');
@@ -21,7 +22,7 @@ const Sample = tu.db.Sample;
 
 describe('sampleStore (feature off):', () => {
   it('init', (done) => {
-    sampleStore.init()
+    samstoinit.init()
     .then((res) => expect(res).to.be.false)
     .then(() => done())
     .catch(done);
@@ -102,14 +103,19 @@ describe('sampleStore (feature on):', () => {
     .catch(done);
   });
 
-  after(u.forceDelete);
-  after(() => tu.toggleOverride(sampleStore.constants.featureName, false));
+  after((done) => {
+    u.forceDelete(done)
+    .then(() => redisClient.flushallAsync())
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
+    .then(() => done())
+    .catch(done);
+  });
 
   it('eradicate and populate', (done) => {
-    sampleStore.eradicate()
+    samstoinit.eradicate()
     .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
     .then((res) => expect(res.length).to.eql(0))
-    .then(() => sampleStore.populate())
+    .then(() => samstoinit.populate())
     .then(() =>
       redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
@@ -134,11 +140,9 @@ describe('sampleStore (feature on):', () => {
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
     })
-    .then(() => sampleStore.init())
+    .then(() => samstoinit.init())
     .then((res) => expect(res).to.be.true)
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 });
