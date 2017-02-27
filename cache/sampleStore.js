@@ -49,7 +49,7 @@ function toKey(type, name) {
 } // toKey
 
 /**
- * Remove null fields and empty array fields; stringify array fields.
+ * Remove null fields; stringify array fields.
  *
  * @param {Object} obj - The object to clean.
  * @param {Array} arrayFields - List of array fields to stringify.
@@ -57,8 +57,7 @@ function toKey(type, name) {
  */
 function removeNullsAndStringifyArrays(obj, arrayFields) {
   Object.keys(obj).forEach((key) => {
-    if (obj[key] === null || (Array.isArray(obj[key]) &&
-    obj[key].length === 0)) { // eslint-disable-line no-magic-numbers
+    if (obj[key] === null) {
       delete obj[key];
     } else if (arrayFields.includes(key)) {
       obj[key] = JSON.stringify(obj[key]);
