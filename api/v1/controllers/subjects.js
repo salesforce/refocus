@@ -207,8 +207,9 @@ module.exports = {
       }
       helper.modifyAPIResponse(retval, params)
       .then((_retval) => {
+        console.log('about to return status-----------------');
         u.logAPI(req, resultObj, retval);
-        res.status(httpStatus.OK).json(_retval);
+        res.status(httpStatus.OK).json(retval);
       });
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

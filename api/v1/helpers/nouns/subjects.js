@@ -250,30 +250,33 @@ function getSampleFromRedis(sampleKey) {
 function pruneNodeV2(res) {
   res.samples = [];
   const subjectKey = SUBJECT_SET+SEP+res.absolutePath.toLowerCase();
-  return redisClient.smembersAsync(subjectKey)
-    .then((aspectNames) => {
-      if (aspectNames && aspectNames.length) {
-        aspectNames.forEach((aspect) => {
-          console.log('1')
-          const sampleKey = SAMPLE_SET + SEP + res.absolutePath.toLowerCase() +
-           '|' + aspect;
-          const sample = getSampleFromRedis(sampleKey);
-          const aspectObj = getAspectFromRedis(aspect);
-          let a;
-          Promise.join(sample, aspectObj, () => {
-            a = JSON.parse(aspectObj.value());
-            return sample;
-          })
-          .then((_sample) => {
-            const s = _sample;
-            s.aspect = a;
-            res.samples.push(s);
-          });
-        });
-      }
-      console.log('4 returned finally');
-      return Promise.resolve(res);
+  return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
+    console.log(1);
+    const sampleAspectPromise = [];
+    if (!aspectNames.length) {
+      Promise.resolve(res);
+    }
+    aspectNames.forEach((aspect) => {
+      const sampleKey = SAMPLE_SET + SEP + res.absolutePath.toLowerCase() +
+         '|' + aspect;
+      sampleAspectPromise.push(getSampleFromRedis(sampleKey));
+      sampleAspectPromise.push(getAspectFromRedis(aspect));
     });
+
+    return Promise.all(sampleAspectPromise);
+  }).then((saArray) => {
+    console.log('-returned array from promisel all------'+ saArray.length);
+    for (let i = 0; i < saArray.length; i=i+2) {
+
+      const sample = saArray[i];
+      const asp = saArray[i+1];
+      sample.aspect = JSON.parse(asp);
+      res.samples.push(sample);
+    }
+    Promise.resolve(res);
+  }).catch((err) => {
+    throw err;
+  });
 } // pruneNodeV2
 
 /**
@@ -284,20 +287,21 @@ function pruneNodeV2(res) {
  *  part of the final hierarchy tree.
  */
 function traverseHierarchyV2(res) {
-  return new Promise((resolve, reject) => {
-    if (res.children) {
-      for (let i = 0; i < res.children.length; i++) {
-        traverseHierarchyV2(res.children[i]);
-      }
+  const traveHP = [];
+  if (res.children) {
+    for (let i =0;i<res.children.length;i++) {
+      traveHP.push(traverseHierarchyV2(res.children[i]));
     }
-
-    pruneNodeV2(res)
-    .then(() => {
-      resolve(pruneNodeV2(res));
-    })
-    .catch((err) => reject(err));
+  }
+  return Promise.all(traveHP)
+  .then(() => {
+    return pruneNodeV2(res);
+  }).then((_res) => {
+    console.log('res resturned from pruneNodeV2' + res.name);
+    Promise.resolve(_res);
   });
 } // traverseHierarchyV2
+
 /**
  * Prune a node by applying filters to it.
  *
@@ -378,7 +382,12 @@ function traverseHierarchy(res) {
  * @returns {ServerResponse} res - The modified subject response
  */
 function modifyAPIResponse(res, params) {
-  return traverseHierarchyV2(res);
+  const p = traverseHierarchyV2(res);
+  p.then(() => {
+    console.log('5 -------------------------- exiting modifyAPIResponse');
+  });
+
+  return p;
 
   // for (const key in filters) {
     // if (key && params[key].value) {
