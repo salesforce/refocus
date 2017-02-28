@@ -12,6 +12,7 @@
  * Functions for saving the redis sample store to the db.
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
@@ -21,9 +22,14 @@ const constants = samsto.constants;
  * Truncate the sample table in the db and persist all the samples from redis
  * into the empty table.
  *
- * @returns {Promise} which resolves to the list of redis batch responses.
+ * @returns {Promise} which resolves to true upon complete if redis sample
+ * store feature is enabled, or false on error or if feature is disabled.
  */
 function persist() {
+  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+    return Promise.resolve(false);
+  }
+
   return Sample.destroy({ truncate: true, force: true })
   .then(() => redisClient.smembersAsync(constants.indexKey.sample))
   .then((keys) => keys.map((key) => ['hgetall', key]))
@@ -40,7 +46,7 @@ function persist() {
   .catch((err) => {
     // NO-OP
     console.error(err); // eslint-disable-line no-console
-    Promise.resolve(true);
+    Promise.resolve(false);
   });
 } // persist
 
