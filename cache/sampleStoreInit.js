@@ -79,8 +79,8 @@ function populateSamples() {
       const nameParts = s.name.split('|');
 
       // Generate the redis keys for this aspect, sample and subject.
-      const aspKey = samsto.toKey(constants.objectType.aspect,
-        nameParts[1]); // eslint-disable-line no-magic-numbers
+      const aspName = nameParts[1] // eslint-disable-line no-magic-numbers
+        .toLowerCase();
       const samKey = samsto.toKey(constants.objectType.sample, s.name);
       const subKey = samsto.toKey(constants.objectType.subject,
         nameParts[0]); // eslint-disable-line no-magic-numbers
@@ -91,9 +91,9 @@ function populateSamples() {
 
       // For creating each individual subject set...
       if (subjectSets.hasOwnProperty(subKey)) {
-        subjectSets[subKey].push(aspKey);
+        subjectSets[subKey].push(aspName);
       } else {
-        subjectSets[subKey] = [aspKey];
+        subjectSets[subKey] = [aspName];
       }
 
       // For creating each individual sample hash...
