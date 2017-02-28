@@ -256,7 +256,7 @@ function getFilterQuery(p) {
     }
 
     const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspectTagFilter' + '=' + sign +
+    q += 'aspectTags' + '=' + sign +
         p.aspectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
