@@ -9,7 +9,7 @@
 /**
  * ./cache/sampleStore.js
  *
- * Redis Cache
+ * Redis Sample Store Constants and Util Functions
  */
 'use strict'; // eslint-disable-line strict
 const PFX = 'samsto';
