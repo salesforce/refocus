@@ -123,7 +123,8 @@ describe('sampleStore (feature on):', () => {
   after((done) => {
     u.forceDelete(done)
     .then(() => redisClient.flushallAsync())
-    .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName,
+      initialFeatureState))
     .then(() => done())
     .catch(done);
   });
