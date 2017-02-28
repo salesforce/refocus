@@ -29,6 +29,7 @@ module.exports = {
   jobQueue: kue.createQueue(redisOptions),
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
+    PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },
   ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,

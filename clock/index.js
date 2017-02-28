@@ -20,10 +20,12 @@
  * inside the main web process.
  */
 const conf = require('../config');
-const env = conf.environment[conf.nodeEnv];
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
+const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
 
 /*
  * Add all the scheduled work here.
  */
-setInterval(sampleTimeoutJob.enqueue, env.checkTimeoutIntervalMillis);
+setInterval(sampleTimeoutJob.enqueue, conf.checkTimeoutIntervalMillis);
+setInterval(persistSampleStoreJob.enqueue,
+  conf.persistRedisSampleStoreMilliseconds);

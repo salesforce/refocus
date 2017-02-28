@@ -51,6 +51,8 @@ const rateWindow = pe.RATE_WINDOW;
 const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
 const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
 
+const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
+
 /*
  * name of the environment variable containing the read-only
  * database names as CSV
@@ -149,8 +151,6 @@ module.exports = {
   // as well to enable database migraton in the environment.
   environment: {
     build: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       defaultNodePort: defaultPort,
@@ -161,8 +161,6 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     development: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       defaultNodePort: defaultPort,
@@ -177,8 +175,6 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     production: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: pe.DATABASE_URL,
       ipWhitelist: iplist,
@@ -191,8 +187,6 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testWhitelistLocalhost: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       defaultNodePort: defaultPort,
@@ -202,8 +196,6 @@ module.exports = {
        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testBlockAllhosts: {
-      checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-        DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
       dbLogging: false, // console.log | false | ...
       dbUrl: defaultDbUrl,
       defaultNodePort: defaultPort,
@@ -217,6 +209,8 @@ module.exports = {
   auditSubjects,
   auditSamples,
   auditAspects,
+  checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
+    DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
   deprioritizeJobsFrom,
@@ -224,6 +218,9 @@ module.exports = {
   httpMethodToLimit,
   nodeEnv,
   payloadLimit,
+  persistRedisSampleStoreMilliseconds:
+    pe.PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS ||
+    DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
   rateLimit,
