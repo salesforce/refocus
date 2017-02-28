@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const Sample = require('../db').Sample;
+const Aspect = require('../db').Aspect;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
@@ -40,26 +41,38 @@ function eradicate() {
 } // eradicate
 
 /**
- * Populate the redis sample store from the db.
+ * Populate the redis sample store with aspects from the db.
  *
- * @returns {Promise} which resolves to the list of redis batch responses, or
- *  false if the feature is not enabled.
+ * @returns {Promise} which resolves to the list of redis batch responses.
  */
-function populate() {
-  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
-    return Promise.resolve(false);
-  }
+function populateAspects() {
+  return Aspect.findAll()
+  .then((aspects) => {
+    const aspectIdx = [];
+    const cmds = [];
+    aspects.forEach((a) => {
+      const key = samsto.toKey(constants.objectType.aspect, a.name);
+      aspectIdx.push(key);
+      cmds.push(['hmset', key, samsto.cleanAspect(a)]);
+    });
 
-  const msg = 'Populating redis sample store from db';
-  console.log(msg); // eslint-disable-line no-console
+    cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
+    return redisClient.batch(cmds).execAsync();
+  })
+  .catch(console.error); // eslint-disable-line no-console
+} // populateAspects
 
+/**
+ * Populate the redis sample store with samples from the db.
+ *
+ * @returns {Promise} which resolves to the list of redis batch responses.
+ */
+function populateSamples() {
   return Sample.findAll()
   .then((samples) => {
     const subjectIdx = new Set();
-    const aspectIdx = new Set();
     const sampleIdx = new Set();
     const subjectSets = {};
-    const aspectHashes = {};
     const sampleHashes = {};
 
     samples.forEach((s) => {
@@ -73,7 +86,6 @@ function populate() {
         nameParts[0]); // eslint-disable-line no-magic-numbers
 
       // Track each of these in the master indexes for each object type.
-      aspectIdx.add(aspKey);
       sampleIdx.add(samKey);
       subjectIdx.add(subKey);
 
@@ -84,27 +96,16 @@ function populate() {
         subjectSets[subKey] = [aspKey];
       }
 
-      // For creating each individual aspect hash...
-      if (!aspectHashes.hasOwnProperty(aspKey)) {
-        aspectHashes[aspKey] = samsto.cleanAspect(s.aspect);
-      }
-
       // For creating each individual sample hash...
       sampleHashes[samKey] = samsto.cleanSample(s);
     });
 
-    // Batch of commands to create the master indexes..
+    // Batch of commands to create the master sample and subject indexes...
     const indexCmds = [
       ['sadd', constants.indexKey.subject, Array.from(subjectIdx)],
-      ['sadd', constants.indexKey.aspect, Array.from(aspectIdx)],
       ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
     ];
     const batchPromises = [redisClient.batch(indexCmds).execAsync()];
-
-    // Batch of commands to create each individal aspect hash...
-    const aspectCmds = Object.keys(aspectHashes)
-      .map((key) => ['hmset', key, aspectHashes[key]]);
-    batchPromises.push(redisClient.batch(aspectCmds).execAsync());
 
     // Batch of commands to create each individal subject set...
     const subjectCmds = Object.keys(subjectSets)
@@ -120,6 +121,24 @@ function populate() {
     return Promise.all(batchPromises);
   })
   .catch(console.error); // eslint-disable-line no-console
+} // populateSamples
+
+/**
+ * Populate the redis sample store from the db.
+ *
+ * @returns {Promise} which resolves to the list of redis batch responses, or
+ *  false if the feature is not enabled.
+ */
+function populate() {
+  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+    return Promise.resolve(false);
+  }
+
+  const msg = 'Populating redis sample store from db';
+  console.log(msg); // eslint-disable-line no-console
+
+  const promises = [populateSamples(), populateAspects()];
+  return Promise.all(promises);
 } // populate
 
 /**
