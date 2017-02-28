@@ -13,14 +13,22 @@
 const sampleStore = require('../../cache/sampleStore');
 const samstoinit = require('../../cache/sampleStoreInit');
 const redisClient = require('../../cache/redisCache').client.sampleStore;
+const featureToggles = require('feature-toggles');
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
+const initialFeatureState = featureToggles
+  .isFeatureEnabled(sampleStore.constants.featureName);
 
 describe('sampleStore (feature off):', () => {
+  before(() => tu.toggleOverride(sampleStore.constants.featureName, false));
+
+  after(() => tu.toggleOverride(sampleStore.constants.featureName,
+    initialFeatureState));
+
   it('init', (done) => {
     samstoinit.init()
     .then((res) => expect(res).to.be.false)
