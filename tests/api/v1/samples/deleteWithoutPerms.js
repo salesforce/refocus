@@ -51,7 +51,6 @@ describe('api: DELETE Sample without permission', () => {
     })
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      console.log('*** created sample', samp)
       sampleName = samp.name;
       return samp.getAspect();
     })

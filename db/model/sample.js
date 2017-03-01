@@ -286,7 +286,6 @@ module.exports = function sample(seq, dataTypes) {
           .then(() => inst.getAspect())
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
-              console.log('aspect in beforeCreate', name, a.name, inst.name);
               name += a.name;
               inst.name = name;
               inst.status = u.computeStatus(a, inst.value);
@@ -309,7 +308,6 @@ module.exports = function sample(seq, dataTypes) {
        * @param {Sample} inst - The newly-created instance
        */
       afterCreate(inst /* , opts */) {
-        console.log('afterCreate');
         let samp;
 
         // log instance creation
