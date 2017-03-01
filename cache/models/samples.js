@@ -13,7 +13,6 @@
 
 const helper = require('../../api/v1/helpers/nouns/samples');
 const u = require('../../api/v1/helpers/verbs/utils');
-const httpStatus = require('../../api/v1/constants').httpStatus;
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
@@ -52,14 +51,12 @@ module.exports = {
 
   /**
    * Retrieves the sample from redis and sends it back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
+   * @param  {string} sampleName - Sample name
+   * @param  {Object} logObject - Log object
+   * @param  {String} method - Type of request method
+   * @returns {Promise} - Resolves to a sample object
    */
-  getSampleFromRedis(req, res, next) {
-    const resultObj = { reqStartTime: new Date() }; // for logging
-    const sampleName = req.swagger.params.key.value.toLowerCase();
+  getSampleFromRedis(sampleName, logObject, method) {
     const aspectName = sampleName.split('|')[ONE];
     const commands = [];
 
@@ -75,42 +72,36 @@ module.exports = {
       sampleStore.toKey(constants.objectType.aspect, aspectName),
     ]);
 
-    redisClient.batch(commands).execAsync()
+    return redisClient.batch(commands).execAsync()
     .then((responses) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime; // log db time
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
 
       // clean and attach aspect to sample
       const sampleRes = cleanAddAspectToSample(
-        responses[ZERO], responses[ONE], res.method
+        responses[ZERO], responses[ONE], method
       );
 
-      u.logAPI(req, resultObj, sampleRes); // audit log
-      res.status(httpStatus.OK).json(sampleRes);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      return sampleRes;
+    });
   },
 
   /**
    * Finds zero or more samples from redis and sends them back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
+   * @param  {Object} logObject - Log object
+   * @param  {String} method - Type of request method
+   * @returns {Promise} - Resolves to a list of all samples objects
    */
-  findSamplesFromRedis(req, res, next) {
-    const resultObj = { reqStartTime: new Date() }; // for logging
+  findSamplesFromRedis(logObject, method) {
     const sampleCmds = [];
     const aspectCmds = [];
     const response = [];
 
     // get all Samples sorted lexicographically
-    redisClient.sortAsync(constants.indexKey.sample, 'alpha')
+    return redisClient.sortAsync(constants.indexKey.sample, 'alpha')
     .then((allSampleKeys) => {
       // add to commands to get sample
       allSampleKeys.forEach((sampleName) => {
-        sampleCmds.push(
-          ['hgetall', sampleName.toLowerCase()]
-        );
+        sampleCmds.push(['hgetall', sampleName]);
       });
 
       // get all aspect names
@@ -119,9 +110,7 @@ module.exports = {
     .then((allAspectKeys) => {
       // add to commands to get aspect
       allAspectKeys.forEach((aspectName) => {
-        aspectCmds.push(
-          ['hgetall', aspectName.toLowerCase()]
-        );
+        aspectCmds.push(['hgetall', aspectName]);
       });
 
       // get all samples and aspects
@@ -131,7 +120,7 @@ module.exports = {
       ]);
     })
     .then((sampleAndAspects) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime; // log db time
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const samples = sampleAndAspects[ZERO];
       const aspects = sampleAndAspects[ONE];
 
@@ -141,15 +130,12 @@ module.exports = {
         );
 
         const sampleRes = cleanAddAspectToSample(
-          sampleObj, sampleAspect, res.method
+          sampleObj, sampleAspect, method
         );
         response.push(sampleRes); // add sample to response
       });
-    })
-    .then(() => {
-      u.logAPI(req, resultObj, response); // audit log
-      res.status(httpStatus.OK).json(response);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+
+      return response;
+    });
   },
 };

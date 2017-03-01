@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/samples.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 
@@ -53,7 +53,13 @@ module.exports = {
    */
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      redisModelSample.findSamplesFromRedis(req, res, next);
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisModelSample.findSamplesFromRedis(resultObj, res.method)
+      .then((response) => {
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doFind(req, res, next, helper);
     }
@@ -70,7 +76,15 @@ module.exports = {
    */
   getSample(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      redisModelSample.getSampleFromRedis(req, res, next);
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      const sampleName = req.swagger.params.key.value.toLowerCase();
+
+      redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
+      .then((sampleRes) => {
+        u.logAPI(req, resultObj, sampleRes); // audit log
+        res.status(httpStatus.OK).json(sampleRes);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doGet(req, res, next, helper);
     }
