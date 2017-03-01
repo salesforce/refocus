@@ -13,7 +13,6 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const logAuditAPI = require('../../../../utils/loggingUtil').logAuditAPI;
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -32,10 +31,6 @@ function doPost(req, res, next, props) {
   props.model.create(toPost)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    if (props.loggingEnabled) {
-      logAuditAPI(req, props.modelName, o);
-    }
-
     u.logAPI(req, resultObj, o.dataValues);
     return res.status(httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));

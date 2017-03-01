@@ -30,7 +30,6 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
-const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 const ZERO = 0;
 const ONE = 1;
 
@@ -111,10 +110,6 @@ module.exports = {
     .then((o) => o.deleteHierarchy())
     .then(() => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, 'SubjectHierarchy');
-      }
-
       u.logAPI(req, resultObj, {});
       return res.status(httpStatus.OK).json({});
     })
@@ -387,10 +382,6 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, 'SubjectTags', o);
-      }
-
       const retval = u.responsify(o, helper, req.method);
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
@@ -426,10 +417,6 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, 'SubjectRelatedLinks', o);
-      }
-
       const retval = u.responsify(o, helper, req.method);
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);

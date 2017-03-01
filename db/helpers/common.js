@@ -16,7 +16,6 @@
 const pub = require('../../cache/redisCache').client.pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
-const logDB = require('../../utils/loggingUtil').logDB;
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {

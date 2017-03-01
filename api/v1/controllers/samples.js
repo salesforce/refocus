@@ -22,7 +22,6 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
 
 module.exports = {
 
@@ -127,10 +126,6 @@ module.exports = {
     )
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName, o);
-      }
-
       u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(o, helper, req.method));
@@ -172,10 +167,6 @@ module.exports = {
         helper.model.bulkUpsertByName(value,
           userName);
       }
-
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName);
-      }
     });
 
     const body = { status: 'OK' };
@@ -211,9 +202,6 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, 'SampleRelatedLinks', o);
-      }
 
       const retval = u.responsify(o, helper, req.method);
       u.logAPI(req, resultObj, retval);

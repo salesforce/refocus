@@ -14,7 +14,6 @@
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const featureToggles = require('feature-toggles');
-const logAuditAPI = require('../../../../utils/loggingUtil').logAuditAPI;
 
 /**
  * Deletes a record and sends the deleted record back in the json response
@@ -34,10 +33,6 @@ function doDelete(req, res, next, props) {
   .then((o) => o.destroy())
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    if (props.loggingEnabled) {
-      logAuditAPI(req, props.modelName, o);
-    }
-
     const assocNames = [];
 
     /**
