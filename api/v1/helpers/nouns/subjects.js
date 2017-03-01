@@ -12,7 +12,7 @@
 'use strict';
 
 const Subject = require('../../../../db/index').Subject;
-const constants = require('../../constants');
+const u = require('../../../../utils/filters');
 const m = 'subject';
 const config = require('../../../../config');
 
@@ -59,141 +59,6 @@ function deleteChildren(parent, depth) {
 } // deleteChildren
 
 /**
- * Sets the filters object defined at the top. All the query params which can
- * be expected in the hierarchy endpoint are defined as a key in the "filter"
- * object above. For each of the keys defined in the filters object, this
- * function parses the query params and sets the includes and excludes
- * fields of the object.
- *
- * @param {Object} params - The query parameters in the request along with its
- *  values
- */
-function setFilters(params) {
-  for (const key in filters) {
-    if (params[key] && params[key].value) {
-      const arr = params[key].value.split(constants.FILTER_DELIMITER);
-      filters[key].includes = new Set();
-      filters[key].excludes = new Set();
-      for (const i in arr) {
-        if (arr[i].charAt(0) === constants.FILTER_NEGATION) {
-          filters[key].excludes.add(arr[i].substr(1).toLowerCase());
-        } else {
-          filters[key].includes.add(arr[i].toLowerCase());
-        }
-      }
-    }
-  }
-} // setFilters
-
-/**
- * Resets the filter object and its properties to null.
- */
-function resetFilters() {
-  for (const key in filters) {
-    if (key) {
-      filters[key].includes = null;
-      filters[key].excludes = null;
-    }
-  }
-} // resetFilters
-
-/**
- * Applies one of the filters defined in the "filters" object to the entity
- * array.
- *
- * @param {Array} keys - The array on which the filters will be
- *  applied, e.g. if filtering by subject tags, keys should be the
- *  subject.tags field of the subject model
- * @param {String} filterBy - If filtering by subject tags the key would be
- *  the query param "subjecttags".
- * @returns {Boolean} - Returns true if the filter criteria is matched.
- */
-function applyTagFilters(keys, filterBy) {
-  // when a filter is not set, return true.
-  if (!filters[filterBy].includes || !filters[filterBy].excludes) {
-    return true;
-  }
-
-  // When tags are not present and an excludes filter is set, return true
-  if (!keys.length && filters[filterBy].excludes.size) {
-    return true;
-  }
-
-  let isPartOfInFilter = false;
-  let isPartOfNotInFilter = false;
-
-  // check if the elements of keys are part of the "includes" filter
-  for (let i = 0; i < keys.length; i++) {
-    if (filters[filterBy].includes.has(keys[i].toLowerCase())) {
-      isPartOfInFilter = true;
-      break;
-    }
-  }
-
-  // check if the elements of keys are part of the "excludes" filter
-  for (let i = 0; i < keys.length; i++) {
-    if (filters[filterBy].excludes.has(keys[i].toLowerCase())) {
-      isPartOfNotInFilter = true;
-      break;
-    }
-  }
-
-  /*
-   * If the excludes filter clause is set and if no elements of the keys array
-   * were a part of the excludes filter, return true.
-   */
-  if (filters[filterBy].excludes.size && !isPartOfNotInFilter) {
-    return true;
-  }
-
-  /*
-   * If atleast one element of the keys array were a part of the includes filter
-   * return true
-   */
-  if (isPartOfInFilter) {
-    return true;
-  }
-
-  return false;
-} // applyTagFilters
-
-/**
- * Applies one of the filters defined in the "filters" object
- * to the entity.
- *
- * @param  {String} key - The key on which the filters are to be applied.
- * for eg .. if filtering by aspect name. entity should be an "aspect name"
- * like "aspect1"
- * @param  {String} filterBy - The filter that is to be applied. For eg.. if
- * filtering by aspect name . key is 'aspect'. This should be one of the
- * properties of the filters object.
- *
- * @returns {Boolean} - Returns true if the filter criteria is matched.
- */
-function applyFilters(key, filterBy) {
-  // When a filter is not set return true
-  if (!filters[filterBy].includes || !filters[filterBy].excludes) {
-    return true;
-  }
-
-  /*
-   * If the excludes filter clause is set and if the entity is not present
-   * in this filter return true.
-   */
-  if (filters[filterBy].excludes.size &&
-        !filters[filterBy].excludes.has(key.toLowerCase())) {
-    return true;
-  }
-
-  // If the entity is present in the includes filter clause return true.
-  if (filters[filterBy].includes.has(key.toLowerCase())) {
-    return true;
-  }
-
-  return false;
-} // applyFilters
-
-/**
  * Prune a node by applying filters to it.
  *
  * @param {Object} res - Node to be pruned
@@ -202,13 +67,14 @@ function applyFilters(key, filterBy) {
  */
 function pruneNode(res) {
   const filteredSamples = [];
-  const filterOnSubject = applyTagFilters(res.tags, 'subjectTags');
+  const filterOnSubject = u.applyTagFilters(res.tags, 'subjectTags', filters);
   if (filterOnSubject) {
     for (let i = 0; i < res.samples.length; i++) {
       if (res.samples[i].aspect) {
-        if (applyFilters(res.samples[i].aspect.name, 'aspect') &&
-          applyTagFilters(res.samples[i].aspect.tags, 'aspectTags') &&
-          applyFilters(res.samples[i].status, 'status')) {
+        if (u.applyFilters(res.samples[i].aspect.name, 'aspect', filters) &&
+          u.applyTagFilters(res.samples[i].aspect.tags,
+            'aspectTags', filters) &&
+          u.applyFilters(res.samples[i].status, 'status', filters)) {
           filteredSamples.push(res.samples[i]);
         }
       }
@@ -274,9 +140,9 @@ function traverseHierarchy(res) {
 function modifyAPIResponse(res, params) {
   for (const key in filters) {
     if (key && params[key].value) {
-      setFilters(params);
+      u.setFilters(params, filters);
       traverseHierarchy(res);
-      resetFilters();
+      u.resetFilters(filters);
       break;
     }
   }
