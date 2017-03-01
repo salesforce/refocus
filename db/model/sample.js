@@ -242,7 +242,10 @@ module.exports = function sample(seq, dataTypes) {
         const promises = toUpsert.map((s) =>
           this.upsertByName(s, userName, true)
         );
-        return seq.Promise.all(promises);
+        return seq.Promise.all(promises)
+        .then(() => {
+          console.timeEnd('bulkUpsertSample');
+        })
       }, // bulkUpsertByName
 
       /**

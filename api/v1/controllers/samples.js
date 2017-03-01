@@ -23,6 +23,178 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
+const r = require('../../../cache/redisCache').client.cache;
+const Subject = require('../../../db').Subject;
+const sampleUtils = require('../../../db/helpers/sampleUtils');
+
+function upsertSampleInRedis(req, res /*, next*/) {
+  const sampleQueryBody = req.swagger.params.queryBody.value;
+  const subjectName = sampleQueryBody.name.split('|')[0].toLowerCase();
+  const aspectName = sampleQueryBody.name.split('|')[1].toLowerCase();
+  let sampResponseObj = {};
+  let sampFromRedis;
+
+  // get sample from redis
+  return r.hgetAsync('samsto:subjects:' + subjectName, aspectName)
+  .then((sampleFromRedis) => {
+    sampFromRedis = sampleFromRedis;
+    // get aspect from redis
+    return r.getAsync('refocache:aspects:' + aspectName);
+  })
+  .then((aspectFromRedis) => {
+    // is sample exists, parse aspect and sample, update sample
+    if (sampFromRedis) {
+      const sampleObj = JSON.parse(sampFromRedis);
+      const aspObject = JSON.parse(aspectFromRedis);
+
+      // calc status
+      const newStatus = sampleUtils.computeStatus(aspObject, sampleQueryBody.value);
+      if (sampleObj.previousStatus !== newStatus) {
+        sampleObj.previousStatus = sampleObj.status;
+        sampleObj.status = newStatus;
+        sampleObj.statusChangedAt = new Date().toString();
+      }
+
+      // add aspect to sample obj
+      sampleObj.aspect = aspObject;
+      sampResponseObj = sampleObj;
+      return r.hmsetAsync(
+        'samsto:subjects:' + subjectName, aspectName, JSON.stringify(sampleObj)
+      );
+    }
+
+    // TODO: create sample, currently not required for testing writes
+    return Promise.resolve('success');
+  })
+  .then((redisResp) => {
+    if (redisResp === 'OK') {
+      console.log('Sample updated:', sampResponseObj.name);
+    }
+
+    // console.timeEnd('upsertSample');
+    res.status(httpStatus.OK)
+    .json(u.responsify(sampResponseObj, helper, req.method));
+  });
+}
+
+function bulkUpsertSamplesInRedis(req, res, rnStr) {
+  const sampleQueryBody = req.swagger.params.queryBody.value;
+  const commands = [];
+
+  // promises for each sample upsert
+  const promises = sampleQueryBody.map((sampleReq) => {
+    const subjectName = sampleReq.name.split('|')[0].toLowerCase();
+    const aspectName = sampleReq.name.split('|')[1].toLowerCase();
+    let sampFromRedis;
+
+    // get sample from redis
+    return r.hgetAsync('samsto:subjects:' + subjectName, aspectName)
+    .then((sampleFromRedis) => {
+      sampFromRedis = sampleFromRedis;
+      // get aspect from redis
+      return r.getAsync('refocache:aspects:' + aspectName);
+    })
+    .then((aspectFromRedis) => {
+      // is sample exists, parse aspect and sample, update sample
+      if (sampFromRedis) {
+        const sampleObj = JSON.parse(sampFromRedis);
+        const aspObject = JSON.parse(aspectFromRedis);
+
+        // calc status
+        const newStatus = sampleUtils.computeStatus(aspObject, sampleReq.value);
+        if (sampleObj.previousStatus !== newStatus) {
+          sampleObj.previousStatus = sampleObj.status;
+          sampleObj.status = newStatus;
+          sampleObj.statusChangedAt = new Date().toString();
+        }
+
+        // we can improve this by using hmset on same subject
+        commands.push([
+          'hset',
+          'samsto:subjects:' + subjectName,
+          aspectName,
+          JSON.stringify(sampleObj),
+        ]);
+
+        // resolve promise
+        return Promise.resolve('success');
+      }
+
+      // TODO: create sample, currently not required for testing writes
+      return Promise.resolve('success');
+    });
+  });
+
+  Promise.all(promises)
+  .then(() => r.batch(commands).execAsync())
+  .then((response) => {
+    // console.log('Bulk upsert response', response);
+    console.timeEnd(rnStr);
+  });
+}
+
+function bulkUpsertRedisHashDS(sampleQueryBody) {
+  // console.log("In bulkUpsertRedisHashDS");
+  const commands = [];
+
+  // promises for each sample upsert
+  const promises = sampleQueryBody.map((sampleReq) => {
+    const sampleName = sampleReq.name.toLowerCase();
+    const aspectName = sampleName.split('|')[1];
+    let sampStatusFromRedis;
+
+    // get sample from redis
+    return r.hgetAsync('samsto:samples:' + sampleName, 'status')
+    .then((sampleValFromRedis) => {
+      sampStatusFromRedis = sampleValFromRedis;
+      // get aspect from redis
+      return r.getAsync('refocache:aspects:' + aspectName);
+    })
+    .then((aspectFromRedis) => {
+      // if sample exists, parse aspect and sample, update sample
+      if (sampStatusFromRedis) {
+        const aspObject = JSON.parse(aspectFromRedis);
+
+        // calc status
+        const newStatus = sampleUtils.computeStatus(aspObject, sampleReq.value);
+        if (sampStatusFromRedis === newStatus) {
+          commands.push([
+            'hset',
+            'samsto:samples:' + sampleName,
+            'updatedAt',
+            new Date().toString(),
+          ]);
+        } else {
+          commands.push([
+            'hmset',
+            'samsto:samples:' + sampleName,
+            'previousStatus',
+            sampStatusFromRedis,
+            'status',
+            newStatus,
+            'statusChangedAt',
+            new Date().toString(),
+            'updatedAt',
+            new Date().toString(),
+          ]);
+        }
+
+        // resolve promise
+        return Promise.resolve('success');
+      }
+
+      // TODO: create sample, currently not required for testing writes
+      return Promise.resolve('success');
+    });
+  });
+
+  return Promise.all(promises)
+  .then(() => r.batch(commands).execAsync())
+  .then((response) => {
+    // console.log('Bulk upsert response', response);
+    return response;
+  });
+}
 
 module.exports = {
 
@@ -49,7 +221,54 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    doFind(req, res, next, helper);
+    console.time('getALLSamples');
+    if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: findSamples');
+      // get all subjects from db
+      Subject.findAll()
+      .then((subjects) => {
+        // for each subject, get all samples from redis
+        const promises = subjects.map((subject) => {
+          const subjKey = 'samsto:subjects:' + subject.absolutePath.toLowerCase();
+          return r.hgetallAsync(subjKey)
+          .then((allAspSamples) => {
+            // json parse each sample, add to an array and return
+            const subSamples = [];
+            if (allAspSamples) {
+              for (const aspect in allAspSamples) {
+                if (allAspSamples.hasOwnProperty(aspect)) {
+                  // TODO: add aspect to samples
+                  const sampleJsonObj = JSON.parse(allAspSamples[aspect]);
+                  subSamples.push(
+                    u.responsify(sampleJsonObj, helper, req.method)
+                  );
+                }
+              }
+            }
+
+            return subSamples;
+          });
+        });
+
+        Promise.all(promises)
+        .then((results) => {
+          // results are arrays of json parsed samples for each subject
+          // push then in one array and create response
+          const responseObj = [];
+          results.forEach((subjectSamples) => {
+            subjectSamples.forEach((sampleJson) => {
+              responseObj.push(sampleJson);
+            });
+          });
+          console.timeEnd('getALLSamples');
+          res.status(httpStatus.OK).json(responseObj);
+        });
+      });
+    } else {
+      console.log('NO REDIS: findSamples');
+      doFind(req, res, next, helper);
+      console.timeEnd('getALLSamples');
+    }
   },
 
   /**
@@ -62,7 +281,37 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
-    doGet(req, res, next, helper);
+    console.time('getSample');
+    if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: getSample');
+      const sampleName = req.swagger.params.key.value;
+      const subjectName = sampleName.split('|')[0].toLowerCase();
+      const aspectName = sampleName.split('|')[1].toLowerCase();
+      let response;
+      const commands = [];
+
+      commands.push([
+        'hget',
+        'samsto:subjects:' + subjectName,
+        aspectName,
+      ]);
+      commands.push([
+        'get',
+        'refocache:aspects:' + aspectName,
+      ]);
+
+      r.batch(commands).execAsync()
+      .then((responses) => {
+        const sampObj = JSON.parse(responses[0]);
+        sampObj.aspect = JSON.parse(responses[1]);
+        res.status(httpStatus.OK)
+        .json(u.responsify(sampObj, helper, req.method));
+        console.timeEnd('getSample');
+      });
+    } else {
+      console.log('NO REDIS: getSample');
+      doGet(req, res, next, helper);
+    }
   },
 
   /**
@@ -119,23 +368,31 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) =>
-      helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
-    )
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName, o);
-      }
+    // console.time('upsertSample');
+    if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: upsertSample');
+      upsertSampleInRedis(req, res, next);
+    } else {
+      console.log('NO REDIS: upsertSample');
+      const resultObj = { reqStartTime: new Date() };
+      u.getUserNameFromToken(req,
+        featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((userName) =>
+        helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
+      )
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        if (helper.loggingEnabled) {
+          logAuditAPI(req, helper.modelName, o);
+        }
 
-      u.logAPI(req, resultObj, o.dataValues);
-      return res.status(httpStatus.OK)
-        .json(u.responsify(o, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+        u.logAPI(req, resultObj, o.dataValues);
+        // console.timeEnd('upsertSample');
+        return res.status(httpStatus.OK)
+          .json(u.responsify(o, helper, req.method));
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    }
   },
 
   /**
@@ -151,32 +408,60 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
+    // const rn = Math.floor((Math.random() * 1000) + 1);
+    // const rnStr = rn.toString() + 'bulkUpsertSample';
+    // console.time(rnStr);
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+    
+    if (featureToggles.isFeatureEnabled('enableRedisKV')) {
+      // console.log('USING REDIS: bulkUpsertSampleKV');
+
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
-        wrappedBulkUpsertData.userName = userName;
+        // wrappedBulkUpsertData.timeString = rnStr;
+        // wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
 
-        const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        helper.model.bulkUpsertByName(value,
-          userName);
+        bulkUpsertRedisHashDS(value);
       }
+    } else if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      // console.log('USING REDIS: bulkUpsertSample');
+      bulkUpsertSamplesInRedis(req, res, reqStartTime);
+    } else {
+      console.log('NO REDIS: bulkUpsertSample');
+      u.getUserNameFromToken(req,
+        featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((userName) => {
+        if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+          const jobType = require('../../../jobQueue/setup').jobType;
+          const jobWrapper = require('../../../jobQueue/jobWrapper');
 
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName);
-      }
-    });
+          const wrappedBulkUpsertData = {};
+          wrappedBulkUpsertData.upsertData = value;
+          wrappedBulkUpsertData.userName = userName;
+          wrappedBulkUpsertData.reqStartTime = reqStartTime;
+
+          const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+            wrappedBulkUpsertData, req);
+        } else {
+          helper.model.bulkUpsertByName(value,
+            userName);
+        }
+
+        if (helper.loggingEnabled) {
+          logAuditAPI(req, helper.modelName);
+        }
+      });
+    }
 
     const body = { status: 'OK' };
     u.logAPI(req, resultObj, body, value.length);
@@ -221,5 +506,7 @@ module.exports = {
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
+
+  bulkUpsertRedisHashDS,
 
 }; // exports

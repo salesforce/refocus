@@ -187,6 +187,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectHierarchy(req, res, next) {
+    console.time('hierarchy');
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     const depth = Number(params.depth.value);
@@ -199,19 +200,41 @@ module.exports = {
       }
     }
 
-    u.findByKey(helper, params, ['hierarchy', 'samples'])
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      let retval = u.responsify(o, helper, req.method);
-      if (depth > ZERO) {
-        retval = helper.deleteChildren(retval, depth);
-      }
+    if (featureToggles.isFeatureEnabled('enableRedisOps')) {
+      console.log('USING REDIS: getSubjectHierarchy');
+      u.findByKey(helper, params, ['hierarchy'])
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        let retval = u.responsify(o, helper, req.method);
+        if (depth > ZERO) {
+          retval = helper.deleteChildren(retval, depth);
+        }
 
-      retval = helper.modifyAPIResponse(retval, params);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+        helper.modifyAPIResponse(retval, params)
+        .then((_retval) => {
+          u.logAPI(req, resultObj, retval);
+          res.status(httpStatus.OK).json(_retval);
+          console.timeEnd('hierarchy');
+        });
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      console.log('NO REDIS: getSubjectHierarchy');
+      u.findByKey(helper, params, ['hierarchy', 'samples'])
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        let retval = u.responsify(o, helper, req.method);
+        if (depth > ZERO) {
+          retval = helper.deleteChildren(retval, depth);
+        }
+
+        retval = helper.modifyAPIResponse(retval, params);
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+        console.timeEnd('hierarchy');
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    }
   }, // getSubjectHierarchy
 
   /**

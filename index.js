@@ -93,6 +93,21 @@ function start() { // eslint-disable-line max-statements
   const PORT = process.env.PORT || conf.port;
   app.set('port', PORT);
 
+  // ******************** USIING REDIS AS A DATA STORE ***********************
+  // INITIALIZING ASPECTS INTO REDIS
+  if (featureToggles.isFeatureEnabled('populateDB')) {
+    require('./utils/aspectStoreUtil.js').init();
+
+    if (featureToggles.isFeatureEnabled('enableRedisKV')) {
+      require('./utils/sampleStoreUtilKV.js').initKV();
+    } else {
+      // INITIALIZING SAMPLES INTO REDIS
+      require('./utils/sampleStoreUtil.js').init();
+    }
+  }
+
+  // ******************** USIING REDIS AS A DATA STORE ***********************
+
   /*
    * If http is disabled, if a GET request comes in over http, automatically
    * attempt to do a redirect 301 to https. Reject all other requests (DELETE,

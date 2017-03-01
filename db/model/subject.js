@@ -192,6 +192,7 @@ module.exports = function subject(seq, dataTypes) {
               where: {
                 isPublished: true,
               },
+              /*
               include: [
                 {
                   model: models.Sample,
@@ -201,6 +202,7 @@ module.exports = function subject(seq, dataTypes) {
                   },
                 },
               ],
+              */
             },
           ],
         });
