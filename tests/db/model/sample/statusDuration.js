@@ -76,7 +76,13 @@ describe('db: sample: statusCalculation: ', () => {
   function setupRanges(ranges) {
     globalAspect.set(ranges);
     return globalAspect.save()
-    .then(() => Sample.findById(sample.id))
+    .then(() => Sample.findOne({
+      where: {
+        name: {
+          $iLike: sample.name
+        }
+      },
+    }))
     .then((found) => {
       sample = found;
     });

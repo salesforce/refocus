@@ -14,6 +14,9 @@
 const Sample = require('../../../../db/index').Sample;
 const m = 'sample';
 const fieldsWithJsonArrayType = ['relatedLinks'];
+
+// exclude fields of the response at the API level
+const fieldsToExclude = ['id'];
 const fieldsWithEnum = ['status', 'previousStatus'];
 
 module.exports = {
@@ -29,4 +32,5 @@ module.exports = {
   modelName: 'Sample',
   fieldsWithJsonArrayType,
   fieldsWithEnum,
+  fieldsToExclude,
 }; // exports

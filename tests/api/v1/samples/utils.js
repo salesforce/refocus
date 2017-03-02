@@ -57,9 +57,46 @@ const subjectToCreate = {
   name: subjectName,
 };
 
+/**
+ * Sets up an object with aspect id, subject id
+ *
+ * @param {String} aspectName The name of the aspect
+ * @param {String} subjectName The name of the subject
+ * @returns {Object} contains aspect id, subject id
+ */
+function doCustomSetup(aspectName, subjectName) {
+  const aspectToCreate = {
+    isPublished: true,
+    name: `${tu.namePrefix + aspectName}`,
+    timeout: '30s',
+    criticalRange: [3, 3],
+    valueType: 'NUMERIC',
+  };
+
+  const subjectToCreate = {
+    isPublished: true,
+    name: `${tu.namePrefix + subjectName}`,
+  };
+
+  return new tu.db.Sequelize.Promise((resolve, reject) => {
+    const samp = {};
+    tu.db.Aspect.create(aspectToCreate)
+    .then((a) => {
+      samp.aspectId = a.id;
+      return tu.db.Subject.create(subjectToCreate);
+    })
+    .then((s) => {
+      samp.subjectId = s.id;
+      resolve(samp);
+    })
+    .catch((err) => reject(err));
+  });
+}
+
 module.exports = {
   aspectToCreate,
   sampleName,
+  doCustomSetup,
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       const samp = { value: '1' };

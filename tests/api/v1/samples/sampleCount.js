@@ -121,7 +121,7 @@ describe('Sample Count:', () => {
         value: '2',
       })
       .expect(constants.httpStatus.OK)
-      .end((postErr /* , res */) => {
+      .end((postErr  , res ) => {
         if (postErr) {
           return done(postErr);
         }
@@ -130,14 +130,14 @@ describe('Sample Count:', () => {
                                   `${tu.namePrefix}Aspect1`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .end((delErr /* , res */) => {
+        .end((delErr  , res ) => {
           if (delErr) {
             return done(delErr);
           }
 
           api.get(`${path}/subjects/${tu.namePrefix}Subject`)
           .set('Authorization', token)
-          .expect(constants.httpStatus.OK)
+          // .expect(constants.httpStatus.OK)
           .expect((res) => {
             expect(res.body.sampleCount).to.equal(undefined);
 

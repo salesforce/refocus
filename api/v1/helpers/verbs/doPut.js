@@ -58,6 +58,12 @@ function doPut(req, res, next, props) {
   })
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+    // loop through remove values to delete property
+    if (props.fieldsToExclude) {
+      u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
+    }
+
     u.logAPI(req, resultObj, o.dataValues);
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
