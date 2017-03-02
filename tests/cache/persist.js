@@ -121,6 +121,12 @@ describe('persist sample store back to db', () => {
     .then(() => samstoinit.populate())
     .then(() => redisClient.scardAsync(sampleStore.constants.indexKey.sample))
     .then((res) => expect(res).to.eql(3))
+    .then(() => Sample.destroy({
+      where: {
+        name: `${tu.namePrefix}Subject1.${tu.namePrefix}Subject2` +
+          `|${tu.namePrefix}Aspect1`,
+      },
+    }))
     .then(() => samstopersist.persist())
     .then(() => Sample.findAll())
     .then((res) => expect(res.length).to.eql(3))
