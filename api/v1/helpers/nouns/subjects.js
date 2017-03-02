@@ -30,9 +30,6 @@ const filters = {
 
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
-const loggingEnabled = (
-  config.auditSubjects === 'API' || config.auditSubjects === 'ALL'
-  ) || false;
 
 /**
  * Recursive function to prune children from a subject in order to return a
@@ -309,6 +306,5 @@ module.exports = {
   modifyAPIResponse,
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
-  loggingEnabled,
   tagFilterName: 'tags',
 }; // exports

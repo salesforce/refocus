@@ -37,11 +37,6 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 // Check for timed-out samples every 30 seconds if not specified in env var
 const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
 
-// audit level values can be one of these: API, DB, ALL, NONE
-const auditSubjects = pe.AUDIT_SUBJECTS || 'NONE';
-const auditSamples = pe.AUDIT_SAMPLES || 'NONE';
-const auditAspects = pe.AUDIT_ASPECTS || 'NONE';
-
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
@@ -214,9 +209,6 @@ module.exports = {
     },
   },
 
-  auditSubjects,
-  auditSamples,
-  auditAspects,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
   deprioritizeJobsFrom,
