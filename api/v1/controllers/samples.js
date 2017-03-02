@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/samples.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 
@@ -22,7 +22,9 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const logAuditAPI = require('../../../utils/loggingUtil').logAuditAPI;
+const sampleStore = require('../../../cache/sampleStore');
+const constants = sampleStore.constants;
+const redisModelSample = require('../../../cache/models/samples');
 
 module.exports = {
 
@@ -49,7 +51,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    doFind(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisModelSample.findSamplesFromRedis(resultObj, res.method)
+      .then((response) => {
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
@@ -62,7 +74,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
-    doGet(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      const sampleName = req.swagger.params.key.value.toLowerCase();
+
+      redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
+      .then((sampleRes) => {
+        u.logAPI(req, resultObj, sampleRes); // audit log
+        res.status(httpStatus.OK).json(sampleRes);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doGet(req, res, next, helper);
+    }
   },
 
   /**
@@ -127,10 +151,6 @@ module.exports = {
     )
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName, o);
-      }
-
       u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(o, helper, req.method));
@@ -172,10 +192,6 @@ module.exports = {
         helper.model.bulkUpsertByName(value,
           userName);
       }
-
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, helper.modelName);
-      }
     });
 
     const body = { status: 'OK' };
@@ -211,9 +227,6 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      if (helper.loggingEnabled) {
-        logAuditAPI(req, 'SampleRelatedLinks', o);
-      }
 
       const retval = u.responsify(o, helper, req.method);
       u.logAPI(req, resultObj, retval);

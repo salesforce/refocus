@@ -23,9 +23,6 @@ const eventName = {
   upd: 'refocus.internal.realtime.sample.update',
   del: 'refocus.internal.realtime.sample.remove',
 };
-const dbLoggingEnabled = (
-    config.auditSamples === 'DB' || config.auditSamples === 'ALL'
-  ) || false;
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
@@ -313,12 +310,6 @@ module.exports = function sample(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         let samp;
-
-        // log instance creation
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.add);
-        }
-
         Sample.findById(inst.dataValues.id)
         .then((found) => {
           samp = found;
@@ -340,11 +331,6 @@ module.exports = function sample(seq, dataTypes) {
        * @param {Sample} inst - The Sample instance which was just deleted
        */
       afterDelete(inst /* , opts */) {
-        // log instance deletion
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.del);
-        }
-
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
           if (published) {
@@ -365,13 +351,6 @@ module.exports = function sample(seq, dataTypes) {
       afterUpdate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
-
-        // log instance update
-        if (dbLoggingEnabled) {
-          common.createDBLog(
-            inst, common.changeType.upd, changedKeys, ignoreAttributes
-          );
-        }
 
         return common.sampleAspectAndSubjectArePublished(seq, inst)
         .then((published) => {
