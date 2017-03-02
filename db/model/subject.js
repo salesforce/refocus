@@ -19,16 +19,11 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
-const config = require('../../config');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
   del: 'refocus.internal.realtime.subject.remove',
 };
-
-const dbLoggingEnabled = (
-    config.auditSubjects === 'DB' || config.auditSubjects === 'ALL'
-  ) || false;
 
 const assoc = {};
 
@@ -275,11 +270,6 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       afterCreate(inst /* , opts */) {
-        // log instance create
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.add);
-        }
-
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.add);
         }
@@ -345,13 +335,6 @@ module.exports = function subject(seq, dataTypes) {
           'isDeleted',
         ];
 
-        // log instance update
-        if (dbLoggingEnabled) {
-          common.createDBLog(
-            inst, common.changeType.upd, changedKeys, ignoreAttributes
-          );
-        }
-
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
             /*
@@ -391,11 +374,6 @@ module.exports = function subject(seq, dataTypes) {
        *  if an error was encountered
        */
       afterDelete(inst /* , opts */) {
-        // log instance deletion
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.del);
-        }
-
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.del);
         }
