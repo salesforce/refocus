@@ -72,13 +72,23 @@ apiErrors.create({
 });
 
 apiErrors.create({
-  code: 11101,
+  code: 11104,
   status: 400,
   name: 'InvalidFilterParameterError',
   parent: apiErrors.ValidationError,
   fields: [],
   defaultMessage: 'Filter should be passed in query parameter as ' +
   'an include filter or an exclude filter, but not the combination of both.',
+});
+
+apiErrors.create({
+  code: 11105,
+  status: 400,
+  name: 'InvalidSampleStoreState',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You cannot rebuild the sample store if the ' +
+    'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
 });
 
 // ----------------------------------------------------------------------------
