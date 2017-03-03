@@ -69,7 +69,7 @@ function getNameFromKey(key) {
  */
 function arrayStringsToJson(obj, arrayFields) {
   arrayFields.forEach((field) => {
-    if (obj[field] && !Array.isArray(obj[field])) {
+    if (obj && obj[field] && !Array.isArray(obj[field])) {
       obj[field] = JSON.parse(obj[field]);
     }
   });

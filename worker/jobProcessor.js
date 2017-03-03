@@ -20,6 +20,7 @@ const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const cacheSampleModel = require('../cache/models/samples');
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -38,31 +39,43 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const samples = job.data.length ? job.data : job.data.upsertData;
   const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
+  const isRedisEnabled = job.data.isRedisEnabled;
 
   // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
   //   `with ${samples.length} samples`;
   // console.log(msg); // eslint-disable-line no-console
 
   const dbStartTime = Date.now();
-  helper.model.bulkUpsertByName(samples, userName)
-  .then((results) => {
+
+  let bulkUpsertPromise;
+  if (isRedisEnabled) {
+    bulkUpsertPromise = cacheSampleModel.bulkUpsertSampleInRedis(samples);
+  } else {
+    bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName);
+  }
+
+  bulkUpsertPromise.then((results) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};
 
       // calculate failed promises
       let errorCount = 0;
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].isFailed) {
-          errorCount++;
+      if (isRedisEnabled) { // no failures in redis
+        objToReturn.recordCount = results.length;
+      } else {
+        for (let i = 0; i < results.length; i++) {
+          if (results[i].isFailed) {
+            errorCount++;
+          }
         }
+
+        // number of successful upserts
+        objToReturn.recordCount = results.length - errorCount;
+
+        // number of failed upserts
+        objToReturn.errorCount = errorCount;
       }
-
-      // number of successful upserts
-      objToReturn.recordCount = results.length - errorCount;
-
-      // number of failed upserts
-      objToReturn.errorCount = errorCount;
 
       const tempObj = {
         jobStartTime,

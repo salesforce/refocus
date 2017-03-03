@@ -159,25 +159,46 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) =>
-      helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
-    )
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      const sampleQueryBody = req.swagger.params.queryBody.value;
 
-      // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        u.removeFieldsFromResponse(helper.fieldsToExclude, o.dataValues);
-      }
+      redisModelSample.upsertSampleInRedis(
+        sampleQueryBody, resultObj, res.method
+      )
+      .then((sampleRes) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      u.logAPI(req, resultObj, o.dataValues);
-      return res.status(httpStatus.OK)
-        .json(u.responsify(o, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
+        }
+
+        u.logAPI(req, resultObj, sampleRes); // audit log
+        res.status(httpStatus.OK).json(sampleRes);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      const resultObj = { reqStartTime: new Date() };
+      u.getUserNameFromToken(req,
+        featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((userName) =>
+        helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
+      )
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, o.dataValues);
+        }
+
+        u.logAPI(req, resultObj, o.dataValues);
+        return res.status(httpStatus.OK)
+          .json(u.responsify(o, helper, req.method));
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    }
   },
 
   /**
@@ -196,25 +217,43 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+
+    if (featureToggles.isFeatureEnabled(constants.featureName)) {
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
-        wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
+        wrappedBulkUpsertData.isRedisEnabled = true;
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        helper.model.bulkUpsertByName(value,
-          userName);
+        redisModelSample.bulkUpsertSampleInRedis(value);
       }
-    });
+    } else {
+      u.getUserNameFromToken(req,
+        featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((userName) => {
+        if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+          const jobType = require('../../../jobQueue/setup').jobType;
+          const jobWrapper = require('../../../jobQueue/jobWrapper');
+
+          const wrappedBulkUpsertData = {};
+          wrappedBulkUpsertData.upsertData = value;
+          wrappedBulkUpsertData.userName = userName;
+          wrappedBulkUpsertData.reqStartTime = reqStartTime;
+
+          const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+            wrappedBulkUpsertData, req);
+        } else {
+          helper.model.bulkUpsertByName(value,
+            userName);
+        }
+      });
+    }
 
     const body = { status: 'OK' };
     u.logAPI(req, resultObj, body, value.length);
