@@ -55,6 +55,12 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisModelSample.findSamplesFromRedis(resultObj, res.method)
       .then((response) => {
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
+        }
+
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
       })
@@ -80,6 +86,12 @@ module.exports = {
 
       redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
       .then((sampleRes) => {
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
+        }
+
         u.logAPI(req, resultObj, sampleRes); // audit log
         res.status(httpStatus.OK).json(sampleRes);
       })
@@ -151,6 +163,12 @@ module.exports = {
     )
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, o.dataValues);
+      }
+
       u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(o, helper, req.method));
@@ -227,8 +245,13 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
       const retval = u.responsify(o, helper, req.method);
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
+      }
+
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })

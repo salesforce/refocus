@@ -141,14 +141,12 @@ describe('api: samples: DELETE RelatedLinks', () => {
     api.delete(allDeletePath.replace('{key}', sampleName))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(ZERO);
-    })
-    .end((err /* , res */) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.relatedLinks).to.have.length(ZERO);
       done();
     });
   });

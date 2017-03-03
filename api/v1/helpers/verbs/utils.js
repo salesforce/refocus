@@ -18,7 +18,6 @@ const commonDbUtil = require('../../../../db/helpers/common');
 const jwtUtil = require('../../../../utils/jwtUtil');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 
-
 /**
  * In-place removal of certain keys from the input object
  *
