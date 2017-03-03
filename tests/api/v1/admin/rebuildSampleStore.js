@@ -230,7 +230,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
         return done(err);
       }
 
-      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect)
+      return redisClient.smembersAsync(sampleStore.constants.indexKey.aspect)
       .then((res) => {
         expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
         expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -261,6 +261,23 @@ describe(`api: POST ${path} (feature is on):`, () => {
       })
       .then(() => done())
       .catch(done);
+    });
+  });
+
+  it('user is admin but persist in progress', (done) => {
+    redisClient.setAsync(sampleStore.constants.persistInProgressKey, 'true')
+    .then(() => {
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({})
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
     });
   });
 

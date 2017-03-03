@@ -16,6 +16,7 @@
 const featureToggles = require('feature-toggles');
 const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreInit = require('../../../cache/sampleStoreInit');
+const sampleStorePersist = require('../../../cache/sampleStorePersist');
 const apiErrors = require('../apiErrors');
 const httpStatus = require('../constants').httpStatus;
 const authUtils = require('../helpers/authUtils');
@@ -40,17 +41,28 @@ module.exports = {
         const enabled = featureToggles
           .isFeatureEnabled(sampleStore.constants.featureName);
         if (enabled) {
-          sampleStoreInit.eradicate()
-          .then(() => sampleStoreInit.populate())
-          .then(() => {
-            res.status(httpStatus.NO_CONTENT).json();
+          sampleStorePersist.persistInProgress()
+          .then((persistInProgress) => {
+            if (persistInProgress) {
+              const err = new apiErrors.RebuildSampleStoreNotPermittedNow({
+                explanation: 'You cannot rebuild the sample store from the ' +
+                  'database right now because it is currently being ' +
+                  'persisted *to* to the database. Please try again in a ' +
+                  'moment.',
+              });
+              return next(err);
+            }
+
+            return sampleStoreInit.eradicate()
+            .then(() => sampleStoreInit.populate())
+            .then(() => res.status(httpStatus.NO_CONTENT).json());
           });
         } else {
           const err = new apiErrors.InvalidSampleStoreState({
             explanation: 'You cannot rebuild the sample store if the ' +
               'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
           });
-          next(err);
+          return next(err);
         }
       } else {
         u.forbidden(next);
@@ -58,5 +70,4 @@ module.exports = {
     })
     .catch(() => u.forbidden(next));
   },
-
 }; // exports

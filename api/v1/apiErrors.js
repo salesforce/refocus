@@ -91,6 +91,17 @@ apiErrors.create({
     'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
 });
 
+apiErrors.create({
+  code: 11106,
+  status: 400,
+  name: 'RebuildSampleStoreNotPermittedNow',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You cannot rebuild the sample store from the database ' +
+    'right now because it is currently being persisted *to* to the ' +
+    'database. Please try again in a moment.',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
