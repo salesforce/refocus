@@ -34,52 +34,6 @@ const filters = {
 };
 
 /**
- * Get the aspect information from the redis and attach it to the sample object
- * @param  {String} aspectName - Aspect name
- * @returns {Promise} - which resolves to an aspect object
- */
-function getAspectFromRedis(aspectName) {
-  const aspectKey = sampleStore.toKey(constants.objectType.aspect,
-                              aspectName);
-  return redisClient.hgetallAsync(aspectKey)
-    .then((aspect) => {
-      const fieldsToStringify = constants.fieldsToStringify.aspect;
-      if (aspect) {
-        fieldsToStringify.forEach((field) => {
-          if (aspect[field] && !Array.isArray(aspect[field])) {
-            aspect[field] = JSON.parse(aspect[field]);
-          }
-        });
-      }
-
-      return aspect;
-    });
-} // getAspectFromRedis
-
-/**
- * Get the sample information from Redis
- * @param  {String} sampleName - Sample name
- * @returns {Promise} - which resolves to a sample object
- */
-function getSampleFromRedis(sampleName) {
-  const sampleKey = sampleStore.toKey(constants.objectType.sample,
-                              sampleName);
-  return redisClient.hgetallAsync(sampleKey)
-    .then((samp) => {
-      const fieldsToStringify = constants.fieldsToStringify.sample;
-      if (samp) {
-        fieldsToStringify.forEach((field) => {
-          if (samp[field] && !Array.isArray(samp[field])) {
-            samp[field] = JSON.parse(samp[field]);
-          }
-        });
-      }
-
-      return samp;
-    });
-} // getSampleFromReids
-
-/**
  * Given a subject with its samples, aspect, aspectTags and sampleStatus filters
  * are applied to the samples and the filtered samples are attached back to the
  * subject
@@ -124,20 +78,27 @@ function attachSamples(res) {
   const subjectKey = sampleStore.toKey(constants.objectType.subject,
                               res.absolutePath);
   return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
-    // console.log(1);
-    const sampleAspectPromise = [];
+    const cmds = [];
     aspectNames.forEach((aspect) => {
-      const sampleName = res.absolutePath + '|' + aspect;
-      sampleAspectPromise.push(getSampleFromRedis(sampleName));
-      sampleAspectPromise.push(getAspectFromRedis(aspect));
+      const sampleKey = sampleStore.toKey(constants.objectType.sample,
+               res.absolutePath + '|' + aspect);
+      const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
+      cmds.push(['hgetall', sampleKey]);
+      cmds.push(['hgetall', aspectKey]);
     });
 
-    return Promise.all(sampleAspectPromise);
+    return redisClient.batch(cmds).execAsync();
   }).then((saArray) => {
     for (let i = 0; i < saArray.length; i += TWO) {
       const sample = saArray[i];
       const asp = saArray[i + ONE];
       if (sample && asp) {
+
+        // parse the array fields to JSON before adding them to the sample list
+        sampleStore.arrayStringsToJson(sample,
+                                    constants.fieldsToStringify.sample);
+        sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
+
         sample.aspect = asp;
         res.samples.push(sample);
       }
@@ -199,6 +160,7 @@ function traverseHierarchy(res) {
     res.children = filteredChildrenArr;
     return attachSamples(res);
   }).then((ret) => Promise.resolve(ret || filteredChildrenArr.length));
+
 } // traverseHierarchy
 
 /**

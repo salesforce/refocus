@@ -14,7 +14,6 @@
 const Subject = require('../../../../db/index').Subject;
 const u = require('../../../../utils/filters');
 const m = 'subject';
-const config = require('../../../../config');
 
 /*
  * All the query params that can be expected in the hierarchy endpoint are
