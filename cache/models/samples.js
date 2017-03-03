@@ -160,7 +160,10 @@ function applyLimitAndOffset(opts, sampArr) {
  */
 function filterByFieldWildCardExpr(sampArr, prop, propExpr) {
   // regex to match wildcard expr, i option means case insensitive
-  const re = new RegExp('^' + propExpr.split('*').join('.*') + '$', 'i');
+  const escapedExp = propExpr.split('_').join('\\_')
+                      .split('|').join('\\|').split('.').join('\\.');
+
+  const re = new RegExp('^' + escapedExp.split('*').join('.*') + '$', 'i');
   return sampArr.filter((sampEntry) => {
     if (sampEntry[prop]) { // sample object
       return re.test(sampEntry[prop]);
@@ -192,6 +195,7 @@ function applyFiltersOnSampKeys(sampKeysArr, opts) {
     const filteredKeys = filterByFieldWildCardExpr(
       resArr, 'name', opts.filter.name
     );
+    console.log(filteredKeys);
     resArr = filteredKeys;
   }
 

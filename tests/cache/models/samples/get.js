@@ -196,6 +196,112 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
+  it('no asterisk is treated as "equals" for value', (done) => {
+    api.get(path + '?value=' + 50)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].value).to.equal(String(50));
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('no asterisk is treated as "equals" for name', (done) => {
+    const NAME = '___Subject1.___Subject2|___Aspect2';
+    api.get(path + '?name=' + NAME)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].name).to.equal(NAME);
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('trailing asterisk is treated as "starts with"', (done) => {
+    api.get(path + '?name=' + tu.namePrefix + '*')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(3);
+      res.body.map((sample) => {
+        expect(sample.name.slice(0, 3)).to.equal(tu.namePrefix);
+      });
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('leading asterisk is treated as "ends with"', (done) => {
+    api.get(path + '?name=*___Aspect1')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(2);
+      res.body.map((sample) => {
+        expect(sample.name.slice(-10)).to.equal('___Aspect1');
+      });
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('leading and trailing asterisks are treated as "contains"', (done) => {
+    api.get(path + '?name=*Subject2*')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      res.body.map((sample) => {
+        expect(sample.name).to.contain('Subject2');
+      });
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('filter by value', (done) => {
+    api.get(path + '?value=' + 5)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].value).to.equal(String(5));
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('filter by messageCode.', (done) => {
+    api.get(path + '?messageCode=' + 10)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].messageCode).to.equal(String(10));
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('filter by status', (done) => {
+    api.get(path + '?status=Critical')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].status).to.equal('Critical');
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('filter by previousStatus', (done) => {
+    api.get(path + '?previousStatus=Critical')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].previousStatus).to.equal('Critical');
+      expect(res.body[0].status).to.equal('Invalid');
+    })
+    .end((err /* , res */) => done(err));
+  });
+
   it('basic get by name, OK', (done) => {
     const sampleName = s1s3a1;
     api.get(`${path}/${sampleName}`)
@@ -240,6 +346,21 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         { name: 'Yahoo', value: 'http://www.yahoo.com' },
       ]);
       expect(res.body.aspect.criticalRange).to.be.eql([0, 1]);
+      done();
+    });
+  });
+
+  it('get by name is case in-sensitive', (done) => {
+    const sampleName = '___subject1.___SUBJECT3|___AspECT1';
+    api.get(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(s1s3a1);
       done();
     });
   });
