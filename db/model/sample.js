@@ -225,7 +225,12 @@ module.exports = function sample(seq, dataTypes) {
             o.changed('value', true);
             return o.update(toUpsert);
           })
-          .then((o) => resolve(o))
+          .then((o) => {
+
+            // remove the id field from the result
+            delete o.dataValues.id;
+            return resolve(o);
+          })
           .catch((err) => {
             if (isBulk) {
               /* adding isFailed:true to differentiate failed results from

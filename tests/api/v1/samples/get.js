@@ -69,6 +69,20 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('basic get does not return id', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.id).to.be.undefined;
+      done();
+    });
+  });
+
   it('basic get by id', (done) => {
     api.get(`${path}/${sampleName}`)
     .set('Authorization', token)
