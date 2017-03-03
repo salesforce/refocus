@@ -195,6 +195,7 @@ function applyFiltersOnSampKeys(sampKeysArr, opts) {
     const filteredKeys = filterByFieldWildCardExpr(
       resArr, 'name', opts.filter.name
     );
+    console.log(filteredKeys);
     resArr = filteredKeys;
   }
 
