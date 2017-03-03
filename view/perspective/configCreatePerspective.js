@@ -76,7 +76,7 @@ function getTagsFromResources(array) {
   // get all tags
   let cumulativeArr = [];
   for (let i = array.length - 1; i >= 0; i--) {
-    if (array[i].tags.length) {
+    if (array[i].tags && array[i].tags.length) {
       cumulativeArr.push(...array[i].tags);
     }
   }
