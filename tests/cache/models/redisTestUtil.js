@@ -88,7 +88,7 @@ module.exports = {
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
       ],
     }))
-    .then(() => samstoinit.init())
+    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   },
@@ -103,4 +103,11 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
+  sampleStore,
+
+  samstoinit,
+
+  redisClient,
+
 };

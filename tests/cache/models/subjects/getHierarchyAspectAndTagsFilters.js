@@ -132,7 +132,7 @@ describe(`api: GET ${path}:`, () => {
       sample4.subjectId = grn.id;
       return tu.db.Sample.create(sample4);
     })
-    .then(() => samstoinit.init())
+    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   });

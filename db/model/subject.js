@@ -11,6 +11,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const featureToggles = require('feature-toggles');
+const sampleStoreFeature =
+                  require('../../cache/sampleStore').constants.featureName;
 const common = require('../helpers/common');
 const constants = require('../constants');
 const SubjectDeleteConstraintError = require('../dbErrors')
@@ -19,6 +22,11 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
+
+const redisOps = require('../../cache/redisOps');
+const subjectType = redisOps.subjectType;
+const sampleType = redisOps.sampleType;
+
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -272,8 +280,18 @@ module.exports = function subject(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.add);
+
+          /*
+           * add entry to the subjectStore in redis only if the subject
+           * is published and the sampleStoreFeature is enabled
+           */
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            redisOps.addKey(subjectType,
+                inst.getDataValue('absolutePath'));
+          }
         }
 
+        // no change here
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
           .then((par) => {
@@ -294,6 +312,39 @@ module.exports = function subject(seq, dataTypes) {
        * @param {Subject} inst - The updated instance
        */
       afterUpdate(inst /* , opts */) {
+
+        /*
+         * When the sample store feature is enabled do the following
+         * 1. if subject is changed from published to unpublished -> delete
+         * 2. if subject is changed from unpublished to published -> add
+         * 3. if the asbsolutepath of the subject changes and the subject is
+         * puslished, rename the keys
+        */
+        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+          if (inst.changed('isPublished')) {
+            if (inst.isPublished) {
+              redisOps.addKey(subjectType, inst.absolutePath);
+            } else {
+
+              // delete the entry in the subject store
+              redisOps.deleteKey(subjectType, inst.absolutePath);
+
+              // delete multiple possible entries in sample store
+              redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
+            }
+          } else if (inst.changed('absolutePath') && inst.isPublished) {
+            const newAbsPath = inst.absolutePath;
+            const oldAbsPath = inst._previousDataValues.absolutePath;
+
+            // rename entry in subject store
+            redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
+
+            // rename entries in sample store
+            redisOps.renameKeys(sampleType, subjectType, oldAbsPath,
+                                                           newAbsPath);
+          }
+        }
+
         if (inst.changed('parentAbsolutePath') ||
           inst.changed('absolutePath')) {
           inst.getSamples()
@@ -307,7 +358,6 @@ module.exports = function subject(seq, dataTypes) {
           .catch((err) => {
             throw (err);
           });
-
           inst.getChildren()
           .then((children) => {
             if (children) {
@@ -325,6 +375,7 @@ module.exports = function subject(seq, dataTypes) {
           .catch((err) => {
             throw err;
           });
+
         }
 
         const changedKeys = Object.keys(inst._changed);
@@ -356,10 +407,12 @@ module.exports = function subject(seq, dataTypes) {
               ignoreAttributes);
             }
           } else {
+
             // Treat publishing a subject as an "add" event.
             common.publishChange(inst, eventName.add);
           }
         } else if (inst.previous('isPublished')) {
+
           // Treat unpublishing a subject as a "delete" event.
           common.publishChange(inst, eventName.del);
         }
@@ -376,6 +429,15 @@ module.exports = function subject(seq, dataTypes) {
       afterDelete(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.del);
+
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+
+            // delete the entry in the subject store
+            redisOps.deleteKey(subjectType, inst.absolutePath);
+
+            // delete multiple possible entries in sample store
+            redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
+          }
         }
 
         return new seq.Promise((resolve, reject) =>
