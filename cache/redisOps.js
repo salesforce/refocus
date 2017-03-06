@@ -30,10 +30,10 @@ function capitalizeFirstLetter(str) {
 /**
  * Creates or updates the hash specified by the name argument, with values
  * specified by the value argument.
- * @param  {[type]} objectName - Name of the object.
- * @param  {[type]} name  - Name used to identify the hash
- * @param  {Object} value - The value objects key/value are set as the key/value
- * of the hash that is created or updated.
+ * @param  {String} objectName - Name of the object.
+ * @param  {String} name  - Name used to identify the hash
+ * @param  {Object} value - The value object's key/value are set as the
+ * key/value of the hash that is created or updated.
  * @returns {Promise} - which resolves to true
  */
 function hmSet(objectName, name, value) {
