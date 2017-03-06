@@ -57,6 +57,12 @@ module.exports = {
         resultObj, res.method, req.swagger.params
       )
       .then((response) => {
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
+        }
+
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
       })
@@ -84,6 +90,12 @@ module.exports = {
         sampleName, resultObj, res.method, req.swagger.params
       )
       .then((sampleRes) => {
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
+        }
+
         u.logAPI(req, resultObj, sampleRes); // audit log
         res.status(httpStatus.OK).json(sampleRes);
       })
@@ -155,6 +167,12 @@ module.exports = {
     )
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, o.dataValues);
+      }
+
       u.logAPI(req, resultObj, o.dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(o, helper, req.method));
@@ -231,8 +249,13 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
       const retval = u.responsify(o, helper, req.method);
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
+      }
+
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })

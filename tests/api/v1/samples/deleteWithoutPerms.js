@@ -23,7 +23,7 @@ const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
 const deleteOneRelLinkPath = '/v1/samples/{key}/relatedLinks/{akey}';
 
 describe('api: DELETE Sample without permission', () => {
-  let sampleId;
+  let sampleName;
   let otherValidToken;
   let user;
 
@@ -51,7 +51,7 @@ describe('api: DELETE Sample without permission', () => {
     })
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       return samp.getAspect();
     })
     .then((asp) => asp.addWriters(user))
@@ -63,7 +63,7 @@ describe('api: DELETE Sample without permission', () => {
   after(tu.forceDeleteUser);
 
   it('deleting sample without permission should return 403', (done) => {
-    api.delete(`${path}/${sampleId}`)
+    api.delete(`${path}/${sampleName}`)
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* res */) => {
@@ -77,7 +77,7 @@ describe('api: DELETE Sample without permission', () => {
 
   it('403 for deleting relatedLinks without permission', (done) => {
     api.delete(
-      deleteOneRelLinkPath.replace('{key}', sampleId)
+      deleteOneRelLinkPath.replace('{key}', sampleName)
       .replace('{akey}', 'rlink0')
     )
     .set('Authorization', otherValidToken)
@@ -92,7 +92,7 @@ describe('api: DELETE Sample without permission', () => {
 
   it('403 for deleting all the relatedLinks without permission', (done) => {
     api.delete(
-      deleteAllRelLinkPath.replace('{key}', sampleId)
+      deleteAllRelLinkPath.replace('{key}', sampleName)
     )
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)

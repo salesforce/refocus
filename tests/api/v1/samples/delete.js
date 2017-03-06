@@ -25,7 +25,7 @@ const ZERO = 0;
 const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
-  let sampleId;
+  let sampleName;
   let token;
 
   before((done) => {
@@ -41,7 +41,7 @@ describe(`api: DELETE ${path}`, () => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       done();
     })
     .catch((err) => done(err));
@@ -51,7 +51,7 @@ describe(`api: DELETE ${path}`, () => {
   after(tu.forceDeleteUser);
 
   it('basic delete', (done) => {
-    api.delete(`${path}/${sampleId}`)
+    api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
@@ -68,9 +68,8 @@ describe(`api: DELETE ${path}`, () => {
     });
   });
 
-  it('is case in-sensitive', (done) => {
-    const name = u.sampleName;
-    api.delete(`${path}/${name.toLowerCase()}`)
+  it('does not return id', (done) => {
+    api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -78,7 +77,21 @@ describe(`api: DELETE ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.name).to.equal(name);
+      expect(res.body.name).to.equal(sampleName);
+      done();
+    });
+  });
+
+  it('is case in-sensitive', (done) => {
+    api.delete(`${path}/${sampleName.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(sampleName);
       done();
     });
   });
@@ -86,7 +99,7 @@ describe(`api: DELETE ${path}`, () => {
 
 describe('api: samples: DELETE RelatedLinks', () => {
   let token;
-  let sampleId;
+  let sampleName;
 
   before((done) => {
     tu.createToken()
@@ -115,7 +128,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
       );
     })
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       done();
     })
     .catch((err) => done(err));
@@ -125,24 +138,22 @@ describe('api: samples: DELETE RelatedLinks', () => {
   after(tu.forceDeleteUser);
 
   it('delete all related links', (done) => {
-    api.delete(allDeletePath.replace('{key}', sampleId))
+    api.delete(allDeletePath.replace('{key}', sampleName))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(ZERO);
-    })
-    .end((err /* , res */) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.relatedLinks).to.have.length(ZERO);
       done();
     });
   });
 
   it('delete one relatedLink', (done) => {
     api.delete(
-      oneDeletePath.replace('{key}', sampleId).replace('{akey}', 'rlink0')
+      oneDeletePath.replace('{key}', sampleName).replace('{akey}', 'rlink0')
     )
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -161,7 +172,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
   });
 
   it('delete related link by name', (done) => {
-    api.delete(oneDeletePath.replace('{key}', sampleId)
+    api.delete(oneDeletePath.replace('{key}', sampleName)
       .replace('{akey}', 'rlink0'))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

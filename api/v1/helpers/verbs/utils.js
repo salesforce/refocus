@@ -19,6 +19,18 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 
 /**
+ * In-place removal of certain keys from the input object
+ *
+ * @oaram {Array} fieldsArr The fields to remove from the following obj
+ * @oaram {Object} responseObj The dataValues object, may have fields for removal
+ * @oaram {Object} The input object without the keys in fieldsArr
+ */
+function removeFieldsFromResponse(fieldsToExclude, responseObj) {
+  for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
+    delete responseObj[fieldsToExclude[i]];
+  }
+}
+/**
  * This function adds the association scope name to the as the to all
  * the elements of the associaton array
  *
@@ -751,5 +763,7 @@ module.exports = {
   patchArrayFields,
 
   getApiLinks,
+
+  removeFieldsFromResponse,
 
 }; // exports

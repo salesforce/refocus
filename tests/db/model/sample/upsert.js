@@ -22,18 +22,21 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
 describe('db: sample: upsert: ', () => {
+  const aspectName = `${tu.namePrefix}Aspect`;
+  const subjectName = `${tu.namePrefix}Subject`;
+
   afterEach(u.forceDelete);
 
   beforeEach((done) => {
     Aspect.create({
       isPublished: true,
-      name: `${tu.namePrefix}Aspect`,
+      name: aspectName,
       timeout: '30s',
       valueType: 'NUMERIC',
     })
     .then(() => Subject.create({
       isPublished: true,
-      name: `${tu.namePrefix}Subject`,
+      name: subjectName,
     }))
     .then(() => done())
     .catch(done);
@@ -41,12 +44,12 @@ describe('db: sample: upsert: ', () => {
 
   it('when sample is new and when it already exists', (done) => {
     Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: subjectName + `|` + aspectName,
       value: '1',
     })
     .should.eventually.have.deep.property('value', '1')
     .then(() => Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: subjectName + `|` + aspectName,
       value: '2',
     }))
     .should.eventually.have.deep.property('value', '2')
@@ -56,28 +59,34 @@ describe('db: sample: upsert: ', () => {
 
   it('When subject name changed then sample name should be changed',
   (done) => {
+    const updatedSubjectName = subjectName + 1;
     let newSample;
     Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: subjectName + `|` + aspectName,
       value: '1',
     })
     .then((samp) => {
       newSample = samp;
     })
     .then(() => Subject.scope({
-      method: ['absolutePath', `${tu.namePrefix}Subject`],
+      method: ['absolutePath', subjectName],
     }).find())
-    .then((subject) => subject.update({ name: `${tu.namePrefix}Subject1` }))
+    .then((subject) => subject.update({ name: updatedSubjectName }))
     .then(() => {
       // use delay for getting updated version of sample because it
       // gets updated in afterUpdate. So we receive the change in subject
       // as soon as it gets updated but sample update / heirarchy update
       // it does in background.
       setTimeout(() => {
-        Sample.findById(newSample.dataValues.id)
+        Sample.findOne({
+          where: {
+            name: {
+              $iLike: updatedSubjectName + `|` + aspectName
+            }
+          }
+        })
         .then((sample) => {
-          expect(sample.dataValues.name).to.contain(
-            `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect`);
+          expect(sample.dataValues.name).to.equal(updatedSubjectName + `|` + aspectName);
           done();
         });
       }, 500);
@@ -88,14 +97,14 @@ describe('db: sample: upsert: ', () => {
   it('updateAt timestamp should change', (done) => {
     let newSample;
     Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: subjectName + `|` + aspectName,
       value: '1',
     })
     .then((samp) => {
       newSample = samp;
     })
     .then(() => Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
+      name: subjectName + `|` + aspectName,
       value: '1',
     }))
     .then((s) => {
@@ -109,7 +118,7 @@ describe('db: sample: upsert: ', () => {
 
   it('subject does not exist', (done) => {
     Sample.upsertByName({
-      name: `${tu.namePrefix}Subject|x`,
+      name: subjectName + `|x`,
       value: '1',
     })
     .then(() => done('expecting to throw ResourceNotFoundError'))
@@ -121,7 +130,7 @@ describe('db: sample: upsert: ', () => {
 
   it('aspect does not exist', (done) => {
     Sample.upsertByName({
-      name: `x|${tu.namePrefix}Aspect`,
+      name: `x|` + aspectName,
       value: '1',
     })
     .then(() => done('expecting to throw ResourceNotFoundError'))

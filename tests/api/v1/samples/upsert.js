@@ -96,95 +96,114 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  it('upsert succeeds when the sample does not exist', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
+  describe(`when sample does not exist`, () => {
+    it('upsert succeeds', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-      expect(res.body).to.be.an('object');
-      expect(res.body.status).to.equal(constants.statuses.Warning);
-      done();
+        expect(res.body).to.be.an('object');
+        expect(res.body.status).to.equal(constants.statuses.Warning);
+        done();
+      });
     });
-  });
 
-  it('update sample with relatedLinks', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      relatedLinks: updatedRelatedLinks,
-    })
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
+    it('id is not returned', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-      expect(res.body.relatedLinks).to.have.length(2);
-      expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
-      done();
+        expect(res.body.id).to.be.undefined;
+        done();
+      });
     });
-  });
 
-  it('update to relatedLinks with the same name fails', (done) => {
-    const withSameName = [relatedLinks[0], relatedLinks[0]];
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      relatedLinks: withSameName,
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
+    it('update sample with relatedLinks', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        relatedLinks: updatedRelatedLinks,
+      })
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-      const { message, source } = res.body.errors[0];
-      expect(message).to.equal('Name of the relatedlinks should be unique');
-      expect(source).to.equal('relatedLinks');
-      done();
+        expect(res.body.relatedLinks).to.have.length(2);
+        expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
+        done();
+      });
     });
-  });
 
-  it('subject not found yields NOT FOUND', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `x|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
+    it('update to relatedLinks with the same name fails', (done) => {
+      const withSameName = [relatedLinks[0], relatedLinks[0]];
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        relatedLinks: withSameName,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-      done();
+        const { message, source } = res.body.errors[0];
+        expect(message).to.equal('Name of the relatedlinks should be unique');
+        expect(source).to.equal('relatedLinks');
+        done();
+      });
     });
-  });
 
-  it('aspect not found yields NOT FOUND', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.name}|xxxxx`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
+    it('subject not found yields NOT FOUND', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `x|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      done();
+        done();
+      });
+    });
+
+    it('aspect not found yields NOT FOUND', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.name}|xxxxx`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
     });
   });
 
@@ -198,6 +217,23 @@ describe(`api: POST ${path}`, () => {
       })
       .then(() => done())
       .catch(done);
+    });
+
+    it('id is not returned', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.id).to.be.undefined;
+        done();
+      });
     });
 
     it('value is updated', (done) => {
