@@ -49,6 +49,12 @@ function doPatch(req, res, next, props) {
   })
   .then((retVal) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+    // loop through remove values to delete property
+    if (props.fieldsToExclude) {
+      u.removeFieldsFromResponse(props.fieldsToExclude, retVal.dataValues);
+    }
+
     u.logAPI(req, resultObj, retVal);
     return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));

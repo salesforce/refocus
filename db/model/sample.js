@@ -310,7 +310,13 @@ module.exports = function sample(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         let samp;
-        Sample.findById(inst.dataValues.id)
+        Sample.findOne({
+          where: {
+            name: {
+              $iLike: inst.getDataValue('name'),
+            },
+          },
+        })
         .then((found) => {
           samp = found;
           return common.sampleAspectAndSubjectArePublished(seq, samp);

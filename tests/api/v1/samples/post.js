@@ -108,6 +108,21 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('does not return id', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.id).to.be.undefined;
+      done();
+    });
+  });
+
   it('post samples with relatedLinks', (done) => {
     const relatedLinks = [
       { name: 'link1', url: 'https://samples.com' },
