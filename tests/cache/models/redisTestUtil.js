@@ -65,6 +65,7 @@ module.exports = {
     }))
     .then((created) => (s3 = created))
     .then(() => Sample.create({
+      messageCode: '25',
       subjectId: s2.id,
       aspectId: a1.id,
       value: '0',
@@ -73,6 +74,7 @@ module.exports = {
       ],
     }))
     .then(() => Sample.create({
+      messageCode: '50',
       subjectId: s2.id,
       aspectId: a2.id,
       value: '50',
@@ -81,6 +83,8 @@ module.exports = {
       ],
     }))
     .then(() => Sample.create({
+      previousStatus: 'Critical',
+      messageCode: '10',
       subjectId: s3.id,
       aspectId: a1.id,
       value: '5',

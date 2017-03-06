@@ -53,7 +53,9 @@ module.exports = {
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamplesFromRedis(resultObj, res.method)
+      redisModelSample.findSamplesFromRedis(
+        resultObj, res.method, req.swagger.params
+      )
       .then((response) => {
 
         // loop through remove values to delete property
@@ -84,7 +86,9 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       const sampleName = req.swagger.params.key.value.toLowerCase();
 
-      redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
+      redisModelSample.getSampleFromRedis(
+        sampleName, resultObj, res.method, req.swagger.params
+      )
       .then((sampleRes) => {
 
         // loop through remove values to delete property

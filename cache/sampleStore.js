@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const PFX = 'samsto';
 const SEP = ':';
+const ONE = 1;
 const constants = {
   featureName: 'enableRedisSampleStore',
   fieldsToStringify: {
@@ -47,6 +48,16 @@ const constants = {
 function toKey(type, name) {
   return PFX + SEP + type + SEP + name.toLowerCase();
 } // toKey
+
+/**
+ * Get object name from key.
+ * @param  {String} key - Key name
+ * @returns {String} - Object name
+ */
+function getNameFromKey(key) {
+  const splitArr = key.split(SEP);
+  return splitArr[splitArr.length - ONE];
+} // getNameFromKey
 
 /**
  * Convert array strings to json from redis object. For each array field,
@@ -116,4 +127,5 @@ module.exports = {
   constants,
   toKey,
   arrayStringsToJson,
+  getNameFromKey,
 };
