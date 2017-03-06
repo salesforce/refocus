@@ -62,6 +62,31 @@ produces:
 paths:
 
   # ---------------------------------------------------------------------------
+  /admin/sampleStore/rebuild:
+    x-swagger-router-controller: admin
+    post:
+      security:
+        - jwt: []
+      summary: >-
+        Rebuild the redis sampleStore from the samples in the database (admin only)
+      tags: [ admin ]
+      description: >-
+        Rebuild the redis sampleStore from the samples in the database. Requires user to have an admin profile. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: rebuildSampleStore
+      responses:
+        204:
+          description: >-
+            Success.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /aspects:
     x-swagger-router-controller: aspects
     get:

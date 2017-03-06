@@ -46,7 +46,11 @@ function eradicate() {
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateAspects() {
-  return Aspect.findAll()
+  return Aspect.findAll({
+    where: {
+      isPublished: true,
+    },
+  })
   .then((aspects) => {
     const aspectIdx = [];
     const cmds = [];

@@ -34,6 +34,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject' },
+  persistInProgressKey: PFX + SEP + 'persistInProgress',
   prefix: PFX,
   separator: SEP,
 };

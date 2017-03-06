@@ -41,6 +41,7 @@ describe('sampleStore (feature on):', () => {
   let a1;
   let a2;
   let a3;
+  let a4;
   let s1;
   let s2;
   let s3;
@@ -75,6 +76,14 @@ describe('sampleStore (feature on):', () => {
       okRange: [10, 100],
     }))
     .then((created) => (a3 = created))
+    .then(() => Aspect.create({
+      isPublished: false,
+      name: `${tu.namePrefix}Aspect4`,
+      timeout: '10m',
+      valueType: 'BOOLEAN',
+      okRange: [10, 100],
+    }))
+    .then((created) => (a4 = created))
     .then(() => Subject.create({
       isPublished: true,
       name: `${tu.namePrefix}Subject1`,
@@ -142,6 +151,9 @@ describe('sampleStore (feature on):', () => {
 
       // Make sure aspects that don't have samples are *also* here
       expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
+
+      // Make sure unpublished aspects are *not* here
+      expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
     })
     .then(() => redisClient
       .smembersAsync(sampleStore.constants.indexKey.sample))
