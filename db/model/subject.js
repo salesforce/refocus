@@ -321,7 +321,17 @@ module.exports = function subject(seq, dataTypes) {
          * puslished, rename the keys
         */
         if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-          if (inst.changed('isPublished')) {
+          if (inst.changed('absolutePath') && inst.isPublished) {
+            const newAbsPath = inst.absolutePath;
+            const oldAbsPath = inst._previousDataValues.absolutePath;
+
+            // rename entry in subject store
+            redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
+
+            // rename entries in sample store
+            redisOps.renameKeys(sampleType, subjectType, oldAbsPath,
+                                                           newAbsPath);
+          } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
             } else {
@@ -332,16 +342,6 @@ module.exports = function subject(seq, dataTypes) {
               // delete multiple possible entries in sample store
               redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
             }
-          } else if (inst.changed('absolutePath') && inst.isPublished) {
-            const newAbsPath = inst.absolutePath;
-            const oldAbsPath = inst._previousDataValues.absolutePath;
-
-            // rename entry in subject store
-            redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
-
-            // rename entries in sample store
-            redisOps.renameKeys(sampleType, subjectType, oldAbsPath,
-                                                           newAbsPath);
           }
         }
 

@@ -90,7 +90,7 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
  * @returns {Object} cleaned up and ready to store in redis.
  */
 function cleanAspect(a) {
-  let retval = a.get();
+  let retval = a.get ? a.get() : a;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.aspect);
   return retval;
@@ -103,7 +103,7 @@ function cleanAspect(a) {
  * @returns {Object} cleaned up and ready to store in redis.
  */
 function cleanSample(s) {
-  let retval = s.get();
+  let retval = s.get ? s.get() : s;
   delete retval.aspect;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.sample);

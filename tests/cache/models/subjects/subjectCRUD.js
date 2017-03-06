@@ -23,7 +23,7 @@ const Sample = tu.db.Sample;
 const subjectIndexName = redisStore.constants.indexKey.subject;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 
-describe('redis: subject: create: ', () => {
+describe('redis: subject: CRUD: ', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const parUnPub =
         { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };

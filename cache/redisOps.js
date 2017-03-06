@@ -18,12 +18,40 @@ const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
 
 /**
+ * Capitalize the first letter of the string and returns the modified string.
+ *
+ * @param  {String} str - String that has to have its first letter capitalized
+ * @returns {String} str - String with the first letter capitalized
+ */
+function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+} // capitalizeFirstLetter
+
+/**
+ * Creates or updates the hash specified by the name argument, with values
+ * specified by the value argument.
+ * @param  {[type]} objectName - Name of the object.
+ * @param  {[type]} name  - Name used to identify the hash
+ * @param  {Object} value - The value objects key/value are set as the key/value
+ * of the hash that is created or updated.
+ * @returns {Promise} - which resolves to true
+ */
+function hmSet(objectName, name, value) {
+  const cleanobj =
+          redisStore['clean' + capitalizeFirstLetter(objectName)](value);
+  const nameKey = redisStore.toKey(objectName, name);
+  return redisClient.hmsetAsync(nameKey, cleanobj)
+  .then((ok) => Promise.resolve(ok))
+  .catch((err) => Promise.reject(err));
+} // hmSet
+
+/**
  * Adds an entry identified by name to the master list of indices identified
  * by "type"
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param {String} name - Name of the key to be added
- * @returns {Promise} - which resolves to the values returned by the redis batch
+ * @returns {Promise} - which resolves to the values returned by the redis
  *  command
  */
 function addKey(type, name) {
@@ -222,6 +250,8 @@ module.exports = {
   deleteKeys,
 
   addKey,
+
+  hmSet,
 
   subjectType,
 
