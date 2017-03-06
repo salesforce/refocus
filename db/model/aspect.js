@@ -298,7 +298,7 @@ module.exports = function aspect(seq, dataTypes) {
               // delete multiple possible entries in sample store
               redisOps.deleteKeys(sampleType, aspectType, inst.name);
             }
-          } else if (inst.isPublished){
+          } else if (inst.isPublished) {
             const instChanged = {};
             Object.keys(inst._changed).forEach((key) => {
               instChanged[key] = inst[key];
