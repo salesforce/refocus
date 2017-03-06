@@ -53,7 +53,9 @@ module.exports = {
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamplesFromRedis(resultObj, res.method)
+      redisModelSample.findSamplesFromRedis(
+        resultObj, res.method, req.swagger.params
+      )
       .then((response) => {
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
@@ -78,7 +80,9 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       const sampleName = req.swagger.params.key.value.toLowerCase();
 
-      redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
+      redisModelSample.getSampleFromRedis(
+        sampleName, resultObj, res.method, req.swagger.params
+      )
       .then((sampleRes) => {
         u.logAPI(req, resultObj, sampleRes); // audit log
         res.status(httpStatus.OK).json(sampleRes);
