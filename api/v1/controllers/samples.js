@@ -59,7 +59,9 @@ module.exports = {
       .then((response) => {
         // loop through remove values to delete property
         if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
+          for (let i = response.length - 1; i >= 0; i--) {
+            u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
+          }
         }
 
         u.logAPI(req, resultObj, response); // audit log

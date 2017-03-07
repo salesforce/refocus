@@ -135,7 +135,9 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
 
     // loop through remove values to delete property
     if (props.fieldsToExclude) {
-      u.removeFieldsFromResponse(props.fieldsToExclude, retval);
+      for (let i = retval.length - 1; i >= 0; i--) {
+        u.removeFieldsFromResponse(props.fieldsToExclude, retval[i]);
+      }
     }
 
     reqResNext.res.status(httpStatus.OK).json(retval);
