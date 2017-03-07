@@ -78,7 +78,8 @@ describe(`api: GET ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.id).to.be.undefined;
+      expect(res.body.length).to.be.above(ZERO);
+      expect(res.body[0].id).to.be.undefined;
       done();
     });
   });
