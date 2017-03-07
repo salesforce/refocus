@@ -39,7 +39,6 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const samples = job.data.length ? job.data : job.data.upsertData;
   const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
-  const isRedisEnabled = job.data.isRedisEnabled;
 
   // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
   //   `with ${samples.length} samples`;
@@ -48,8 +47,8 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   const dbStartTime = Date.now();
 
   let bulkUpsertPromise;
-  if (isRedisEnabled) {
-    bulkUpsertPromise = cacheSampleModel.bulkUpsertSampleInRedis(samples);
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    bulkUpsertPromise = cacheSampleModel.bulkUpsertSample(samples);
   } else {
     bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName);
   }
@@ -61,21 +60,17 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
       // calculate failed promises
       let errorCount = 0;
-      if (isRedisEnabled) { // no failures in redis
-        objToReturn.recordCount = results.length;
-      } else {
-        for (let i = 0; i < results.length; i++) {
-          if (results[i].isFailed) {
-            errorCount++;
-          }
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].isFailed) {
+          errorCount++;
         }
-
-        // number of successful upserts
-        objToReturn.recordCount = results.length - errorCount;
-
-        // number of failed upserts
-        objToReturn.errorCount = errorCount;
       }
+
+      // number of successful upserts
+      objToReturn.recordCount = results.length - errorCount;
+
+      // number of failed upserts
+      objToReturn.errorCount = errorCount;
 
       const tempObj = {
         jobStartTime,

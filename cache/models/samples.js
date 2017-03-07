@@ -36,6 +36,10 @@ const sampFields = {
   SUBJ_ID: 'subjectId',
   IS_DELETED: 'isDeleted',
 };
+const sampleFieldsArr = Object.keys(sampFields).map(
+  (field) => sampFields[field]
+);
+
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -268,70 +272,70 @@ function applyFiltersOnSampObjs(sampObjArray, opts) {
 }
 
 /**
+ * Remove extra fields from query body object.
+ * @param  {Object} qbObj - Query body object
+ */
+function cleanQueryBodyObj(qbObj) {
+  Object.keys(qbObj).forEach((qbField) => {
+    if (!sampleFieldsArr.includes(qbField)) {
+      delete qbObj[qbField];
+    }
+  });
+}
+
+/**
  * Create properties array having and fields and values need to be set to
- * update/create sample.
+ * update/create sample. Value is empty string if new object being created.
+ * If some value, then calculate status. Update status, previous status and
+ * changed at fields in 2 cases: a) sampObj not present, or b) sample obj
+ * present and previous status != current status.
  * @param  {Object} qbObj - Query body object
  * @param  {Object} sampObj - Sample object
  * @param  {Object} aspectObj - Aspect object
- * @return {Array} Properties array need to be set
+ * @param  {Boolean} isBulk - Whether bulk upsert or not
  */
-function createSampHsetCommand(qbObj, sampObj, aspectObj) {
-  const props = [];
-  if (qbObj[sampFields.MSG_BODY]) {
-    props.push(sampFields.MSG_BODY, qbObj[sampFields.MSG_BODY]);
-  }
-
-  if (qbObj[sampFields.MSG_CODE]) {
-    props.push(sampFields.MSG_CODE, qbObj[sampFields.MSG_CODE]);
-  }
-
-  if (qbObj[sampFields.NAME]) {
-    props.push(sampFields.NAME, qbObj[sampFields.NAME]);
-  }
-
-  /* calculate status value, update status, previous status and changed at
-  fields in 2 cases: a) sampObj not present b) sample obj present and
-   previous status != current status. Always update status. */
+function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
+  cleanQueryBodyObj(qbObj); // remove extra fields
   let value;
   if (qbObj[sampFields.VALUE]) {
     value = qbObj[sampFields.VALUE];
   } else if (!sampObj) {
-    value = '';
+    value = ''; // default value
   }
 
   if (value) {
+    qbObj[sampFields.VALUE] = value;
     const status = sampleUtils.computeStatus(aspectObj, value);
 
     if (!sampObj || (sampObj && (sampObj[sampFields.PRVS_STATUS] !== status))) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
                             dbConstants.statuses.Invalid;
-      props.push(sampFields.PRVS_STATUS, prevStatus);
-      props.push(sampFields.STS_CHNGED_AT, new Date().toString());
-      props.push(sampFields.STATUS, status);
+      qbObj[sampFields.PRVS_STATUS] = prevStatus;
+      qbObj[sampFields.STS_CHNGED_AT] = new Date().toString();
+      qbObj[sampFields.STATUS] = status;
     }
   }
 
-  props.push(sampFields.UPD_AT, new Date().toString());
-  props.push(sampFields.VALUE, value);
+  if (!isBulk) {
+    // only in upsert, not bulk upsert.
+    let rlinks = [];
+    if (qbObj[sampFields.RLINKS]) {
+      rlinks = qbObj[sampFields.RLINKS];
+    } else if (!sampObj) {
+      rlinks = []; // default value
+    }
 
-  // only in upsert, not bulk upsert,
-  let rlinks = [];
-  if (qbObj[sampFields.RLINKS]) {
-    rlinks = qbObj[sampFields.RLINKS];
-  } else {
-    rlinks = [];
+    if (rlinks) {
+      qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
+    }
   }
 
-  props.push(sampFields.RLINKS, JSON.stringify(rlinks));
-  if (!sampObj) {
-    props.push(sampFields.CREATED_AT, new Date().toString());
-    props.push(sampFields.IS_DELETED, '0');
-
-    // swagger ensures that bulk upsert have names
-    props.push(sampFields.NAME, qbObj[sampFields.NAME]);
+  if (!sampObj) { // new sample
+    qbObj[sampFields.CREATED_AT] = new Date().toString();
+    qbObj[sampFields.IS_DELETED] = '0';
   }
 
-  return props;
+  qbObj[sampFields.UPD_AT] = new Date().toString();
 }
 
 /**
@@ -341,15 +345,20 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
  * update/create sample hash. We use hset which updates a sample if exists,
  * else creates a new one.
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
- * @returns {Array} - Array of redis commands responses
+ * @param  {String} method - Type of request method
+ * @returns {Object} - Updated sample
  */
-function upsertOneSample(sampleQueryBodyObj) {
+function upsertOneSample(sampleQueryBodyObj, method) {
   const sampleName = sampleQueryBodyObj.name;
   const subjAspArr = sampleName.toLowerCase().split('|');
+  const errObj = { isFailed: true };
+
   if (subjAspArr.length < TWO) {
-    throw new redisErrors.ResourceNotFoundError({
+    const err = new redisErrors.ValidationError({
       explanation: 'Incorrect sample name.',
     });
+    errObj.explanation = err;
+    Promise.resolve(errObj);
   }
 
   const subjKey = sampleStore.toKey(
@@ -370,36 +379,59 @@ function upsertOneSample(sampleQueryBodyObj) {
     sampleStore.toKey(constants.objectType.sample, sampleName),
   ]);
 
-  return redisClient.batch(commands).execAsync()
-  .then((responses) => {
-    const isSubjPresent = responses[ZERO];
-    if (!isSubjPresent) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Subject not found.',
-      });
-    }
+  let aspectObj;
+  return new Promise((resolve) => {
+    redisClient.sismemberAsync(constants.indexKey.subject, subjKey)
+    .then((isSubjPresent) => {
+      if (!isSubjPresent) {
+        const err = new redisErrors.ResourceNotFoundError({
+          explanation: 'Subject not found.',
+        });
+        errObj.explanation = err;
+        resolve(errObj);
+      }
 
-    if (!responses[ONE]) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Aspect not found.',
-      });
-    }
+      return redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.aspect, aspectName)
+      );
+    })
+    .then((aspect) => {
+      if (!aspect) {
+        const err = new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+        errObj.explanation = err;
+        resolve(errObj);
+      }
 
-    const aspectObj = sampleStore.arrayStringsToJson(
-      responses[ONE], constants.fieldsToStringify.aspect
-    );
-    const redisSamp = responses[TWO];
-    const props = createSampHsetCommand(
-      sampleQueryBodyObj, redisSamp, aspectObj
-    );
+      aspectObj = sampleStore.arrayStringsToJson(
+        aspect, constants.fieldsToStringify.aspect
+      );
 
-    // add aspect name to subject set, add sample key to sample set,
-    // create/update hash of sample
-    return redisClient.batch([
-      ['sadd', subjKey, aspectName],
-      ['sadd', constants.indexKey.sample, sampleKey],
-      ['hmset', sampleKey, props],
-    ]).execAsync();
+      return redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.sample, sampleName)
+      );
+    })
+    .then((sample) => {
+      // sampleQueryBodyObj updated with fields
+      createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
+
+      // add aspect name to subject set, add sample key to sample set,
+      // create/update hash of sample
+      return redisClient.batch([
+        ['sadd', subjKey, aspectName],
+        ['sadd', constants.indexKey.sample, sampleKey],
+        ['hmset', sampleKey, sampleQueryBodyObj],
+      ]).execAsync();
+    })
+    .then(() => redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.sample, sampleName)
+    ))
+    .then((updatedSamp) => {
+      // attach aspect to sample
+      const resSampAsp = cleanAddAspectToSample(updatedSamp, aspectObj, method);
+      resolve(resSampAsp);
+    });
   });
 }
 
@@ -416,7 +448,7 @@ module.exports = {
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a sample object
    */
-  getSampleFromRedis(sampleName, logObject, method, params) {
+  getSample(sampleName, logObject, method, params) {
     const sampAspArr = sampleName.split('|');
     const commands = [];
 
@@ -478,7 +510,7 @@ module.exports = {
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a list of all samples objects
    */
-  findSamplesFromRedis(logObject, method, params) {
+  findSamples(logObject, method, params) {
     const opts = getOptionsFromReq(params);
     const commands = [];
     const response = [];
@@ -536,28 +568,14 @@ module.exports = {
    * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSampleInRedis(qbObj, logObject, method) {
-    const sampleName = qbObj.name;
-    let aspectObj;
-    return upsertOneSample(qbObj)
-    .then(() => {
-      const aspectName = sampleName.toLowerCase().split('|')[ONE];
-      return redisClient.hgetallAsync(
-        sampleStore.toKey(constants.objectType.aspect, aspectName)
-      );
-    })
-    .then((asp) => {
-      aspectObj = sampleStore.arrayStringsToJson(
-        asp, constants.fieldsToStringify.aspect
-      );
-      return redisClient.hgetallAsync(
-        sampleStore.toKey(constants.objectType.sample, sampleName)
-      );
-    })
-    .then((updatedSamp) => {
-      // attach aspect to sample
-      const resSampAsp = cleanAddAspectToSample(updatedSamp, aspectObj, method);
-      return resSampAsp;
+  upsertSample(qbObj, logObject, method) {
+    return upsertOneSample(qbObj, method)
+    .then((response) => {
+      if (response.isFailed) {
+        throw response.explanation;
+      }
+
+      return response;
     });
   },
 
@@ -566,7 +584,7 @@ module.exports = {
    * @param  {Object} sampleQueryBody - Query body object
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertSampleInRedis(sampleQueryBody) {
+  bulkUpsertSample(sampleQueryBody) {
     const promises = sampleQueryBody.map(
       (sampleReq) => upsertOneSample(sampleReq)
     );

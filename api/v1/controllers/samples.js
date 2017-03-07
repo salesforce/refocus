@@ -53,11 +53,10 @@ module.exports = {
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamplesFromRedis(
+      redisModelSample.findSamples(
         resultObj, res.method, req.swagger.params
       )
       .then((response) => {
-
         // loop through remove values to delete property
         if (helper.fieldsToExclude) {
           u.removeFieldsFromResponse(helper.fieldsToExclude, response);
@@ -86,7 +85,7 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       const sampleName = req.swagger.params.key.value.toLowerCase();
 
-      redisModelSample.getSampleFromRedis(
+      redisModelSample.getSample(
         sampleName, resultObj, res.method, req.swagger.params
       )
       .then((sampleRes) => {
@@ -159,46 +158,39 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const sampleQueryBody = req.swagger.params.queryBody.value;
+    const resultObj = { reqStartTime: new Date() };
+    const sampleQueryBody = req.swagger.params.queryBody.value;
 
-      redisModelSample.upsertSampleInRedis(
-        sampleQueryBody, resultObj, res.method
-      )
-      .then((sampleRes) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    .then((userName) => {
+      let upsertSamplePromise;
+      if (featureToggles.isFeatureEnabled(constants.featureName)) {
+        upsertSamplePromise = redisModelSample.upsertSample(
+          sampleQueryBody, resultObj, res.method
+        );
+      } else {
+        upsertSamplePromise = helper.model.upsertByName(
+          sampleQueryBody, userName
+        );
+      }
 
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
-        }
+      return upsertSamplePromise;
+    })
+    .then((samp) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      const dataValues = samp.dataValues ? samp.dataValues : samp;
 
-        u.logAPI(req, resultObj, sampleRes); // audit log
-        res.status(httpStatus.OK).json(sampleRes);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      const resultObj = { reqStartTime: new Date() };
-      u.getUserNameFromToken(req,
-        featureToggles.isFeatureEnabled('enforceWritePermission'))
-      .then((userName) =>
-        helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
-      )
-      .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+      }
 
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, o.dataValues);
-        }
-
-        u.logAPI(req, resultObj, o.dataValues);
-        return res.status(httpStatus.OK)
-          .json(u.responsify(o, helper, req.method));
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    }
+      u.logAPI(req, resultObj, dataValues);
+      return res.status(httpStatus.OK)
+        .json(u.responsify(samp, helper, req.method));
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -218,42 +210,26 @@ module.exports = {
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
 
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+    u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    .then((userName) => {
       if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
+        wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
-        wrappedBulkUpsertData.isRedisEnabled = true;
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
+      } else if (featureToggles.isFeatureEnabled(constants.featureName)) {
+        redisModelSample.bulkUpsertSample(value);
       } else {
-        redisModelSample.bulkUpsertSampleInRedis(value);
+        helper.model.bulkUpsertByName(value, userName);
       }
-    } else {
-      u.getUserNameFromToken(req,
-        featureToggles.isFeatureEnabled('enforceWritePermission'))
-      .then((userName) => {
-        if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
-          const jobType = require('../../../jobQueue/setup').jobType;
-          const jobWrapper = require('../../../jobQueue/jobWrapper');
-
-          const wrappedBulkUpsertData = {};
-          wrappedBulkUpsertData.upsertData = value;
-          wrappedBulkUpsertData.userName = userName;
-          wrappedBulkUpsertData.reqStartTime = reqStartTime;
-
-          const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
-            wrappedBulkUpsertData, req);
-        } else {
-          helper.model.bulkUpsertByName(value,
-            userName);
-        }
-      });
-    }
+    });
 
     const body = { status: 'OK' };
     u.logAPI(req, resultObj, body, value.length);

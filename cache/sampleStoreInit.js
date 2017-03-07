@@ -84,7 +84,7 @@ function populateSubjects() {
     return redisClient.batch(cmds).execAsync();
   })
   .catch(console.error); // eslint-disable-line no-console
-} // populateAspects
+} // populateSubjects
 
 /**
  * Populate the redis sample store with samples from the db.
@@ -160,7 +160,7 @@ function populate() {
   const msg = 'Populating redis sample store from db';
   console.log(msg); // eslint-disable-line no-console
 
-  const promises = [populateSamples(), populateAspects(), populateSubjects()];
+  const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
 } // populate
 
