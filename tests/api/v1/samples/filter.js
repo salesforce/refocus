@@ -68,7 +68,7 @@ describe('sample api: FILTER' + path, () => {
   it('no asterisk is treated as "equals" for value', (done) => {
     api.get(path + '?value=' + ONE)
     .set('Authorization', token)
-    // .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].value).to.equal(String(ONE));
