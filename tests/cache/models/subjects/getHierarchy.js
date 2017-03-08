@@ -9,7 +9,7 @@
 /**
  * tests/cache/models/subjects/getHierarchy.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -76,7 +76,7 @@ describe(`api: GET ${path}`, () => {
     })
     .then((samp) => {
       sample1.id = samp.id;
-      return samstoinit.init();
+      return samstoinit.populate();
     })
     .then(() => done())
     .catch(done);

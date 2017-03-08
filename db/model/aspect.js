@@ -13,7 +13,7 @@
 const common = require('../helpers/common');
 const u = require('../helpers/aspectUtils');
 const constants = require('../constants');
-
+const featureToggles = require('feature-toggles');
 const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
@@ -23,6 +23,11 @@ const sampleEventNames = {
   upd: 'refocus.internal.realtime.sample.update',
   del: 'refocus.internal.realtime.sample.remove',
 };
+const sampleStoreFeature =
+                  require('../../cache/sampleStore').constants.featureName;
+const redisOps = require('../../cache/redisOps');
+const aspectType = redisOps.aspectType;
+const sampleType = redisOps.sampleType;
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -164,6 +169,22 @@ module.exports = function aspect(seq, dataTypes) {
     hooks: {
 
       /**
+       * When a publihsed aspect is deleted. Delete its entry in the aspectStore
+       * and the sampleStore if any.
+       *
+       * @param {Aspect} inst - The deleted instance
+       */
+      afterCreate(inst /* , opts */) {
+        if (inst.getDataValue('isPublished')) {
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // create an entry in aspectStore
+            redisOps.addKey(aspectType, inst.getDataValue('name'));
+            redisOps.hmSet(aspectType, inst.name, inst);
+          }
+        }
+      }, // hooks.afterDelete
+
+      /**
        * Set the isDeleted timestamp.
        *
        * @param {Aspect} inst - The instance being destroyed
@@ -243,6 +264,49 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        /*
+         * When the sample store feature is enabled do the following
+         * 1. if aspect name is changed and it is published, rename the entry
+         * on aspectStore and the aspect hash.
+         * 2. if the aspect is updated to published, add an entry to the
+         * aspectStore and create the aspect hash
+         * 3. if the aspect is updated to unpublihsed, delete the entry in the
+         * aspectStore, delete the aspect hash and delete the related samples
+         * 4. if the aspect that is updated is already published, update the
+         * the aspect with the new values.
+        */
+        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+          if (inst.changed('name') && inst.isPublished) {
+            const newAspName = inst.name;
+            const oldAspectName = inst._previousDataValues.name;
+
+            // rename entry in aspectStore
+            redisOps.renameKey(aspectType, oldAspectName, newAspName);
+
+            // delete multiple possible entries in sampleStore
+            redisOps.deleteKeys(sampleType, aspectType, inst.name);
+          } else if (inst.changed('isPublished')) {
+            if (inst.isPublished) {
+
+              redisOps.addKey(aspectType, inst.name);
+              redisOps.hmSet(aspectType, inst.name, inst.get());
+            } else {
+
+              // delete the entry in the subject store
+              redisOps.deleteKey(aspectType, inst.name);
+
+              // delete multiple possible entries in sample store
+              redisOps.deleteKeys(sampleType, aspectType, inst.name);
+            }
+          } else if (inst.isPublished) {
+            const instChanged = {};
+            Object.keys(inst._changed).forEach((key) => {
+              instChanged[key] = inst[key];
+            });
+            redisOps.hmSet(aspectType, inst.name, instChanged);
+          }
+        }
+
         if (inst.changed('isPublished') &&
           inst.previous('isPublished') &&
           !inst.getDataValue('isPublished') ||
@@ -277,6 +341,24 @@ module.exports = function aspect(seq, dataTypes) {
 
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
+
+      /**
+       * When a publihsed aspect is deleted. Delete its entry in the aspectStore
+       * and the sampleStore if any.
+       *
+       * @param {Aspect} inst - The deleted instance
+       */
+      afterDelete(inst /* , opts */) {
+        if (inst.getDataValue('isPublished')) {
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // delete the entry in the aspectStore
+            redisOps.deleteKey(aspectType, inst.name);
+
+            // delete multiple possible entries in sampleStore
+            redisOps.deleteKeys(sampleType, aspectType, inst.name);
+          }
+        }
+      }, // hooks.afterDelete
 
       /**
        * Makes sure isUrl/isEmail validations will handle empty strings

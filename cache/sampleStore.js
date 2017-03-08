@@ -98,11 +98,12 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
 /**
  * Remove nulls and stringify arrays.
  *
- * @param {Object} a - The aspect to clean.
+ * @param {Object} a - The aspect to clean. This can be either be a sequelize
+ * object instance or just a regular object.
  * @returns {Object} cleaned up and ready to store in redis.
  */
 function cleanAspect(a) {
-  let retval = a.get();
+  let retval = a.get ? a.get() : a;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.aspect);
   return retval;
@@ -111,11 +112,12 @@ function cleanAspect(a) {
 /**
  * Remove the aspect field, remove nulls and stringify arrays.
  *
- * @param {Object} s - The sample to clean.
+ * @param {Object} s - The sample to clean. This can be either be a sequelize
+ * object instance or just a regular object.
  * @returns {Object} cleaned up and ready to store in redis.
  */
 function cleanSample(s) {
-  let retval = s.get();
+  let retval = s.get ? s.get() : s;
   delete retval.aspect;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.sample);
