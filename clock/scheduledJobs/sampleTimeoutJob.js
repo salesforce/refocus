@@ -14,6 +14,7 @@
  */
 const featureToggles = require('feature-toggles');
 const dbSample = require('../../db/index').Sample;
+const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
 
 /**
  * Execute the call to check for sample timeouts.
@@ -21,6 +22,10 @@ const dbSample = require('../../db/index').Sample;
  * @returns {Promise}
  */
 function execute() {
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    return sampleStoreTimeout.doTimeout();
+  }
+
   return dbSample.doTimeout();
 } // execute
 
