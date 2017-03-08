@@ -88,14 +88,14 @@ function deleteKey(type, name) {
 } // deleteKey
 
 /**
- * Deletes entries form the sampleStore that matches the "subject name" part
+ * Deletes entries from the sampleStore that matches the "subject name" part
  * or the "aspect name" part of the entry. The hash identified by the
  * deleted entry is also deleted. Use this only to delete multiple keys in the
  * sampleStore and its related hashes.
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param {String} name - Name of the key to be added
+ * @param {String} name - Name of the key to be deleted
  * @returns {Promise} - which resolves to the values returned by the redis batch
  * command
  */

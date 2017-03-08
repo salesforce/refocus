@@ -145,7 +145,8 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('when asbolutepath changes, the sampleStore refelct this change', (done) => {
+  it('when asbolutepath changes, the sampleStore should reflect ' +
+     ' this change', (done) => {
     let oldAbsPath;
     let newAbsPath;
 
