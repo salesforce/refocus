@@ -75,7 +75,13 @@ describe('db: sample: statusCalculation: ', () => {
   function setupRanges(ranges) {
     globalAspect.set(ranges);
     return globalAspect.save()
-    .then(() => Sample.findById(sample.id))
+    .then(() => Sample.findOne({
+      where: {
+        name: {
+          $iLike: sample.name
+        }
+      },
+    }))
     .then((found) => {
       sample = found;
     });
@@ -97,7 +103,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range min', (done) => {
         sample.update({ value: '2' })
         .should.eventually.have.property('value', '2')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Warning))
         .then(() => done())
@@ -107,7 +119,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range max', (done) => {
         sample.update({ value: '1' })
         .should.eventually.have.property('value', '1')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
         .then(() => done())
@@ -117,7 +135,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range min and max', (done) => {
         sample.update({ value: '4' })
         .should.eventually.have.property('value', '4')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Info))
         .then(() => done())
@@ -127,7 +151,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value is between range min and max', (done) => {
         sample.update({ value: '8' })
         .should.eventually.have.property('value', '8')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
         .then(() => done())
@@ -137,7 +167,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value is greater than any of the range max values', (done) => {
         sample.update({ value: '11' })
         .should.eventually.have.property('value', '11')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
         .then(() => done())
@@ -147,7 +183,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value is less than any of the range min values', (done) => {
         sample.update({ value: '-1' })
         .should.eventually.have.property('value', '-1')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
         .then(() => done())
@@ -170,7 +212,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range min', (done) => {
         sample.update({ value: '-10' })
         .should.eventually.have.property('value', '-10')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -180,7 +228,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range max', (done) => {
         sample.update({ value: '-1' })
         .should.eventually.have.property('value', '-1')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -190,7 +244,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value = range min and max', (done) => {
         sample.update({ value: '0' })
         .should.eventually.have.property('value', '0')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
@@ -200,7 +260,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value is between range min and max, after a null range', (done) => {
         sample.update({ value: '8' })
           .should.eventually.have.property('value', '8')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.OK))
         .then(() => done())
@@ -210,7 +276,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('value is less than any of the range min values', (done) => {
         sample.update({ value: '-11' })
           .should.eventually.have.property('value', '-11')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
@@ -233,7 +305,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('positive integer value should be -1', (done) => {
         sample.update({ value: '4' })
           .should.eventually.have.property('value', '4')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
@@ -243,7 +321,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('negative integer value should be -1', (done) => {
         sample.update({ value: '-4' })
           .should.eventually.have.property('value', '-4')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
@@ -253,7 +337,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('zero value should be -1', (done) => {
         sample.update({ value: '0' })
           .should.eventually.have.property('value', '0')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
@@ -276,7 +366,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('between the cracks', (done) => {
         sample.update({ value: '15' })
           .should.eventually.have.property('value', '15')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Invalid))
         .then(() => done())
@@ -286,7 +382,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('edge of a range', (done) => {
         sample.update({ value: '20' })
           .should.eventually.have.property('value', '20')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
@@ -296,7 +398,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within a range', (done) => {
         sample.update({ value: '25' })
           .should.eventually.have.property('value', '25')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
@@ -319,7 +427,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within range 3', (done) => {
         sample.update({ value: '-4' })
           .should.eventually.have.property('value', '-4')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.OK))
         .then(() => done())
@@ -329,7 +443,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within range 1', (done) => {
         sample.update({ value: '5' })
           .should.eventually.have.property('value', '5')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
@@ -339,7 +459,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('max edge of range 0', (done) => {
         sample.update({ value: '20' })
           .should.eventually.have.property('value', '20')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -362,7 +488,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within the first range only', (done) => {
         sample.update({ value: '4' })
           .should.eventually.have.property('value', '4')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -372,7 +504,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within the overlap', (done) => {
         sample.update({ value: '6' })
           .should.eventually.have.property('value', '6')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -382,7 +520,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within the second range only', (done) => {
         sample.update({ value: '9' })
           .should.eventually.have.property('value', '9')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
@@ -405,7 +549,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within a non-infinite range', (done) => {
         sample.update({ value: '0' })
           .should.eventually.have.property('value', '0')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Warning))
         .then(() => done())
@@ -415,7 +565,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within the upper infinite bound', (done) => {
         sample.update({ value: '9999' })
           .should.eventually.have.property('value', '9999')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Info))
         .then(() => done())
@@ -425,7 +581,13 @@ describe('db: sample: statusCalculation: ', () => {
       it('within the lower infinite bound', (done) => {
         sample.update({ value: '-20000' })
           .should.eventually.have.property('value', '-20000')
-        .then(() => Sample.findById(sample.id)
+        .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
           .should.eventually.have.deep.property('dataValues.status',
             constants.statuses.Critical))
         .then(() => done())
@@ -449,7 +611,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('lower case true => status OK', (done) => {
       sample.update({ value: 'true' })
         .should.eventually.have.property('value', 'true')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
       .then(() => done())
@@ -459,7 +627,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('upper case TRUE => status OK', (done) => {
       sample.update({ value: 'TRUE' })
         .should.eventually.have.property('value', 'TRUE')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.OK))
       .then(() => done())
@@ -469,7 +643,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('lower case false => status 0', (done) => {
       sample.update({ value: 'false' })
         .should.eventually.have.property('value', 'false')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
       .then(() => done())
@@ -479,7 +659,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('weird mixed case FalSe => status 0', (done) => {
       sample.update({ value: 'FalSe' })
         .should.eventually.have.property('value', 'FalSe')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Critical))
       .then(() => done())
@@ -489,7 +675,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('any other text => status -1', (done) => {
       sample.update({ value: 'aaa' })
         .should.eventually.have.property('value', 'aaa')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
@@ -499,7 +691,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('empty string value => -1 status', (done) => {
       sample.update({ value: '' })
         .should.eventually.have.property('value', defaultForValue)
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
@@ -509,7 +707,13 @@ describe('db: sample: statusCalculation: ', () => {
     it('empty string for value => -1 status', (done) => {
       sample.update({ value: '' })
         .should.eventually.have.property('value', defaultForValue)
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())
@@ -596,11 +800,23 @@ describe('db: sample: statusCalculation: ', () => {
     it('calculate invoked on aspect update', (done) => {
       sample.update({ value: '7' })
         .should.eventually.have.property('value', '7')
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Warning))
       .then(() => setupRanges({ warningRange: [8, 10] }))
-      .then(() => Sample.findById(sample.id)
+      .then(() => Sample.findOne({
+          where: {
+            name: {
+              $iLike: sample.name
+            }
+          },
+        })
         .should.eventually.have.deep.property('dataValues.status',
           constants.statuses.Invalid))
       .then(() => done())

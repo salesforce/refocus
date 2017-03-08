@@ -47,6 +47,12 @@ function doDelete(req, res, next, props) {
 
     // when a resource is deleted, delete all its associations too
     u.deleteAllAssociations(o, assocNames);
+
+    // loop through remove values to delete property
+    if (props.fieldsToExclude) {
+      u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
+    }
+
     u.logAPI(req, resultObj, o.dataValues);
     return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })

@@ -38,54 +38,18 @@ describe('sample api: FILTER' + path, () => {
     .catch(done);
   });
 
-  /**
-   * Sets up an object with aspect id, subject id
-   *
-   * @param {String} aspectName The name of the aspect
-   * @param {String} subjectName The name of the subject
-   * @returns {Object} contains aspect id, subject id
-   */
-  function doSetup(aspectName, subjectName) {
-    const aspectToCreate = {
-      isPublished: true,
-      name: `${tu.namePrefix + aspectName}`,
-      timeout: '30s',
-      criticalRange: [THREE, THREE],
-      valueType: 'NUMERIC',
-    };
-
-    const subjectToCreate = {
-      isPublished: true,
-      name: `${tu.namePrefix + subjectName}`,
-    };
-
-    return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const samp = {};
-      tu.db.Aspect.create(aspectToCreate)
-      .then((a) => {
-        samp.aspectId = a.id;
-        return tu.db.Subject.create(subjectToCreate);
-      })
-      .then((s) => {
-        samp.subjectId = s.id;
-        resolve(samp);
-      })
-      .catch((err) => reject(err));
-    });
-  }
-
   before((done) => {
-    doSetup('POTATO', 'COFFEE')
+    u.doCustomSetup('POTATO', 'COFFEE')
     .then((obj) => {
       obj.value = 111;
       return Sample.create(obj);
     })
-    .then(() => doSetup('GELATO', 'COLUMBIA'))
+    .then(() => u.doCustomSetup('GELATO', 'COLUMBIA'))
     .then((obj) => {
       obj.value = String(THREE);
       return Sample.create(obj);
     })
-    .then(() => doSetup('SPECIAL', 'UNIQUE'))
+    .then(() => u.doCustomSetup('SPECIAL', 'UNIQUE'))
     .then((obj) => {
       obj.value = String(THREE);
       obj.messageCode = MESSAGE_CODE_1;

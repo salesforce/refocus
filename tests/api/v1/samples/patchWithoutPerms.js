@@ -21,7 +21,7 @@ const User = tu.db.User;
 const path = '/v1/samples';
 
 describe(`api: PATCH ${path} without permission`, () => {
-  let sampleId;
+  let sampleName;
   let aspect;
   let otherValidToken;
   before((done) => {
@@ -37,7 +37,7 @@ describe(`api: PATCH ${path} without permission`, () => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       return samp.getAspect();
     })
     .then((asp) => {
@@ -61,7 +61,7 @@ describe(`api: PATCH ${path} without permission`, () => {
 
   describe('Patch without permission should fail', () => {
     it('single related link', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', otherValidToken)
       .send({
         value: '2',

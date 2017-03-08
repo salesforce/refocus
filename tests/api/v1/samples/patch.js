@@ -22,7 +22,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe(`api: PATCH ${path}`, () => {
-  let sampleId;
+  let sampleName;
   let sampUpdatedAt;
   let sampleValue;
   let token;
@@ -36,11 +36,11 @@ describe(`api: PATCH ${path}`, () => {
     .catch(done);
   });
 
-  before((done) => {
+  beforeEach((done) => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       sampUpdatedAt = samp.updatedAt;
       sampleValue = samp.value;
       done();
@@ -48,13 +48,13 @@ describe(`api: PATCH ${path}`, () => {
     .catch(done);
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
   describe('UpdatedAt tests: ', () => {
     it('patch /samples without value does not increment ' +
       'updatedAt', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({})
       .expect(constants.httpStatus.OK)
@@ -72,7 +72,7 @@ describe(`api: PATCH ${path}`, () => {
 
     it('patch /samples with only identical value increments ' +
       'updatedAt', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: sampleValue })
       .expect(constants.httpStatus.OK)
@@ -90,8 +90,23 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   describe('Lists: ', () => {
+    it('basic patch does not return id', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.id).to.be.undefined;
+        done();
+      });
+    });
+
     it('basic patch /samples', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.OK)
@@ -134,7 +149,7 @@ describe(`api: PATCH ${path}`, () => {
   //
   describe('Patch Related Links ', () => {
     it('single related link', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({
         value: '2',
@@ -156,7 +171,7 @@ describe(`api: PATCH ${path}`, () => {
     });
 
     it('multiple relatedlinks', (done) => {
-      api.put(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: '2', relatedLinks: [] })
       .expect(constants.httpStatus.OK)
@@ -165,7 +180,7 @@ describe(`api: PATCH ${path}`, () => {
           done(err);
         }
 
-        api.patch(`${path}/${sampleId}`)
+        api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
         .send({
           value: '2',
@@ -194,8 +209,9 @@ describe(`api: PATCH ${path}`, () => {
         });
       });
     });
+
     it('with duplicate name', (done) => {
-      api.patch(`${path}/${sampleId}`)
+      api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({
         value: '2',
@@ -223,7 +239,7 @@ describe(`api: PATCH ${path}`, () => {
 });
 
 describe(`api: PATCH ${path} aspect isPublished false`, () => {
-  let sampleId;
+  let sampleName;
   let token;
 
   before((done) => {
@@ -239,7 +255,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
     u.doSetup()
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleId = samp.id;
+      sampleName = samp.name;
       samp.getAspect()
       .then((asp) => {
         asp.update({ isPublished: false });
@@ -256,7 +272,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
   after(tu.forceDeleteUser);
 
   it('cannot patch sample if aspect not published', (done) => {
-    api.patch(`${path}/${sampleId}`)
+    api.patch(`${path}/${sampleName}`)
     .set('Authorization', token)
     .send({ value: '3' })
     .expect(constants.httpStatus.NOT_FOUND)

@@ -53,8 +53,17 @@ module.exports = {
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamplesFromRedis(resultObj, res.method)
+      redisModelSample.findSamples(
+        resultObj, res.method, req.swagger.params
+      )
       .then((response) => {
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          for (let i = response.length - 1; i >= 0; i--) {
+            u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
+          }
+        }
+
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
       })
@@ -78,8 +87,16 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       const sampleName = req.swagger.params.key.value.toLowerCase();
 
-      redisModelSample.getSampleFromRedis(sampleName, resultObj, res.method)
+      redisModelSample.getSample(
+        sampleName, resultObj, res.method, req.swagger.params
+      )
       .then((sampleRes) => {
+
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
+        }
+
         u.logAPI(req, resultObj, sampleRes); // audit log
         res.status(httpStatus.OK).json(sampleRes);
       })
@@ -144,16 +161,36 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
+    const sampleQueryBody = req.swagger.params.queryBody.value;
+
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) =>
-      helper.model.upsertByName(req.swagger.params.queryBody.value, userName)
-    )
-    .then((o) => {
+    .then((userName) => {
+      let upsertSamplePromise;
+      if (featureToggles.isFeatureEnabled(constants.featureName)) {
+        upsertSamplePromise = redisModelSample.upsertSample(
+          sampleQueryBody, resultObj, res.method
+        );
+      } else {
+        upsertSamplePromise = helper.model.upsertByName(
+          sampleQueryBody, userName
+        );
+      }
+
+      return upsertSamplePromise;
+    })
+    .then((samp) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, o.dataValues);
+      const dataValues = samp.dataValues ? samp.dataValues : samp;
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+      }
+
+      u.logAPI(req, resultObj, dataValues);
       return res.status(httpStatus.OK)
-        .json(u.responsify(o, helper, req.method));
+        .json(u.responsify(samp, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
@@ -174,6 +211,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
+
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
@@ -188,9 +226,10 @@ module.exports = {
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
+      } else if (featureToggles.isFeatureEnabled(constants.featureName)) {
+        redisModelSample.bulkUpsertSample(value);
       } else {
-        helper.model.bulkUpsertByName(value,
-          userName);
+        helper.model.bulkUpsertByName(value, userName);
       }
     });
 
@@ -227,8 +266,13 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
       const retval = u.responsify(o, helper, req.method);
+
+      // loop through remove values to delete property
+      if (helper.fieldsToExclude) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
+      }
+
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })

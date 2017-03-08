@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const PFX = 'samsto';
 const SEP = ':';
+const ONE = 1;
 const constants = {
   featureName: 'enableRedisSampleStore',
   fieldsToStringify: {
@@ -33,6 +34,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject' },
+  persistInProgressKey: PFX + SEP + 'persistInProgress',
   prefix: PFX,
   separator: SEP,
 };
@@ -49,6 +51,16 @@ function toKey(type, name) {
 } // toKey
 
 /**
+ * Get object name from key.
+ * @param  {String} key - Key name
+ * @returns {String} - Object name
+ */
+function getNameFromKey(key) {
+  const splitArr = key.split(SEP);
+  return splitArr[splitArr.length - ONE];
+} // getNameFromKey
+
+/**
  * Convert array strings to json from redis object. For each array field,
  * if that field exists in obj and its and array, then json parse.
  * @param  {Object} obj - Object to convert
@@ -57,7 +69,7 @@ function toKey(type, name) {
  */
 function arrayStringsToJson(obj, arrayFields) {
   arrayFields.forEach((field) => {
-    if (obj[field] && !Array.isArray(obj[field])) {
+    if (obj && obj[field] && !Array.isArray(obj[field])) {
       obj[field] = JSON.parse(obj[field]);
     }
   });
@@ -118,4 +130,5 @@ module.exports = {
   constants,
   toKey,
   arrayStringsToJson,
+  getNameFromKey,
 };

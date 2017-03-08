@@ -20,6 +20,7 @@ const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const cacheSampleModel = require('../cache/models/samples');
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -44,8 +45,15 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   // console.log(msg); // eslint-disable-line no-console
 
   const dbStartTime = Date.now();
-  helper.model.bulkUpsertByName(samples, userName)
-  .then((results) => {
+
+  let bulkUpsertPromise;
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    bulkUpsertPromise = cacheSampleModel.bulkUpsertSample(samples);
+  } else {
+    bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName);
+  }
+
+  bulkUpsertPromise.then((results) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};

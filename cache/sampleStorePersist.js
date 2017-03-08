@@ -19,18 +19,38 @@ const samsto = require('./sampleStore');
 const constants = samsto.constants;
 
 /**
+ * Checks whether the redis sample store is currently being persisted to the
+ * db.
+ *
+ * @returns {Promise} resolves to true if the redis sample store is currently
+ *  being persisted to the db.
+ */
+function persistInProgress() {
+  return redisClient.getAsync(constants.persistInProgressKey);
+} // persistInProgress
+
+/**
  * Truncate the sample table in the db and persist all the samples from redis
  * into the empty table.
  *
  * @returns {Promise} which resolves to true upon complete if redis sample
- * store feature is enabled, or false on error or if feature is disabled.
+ * store feature is enabled, or false on error or if feature is disabled or if
+ * there is already a persist in progress.
  */
 function persist() {
   if (!featureToggles.isFeatureEnabled(constants.featureName)) {
     return Promise.resolve(false);
   }
 
-  return Sample.destroy({ truncate: true, force: true })
+  return persistInProgress()
+  .then((alreadyInProgress) => {
+    if (alreadyInProgress) {
+      Promise.resolve(false);
+    }
+
+    return redisClient.setAsync(constants.persistInProgressKey, 'true');
+  })
+  .then(() => Sample.destroy({ truncate: true, force: true }))
   .then(() => redisClient.smembersAsync(constants.indexKey.sample))
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
@@ -41,6 +61,7 @@ function persist() {
     });
     return Sample.bulkCreate(samplesToCreate);
   })
+  .then(() => redisClient.delAsync(constants.persistInProgressKey))
   .then(() => console.log('persisted redis sample store to db'))
   .then(() => true)
   .catch((err) => {
@@ -52,4 +73,5 @@ function persist() {
 
 module.exports = {
   persist,
+  persistInProgress,
 };
