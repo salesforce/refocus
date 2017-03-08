@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const Sample = require('../db').Sample;
 const Aspect = require('../db').Aspect;
+const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
@@ -67,6 +68,25 @@ function populateAspects() {
 } // populateAspects
 
 /**
+ * Populate the redis subjects store with subjects from the db.
+ *
+ * @returns {Promise} which resolves to the list of redis batch responses.
+ */
+function populateSubjects() {
+  return Subject.findAll({ where: { isPublished: true } })
+  .then((subjects) => {
+    const cmds = [];
+    subjects.forEach((s) => {
+      const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
+      cmds.push(['sadd', constants.indexKey.subject, key]);
+    });
+
+    return redisClient.batch(cmds).execAsync();
+  })
+  .catch(console.error); // eslint-disable-line no-console
+} // populateSubjects
+
+/**
  * Populate the redis sample store with samples from the db.
  *
  * @returns {Promise} which resolves to the list of redis batch responses.
@@ -106,7 +126,6 @@ function populateSamples() {
 
     // Batch of commands to create the master sample and subject indexes...
     const indexCmds = [
-      ['sadd', constants.indexKey.subject, Array.from(subjectIdx)],
       ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
     ];
     const batchPromises = [redisClient.batch(indexCmds).execAsync()];
@@ -141,7 +160,7 @@ function populate() {
   const msg = 'Populating redis sample store from db';
   console.log(msg); // eslint-disable-line no-console
 
-  const promises = [populateSamples(), populateAspects()];
+  const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
 } // populate
 

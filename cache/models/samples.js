@@ -19,6 +19,27 @@ const constants = sampleStore.constants;
 const apiConstants = require('../../api/v1/constants');
 const defaults = require('../../config').api.defaults;
 const redisErrors = require('../redisErrors');
+const sampleUtils = require('../../db/helpers/sampleUtils');
+const dbConstants = require('../../db/constants');
+const sampFields = {
+  MSG_BODY: 'messageBody',
+  MSG_CODE: 'messageCode',
+  NAME: 'name',
+  VALUE: 'value',
+  RLINKS: 'relatedLinks',
+  STATUS: 'status',
+  PRVS_STATUS: 'previousStatus',
+  STS_CHNGED_AT: 'statusChangedAt',
+  CREATED_AT: 'createdAt',
+  UPD_AT: 'updatedAt',
+  ASP_ID: 'aspectId',
+  SUBJ_ID: 'subjectId',
+  IS_DELETED: 'isDeleted',
+};
+const sampleFieldsArr = Object.keys(sampFields).map(
+  (field) => sampFields[field]
+);
+
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -167,7 +188,7 @@ function filterByFieldWildCardExpr(sampArr, prop, propExpr) {
   return sampArr.filter((sampEntry) => {
     if (sampEntry[prop]) { // sample object
       return re.test(sampEntry[prop]);
-    } else if (prop === 'name') { // sample key
+    } else if (prop === sampFields.NAME) { // sample key
       const sampName = sampleStore.getNameFromKey(sampEntry);
       return re.test(sampName);
     }
@@ -193,7 +214,7 @@ function applyFiltersOnSampKeys(sampKeysArr, opts) {
   // apply wildcard expr on name, if specified
   if (opts.filter && opts.filter.name) {
     const filteredKeys = filterByFieldWildCardExpr(
-      resArr, 'name', opts.filter.name
+      resArr, sampFields.NAME, opts.filter.name
     );
     resArr = filteredKeys;
   }
@@ -229,7 +250,7 @@ function applyFiltersOnSampObjs(sampObjArray, opts) {
   if (opts.filter) {
     const filterOptions = opts.filter;
     Object.keys(filterOptions).forEach((field) => {
-      if (field !== 'name') {
+      if (field !== sampFields.NAME) {
         const filteredKeys = filterByFieldWildCardExpr(
           sampObjArray, field, filterOptions[field]
         );
@@ -250,6 +271,170 @@ function applyFiltersOnSampObjs(sampObjArray, opts) {
   return filteredSamples;
 }
 
+/**
+ * Remove extra fields from query body object.
+ * @param  {Object} qbObj - Query body object
+ */
+function cleanQueryBodyObj(qbObj) {
+  Object.keys(qbObj).forEach((qbField) => {
+    if (!sampleFieldsArr.includes(qbField)) {
+      delete qbObj[qbField];
+    }
+  });
+}
+
+/**
+ * Create properties array having and fields and values need to be set to
+ * update/create sample. Value is empty string if new object being created.
+ * If some value, then calculate status. Update status, previous status and
+ * changed at fields in 2 cases: a) sampObj not present, or b) sample obj
+ * present and previous status != current status.
+ * @param  {Object} qbObj - Query body object
+ * @param  {Object} sampObj - Sample object
+ * @param  {Object} aspectObj - Aspect object
+ * @param  {Boolean} isBulk - Whether bulk upsert or not
+ */
+function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
+  cleanQueryBodyObj(qbObj); // remove extra fields
+  let value;
+  if (qbObj[sampFields.VALUE]) {
+    value = qbObj[sampFields.VALUE];
+  } else if (!sampObj) {
+    value = ''; // default value
+  }
+
+  if (value) {
+    qbObj[sampFields.VALUE] = value;
+    const status = sampleUtils.computeStatus(aspectObj, value);
+
+    if (!sampObj || (sampObj && (sampObj[sampFields.PRVS_STATUS] !== status))) {
+      const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
+                            dbConstants.statuses.Invalid;
+      qbObj[sampFields.PRVS_STATUS] = prevStatus;
+      qbObj[sampFields.STS_CHNGED_AT] = new Date().toString();
+      qbObj[sampFields.STATUS] = status;
+    }
+  }
+
+  if (!isBulk) {
+    // only in upsert, not bulk upsert.
+    let rlinks = [];
+    if (qbObj[sampFields.RLINKS]) {
+      rlinks = qbObj[sampFields.RLINKS];
+    } else if (!sampObj) {
+      rlinks = []; // default value
+    }
+
+    if (rlinks) {
+      qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
+    }
+  }
+
+  if (!sampObj) { // new sample
+    qbObj[sampFields.CREATED_AT] = new Date().toString();
+    qbObj[sampFields.IS_DELETED] = '0';
+  }
+
+  qbObj[sampFields.UPD_AT] = new Date().toString();
+}
+
+/**
+ * Upsert a sample. Check if subject exist. If yes, Get aspect and sample.
+ * If aspect exists, create fields array with values need to be set for sample
+ * in redis. Add aspect name to subject set, add aspect key to sample set and
+ * update/create sample hash. We use hset which updates a sample if exists,
+ * else creates a new one.
+ * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
+ * @param  {String} method - Type of request method
+ * @returns {Object} - Updated sample
+ */
+function upsertOneSample(sampleQueryBodyObj, method) {
+  const sampleName = sampleQueryBodyObj.name;
+  const subjAspArr = sampleName.toLowerCase().split('|');
+  const errObj = { isFailed: true };
+
+  if (subjAspArr.length < TWO) {
+    const err = new redisErrors.ValidationError({
+      explanation: 'Incorrect sample name.',
+    });
+    errObj.explanation = err;
+    Promise.resolve(errObj);
+  }
+
+  const subjKey = sampleStore.toKey(
+    constants.objectType.subject, subjAspArr[ZERO]
+  );
+  const sampleKey = sampleStore.toKey(
+    constants.objectType.sample, sampleName
+  );
+  const aspectName = subjAspArr[ONE];
+  const commands = [];
+  commands.push(['sismember', constants.indexKey.subject, subjKey]);
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.aspect, aspectName),
+  ]);
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.sample, sampleName),
+  ]);
+
+  let aspectObj;
+  return new Promise((resolve) => {
+    redisClient.sismemberAsync(constants.indexKey.subject, subjKey)
+    .then((isSubjPresent) => {
+      if (!isSubjPresent) {
+        const err = new redisErrors.ResourceNotFoundError({
+          explanation: 'Subject not found.',
+        });
+        errObj.explanation = err;
+        resolve(errObj);
+      }
+
+      return redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.aspect, aspectName)
+      );
+    })
+    .then((aspect) => {
+      if (!aspect) {
+        const err = new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+        errObj.explanation = err;
+        resolve(errObj);
+      }
+
+      aspectObj = sampleStore.arrayStringsToJson(
+        aspect, constants.fieldsToStringify.aspect
+      );
+
+      return redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.sample, sampleName)
+      );
+    })
+    .then((sample) => {
+      // sampleQueryBodyObj updated with fields
+      createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
+
+      // add aspect name to subject set, add sample key to sample set,
+      // create/update hash of sample
+      return redisClient.batch([
+        ['sadd', subjKey, aspectName],
+        ['sadd', constants.indexKey.sample, sampleKey],
+        ['hmset', sampleKey, sampleQueryBodyObj],
+      ]).execAsync();
+    })
+    .then(() => redisClient.hgetallAsync(
+        sampleStore.toKey(constants.objectType.sample, sampleName)
+    ))
+    .then((updatedSamp) => {
+      // attach aspect to sample
+      const resSampAsp = cleanAddAspectToSample(updatedSamp, aspectObj, method);
+      resolve(resSampAsp);
+    });
+  });
+}
+
 module.exports = {
 
   /**
@@ -263,7 +448,7 @@ module.exports = {
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a sample object
    */
-  getSampleFromRedis(sampleName, logObject, method, params) {
+  getSample(sampleName, logObject, method, params) {
     const sampAspArr = sampleName.split('|');
     const commands = [];
 
@@ -325,7 +510,7 @@ module.exports = {
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a list of all samples objects
    */
-  findSamplesFromRedis(logObject, method, params) {
+  findSamples(logObject, method, params) {
     const opts = getOptionsFromReq(params);
     const commands = [];
     const response = [];
@@ -374,5 +559,36 @@ module.exports = {
 
       return response;
     });
+  },
+
+  /**
+   * Upsert sample in Redis.
+   * @param  {Object} qbObj - Query body object
+   * @param  {Object} logObject - Log object
+   * @param  {String} method - Type of request method
+   * @returns {Promise} - Resolves to upserted sample
+   */
+  upsertSample(qbObj, logObject, method) {
+    return upsertOneSample(qbObj, method)
+    .then((response) => {
+      if (response.isFailed) {
+        throw response.explanation;
+      }
+
+      return response;
+    });
+  },
+
+  /**
+   * Upsert multiple samples in Redis.
+   * @param  {Object} sampleQueryBody - Query body object
+   * @returns {Array} - Resolves to an array of resolved promises
+   */
+  bulkUpsertSample(sampleQueryBody) {
+    const promises = sampleQueryBody.map(
+      (sampleReq) => upsertOneSample(sampleReq)
+    );
+
+    return Promise.all(promises);
   },
 };
