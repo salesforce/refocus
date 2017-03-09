@@ -54,7 +54,7 @@ module.exports = {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisModelSample.findSamples(
-        resultObj, res.method, req.swagger.params
+        resultObj, req.method, req.swagger.params
       )
       .then((response) => {
         // loop through remove values to delete property
@@ -88,7 +88,7 @@ module.exports = {
       const sampleName = req.swagger.params.key.value.toLowerCase();
 
       redisModelSample.getSample(
-        sampleName, resultObj, res.method, req.swagger.params
+        sampleName, resultObj, req.method, req.swagger.params
       )
       .then((sampleRes) => {
 

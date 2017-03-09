@@ -93,7 +93,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
         }
 
         expect(res.body.errors[0].description).to.be
-        .equal('Aspect not found.');
+        .equal('aspect not found');
         done();
       });
     });
