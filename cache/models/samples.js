@@ -512,12 +512,12 @@ module.exports = {
    */
   findSamples(logObject, method, params) {
     const opts = getOptionsFromReq(params);
-    const commands = [];
     const response = [];
 
     // get all Samples sorted lexicographically
     return redisClient.sortAsync(constants.indexKey.sample, 'alpha')
     .then((allSampKeys) => {
+      const commands = [];
       const filteredSampKeys = applyFiltersOnSampKeys(allSampKeys, opts);
 
       // add to commands
