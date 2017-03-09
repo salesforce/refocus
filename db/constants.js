@@ -33,4 +33,5 @@ module.exports = {
     Info: 'Info',
     OK: 'OK',
   },
+  absolutePathSeparator: '.',
 };

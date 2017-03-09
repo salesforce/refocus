@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/subjects.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 const utils = require('./utils');
@@ -51,7 +51,7 @@ function validateFilterParams(filterParams) {
     filterParams.length !== subjectTagsCounter) {
     throw new apiErrors.InvalidFilterParameterError();
   }
-}
+} // validateFilterParams
 
 /**
  * Validates the given fields from request body or url.
@@ -79,7 +79,34 @@ function validateTags(requestBody, params) {
       throw new apiErrors.DuplicateFieldError();
     }
   }
-}
+} // validateTags
+
+/**
+ * Throws a validation error if the read-only fields are found in the request.
+ * @param  {Object} req - The request object
+ */
+function noReadOnlyFieldsInReq(req) {
+  const requestBody = req.body;
+  if (helper.readOnlyFields) {
+    helper.readOnlyFields.forEach((field) => {
+      if (requestBody[field]) {
+        throw new apiErrors.ValidationError(
+          { explanation: `You cannot modify the read-only field: ${field}` }
+        );
+      }
+    });
+  }
+} // noReadOnlyFieldsInReq
+
+/**
+ * Validates the subject request coming in and throws an error if the request
+ * does not pass the validation.
+ * @param  {Object} req - The request object
+ */
+function validateRequest(req) {
+  noReadOnlyFieldsInReq(req);
+  validateTags(req.body);
+} // validateRequest
 
 module.exports = {
 
@@ -311,7 +338,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSubject(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPatch(req, res, next, helper);
   },
 
@@ -325,7 +352,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSubject(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPost(req, res, next, helper);
   },
 
@@ -340,6 +367,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postChildSubject(req, res, next) {
+    validateRequest(req);
     const key = req.swagger.params.key.value;
     if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
@@ -365,7 +393,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSubject(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPut(req, res, next, helper);
   },
 

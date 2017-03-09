@@ -67,6 +67,7 @@ module.exports = {
   uniError: new Error('expecting SequelizeUniqueConstraintError'),
   valErrorName: 'SequelizeValidationError',
   valError: new Error('expecting SequelizeValidationError'),
+  hierarchyError: 'InvalidHierarchyLevel',
   malFormedTokenError: new Error('expecting the token to be malformed'),
   forceDelete,
   schemaValidationErrorName: 'SCHEMA_VALIDATION_FAILED',

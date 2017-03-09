@@ -654,4 +654,19 @@ describe(`api: PATCH ${path}`, () => {
       done();
     });
   });
+
+  it('patching readOnly fields should fail', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      hierarchyLevel: 5,
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err /* , res */) => {
+      return err ? done(err) : done();
+    });
+  });
 });

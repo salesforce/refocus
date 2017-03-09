@@ -178,6 +178,20 @@ describe('db: subject: get hierarchy: ', () => {
     .catch(done);
   });
 
+  it('the subject depth should match the hierarchyLevel always', (done) => {
+    Subject.scope('hierarchy').findById(ichi)
+    .then((o) => {
+      const newLevel = o.hierarchyLevel + 1;
+      return o.update({ hierarchyLevel: newLevel });
+    })
+    .catch((err) => {
+      expect(err.name).to.equal(tu.hierarchyError);
+      expect(err.message).to
+        .contain('does not match the updated hierarchyLeve');
+      done();
+    });
+  });
+
   describe('db: subject: get hierarchy: with children', () => {
     const howManyChildren = 7;
 
