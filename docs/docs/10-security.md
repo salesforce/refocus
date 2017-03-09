@@ -24,7 +24,7 @@ If you have more than one API client, best practice is to create a separate API 
 
 Alternatively, if you already have an API token, you can use that token to create a new token from the API. Send a `POST` request to `/v1/tokens` with a body like `{ "name": "MyNewToken" }` and include an `Authorization` request header with your previously-obtained token.
 
-# Record-Level Permissions -- COMING SOON!
+# Record-Level Permissions
 
 By default, Subjects, Aspects, Perspectives and Lenses are writable by all authenticated users. If you want to prevent unauthorized users from modifying or deleting your resources, you may designate a set of users as "writers" for a resource (provided you have permission to modify or delete that resource). If no writers are specified (the default on record creation), then the record is writable (and deletable) by all authenticated users. Once there is at least one writer designated for a resource, the record is write-protected, i.e. only a designated writer may modify or delete the record.
 
