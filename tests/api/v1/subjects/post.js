@@ -214,6 +214,21 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
+    it('posting with readOnly fields should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n0.name, hierarchyLevel: 100 })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err , res ) => {
+        if (err) {
+          return done(err);
+        }
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field');
+        done();
+      });
+    });
+
     it('post subject with sortBy', (done) => {
       api.post(path)
       .set('Authorization', token)

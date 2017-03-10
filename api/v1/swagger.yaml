@@ -6948,7 +6948,12 @@ definitions:
           $ref: "#/definitions/HATEOAS"
         description: >
           Hypertext As The Engine Of Application State.
-
+      hierarchyLevel:
+        type: integer
+        readOnly: true
+        description: >
+         The depth of the subject starting from the root. The root always has a
+          hierarchy level of 1
   TokensResponse:
     type: object
     description: >
