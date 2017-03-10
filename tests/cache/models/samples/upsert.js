@@ -170,6 +170,25 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
+  it('Incorrect sample name BAD_REQUEST', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${subject.name}xxxxx`,
+      value: '2',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].description).to.be.equal(
+      'Incorrect sample name.');
+      done();
+    });
+  });
+
   describe('upsert when the sample already exists', () => {
     beforeEach((done) => {
       const subjKey = sampleStore.toKey(

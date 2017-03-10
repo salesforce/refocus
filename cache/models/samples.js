@@ -379,7 +379,11 @@ function upsertOneSample(sampleQueryBodyObj, method, isBulk) {
       explanation: 'Incorrect sample name.',
     });
 
-    Promise.resolve({ isFailed: true, explanation: err });
+    if (isBulk) {
+      return Promise.reject({ isFailed: true, explanation: err });
+    }
+
+    return Promise.reject(err);
   }
 
   const subjKey = sampleStore.toKey(
@@ -579,14 +583,7 @@ module.exports = {
    * @returns {Promise} - Resolves to upserted sample
    */
   upsertSample(qbObj, logObject, method) {
-    return upsertOneSample(qbObj, method)
-    .then((response) => {
-      if (response.isFailed) {
-        throw response.explanation;
-      }
-
-      return response;
-    });
+    return upsertOneSample(qbObj, method);
   },
 
   /**
