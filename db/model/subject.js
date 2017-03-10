@@ -213,7 +213,7 @@ module.exports = function subject(seq, dataTypes) {
       /**
        * BeforeCreate hook
        * set up appropriate parentAbsolutePath, absolutePath and ParentId
-       * If parentAsbilutePath or parentId is provided while creating a subject,
+       * If parentAbsolutePath or parentId is provided while creating a subject,
        * get the parent record using the parentId provided and set the
        * parentAbsolutePath or get the parent record using the
        * parentAbsolutePath and set the parentId. Finally set the absolute path
@@ -494,7 +494,7 @@ module.exports = function subject(seq, dataTypes) {
       beforeUpdate(inst /* ,  opts */) { // eslint-disable-line max-statements
 
         /*
-         * If a subject is getting unpublished, check to see if its childeren are
+         * If a subject is getting unpublished, check to see if its children are
          * unpublished too. If any of the children are published, throw a
          * validation error
          */
