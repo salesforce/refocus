@@ -150,4 +150,21 @@ describe(`api: POST ${path}`, () => {
       done();
     });
   });
+
+  it('posting child with hierarchy level field should fail',
+  (done) => {
+    api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
+    .set('Authorization', token)
+    .send({ name: 'test', 'hierarchyLevel': -1 })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field');
+      return done();
+    });
+  });
 });

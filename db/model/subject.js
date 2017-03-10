@@ -22,7 +22,6 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
-
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -210,10 +209,15 @@ module.exports = function subject(seq, dataTypes) {
       },
     },
     hooks: {
+
       /**
        * BeforeCreate hook
        * set up appropriate parentAbsolutePath, absolutePath and ParentId
-       *
+       * If parentAbsolutePath or parentId is provided while creating a subject,
+       * get the parent record using the parentId provided and set the
+       * parentAbsolutePath or get the parent record using the
+       * parentAbsolutePath and set the parentId. Finally set the absolute path
+       * of the subject.
        * @param {Subject} inst - The newly-created instance
        * @returns {Promise} which resolves to the new Subject or rejects if an
        *  error was encountered while retrieving or incrementing the parent
@@ -335,7 +339,6 @@ module.exports = function subject(seq, dataTypes) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
             } else {
-
               // delete the entry in the subject store
               redisOps.deleteKey(subjectType, inst.absolutePath);
 
@@ -488,7 +491,13 @@ module.exports = function subject(seq, dataTypes) {
        *  change, otherwise returns a Promise which resolves to undefined, or
        * rejects if an error was encountered
        */
-      beforeUpdate(inst, opts) {
+      beforeUpdate(inst /* ,  opts */) { // eslint-disable-line max-statements
+
+        /*
+         * If a subject is getting unpublished, check to see if its children are
+         * unpublished too. If any of the children are published, throw a
+         * validation error
+         */
         if (inst.getDataValue('isPublished') === false) {
           return new seq.Promise((resolve, reject) => {
             inst.getChildren()
@@ -596,16 +605,10 @@ module.exports = function subject(seq, dataTypes) {
       }, // hooks.beforeUpdate
 
       /**
-       * Sets this record's absolutePath if name and/or parentId changed.
        * Makes sure isUrl/isEmail validations will handle empty strings
        * appropriately.
        *
        * @param {Subject} inst - The instance being validated
-       * @param {Object} opts - The Sequelize options
-       * @returns {undefined|Promise} undefined if name/parentId did not
-       *  change, otherwise returns a Promise which resolves to the Subject
-       *  instance itself setting the absolute path, or rejects if an error
-       *  was encountered
        */
       beforeValidate(inst /* , opts*/) {
         if (inst.changed('helpUrl') &&
