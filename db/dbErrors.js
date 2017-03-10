@@ -26,13 +26,6 @@ dbErrors.create({
 dbErrors.create({
   code: 10100,
   status: 400,
-  name: 'InvalidHierarchyLevel',
-  parent: dbErrors.FocusDatabaseError,
-  fields: [],
-});
-dbErrors.create({
-  code: 10100,
-  status: 400,
   name: 'ValidationError',
   parent: dbErrors.FocusDatabaseError,
   fields: [],

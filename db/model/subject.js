@@ -22,7 +22,6 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
-const InvalidHierarchyLevel = require('../dbErrors').InvalidHierarchyLevel;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -317,18 +316,6 @@ module.exports = function subject(seq, dataTypes) {
        * @param {Subject} inst - The updated instance
        */
       afterUpdate(inst /* , opts */) {
-        const subjectDepth =
-             inst.absolutePath.split(constants.absolutePathSeparator).length;
-
-        /*
-         * If the depth of the subject does not match the hierarchyLevel
-         * throw an error
-         */
-        if (subjectDepth !== inst.hierarchyLevel) {
-          throw new InvalidHierarchyLevel('The updated depth of ' +
-            `${inst.absolutePath}: ${subjectDepth}, does not match the ` +
-             `updated hierarchyLevel: ${inst.hierarchyLevel}`);
-        }
 
         /*
          * When the sample store feature is enabled do the following
