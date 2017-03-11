@@ -64,11 +64,11 @@ function addKey(type, name) {
 
 /**
  * Deletes an entry from the master list of indices identified by "type" and
- * and the corresponding set identified by "name". Use this to delete a single
+ * and the corresponding hash identified by "name". Use this to delete a single
  * key from the subjectStore, aspectStore or SampleStore.
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
- * @param {String} name - Name of the key to be added
+ * @param {String} name - Name of the key to be deleted
  * @returns {Promise} - which resolves to the values returned by the redis
  * batch command
  */
@@ -80,7 +80,7 @@ function deleteKey(type, name) {
   // remove the entry from the master index of type
   cmds.push(['srem', indexName, key]);
 
-  // delete the set
+  // delete the hash
   cmds.push(['del', key]);
   return redisClient.batch(cmds).execAsync()
   .then((ret) => Promise.resolve(ret))
@@ -132,7 +132,7 @@ function deleteKeys(type, objectName, name) {
     // remove the entry from the master list of index
     cmds.push(['srem', indexName, Array.from(keyArr)]);
 
-    // delete the set too
+    // delete the hash too
     cmds.push(['del', Array.from(keyArr)]);
     return redisClient.batch(cmds).execAsync();
   })
@@ -241,6 +241,175 @@ function renameKeys(type, objectName, oldName, newName) {
 } // renameKeys
 
 module.exports = {
+
+  /**
+   * Command to delete key from master index
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Array} - Command array
+   */
+  delKeyFromIndexCmd(type, name) {
+    const indexName = redisStore.constants.indexKey[type];
+    const nameKey = redisStore.toKey(type, name);
+    return ['srem', indexName, nameKey];
+  },
+
+  /**
+   * Command to add key to master index
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Array} - Command array
+   */
+  addKeyToIndexCmd(type, name) {
+    const indexName = redisStore.constants.indexKey[type];
+    const nameKey = redisStore.toKey(type, name);
+    return ['sadd', indexName, nameKey];
+  },
+
+  /**
+   * Command to check if key exists in master index
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Array} - Command array
+   */
+  keyExistsInIndexCmd(type, name) {
+    const indexName = redisStore.constants.indexKey[type];
+    const nameKey = redisStore.toKey(type, name);
+    return ['sismember', indexName, nameKey];
+  },
+
+  /**
+   * Command to delete aspect from subject set
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @param  {String} aspName - Aspect name
+   * @returns {Array} - Command array
+   */
+  delAspFromSubjSetCmd(subjAbsPath, aspName) {
+    return [
+      'srem',
+      redisStore.toKey(subjectType, subjAbsPath),
+      aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to check if aspect exists in subject set
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @param  {String} aspName - Aspect name
+   * @returns {Array} - Command array
+   */
+  aspExistsInSubjSetCmd(subjAbsPath, aspName) {
+    return [
+      'sismember',
+      redisStore.toKey(subjectType, subjAbsPath),
+      aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to add aspect in subject set
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @param  {String} aspName - Aspect name
+   * @returns {Array} - Command array
+   */
+  addAspectInSubjSetCmd(subjAbsPath, aspName) {
+    return [
+      'sadd',
+      redisStore.toKey(subjectType, subjAbsPath),
+      aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to delete hash
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Array} - Command array
+   */
+  delHashCmd(type, name) {
+    return [
+      'del',
+      redisStore.toKey(type, name),
+    ];
+  },
+
+  /**
+   * Command to get complete hash.
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Array} - Command array
+   */
+  getHashCmd(type, name) {
+    return [
+      'hgetall',
+      redisStore.toKey(type, name),
+    ];
+  },
+
+  /**
+   * Promise to get complete hash
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @returns {Promise} - Resolves to object
+   */
+  getHashPromise(type, name) {
+    return redisClient.hgetallAsync(redisStore.toKey(type, name));
+  },
+
+  /**
+   * Command to set multiple fields in a hash
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @param {Object} kvObj - Key value pairs
+   * @returns {array} - Command array
+   */
+  setHashMultiCmd(type, name, kvObj) {
+    if (Object.keys(kvObj).length === 0) {
+      return [];
+    }
+
+    return [
+      'hmset',
+      redisStore.toKey(type, name),
+      kvObj,
+    ];
+  },
+
+  /**
+   * Set multiple fields in a hash
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @param {Object} kvObj - Key value pairs
+   * @returns {Promise} - Resolves to nothing if no key value, else "OK"
+   */
+  setHashMultiPromise(type, name, kvObj) {
+    if (Object.keys(kvObj).length === 0) {
+      return Promise.resolve();
+    }
+
+    return redisClient.hmsetAsync(redisStore.toKey(type, name), kvObj);
+  },
+
+  /**
+   * Command to delete a hash field
+   * @param  {String} type - Object type
+   * @param  {String} name - Object name
+   * @param {String} fieldName - Name of field
+   * @returns {array} - Command array
+   */
+  delHashFieldCmd(type, name, fieldName) {
+    return ['hdel', redisStore.toKey(type, name), fieldName];
+  },
+
+  /**
+   * Execute command asynchronously
+   * @param  {Array} cmds - array of commands
+   * @returns {Promise} - Resolves to commands responses
+   */
+  executeBatchCmds(cmds) {
+    return redisClient.batch(cmds).execAsync();
+  },
+
   renameKey,
 
   renameKeys,

@@ -43,5 +43,18 @@ redisErrors.create({
 });
 
 // ----------------------------------------------------------------------------
+// Forbidden Error
+// ----------------------------------------------------------------------------
+redisErrors.create({
+  code: 11400,
+  status: 403,
+  name: 'ForbiddenError',
+  parent: redisErrors.RefocusRedisError,
+  defaultMessage: 'Forbidden',
+  resourceType: '',
+  resourceKey: '',
+});
+
+// ----------------------------------------------------------------------------
 
 module.exports = redisErrors;

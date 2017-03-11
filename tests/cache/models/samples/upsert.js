@@ -136,6 +136,27 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
+  it('update to relatedLinks with the same name fails', (done) => {
+    const withSameName = [relatedLinks[0], relatedLinks[0]];
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${subject.absolutePath}|${aspect.name}`,
+      relatedLinks: withSameName,
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].description).to.equal(
+        'Name of the relatedlinks should be unique.'
+      );
+      done();
+    });
+  });
+
   it('subject not found yields NOT FOUND', (done) => {
     api.post(path)
     .set('Authorization', token)
