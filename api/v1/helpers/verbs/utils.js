@@ -17,6 +17,8 @@ const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
 const jwtUtil = require('../../../../utils/jwtUtil');
 const logAPI = require('../../../../utils/apiLog').logAPI;
+const publisher = require('../../../../realtime/redisPublisher');
+const realtimeEvents = require('../../../../realtime/constants').events;
 
 /**
  * In-place removal of certain keys from the input object
@@ -30,6 +32,7 @@ function removeFieldsFromResponse(fieldsToExclude, responseObj) {
     delete responseObj[fieldsToExclude[i]];
   }
 }
+
 /**
  * This function adds the association scope name to the as the to all
  * the elements of the associaton array
@@ -693,7 +696,12 @@ function forbidden(next, modelName) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
+  realtimeEvents,
+
+  publisher,
+
   logAPI,
+
   buildFieldList,
 
   /**
@@ -723,6 +731,7 @@ module.exports = {
   findAssociatedInstances,
 
   findByKey,
+
 
   forbidden,
 

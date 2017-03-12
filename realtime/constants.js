@@ -29,4 +29,23 @@ module.exports = {
   fieldTypeFieldSeparator: '=',
 
   filterTypeInclude: 'INCLUDE',
+
+  events: {
+    subject: {
+      add: 'refocus.internal.realtime.subject.add',
+      upd: 'refocus.internal.realtime.subject.update',
+      del: 'refocus.internal.realtime.subject.remove',
+    },
+
+    sample: {
+      add: 'refocus.internal.realtime.sample.add',
+      upd: 'refocus.internal.realtime.sample.update',
+      del: 'refocus.internal.realtime.sample.remove',
+    },
+
+    perspective: {
+      initialize: 'refocus.internal.realtime.perspective.namespace.initialize',
+    },
+  },
+
 };
