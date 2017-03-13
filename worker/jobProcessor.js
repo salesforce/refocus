@@ -23,7 +23,6 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const cacheSampleModel = require('../cache/models/samples');
 const publisher = require('../realtime/redisPublisher');
-const event = require('../realtime/constants').events;
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -58,8 +57,11 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
 
   bulkUpsertPromise.then((results) => {
     let errorCount = 0;
-    // count failed promises and send the good samples to the client by
-    // publishing it to the socket
+
+    /*
+     * count failed promises and send the good samples to the client by
+     * publishing it to the redic channel
+     */
     for (let i = 0; i < results.length; i++) {
       if (results[i].isFailed) {
         errorCount++;
@@ -67,6 +69,7 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
         publisher.publishSample(results[i], subHelper.model);
       }
     }
+
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};
@@ -106,6 +109,13 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
   const dbStartTime = Date.now();
   sampleTimeoutJob.execute()
   .then((dbRes) => {
+    // send the timeoutsample to the client by publishing it to redis channel
+    if (dbRes.timedOutSamples) {
+      dbRes.timedOutSamples.forEach((sample) => {
+        publisher.publishSample(sample, subHelper.model);
+      });
+    }
+
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};

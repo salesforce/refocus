@@ -190,7 +190,10 @@ module.exports = {
         u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
       }
 
-      // send the upserted sample to the client by publishing it to redis
+      /*
+       *send the upserted sample to the client by publishing it to the redis
+       *channel
+       */
       publisher.publishSample(samp, subHelper.model);
 
       u.logAPI(req, resultObj, dataValues);
@@ -237,7 +240,10 @@ module.exports = {
         redisModelSample.bulkUpsertSample(value) :
         helper.model.bulkUpsertByName(value, userName);
 
-        // send the upserted sample to the client by publishing it to redis
+        /*
+         *send the upserted sample to the client by publishing it to the redis
+         *channel
+         */
         bulkUpsertPromise.then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {

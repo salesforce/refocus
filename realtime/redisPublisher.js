@@ -27,6 +27,7 @@ function getSampleEventType(sample) {
     return sample.changed('name') ? sampleEvent.add :
                                     sampleEvent.upd;
   }
+
   return sample.updatedAt === sample.createdAt
                           ? sampleEvent.add :
                             sampleEvent.upd;
@@ -82,6 +83,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
     obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
   }
+
   if (obj[event]) {
     return pub.publish(channelName.toString(), JSON.stringify(obj));
   }
@@ -107,13 +109,17 @@ function publishSample(sampleInst, model, event) {
   return model.findOne(options)
   .then((sub) => {
     if (sub) {
+
       // attach subject to the sample
       sample.subject = sub.get();
+
       // attach absolutePath field to the sample
       sample.absolutePath = subName;
+
       // pass the sample instance to the publishObject function
       publishObject(sample, eventType);
     }
+
     return sample;
   });
 } // publishSample

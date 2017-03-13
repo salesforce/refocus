@@ -17,7 +17,6 @@ const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
 const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
 const UpdateDeleteForbidden = require('../dbErrors').UpdateDeleteForbidden;
-const config = require('../../config');
 const eventName = {
   add: 'refocus.internal.realtime.sample.add',
   upd: 'refocus.internal.realtime.sample.update',
@@ -159,7 +158,7 @@ module.exports = function sample(seq, dataTypes) {
           include: [
             {
               association: assoc.aspect,
-              attributes: ['timeout', 'isPublished'],
+              attributes: ['timeout', 'isPublished', 'tags'],
             },
           ],
         });
@@ -254,16 +253,22 @@ module.exports = function sample(seq, dataTypes) {
         const curr = now || new Date();
         let numberTimedOut = 0;
         let numberEvaluated = 0;
+        const timedOutSamples = [];
         return new seq.Promise((resolve, reject) => {
           Sample.scope('checkTimeout').findAll()
           .each((s) => {
             numberEvaluated++;
             if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
               numberTimedOut++;
+              s.value = constants.statuses.Timeout;
+              timedOutSamples.push(s);
+
               return s.update({ value: constants.statuses.Timeout });
             }
           })
-          .then(() => resolve({ numberEvaluated, numberTimedOut }))
+          .then((samp) => {
+            resolve({ numberEvaluated, numberTimedOut, timedOutSamples });
+          })
           .catch(reject);
         });
       }, // doTimeout
@@ -347,28 +352,6 @@ module.exports = function sample(seq, dataTypes) {
           }
         });
       }, // hooks.afterDelete
-
-      /**
-       * If the sample changed significantly,
-       * publish the updated and former sample to redis channel.
-       *
-       * @param {Sample} inst - The updated instance
-       */
-      afterUpdate(inst /* , opts */) {
-        const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-
-        return common.sampleAspectAndSubjectArePublished(seq, inst)
-        .then((published) => {
-          if (published) {
-            // augument the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectAspectInfo(seq, inst)
-            .then(() => common.publishChange(inst, eventName.upd, changedKeys,
-              ignoreAttributes));
-          }
-        });
-      },
 
       /**
        * Update isDeleted.
