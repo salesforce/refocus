@@ -12,6 +12,8 @@
  * Redis Sample Store Constants and Util Functions
  */
 'use strict'; // eslint-disable-line strict
+const redisErrors = require('./redisErrors');
+
 const PFX = 'samsto';
 const SEP = ':';
 const ONE = 1;
@@ -47,7 +49,13 @@ const constants = {
  * @returns {String} the generated redis key
  */
 function toKey(type, name) {
-  return PFX + SEP + type + SEP + name.toLowerCase();
+  if (name) {
+    return PFX + SEP + type + SEP + name.toLowerCase();
+  }
+
+  throw new redisErrors.ResourceNotFoundError({
+    explanation: `${name} not found`,
+  });
 } // toKey
 
 /**

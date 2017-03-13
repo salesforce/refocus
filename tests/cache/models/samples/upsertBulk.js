@@ -17,6 +17,11 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
+const redisClient = require('../../../../cache/redisCache').client.sampleStore;
+const samsto = require('../../../../cache/sampleStore');
+const bulkUpsert = require('../../../../cache/models/samples.js')
+                        .bulkUpsertSample;
+const stConst = samsto.constants;
 const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
@@ -45,6 +50,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       isPublished: true,
       name: `${tu.namePrefix}Aspect1`,
       timeout: '30s',
+      valueType: 'NUMERIC',
       criticalRange: [0, 1],
     })
     .then((aspectOne) => {
@@ -52,6 +58,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
+        valueType: 'BOOLEAN',
         okRange: [10, 100],
       });
     })
@@ -71,15 +78,17 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('all succeed', (done) => {
+    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
+    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
     api.post(path)
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
-        value: '2',
+        name: samp1Name,
+        value: '0',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
-        value: '4',
+        name: samp2Name,
+        value: '20',
       },
     ])
     .expect(constants.httpStatus.OK)
@@ -88,6 +97,31 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         done(err);
       }
 
+      done();
+    });
+  });
+
+  it('bulkUpsert method: all succeed', (done) => {
+    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
+    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
+    bulkUpsert([
+      {
+        name: samp1Name,
+        value: '0',
+      }, {
+        name: samp2Name,
+        value: '20',
+      },
+    ])
+    .then((response) => {
+      expect(response[0].name).to.be.equal(
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`
+      );
+      expect(response[0].status).to.be.equal('Critical');
+      expect(response[1].name).to.be.equal(
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+      );
+      expect(response[1].status).to.be.equal('OK');
       done();
     });
   });
@@ -114,6 +148,27 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     });
   });
 
+  it('bulkUpsert method: some succeed, some fail returns ok', (done) => {
+    bulkUpsert([
+      {
+        name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
+        value: '2',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '4',
+      },
+    ])
+    .then((response) => {
+      expect(response[0].isFailed).to.be.true;
+      expect(response[1].name).to.be.equal(
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+      );
+      expect(response[1].status).to.be.equal('Invalid');
+      done();
+    })
+    .catch(done);
+  });
+
   it('all fail returns ok', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -132,6 +187,23 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         done(err);
       }
 
+      done();
+    });
+  });
+
+  it('bulkUpsert method: all fail', (done) => {
+    bulkUpsert([
+      {
+        name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
+        value: '2',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}NOT_EXIST`,
+        value: '4',
+      },
+    ])
+    .then((response) => {
+      expect(response[1].isFailed).to.be.true;
+      expect(response[1].isFailed).to.be.true;
       done();
     });
   });
@@ -240,7 +312,19 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
           expect(res.body[0].name).to.equal(
             `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase()
           );
-          done();
+
+          //check that no extra samples are created as side effect
+          redisClient.keysAsync('samsto:sample:*')
+          .then((responses) => {
+            expect(responses.length).to.be.equal(2);
+            expect(responses).to.include(
+              'samsto:sample:___subject|___aspect1'
+            );
+            expect(responses).to.include(
+              'samsto:sample:___subject|___aspect2'
+            );
+            done();
+          });
         });
       });
     });
