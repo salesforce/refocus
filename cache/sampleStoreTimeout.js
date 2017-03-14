@@ -38,7 +38,7 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
 
     if (!aspName) {
       throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Aspect not found.',
+        explanation: 'Aspect not found in the Cache',
       });
     }
 
