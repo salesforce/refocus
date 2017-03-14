@@ -23,6 +23,7 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const cacheSampleModel = require('../cache/models/samples');
 const publisher = require('../realtime/redisPublisher');
+const sampleEvent = require('../realtime/constants').events.sample;
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -110,9 +111,9 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
   sampleTimeoutJob.execute()
   .then((dbRes) => {
     // send the timeoutsample to the client by publishing it to redis channel
-    if (dbRes.timedOutSamples) {
+    if (dbRes && dbRes.timedOutSamples) {
       dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, subHelper.model);
+        publisher.publishSample(sample, subHelper.model, sampleEvent.upd);
       });
     }
 

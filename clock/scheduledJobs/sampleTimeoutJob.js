@@ -16,6 +16,7 @@ const featureToggles = require('feature-toggles');
 const dbSample = require('../../db/index').Sample;
 const dbSubject = require('../../db/index').Subject;
 const publisher = require('../../realtime/redisPublisher');
+const sampleEvent = require('../../realtime/constants').events.sample;
 const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
 
 /**
@@ -33,11 +34,11 @@ function execute() {
     // send the timeoutsample to the client by publishing it to redis channel
     if (dbRes.timedOutSamples) {
       dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, dbSubject);
+        console.log('---samples timeout' + JSON.stringify(sample, null, 2));
+        publisher.publishSample(sample, dbSubject, sampleEvent.upd);
       });
     }
   });
-
 } // execute
 
 module.exports = {

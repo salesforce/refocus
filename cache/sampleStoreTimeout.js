@@ -16,6 +16,7 @@ const sampleStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
 const isTimedOut = require('../db/helpers/sampleUtils').isTimedOut;
 const constants = require('../api/v1/constants');
+const fieldsToStringify = require('./sampleStore').constants.fieldsToStringify;
 const redisErrors = require('./redisErrors');
 const ONE = 1;
 
@@ -31,6 +32,7 @@ const ONE = 1;
  */
 function getSampleTimeoutCommands(samples, aspects, curr) {
   const sampCmds = [];
+  const timedOutSamples = [];
 
   for (let num = 0; num < samples.length; num++) {
     const samp = samples[num];
@@ -44,7 +46,6 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
 
     const asp = aspects[aspName.toLowerCase()];
     const sampUpdDateTime = new Date(samp.updatedAt);
-
     /* Update sample if aspect exists, sample status is other than TimeOut and
     sample is timed out.*/
     if (asp && isTimedOut(asp.timeout, curr, sampUpdDateTime)) {
@@ -55,6 +56,11 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
         statusChangedAt: new Date().toString(),
         updatedAt: new Date().toString(),
       };
+      const fullSampObj = Object.assign({}, objToUpdate);
+      fullSampObj.name = samp.name;
+      fullSampObj.aspect =
+        sampleStore.arrayStringsToJson(asp, fieldsToStringify.aspect);
+      timedOutSamples.push(fullSampObj);
       sampCmds.push([
         'hmset',
         sampleStore.toKey(sampleStore.constants.objectType.sample, samp.name),
@@ -63,7 +69,7 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
     }
   }
 
-  return sampCmds;
+  return { sampCmds, timedOutSamples };
 }
 
 module.exports = {
@@ -82,7 +88,7 @@ module.exports = {
     let numberTimedOut = 0;
     let numberEvaluated = 0;
     let samplesCount = 0;
-
+    let timedOutSamples;
     return redisClient.smembersAsync(sampleStore.constants.indexKey.sample)
     .then((allSamples) => {
       const commands = [];
@@ -124,14 +130,15 @@ module.exports = {
           aspects[aspect.name.toLowerCase()] = aspect;
         }
       }
-
-      const sampCmds = getSampleTimeoutCommands(samples, aspects, curr);
+      const retObj = getSampleTimeoutCommands(samples, aspects, curr);
+      timedOutSamples = retObj.timedOutSamples;
+      const sampCmds = retObj.sampCmds;
       numberEvaluated = samples.length;
       numberTimedOut = sampCmds.length;
       return redisClient.batch(sampCmds).execAsync();
     })
     .then(() => {
-      const res = { numberEvaluated, numberTimedOut };
+      const res = { numberEvaluated, numberTimedOut, timedOutSamples };
       return res;
     })
     .catch((err) => {
