@@ -21,7 +21,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe(`api::cache::timeout`, () => {
+describe('api::cache::timeout', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;
@@ -107,7 +107,8 @@ describe(`api::cache::timeout`, () => {
       (twentyFourhours * hundredDays));
     doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 4 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 4 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => redisClient.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
@@ -133,7 +134,8 @@ describe(`api::cache::timeout`, () => {
     mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours);
     doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 3 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 3 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => redisClient.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
@@ -172,7 +174,8 @@ describe(`api::cache::timeout`, () => {
     mockUpdatedAt.setMinutes(updatedAt.getMinutes() + fiveMinutes);
     doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => redisClient.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
@@ -211,7 +214,8 @@ describe(`api::cache::timeout`, () => {
     mockUpdatedAt.setSeconds(updatedAt.getSeconds() - tenSeconds);
     doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 0 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 0 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => redisClient.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())

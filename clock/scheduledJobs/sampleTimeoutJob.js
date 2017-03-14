@@ -34,10 +34,11 @@ function execute() {
     // send the timeoutsample to the client by publishing it to redis channel
     if (dbRes.timedOutSamples) {
       dbRes.timedOutSamples.forEach((sample) => {
-        console.log('---samples timeout' + JSON.stringify(sample, null, 2));
         publisher.publishSample(sample, dbSubject, sampleEvent.upd);
       });
     }
+
+    return Promise.resolve(dbRes);
   });
 } // execute
 

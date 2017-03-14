@@ -158,7 +158,7 @@ module.exports = function sample(seq, dataTypes) {
           include: [
             {
               association: assoc.aspect,
-              attributes: ['timeout', 'isPublished', 'tags'],
+              attributes: ['timeout', 'isPublished', 'tags', 'name'],
             },
           ],
         });

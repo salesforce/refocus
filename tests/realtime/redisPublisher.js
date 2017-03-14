@@ -18,10 +18,11 @@ const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const publisher = require('../../realtime/redisPublisher');
-const event = require('../../realtime/constants').events.sample;
+const sampleEvent = require('../../realtime/constants').events.sample;
 
 describe('redis Publisher', () => {
-  const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
+  const subjectNA = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
+  const subjectSA = { name: `${tu.namePrefix}SouthAmerica`, isPublished: true };
 
   const samp = { value: 10 };
   let sampId;
@@ -32,7 +33,7 @@ describe('redis Publisher', () => {
     isPublished: true,
   };
   before((done) => {
-    Subject.create(par)
+    Subject.create(subjectNA)
     .then((subj) => {
       ipar = subj.id;
       return Aspect.create(humidity);
@@ -44,35 +45,75 @@ describe('redis Publisher', () => {
     })
     .then((s) => {
       sampId = s.id;
-      done();
+      return Subject.create(subjectSA);
     })
+    .then(() => done())
     .catch(done);
   });
   after(u.forceDelete);
+  describe('publishSample function tests: ', () => {
+    it('with EventType argument: sample should be published with subject  ' +
+      ' object and asbolutePath field', (done) => {
+      Sample.findById(sampId)
+      .then((sam) => publisher.publishSample(sam, Subject, sampleEvent.upd))
+      .then((pubObj) => {
+        expect(pubObj.subject).to.not.equal(null);
+        expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.tags.length).to.equal(0);
+        expect(pubObj.absolutePath).to.equal(subjectNA.name);
+        expect(pubObj.aspect.tags.length).to.equal(0);
+        done();
+      })
+      .catch(done);
+    });
 
-  it('sample should be published with subject object ' +
-      ' and asbolutePath field' , (done) => {
-    Sample.findById(sampId)
-    .then((sam) => publisher.publishSample(sam, Subject, event.upd))
-    .then((pubObj) => {
-      expect(pubObj.subject).to.not.equal(null);
-      expect(pubObj.subject.name).to.equal(par.name);
-      expect(pubObj.subject.tags.length).to.equal(0);
-      expect(pubObj.absolutePath).to.equal(par.name);
-      expect(pubObj.aspect.tags.length).to.equal(0);
-      done();
-    })
-    .catch(done);
+    it('without EventType argument: sample should be published with subject ' +
+      ' object and asbolutePath field', (done) => {
+      Sample.findById(sampId)
+      .then((sam) => publisher.publishSample(sam, Subject))
+      .then((pubObj) => {
+        expect(pubObj.subject).to.not.equal(null);
+        expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.tags.length).to.equal(0);
+        expect(pubObj.absolutePath).to.equal(subjectNA.name);
+        expect(pubObj.aspect.tags.length).to.equal(0);
+        done();
+      })
+      .catch(done);
+    });
   });
 
-  it.only('sample should be published with subject object ' +
-      ' and asbolutePath field' , (done) => {
-    Sample.findById(sampId)
-    .then((sam) => sam.update({ value: 10}))
-    .then((pubObj) => {
-      console.log('-------pubObj---'+ JSON.stringify(pubObj._changed, null, 2));
-      done();
-    })
-    .catch(done);
+  describe('getSampleEventType function tests: ', () => {
+    it('update Event', (done) => {
+      Sample.findById(sampId)
+      .then((sam) => sam.update({ value: 10}))
+      .then((updSample) => {
+        // pass sequelize object
+        let eventType = publisher.getSampleEventType(updSample);
+        expect(eventType).to.equal(sampleEvent.upd);
+        // pass plain object
+        eventType = publisher.getSampleEventType(updSample.get());
+        expect(eventType).to.equal(sampleEvent.upd);
+        done();
+      })
+      .catch(done);
+    });
+    it('add Event', (done) => {
+      Sample.upsertByName({
+        name: subjectSA.name + '|' + humidity.name,
+        value: '1',
+      })
+      .then((sam) => {
+        // pass sequelize object
+        let eventType = publisher.getSampleEventType(sam);
+        // expect(eventType).to.equal(sampleEvent.add);
+        // pass plain object
+        eventType = publisher.getSampleEventType(sam.get());
+        expect(eventType).to.equal(sampleEvent.add);
+        done();
+      })
+      .catch(done);
+    });
   });
+
 });

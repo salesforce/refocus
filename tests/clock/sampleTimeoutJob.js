@@ -17,7 +17,8 @@ describe('sampleTimeoutJob', () => {
     j.execute()
     .then((resp) => {
       expect(resp).to.be.an('object');
-      expect(resp).to.include.keys('numberEvaluated', 'numberTimedOut');
+      expect(resp).to.include.keys('numberEvaluated', 'numberTimedOut',
+        'timedOutSamples');
       done();
     })
     .catch(done);

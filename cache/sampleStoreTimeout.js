@@ -130,6 +130,7 @@ module.exports = {
           aspects[aspect.name.toLowerCase()] = aspect;
         }
       }
+
       const retObj = getSampleTimeoutCommands(samples, aspects, curr);
       timedOutSamples = retObj.timedOutSamples;
       const sampCmds = retObj.sampCmds;

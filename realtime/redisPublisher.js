@@ -23,14 +23,9 @@ const sampleEvent = require('./constants').events.sample;
  * @return {[type]}        [description]
  */
 function getSampleEventType(sample) {
-  if (sample.get) {
-    return sample.changed('name') ? sampleEvent.add :
-                                    sampleEvent.upd;
-  }
-
-  return sample.updatedAt === sample.createdAt
-                          ? sampleEvent.add :
-                            sampleEvent.upd;
+  const updatedAt = new Date(sample.updatedAt).getTime();
+  const createdAt = new Date(sample.createdAt).getTime();
+  return updatedAt === createdAt ? sampleEvent.add : sampleEvent.upd;
 } // getSampleEventType
 
 /**
@@ -127,4 +122,5 @@ function publishSample(sampleInst, model, event) {
 module.exports = {
   publishObject,
   publishSample,
+  getSampleEventType,
 }; // exports
