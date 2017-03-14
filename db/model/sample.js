@@ -254,23 +254,32 @@ module.exports = function sample(seq, dataTypes) {
         let numberTimedOut = 0;
         let numberEvaluated = 0;
         const timedOutSamples = [];
-        return new seq.Promise((resolve, reject) => {
-          Sample.scope('checkTimeout').findAll()
-          .each((s) => {
-            numberEvaluated++;
-            if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
-              numberTimedOut++;
-              s.value = constants.statuses.Timeout;
-              timedOutSamples.push(s);
+        return Sample.scope('checkTimeout').findAll()
+          .then((samples) => {
+            for (let i = 0; i < samples.length; i++) {
+              numberEvaluated++;
+              if (samples[i].aspect &&
+                  u.isTimedOut(samples[i].aspect.timeout, curr, samples[i].updatedAt)) {
+                const objToUpdate = {
+                  value: constants.statuses.Timeout,
+                  status: constants.statuses.Timeout,
+                  previousStatus: samples[i].status,
+                  statusChangedAt: new Date().toString(),
+                  updatedAt: new Date().toString(),
+                  name: samples[i].name,
+                  aspect: samples[i].aspect,
+                };
 
-              return s.update({ value: constants.statuses.Timeout });
+                timedOutSamples.push(objToUpdate);
+                numberTimedOut++;
+                samples[i].update({ value: constants.statuses.Timeout });
+              }
             }
+
+            return Promise.all([]);
           })
-          .then((samp) => {
-            resolve({ numberEvaluated, numberTimedOut, timedOutSamples });
-          })
-          .catch(reject);
-        });
+          .then(() => Promise.resolve({ numberEvaluated, numberTimedOut,
+            timedOutSamples, }));
       }, // doTimeout
     }, // classMethods
     hooks: {
