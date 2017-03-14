@@ -92,6 +92,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .expect((res) => {
       const { apiLinks } = res.body;
+      expect(apiLinks.length).to.be.above(ZERO);
       let href = '';
       for (let j = apiLinks.length - 1; j >= 0; j--) {
         href = apiLinks[j].href;

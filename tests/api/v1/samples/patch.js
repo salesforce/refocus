@@ -63,8 +63,9 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       const { apiLinks } = res.body;
+      expect(apiLinks.length).to.be.above(ZERO);
       let href = '';
-      for (let j = apiLinks.length - 1; j >= 0; j--) {
+      for (let j = apiLinks.length - 1; j >= ZERO; j--) {
         href = apiLinks[j].href;
         if (apiLinks[j].method!= 'POST') {
           expect(href.split('/').pop()).to.equal(u.sampleName);
