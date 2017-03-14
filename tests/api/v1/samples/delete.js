@@ -50,6 +50,25 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('in basic delete, apiLinks only contains the POST endpoint', (done) => {
+    api.delete(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      const { apiLinks } = res.body;
+      expect(apiLinks.length).to.equal(ONE);
+      expect(apiLinks[0].method).to.equal('POST');
+      expect(apiLinks[0].href).to.equal(path);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('basic delete', (done) => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)

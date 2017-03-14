@@ -55,6 +55,31 @@ describe(`api: PUT ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('check apiLinks end with sample name', (done) => {
+    api.put(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ subjectId, aspectId, value: '2' })
+    .expect(constants.httpStatus.OK)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      const { apiLinks } = res.body;
+      let href = '';
+      for (let j = apiLinks.length - 1; j >= 0; j--) {
+        href = apiLinks[j].href;
+        if (apiLinks[j].method!= 'POST') {
+          expect(href.split('/').pop()).to.equal(sampleName);
+        } else {
+          expect(href).to.equal(path);
+        }
+      }
+
+      done();
+    });
+  });
+
   it('basic succeeds', (done) => {
     api.put(`${path}/${sampleName}`)
     .set('Authorization', token)

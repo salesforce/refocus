@@ -47,6 +47,33 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('apiLinks in basic get end  with sample name', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      let href = '';
+      for (let i = res.body.length - 1; i >= 0; i--) {
+        const apiLinks = res.body[i].apiLinks;
+        for (let j = apiLinks.length - 1; j >= 0; j--) {
+          href = apiLinks[j].href;
+          if (apiLinks[j].method!= 'POST') {
+            expect(href.split('/').pop()).to.equal(u.sampleName);
+          } else {
+            expect(href).to.equal(path);
+          }
+        }
+      }
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('basic get', (done) => {
     api.get(path)
     .set('Authorization', token)

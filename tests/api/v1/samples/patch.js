@@ -51,8 +51,34 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('apiLinks"s href ends with sample name' +
+    'updatedAt', (done) => {
+    api.patch(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({})
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const { apiLinks } = res.body;
+      let href = '';
+      for (let j = apiLinks.length - 1; j >= 0; j--) {
+        href = apiLinks[j].href;
+        if (apiLinks[j].method!= 'POST') {
+          expect(href.split('/').pop()).to.equal(u.sampleName);
+        } else {
+          expect(href).to.equal(path);
+        }
+      }
+
+      done();
+    });
+  });
+
   describe('UpdatedAt tests: ', () => {
-    it('patch /samples without value does not increment ' +
+    it('without value does not increment ' +
       'updatedAt', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -70,7 +96,7 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('patch /samples with only identical value increments ' +
+    it('with only identical value increments ' +
       'updatedAt', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
