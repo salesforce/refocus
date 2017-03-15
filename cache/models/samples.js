@@ -332,12 +332,13 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
+  const dateNow = new Date().toString();
   if (!sampObj) { // new sample
-    qbObj[sampFields.CREATED_AT] = new Date().toString();
+    qbObj[sampFields.CREATED_AT] = dateNow;
     qbObj[sampFields.IS_DELETED] = '0';
   }
 
-  qbObj[sampFields.UPD_AT] = new Date().toString();
+  qbObj[sampFields.UPD_AT] = dateNow;
 }
 
 /**

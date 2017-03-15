@@ -113,8 +113,14 @@ function publishSample(sampleInst, model, event) {
       // attach absolutePath field to the sample
       sample.absolutePath = subName;
 
-      // pass the sample instance to the publishObject function
-      publishObject(sample, eventType);
+      /*
+       *pass the sample instance to the publishObject function only if the
+       *aspect and subject are published
+       */
+      if (sample.aspect.isPublished && sub.isPublished) {
+
+        publishObject(sample, eventType);
+      }
     }
 
     return sample;
