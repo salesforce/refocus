@@ -85,6 +85,33 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('check apiLinks end with sample name', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      const { apiLinks } = res.body;
+      expect(apiLinks.length).to.be.above(ZERO);
+      let href = '';
+      for (let j = apiLinks.length - 1; j >= 0; j--) {
+        href = apiLinks[j].href;
+        if (apiLinks[j].method!= 'POST') {
+          expect(href.split('/').pop()).to.equal(u.sampleName);
+        } else {
+          expect(href).to.equal(path);
+        }
+      }
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
   it('basic post /samples', (done) => {
     api.post(path)
     .set('Authorization', token)

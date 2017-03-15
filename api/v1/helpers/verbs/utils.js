@@ -710,7 +710,14 @@ module.exports = {
    */
   responsify(rec, props, method) {
     const o = cleanAndStripNulls(rec);
-    o.apiLinks = getApiLinks(o.id, props, method);
+    let key = o.id;
+
+    // if do not return id, use name instead
+    if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
+      key = o.name;
+    }
+
+    o.apiLinks = getApiLinks(key, props, method);
     if (props.stringify) {
       props.stringify.forEach((f) => {
         o[f] = `${o[f]}`;
