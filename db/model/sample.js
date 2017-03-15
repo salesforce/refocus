@@ -271,7 +271,8 @@ module.exports = function sample(seq, dataTypes) {
               const timedOutSample = {
                 value: constants.statuses.Timeout,
                 status: constants.statuses.Timeout,
-                name: s.name.split(),
+                name: s.name.split()[0],
+                statusChangedAt: new Date(),
                 aspect: JSON.parse(JSON.stringify(s.aspect)),
               };
               timedOutSamples.push(timedOutSample);

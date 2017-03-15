@@ -106,7 +106,7 @@ describe('redis Publisher', () => {
       .then((sam) => {
         // pass sequelize object
         let eventType = publisher.getSampleEventType(sam);
-        // expect(eventType).to.equal(sampleEvent.add);
+        expect(eventType).to.equal(sampleEvent.add);
         // pass plain object
         eventType = publisher.getSampleEventType(sam.get());
         expect(eventType).to.equal(sampleEvent.add);
