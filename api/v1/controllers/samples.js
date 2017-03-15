@@ -38,18 +38,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const sampleName = req.swagger.params.key.value.toLowerCase();
-      redisModelSample.deleteSample(sampleName, resultObj, req.method)
-      .then((response) => {
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doDelete(req, res, next, helper);
-    }
+    doDelete(req, res, next, helper);
   },
 
   /**
@@ -129,29 +118,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const params = req.swagger.params;
-
-      const rLinks = params.queryBody.value.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
-      }
-
-      redisModelSample.patchSample(params, resultObj, req.method)
-      .then((response) => {
-        // remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
-        }
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doPatch(req, res, next, helper);
-    }
+    doPatch(req, res, next, helper);
   },
 
   /**
@@ -164,29 +131,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const params = req.swagger.params;
-
-      const rLinks = params.queryBody.value.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
-      }
-
-      redisModelSample.postSample(params, resultObj, req.method)
-      .then((response) => {
-        // remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
-        }
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.CREATED).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doPost(req, res, next, helper);
-    }
+    doPost(req, res, next, helper);
   },
 
   /**
@@ -200,29 +145,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const params = req.swagger.params;
-
-      const rLinks = params.queryBody.value.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
-      }
-
-      redisModelSample.putSample(params, resultObj, req.method)
-      .then((response) => {
-        // remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, response);
-        }
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doPut(req, res, next, helper);
-    }
+    doPut(req, res, next, helper);
   },
 
   /**

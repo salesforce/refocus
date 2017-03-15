@@ -730,9 +730,10 @@ module.exports = {
     const o = cleanAndStripNulls(rec);
     let key = o.id;
 
-    // if do not return id, use name instead
+    // if do not return id, use name instead and delete id field
     if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
       key = o.name;
+      delete o.id;
     }
 
     o.apiLinks = getApiLinks(key, props, method);

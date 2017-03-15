@@ -461,11 +461,9 @@ module.exports = {
    * sample index, delete aspect from subject set and delete sample hash. If
    * sample not found, throw Not found error.
    * @param  {String} sampleName - Sample name
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to a sample object
    */
-  deleteSample(sampleName, logObject, method) {
+  deleteSample(sampleName) {
     const subjAspArr = sampleName.toLowerCase().split('|');
 
     if (subjAspArr.length < TWO) {
@@ -499,12 +497,11 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then((response) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const asp = response[ZERO];
 
       // attach aspect and links to sample
-      const resSampAsp = cleanAddAspectToSample(sampObjToReturn, asp, method);
-      resSampAsp.isDeleted = new Date().toString();
+      const resSampAsp = cleanAddAspectToSample(sampObjToReturn, asp);
+      resSampAsp.isDeleted = Date.now();
       return resSampAsp;
     });
   },
@@ -516,11 +513,9 @@ module.exports = {
    * response. Note: Message body and message code will be updated if provided,
    * else no fields for message body/message code in redis object.
    * @param  {Object} params - Request parameters
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to a sample object
    */
-  patchSample(params, logObject, method) {
+  patchSample(params) {
     const sampleName = params.key.value;
     const reqBody = params.queryBody.value;
     let currSampObj;
@@ -562,16 +557,19 @@ module.exports = {
       }
 
       if (reqBody.relatedLinks) {
-        reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
+        reqBody[sampFields.RLINKS] = reqBody.relatedLinks;
       }
 
+      // stringify arrays
+      constants.fieldsToStringify.sample.forEach((field) => {
+        if (reqBody[field]) {
+          reqBody[field] = JSON.stringify(reqBody[field]);
+        }
+      });
       return redisOps.setHashMultiPromise(sampleType, sampleName, reqBody);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      return cleanAddAspectToSample(updatedSamp, aspectObj, method);
-    });
+    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
   },
 
   /**
@@ -579,11 +577,9 @@ module.exports = {
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
    * @param  {Object} params - Request parameters
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params, logObject, method) {
+  postSample(params) {
     const reqBody = params.queryBody.value;
     let subject;
     let sampleName;
@@ -654,17 +650,9 @@ module.exports = {
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((updatedSamp) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const sampleRes = sampleStore.arrayStringsToJson(
         updatedSamp, constants.fieldsToStringify.sample
       );
-
-      if (method) {
-        // add api links
-        sampleRes.apiLinks = u.getApiLinks(
-          sampleRes.name, helper, method
-        );
-      }
 
       // aspect is not attached to match existing behaviour
       return sampleRes;
@@ -677,11 +665,9 @@ module.exports = {
    * if needed. Delete message body and message code fields from hash
    * if not provided because they will be null. Then update sample.
    * @param  {Object} params - Request parameters
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to a sample object
    */
-  putSample(params, logObject, method) {
+  putSample(params) {
     const sampleName = params.key.value;
     const reqBody = params.queryBody.value;
     let currSampObj;
@@ -753,10 +739,7 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      return cleanAddAspectToSample(updatedSamp, aspectObj, method);
-    });
+    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
   },
 
   /**
