@@ -196,7 +196,7 @@ describe('db: sample: timeout: ', () => {
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
       expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 0 });
-      expect(res.timedOutSamples).to.be.instanceOf(Array);
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {

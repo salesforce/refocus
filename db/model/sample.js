@@ -243,7 +243,9 @@ module.exports = function sample(seq, dataTypes) {
 
       /**
        * Invalidates samples which were last updated before the "timeout"
-       * specified by the aspect.
+       * specified by the aspect and resolves to an object containing the
+       * number of samples evaluated, the number of samples timedout and an
+       * array containing a "copy" of the sample object.
        *
        * @param {Date} now - For testing, pass in a Date object to represent
        *  the current time
@@ -254,32 +256,32 @@ module.exports = function sample(seq, dataTypes) {
         let numberTimedOut = 0;
         let numberEvaluated = 0;
         const timedOutSamples = [];
-        return Sample.scope('checkTimeout').findAll()
-          .then((samples) => {
-            for (let i = 0; i < samples.length; i++) {
-              numberEvaluated++;
-              if (samples[i].aspect &&
-                  u.isTimedOut(samples[i].aspect.timeout, curr, samples[i].updatedAt)) {
-                const objToUpdate = {
-                  value: constants.statuses.Timeout,
-                  status: constants.statuses.Timeout,
-                  previousStatus: samples[i].status,
-                  statusChangedAt: new Date().toString(),
-                  updatedAt: new Date().toString(),
-                  name: samples[i].name,
-                  aspect: samples[i].aspect,
-                };
+        return new seq.Promise((resolve, reject) => {
+          Sample.scope('checkTimeout').findAll()
+          .each((s) => {
+            numberEvaluated++;
+            if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
+              numberTimedOut++;
 
-                timedOutSamples.push(objToUpdate);
-                numberTimedOut++;
-                samples[i].update({ value: constants.statuses.Timeout });
-              }
+              /*
+               * NOTE: a separate copy of the sample needed to be made (by
+               * deep cloning the required fields) to let the garbage collector
+               * cleanup the timedOutSamples array.
+               */
+              const timedOutSample = {
+                value: constants.statuses.Timeout,
+                status: constants.statuses.Timeout,
+                name: s.name.split(),
+                aspect: JSON.parse(JSON.stringify(s.aspect)),
+              };
+              timedOutSamples.push(timedOutSample);
+              return s.update({ value: constants.statuses.Timeout });
             }
-
-            return Promise.all([]);
           })
-          .then(() => Promise.resolve({ numberEvaluated, numberTimedOut,
-            timedOutSamples, }));
+          .then(() => resolve({ numberEvaluated, numberTimedOut,
+            timedOutSamples, }))
+          .catch(reject);
+        });
       }, // doTimeout
     }, // classMethods
     hooks: {

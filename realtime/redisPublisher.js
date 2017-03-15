@@ -17,10 +17,11 @@ const sampleEvent = require('./constants').events.sample;
 
 /**
  * When passed an sample object, either a sequelize sample object or
- * plain sample object, it returns either an sample add event or an sample
+ * a plain sample object, it returns either an sample add event or an sample
  * update event.
- * @param  {[type]} sample [description]
- * @return {[type]}        [description]
+ * @param  {Object} sample - A sample Object
+ * @returns {String}  - an sample add event if updatedAt timestamp is equal to
+ * createdAt timestamp, returns an update event otherwise.
  */
 function getSampleEventType(sample) {
   const updatedAt = new Date(sample.updatedAt).getTime();
@@ -93,6 +94,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
  * @param  {Object} sampleInst - The sample instance to be published
  * @param  {Model} model - The subject model used to get the related subject
  * instance
+ * @param  {String} event  - Type of the event that is being published
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, model, event) {

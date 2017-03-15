@@ -28,9 +28,11 @@ const ONE = 1;
  * @param  {Array} samples - Samples to be timedout
  * @param  {Hash} aspects - Aspects hash, name-> object
  * @param  {Date} curr - Current datetime
- * @returns {Array} Commands needed to timeout samples
+ * @returns {Object} - with with sampCmds and timedOutSamples properties.
+ * sampCmds contains the commands needed to timeout samples and timedOutSamples
+ * contains the samples that needs to be timedout
  */
-function getSampleTimeoutCommands(samples, aspects, curr) {
+function getSampleTimeoutComponents(samples, aspects, curr) {
   const sampCmds = [];
   const timedOutSamples = [];
 
@@ -46,8 +48,11 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
 
     const asp = aspects[aspName.toLowerCase()];
     const sampUpdDateTime = new Date(samp.updatedAt);
-    /* Update sample if aspect exists, sample status is other than TimeOut and
-    sample is timed out.*/
+
+    /*
+     * Update sample if aspect exists, sample status is other than TimeOut and
+     * sample is timed out.
+     */
     if (asp && isTimedOut(asp.timeout, curr, sampUpdDateTime)) {
       const objToUpdate = {
         value: constants.statuses.Timeout,
@@ -70,7 +75,7 @@ function getSampleTimeoutCommands(samples, aspects, curr) {
   }
 
   return { sampCmds, timedOutSamples };
-}
+} // getSampleTimeoutComponents
 
 module.exports = {
 
@@ -131,7 +136,7 @@ module.exports = {
         }
       }
 
-      const retObj = getSampleTimeoutCommands(samples, aspects, curr);
+      const retObj = getSampleTimeoutComponents(samples, aspects, curr);
       timedOutSamples = retObj.timedOutSamples;
       const sampCmds = retObj.sampCmds;
       numberEvaluated = samples.length;
@@ -145,5 +150,5 @@ module.exports = {
     .catch((err) => {
       throw err;
     });
-  },
+  }, //doTimeout
 };
