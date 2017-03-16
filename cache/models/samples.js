@@ -23,6 +23,7 @@ const sampleUtils = require('../../db/helpers/sampleUtils');
 const dbConstants = require('../../db/constants');
 const redisOps = require('../redisOps');
 const db = require('../../db/index');
+const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const subjectType = redisOps.subjectType;
@@ -130,10 +131,9 @@ function getOptionsFromReq(params) {
  * sample. Then add add api links and return complete sample object.
  * @param  {Object} sampleObj - Sample object from redis
  * @param  {Object} aspectObj - Aspect object from redis
- * @param  {String} method - Request method
  * @returns {Object} - Sample object with aspect attached
  */
-function cleanAddAspectToSample(sampleObj, aspectObj, method) {
+function cleanAddAspectToSample(sampleObj, aspectObj) {
   let sampleRes = {};
   sampleRes = sampleStore.arrayStringsToJson(
     sampleObj, constants.fieldsToStringify.sample
@@ -144,14 +144,6 @@ function cleanAddAspectToSample(sampleObj, aspectObj, method) {
   );
 
   sampleRes.aspect = aspect;
-
-  if (method) {
-    // add api links
-    sampleRes.apiLinks = u.getApiLinks(
-      sampleRes.name, helper, method
-    );
-  }
-
   return sampleRes;
 }
 
@@ -371,11 +363,10 @@ function handleUpsertError(objectType, isBulk) {
  * update/create sample hash. We use hset which updates a sample if exists,
  * else creates a new one.
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
- * @param  {String} method - Type of request method
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
  * @returns {Object} - Updated sample
  */
-function upsertOneSample(sampleQueryBodyObj, method, isBulk) {
+function upsertOneSample(sampleQueryBodyObj, isBulk) {
   const sampleName = sampleQueryBodyObj.name;
   const subjAspArr = sampleName.toLowerCase().split('|');
 
@@ -443,7 +434,7 @@ function upsertOneSample(sampleQueryBodyObj, method, isBulk) {
       sampleStore.toKey(constants.objectType.sample, sampleName)
   ))
   .then((updatedSamp) =>
-   cleanAddAspectToSample(updatedSamp, aspectObj, method)
+   cleanAddAspectToSample(updatedSamp, aspectObj)
   )
   .catch((err) => {
     if (isBulk) {
@@ -747,13 +738,11 @@ module.exports = {
    * sample and corresponsing aspect from redis and then apply field list
    * filter is needed. Then attach aspect to sample and return.
    *
-   * @param  {string} sampleName - Sample name
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a sample object
    */
-  getSample(sampleName, logObject, method, params) {
+  getSample(params) {
+    const sampleName = params.key.value.toLowerCase();
     const sampAspArr = sampleName.split('|');
     const commands = [];
 
@@ -777,7 +766,6 @@ module.exports = {
 
     return redisClient.batch(commands).execAsync()
     .then((responses) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const sample = responses[ZERO];
       const aspect = responses[ONE];
 
@@ -795,7 +783,7 @@ module.exports = {
       }
 
       // clean and attach aspect to sample, add api links as well
-      const sampleRes = cleanAddAspectToSample(sample, aspect, method);
+      const sampleRes = cleanAddAspectToSample(sample, aspect);
       return sampleRes;
     });
   },
@@ -809,15 +797,21 @@ module.exports = {
    * expr (other than name) to samples array, then we sort, then apply
    * limit/offset and finally field list filters. Then, attach aspect to sample
    * using map we created and add to response array.
-   *
+   * @param  {Object} req - Request object
+   * @param  {Object} res - Result object
    * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
-   * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a list of all samples objects
    */
-  findSamples(logObject, method, params) {
-    const opts = getOptionsFromReq(params);
+  findSamples(req, res, logObject) {
+    const opts = getOptionsFromReq(req.swagger.params);
     const response = [];
+
+    if (opts.limit || opts.offset) {
+      res.links({
+        prev: req.originalUrl,
+        next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
+      });
+    }
 
     // get all Samples sorted lexicographically
     return redisClient.sortAsync(constants.indexKey.sample, 'alpha')
@@ -857,7 +851,12 @@ module.exports = {
 
         // attach aspect to sample
         const resSampAsp = cleanAddAspectToSample(
-          sample, sampAspectMap[sampName], method
+          sample, sampAspectMap[sampName]
+        );
+
+        // add api links
+        resSampAsp.apiLinks = u.getApiLinks(
+          resSampAsp.name, helper, req.method
         );
         response.push(resSampAsp); // add sample to response
       });
@@ -869,12 +868,10 @@ module.exports = {
   /**
    * Upsert sample in Redis.
    * @param  {Object} qbObj - Query body object
-   * @param  {Object} logObject - Log object
-   * @param  {String} method - Type of request method
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSample(qbObj, logObject, method) {
-    return upsertOneSample(qbObj, method);
+  upsertSample(qbObj) {
+    return upsertOneSample(qbObj);
   },
 
   /**
@@ -884,7 +881,7 @@ module.exports = {
    */
   bulkUpsertSample(sampleQueryBody) {
     const promises = sampleQueryBody.map(
-      (sampleReq) => upsertOneSample(sampleReq, null, true)
+      (sampleReq) => upsertOneSample(sampleReq, true)
     );
 
     return Promise.all(promises);

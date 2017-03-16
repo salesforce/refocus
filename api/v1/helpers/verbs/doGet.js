@@ -9,12 +9,15 @@
 /**
  * api/v1/helpers/verbs/doGet.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
+const featureToggles = require('feature-toggles');
+const constants = require('../../../../cache/sampleStore').constants;
+const redisModelSample = require('../../../../cache/models/samples');
 
 /**
  * Retrieves a record and sends it back in the json response with status code
@@ -65,17 +68,18 @@ function doGet(req, res, next, props) {
       }
     });
   } else {
-    u.findByKey(props, req.swagger.params)
-    .then((o) => {
+    let getPromise;
+    if (featureToggles.isFeatureEnabled(constants.featureName) &&
+     props.modelName === 'Sample') {
+      getPromise = redisModelSample.getSample(req.swagger.params);
+    } else {
+      getPromise = u.findByKey(props, req.swagger.params);
+    }
+
+    getPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      // loop through remove values to delete property
-      if (props.fieldsToExclude) {
-        u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
-      }
-
-      // o is a sequelize obj, get dataValues obj
-      u.logAPI(req, resultObj, o.dataValues);
+      u.logAPI(req, resultObj, o);
       res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
     })
     .catch((err) => u.handleError(next, err, props.modelName));

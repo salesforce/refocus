@@ -53,9 +53,7 @@ module.exports = {
   findSamples(req, res, next) {
     if (featureToggles.isFeatureEnabled(constants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamples(
-        resultObj, req.method, req.swagger.params
-      )
+      redisModelSample.findSamples(req, res, resultObj)
       .then((response) => {
         // loop through remove values to delete property
         if (helper.fieldsToExclude) {
@@ -83,27 +81,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      const sampleName = req.swagger.params.key.value.toLowerCase();
-
-      redisModelSample.getSample(
-        sampleName, resultObj, req.method, req.swagger.params
-      )
-      .then((sampleRes) => {
-
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, sampleRes);
-        }
-
-        u.logAPI(req, resultObj, sampleRes); // audit log
-        res.status(httpStatus.OK).json(sampleRes);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doGet(req, res, next, helper);
-    }
+    doGet(req, res, next, helper);
   },
 
   /**
@@ -172,9 +150,7 @@ module.exports = {
           u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
         }
 
-        upsertSamplePromise = redisModelSample.upsertSample(
-          sampleQueryBody, resultObj, res.method
-        );
+        upsertSamplePromise = redisModelSample.upsertSample(sampleQueryBody);
       } else {
         upsertSamplePromise = helper.model.upsertByName(
           sampleQueryBody, userName
