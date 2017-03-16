@@ -9,11 +9,13 @@
 /**
  * api/v1/helpers/verbs/doPatch.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const constants = require('../../../../cache/sampleStore').constants;
+const redisModelSample = require('../../../../cache/models/samples');
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -31,30 +33,38 @@ const httpStatus = require('../../constants').httpStatus;
 function doPatch(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
   const requestBody = req.swagger.params.queryBody.value;
-  u.findByKey(props, req.swagger.params)
-  .then((o) => u.isWritable(req, o,
-    featureToggles.isFeatureEnabled('enforceWritePermission')))
-  .then((o) => {
-
-    // To avoid timeouts when patching samples; force the update, even if
-    // the value has not changed. Adding this to the "before update hook" does
-    // give the needed effect; so adding it here!!!.
-    if (props.modelName === 'Sample') {
-      o.changed('value', true);
+  let patchPromise;
+  if (featureToggles.isFeatureEnabled(constants.featureName) &&
+   props.modelName === 'Sample') {
+    const rLinks = requestBody.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
     }
 
-    u.patchJsonArrayFields(o, requestBody, props);
-    u.patchArrayFields(o, requestBody, props);
-    return o.update(requestBody);
-  })
+    patchPromise = redisModelSample.patchSample(req.swagger.params);
+  } else {
+    patchPromise = u.findByKey(
+        props, req.swagger.params
+      )
+      .then((o) => u.isWritable(req, o,
+        featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => {
+        // To avoid timeouts when patching samples; force the update, even if
+        // the value has not changed. Adding this to the "before update hook"
+        // does give the needed effect; so adding it here!!!.
+        if (props.modelName === 'Sample') {
+          o.changed('value', true);
+        }
+
+        u.patchJsonArrayFields(o, requestBody, props);
+        u.patchArrayFields(o, requestBody, props);
+        return o.update(requestBody);
+      });
+  }
+
+  patchPromise
   .then((retVal) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // loop through remove values to delete property
-    if (props.fieldsToExclude) {
-      u.removeFieldsFromResponse(props.fieldsToExclude, retVal.dataValues);
-    }
-
     u.logAPI(req, resultObj, retVal);
     return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));

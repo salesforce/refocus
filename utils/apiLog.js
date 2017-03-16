@@ -94,6 +94,8 @@ function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
  */
 function logAPI(req, resultObj, retval, recordCountOverride) {
   if (req && featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
+    const obj = retval.get ? retval.get({ plain: true }) : retval;
+
     // create api activity log object
     const logObject = {
       ipAddress: activityLogUtil.getIPAddrFromReq(req),
@@ -110,9 +112,9 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       logObject.token = resObj.tokenname;
 
       // log with the token
-      combineAndLog(resultObj, logObject, retval, recordCountOverride);
+      combineAndLog(resultObj, logObject, obj, recordCountOverride);
     })
-    .catch(() => combineAndLog(resultObj, logObject, retval, recordCountOverride));
+    .catch(() => combineAndLog(resultObj, logObject, obj, recordCountOverride));
   }
 }
 

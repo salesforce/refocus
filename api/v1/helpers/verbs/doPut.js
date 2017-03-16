@@ -9,11 +9,13 @@
 /**
  * api/v1/helpers/verbs/doPut.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const constants = require('../../../../cache/sampleStore').constants;
+const redisModelSample = require('../../../../cache/models/samples');
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -31,40 +33,48 @@ const httpStatus = require('../../constants').httpStatus;
 function doPut(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
   const toPut = req.swagger.params.queryBody.value;
-  const puttableFields =
-    req.swagger.params.queryBody.schema.schema.properties;
-  u.findByKey(props, req.swagger.params)
-  .then((o) => u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission')))
-  .then((o) => {
-    const keys = Object.keys(puttableFields);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      if (toPut[key] === undefined) {
-        let nullish = null;
-        if (puttableFields[key].type === 'boolean') {
-          nullish = false;
-        } else if (puttableFields[key].enum) {
-          nullish = puttableFields[key].default;
+  let putPromise;
+  if (featureToggles.isFeatureEnabled(constants.featureName) &&
+   props.modelName === 'Sample') {
+    const rLinks = toPut.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    putPromise = redisModelSample.putSample(req.swagger.params);
+  } else {
+    const puttableFields =
+      req.swagger.params.queryBody.schema.schema.properties;
+    putPromise = u.findByKey(
+        props, req.swagger.params
+      )
+      .then((o) => u.isWritable(req, o,
+          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => {
+        const keys = Object.keys(puttableFields);
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          if (toPut[key] === undefined) {
+            let nullish = null;
+            if (puttableFields[key].type === 'boolean') {
+              nullish = false;
+            } else if (puttableFields[key].enum) {
+              nullish = puttableFields[key].default;
+            }
+
+            o.set(key, nullish);
+          } else {
+            o.set(key, toPut[key]);
+          }
         }
 
-        o.set(key, nullish);
-      } else {
-        o.set(key, toPut[key]);
-      }
-    }
+        return o.save();
+      });
+  }
 
-    return o.save();
-  })
-  .then((o) => {
+  putPromise.then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // loop through remove values to delete property
-    if (props.fieldsToExclude) {
-      u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
-    }
-
-    u.logAPI(req, resultObj, o.dataValues);
+    u.logAPI(req, resultObj, o);
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));

@@ -690,6 +690,24 @@ function forbidden(next, modelName) {
   handleError(next, err, modelName);
 } // forbidden
 
+/**
+ * Check if related links array have duplicate names.
+ * @param  {Array}  rLinkArr - Array of related link objects
+ * @throws {Error} If duplcate related link is found
+ */
+function checkDuplicateRLinks(rLinkArr) {
+  const uniqlinks = [];
+  rLinkArr.forEach((rLinkObj) => {
+    if (rLinkObj.name && uniqlinks.includes(rLinkObj.name.toLowerCase())) {
+      throw new apiErrors.ValidationError({
+        explanation: 'Name of the relatedlinks should be unique.',
+      });
+    }
+
+    uniqlinks.push(rLinkObj.name.toLowerCase());
+  });
+} // checkDuplicateRLinks
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -712,9 +730,10 @@ module.exports = {
     const o = cleanAndStripNulls(rec);
     let key = o.id;
 
-    // if do not return id, use name instead
+    // if do not return id, use name instead and delete id field
     if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
       key = o.name;
+      delete o.id;
     }
 
     o.apiLinks = getApiLinks(key, props, method);
@@ -772,5 +791,7 @@ module.exports = {
   getApiLinks,
 
   removeFieldsFromResponse,
+
+  checkDuplicateRLinks,
 
 }; // exports
