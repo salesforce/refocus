@@ -18,9 +18,12 @@
 const jobType = require('../jobQueue/setup').jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const helper = require('../api/v1/helpers/nouns/samples');
+const subHelper = require('../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const cacheSampleModel = require('../cache/models/samples');
+const publisher = require('../realtime/redisPublisher');
+const sampleEvent = require('../realtime/constants').events.sample;
 
 const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
@@ -54,17 +57,23 @@ jobQueue.process(jobType.BULKUPSERTSAMPLES, (job, done) => {
   }
 
   bulkUpsertPromise.then((results) => {
+    let errorCount = 0;
+
+    /*
+     * count failed promises and send the good samples to the client by
+     * publishing it to the redic channel
+     */
+    for (let i = 0; i < results.length; i++) {
+      if (results[i].isFailed) {
+        errorCount++;
+      } else {
+        publisher.publishSample(results[i], subHelper.model);
+      }
+    }
+
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};
-
-      // calculate failed promises
-      let errorCount = 0;
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].isFailed) {
-          errorCount++;
-        }
-      }
 
       // number of successful upserts
       objToReturn.recordCount = results.length - errorCount;

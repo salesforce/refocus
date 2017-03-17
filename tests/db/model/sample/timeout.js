@@ -103,7 +103,8 @@ describe('db: sample: timeout: ', () => {
       (twentyFourhours * hundredDays));
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 4 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 4 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -124,7 +125,8 @@ describe('db: sample: timeout: ', () => {
     mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours);
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 3 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 3 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -158,7 +160,8 @@ describe('db: sample: timeout: ', () => {
     mockUpdatedAt.setMinutes(updatedAt.getMinutes() + fiveMinutes);
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -192,7 +195,8 @@ describe('db: sample: timeout: ', () => {
     mockUpdatedAt.setSeconds(updatedAt.getSeconds() - tenSeconds);
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 0 });
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 0 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -232,6 +236,9 @@ describe('db: sample: timeout: ', () => {
       expect(samp.aspectId).to.not.equal(undefined);
       expect(samp.subjectId).to.not.equal(undefined);
       expect(samp.relatedLinks).to.not.equal(undefined);
+      expect(samp.aspect.name).to.not.equal(undefined);
+      expect(samp.aspect.tags).to.not.equal(undefined);
+
       /*
        * the following sample fields should not be fetched in the
        * checktimeout query
