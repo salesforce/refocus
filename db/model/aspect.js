@@ -270,7 +270,7 @@ module.exports = function aspect(seq, dataTypes) {
          * on aspectStore and the aspect hash.
          * 2. if the aspect is updated to published, add an entry to the
          * aspectStore and create the aspect hash
-         * 3. if the aspect is updated to unpublihsed, delete the entry in the
+         * 3. if the aspect is updated to unpublished, delete the entry in the
          * aspectStore, delete the aspect hash and delete the related samples
          * 4. if the aspect that is updated is already published, update the
          * the aspect with the new values.

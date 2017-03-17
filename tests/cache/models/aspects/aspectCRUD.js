@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cache/models/aspect/aspectCRUD.js
+ * tests/cache/models/aspects/aspectCRUD.js
  */
 'use strict'; // eslint-disable-line strict
 

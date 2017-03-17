@@ -499,6 +499,65 @@ module.exports = {
   },
 
   /**
+   * Delete sample related links
+   * @param  {Object} params - Request parameters
+   * @returns {Promise} - Resolves to a sample object
+   */
+  deleteSampleRelatedLinks(params) {
+    const sampleName = params.key.value;
+    let currSampObj;
+    let aspectObj;
+
+    return redisOps.getHashPromise(sampleType, sampleName)
+    .then((sampObj) => {
+      if (!sampObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      currSampObj = sampObj;
+      const aspectName = sampleName.split('|')[ONE];
+      return redisOps.getHashPromise(aspectType, aspectName);
+    })
+    .then((aspObj) => {
+      if (!aspObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+      }
+
+      let updatedRlinks = [];
+      if (params.relName) { // delete only this related link
+        const currRlinks = JSON.parse(currSampObj.relatedLinks);
+        updatedRlinks = u.deleteAJsonArrayElement(
+          currRlinks, params.relName.value
+        );
+      }
+
+      // if no change in related links, then return the object.
+      if (JSON.stringify(updatedRlinks) ===
+        JSON.stringify(currSampObj.relatedLinks)) {
+        Promise.resolve(cleanAddAspectToSample(currSampObj, aspObj));
+      }
+
+      const hmsetObj = {};
+      hmsetObj.relatedLinks = updatedRlinks;
+      hmsetObj.updatedAt = new Date().toString();
+
+      // stringify arrays
+      constants.fieldsToStringify.sample.forEach((field) => {
+        if (hmsetObj[field]) {
+          hmsetObj[field] = JSON.stringify(hmsetObj[field]);
+        }
+      });
+      return redisOps.setHashMultiPromise(sampleType, sampleName, hmsetObj);
+    })
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+  },
+
+  /**
    * Patch sample. First get sample, if not found, throw error, else get aspect.
    * Update request body with required fields based on value and related links
    * if needed. Update sample. Then get updated sample, attach aspect and return
