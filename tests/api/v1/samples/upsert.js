@@ -22,6 +22,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
 const path = '/v1/samples/upsert';
+const POST_PATH = '/v1/samples';
 
 describe(`api: POST ${path}`, () => {
   let aspect;
@@ -133,6 +134,35 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
+    it('check apiLinks end with sample name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        const { apiLinks } = res.body;
+        expect(apiLinks.length).to.be.above(0);
+        let href = '';
+        for (let j = apiLinks.length - 1; j >= 0; j--) {
+          href = apiLinks[j].href;
+          if (apiLinks[j].method!= 'POST') {
+            expect(href.split('/').pop()).to.equal(u.sampleName);
+          } else {
+            expect(href).to.equal(POST_PATH);
+          }
+        }
+
+        done();
+      });
+    });
+
     it('update sample with relatedLinks', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -207,7 +237,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('upsert when the sample already exists', () => {
+  describe('when the sample already exists', () => {
     beforeEach((done) => {
       Sample.create({
         name: `${subject.absolutePath}|${aspect.name}`,
@@ -232,6 +262,35 @@ describe(`api: POST ${path}`, () => {
         }
 
         expect(res.body.id).to.be.undefined;
+        done();
+      });
+    });
+
+    it('check apiLinks end with sample name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        const { apiLinks } = res.body;
+        expect(apiLinks.length).to.be.above(0);
+        let href = '';
+        for (let j = apiLinks.length - 1; j >= 0; j--) {
+          href = apiLinks[j].href;
+          if (apiLinks[j].method!= 'POST') {
+            expect(href.split('/').pop()).to.equal(u.sampleName);
+          } else {
+            expect(href).to.equal(POST_PATH);
+          }
+        }
+
         done();
       });
     });

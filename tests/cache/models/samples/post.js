@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,24 +7,31 @@
  */
 
 /**
- * tests/api/v1/samples/post.js
+ * tests/cache/models/samples/post.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
-const u = require('./utils');
 const path = '/v1/samples';
+const rtu = require('../redisTestUtil');
+const redisOps = require('../../../../cache/redisOps');
+const objectType = require('../../../../cache/sampleStore')
+                    .constants.objectType;
+const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
+const Sample = tu.db.Sample;
 const ZERO = 0;
+const u = require('./utils');
 
-describe(`api: POST ${path}`, () => {
+describe(`api: redisStore: POST ${path}`, () => {
   let sampleToPost;
   let token;
 
   before((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -37,17 +44,21 @@ describe(`api: POST ${path}`, () => {
     u.doSetup()
     .then((samp) => {
       sampleToPost = samp;
-      done();
+      return samstoinit.eradicate();
     })
+    .then(() => samstoinit.init())
+    .then(() => done())
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('post duplicate fails', () => {
     beforeEach((done) => {
       tu.db.Sample.create(sampleToPost)
+      .then(() => samstoinit.eradicate())
+      .then(() => samstoinit.init())
       .then(() => done())
       .catch(done);
     });
@@ -62,8 +73,9 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        expect(res.body.errors[ZERO].description)
+        .to.equal('Sample already exists.');
         done();
       });
     });
@@ -78,37 +90,11 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        expect(res.body.errors[ZERO].description)
+        .to.equal('Sample already exists.');
         done();
       });
-    });
-  });
-
-  it('check apiLinks end with sample name', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send(sampleToPost)
-    .expect(constants.httpStatus.CREATED)
-    .expect((res) => {
-      const { apiLinks } = res.body;
-      expect(apiLinks.length).to.be.above(ZERO);
-      let href = '';
-      for (let j = apiLinks.length - 1; j >= 0; j--) {
-        href = apiLinks[j].href;
-        if (apiLinks[j].method!= 'POST') {
-          expect(href.split('/').pop()).to.equal(u.sampleName);
-        } else {
-          expect(href).to.equal(path);
-        }
-      }
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
     });
   });
 
@@ -117,18 +103,17 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .expect((res) => {
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
       if (!res.body) {
         throw new Error('expecting sample');
       }
 
       if (res.body.status !== constants.statuses.Critical) {
         throw new Error('Incorrect Status Value');
-      }
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
       }
 
       done();
@@ -183,10 +168,8 @@ describe(`api: POST ${path}`, () => {
     .send(sampleToPost)
     .expect((res) => {
       expect(res.body).to.have.property('errors');
-      expect(res.body.errors[ZERO].message)
-        .to.contain('Name of the relatedlinks should be unique');
-      expect(res.body.errors[ZERO].source)
-        .to.contain('relatedLinks');
+      expect(res.body.errors[ZERO].description)
+        .to.contain('Name of the relatedlinks should be unique.');
     })
     .end((err /* , res */) => {
       if (err) {
@@ -217,11 +200,12 @@ describe(`api: POST ${path}`, () => {
   });
 });
 
-describe(`api: POST ${path} aspect isPublished false`, () => {
+describe(`api: redisStore: POST ${path} aspect isPublished false`, () => {
   let sampleToPost;
   let token;
 
   before((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -234,13 +218,15 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
     u.doSetupAspectNotPublished()
     .then((samp) => {
       sampleToPost = samp;
-      done();
+      return samstoinit.eradicate();
     })
+    .then(() => samstoinit.init())
+    .then(() => done())
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('cannot create sample if aspect not published', (done) => {
     api.post(path)

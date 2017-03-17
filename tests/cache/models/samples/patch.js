@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,114 +7,59 @@
  */
 
 /**
- * tests/api/v1/samples/patch.js
+ * tests/cache/models/samples/patch.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
-const u = require('./utils');
-const Sample = tu.db.Sample;
 const path = '/v1/samples';
+const rtu = require('../redisTestUtil');
+const u = require('./utils');
+const redisOps = require('../../../../cache/redisOps');
+const objectType = require('../../../../cache/sampleStore')
+                    .constants.objectType;
+const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
+const Sample = tu.db.Sample;
 const ZERO = 0;
-
-describe(`api: PATCH ${path}`, () => {
+describe(`api: redisStore: PATCH ${path}`, () => {
   let sampleName;
   let sampUpdatedAt;
   let sampleValue;
   let token;
 
   before((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
       done();
     })
-    .catch(done);
+    .catch((err) => done(err));
   });
 
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => Sample.create(samp))
-    .then((samp) => {
-      sampleName = samp.name;
-      sampUpdatedAt = samp.updatedAt;
-      sampleValue = samp.value;
+    .then((sampObj) => Sample.create(sampObj))
+    .then((sample) => {
+      sampleName = sample.name;
+      return samstoinit.eradicate();
+    })
+    .then(() => samstoinit.init())
+    .then(() => redisOps.getHashPromise(objectType.sample, sampleName))
+    .then((sampleObj) => {
+      sampUpdatedAt = new Date(sampleObj.updatedAt);
+      sampleValue = sampleObj.value;
       done();
     })
-    .catch(done);
+    .catch((err) => done(err));
   });
 
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
-
-  it('apiLinks"s href ends with sample name' +
-    'updatedAt', (done) => {
-    api.patch(`${path}/${sampleName}`)
-    .set('Authorization', token)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      const { apiLinks } = res.body;
-      expect(apiLinks.length).to.be.above(ZERO);
-      let href = '';
-      for (let j = apiLinks.length - 1; j >= ZERO; j--) {
-        href = apiLinks[j].href;
-        if (apiLinks[j].method!= 'POST') {
-          expect(href.split('/').pop()).to.equal(u.sampleName);
-        } else {
-          expect(href).to.equal(path);
-        }
-      }
-
-      done();
-    });
-  });
-
-  describe('UpdatedAt tests: ', () => {
-    it('without value does not increment ' +
-      'updatedAt', (done) => {
-      api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .send({})
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        const result = res.body;
-        const dateToInt = new Date(result.updatedAt).getTime();
-        expect(dateToInt).to.be.equal(sampUpdatedAt.getTime());
-        done();
-      });
-    });
-
-    it('with only identical value increments ' +
-      'updatedAt', (done) => {
-      api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .send({ value: sampleValue })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        const result = res.body;
-        const dateToInt = new Date(result.updatedAt).getTime();
-        expect(dateToInt).to.be.above(sampUpdatedAt.getTime());
-        done();
-      });
-    });
-  });
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('Lists: ', () => {
     it('basic patch does not return id', (done) => {
@@ -122,7 +67,7 @@ describe(`api: PATCH ${path}`, () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
           done(err);
         }
@@ -153,7 +98,7 @@ describe(`api: PATCH ${path}`, () => {
     });
 
     it('updates case sensitive name successfully', (done) => {
-      const name = u.sampleName;
+      const name = sampleName;
       const updatedName = name.toUpperCase();
       api.patch(`${path}/${name}`)
       .set('Authorization', token)
@@ -170,10 +115,6 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  //
-  // The relatedlinks are named differently in each of the tests to avoid
-  // turning the before and after hooks to beforeEach and afterEach
-  //
   describe('Patch Related Links ', () => {
     it('single related link', (done) => {
       api.patch(`${path}/${sampleName}`)
@@ -247,68 +188,56 @@ describe(`api: PATCH ${path}`, () => {
           { name: 'link4', url: 'https://samples.com' },
         ],
       })
-      .expect((res) => {
-        expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].message)
-        .to.contain('Name of the relatedlinks should be unique');
-        expect(res.body.errors[ZERO].source)
-          .to.contain('relatedLinks');
-      })
-      .end((err/* , res */) => {
+      .end((err, res) => {
         if (err) {
           done(err);
         }
 
+        expect(res.body).to.have.property('errors');
+        expect(res.body.errors[ZERO].description)
+        .to.contain('Name of the relatedlinks should be unique');
         done();
       });
     });
   });
-});
 
-describe(`api: PATCH ${path} aspect isPublished false`, () => {
-  let sampleName;
-  let token;
+  describe('UpdatedAt tests: ', () => {
+    it('patch /samples without value does not increment ' +
+      'updatedAt', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({})
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
-
-  before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
-    .then((samp) => {
-      sampleName = samp.name;
-      samp.getAspect()
-      .then((asp) => {
-        asp.update({ isPublished: false });
+        const result = res.body;
+        const dateToInt = new Date(result.updatedAt).getTime();
+        expect(dateToInt).to.be.equal(sampUpdatedAt.getTime());
         done();
-      })
-      .catch((err) => {
-        throw err;
       });
-    })
-    .catch(done);
-  });
+    });
 
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
+    it('patch /samples with only identical value increments ' +
+      'updatedAt', (done) => {
+      // preventing setTimeout by setting sampUpdatedAt 2 secs back.
+      sampUpdatedAt.setSeconds(sampUpdatedAt.getSeconds() - 2);
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: sampleValue })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
 
-  it('cannot patch sample if aspect not published', (done) => {
-    api.patch(`${path}/${sampleName}`)
-    .set('Authorization', token)
-    .send({ value: '3' })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
+        const result = res.body;
+        const dateToInt = new Date(result.updatedAt).getTime();
+        expect(dateToInt).to.be.above(sampUpdatedAt.getTime());
+        done();
+      });
     });
   });
 });

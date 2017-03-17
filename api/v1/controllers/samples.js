@@ -170,6 +170,10 @@ module.exports = {
     .then((userName) => {
       let upsertSamplePromise;
       if (featureToggles.isFeatureEnabled(constants.featureName)) {
+        if (sampleQueryBody.relatedLinks) {
+          u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+        }
+
         upsertSamplePromise = redisModelSample.upsertSample(
           sampleQueryBody, resultObj, res.method
         );

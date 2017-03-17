@@ -9,10 +9,13 @@
 /**
  * api/v1/helpers/verbs/doPost.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
+const constants = require('../../../../cache/sampleStore').constants;
+const redisModelSample = require('../../../../cache/models/samples');
+const featureToggles = require('feature-toggles');
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -28,16 +31,22 @@ function doPost(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
   const toPost = req.swagger.params.queryBody.value;
   u.mergeDuplicateArrayElements(toPost, props);
-  props.model.create(toPost)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // loop through remove values to delete property
-    if (props.fieldsToExclude) {
-      u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
+  let postPromise;
+  if (featureToggles.isFeatureEnabled(constants.featureName) &&
+   props.modelName === 'Sample') {
+    const rLinks = toPost.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
     }
 
-    u.logAPI(req, resultObj, o.dataValues);
+    postPromise = redisModelSample.postSample(req.swagger.params);
+  } else {
+    postPromise = props.model.create(toPost);
+  }
+
+  postPromise.then((o) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    u.logAPI(req, resultObj, o);
     return res.status(httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   })

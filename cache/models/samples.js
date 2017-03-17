@@ -21,6 +21,11 @@ const defaults = require('../../config').api.defaults;
 const redisErrors = require('../redisErrors');
 const sampleUtils = require('../../db/helpers/sampleUtils');
 const dbConstants = require('../../db/constants');
+const redisOps = require('../redisOps');
+const db = require('../../db/index');
+const aspectType = redisOps.aspectType;
+const sampleType = redisOps.sampleType;
+const subjectType = redisOps.subjectType;
 const sampFields = {
   MSG_BODY: 'messageBody',
   MSG_CODE: 'messageCode',
@@ -451,6 +456,292 @@ function upsertOneSample(sampleQueryBodyObj, method, isBulk) {
 }
 
 module.exports = {
+
+  /**
+   * Delete sample. Get sample. If found, get aspect, delete sample entry from
+   * sample index, delete aspect from subject set and delete sample hash. If
+   * sample not found, throw Not found error.
+   * @param  {String} sampleName - Sample name
+   * @returns {Promise} - Resolves to a sample object
+   */
+  deleteSample(sampleName) {
+    const subjAspArr = sampleName.toLowerCase().split('|');
+
+    if (subjAspArr.length < TWO) {
+      const err = new redisErrors.ValidationError({
+        explanation: 'Incorrect sample name.',
+      });
+      return Promise.resolve(err);
+    }
+
+    const subjAbsPath = subjAspArr[ZERO];
+    const aspName = subjAspArr[ONE];
+    const cmds = [];
+    let sampObjToReturn;
+
+    return redisOps.getHashPromise(sampleType, sampleName)
+    .then((sampleObj) => {
+      if (!sampleObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      sampObjToReturn = sampleObj;
+    })
+    .then(() => {
+      cmds.push(redisOps.getHashCmd(aspectType, aspName));
+      cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
+      cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
+      cmds.push(redisOps.delHashCmd(sampleType, sampleName));
+
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((response) => {
+      const asp = response[ZERO];
+
+      // attach aspect and links to sample
+      const resSampAsp = cleanAddAspectToSample(sampObjToReturn, asp);
+      resSampAsp.isDeleted = Date.now();
+      return resSampAsp;
+    });
+  },
+
+  /**
+   * Patch sample. First get sample, if not found, throw error, else get aspect.
+   * Update request body with required fields based on value and related links
+   * if needed. Update sample. Then get updated sample, attach aspect and return
+   * response. Note: Message body and message code will be updated if provided,
+   * else no fields for message body/message code in redis object.
+   * @param  {Object} params - Request parameters
+   * @returns {Promise} - Resolves to a sample object
+   */
+  patchSample(params) {
+    const sampleName = params.key.value;
+    const reqBody = params.queryBody.value;
+    let currSampObj;
+    let aspectObj;
+
+    return redisOps.getHashPromise(sampleType, sampleName)
+    .then((sampObj) => {
+      if (!sampObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      currSampObj = sampObj;
+      const aspectName = sampleName.split('|')[ONE];
+      return redisOps.getHashPromise(aspectType, aspectName);
+    })
+    .then((aspObj) => {
+      if (!aspObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+      }
+
+      cleanQueryBodyObj(reqBody);
+      if (reqBody.value) {
+        aspectObj = sampleStore.arrayStringsToJson(
+          aspObj, constants.fieldsToStringify.aspect
+        );
+
+        const status = sampleUtils.computeStatus(aspObj, reqBody.value);
+        if (currSampObj[sampFields.STATUS] !== status) {
+          reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
+          reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+          reqBody[sampFields.STATUS] = status;
+        }
+
+        reqBody[sampFields.UPD_AT] = new Date().toString();
+      }
+
+      if (reqBody.relatedLinks) {
+        reqBody[sampFields.RLINKS] = reqBody.relatedLinks;
+      }
+
+      // stringify arrays
+      constants.fieldsToStringify.sample.forEach((field) => {
+        if (reqBody[field]) {
+          reqBody[field] = JSON.stringify(reqBody[field]);
+        }
+      });
+      return redisOps.setHashMultiPromise(sampleType, sampleName, reqBody);
+    })
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+  },
+
+  /**
+   * Post sample. First get subject from db, then get aspect from db, then try
+   * to get sample from Redis. Is sample found, throw error, else create
+   * sample. Update sample index and subject set as well.
+   * @param  {Object} params - Request parameters
+   * @returns {Promise} - Resolves to a sample object
+   */
+  postSample(params) {
+    const reqBody = params.queryBody.value;
+    let subject;
+    let sampleName;
+    let aspectObj;
+
+    return db.Subject.findById(reqBody.subjectId)
+    .then((subjFromDb) => {
+      if (!subjFromDb) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Subject not found.',
+        });
+      }
+
+      subject = subjFromDb;
+      return db.Aspect.findById(reqBody.aspectId);
+    })
+    .then((aspFromDb) => {
+      if (!aspFromDb || !aspFromDb.isPublished) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+      }
+
+      aspectObj = aspFromDb;
+      sampleName = subject.name + '|' + aspFromDb.name;
+      return redisOps.getHashPromise(sampleType, sampleName);
+    })
+    .then((sampFromRedis) => {
+      if (sampFromRedis) {
+        throw new redisErrors.ForbiddenError({
+          explanation: 'Sample already exists.',
+        });
+      }
+
+      cleanQueryBodyObj(reqBody); // remove extra fields
+      reqBody.name = sampleName; // set name
+
+      let value = '';
+      if (reqBody.value) {
+        value = reqBody.value;
+      }
+
+      // value and status
+      reqBody[sampFields.STATUS] = sampleUtils.computeStatus(aspectObj, value);
+      reqBody[sampFields.VALUE] = value;
+
+      if (reqBody.relatedLinks) { // related links
+        reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
+      } else {
+        reqBody[sampFields.RLINKS] = '[]';
+      }
+
+      // defaults
+      const dateNow = new Date().toString();
+      reqBody[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+      reqBody[sampFields.STS_CHNGED_AT] = dateNow;
+      reqBody[sampFields.UPD_AT] = dateNow;
+      reqBody[sampFields.CREATED_AT] = dateNow;
+      reqBody[sampFields.IS_DELETED] = '0';
+
+      const cmds = [];
+      cmds.push(redisOps.addAspectInSubjSetCmd(
+        subject.absolutePath, aspectObj.name)
+      );
+      cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+      cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then((updatedSamp) => {
+      const sampleRes = sampleStore.arrayStringsToJson(
+        updatedSamp, constants.fieldsToStringify.sample
+      );
+
+      // aspect is not attached to match existing behaviour
+      return sampleRes;
+    });
+  },
+
+  /**
+   * Put sample. First get sample, if not found, throw error, else get aspect.
+   * Update request body with required fields based on value and related links
+   * if needed. Delete message body and message code fields from hash
+   * if not provided because they will be null. Then update sample.
+   * @param  {Object} params - Request parameters
+   * @returns {Promise} - Resolves to a sample object
+   */
+  putSample(params) {
+    const sampleName = params.key.value;
+    const reqBody = params.queryBody.value;
+    let currSampObj;
+    let aspectObj;
+
+    return redisOps.getHashPromise(sampleType, sampleName)
+    .then((sampObj) => {
+      if (!sampObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      currSampObj = sampObj;
+      const aspectName = sampleName.split('|')[ONE];
+      return redisOps.getHashPromise(aspectType, aspectName);
+    })
+    .then((aspObj) => {
+      if (!aspObj) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+        });
+      }
+
+      cleanQueryBodyObj(reqBody);
+      let value = '';
+      if (reqBody.value) {
+        value = reqBody.value;
+      }
+
+      aspectObj = sampleStore.arrayStringsToJson(
+        aspObj, constants.fieldsToStringify.aspect
+      );
+
+      // change these only if status is updated
+      const status = sampleUtils.computeStatus(aspectObj, value);
+      if (currSampObj[sampFields.STATUS] !== status) {
+        reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
+        reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+        reqBody[sampFields.STATUS] = status;
+      }
+
+      // We have a value, so update value and updated_at always.
+      reqBody[sampFields.VALUE] = value;
+      reqBody[sampFields.UPD_AT] = new Date().toString();
+
+      if (reqBody.relatedLinks) { // related links
+        reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
+      } else {
+        reqBody[sampFields.RLINKS] = '[]';
+      }
+
+      const cmds = [];
+
+      // delete fields with future null value
+      if (!reqBody.messageBody) {
+        cmds.push(
+          redisOps.delHashFieldCmd(sampleType, sampleName, sampFields.MSG_BODY)
+        );
+      }
+
+      if (!reqBody.messageCode) {
+        cmds.push(
+          redisOps.delHashFieldCmd(sampleType, sampleName, sampFields.MSG_CODE)
+        );
+      }
+
+      cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+  },
 
   /**
    * Retrieves the sample from redis and sends it back in the response. Get

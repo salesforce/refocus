@@ -9,11 +9,13 @@
 /**
  * api/v1/helpers/verbs/doDelete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const featureToggles = require('feature-toggles');
+const constants = require('../../../../cache/sampleStore').constants;
+const redisModelSample = require('../../../../cache/models/samples');
 
 /**
  * Deletes a record and sends the deleted record back in the json response
@@ -26,11 +28,22 @@ const featureToggles = require('feature-toggles');
  *  resource type to delete.
  */
 function doDelete(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
-  u.findByKey(props, req.swagger.params)
-  .then((o) => u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission')))
-  .then((o) => o.destroy())
+  const resultObj = { reqStartTime: new Date() }; // for logging
+  let delPromise;
+  if (featureToggles.isFeatureEnabled(constants.featureName) &&
+   props.modelName === 'Sample') {
+    const sampleName = req.swagger.params.key.value.toLowerCase();
+    delPromise = redisModelSample.deleteSample(sampleName);
+  } else {
+    delPromise = u.findByKey(
+        props, req.swagger.params
+      )
+      .then((o) => u.isWritable(req, o,
+          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => o.destroy());
+  }
+
+  delPromise
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const assocNames = [];
@@ -47,13 +60,7 @@ function doDelete(req, res, next, props) {
 
     // when a resource is deleted, delete all its associations too
     u.deleteAllAssociations(o, assocNames);
-
-    // loop through remove values to delete property
-    if (props.fieldsToExclude) {
-      u.removeFieldsFromResponse(props.fieldsToExclude, o.dataValues);
-    }
-
-    u.logAPI(req, resultObj, o.dataValues);
+    u.logAPI(req, resultObj, o);
     return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
