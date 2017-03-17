@@ -195,9 +195,10 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        const { message, source } = res.body.errors[0];
-        expect(message).to.equal('Name of the relatedlinks should be unique');
-        expect(source).to.equal('relatedLinks');
+        const { source, description } = res.body.errors[0];
+        expect(description).to
+          .contain('Name of the relatedlinks should be unique');
+        expect(source).to.equal('Sample');
         done();
       });
     });
