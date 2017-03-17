@@ -106,18 +106,17 @@ function publishSample(sampleInst, model, event) {
   return model.findOne(options)
   .then((sub) => {
     if (sub) {
-
-      // attach subject to the sample
-      sample.subject = sub.get();
-
-      // attach absolutePath field to the sample
-      sample.absolutePath = subName;
-
       /*
        *pass the sample instance to the publishObject function only if the
        *aspect and subject are published
        */
-      if (sample.aspect.isPublished && sub.isPublished) {
+      if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
+
+        // attach subject to the sample
+        sample.subject = sub.get();
+
+        // attach absolutePath field to the sample
+        sample.absolutePath = subName;
 
         publishObject(sample, eventType);
       }

@@ -110,13 +110,6 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, (job, done) => {
   const dbStartTime = Date.now();
   sampleTimeoutJob.execute()
   .then((dbRes) => {
-    // send the timeoutsample to the client by publishing it to redis channel
-    if (dbRes && dbRes.timedOutSamples) {
-      dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, subHelper.model, sampleEvent.upd);
-      });
-    }
-
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const objToReturn = {};

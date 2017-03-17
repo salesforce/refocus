@@ -28,7 +28,7 @@ const ONE = 1;
  * @param  {Array} samples - Samples to be timedout
  * @param  {Hash} aspects - Aspects hash, name-> object
  * @param  {Date} curr - Current datetime
- * @returns {Object} - with with sampCmds and timedOutSamples properties.
+ * @returns {Object} - with sampCmds and timedOutSamples properties.
  * sampCmds contains the commands needed to timeout samples and timedOutSamples
  * contains the samples that needs to be timedout
  */
