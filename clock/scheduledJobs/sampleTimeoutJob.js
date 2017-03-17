@@ -14,6 +14,9 @@
  */
 const featureToggles = require('feature-toggles');
 const dbSample = require('../../db/index').Sample;
+const dbSubject = require('../../db/index').Subject;
+const publisher = require('../../realtime/redisPublisher');
+const sampleEvent = require('../../realtime/constants').events.sample;
 const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
 
 /**
@@ -22,11 +25,21 @@ const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
  * @returns {Promise}
  */
 function execute() {
-  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-    return sampleStoreTimeout.doTimeout();
-  }
+  const sampleHandle = featureToggles
+              .isFeatureEnabled('enableRedisSampleStore') ?
+              sampleStoreTimeout : dbSample;
 
-  return dbSample.doTimeout();
+  return sampleHandle.doTimeout()
+  .then((dbRes) => {
+    // send the timeoutsample to the client by publishing it to redis channel
+    if (dbRes.timedOutSamples) {
+      dbRes.timedOutSamples.forEach((sample) => {
+        publisher.publishSample(sample, dbSubject, sampleEvent.upd);
+      });
+    }
+
+    return Promise.resolve(dbRes);
+  });
 } // execute
 
 module.exports = {

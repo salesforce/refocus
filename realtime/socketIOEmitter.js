@@ -26,7 +26,7 @@ module.exports = (io, key, mssgObj) => {
 
   for (const nsp in io.nsps) {
     if (nsp && rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      // newObjectAsString contains {key: {new: obj }}
+      // newObjectAsString contains { key: {new: obj }}
       io.of(nsp).emit(key, newObjectAsString);
     }
   }

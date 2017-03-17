@@ -215,7 +215,8 @@ describe('enableWorkerLog: db: sample: timeout: ', () => {
     mockUpdatedAt.setMinutes(updatedAt.getMinutes() + fiveMinutes);
     Sample.doTimeout(mockUpdatedAt)
     .then((res) => {
-      expect(res).to.eql({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res).to.contains({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {

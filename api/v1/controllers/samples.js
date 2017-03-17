@@ -14,6 +14,7 @@
 const featureToggles = require('feature-toggles');
 
 const helper = require('../helpers/nouns/samples');
+const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -25,7 +26,8 @@ const httpStatus = require('../constants').httpStatus;
 const sampleStore = require('../../../cache/sampleStore');
 const constants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
-
+const publisher = u.publisher;
+const event = u.realtimeEvents;
 module.exports = {
 
   /**
@@ -168,6 +170,12 @@ module.exports = {
         u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
       }
 
+      /*
+       *send the upserted sample to the client by publishing it to the redis
+       *channel
+       */
+      publisher.publishSample(samp, subHelper.model);
+
       u.logAPI(req, resultObj, dataValues);
       return res.status(httpStatus.OK)
         .json(u.responsify(samp, helper, req.method));
@@ -206,10 +214,23 @@ module.exports = {
 
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
-      } else if (featureToggles.isFeatureEnabled(constants.featureName)) {
-        redisModelSample.bulkUpsertSample(value);
       } else {
+        const bulkUpsertPromise =
+        featureToggles.isFeatureEnabled(constants.featureName) ?
+        redisModelSample.bulkUpsertSample(value) :
         helper.model.bulkUpsertByName(value, userName);
+
+        /*
+         *send the upserted sample to the client by publishing it to the redis
+         *channel
+         */
+        bulkUpsertPromise.then((samples) => {
+          samples.forEach((sample) => {
+            if (!sample.isFailed) {
+              publisher.publishSample(sample, subHelper.model);
+            }
+          });
+        });
       }
     });
 
