@@ -119,7 +119,7 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     });
   });
 
-  it('error if tag not found', (done) => {
+  it('no error if tag not found, no update on tags', (done) => {
     api.delete(oneDeletePath.replace('{key}', aspId).replace('{akey}', 'x'))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

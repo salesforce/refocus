@@ -78,7 +78,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(ZERO);
       redisOps.getHashPromise(objectType.aspect, n.name)
       .then((aspect) => {
-        expect(JSON.parse(aspect.relatedLinks)).to.have.length(0);
+        expect(JSON.parse(aspect.relatedLinks)).to.have.length(ZERO);
         done();
       });
     });
