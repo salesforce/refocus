@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
+const publisher = u.publisher;
+const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
@@ -47,6 +49,13 @@ function doPost(req, res, next, props) {
   postPromise.then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
+
+    // publish the update event to the redis channel
+    if (props.publishEvents) {
+      publisher.publishSample(o, props.associatedModels.subject,
+        event.sample.add, props.associatedModels.aspect);
+    }
+
     return res.status(httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   })

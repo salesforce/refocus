@@ -224,8 +224,10 @@ module.exports = function sample(seq, dataTypes) {
           .then((o) => resolve(o))
           .catch((err) => {
             if (isBulk) {
-              /* adding isFailed:true to differentiate failed results from
-               success results in bulk upsert */
+              /*
+               * adding isFailed:true to differentiate failed results from
+               * success results in bulk upsert
+              */
               resolve({ explanation: err, isFailed: true });
             } else {
               reject(err);
@@ -318,52 +320,6 @@ module.exports = function sample(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
-
-      /**
-       * Publishes the created sample to redis channel *including* the values
-       * from its aspect association.
-       *
-       * @param {Sample} inst - The newly-created instance
-       */
-      afterCreate(inst /* , opts */) {
-        let samp;
-        Sample.findOne({
-          where: {
-            name: {
-              $iLike: inst.getDataValue('name'),
-            },
-          },
-        })
-        .then((found) => {
-          samp = found;
-          return common.sampleAspectAndSubjectArePublished(seq, samp);
-        })
-        .then((published) => {
-          if (published) {
-            // augment the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectAspectInfo(seq, samp)
-            .then(() => common.publishChange(samp, eventName.add));
-          }
-        });
-      },
-
-      /**
-       * Publishes the delete to redis subscriber
-       *
-       * @param {Sample} inst - The Sample instance which was just deleted
-       */
-      afterDelete(inst /* , opts */) {
-        return common.sampleAspectAndSubjectArePublished(seq, inst)
-        .then((published) => {
-          if (published) {
-            // augument the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectAspectInfo(seq, inst)
-            .then(() => common.publishChange(inst, eventName.del));
-          }
-        });
-      }, // hooks.afterDelete
 
       /**
        * Update isDeleted.
