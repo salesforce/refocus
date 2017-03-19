@@ -146,18 +146,15 @@ module.exports = {
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
-      let upsertSamplePromise;
-      if (featureToggles.isFeatureEnabled(constants.featureName)) {
-        if (sampleQueryBody.relatedLinks) {
-          u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
-        }
-
-        upsertSamplePromise = redisModelSample.upsertSample(sampleQueryBody);
-      } else {
-        upsertSamplePromise = helper.model.upsertByName(
-          sampleQueryBody, userName
-        );
+      if (sampleQueryBody.relatedLinks) {
+        u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
       }
+
+      const upsertSamplePromise =
+          featureToggles.isFeatureEnabled(constants.featureName) ?
+          redisModelSample.upsertSample(
+              sampleQueryBody, userName) :
+          helper.model.upsertByName(sampleQueryBody, userName);
 
       return upsertSamplePromise;
     })
@@ -217,7 +214,7 @@ module.exports = {
       } else {
         const bulkUpsertPromise =
         featureToggles.isFeatureEnabled(constants.featureName) ?
-        redisModelSample.bulkUpsertSample(value) :
+        redisModelSample.bulkUpsertSample(value, userName) :
         helper.model.bulkUpsertByName(value, userName);
 
         /*

@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../../api/v1/helpers/nouns/samples');
+const aspectHelper = require('../../api/v1/helpers/nouns/aspects');
 const u = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
@@ -27,6 +28,8 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const subjectType = redisOps.subjectType;
+const featureToggles = require('feature-toggles');
+
 const sampFields = {
   MSG_BODY: 'messageBody',
   MSG_CODE: 'messageCode',
@@ -365,9 +368,10 @@ function handleUpsertError(objectType, isBulk) {
  * else creates a new one.
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
+ * @param {String} userName - The user performing the write operation
  * @returns {Object} - Updated sample
  */
-function upsertOneSample(sampleQueryBodyObj, isBulk) {
+function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   const sampleName = sampleQueryBodyObj.name;
   const subjAspArr = sampleName.toLowerCase().split('|');
 
@@ -383,26 +387,50 @@ function upsertOneSample(sampleQueryBodyObj, isBulk) {
     return Promise.reject(err);
   }
 
+  const aspectName = subjAspArr[ONE];
+  const hasWritePerm = featureToggles
+                        .isFeatureEnabled('enforceWritePermission') ?
+                        sampleStore.isSampleWritable(aspectHelper.model,
+                          aspectName, userName) : Promise.resolve(true);
+
   const subjKey = sampleStore.toKey(
     constants.objectType.subject, subjAspArr[ZERO]
   );
   const sampleKey = sampleStore.toKey(
     constants.objectType.sample, sampleName
   );
-  const aspectName = subjAspArr[ONE];
   let aspectObj;
 
-  // if any of the promise errors, the subsequent promise does not process and
-  // error is returned, else sample is returned
-  return Promise.all([
-    redisClient.sismemberAsync(constants.indexKey.subject, subjKey),
-    redisClient.hgetallAsync(
+  return hasWritePerm
+  .then((ok) => {
+    // reject the promise if the user does not have write permission
+    if (!ok) {
+      const err = new redisErrors.UpdateDeleteForbidden({
+        explanation: `The user: ${userName}, does not have write permission` +
+          ` on the sample: ${sampleName}`,
+      });
+      if (isBulk) {
+        return Promise.reject({ isFailed: true, explanation: err });
+      }
+
+      return Promise.reject(err);
+    }
+
+    /*
+     * if any of the promise errors, the subsequent promise does not process and
+     * error is returned, else sample is returned
+     */
+    return Promise.all([
+      redisClient.sismemberAsync(constants.indexKey.subject, subjKey),
+      redisClient.hgetallAsync(
       sampleStore.toKey(constants.objectType.aspect, aspectName)
-    ),
-    redisClient.hgetallAsync(sampleKey),
-  ])
+      ),
+      redisClient.hgetallAsync(sampleKey),
+    ]);
+  })
   .then((responses) => {
     const [isSubjPresent, aspect, sample] = responses;
+
     if (!isSubjPresent) {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
@@ -928,20 +956,22 @@ module.exports = {
   /**
    * Upsert sample in Redis.
    * @param  {Object} qbObj - Query body object
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSample(qbObj) {
-    return upsertOneSample(qbObj);
+  upsertSample(qbObj, userName) {
+    return upsertOneSample(qbObj, false, userName);
   },
 
   /**
    * Upsert multiple samples in Redis.
    * @param  {Object} sampleQueryBody - Query body object
+   * @param {String} userName - The user performing the write operation
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertSample(sampleQueryBody) {
+  bulkUpsertSample(sampleQueryBody, userName) {
     const promises = sampleQueryBody.map(
-      (sampleReq) => upsertOneSample(sampleReq, true)
+      (sampleReq) => upsertOneSample(sampleReq, true, userName)
     );
 
     return Promise.all(promises);
