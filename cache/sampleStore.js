@@ -132,6 +132,21 @@ function cleanSample(s) {
   return retval;
 } // cleanSample
 
+/**
+ * Checks if the aspect corresponding to a sample is writable by the given user.
+ *
+ * @param  {Model}  aspectModel - The model object
+ * @param  {String}  aspectName  - The name of the aspect
+ * @param  {String}  userName  - The user name
+ * @returns {Boolean} - returns true if the sample is writable by the given user
+ */
+function isSampleWritable(aspectModel, aspectName, userName) {
+  const options = {};
+  options.where = { name: { $iLike: aspectName } };
+  return aspectModel.findOne(options)
+  .then((aspect) => Promise.resolve(aspect.isWritableBy(userName)));
+} // isSampleWritable
+
 module.exports = {
   cleanAspect,
   cleanSample,
@@ -139,4 +154,5 @@ module.exports = {
   toKey,
   arrayStringsToJson,
   getNameFromKey,
+  isSampleWritable,
 };

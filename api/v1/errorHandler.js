@@ -17,6 +17,7 @@ const util = require('util');
 const apiErrors = require('./apiErrors');
 const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
+const cacheErrors = require('../../cache/redisErrors');
 
 /**
  * Indicates whether the error is an API error as defined by our apiErrors
@@ -51,6 +52,17 @@ function isDbError(err) {
   err instanceof dbErrors.SubjectDeleteConstraintError ||
   err instanceof dbErrors.ResourceNotFoundError ||
   err instanceof dbErrors.CreateConstraintError;
+}
+
+/**
+ * Indicates whether the error is a Cache error as defined by our cacheErrors
+ * module.
+ *
+ * @param {Error} err - The error to test
+ * @returns {Boolean} true if err is defined as one of our Cache errors
+ */
+function isCacheError(err) {
+  return err instanceof cacheErrors.UpdateDeleteForbidden;
 }
 
 /**
@@ -106,7 +118,7 @@ module.exports = function errorHandler(err, req, res, next) {
 
   try {
     const errResponse = constructError(err);
-    if (!isApiError(err) && !isDbError(err)) {
+    if (!isApiError(err) && !isDbError(err) && !isCacheError(err)) {
       if (/Route defined in Swagger specification.*/.test(err.message)) {
         err.status = constants.httpStatus.NOT_ALLOWED;
       } else if (err.name === 'SequelizeUniqueConstraintError') {
