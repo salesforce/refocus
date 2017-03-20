@@ -138,5 +138,4 @@ describe('redis Publisher', () => {
       .catch(done);
     });
   });
-
 });

@@ -81,7 +81,6 @@ function doPut(req, res, next, props) {
     // publish the update event to the redis channel
     if (props.publishEvents) {
       publisher.publishSample(o, props.associatedModels.subject,
-
        event.sample.upd);
     }
 
