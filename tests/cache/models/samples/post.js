@@ -41,7 +41,24 @@ describe(`api: redisStore: POST ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.doSetup()
+    new tu.db.Sequelize.Promise((resolve, reject) => {
+      const samp = { value: '1' };
+      tu.db.Aspect.create(u.aspectToCreate)
+      .then((a) => {
+        samp.aspectId = a.id;
+        return tu.db.Subject.create(u.subjectToCreate);
+      })
+      .then((s) => tu.db.Subject.create({
+        isPublished: true,
+        name: `${tu.namePrefix}CHILD_SUBJECT`,
+        parentId: s.id,
+      }))
+      .then((s) => {
+        samp.subjectId = s.id;
+        resolve(samp);
+      })
+      .catch((err) => reject(err));
+    })
     .then((samp) => {
       sampleToPost = samp;
       return samstoinit.eradicate();
@@ -116,6 +133,9 @@ describe(`api: redisStore: POST ${path}`, () => {
         throw new Error('Incorrect Status Value');
       }
 
+      const samplename = `${tu.namePrefix}TEST_SUBJECT` + '.' +
+      `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
+      expect(res.body.name).to.be.equal(samplename);
       done();
     });
   });
