@@ -683,7 +683,7 @@ module.exports = {
       }
 
       aspectObj = aspFromDb;
-      sampleName = subject.name + '|' + aspFromDb.name;
+      sampleName = subject.absolutePath + '|' + aspFromDb.name;
       return redisOps.getHashPromise(sampleType, sampleName);
     })
     .then((sampFromRedis) => {
