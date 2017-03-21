@@ -214,7 +214,7 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('posting with readOnly fields should fail', (done) => {
+    it('posting with readOnly field hierarchyLevel should fail', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({ name: n0.name, hierarchyLevel: 100 })
@@ -226,6 +226,70 @@ describe(`api: POST ${path}`, () => {
         expect(res.body.errors[0].description).to
         .contain('You cannot modify the read-only field');
         done();
+      });
+    });
+
+    it('posting with readOnly field absolutePath should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n0.name, absolutePath: 'test' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: absolutePath');
+        return done();
+      });
+    });
+
+    it('posting with readOnly field childCount should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n0.name, childCount: 2 })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: childCount');
+        return done();
+      });
+    });
+
+    it('posting with readOnly field id should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n0.name, id: 'abcd1234' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: id');
+        return done();
+      });
+    });
+
+    it('posting with readOnly field isDeleted should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n0.name, isDeleted: 0 })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: isDeleted');
+        return done();
       });
     });
 

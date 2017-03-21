@@ -41,5 +41,8 @@ module.exports = {
     aspect: Aspect,
     subject: Subject,
   },
-
+  readOnlyFields: [
+    'id', 'isDeleted', 'status', 'previousStatus',
+    'statusChangedAt', 'createdAt', 'updatedAt',
+  ],
 }; // exports
