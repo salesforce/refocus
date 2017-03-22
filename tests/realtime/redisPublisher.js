@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/realtime/setupSocketIO.js
+ * tests/realtime/redisPublisher.js
  */
 'use strict';
 
@@ -81,6 +81,29 @@ describe('redis Publisher', () => {
       })
       .catch(done);
     });
+
+    it('when tried to publish sample without aspect,'+
+      ' aspect should be attached', (done) => {
+      Sample.findById(sampId)
+      .then((sam) => {
+        const sampInst = sam.get();
+        delete sampInst.aspect;
+        return publisher.publishSample(sam, Subject, sampleEvent.upd, Aspect);
+      })
+      .then((pubObj) => {
+        expect(pubObj.aspect).to.not.equal(null);
+        expect(pubObj.aspect.name).to.equal(humidity.name);
+        expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.subject).to.not.equal(null);
+        expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.tags.length).to.equal(0);
+        expect(pubObj.absolutePath).to.equal(subjectNA.name);
+        expect(pubObj.aspect.tags.length).to.equal(0);
+
+        done();
+      })
+      .catch(done);
+    });
   });
 
   describe('getSampleEventType function tests: ', () => {
@@ -115,5 +138,4 @@ describe('redis Publisher', () => {
       .catch(done);
     });
   });
-
 });

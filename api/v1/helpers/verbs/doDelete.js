@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
+const publisher = u.publisher;
+const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
 const featureToggles = require('feature-toggles');
 const constants = require('../../../../cache/sampleStore').constants;
@@ -56,6 +58,12 @@ function doDelete(req, res, next, props) {
       Object.keys(props.belongsToManyAssoc)
       .forEach((key) => assocNames.push(props.belongsToManyAssoc[key])
     );
+    }
+
+    // publish the delete event to the redis channel
+    if (props.publishEvents) {
+      publisher.publishSample(o, props.associatedModels.subject,
+          event.sample.del);
     }
 
     // when a resource is deleted, delete all its associations too
