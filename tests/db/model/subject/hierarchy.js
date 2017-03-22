@@ -178,6 +178,28 @@ describe('db: subject: get hierarchy: ', () => {
     .catch(done);
   });
 
+  it('using "subject hierarchy" scope: sample should not be ' +
+    ' included in any level of the hierarchy', (done) => {
+    Subject.scope('subjectHierarchy').findById(ipar)
+    .then((o) => {
+      const gp = o.get({ plain: true });
+      expect(gp).to.not.have.property('samples');
+      expect(gp.children).to.have.length(1);
+      expect(gp.childCount).to.equal(1);
+      const pa = gp.children[0].get();
+      expect(pa.children).to.have.length(1);
+      expect(pa.childCount).to.equal(1);
+      expect(pa).to.not.have.property('samples');
+      const ch = pa.children[0].get();
+      expect(ch.parentAbsolutePath).to.equal(pa.absolutePath);
+      expect(ch.childCount).to.equal(0);
+      expect(ch).to.not.have.property('children');
+      expect(ch).to.not.have.property('samples');
+      done();
+    })
+    .catch(done);
+  });
+
   describe('db: subject: get hierarchy: with children', () => {
     const howManyChildren = 7;
 
