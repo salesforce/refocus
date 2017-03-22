@@ -21,6 +21,11 @@ const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
                     .constants.objectType;
 const expect = require('chai').expect;
+const u = require('./utils');
+const allDeletePath = '/v1/samples/{key}/relatedLinks';
+const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const Sample = tu.db.Sample;
 const ZERO = 0;
 
 describe(`api: redisStore: DELETE ${path}`, () => {
@@ -96,6 +101,102 @@ describe(`api: redisStore: DELETE ${path}`, () => {
       }
 
       expect(res.body.name).to.equal(sampleName);
+      done();
+    });
+  });
+});
+
+describe('api: redisStore: samples: DELETE RelatedLinks', () => {
+  let token;
+  let sampleName;
+
+  before((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  beforeEach((done) => {
+    u.doSetup()
+    .then((samp) => {
+      samp.relatedLinks = [
+        {
+          name: 'rlink0',
+          url: 'https://samples.com',
+        },
+        {
+          name: 'rlink1',
+          url: 'https://samples.com',
+        },
+      ];
+      return Sample.create(
+        samp
+      );
+    })
+    .then((samp) => {
+      sampleName = samp.name;
+      return samstoinit.eradicate();
+    })
+    .then(() => samstoinit.init())
+    .then(() => done())
+    .catch((err) => done(err));
+  });
+
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  it('delete all related links', (done) => {
+    api.delete(allDeletePath.replace('{key}', sampleName))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.relatedLinks).to.have.length(ZERO);
+      done();
+    });
+  });
+
+  it('delete one relatedLink', (done) => {
+    api.delete(
+      oneDeletePath.replace('{key}', sampleName).replace('{akey}', 'rlink0')
+    )
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks)
+        .to.have.deep.property('[0].name', 'rlink1');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('delete related link by name', (done) => {
+    api.delete(oneDeletePath.replace('{key}', sampleName)
+      .replace('{akey}', 'rlink0'))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.relatedLinks).to.have.length(1);
+      expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
       done();
     });
   });
