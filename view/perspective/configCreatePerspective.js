@@ -123,7 +123,6 @@ function getConfig(values, key, value) {
   let config = {
     title: key,
     options,
-    showSearchIcon: false,
   };
 
   if (key === 'subjects') {
