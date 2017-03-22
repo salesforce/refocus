@@ -206,6 +206,22 @@ module.exports = function subject(seq, dataTypes) {
             },
           ],
         });
+        Subject.addScope('subjectHierarchy', {
+          where: {
+            isPublished: true,
+          },
+          include: [
+            {
+              model: models.Subject,
+              as: 'descendents',
+              hierarchy: true,
+              required: false,
+              where: {
+                isPublished: true,
+              },
+            },
+          ],
+        });
       },
     },
     hooks: {

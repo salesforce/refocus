@@ -159,6 +159,7 @@ module.exports = {
   fieldScopeMap: {
     samples: 'withSamples',
     hierarchy: 'hierarchy',
+    subjectHierarchy: 'subjectHierarchy',
   },
   model: Subject,
   modelName: 'Subject',

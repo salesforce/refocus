@@ -225,7 +225,7 @@ module.exports = {
 
     const findByKeyPromise =
       featureToggles.isFeatureEnabled(sampleStoreFeature) ?
-            u.findByKey(helper, params, ['hierarchy']) :
+            u.findByKey(helper, params, ['subjectHierarchy']) :
               u.findByKey(helper, params, ['hierarchy', 'samples']);
     findByKeyPromise
     .then((o) => {
