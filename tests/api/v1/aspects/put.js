@@ -9,7 +9,7 @@
 /**
  * tests/api/v1/aspects/put.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -181,6 +181,46 @@ describe(`api: PUT ${path}`, () => {
 
         done();
       });
+    });
+  });
+
+  it('put with readOnly field id should fail', (done) => {
+    api.put(`${path}/${aspectId}`)
+    .set('Authorization', token)
+    .send({
+      name: `${tu.namePrefix}newName`,
+      timeout: '220s',
+      id: 'abcd1234',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: id');
+      return done();
+    });
+  });
+
+  it('put with readOnly field isDeleted should fail', (done) => {
+    api.put(`${path}/${aspectId}`)
+    .set('Authorization', token)
+    .send({
+      name: `${tu.namePrefix}newName`,
+      timeout: '220s',
+      isDeleted: 0,
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: isDeleted');
+      return done();
     });
   });
 

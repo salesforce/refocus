@@ -42,4 +42,5 @@ module.exports = {
   fieldsWithJsonArrayType,
   fieldsWithEnum,
   tagFilterName: 'tags',
+  readOnlyFields: ['id', 'isDeleted'],
 }; // exports

@@ -55,6 +55,16 @@ function validateTags(requestBody, params) {
   }
 }
 
+/**
+ * Validates the aspect request coming in and throws an error if the request
+ * does not pass the validation.
+ * @param  {Object} req - The request object
+ */
+function validateRequest(req) {
+  utils.noReadOnlyFieldsInReq(req, helper);
+  validateTags(req.body);
+} // validateRequest
+
 module.exports = {
 
   /**
@@ -184,7 +194,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchAspect(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPatch(req, res, next, helper);
   },
 
@@ -198,7 +208,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postAspect(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPost(req, res, next, helper);
   },
 
@@ -213,7 +223,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putAspect(req, res, next) {
-    validateTags(req.body);
+    validateRequest(req);
     doPut(req, res, next, helper);
   },
 

@@ -193,6 +193,58 @@ describe('api: POST ' + path, () => {
     });
   });
 
+  it('upsert with readOnly field status should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '2',
+        status: 'Invalid',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '4',
+        statusChangedAt: new Date().toString(),
+      },
+    ])
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: status');
+      return done();
+    });
+  });
+
+  it('upsert with readOnly field statusChangedAt should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '2',
+        statusChangedAt: new Date().toString(),
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '4',
+        updatedAt: new Date().toString(),
+      },
+    ])
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: statusChangedAt');
+      return done();
+    });
+  });
+
   describe('upsert bulk when sample already exists', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)

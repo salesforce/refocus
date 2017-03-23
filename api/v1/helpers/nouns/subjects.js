@@ -173,5 +173,7 @@ module.exports = {
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
   tagFilterName: 'tags',
-  readOnlyFields: ['hierarchyLevel'],
+  readOnlyFields: [
+    'hierarchyLevel', 'absolutePath', 'childCount', 'id', 'isDeleted',
+  ],
 }; // exports

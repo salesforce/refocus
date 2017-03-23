@@ -9,7 +9,7 @@
 /**
  * tests/api/v1/subjects/patch.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -522,26 +522,6 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('patch subject with absolutePath', (done) => {
-    const toPatch = {
-      absolutePath: 'test',
-      isPublished: p1.isPublished,
-      name: p1.name,
-    };
-    api.patch(`${path}/${i1}`)
-    .set('Authorization', token)
-    .send(toPatch)
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .expect(/SubjectValidationError/)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
-
   it('geolocation array must not contain null elements while patching',
   (done) => {
     const toPatch = {
@@ -655,7 +635,7 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('patching readOnly fields should fail', (done) => {
+  it('patching readOnly field hierarchyLevel should fail', (done) => {
     const toPatch = {
       isPublished: p1.isPublished,
       name: p1.name,
@@ -667,6 +647,83 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       return err ? done(err) : done();
+    });
+  });
+
+  it('patching readOnly field absolutePath should fail', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      absolutePath: 'test',
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      expect(res.body.errors[0].description).to.be.equal(
+        'You cannot modify the read-only field: absolutePath'
+      );
+      return err ? done(err) : done();
+    });
+  });
+
+  it('patching readOnly field childCount should fail', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      childCount: 2,
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      expect(res.body.errors[0].description).to.be.equal(
+        'You cannot modify the read-only field: childCount'
+      );
+      return err ? done(err) : done();
+    });
+  });
+
+  it('patching readOnly field id should fail', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      id: 'abcdef',
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      expect(res.body.errors[0].description).to.be.equal(
+        'You cannot modify the read-only field: id'
+      );
+      return err ? done(err) : done();
+    });
+  });
+
+  it('patching readOnly field isDeleted should fail', (done) => {
+    const toPatch = {
+      isPublished: p1.isPublished,
+      name: p1.name,
+      isDeleted: 0,
+    };
+    api.patch(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPatch)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to.be.equal(
+        'You cannot modify the read-only field: isDeleted'
+      );
+
+      done();
     });
   });
 });

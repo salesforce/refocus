@@ -215,6 +215,57 @@ describe(`api: POST ${path}`, () => {
       done();
     });
   });
+
+  it('posting with readOnly field previousStatus should fail', (done) => {
+    sampleToPost.previousStatus = 'Invalid';
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: previousStatus');
+      return done();
+    });
+  });
+
+  it('posting with readOnly field id should fail', (done) => {
+    sampleToPost.id = 'abcd1234';
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: id');
+      return done();
+    });
+  });
+
+  it('posting with readOnly field updatedAt should fail', (done) => {
+    sampleToPost.updatedAt = new Date().toString();
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: updatedAt');
+      return done();
+    });
+  });
 });
 
 describe(`api: POST ${path} aspect isPublished false`, () => {

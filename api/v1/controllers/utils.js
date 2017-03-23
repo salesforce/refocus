@@ -9,6 +9,7 @@
 /**
  * api/v1/controllers/utils.js
  */
+const apiErrors = require('../apiErrors');
 const ZERO = 0;
 const ONE = 1;
 
@@ -44,6 +45,43 @@ function hasDuplicates(tagsArr) {
   return false;
 }
 
+/**
+ * Check if read only field exists in given object
+ * @param  {String} field - Field name
+ * @param  {Object} obj - Request object
+ * @throws {Object} - Throws validation error is field exists
+ */
+function checkReadOnlyFieldInObj(field, obj) {
+  if (obj.hasOwnProperty(field)) {
+    throw new apiErrors.ValidationError(
+      { explanation: `You cannot modify the read-only field: ${field}` }
+    );
+  }
+}
+
+/**
+ * Throws a validation error if the read-only fields are found in the request.
+ * @param  {Object} req - The request object
+ * @param  {Object} props - The module containing the properties of the
+ *  resource type.
+ */
+function noReadOnlyFieldsInReq(req, props) {
+  const requestBody = req.body;
+  if (props.readOnlyFields) {
+    props.readOnlyFields.forEach((field) => {
+      // if request body is an array, check each object in array.
+      if (Array.isArray(requestBody)) {
+        requestBody.forEach((reqObj) => {
+          checkReadOnlyFieldInObj(field, reqObj);
+        });
+      } else {
+        checkReadOnlyFieldInObj(field, requestBody);
+      }
+    });
+  }
+} // noReadOnlyFieldsInReq
+
 module.exports = {
   hasDuplicates,
+  noReadOnlyFieldsInReq,
 };
