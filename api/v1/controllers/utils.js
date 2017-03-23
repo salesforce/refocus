@@ -70,8 +70,7 @@ function noReadOnlyFieldsInReq(req, props) {
   if (props.readOnlyFields) {
     props.readOnlyFields.forEach((field) => {
       // if request body is an array, check each object in array.
-      if (typeof requestBody !== 'undefined' &&
-            requestBody && requestBody.constructor === Array) {
+      if (Array.isArray(requestBody)) {
         requestBody.forEach((reqObj) => {
           checkReadOnlyFieldInObj(field, reqObj);
         });
