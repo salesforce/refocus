@@ -13,6 +13,8 @@
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
+const publisher = u.publisher;
+const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
@@ -75,6 +77,13 @@ function doPut(req, res, next, props) {
   putPromise.then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
+
+    // publish the update event to the redis channel
+    if (props.publishEvents) {
+      publisher.publishSample(o, props.associatedModels.subject,
+       event.sample.upd);
+    }
+
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));

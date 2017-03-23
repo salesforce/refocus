@@ -250,19 +250,26 @@ module.exports = {
   deleteSampleRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
-    u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
-    .then((o) => {
-      let jsonData = [];
-      if (params.relName) {
-        jsonData =
-          u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
-      }
+    let delRlinksPromise;
+    if (featureToggles.isFeatureEnabled(constants.featureName) &&
+     helper.modelName === 'Sample') {
+      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params);
+    } else {
+      delRlinksPromise = u.findByKey(helper, params)
+        .then((o) => u.isWritable(req, o,
+            featureToggles.isFeatureEnabled('enforceWritePermission')))
+        .then((o) => {
+          let jsonData = [];
+          if (params.relName) {
+            jsonData =
+              u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
+          }
 
-      return o.update({ relatedLinks: jsonData });
-    })
-    .then((o) => {
+          return o.update({ relatedLinks: jsonData });
+        });
+    }
+
+    delRlinksPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
 

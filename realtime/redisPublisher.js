@@ -92,32 +92,49 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
  * @param  {Object} sampleInst - The sample instance to be published
- * @param  {Model} model - The subject model used to get the related subject
- * instance
+ * @param  {Model} subjectModel - The subject model to get the related
+ * subject instance
  * @param  {String} event  - Type of the event that is being published
+ * @param  {Model} aspectModel  - The aspect model to get the related
+ * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, model, event) {
+function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
   const sample = sampleInst.get ? sampleInst.get() : sampleInst;
-  const subName = sample.name.split('|')[0];
-  const options = {};
-  options.where = { absolutePath: subName };
-  return model.findOne(options)
+  const nameParts = sample.name.split('|');
+  const subName = nameParts[0];
+  const aspName = nameParts[1];
+  const subOpts = {
+    where: {
+      absolutePath: subName,
+    },
+  };
+  const aspOpts = {
+    where: {
+      name: aspName,
+    },
+  };
+  const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
+                            Promise.resolve(sample.aspect);
+  return getAspect
+  .then((asp) => {
+    sample.aspect = asp.get ? asp.get() : asp;
+    return subjectModel.findOne(subOpts);
+  })
   .then((sub) => {
     if (sub) {
+
       /*
        *pass the sample instance to the publishObject function only if the
        *aspect and subject are published
        */
       if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
-
         // attach subject to the sample
         sample.subject = sub.get();
 
         // attach absolutePath field to the sample
         sample.absolutePath = subName;
-
         publishObject(sample, eventType);
       }
     }
