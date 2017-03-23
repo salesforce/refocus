@@ -9,7 +9,7 @@
 /**
  * tests/api/v1/aspects/post.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -46,6 +46,48 @@ describe(`api: POST ${path}`, () => {
       }
 
       done();
+    });
+  });
+
+  it('posting with readOnly field id should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: true,
+      timeout: '110s',
+      id: 'abcd1234',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: id');
+      return done();
+    });
+  });
+
+  it('posting with readOnly field isDeleted should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: true,
+      timeout: '110s',
+      isDeleted: 0,
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: isDeleted');
+      return done();
     });
   });
 

@@ -221,7 +221,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  it('put subject with a read-only field', (done) => {
+  it('put subject with a read-only field hierarchyLevel', (done) => {
     const toPut = {
       name: `${tu.namePrefix}newName`,
       isPublished: true,
@@ -236,7 +236,87 @@ describe(`api: PUT ${path}`, () => {
         done(err);
       }
       expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field');
+      .contain('You cannot modify the read-only field: hierarchyLevel');
+      done();
+    });
+  });
+
+  it('put subject with a read-only field absolutePath', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      absolutePath: 'test',
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: absolutePath');
+      done();
+    });
+  });
+
+  it('put subject with a read-only field childCount', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      childCount: 2,
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: childCount');
+      done();
+    });
+  });
+
+  it('put subject with a read-only field id', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      id: 'abc123',
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: id');
+      done();
+    });
+  });
+
+  it('put subject with a read-only field isDeleted', (done) => {
+    const toPut = {
+      name: `${tu.namePrefix}newName`,
+      isPublished: true,
+      isDeleted: 0,
+    };
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: isDeleted');
       done();
     });
   });
@@ -538,25 +618,6 @@ describe('api: PUT subjects with tags', () => {
       expect(res.body.tags).to.have.length(ONE);
       expect(res.body.tags).to.deep.equal(toPut.tags);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
-
-  it('put subject with absolutePath', (done) => {
-    const toPut = {
-      name: `${tu.namePrefix}newName`,
-      absolutePath: 'test',
-    };
-    api.put(`${path}/${subjectId}`)
-    .set('Authorization', token)
-    .send(toPut)
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .expect(/SubjectValidationError/)
     .end((err /* , res */) => {
       if (err) {
         done(err);

@@ -26,8 +26,8 @@ const httpStatus = require('../constants').httpStatus;
 const sampleStore = require('../../../cache/sampleStore');
 const constants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
+const utils = require('./utils');
 const publisher = u.publisher;
-const event = u.realtimeEvents;
 module.exports = {
 
   /**
@@ -98,6 +98,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSample(req, res, next) {
+    utils.noReadOnlyFieldsInReq(req, helper);
     doPatch(req, res, next, helper);
   },
 
@@ -111,6 +112,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
+    utils.noReadOnlyFieldsInReq(req, helper);
     doPost(req, res, next, helper);
   },
 
@@ -125,6 +127,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSample(req, res, next) {
+    utils.noReadOnlyFieldsInReq(req, helper);
     doPut(req, res, next, helper);
   },
 
@@ -140,6 +143,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
+    utils.noReadOnlyFieldsInReq(req, helper);
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
@@ -193,6 +197,7 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
+    utils.noReadOnlyFieldsInReq(req, helper);
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;

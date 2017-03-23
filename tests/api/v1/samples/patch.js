@@ -262,6 +262,82 @@ describe(`api: PATCH ${path}`, () => {
         done();
       });
     });
+
+    it('patching with readOnly field id should fail', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({
+        value: '2',
+        id: 'abc123',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: id');
+        return done();
+      });
+    });
+
+    it('patching with readOnly field status should fail', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({
+        value: '2',
+        status: 'Invalid',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: status');
+        return done();
+      });
+    });
+
+    it('patching with readOnly field previousStatus should fail', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({
+        value: '2',
+        previousStatus: 'Invalid',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: previousStatus');
+        return done();
+      });
+    });
+
+    it('patching with readOnly field statusChangedAt should fail', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({
+        value: '2',
+        statusChangedAt: new Date().toString(),
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: statusChangedAt');
+        return done();
+      });
+    });
   });
 });
 

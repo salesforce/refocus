@@ -96,6 +96,54 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
+  it('put with readOnly field isDeleted should fail', (done) => {
+    api.put(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ subjectId, aspectId, isDeleted: 0 })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: isDeleted');
+      return done();
+    });
+  });
+
+  it('put with readOnly field createdAt should fail', (done) => {
+    api.put(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ subjectId, aspectId, createdAt: new Date().toString() })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: createdAt');
+      return done();
+    });
+  });
+
+  it('put with readOnly field previousStatus should fail', (done) => {
+    api.put(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ subjectId, aspectId, previousStatus: 'Invalid' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).to
+      .contain('You cannot modify the read-only field: previousStatus');
+      return done();
+    });
+  });
+
   it('put does not return id', (done) => {
     api.put(`${path}/${sampleName}`)
     .set('Authorization', token)

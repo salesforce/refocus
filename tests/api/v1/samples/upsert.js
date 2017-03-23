@@ -354,6 +354,63 @@ describe(`api: POST ${path}`, () => {
         });
       });
     });
+
+    it('upsert with readOnly field status should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        status: 'Invalid',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: status');
+        return done();
+      });
+    });
+
+    it('upsert with readOnly field isDeleted should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        isDeleted: 0,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: isDeleted');
+        return done();
+      });
+    });
+
+    it('upsert with readOnly field createdAt should fail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        createdAt: new Date().toString(),
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .contain('You cannot modify the read-only field: createdAt');
+        return done();
+      });
+    });
   });
 
   describe('on case insensitive upsert', () => {

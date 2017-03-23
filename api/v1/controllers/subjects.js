@@ -70,10 +70,6 @@ function validateTags(requestBody, params) {
     tags = params.tags.value ? params.tags.value.split(',') : [];
   }
 
-  if (absolutePath) {
-    throw new apiErrors.SubjectValidationError();
-  }
-
   if (tags && tags.length) {
     if (utils.hasDuplicates(tags)) {
       throw new apiErrors.DuplicateFieldError();
@@ -82,29 +78,12 @@ function validateTags(requestBody, params) {
 } // validateTags
 
 /**
- * Throws a validation error if the read-only fields are found in the request.
- * @param  {Object} req - The request object
- */
-function noReadOnlyFieldsInReq(req) {
-  const requestBody = req.body;
-  if (helper.readOnlyFields) {
-    helper.readOnlyFields.forEach((field) => {
-      if (requestBody[field]) {
-        throw new apiErrors.ValidationError(
-          { explanation: `You cannot modify the read-only field: ${field}` }
-        );
-      }
-    });
-  }
-} // noReadOnlyFieldsInReq
-
-/**
  * Validates the subject request coming in and throws an error if the request
  * does not pass the validation.
  * @param  {Object} req - The request object
  */
 function validateRequest(req) {
-  noReadOnlyFieldsInReq(req);
+  utils.noReadOnlyFieldsInReq(req, helper);
   validateTags(req.body);
 } // validateRequest
 
