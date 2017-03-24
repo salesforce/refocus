@@ -23,7 +23,7 @@ describe('jobWrapper: functions ', () => {
   let token;
 
   before((done) => {
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -36,7 +36,7 @@ describe('jobWrapper: functions ', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
   });
 

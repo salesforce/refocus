@@ -44,7 +44,7 @@ function execute() {
 
 module.exports = {
   enqueue() {
-    if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+    if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
       const jobWrapper = require('../../jobQueue/jobWrapper');
       const jobType = require('../../jobQueue/setup').jobType;
       const j = jobWrapper.createJob(
