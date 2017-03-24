@@ -18,12 +18,12 @@ const path = '/v1/samples/upsert/bulk';
 
 describe('api: POST ' + path, () => {
   before(() => {
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
   });
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
   });
 
   it('jobWrapper should let you create any job type of job', (done) => {

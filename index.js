@@ -98,7 +98,7 @@ function start() { // eslint-disable-line max-statements
    * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
    * PATCH, POST, PUT, etc.) with a 403.
    */
-  if (featureToggles.isFeatureEnabled('disableHttp')) {
+  if (featureToggles.isFeatureEnabled('requireHttps')) {
     app.enable('trust proxy');
     app.use(enforcesSSL());
   }
@@ -134,7 +134,7 @@ function start() { // eslint-disable-line max-statements
    * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
    * from here.
    */
-  if (!featureToggles.isFeatureEnabled('enableClockDyno')) {
+  if (!featureToggles.isFeatureEnabled('enableClockProcess')) {
     require('./clock/index'); // eslint-disable-line global-require
   }
 
@@ -176,7 +176,7 @@ function start() { // eslint-disable-line max-statements
     app.use(mw.swaggerMetadata());
 
     // Use token security in swagger api routes
-    if (featureToggles.isFeatureEnabled('enforceApiToken')) {
+    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
       app.use(mw.swaggerSecurity({
         jwt: (req, authOrSecDef, scopes, cb) => {
           jwtUtil.verifyToken(req, cb);

@@ -26,7 +26,7 @@ describe('api: POST using worker process' + path, () => {
   let token;
 
   before((done) => {
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -71,7 +71,7 @@ describe('api: POST using worker process' + path, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
   });
 
   it('sample bulkUpsert should be sent to the queue', (done) => {
