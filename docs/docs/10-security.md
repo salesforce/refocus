@@ -10,9 +10,9 @@ title: Security
 
 ## Admin: Turn on API Token Enforcement
 
-If you want to enforce that every request has a valid API token, start your node.js server with environment variable `USE_ACCESS_TOKEN=true`.
+If you want to enforce that every request has a valid API token, start your node.js server with environment variable `REQUIRE_ACCESS_TOKEN=true`.
 
-In heroku, [add a config variable](https://devcenter.heroku.com/articles/config-vars) called `USE_ACCESS_TOKEN` and set its value to `true`.
+In heroku, [add a config variable](https://devcenter.heroku.com/articles/config-vars) called `REQUIRE_ACCESS_TOKEN` and set its value to `true`.
 
 ## Creating a New API Token
 

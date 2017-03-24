@@ -49,25 +49,12 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const longTermToggles = {
-
-  // Disable HTTP, i.e. only use https
-  disableHttp: environmentVariableTrue(pe, 'DISABLE_HTTP'),
+  // Enable api activity logging
+  enableApiActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
 
   // Enable heroku clock dyno
-  enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
-
-  // Enforce that all API requests have valid API token
-  enforceApiToken: environmentVariableTrue(pe, 'USE_ACCESS_TOKEN'),
-
-  /*
-   * Use this setting to offload work from web processes to worker processes to
-   * achieve better web process throughput and response times.
-   */
-  useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
-
-  // Enforce write permission on records
-  enforceWritePermission:
-    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
+  enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
   // Enable realtime activity logging
   enableRealtimeActivityLogs:
@@ -77,13 +64,25 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
-  // Enable api activity logging
-  enableApiActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
-
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
+
+  /*
+   * Use this setting to offload work from web processes to worker processes to
+   * achieve better web process throughput and response times.
+   */
+  enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
+
+  // Enforce write permission on records
+  enforceWritePermission:
+    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
+
+  // Enforce that all API requests have valid API token
+  requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
+
+  // Disable HTTP, i.e. only use https
+  requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
 
 }; // longTermToggles
 
