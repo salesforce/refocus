@@ -323,7 +323,6 @@ module.exports = function sample(seq, dataTypes) {
 
       /**
        * Update isDeleted.
-       * Publishes the deleted sample to redis channel.
        *
        * @param {Sample} inst - The Sample instance being deleted
        * @returns {Promise} which resolves undefined or rejects if an error
