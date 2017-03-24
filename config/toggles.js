@@ -51,19 +51,19 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
 const longTermToggles = {
 
   // Disable HTTP, i.e. only use https
-  disableHttp: environmentVariableTrue(pe, 'DISABLE_HTTP'),
+  disableHttp: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
 
   // Enable heroku clock dyno
-  enableClockDyno: environmentVariableTrue(pe, 'HEROKU_CLOCK_DYNO'),
+  enableClockDyno: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
   // Enforce that all API requests have valid API token
-  enforceApiToken: environmentVariableTrue(pe, 'USE_ACCESS_TOKEN'),
+  enforceApiToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 
   /*
    * Use this setting to offload work from web processes to worker processes to
    * achieve better web process throughput and response times.
    */
-  useWorkerProcess: environmentVariableTrue(pe, 'USE_WORKER_PROCESS'),
+  useWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
   // Enforce write permission on records
   enforceWritePermission:
