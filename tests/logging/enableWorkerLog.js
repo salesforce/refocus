@@ -31,7 +31,7 @@ describe('enableWorkerLog: api: POST ' + path, () => {
 
   before((done) => {
     jobQueue.testMode.enter();
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -56,7 +56,7 @@ describe('enableWorkerLog: api: POST ' + path, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
     jobQueue.testMode.clear();
   });
@@ -137,7 +137,7 @@ describe('enableWorkerLog: db: sample: timeout: ', () => {
 
   beforeEach((done) => {
     jobQueue.testMode.enter();
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     Aspect.create({
       isPublished: true,
@@ -205,7 +205,7 @@ describe('enableWorkerLog: db: sample: timeout: ', () => {
   });
 
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
     jobQueue.testMode.clear();
   });

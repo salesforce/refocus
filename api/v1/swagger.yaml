@@ -7213,7 +7213,7 @@ definitions:
     description: >
       Users having write permission to the subject
     properties:
-      aspectId:
+      subjectId:
         type: string
         readOnly: true
         description: >
@@ -7413,6 +7413,7 @@ parameters:
         - isPublished
         - name
         - sortBy
+        - tags
         - parentAbsolutePath
         - parentId
         - relatedLinks

@@ -395,10 +395,25 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('returns expected fields when requesting tags field', (done) => {
+    api.get(`${path}?fields=isPublished,name,tags`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body[ZERO]).to.have.property('tags');
+      expect(res.body[ZERO]).to.have.property('name');
+      expect(res.body[ZERO]).to.have.property('isPublished');
+      done();
+    });
+  });
+
   it('pagination tests');
   it('childCount, descendentCount');
   it('by id');
   it('by abs path');
   it('returns expected fields when NOT passing ?fields=...');
-  it('sort order');
 });

@@ -27,7 +27,7 @@ describe('api: POST using worker process' + path, () => {
   let token;
 
   before((done) => {
-    tu.toggleOverride('useWorkerProcess', true);
+    tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -74,7 +74,7 @@ describe('api: POST using worker process' + path, () => {
 
   after(rtu.forceDelete);
   after(() => {
-    tu.toggleOverride('useWorkerProcess', false);
+    tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);
   });
 

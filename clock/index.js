@@ -11,7 +11,7 @@
  *
  * Defines all the scheduled processes to execute on regular intervals.
  *
- * If a separate clock dyno is enabled ("enableClockDyno"), this is the main
+ * If a separate clock dyno is enabled ("enableClockProcess"), this is the main
  * module to start the clock process. To just start the clock process,
  * use "npm run start-clock". To start both the web and the clock processes
  * locally, use "heroku local".

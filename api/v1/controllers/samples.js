@@ -188,7 +188,7 @@ module.exports = {
    * POST /samples/upsert/bulk
    *
    * Upserts multiple samples. Returns "OK" without waiting for the upserts to
-   * happen. When "useWorkerProcess" is enabled, the bulk upsert is enqueued
+   * happen. When "enableWorkerProcess" is enabled, the bulk upsert is enqueued
    * to be processed by a separate worker process.
    *
    * @param {IncomingMessage} req - The request object
@@ -205,7 +205,7 @@ module.exports = {
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
-      if (featureToggles.isFeatureEnabled('useWorkerProcess')) {
+      if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
