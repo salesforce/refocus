@@ -162,8 +162,6 @@ describe('api: authenticate sso user', () => {
 });
 
 describe('loadView: /authenticate route', () => {
-  let tokenVal;
-
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
@@ -172,7 +170,6 @@ describe('loadView: /authenticate route', () => {
         done(err);
       }
 
-      tokenVal = res.body.token;
       done();
     });
   });
@@ -191,8 +188,8 @@ describe('loadView: /authenticate route', () => {
       if (error) {
         done(error);
       } else {
-        expect(res.body).to.have.property('token')
-        .and.not.equal(undefined);
+        expect(res.body).to.have.property('message')
+        .and.equal('Authentication succeeded');
         done();
       }
     });
