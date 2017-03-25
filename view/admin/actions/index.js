@@ -16,7 +16,6 @@ import superagent from 'superagent';
 import * as constants from '../constants';
 const env = process.env.NODE_ENV || 'development';
 const API_URL = '/v1';
-const u = require('../../utils');
 const ONE = 1;
 const ZERO = 0;
 // ACTION CREATORS
@@ -152,7 +151,6 @@ function requestWithOutPayload(verb, url) {
   return new Promise((resolve, reject) => {
     superagent(verb, API_URL + url)
     .set('Content-Type', 'application/json')
-    .set('Authorization', u.getCookie('Authorization'))
     .end((error, response) => {
       error ? reject(error) : resolve(response.body);
     });
@@ -174,7 +172,6 @@ function requestWithPayload(requestObject) {
   return new Promise((resolve, reject) => {
     superagent(verb, API_URL + url)
     .set('Content-Type', 'application/json')
-    .set('Authorization', u.getCookie('Authorization'))
     .send(JSON.stringify(formObj))
     .end((error, response) => {
       error ? reject(error) : resolve(response.body);

@@ -306,9 +306,9 @@ module.exports = function loadView(app, passport) {
 
         // return token
         const token = jwtUtil.createToken(req.user.name, req.user.name);
+        req.session.token = token;
         return res.status(httpStatus.OK).json({
           message: 'Authentication succeeded',
-          token,
         });
       });
     })(req, res, next);

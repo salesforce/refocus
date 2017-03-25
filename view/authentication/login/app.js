@@ -14,7 +14,6 @@
 'use strict'; // eslint-disable-line strict
 
 import request from 'superagent';
-const u = require('../../utils');
 
 const input = document.loginform.elements;
 
@@ -57,7 +56,6 @@ function sendData(jsonData) {
 
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
-      u.setCookie('Authorization', res.body.token);
       returnUrl = getQueryParams(window.location.search.substring(1));
       if (returnUrl.ru) {
         window.location.href = returnUrl.ru;
