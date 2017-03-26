@@ -171,4 +171,60 @@ describe(`api: GET ${path}`, () => {
       done();
     });
   });
+
+  it('find by rootSubject wildcard, found', (done) => {
+    api.get(`${path}?rootSubject=*Main*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.have.length(ONE);
+      done();
+    });
+  });
+
+  it('find by rootSubject wildcard, NOT found', (done) => {
+    api.get(`${path}?rootSubject=XXXXXXXXXXXX*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
+    });
+  });
+
+  it('find by name wildcard, found', (done) => {
+    api.get(`${path}?name=*testPersp`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.have.length(ONE);
+      done();
+    });
+  });
+
+  it('find by name wildcard, NOT found', (done) => {
+    api.get(`${path}?name=XXXXXXXXXXXX*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
+    });
+  });
 });
