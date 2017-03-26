@@ -182,6 +182,7 @@ describe(`api: GET ${path}`, () => {
       }
 
       expect(res.body).to.have.length(ONE);
+      expect(res.body[0]).to.have.property('rootSubject', 'myMainSubject');
       done();
     });
   });
@@ -210,6 +211,7 @@ describe(`api: GET ${path}`, () => {
       }
 
       expect(res.body).to.have.length(ONE);
+      expect(res.body[0]).to.have.property('name', perspectiveName);
       done();
     });
   });
