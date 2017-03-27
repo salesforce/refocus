@@ -31,9 +31,64 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
+
+const ParentSubjectNotFound = require('../../../db/dbErrors')
+  .ParentSubjectNotFound;
+const ParentSubjectNotMatch = require('../../../db/dbErrors')
+  .ParentSubjectNotMatch;
+const IllegalSelfParenting = require('../../../db/dbErrors')
+  .IllegalSelfParenting;
+
 const sampleStoreFeature =
                   require('../../../cache/sampleStore').constants.featureName;
 const ZERO = 0;
+
+/**
+ * If both parentAbsolutePath and parentId are provided,
+ * throws the appropriate error if the
+ * parentAbsolutePath does not map to the same subject as parentId.
+ * Otherwise call callback function.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ * @param {function} callback The function to call if there's
+ * no validation to do, or the validation passes
+ */
+function validateParentFields(req, res, next, callback) {
+
+  const queryBody = req.swagger.params.queryBody.value;
+  const { parentId, parentAbsolutePath } = queryBody;
+
+  // if both parentAbsolutePath and parentId,
+  // check they point to the same subject
+  if (parentId && parentAbsolutePath) {
+    helper.model.findOne({
+      where: { absolutePath: parentAbsolutePath },
+    })
+    .then((parent) => {
+      if (parent && parent.id !== parentId) {
+        // parentAbsolutePath does not match parentId
+        throw new ParentSubjectNotMatch({
+          message: parent.id + ' does not match ' + parentId,
+        });
+      } else if (!parent) {
+        // no parent found
+        throw new ParentSubjectNotFound({
+          message: parentAbsolutePath + ' not found.',
+        });
+      }
+
+      // if parents match
+      callback();
+    })
+    .catch((err) => {
+      u.handleError(next, err, helper.modelName);
+    });
+  } else {
+    callback();
+  }
+}
 
 /**
  * Validates the correct filter parameter
@@ -318,7 +373,10 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    doPatch(req, res, next, helper);
+    validateParentFields(req, res, next,
+    () => {
+      doPatch(req, res, next, helper);
+    });
   },
 
   /**
@@ -364,7 +422,9 @@ module.exports = {
   /**
    * PUT /subjects/{key}
    *
-   * Updates an subject and sends it back in the response. If any attributes
+   * Updates an subject and sends it back in the response.
+   * Validates parentId and parentAbsolutePath.
+   * If any attributes
    * are missing from the body of the request, those attributes are cleared.
    *
    * @param {IncomingMessage} req - The request object
@@ -373,7 +433,10 @@ module.exports = {
    */
   putSubject(req, res, next) {
     validateRequest(req);
-    doPut(req, res, next, helper);
+    validateParentFields(req, res, next,
+    () => {
+      doPut(req, res, next, helper);
+    });
   },
 
   /**

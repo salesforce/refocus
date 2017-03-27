@@ -71,6 +71,24 @@ dbErrors.create({
   explanation: 'If a subject specifies that it has a parent, the parent ' +
    'subject must already exist.',
 });
+dbErrors.create({
+  code: 10115,
+  status: 400,
+  name: 'ParentSubjectNotMatch',
+  parent: dbErrors.ValidationError,
+  range: [],
+  defaultMessage: 'The parentAbsolutePath and parentId do not match.',
+  explanation: 'If a subject specifies both a parentAbsolutePath and a parentId, the parent ' +
+    'specified by both fields need to have the same id.',
+});
+dbErrors.create({
+  code: 10115,
+  status: 400,
+  name: 'IllegalSelfParenting',
+  parent: dbErrors.ValidationError,
+  range: [],
+  defaultMessage: 'A subject may not be its own parent.',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

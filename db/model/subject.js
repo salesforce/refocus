@@ -22,6 +22,10 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
+const ParentSubjectNotMatch = require('../dbErrors')
+  .ParentSubjectNotMatch;
+const IllegalSelfParenting = require('../dbErrors')
+  .IllegalSelfParenting;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -510,7 +514,6 @@ module.exports = function subject(seq, dataTypes) {
        * rejects if an error was encountered
        */
       beforeUpdate(inst /* ,  opts */) { // eslint-disable-line max-statements
-
         /*
          * If a subject is getting unpublished, check to see if its children are
          * unpublished too. If any of the children are published, throw a
@@ -539,6 +542,7 @@ module.exports = function subject(seq, dataTypes) {
         }
 
         if (inst.changed('parentId') || inst.changed('parentAbsolutePath')) {
+
           let key = null;
           let key1 = null;
           let value = null;
@@ -546,30 +550,114 @@ module.exports = function subject(seq, dataTypes) {
           let param = null;
           let param1 = null;
 
-          if (inst.changed('parentId')) {
-            key = 'parentId';
-            value = inst.getDataValue(key);
-            key1 = 'parentAbsolutePath';
-            value1 = inst.getDataValue(key1);
-            param = 'id';
-            param1 = 'absolutePath';
-          } else {
-            key = 'parentAbsolutePath';
-            value = inst.getDataValue(key);
-            key1 = 'parentId';
-            value1 = inst.getDataValue(key1);
-            param = 'absolutePath';
-            param1 = 'id';
+          /**
+           * Set the values to parentAbsolutePath or parentId
+           * @param {Boolean} bool If true, set to parentAbsolutePath, else
+           * set to parentId
+          */
+          function setValues(bool) {
+            if (bool) {
+              key = 'parentAbsolutePath';
+              value = inst.getDataValue(key);
+              key1 = 'parentId';
+              value1 = inst.getDataValue(key1);
+              param = 'absolutePath';
+              param1 = 'id';
+            } else {
+              key = 'parentId';
+              value = inst.getDataValue(key);
+              key1 = 'parentAbsolutePath';
+              value1 = inst.getDataValue(key1);
+              param = 'id';
+              param1 = 'absolutePath';
+            }
+          }
+
+          /**
+           * If both parentId and parentAbsolutePath changed, check whether
+           * the parents match. If they match, return the parent.
+           * Else throw bad request
+           *
+           * If only one of parentId and parentAbsolutePath changed,
+           * return the parent
+           */
+          function checkParent() {
+            // by default, set params to use parentAbsolutePath
+            setValues(true);
+
+            // when parentAbsolutePath is supplied
+            if (inst.changed('parentAbsolutePath')) {
+              if (inst.parentAbsolutePath) {
+
+                // find subject whose absolutePath === parentAbsolutePath
+                // if it does not exist, throw 404 subject not found
+                // if subject exists, does parent id === parentId?
+                // if true, return parent
+                return new seq.Promise((resolve, reject) => {
+                  if (inst.parentAbsolutePath === inst.absolutePath) {
+                    throw new IllegalSelfParenting({
+                      message: 'absolutePath cannot equal parentAbsolutePath: ' + value,
+                    });
+                  }
+
+                  Subject.findOne({
+                    where: { absolutePath: value },
+                  })
+                  .then((parent) => {
+                    // if parentId changed too, check for consistency
+                    if (inst.changed('parentId') && inst.parentId) {
+
+                      if (parent && parent.id !== value1) {
+                        // parentAbsolutePath does not match parentId
+                        throw new ParentSubjectNotMatch({
+                          message: value + ' does not match ' + value1,
+                        });
+                      } else if (!parent) {
+                        // no parent found
+                        throw new ParentSubjectNotFound({
+                          message: value + ' not found.',
+                        });
+                      }
+                    }
+
+                    // if parents match, or if only parentAbsolutePath changed
+                    // return parent
+                    resolve(parent);
+                  })
+                  .catch((err) => {
+                    reject(err);
+                  });
+                });
+              } else if (!inst.changed('parentId')) {
+
+                // body contains parentAbsolutePath with empty value
+                // set parentAbsolutePath to null
+                return new seq.Promise((resolve, reject) => {
+                  resolve();
+                });
+              }
+            } {
+              // only the parentId field changed. It may be empty
+              // find parent subject
+              if (inst.parentId === inst.id) {
+                throw new IllegalSelfParenting({
+                  message: 'id cannot equal parentId: ' + value,
+                });
+              }
+
+              setValues();
+              return Subject.scope({ method: [param, value] }).find();
+            }
           }
 
           return new seq.Promise((resolve, reject) => {
-            Subject.scope({ method: [param, value] }).find()
+            checkParent()
             .then((parent) => {
               if (parent) {
                 inst.setDataValue('absolutePath',
                   parent.absolutePath + '.' + inst.name);
                 inst.setDataValue(key, value);
-                inst.setDataValue(key1, parent.getDataValue(param1));
+                inst.setDataValue(key1, parent[param1]);
 
                 if (parent.getDataValue('param1') !== value1) {
                   parent.increment('childCount');

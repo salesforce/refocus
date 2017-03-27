@@ -4098,6 +4098,11 @@ paths:
                   Filter by sortBy; asterisk (*) wildcards ok.
                   Max 254 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
+              parentAbsolutePath:
+                type: string
+                maxLength: 254
+                description: >
+                  The absolutePath of the subject's parent.
               parentId:
                 type: string
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
@@ -4221,6 +4226,11 @@ paths:
                 pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
                 description: >
                   The id of the subject's parent.
+              parentAbsolutePath:
+                type: string
+                maxLength: 254
+                description: >
+                  The absolutePath of the subject's parent.
               tags:
                 type: array
                 items:
