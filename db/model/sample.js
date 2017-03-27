@@ -201,10 +201,11 @@ module.exports = function sample(seq, dataTypes) {
             if (o === null) {
               return Sample.create(toUpsert);
             }
-
-            // set value changed to true, during updates to avoid timeouts
-            // Adding this to the before update hook does
-            // give the needed effect; so adding it here!!!.
+            /*
+             * set value changed to true during updates to avoid timeouts.
+             * Adding this to the before update hook does
+             * give the needed effect; so adding it here!!!.
+             */
             o.changed('value', true);
             return o.update(toUpsert);
           })

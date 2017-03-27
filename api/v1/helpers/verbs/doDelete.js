@@ -32,7 +32,7 @@ const redisModelSample = require('../../../../cache/models/samples');
 function doDelete(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() }; // for logging
   let delPromise;
-  let ret;
+  let obj;
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
    props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
@@ -44,15 +44,21 @@ function doDelete(req, res, next, props) {
       .then((o) => u.isWritable(req, o,
           featureToggles.isFeatureEnabled('enforceWritePermission')))
       .then((o) => {
-        ret = o;
+        /*
+         * An empty array is returned when destroy is called on an instance
+         * of a model that has hard delete turned on. We still want to return
+         * the deleted instance in all the cases. So, before the instance
+         * is destroyed it is saved and for models with hard deleted turned on
+         * this saved instance is returned
+         */
+        obj = o;
         return o.destroy();
       });
   }
 
   delPromise
   .then((o) => {
-    // console.log('this is o ------' + JSON.stringify(o, null, 2));
-    const retVal = o === undefined || o.length === 0 ? ret : o;
+    const retVal = o === undefined || o.length === 0 ? obj : o;
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const assocNames = [];
 
