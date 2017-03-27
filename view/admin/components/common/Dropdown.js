@@ -165,7 +165,6 @@ class Dropdown extends React.Component {
       allOptionsLabel,
       placeholderText,
       title,
-      showSearchIcon,
       onAddNewButton,
       onClickItem,
       onEdit,
@@ -242,11 +241,6 @@ class Dropdown extends React.Component {
       </div>
         <div className={'slds-dropdown-trigger--click slds-align-middle ' +
           'slds-m-right--xx-small slds-shrink-none slds-is-open'}>
-          { showSearchIcon &&
-            <svg aria-hidden='true' className='slds-button__icon'>
-            <use xlinkHref={'../static/icons/utility-sprite/' +
-              'svg/symbols.svg#search'}></use>
-          </svg>}
           { this.state.open &&
             <div
               style={ dropDownStyle }
@@ -295,7 +289,6 @@ Dropdown.propTypes = {
   onEdit: PropTypes.func,
   onClickItem: PropTypes.func.isRequired,
   children: PropTypes.element,
-  showSearchIcon: PropTypes.bool,
   showInputElem: PropTypes.bool,
   close: PropTypes.bool, // if true, close dropdown
   renderAsLink: PropTypes.bool, // render list item as link

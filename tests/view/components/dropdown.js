@@ -38,7 +38,6 @@ describe('Dropdown component tests', () => {
       allOptionsLabel: DUMMY_STRING,
       placeholderText: DUMMY_STRING,
       defaultValue: DUMMY_STRING,
-      showSearchIcon: false,
       onAddNewButton: DUMMY_FUNCTION,
       onClickItem: DUMMY_FUNCTION,
       showInputElem: false, //default
@@ -175,12 +174,6 @@ describe('Dropdown component tests', () => {
   it('input is rendered by default', () => {
     const enzymeWrapper = setup();
     expect(enzymeWrapper.find('.slds-lookup__search-input'))
-      .to.have.length(ONE);
-  });
-
-  it('on showSearchIcon: true, an icon is rendered', () => {
-    const enzymeWrapper = setup({ showSearchIcon: true });
-    expect(enzymeWrapper.find('.slds-button__icon'))
       .to.have.length(ONE);
   });
 });

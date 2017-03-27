@@ -57,6 +57,12 @@ body {
     overflow: visible;
 }
 
+/* show vertical scrollbars on modal */
+.slds-dropdown .slds-lookup .slds-lookup__list {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 #refocus_perspective_dropdown_container .slds-notify_container {
     position: relative;
 }
@@ -121,13 +127,6 @@ body {
 
 .slds-panel__section {
     padding-top: 100;
-}
-
-.slds-dropdown {
-    overflow: scroll;
-    margin-left: 5px;
-    top: 35px;
-    padding: 0;
 }
 
 #aspecttagradio {
