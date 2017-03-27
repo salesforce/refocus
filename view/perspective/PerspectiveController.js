@@ -81,7 +81,6 @@ class PerspectiveController extends React.Component {
           showEditIcon={ true }
           onEdit={ this.onEdit.bind(this) }
           options={ persNames }
-          showSearchIcon={ true }
           // if there's lenses, open modal
           onAddNewButton={ values.lenses && this.openCreatePanel.bind(this) }
           newButtonText='New Perspective'
