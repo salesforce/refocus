@@ -2015,6 +2015,20 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: rootSubject
+          in: query
+          description: >-
+            Filter by root subject; asterisk (*) wildcards ok.
+          required: false
+          type: string
       responses:
         200:
           description: >-
