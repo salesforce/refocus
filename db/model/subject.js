@@ -408,15 +408,17 @@ module.exports = function subject(seq, dataTypes) {
         if (inst.getDataValue('isPublished')) {
           if (inst.previous('isPublished')) {
             /*
-             * If tags were updated, send a "delete" event followed by an "add"
-             * event so that perspectives using subject tag filters will get
-             * the right realtime events. If subject tags were not updated,
-             * just send the usual "update" event.
+             * If tags OR parent were updated, send a "delete" event followed
+             * by an "add" event so that perspectives get notified and lenses
+             * can re-render correctly. Tag changes have to be handled this
+             * way for filtering.
+             * If subject tags or parent were not updated, just send the usual
+             * "update" event.
              *
              * TODO : Right now don't have the ability to mock the socket.io
              * test for this.
              */
-            if (inst.changed('tags')) {
+            if (inst.changed('tags') || inst.changed('parentId')) {
               common.publishChange(inst, eventName.del, changedKeys,
                 ignoreAttributes);
               common.publishChange(inst, eventName.add, changedKeys,

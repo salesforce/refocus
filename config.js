@@ -20,7 +20,7 @@ const pe = process.env; // eslint-disable-line no-process-env
 const nodeEnv = pe.NODE_ENV || 'development';
 const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
-const payloadLimit = pe.payloadLimit || defaultPayloadLimit;
+const payloadLimit = pe.REQUEST_PAYLOAD_LIMIT || defaultPayloadLimit;
 const pgdatabase = pe.PGDATABASE || 'focusdb';
 const pguser = pe.PGUSER || 'postgres';
 const pgpass = pe.PGPASS || 'postgres';
@@ -41,10 +41,10 @@ const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
 const CACHE_EXPIRY_IN_SECS = 60;
 
 // request limiter settings
-const rateLimit = pe.RATE_LIMIT;
-const rateWindow = pe.RATE_WINDOW;
-const endpointToLimit = pe.ENDPOINT_TO_LIMIT;
-const httpMethodToLimit = pe.HTTP_METHOD_TO_LIMIT;
+const rateLimit = pe.DDOS_RATE_LIMIT;
+const rateWindow = pe.DDOS_RATE_WINDOW;
+const endpointToLimit = pe.DDOS_ENDPOINT_TO_LIMIT;
+const httpMethodToLimit = pe.DDOS_HTTP_METHOD_TO_LIMIT;
 
 const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 

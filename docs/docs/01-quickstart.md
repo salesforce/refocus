@@ -296,7 +296,7 @@ POST to `v1/subjects/USA/child` using the following body:
 ```
 ### Request Rate Limiting
 
-Refocus lets you limit requests based on IP address using environment variables. Set `RATE_WINDOW` to the time interval in milliseconds after which the limits are reset and set `RATE_LIMIT` to the total number of requests allowed per IP. When the request limit is exceeded, the request is rejected with HTTP status code 429.
-For example, if you set `RATE_WINDOW=300000` and `RATE_LIMIT=250`, then only 250 requests will be allowed from any individual IP address over any rolling five minute period.
+Refocus lets you limit requests based on IP address using environment variables. Set `DDOS_RATE_WINDOW` to the time interval in milliseconds after which the limits are reset and set `DDOS_RATE_LIMIT` to the total number of requests allowed per IP. When the request limit is exceeded, the request is rejected with HTTP status code 429.
+For example, if you set `DDOS_RATE_WINDOW=300000` and `DDOS_RATE_LIMIT=250`, then only 250 requests will be allowed from any individual IP address over any rolling five minute period.
 
 *Built with love by the Site Reliability Tools team @ Salesforce.*
