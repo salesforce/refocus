@@ -32,6 +32,7 @@ const redisModelSample = require('../../../../cache/models/samples');
 function doDelete(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() }; // for logging
   let delPromise;
+  let ret;
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
    props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
@@ -42,11 +43,16 @@ function doDelete(req, res, next, props) {
       )
       .then((o) => u.isWritable(req, o,
           featureToggles.isFeatureEnabled('enforceWritePermission')))
-      .then((o) => o.destroy());
+      .then((o) => {
+        ret = o;
+        return o.destroy();
+      });
   }
 
   delPromise
   .then((o) => {
+    // console.log('this is o ------' + JSON.stringify(o, null, 2));
+    const retVal = o === undefined || o.length === 0 ? ret : o;
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const assocNames = [];
 
@@ -62,14 +68,14 @@ function doDelete(req, res, next, props) {
 
     // publish the delete event to the redis channel
     if (props.publishEvents) {
-      publisher.publishSample(o, props.associatedModels.subject,
+      publisher.publishSample(retVal, props.associatedModels.subject,
           event.sample.del);
     }
 
     // when a resource is deleted, delete all its associations too
-    u.deleteAllAssociations(o, assocNames);
-    u.logAPI(req, resultObj, o);
-    return res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+    u.deleteAllAssociations(retVal, assocNames);
+    u.logAPI(req, resultObj, retVal);
+    return res.status(httpStatus.OK).json(u.responsify(retVal, props, req.method));
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
