@@ -160,38 +160,3 @@ describe('api: authenticate sso user', () => {
     });
   });
 });
-
-describe('loadView: /authenticate route', () => {
-  before((done) => {
-    api.post(registerPath)
-    .send(u.fakeUserCredentials)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
-
-  after(u.forceDelete);
-
-  it('/authenticate returns token', (done) => {
-    api
-    .post('/authenticate')
-    .type('form')
-    .send({
-      username: u.fakeUserCredentials.username,
-      password: u.fakeUserCredentials.password,
-    })
-    .end((error, res) => {
-      if (error) {
-        done(error);
-      } else {
-        expect(res.body).to.have.property('message')
-        .and.equal('Authentication succeeded');
-        done();
-      }
-    });
-  });
-});

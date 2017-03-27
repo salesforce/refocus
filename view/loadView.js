@@ -215,7 +215,7 @@ module.exports = function loadView(app, passport) {
     (_req, _res) => {
       if (_req.user && _req.user.name) {
         const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _res.cookie('Authorization', token);
+        _req.session.token = token;
       }
 
       if (_req.body.RelayState) {
@@ -278,41 +278,6 @@ module.exports = function loadView(app, passport) {
       });
     }
   );
-
-  // Login and return token in response
-  app.post('/authenticate', (req, res, next) => {
-    passport.authenticate('local-login', (err, user/* , info */) => {
-      if (err) {
-        return res.status(httpStatus.BAD_REQUEST).json({
-          message: JSON.stringify(err),
-        });
-      }
-
-      // no user with given credentials
-      if (!user || !user.name) {
-        return res.status(httpStatus.NOT_FOUND).json({
-          message: 'Invalid credentials',
-        });
-      }
-
-      // login and set req.user
-      return req.logIn(user, (_err) => {
-        // req.user not set
-        if (_err || !req.user || !req.user.name) {
-          return res.status(httpStatus.BAD_REQUEST).json({
-            message: JSON.stringify(err),
-          });
-        }
-
-        // return token
-        const token = jwtUtil.createToken(req.user.name, req.user.name);
-        req.session.token = token;
-        return res.status(httpStatus.OK).json({
-          message: 'Authentication succeeded',
-        });
-      });
-    })(req, res, next);
-  });
 
   // Redirect '/v1' to '/v1/docs'.
   app.get('/v1', (req, res) => res.redirect('/v1/docs'));

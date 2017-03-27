@@ -43,10 +43,8 @@ function getQueryParams(qs) {
 function sendData(jsonData) {
   let returnUrl = {};
   request
-  .post('/authenticate')
-  .type('form')
+  .post('/v1/authenticate')
   .send(jsonData)
-  .set('Accept', 'application/json')
   .end((error, res) => {
     if (error) {
       let errorText = 'An unexpected error occurred';
