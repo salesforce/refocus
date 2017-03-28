@@ -14,7 +14,6 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
-const should = chai.should(); // eslint says this isn't used but it *is*!
 const constants = require('../../../../db/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');

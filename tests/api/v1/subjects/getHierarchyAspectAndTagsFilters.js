@@ -379,8 +379,10 @@ describe(`api: GET ${path}:`, () => {
 
         expect(res.body).to.not.equal(null);
         expect(res.body.samples).to.have.length(2);
-        expect(res.body.samples[1]).to.have.deep
-          .property('aspect.name', 'temperature');
+        const aspectNames = [];
+        aspectNames.push(res.body.samples[0].aspect.name);
+        aspectNames.push(res.body.samples[1].aspect.name);
+        expect(aspectNames).to.include.members(['humidity','temperature']);
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(0);
