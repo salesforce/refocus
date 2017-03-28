@@ -17,15 +17,9 @@ const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
 const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
 const UpdateDeleteForbidden = require('../dbErrors').UpdateDeleteForbidden;
-const eventName = {
-  add: 'refocus.internal.realtime.sample.add',
-  upd: 'refocus.internal.realtime.sample.update',
-  del: 'refocus.internal.realtime.sample.remove',
-};
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
-const NO = 0;
 const maxSampleNameLength = constants.fieldlen.longish +
   constants.fieldlen.normalName + 1; // eslint-disable-line no-magic-numbers
 
@@ -35,11 +29,6 @@ module.exports = function sample(seq, dataTypes) {
       type: dataTypes.UUID,
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
-    },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
     },
     messageBody: {
       type: dataTypes.STRING(constants.fieldlen.longish),
@@ -107,7 +96,6 @@ module.exports = function sample(seq, dataTypes) {
             name: 'subjectId',
             allowNull: false,
           },
-          onDelete: 'CASCADE',
           hooks: true,
         });
         Sample.addScope('defaultScope', {
@@ -206,7 +194,6 @@ module.exports = function sample(seq, dataTypes) {
               where: {
                 subjectId: subjasp.subject.id,
                 aspectId: subjasp.aspect.id,
-                isDeleted: NO,
               },
             });
           })
@@ -214,10 +201,11 @@ module.exports = function sample(seq, dataTypes) {
             if (o === null) {
               return Sample.create(toUpsert);
             }
-
-            // set value changed to true, during updates to avoid timeouts
-            // Adding this to the before update hook does
-            // give the needed effect; so adding it here!!!.
+            /*
+             * set value changed to true during updates to avoid timeouts.
+             * Adding this to the before update hook does
+             * give the needed effect; so adding it here!!!.
+             */
             o.changed('value', true);
             return o.update(toUpsert);
           })
@@ -322,17 +310,6 @@ module.exports = function sample(seq, dataTypes) {
       }, // hooks.beforeCreate
 
       /**
-       * Update isDeleted.
-       *
-       * @param {Sample} inst - The Sample instance being deleted
-       * @returns {Promise} which resolves undefined or rejects if an error
-       *  was encountered trying to update the instance's isDeleted field
-       */
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      }, // hooks.beforeDestroy
-
-      /**
        * Update status if value changed, loading the aspect (asynchronously)
        * if the instance doesn't already include its associated aspect.
        *
@@ -370,11 +347,14 @@ module.exports = function sample(seq, dataTypes) {
 
     }, // hooks
     indexes: [
-      { unique: true, fields: ['aspectId', 'subjectId', 'isDeleted'] },
       {
-        name: 'SampleStatusDeletedAt',
+        name: 'AspectIdSubjectId',
+        unique: true,
+        fields: ['aspectId', 'subjectId'],
+      },
+      {
+        name: 'SampleStatus',
         fields: [
-          'deletedAt',
           'status',
         ],
       },
@@ -416,7 +396,6 @@ module.exports = function sample(seq, dataTypes) {
         }
       }, // setStatusChangedAt
     }, // instanceMethods
-    paranoid: true,
   });
   return Sample;
 
