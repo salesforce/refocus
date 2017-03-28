@@ -62,7 +62,6 @@ const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
 const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
   .includes('protocol=websocket');
 const REQ_HEADERS = {
-  Authorization: u.getCookie('Authorization'),
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
   'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',

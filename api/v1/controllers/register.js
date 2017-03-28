@@ -52,6 +52,7 @@ module.exports = {
 
         const userObj = u.responsify(user, helper, req.method);
         userObj.token = tokenToReturn;
+        req.session.token = tokenToReturn;
         u.logAPI(req, resultObj, userObj);
         return res.status(httpStatus.CREATED).json(userObj);
       });
