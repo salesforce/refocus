@@ -22,18 +22,29 @@ html
         - if (SSOExists)
           a(href='/loginSAML')
             button.btn.btn-default.btn-block(type='submit') SSO Login
-          p.lead Or
-        div.local-form
-          form(role='form', name='loginform')
-            label#errorInfo
-            .form-group
-              input.form-control(type='text', name="username", placeholder='Enter username' required)
-            .form-group
-              input.form-control(type='password', name="password", placeholder='Password' required)
-            button.btn.btn-primary.btn-block(type='submit') Submit
-          a#forgot-link(href='/login') Forgot password?
-          | &nbsp;
-          - if (!SSOExists)
+          br
+          a#show-login(href='#') Login Using Username and Password
+          div.local-form.hide#login-form   
+            form(role='form', name='loginform')
+              label#errorInfo
+              .form-group
+                input.form-control(type='text', name="username", placeholder='Enter username' required)
+              .form-group
+                input.form-control(type='password', name="password", placeholder='Password' required)
+              button.btn.btn-primary.btn-block(type='submit') Submit
+            a#forgot-link(href='/login') Forgot password?
+            | &nbsp;
+        - else
+          div.local-form.show#login-form   
+            form(role='form', name='loginform')
+              label#errorInfo
+              .form-group
+                input.form-control(type='text', name="username", placeholder='Enter username' required)
+              .form-group
+                input.form-control(type='password', name="password", placeholder='Password' required)
+              button.btn.btn-primary.btn-block(type='submit') Submit
+            a#forgot-link(href='/login') Forgot password?
+            | &nbsp;
             a.right-link(href='/register') Sign Up
   script(src='/static/authentication/login/app.js')
   script.

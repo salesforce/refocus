@@ -76,3 +76,8 @@ document.loginform.addEventListener('submit', (evt) => {
 
   sendData(jsonData);
 });
+
+document.getElementById('show-login').addEventListener('click', (evt) => {
+  evt.preventDefault();
+  document.getElementById('login-form').classList.remove('hide');
+});
