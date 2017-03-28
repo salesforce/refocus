@@ -89,12 +89,7 @@ function checkTokenRecord(t) {
  * @param  {Function} cb - callback function
  */
 function verifyToken(req, cb) {
-  const authorization = req.headers.authorization;
-  let token;
-
-  if (authorization) {
-    token = req.headers.authorization;
-  }
+  const token = req.session.token || req.headers.authorization;
 
   if (token) {
     jwt.verify(token, secret, {}, (err, decodedData) => {

@@ -14,7 +14,6 @@
 'use strict'; // eslint-disable-line strict
 
 import request from 'superagent';
-const u = require('../../utils');
 
 const input = document.loginform.elements;
 
@@ -44,10 +43,8 @@ function getQueryParams(qs) {
 function sendData(jsonData) {
   let returnUrl = {};
   request
-  .post('/authenticate')
-  .type('form')
+  .post('/v1/authenticate')
   .send(jsonData)
-  .set('Accept', 'application/json')
   .end((error, res) => {
     if (error) {
       let errorText = 'An unexpected error occurred';
@@ -57,7 +54,6 @@ function sendData(jsonData) {
 
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
-      u.setCookie('Authorization', res.body.token);
       returnUrl = getQueryParams(window.location.search.substring(1));
       if (returnUrl.ru) {
         window.location.href = returnUrl.ru;

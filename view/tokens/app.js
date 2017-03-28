@@ -12,8 +12,6 @@
  * Creates a new token for the current user and display the token to the user.
  */
 import request from 'superagent';
-const u = require('../utils');
-const Authorization = u.getCookie('Authorization');
 
 // set up constants
 const PATH = '/v1/tokens';
@@ -72,7 +70,6 @@ function handleError(res) {
 function post(data) {
   request.post(PATH)
   .send(data)
-  .set('Authorization', Authorization)
   .end((err, res) => {
     if (err) {
       handleError(res);

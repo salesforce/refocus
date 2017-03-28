@@ -12,7 +12,6 @@
  * Registers user in Refocus
  */
 import request from 'superagent';
-const u = require('../../utils');
 
 const input = document.loginform.elements;
 
@@ -49,7 +48,6 @@ function sendData(jsonData) {
 
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
-      u.setCookie('Authorization', res.body.token);
       window.location.href = '/';
     }
   });

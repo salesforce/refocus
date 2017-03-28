@@ -48,6 +48,9 @@ module.exports = {
           return u.handleError(next, _err, resourceName);
         }
 
+        // create token
+        const token = jwtUtil.createToken(req.user.name, req.user.name);
+        req.session.token = token;
         const retObj = {
           success: true,
           message: 'authentication succeeded',
