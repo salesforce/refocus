@@ -62,8 +62,8 @@ function doGet(req, res, next, props) {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
         const dbObj = JSON.parse(reply);
 
-        // dbObj is a sequelize obj, get dataValues obj
-        u.logAPI(req, resultObj, dbObj.dataValues);
+        // dbObj is a sequelize obj
+        u.logAPI(req, resultObj, dbObj);
         res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
       }
     });
