@@ -96,7 +96,6 @@ describe(`api: PATCH ${path} with parents`, () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err  , res ) => {
-      console.log(err, res.error)
       if (err) {
         done(err);
       }

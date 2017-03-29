@@ -541,161 +541,6 @@ module.exports = function subject(seq, dataTypes) {
           });
         }
 
-        if (inst.changed('parentId') || inst.changed('parentAbsolutePath')) {
-
-          let key = null;
-          let key1 = null;
-          let value = null;
-          let value1 = null;
-          let param = null;
-          let param1 = null;
-
-          /**
-           * Set the values to parentAbsolutePath or parentId
-           * @param {Boolean} bool If true, set to parentAbsolutePath, else
-           * set to parentId
-          */
-          function setValues(bool) {
-            if (bool) {
-              key = 'parentAbsolutePath';
-              value = inst.getDataValue(key);
-              key1 = 'parentId';
-              value1 = inst.getDataValue(key1);
-              param = 'absolutePath';
-              param1 = 'id';
-            } else {
-              key = 'parentId';
-              value = inst.getDataValue(key);
-              key1 = 'parentAbsolutePath';
-              value1 = inst.getDataValue(key1);
-              param = 'id';
-              param1 = 'absolutePath';
-            }
-          }
-
-          /**
-           * If both parentId and parentAbsolutePath changed, check whether
-           * the parents match. If they match, return the parent.
-           * Else throw bad request
-           *
-           * If only one of parentId and parentAbsolutePath changed,
-           * return the parent
-           */
-          function checkParent() {
-            // by default, set params to use parentAbsolutePath
-            setValues(true);
-
-            // when parentAbsolutePath is supplied
-            if (inst.changed('parentAbsolutePath')) {
-              if (inst.parentAbsolutePath) {
-
-                // find subject whose absolutePath === parentAbsolutePath
-                // if it does not exist, throw 404 subject not found
-                // if subject exists, does parent id === parentId?
-                // if true, return parent
-                return new seq.Promise((resolve, reject) => {
-                  if (inst.parentAbsolutePath === inst.absolutePath) {
-                    throw new IllegalSelfParenting({
-                      message: 'absolutePath cannot equal parentAbsolutePath: ' + value,
-                    });
-                  }
-
-                  Subject.findOne({
-                    where: { absolutePath: value },
-                  })
-                  .then((parent) => {
-                    // if parentId changed too, check for consistency
-                    if (inst.changed('parentId') && inst.parentId) {
-
-                      if (parent && parent.id !== value1) {
-                        // parentAbsolutePath does not match parentId
-                        throw new ParentSubjectNotMatch({
-                          message: value + ' does not match ' + value1,
-                        });
-                      } else if (!parent) {
-                        // no parent found
-                        throw new ParentSubjectNotFound({
-                          message: value + ' not found.',
-                        });
-                      }
-                    }
-
-                    // if parents match, or if only parentAbsolutePath changed
-                    // return parent
-                    resolve(parent);
-                  })
-                  .catch((err) => {
-                    reject(err);
-                  });
-                });
-              } else if (!inst.changed('parentId')) {
-
-                // body contains parentAbsolutePath with empty value
-                // set parentAbsolutePath to null
-                return new seq.Promise((resolve, reject) => {
-                  resolve();
-                });
-              }
-            } {
-              // only the parentId field changed. It may be empty
-              // find parent subject
-              if (inst.parentId === inst.id) {
-                throw new IllegalSelfParenting({
-                  message: 'id cannot equal parentId: ' + value,
-                });
-              }
-
-              setValues();
-              return Subject.scope({ method: [param, value] }).find();
-            }
-          }
-
-          return new seq.Promise((resolve, reject) => {
-            checkParent()
-            .then((parent) => {
-              if (parent) {
-                inst.setDataValue('absolutePath',
-                  parent.absolutePath + '.' + inst.name);
-                inst.setDataValue(key, value);
-                inst.setDataValue(key1, parent[param1]);
-
-                if (parent.getDataValue('param1') !== value1) {
-                  parent.increment('childCount');
-                  Subject.scope({ method: [param1, value1] }).find()
-                  .then((oldParent) => {
-                    if (oldParent) {
-                      oldParent.decrement('childCount');
-                    }
-                  })
-                  .catch((err) => reject(err));
-                }
-              } else {
-                if (inst.getDataValue(key)) {
-                  throw new ParentSubjectNotFound({
-                    message: key + ' not found.',
-                  });
-                }
-
-                Subject.scope({ method: [param, inst.previous(key)] })
-                .find()
-                .then((par) => {
-                  if (par) {
-                    par.decrement('childCount');
-                  }
-                });
-                inst.setDataValue(key, null);
-                inst.setDataValue(key1, null);
-                inst.setDataValue('absolutePath', inst.name);
-              }
-
-              resolve(inst);
-            })
-            .catch((err) => {
-              reject(err);
-            });
-          });
-        }
-
         if (inst.changed('name')) {
           return new seq.Promise((resolve, reject) => {
             if (inst.parentAbsolutePath) {
@@ -708,6 +553,95 @@ module.exports = function subject(seq, dataTypes) {
             return resolve(inst);
           });
         }
+
+        // parentId and parentAbsolutePath check
+        // PAP is shorthand for parentAbsolutePath,
+        // PID is shorthand for parentId
+        // initialize PAP_changed, PID_changed: check whether the fields are in inst.changed() <- an array
+        const PAP_changed = inst.changed('parentAbsolutePath');
+        const PID_changed = inst.changed('parentId');
+
+        // If both are false, there's no update to do. Return
+        if (!PAP_changed && !PID_changed) {
+          return;
+        }
+
+        // initialize PAP_empty, PID_empty: check whether the body fields are empty
+        const PAP_empty = inst.parentAbsolutePath;
+        const PID_empty = inst.parentId;
+
+        // If both are true, decrement the parent's childCount
+        if (PAP_empty && PID_empty) {
+          Subject.scope({ method: ['id', inst.previous('parentId')] })
+          .then((par) => {
+            if (par) {
+              par.decrement('childCount');
+            }
+          });
+
+          // update the subject to root subject,
+          inst.setDataValue('parentId', null);
+          inst.setDataValue('parentAbsolutePath', null);
+          inst.setDataValue('absolutePath', inst.name);
+          return;
+        }
+
+        // check whether the subject PID and PAP point to exist.
+        // if either does not, throw a ParentNotFound error
+        Subject.findById(inst.parentId)
+        .then((parent) => {
+          if (!parent) {
+            throw new ParentSubjectNotFound({
+              message: inst.parentId + ' not found.',
+            });
+          }
+
+          // subject with id = parentId exists.
+          return Subject.scope({
+            method: ['absolutePath', inst.parentAbsolutePath],
+          })
+        })
+        .then((parent) => {
+          if (!parent) {
+            throw new ParentSubjectNotFound({
+              message: inst.parentAbsolutePath + ' not found.',
+            });
+          }
+
+          // both subjects exist
+          // if their id's don't match, throw ParentNotMatch error.
+          if(inst.parentId != parent.id) {
+            throw new ParentSubjectNotMatch({
+              message: parentId + ' does not match ' + parent.id,
+            });
+          }
+
+          // if PAP === absolutePath || PID === id, throw cannot self parent error.
+          if (inst.parentAbsolutePath === inst.absolutePath ||
+            inst.parentId === inst.id) {
+            throw new IllegalSelfParenting({
+              message: 'absolutePath cannot equal parentAbsolutePath: ' + value,
+            });
+          }
+
+          // if no errors are thrown yet: re-parent the subject
+          parent.increment('childCount');
+          return Subject.scope({ method: ['id', inst.previous('parentId')] })
+        })
+        .then((parent) => {
+          if (parent) {
+            par.decrement('childCount');
+          }
+
+          // update the subject values
+          inst.setDataValue('parentId', inst.parentIde);
+          inst.setDataValue('parentAbsolutePath', inst.parentAbsolutePath);
+          inst.setDataValue('absolutePath',
+            parent.absolutePath + '.' + inst.name);
+        })
+        .catch((err) => {
+          reject(err);
+        });
       }, // hooks.beforeUpdate
 
       /**
