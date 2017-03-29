@@ -28,7 +28,7 @@ module.exports = {
 
   down(qi, Sequelize) {
     // /*
-    //   Add reverting commands here.
+    //   Add reverting commands here. -----
     //   Return a promise to correctly handle asynchronicity.
 
     //   Example:
