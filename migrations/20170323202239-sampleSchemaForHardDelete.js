@@ -16,8 +16,7 @@ module.exports = {
       Example:
       return qi.createTable('users', { id: Sequelize.INTEGER });
     */
-    return qi.sequelize.transaction(() => qi.removeColumn(TBL, 'isDeleted'))
-    .then(() => qi.removeColumn(TBL, 'deletedAt'))
+    return qi.sequelize.transaction(() => qi.removeColumn(TBL, 'deletedAt'))
     .then(() => qi.removeIndex(TBL, 'samples_aspect_id_subject_id_is_deleted'))
     .then(() => qi.removeIndex(TBL, 'SampleStatusDeletedAt'))
     .then(() => qi.addIndex(TBL, ['status'],
@@ -34,11 +33,7 @@ module.exports = {
     //   Example:
     //   return qi.dropTable('users');
     // */
-    return qi.sequelize.transaction(() => qi.addColumn(TBL, 'isDeleted', {
-      type: Sequelize.DATE,
-      allowNull: true,
-    }))
-    .then(() => qi.addColumn(TBL, 'deletedAt', {
+    return qi.sequelize.transaction(() => qi.addColumn(TBL, 'deletedAt', {
       type: Sequelize.DATE,
       allowNull: true,
     }))
