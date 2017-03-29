@@ -563,12 +563,14 @@ module.exports = function subject(seq, dataTypes) {
 
         // If both are false, there's no update to do. Return
         if (!PAP_changed && !PID_changed) {
-          return;
+          return new seq.Promise((resolve, reject) => {
+            return resolve(inst);
+          });
         }
 
         // initialize PAP_empty, PID_empty: check whether the body fields are empty
-        const PAP_empty = inst.parentAbsolutePath;
-        const PID_empty = inst.parentId;
+        const PAP_empty = inst.parentAbsolutePath == false;
+        const PID_empty = inst.parentId == false;
 
         // If both are true, decrement the parent's childCount
         if (PAP_empty && PID_empty) {
@@ -583,7 +585,9 @@ module.exports = function subject(seq, dataTypes) {
           inst.setDataValue('parentId', null);
           inst.setDataValue('parentAbsolutePath', null);
           inst.setDataValue('absolutePath', inst.name);
-          return;
+          return new seq.Promise((resolve, reject) => {
+            return resolve(inst);
+          });
         }
 
         // check whether the subject PID and PAP point to exist.
@@ -599,7 +603,7 @@ module.exports = function subject(seq, dataTypes) {
           // subject with id = parentId exists.
           return Subject.scope({
             method: ['absolutePath', inst.parentAbsolutePath],
-          })
+          }).find()
         })
         .then((parent) => {
           if (!parent) {
@@ -612,7 +616,7 @@ module.exports = function subject(seq, dataTypes) {
           // if their id's don't match, throw ParentNotMatch error.
           if(inst.parentId != parent.id) {
             throw new ParentSubjectNotMatch({
-              message: parentId + ' does not match ' + parent.id,
+              message: inst.parentId + ' does not match ' + parent.id,
             });
           }
 
@@ -626,7 +630,9 @@ module.exports = function subject(seq, dataTypes) {
 
           // if no errors are thrown yet: re-parent the subject
           parent.increment('childCount');
-          return Subject.scope({ method: ['id', inst.previous('parentId')] })
+          return Subject.scope({ method:
+            ['id', inst.previous('parentId')]
+          }).find()
         })
         .then((parent) => {
           if (parent) {
@@ -638,10 +644,14 @@ module.exports = function subject(seq, dataTypes) {
           inst.setDataValue('parentAbsolutePath', inst.parentAbsolutePath);
           inst.setDataValue('absolutePath',
             parent.absolutePath + '.' + inst.name);
+
+          return new seq.Promise((resolve, reject) => {
+            return resolve(inst);
+          });
         })
-        .catch((err) => {
+        .catch((err) => new seq.Promise((resolve, reject) => {
           reject(err);
-        });
+        }));
       }, // hooks.beforeUpdate
 
       /**

@@ -57,11 +57,11 @@ describe('db: subject: update parent: ', () => {
   afterEach(u.forceDelete);
   after(u.forceDelete);
 
-  it('on update parentId to itself, ' +
+  it.only('on update parentId to itself, ' +
     'the update fails', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentId: childId2 }))
-    .then((updatedChild) => done('Expected ' + '. But received' + JSON.stringify(updatedChild)))
+    .then((updatedChild) => done('Expected IllegalSelfParenting error' + '. But received' + JSON.stringify(updatedChild)))
     .catch((err) => {
       console.log(err)
       expect(err.status).to.equal(400);
@@ -74,7 +74,7 @@ describe('db: subject: update parent: ', () => {
     'the update fails', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: child.absolutePath }))
-    .then((updatedChild) => done('Expected ' + '. But received' + JSON.stringify(updatedChild)))
+    .then((updatedChild) => done('Expected IllegalSelfParenting error' + '. But received' + JSON.stringify(updatedChild)))
     .catch((err) => {
       expect(err.status).to.equal(400);
       expect(err.name).to.equal('IllegalSelfParenting');
@@ -123,7 +123,7 @@ describe('db: subject: update parent: ', () => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: '' }))
     .then((updatedChild) => {
-      expect(updatedChild.dataValues.parentAbsolutePath).to.be.null;
+      expect(updatedChild.dataValues.parentAbsolutePath).to.equal('');
       expect(updatedChild.dataValues.parentId).to.be.null;
       done();
     })
