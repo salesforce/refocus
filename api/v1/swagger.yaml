@@ -3817,6 +3817,7 @@ paths:
             Filter by parentAbsolutePath; asterisk (*) wildcards ok.
           required: false
           type: string
+          maxLength: 4096
         -
           name: tags
           in: query
@@ -4100,7 +4101,7 @@ paths:
                   underscore (_) and dash (-).
               parentAbsolutePath:
                 type: string
-                maxLength: 254
+                maxLength: 4096
                 description: >
                   The absolutePath of the subject's parent.
               parentId:
@@ -4228,7 +4229,7 @@ paths:
                   The id of the subject's parent.
               parentAbsolutePath:
                 type: string
-                maxLength: 254
+                maxLength: 4096
                 description: >
                   The absolutePath of the subject's parent.
               tags:

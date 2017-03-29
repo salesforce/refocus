@@ -91,6 +91,34 @@ apiErrors.create({
     'database. Please try again in a moment.',
 });
 
+apiErrors.create({
+  code: 11107,
+  status: 400,
+  name: 'ParentSubjectNotFound',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'Could not find the specified parent for this subject.',
+  explanation: 'If a subject specifies that it has a parent, the parent ' +
+   'subject must already exist.',
+});
+
+apiErrors.create({
+  code: 11108,
+  status: 400,
+  name: 'ParentSubjectNotMatch',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'The parentAbsolutePath and parentId do not match.',
+  explanation: 'If a subject specifies both a parentAbsolutePath and a parentId, the parent ' +
+    'specified by both fields need to have the same id.',
+});
+
+apiErrors.create({
+  code: 11109,
+  status: 400,
+  name: 'IllegalSelfParenting',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'A subject may not be its own parent.',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

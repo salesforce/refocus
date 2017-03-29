@@ -39,6 +39,7 @@ describe(`api: PUT ${path} with parents`, () => {
   let i0 = ZERO;
   let i1 = ZERO;
   let i0a = ZERO;
+  let iRoot = ZERO;
 
   before((done) => {
     tu.createToken()
@@ -51,7 +52,10 @@ describe(`api: PUT ${path} with parents`, () => {
 
   beforeEach((done) => {
     Subject.create(_root)
-    .then((subj) => Subject.create(n0))
+    .then((subj) => {
+      iRoot = subj.id;
+      return Subject.create(n0);
+    })
     .then((subj) => {
       i0 = subj.id;
       const ch = n1;
@@ -76,16 +80,17 @@ describe(`api: PUT ${path} with parents`, () => {
   after(tu.forceDeleteUser);
 
   /**
-  (a) PUT /v1/subjects/{key} with parentId and parentAbsolutePath fails if parentAbsolutePath does not refer to the same subject record as specified by parentId
-  (b) PUT /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets the parent based on the parentId
-  (c) PUT /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets the parent based on the parentAbsolutePath
-  (d) PUT /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath reparents the subject as a root subject (i.e. no parent)
-  (e) PUT /v1/subjects/{key} with parentId === id fails
-  (e) PUT /v1/subjects/{key} with parentAbsolutePath === absolutePath fails
-  (f) PUT /v1/subjects/{key} with parentId unchanged, parentAbsolutePath pointing to a different parent fails
-  (g) PUT /v1/subjects/{key} with parentAbsolutePath unchanged, parentId pointing to a different parent fails
+  (0) PUT /v1/subjects/{key} unpublishing child subject with parentId or parentAbsolutePath field should re-parent the subject
+  (1) PUT /v1/subjects/{key} unpublishing child subject without parentId nor parentAbsolutePath field should set the subject as top level subject
+  (2) PUT /v1/subjects/{key} with parentId and parentAbsolutePath fails if parentAbsolutePath does not refer to the same subject record as specified by parentId
+  (3) PUT /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets the parent based on the parentId
+  (4) PUT /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets the parent based on the parentAbsolutePath
+  (5) PUT /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath reparents the subject as a root subject (i.e. no parent)
+  (6) PUT /v1/subjects/{key} with parentId === id fails
+  (7) PUT /v1/subjects/{key} with parentAbsolutePath === absolutePath fails
+  (8) PUT /v1/subjects/{key} with parentId unchanged, parentAbsolutePath pointing to a different parent fails
+  (9) PUT /v1/subjects/{key} with parentAbsolutePath unchanged, parentId pointing to a different parent fails
   */
-
   it('fail when trying to update with parentId pointing to different subject than parentAbsolutePath', (done) => {
     api.put(`${path}/${i1}`)
     .set('Authorization', token)
@@ -96,7 +101,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -116,7 +121,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -136,7 +141,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -155,7 +160,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -174,7 +179,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -194,7 +199,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -215,7 +220,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -235,7 +240,7 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
@@ -259,6 +264,7 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
+      expect(res.body.parentId).to.equal(i0a);
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
       done();
     });
@@ -279,24 +285,123 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
+      expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
     });
   });
 
-  it('with NEITHER parentId NOR parentAbsolutePath, reparent the subject as a root subject', (done) => {
+  it('with NEITHER parentId NOR parentAbsolutePath, ' +
+    'reparent the subject as a root subject', (done) => {
     const NAME = 'iAmRoot';
     api.put(`${path}/${i0}`)
     .set('Authorization', token)
     .send({ name: NAME, isPublished: true })
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.parentAbsolutePath).to.equal('');
+      expect(res.body.parentId).to.equal(null);
       expect(res.body.absolutePath).to.equal(NAME);
       done();
+    });
+  });
+
+  describe('on un-publish', () => {
+    it('with NEITHER parentId NOR parentAbsolutePath,' +
+      ' set the subject as a root subject', (done) => {
+      const NAME = 'iAmRoot';
+      api.put(`${path}/${i0}`)
+      .set('Authorization', token)
+      .send({ name: NAME, isPublished: true })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.parentAbsolutePath).to.equal('');
+        expect(res.body.parentId).to.equal(null);
+        expect(res.body.absolutePath).to.equal(NAME);
+        done();
+      });
+    });
+
+    it('on name change, the name is changed',
+      (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(NEW_NAME);
+        done();
+      });
+    });
+
+    it('on change parent, the parent is set by ' +
+      'parentAbsolutePath', (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.isPublished).to.be.false;
+        expect(res.body.parentId).to.equal(iRoot);
+        expect(res.body.parentAbsolutePath).to.equal(_root.name);
+        expect(res.body.absolutePath).to.equal(_root.name + '.' + NEW_NAME);
+        done();
+      });
+    });
+
+    it('on change parent, the parent is set by ' +
+      'parentId', (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+        parentId: iRoot,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.isPublished).to.be.false;
+        expect(res.body.parentId).to.equal(iRoot);
+        expect(res.body.parentAbsolutePath).to.equal(_root.name);
+        expect(res.body.absolutePath).to.equal(_root.name + '.' + NEW_NAME);
+        done();
+      });
     });
   });
 });

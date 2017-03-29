@@ -39,7 +39,7 @@ describe(`api: PATCH ${path} with parents`, () => {
   let i0 = ZERO;
   let i1 = ZERO;
   let i0a = ZERO;
-
+  let iRoot = ZERO;
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -51,7 +51,10 @@ describe(`api: PATCH ${path} with parents`, () => {
 
   beforeEach((done) => {
     Subject.create(_root)
-    .then((subj) => Subject.create(n0))
+    .then((subj) => {
+      iRoot = subj.id;
+      return Subject.create(n0);
+    })
     .then((subj) => {
       i0 = subj.id;
       const ch = n1;
@@ -85,6 +88,101 @@ describe(`api: PATCH ${path} with parents`, () => {
   (f) PATCH /v1/subjects/{key} with parentId unchanged, parentAbsolutePath pointing to a different parent fails
   (g) PATCH /v1/subjects/{key} with parentAbsolutePath unchanged, parentId pointing to a different parent fails
   */
+
+  describe('on un-publish', () => {
+    it('with NEITHER parentId NOR parentAbsolutePath,' +
+      ' set the subject as a root subject', (done) => {
+      const NAME = 'iAmRoot';
+      api.put(`${path}/${i0}`)
+      .set('Authorization', token)
+      .send({ name: NAME, isPublished: true })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.parentAbsolutePath).to.equal('');
+        expect(res.body.parentId).to.equal(null);
+        expect(res.body.absolutePath).to.equal(NAME);
+        done();
+      });
+    });
+
+    it('on name change, the name is changed',
+      (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(NEW_NAME);
+        done();
+      });
+    });
+
+    it('on change parent, the parent is set by ' +
+      'parentAbsolutePath', (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.isPublished).to.be.false;
+        expect(res.body.parentId).to.equal(iRoot);
+        expect(res.body.parentAbsolutePath).to.equal(_root.name);
+        expect(res.body.absolutePath).to.equal(_root.name + '.' + NEW_NAME);
+        done();
+      });
+    });
+
+    it('on change parent, the parent is set by ' +
+      'parentId', (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: false,
+        parentId: iRoot,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.isPublished).to.be.false;
+        expect(res.body.parentId).to.equal(iRoot);
+        expect(res.body.parentAbsolutePath).to.equal(_root.name);
+        expect(res.body.absolutePath).to.equal(_root.name + '.' + NEW_NAME);
+        done();
+      });
+    });
+  });
 
   it('fail when trying to update with parentId pointing to different subject than parentAbsolutePath', (done) => {
     api.patch(`${path}/${i1}`)
@@ -124,30 +222,11 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('fail when trying to update with parentAbsolutePath pointing to different subject than parentId', (done) => {
-    api.patch(`${path}/${i1}`)
-    .set('Authorization', token)
-    .send({
-      name: `${tu.namePrefix}Canada`,
-      parentId: i0, // unchanged parent
-      parentAbsolutePath: n0a.name,
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
-      if (err) {
-        done(err);
-      }
-
-      expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
-      done();
-    });
-  });
-
   it('fail on update parentId to itself', (done) => {
     api.patch(`${path}/${i0a}`)
     .set('Authorization', token)
     .send({
-      name: `${tu.namePrefix}Canada`,
+      name: `${tu.namePrefix}Canada_unique`,
       parentId: i0a,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
@@ -271,6 +350,7 @@ describe(`api: PATCH ${path} with parents`, () => {
       }
 
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
+      expect(res.body.parentId).to.equal(i0a);
       done();
     });
   });
@@ -289,6 +369,7 @@ describe(`api: PATCH ${path} with parents`, () => {
         done(err);
       }
 
+      expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
     });

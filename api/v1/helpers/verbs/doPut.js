@@ -65,6 +65,9 @@ function doPut(req, res, next, props) {
             }
 
             o.set(key, nullish);
+
+            // take nullified fields out of changed fields
+            o.changed(key, false);
           } else {
             o.set(key, toPut[key]);
           }

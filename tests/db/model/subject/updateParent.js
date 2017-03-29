@@ -23,6 +23,8 @@ describe('db: subject: update parent: ', () => {
 
   let subjId1;
   let childId1;
+  let child1AbsolutePath;
+  let child1Name;
   let childId2;
   const ROOT_NAME = `${tu.namePrefix}parent0`;
 
@@ -43,6 +45,8 @@ describe('db: subject: update parent: ', () => {
     })
     .then((c1) => {
       childId1 = c1.id;
+      child1AbsolutePath = c1.absolutePath;
+      child1Name = c1.name;
       const myChild2 = u
       .getSubjectPrototype(`${tu.namePrefix}child2`, childId1);
       return Subject.create(myChild2);
@@ -57,13 +61,48 @@ describe('db: subject: update parent: ', () => {
   afterEach(u.forceDelete);
   after(u.forceDelete);
 
-  it.only('on update parentId to itself, ' +
+  it('on un-publishing subject, ' +
+    'subject is not re-parented', (done) => {
+    Subject.findById(childId2)
+    .then((child) => child.update({ isPublished: false }))
+    .then((updatedChild) => {
+      expect(updatedChild.dataValues.parentId).to.equal(childId1);
+      expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('on un-publishing subject and updating its name to same name, ' +
+    'subject is not re-parented', (done) => {
+    Subject.findById(childId2)
+    .then((child) => child.update({ isPublished: false, name: child1Name }))
+    .then((updatedChild) => {
+      expect(updatedChild.dataValues.parentId).to.equal(childId1);
+      expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('on un-publishing subject and changing its name, ' +
+    'subject is not re-parented', (done) => {
+    Subject.findById(childId2)
+    .then((child) => child.update({ isPublished: false, name: ROOT_NAME }))
+    .then((updatedChild) => {
+      expect(updatedChild.dataValues.parentId).to.equal(childId1);
+      expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('on update parentId to itself, ' +
     'the update fails', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentId: childId2 }))
     .then((updatedChild) => done('Expected IllegalSelfParenting error' + '. But received' + JSON.stringify(updatedChild)))
     .catch((err) => {
-      console.log(err)
       expect(err.status).to.equal(400);
       expect(err.name).to.equal('IllegalSelfParenting');
       done();
@@ -78,6 +117,19 @@ describe('db: subject: update parent: ', () => {
     .catch((err) => {
       expect(err.status).to.equal(400);
       expect(err.name).to.equal('IllegalSelfParenting');
+      done();
+    });
+  });
+
+  it('on update parentAbsolutePath and parentId to empty and non-empty parent subjects, ' +
+    'the update fails', (done) => {
+    Subject.findById(childId2)
+    .then((child) => child.update({ parentAbsolutePath: ROOT_NAME, parentId: null }))
+    .then((updatedChild) => done('Expected ParentSubjectNotMatch error. But received' +
+      JSON.stringify(updatedChild)))
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('ParentSubjectNotMatch');
       done();
     });
   });
@@ -123,7 +175,7 @@ describe('db: subject: update parent: ', () => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: '' }))
     .then((updatedChild) => {
-      expect(updatedChild.dataValues.parentAbsolutePath).to.equal('');
+      expect(updatedChild.dataValues.parentAbsolutePath).to.equal(null);
       expect(updatedChild.dataValues.parentId).to.be.null;
       done();
     })
@@ -291,6 +343,10 @@ describe('db: subject: update parent: ', () => {
     .catch(done);
   });
 
+  /**
+   * Previously p1._c1
+   * Re-parent to _p2._p1._c1
+   */
   it('ok, child absolutePath is updated with new parent and old parent',
   (done) => {
     let subjId2;

@@ -31,14 +31,6 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
-
-const ParentSubjectNotFound = require('../../../db/dbErrors')
-  .ParentSubjectNotFound;
-const ParentSubjectNotMatch = require('../../../db/dbErrors')
-  .ParentSubjectNotMatch;
-const IllegalSelfParenting = require('../../../db/dbErrors')
-  .IllegalSelfParenting;
-
 const sampleStoreFeature =
                   require('../../../cache/sampleStore').constants.featureName;
 const ZERO = 0;
@@ -69,12 +61,12 @@ function validateParentFields(req, res, next, callback) {
     .then((parent) => {
       if (parent && parent.id !== parentId) {
         // parentAbsolutePath does not match parentId
-        throw new ParentSubjectNotMatch({
+        throw new apiErrors.ParentSubjectNotMatch({
           message: parent.id + ' does not match ' + parentId,
         });
       } else if (!parent) {
         // no parent found
-        throw new ParentSubjectNotFound({
+        throw new apiErrors.ParentSubjectNotFound({
           message: parentAbsolutePath + ' not found.',
         });
       }
