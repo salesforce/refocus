@@ -43,7 +43,6 @@ const sampFields = {
   UPD_AT: 'updatedAt',
   ASP_ID: 'aspectId',
   SUBJ_ID: 'subjectId',
-  IS_DELETED: 'isDeleted',
 };
 const sampleFieldsArr = Object.keys(sampFields).map(
   (field) => sampFields[field]
@@ -521,7 +520,6 @@ module.exports = {
 
       // attach aspect and links to sample
       const resSampAsp = cleanAddAspectToSample(sampObjToReturn, asp);
-      resSampAsp.isDeleted = Date.now();
       return resSampAsp;
     });
   },
