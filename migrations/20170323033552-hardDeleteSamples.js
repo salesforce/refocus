@@ -23,7 +23,7 @@ module.exports = {
         }));
   },
 
-  down(qi /* , Sequelize */) { // NO-op
+  down(qi /* , Sequelize */) { // NO-OP
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.
