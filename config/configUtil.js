@@ -76,7 +76,6 @@ function getReadReplicas(pe, replicaLabel) {
   let replicas = [];
   if (pe[replicaLabel]) {
     const replicaList = csvToArray(pe[replicaLabel]);
-    replicas = [];
     replicaList.forEach((replica) => {
       if (pe[replica]) {
         replicas.push(pe[replica]);

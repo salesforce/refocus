@@ -61,7 +61,6 @@ function getReadOnlyDBConfig(readReplicas) {
   let readConfig;
   if (Array.isArray(readReplicas) && readReplicas.length) {
     readConfig = [];
-
     readReplicas.forEach((replicaUrl) => {
       const dbConfObj = dbConfigObjectFromDbURL(replicaUrl);
       if (dbConfObj && dbConfObj.host && dbConfObj.port &&
