@@ -550,19 +550,19 @@ module.exports = function subject(seq, dataTypes) {
         }
 
         return checkPublished()
-        .then((updatedInst) => {
+        .then(() => {
 
           // parentId and parentAbsolutePath check
           // pap is shorthand for parentAbsolutePath,
           // pip is shorthand for parentId
-          const papChanged = updatedInst.changed('parentAbsolutePath');
-          const pidChanged = updatedInst.changed('parentId');
+          const papChanged = inst.changed('parentAbsolutePath');
+          const pidChanged = inst.changed('parentId');
 
           // initialize papEmpty, pidEmpty: check whether the
           // fields are '' or null or falsey
-          const papEmpty = updatedInst.parentAbsolutePath == null ||
-            updatedInst.parentAbsolutePath == false;
-          const pidEmpty = updatedInst.parentId == null || updatedInst.parentId == false;
+          const papEmpty = inst.parentAbsolutePath == null ||
+            inst.parentAbsolutePath == false;
+          const pidEmpty = inst.parentId == null || inst.parentId == false;
 
           // If either is empty, decrement the parent's childCount
           if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
@@ -570,53 +570,53 @@ module.exports = function subject(seq, dataTypes) {
             // if both changed, throw not match error if
             // one is empty and the other is not
             if (papChanged && pidChanged && (papEmpty != pidEmpty)) {
-              throwNotMatchError(updatedInst.parentId, updatedInst.absolutePath);
+              throwNotMatchError(inst.parentId, inst.absolutePath);
             }
 
             // set parentAbsolutePath, parentId to null
-            return updateParentFields(Subject, null, null, updatedInst);
+            return updateParentFields(Subject, null, null, inst);
           }
 
           if ((papChanged && pidChanged) && (!papEmpty && !pidEmpty)) {
 
             // do parentAbsolutePath and parentId point to the same subject?
             return validateParentField(Subject,
-              updatedInst.parentAbsolutePath, updatedInst.absolutePath, 'absolutePath')
-            .then(() => validateParentField(Subject, updatedInst.parentId, updatedInst.id, 'id'))
+              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
+            .then(() => validateParentField(Subject, inst.parentId, inst.id, 'id'))
             .then((parent) => {
-              if (parent.absolutePath != updatedInst.parentAbsolutePath) {
+              if (parent.absolutePath != inst.parentAbsolutePath) {
 
                 // don't match. throw error.
-                throwNotMatchError(updatedInst.parentId, updatedInst.absolutePath);
+                throwNotMatchError(inst.parentId, inst.absolutePath);
               }
 
               // if match, update
               parent.increment('childCount');
               return updateParentFields(
-                Subject, updatedInst.parentId, updatedInst.parentAbsolutePath, updatedInst);
+                Subject, inst.parentId, inst.parentAbsolutePath, inst);
             });
           } else if (pidChanged && !pidEmpty) {
             let parentAbsolutePath;
-            return validateParentField(Subject, updatedInst.parentId, updatedInst.id, 'id')
+            return validateParentField(Subject, inst.parentId, inst.id, 'id')
             .then((parent) => {
               parent.increment('childCount');
               parentAbsolutePath = parent.absolutePath;
               return updateParentFields(
-                Subject, updatedInst.parentId, parentAbsolutePath, updatedInst);
+                Subject, inst.parentId, parentAbsolutePath, inst);
             });
           } else if (papChanged && !papEmpty) {
             return validateParentField(Subject,
-              updatedInst.parentAbsolutePath, updatedInst.absolutePath, 'absolutePath')
+              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
             .then((parent) => {
 
-              // notice parent.id can != updatedInst.parentId.
+              // notice parent.id can != inst.parentId.
               // since parentId field did not change, use parent.id
               parent.increment('childCount');
               return updateParentFields(
-                Subject, parent.id, updatedInst.parentAbsolutePath, updatedInst);
+                Subject, parent.id, inst.parentAbsolutePath, inst);
             });
           } else {
-            return updatedInst;
+            return inst;
           }
         })
         .then((updatedInst) => {
