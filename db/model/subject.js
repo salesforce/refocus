@@ -539,17 +539,14 @@ module.exports = function subject(seq, dataTypes) {
                 }
               }
 
-              return inst;
+              return;
             });
           } else {
-
-            // need wrap in promise here, otherwise
-            // get checkPublished().then() is not a function
-            return new seq.Promise((resolve, reject) => resolve(inst));
+            return;
           }
         }
 
-        return checkPublished()
+        return new seq.Promise((resolve, reject) => resolve(checkPublished()))
         .then(() => {
 
           // parentId and parentAbsolutePath check
