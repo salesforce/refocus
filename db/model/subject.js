@@ -15,6 +15,9 @@ const featureToggles = require('feature-toggles');
 const sampleStoreFeature =
                   require('../../cache/sampleStore').constants.featureName;
 const common = require('../helpers/common');
+const throwNotMatchError = require('../helpers/subjectUtils').throwNotMatchError;
+const updateParentFields = require('../helpers/subjectUtils').updateParentFields;
+const validateParentField = require('../helpers/subjectUtils').validateParentField;
 const constants = require('../constants');
 const SubjectDeleteConstraintError = require('../dbErrors')
   .SubjectDeleteConstraintError;
@@ -22,6 +25,10 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const ValidationError = require('../dbErrors').ValidationError;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
+const ParentSubjectNotMatch = require('../dbErrors')
+  .ParentSubjectNotMatch;
+const IllegalSelfParenting = require('../dbErrors')
+  .IllegalSelfParenting;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -516,9 +523,9 @@ module.exports = function subject(seq, dataTypes) {
          * unpublished too. If any of the children are published, throw a
          * validation error
          */
-        if (inst.getDataValue('isPublished') === false) {
-          return new seq.Promise((resolve, reject) => {
-            inst.getChildren()
+        function checkPublished() {
+          if (inst.getDataValue('isPublished') === false) {
+            return inst.getChildren()
             .then((children) => {
               if (children && children.length) {
                 const len = children.length;
@@ -532,94 +539,97 @@ module.exports = function subject(seq, dataTypes) {
                 }
               }
 
-              return resolve(inst);
-            })
-            .catch(reject);
-          });
-        }
-
-        if (inst.changed('parentId') || inst.changed('parentAbsolutePath')) {
-          let key = null;
-          let key1 = null;
-          let value = null;
-          let value1 = null;
-          let param = null;
-          let param1 = null;
-
-          if (inst.changed('parentId')) {
-            key = 'parentId';
-            value = inst.getDataValue(key);
-            key1 = 'parentAbsolutePath';
-            value1 = inst.getDataValue(key1);
-            param = 'id';
-            param1 = 'absolutePath';
-          } else {
-            key = 'parentAbsolutePath';
-            value = inst.getDataValue(key);
-            key1 = 'parentId';
-            value1 = inst.getDataValue(key1);
-            param = 'absolutePath';
-            param1 = 'id';
-          }
-
-          return new seq.Promise((resolve, reject) => {
-            Subject.scope({ method: [param, value] }).find()
-            .then((parent) => {
-              if (parent) {
-                inst.setDataValue('absolutePath',
-                  parent.absolutePath + '.' + inst.name);
-                inst.setDataValue(key, value);
-                inst.setDataValue(key1, parent.getDataValue(param1));
-
-                if (parent.getDataValue('param1') !== value1) {
-                  parent.increment('childCount');
-                  Subject.scope({ method: [param1, value1] }).find()
-                  .then((oldParent) => {
-                    if (oldParent) {
-                      oldParent.decrement('childCount');
-                    }
-                  })
-                  .catch((err) => reject(err));
-                }
-              } else {
-                if (inst.getDataValue(key)) {
-                  throw new ParentSubjectNotFound({
-                    message: key + ' not found.',
-                  });
-                }
-
-                Subject.scope({ method: [param, inst.previous(key)] })
-                .find()
-                .then((par) => {
-                  if (par) {
-                    par.decrement('childCount');
-                  }
-                });
-                inst.setDataValue(key, null);
-                inst.setDataValue(key1, null);
-                inst.setDataValue('absolutePath', inst.name);
-              }
-
-              resolve(inst);
-            })
-            .catch((err) => {
-              reject(err);
+              return;
             });
-          });
+          } else {
+            return;
+          }
         }
 
-        if (inst.changed('name')) {
-          return new seq.Promise((resolve, reject) => {
-            if (inst.parentAbsolutePath) {
-              inst.setDataValue('absolutePath',
-              inst.parentAbsolutePath + '.' + inst.name);
-            } else {
-              inst.setDataValue('absolutePath', inst.name);
+        return new seq.Promise((resolve, reject) => resolve(checkPublished()))
+        .then(() => {
+
+          // parentId and parentAbsolutePath check
+          // pap is shorthand for parentAbsolutePath,
+          // pip is shorthand for parentId
+          const papChanged = inst.changed('parentAbsolutePath');
+          const pidChanged = inst.changed('parentId');
+
+          // initialize papEmpty, pidEmpty: check whether the
+          // fields are '' or null or falsey
+          const papEmpty = inst.parentAbsolutePath == null ||
+            inst.parentAbsolutePath == false;
+          const pidEmpty = inst.parentId == null || inst.parentId == false;
+
+          // If either is empty, decrement the parent's childCount
+          if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
+
+            // if both changed, throw not match error if
+            // one is empty and the other is not
+            if (papChanged && pidChanged && (papEmpty != pidEmpty)) {
+              throwNotMatchError(inst.parentId, inst.absolutePath);
             }
 
-            return resolve(inst);
-          });
-        }
+            // set parentAbsolutePath, parentId to null
+            return updateParentFields(Subject, null, null, inst);
+          }
+
+          if ((papChanged && pidChanged) && (!papEmpty && !pidEmpty)) {
+
+            // do parentAbsolutePath and parentId point to the same subject?
+            return validateParentField(Subject,
+              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
+            .then(() => validateParentField(Subject, inst.parentId, inst.id, 'id'))
+            .then((parent) => {
+              if (parent.absolutePath != inst.parentAbsolutePath) {
+
+                // don't match. throw error.
+                throwNotMatchError(inst.parentId, inst.absolutePath);
+              }
+
+              // if match, update
+              parent.increment('childCount');
+              return updateParentFields(
+                Subject, inst.parentId, inst.parentAbsolutePath, inst);
+            });
+          } else if (pidChanged && !pidEmpty) {
+            let parentAbsolutePath;
+            return validateParentField(Subject, inst.parentId, inst.id, 'id')
+            .then((parent) => {
+              parent.increment('childCount');
+              parentAbsolutePath = parent.absolutePath;
+              return updateParentFields(
+                Subject, inst.parentId, parentAbsolutePath, inst);
+            });
+          } else if (papChanged && !papEmpty) {
+            return validateParentField(Subject,
+              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
+            .then((parent) => {
+
+              // notice parent.id can != inst.parentId.
+              // since parentId field did not change, use parent.id
+              parent.increment('childCount');
+              return updateParentFields(
+                Subject, parent.id, inst.parentAbsolutePath, inst);
+            });
+          } else {
+            return inst;
+          }
+        })
+        .then((updatedInst) => {
+          if (updatedInst.changed('name')) {
+            if (updatedInst.parentAbsolutePath) {
+              updatedInst.setDataValue('absolutePath',
+              updatedInst.parentAbsolutePath + '.' + updatedInst.name);
+            } else {
+              updatedInst.setDataValue('absolutePath', updatedInst.name);
+            }
+
+            return updatedInst;
+          } else {
+            return updatedInst;
+          }
+        });
       }, // hooks.beforeUpdate
 
       /**
