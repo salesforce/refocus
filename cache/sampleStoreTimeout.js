@@ -55,6 +55,7 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
      * sample is timed out.
      */
     if (asp && isTimedOut(asp.timeout, curr, sampUpdDateTime)) {
+      console.log('invalid time?', getISOdate())
       const objToUpdate = {
         value: constants.statuses.Timeout,
         status: constants.statuses.Timeout,

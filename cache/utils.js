@@ -23,8 +23,8 @@
  * If no input, return the ISO formatted date with now time.
  */
 function getISOdate(date) {
-  return date ? date.toISOString() :
-    new Date().toISOString();
+  const _date = date ? new Date(date) : new Date();
+  return new Date(_date).toISOString();
 }
 
 module.exports = {

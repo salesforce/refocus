@@ -101,6 +101,23 @@ describe('api::cache::timeout', () => {
   afterEach(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('createdAt and updatedAt fields have the expected format', (done) => {
+    const mockUpdatedAt = updatedAt;
+    mockUpdatedAt.setHours(updatedAt.getHours() +
+      (twentyFourhours * hundredDays));
+    doTimeout(mockUpdatedAt)
+    .then((res) => {
+      const { timedOutSamples } = res;
+      for (let i = timedOutSamples.length - 1; i >= 0; i--) {
+        const { updatedAt, statusChangedAt } = timedOutSamples[i];
+        expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+        expect(statusChangedAt).to.equal(new Date(statusChangedAt).toISOString());
+      }
+      done();
+    })
+    .catch(done);
+  });
+
   it('simulate 100 days in the future', (done) => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setHours(updatedAt.getHours() +

@@ -497,6 +497,8 @@ module.exports = {
     const cmds = [];
     let sampObjToReturn;
 
+    console.log(sampleType)
+    console.log(sampleName)
     return redisOps.getHashPromise(sampleType, sampleName)
     .then((sampleObj) => {
       if (!sampleObj) {
@@ -506,8 +508,6 @@ module.exports = {
       }
 
       sampObjToReturn = sampleObj;
-    })
-    .then(() => {
       cmds.push(redisOps.getHashCmd(aspectType, aspName));
       cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
       cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
