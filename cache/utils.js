@@ -24,7 +24,7 @@
  */
 function getISOdate(date) {
   const _date = date ? new Date(date) : new Date();
-  return new Date(_date).toISOString();
+  return _date.toISOString();
 }
 
 module.exports = {

@@ -922,7 +922,6 @@ module.exports = {
       // Eg: { samplename: asp object}, so that we can attach aspect later
       const sampAspectMap = {};
       for (let num = 0; num < redisResponses.length; num += TWO) {
-        console.log(redisResponses[num]);
         samples.push(redisResponses[num]);
         sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
       }
