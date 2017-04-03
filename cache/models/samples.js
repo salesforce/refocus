@@ -28,6 +28,7 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
+const getISOdate = require('../utils').getISOdate;
 
 const sampFields = {
   MSG_BODY: 'messageBody',
@@ -311,7 +312,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
                             dbConstants.statuses.Invalid;
       qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = new Date().toString();
+      qbObj[sampFields.STS_CHNGED_AT] = getISOdate();
       qbObj[sampFields.STATUS] = status;
     }
   }
@@ -330,7 +331,8 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  const dateNow = new Date().toString();
+  console.log('updated at', dateNow)
+  const dateNow = getISOdate();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
   }
@@ -567,7 +569,7 @@ module.exports = {
 
       const hmsetObj = {};
       hmsetObj.relatedLinks = updatedRlinks;
-      hmsetObj.updatedAt = new Date().toString();
+      hmsetObj.updatedAt = getISOdate();
 
       // stringify arrays
       constants.fieldsToStringify.sample.forEach((field) => {
@@ -624,11 +626,11 @@ module.exports = {
         const status = sampleUtils.computeStatus(aspObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
           reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-          reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+          reqBody[sampFields.STS_CHNGED_AT] = getISOdate();
           reqBody[sampFields.STATUS] = status;
         }
 
-        reqBody[sampFields.UPD_AT] = new Date().toString();
+        reqBody[sampFields.UPD_AT] = getISOdate();
       }
 
       if (reqBody.relatedLinks) {
@@ -708,7 +710,7 @@ module.exports = {
       }
 
       // defaults
-      const dateNow = new Date().toString();
+      const dateNow = getISOdate();
       reqBody[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
@@ -780,13 +782,13 @@ module.exports = {
       const status = sampleUtils.computeStatus(aspectObj, value);
       if (currSampObj[sampFields.STATUS] !== status) {
         reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-        reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+        reqBody[sampFields.STS_CHNGED_AT] = getISOdate();
         reqBody[sampFields.STATUS] = status;
       }
 
       // We have a value, so update value and updated_at always.
       reqBody[sampFields.VALUE] = value;
-      reqBody[sampFields.UPD_AT] = new Date().toString();
+      reqBody[sampFields.UPD_AT] = getISOdate();
 
       if (reqBody.relatedLinks) { // related links
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
@@ -921,12 +923,14 @@ module.exports = {
       // Eg: { samplename: asp object}, so that we can attach aspect later
       const sampAspectMap = {};
       for (let num = 0; num < redisResponses.length; num += TWO) {
+        console.log(redisResponses[num]);
         samples.push(redisResponses[num]);
         sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
       }
 
       const filteredSamples = applyFiltersOnSampObjs(samples, opts);
       filteredSamples.forEach((sample) => {
+
         const sampName = sample.name;
         if (opts.attributes) { // delete sample fields, hence no return obj
           applyFieldListFilter(sample, opts.attributes);

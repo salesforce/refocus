@@ -18,6 +18,7 @@ const isTimedOut = require('../db/helpers/sampleUtils').isTimedOut;
 const constants = require('../api/v1/constants');
 const fieldsToStringify = require('./sampleStore').constants.fieldsToStringify;
 const redisErrors = require('./redisErrors');
+const getISOdate = require('./utils').getISOdate;
 const ONE = 1;
 
 /**
@@ -47,7 +48,7 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
     }
 
     const asp = aspects[aspName.toLowerCase()];
-    const sampUpdDateTime = new Date(samp.updatedAt);
+    const sampUpdDateTime = getISOdate(samp.updatedAt);
 
     /*
      * Update sample if aspect exists, sample status is other than TimeOut and
@@ -58,8 +59,8 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
         value: constants.statuses.Timeout,
         status: constants.statuses.Timeout,
         previousStatus: samp.status,
-        statusChangedAt: new Date().toString(),
-        updatedAt: new Date().toString(),
+        statusChangedAt: getISOdate(),
+        updatedAt: getISOdate(),
       };
       const fullSampObj = Object.assign({}, objToUpdate);
       fullSampObj.name = samp.name;
@@ -89,7 +90,7 @@ module.exports = {
    * samples
    */
   doTimeout(now) {
-    const curr = now || new Date();
+    const curr = now ? getISOdate(now) : getISOdate();
     let numberTimedOut = 0;
     let numberEvaluated = 0;
     let samplesCount = 0;

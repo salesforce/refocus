@@ -91,7 +91,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     });
   });
 
-  it('does not return isDeleted field', (done) => {
+  it('does not return id', (done) => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -100,7 +100,23 @@ describe(`api: redisStore: DELETE ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.isDeleted).to.equal(undefined);
+      expect(res.body.name).to.equal(sampleName);
+      done();
+    });
+  });
+
+  it('createdAt and updatedAt fields have the expected format', (done) => {
+    api.delete(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      const { updatedAt, createdAt } = res.body;
+      expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      expect(createdAt).to.equal(new Date(createdAt).toISOString());
       done();
     });
   });
