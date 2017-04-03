@@ -141,3 +141,33 @@ describe('csvToArray', () => {
     done();
   });
 }); // csvToArray
+
+describe('getReadReplicas', () => {
+  it('only bad entry will return undefined', (done) => {
+    const pe = { 'REPLICAS': 'test' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
+    .to.be.eql(undefined);
+    done();
+  });
+
+  it('without Replicas env variable return undefined', (done) => {
+    const pe = {};
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
+    .to.be.eql(undefined);
+    done();
+  });
+
+  it('Replicas env variable with correct env variables', (done) => {
+    const pe = { 'REPLICAS': 'test', 'test': 'testURL' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
+    .to.be.eql(['testURL']);
+    done();
+  });
+
+  it('Replicas env variable with bad env variables', (done) => {
+    const pe = { 'REPLICAS': 'test, test1', 'test': 'testURL' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
+    .to.be.eql(['testURL']);
+    done();
+  });
+});

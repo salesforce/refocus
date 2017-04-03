@@ -73,15 +73,18 @@ function csvToArray(str) {
  *  replicas.
  */
 function getReadReplicas(pe, replicaLabel) {
-  let replicas;
+  let replicas = [];
   if (pe[replicaLabel]) {
     const replicaList = csvToArray(pe[replicaLabel]);
-    replicas = [];
     replicaList.forEach((replica) => {
       if (pe[replica]) {
         replicas.push(pe[replica]);
       }
     });
+  }
+
+  if (!replicas.length) {
+    replicas = undefined;
   }
 
   return replicas;
