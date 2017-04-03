@@ -331,7 +331,6 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  console.log('updated at', dateNow)
   const dateNow = getISOdate();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
