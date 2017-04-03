@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const u = require('../../db/utils');
 
-describe.only('db utils', () => {
+describe('db utils', () => {
 
   it('dbConfigObjectFromDbURL localhost', (done) => {
     const dbconfig = u.dbConfigObjectFromDbURL(
