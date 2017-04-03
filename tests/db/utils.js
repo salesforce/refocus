@@ -55,6 +55,20 @@ describe('db utils', () => {
 
 
     done();
+  });
+
+  it('getReadOnlyDBConfig with bad url', (done) => {
+    const replicas = ['test://a:a@test:com/focusdb',
+    'postgres://postgres:postgres@localhost:9432/focusdb'
+    ];
+    const replicaConfig = u.getReadOnlyDBConfig(replicas);
+    expect(replicaConfig).to.have.lengthOf(1);
+    expect(replicaConfig[0]).to.have.property('username', 'postgres');
+    expect(replicaConfig[0]).to.have.property('password', 'postgres');
+    expect(replicaConfig[0]).to.have.property('host', 'localhost');
+    expect(replicaConfig[0]).to.have.property('port', '9432');
+
+    done();
   }); // getReadOnlyDBConfig local
 
   it('getReadOnlyDBConfig from heroku-ish url', (done) => {
