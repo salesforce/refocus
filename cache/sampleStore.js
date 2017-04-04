@@ -18,6 +18,7 @@ const PFX = 'samsto';
 const SEP = ':';
 const ONE = 1;
 const constants = {
+  ISOfields: ['updatedAt', 'createdAt', 'statusChangedAt'],
   featureName: 'enableRedisSampleStore',
   fieldsToStringify: {
     aspect: [
@@ -104,6 +105,20 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
 } // removeNullsAndStringifyArrays
 
 /**
+ * Returns the ISO formatted date
+ *
+ * ie. input: Mon Apr 03 2017 14:10:57 GMT-0700 (PDT)
+ * output: 2017-03-14T02:22:42.255Z
+ *
+ * @param {Object} date Optional input
+ * @return {String} If provided date object, return the ISO formatted date.
+ * If no input, return the ISO formatted date with now time.
+ */
+function convertToISO(date) {
+  return date ? new Date().toISOString() : date.toISOString();
+}
+
+/**
  * Remove nulls and stringify arrays.
  *
  * @param {Object} a - The aspect to clean. This can be either be a sequelize
@@ -129,6 +144,10 @@ function cleanSample(s) {
   delete retval.aspect;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.sample);
+  for (let j = constants.ISOfields.length - 1; j >= 0; j--) {
+    retval[constants.ISOfields[j]] = convertToISO(retval[constants.ISOfields[j]]);
+  }
+
   return retval;
 } // cleanSample
 

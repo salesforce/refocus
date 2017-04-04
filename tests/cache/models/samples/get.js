@@ -320,7 +320,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .end((err /* , res */) => done(err));
   });
 
-  it.only('createdAt and updatedAt fields have the expected format', (done) => {
+  it('createdAt and updatedAt fields have the expected format', (done) => {
     const sampleName = s1s3a1;
     api.get(`${path}/${sampleName}`)
     .set('Authorization', token)
