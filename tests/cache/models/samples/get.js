@@ -39,7 +39,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
   after(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('time-realted fields have the expected format', (done) => {
+  it('updatedAt and createdAt fields have the expected format', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
