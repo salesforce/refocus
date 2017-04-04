@@ -311,7 +311,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
                             dbConstants.statuses.Invalid;
       qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = new Date().toString();
+      qbObj[sampFields.STS_CHNGED_AT] = new Date().toISOString();
       qbObj[sampFields.STATUS] = status;
     }
   }
@@ -330,7 +330,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  const dateNow = new Date().toString();
+  const dateNow = new Date().toISOString();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
   }
@@ -504,8 +504,6 @@ module.exports = {
       }
 
       sampObjToReturn = sampleObj;
-    })
-    .then(() => {
       cmds.push(redisOps.getHashCmd(aspectType, aspName));
       cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
       cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
@@ -567,7 +565,7 @@ module.exports = {
 
       const hmsetObj = {};
       hmsetObj.relatedLinks = updatedRlinks;
-      hmsetObj.updatedAt = new Date().toString();
+      hmsetObj.updatedAt = new Date().toISOString();
 
       // stringify arrays
       constants.fieldsToStringify.sample.forEach((field) => {
@@ -624,11 +622,11 @@ module.exports = {
         const status = sampleUtils.computeStatus(aspObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
           reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-          reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+          reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
           reqBody[sampFields.STATUS] = status;
         }
 
-        reqBody[sampFields.UPD_AT] = new Date().toString();
+        reqBody[sampFields.UPD_AT] = new Date().toISOString();
       }
 
       if (reqBody.relatedLinks) {
@@ -708,7 +706,7 @@ module.exports = {
       }
 
       // defaults
-      const dateNow = new Date().toString();
+      const dateNow = new Date().toISOString();
       reqBody[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
@@ -780,13 +778,13 @@ module.exports = {
       const status = sampleUtils.computeStatus(aspectObj, value);
       if (currSampObj[sampFields.STATUS] !== status) {
         reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-        reqBody[sampFields.STS_CHNGED_AT] = new Date().toString();
+        reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
         reqBody[sampFields.STATUS] = status;
       }
 
       // We have a value, so update value and updated_at always.
       reqBody[sampFields.VALUE] = value;
-      reqBody[sampFields.UPD_AT] = new Date().toString();
+      reqBody[sampFields.UPD_AT] = new Date().toISOString();
 
       if (reqBody.relatedLinks) { // related links
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
@@ -927,6 +925,7 @@ module.exports = {
 
       const filteredSamples = applyFiltersOnSampObjs(samples, opts);
       filteredSamples.forEach((sample) => {
+
         const sampName = sample.name;
         if (opts.attributes) { // delete sample fields, hence no return obj
           applyFieldListFilter(sample, opts.attributes);

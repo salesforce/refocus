@@ -39,6 +39,24 @@ describe(`api::redisEnabled::GET ${path}`, () => {
   after(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('updatedAt and createdAt fields have the expected format', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      for (let i = res.body.length - 1; i >= 0; i--) {
+        const { updatedAt, createdAt } = res.body[i];
+        expect(createdAt).to.equal(new Date(createdAt).toISOString());
+        expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      }
+      done();
+    });
+  });
+
   it('basic get all, sorted lexicographically by default', (done) => {
     api.get(path)
     .set('Authorization', token)
@@ -300,6 +318,23 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body[0].status).to.equal('Invalid');
     })
     .end((err /* , res */) => done(err));
+  });
+
+  it('createdAt and updatedAt fields have the expected format', (done) => {
+    const sampleName = s1s3a1;
+    api.get(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const { updatedAt, createdAt } = res.body;
+      expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      expect(createdAt).to.equal(new Date(createdAt).toISOString());
+      done();
+    });
   });
 
   it('basic get by name, OK', (done) => {

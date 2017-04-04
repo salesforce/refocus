@@ -77,6 +77,23 @@ describe(`api: cache: PUT ${path}`, () => {
       });
     });
 
+    it('createdAt and updatedAt fields have the expected format', (done) => {
+      api.put(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        const { updatedAt, createdAt } = res.body;
+        expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+        expect(createdAt).to.equal(new Date(createdAt).toISOString());
+        done();
+      });
+    });
+
     it('basic put /samples', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)

@@ -47,7 +47,7 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
     }
 
     const asp = aspects[aspName.toLowerCase()];
-    const sampUpdDateTime = new Date(samp.updatedAt);
+    const sampUpdDateTime = new Date(samp.updatedAt).toISOString();
 
     /*
      * Update sample if aspect exists, sample status is other than TimeOut and
@@ -58,8 +58,8 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
         value: constants.statuses.Timeout,
         status: constants.statuses.Timeout,
         previousStatus: samp.status,
-        statusChangedAt: new Date().toString(),
-        updatedAt: new Date().toString(),
+        statusChangedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       const fullSampObj = Object.assign({}, objToUpdate);
       fullSampObj.name = samp.name;
@@ -89,7 +89,9 @@ module.exports = {
    * samples
    */
   doTimeout(now) {
-    const curr = now || new Date();
+    const curr = now ?
+      new Date(now).toISOString() :
+      new Date().toISOString();
     let numberTimedOut = 0;
     let numberEvaluated = 0;
     let samplesCount = 0;
