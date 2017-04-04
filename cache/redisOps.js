@@ -279,31 +279,51 @@ module.exports = {
   },
 
   /**
-   * Command to delete aspect from subject set
+   * Promise to delete aspect from subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
-   * @returns {Array} - Command array
+   * @returns {Integer} - Successfully set updated subject, or not
    */
-  delAspFromSubjSetCmd(subjAbsPath, aspName) {
-    return [
-      'srem',
-      redisStore.toKey(subjectType, subjAbsPath),
-      aspName.toLowerCase(),
-    ];
+  delAspFromSubjSet(subjAbsPath, aspName) {
+    // TODO: refactor aspects to aspectsName,
+    // to use sets instead of array
+    const key = redisStore.toKey(subjectType, subjAbsPath);
+    return redisClient.hgetallAsync(key)
+    .then((subject) => {
+      let aspects = JSON.parse(subject.aspects);
+      aspects = aspects.filter((aspect) => aspect.toLowerCase() !==
+        aspName.toLowerCase());
+      subject.aspects = JSON.stringify(aspects);
+      return redisClient.hmsetAsync(key, subject);
+    });
   },
 
   /**
-   * Command to check if aspect exists in subject set
+   * Promise to get aspects of a certain subject
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @returns {String} - serialized aspect names of the subject
+   */
+  getAspectNamesInSubject(subjAbsPath) {
+    // TODO: refactor aspects to aspectsName,
+    // to use sets instead of array
+    const key = redisStore.toKey(subjectType, subjAbsPath);
+    return redisClient.hgetallAsync(key)
+    .then((subject) => subject.aspects || '[]');
+  },
+
+  /**
+   * Promise to check if aspect exists in subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
-   * @returns {Array} - Command array
+   * @returns {Boolean} - Does it exist, or not
    */
   aspExistsInSubjSetCmd(subjAbsPath, aspName) {
-    return [
-      'sismember',
-      redisStore.toKey(subjectType, subjAbsPath),
-      aspName.toLowerCase(),
-    ];
+    // TODO: refactor aspects to aspectsName,
+    // to use sets instead of array
+    const key = redisStore.toKey(subjectType, subjAbsPath);
+    return redisClient.hgetallAsync(key)
+    .then((subject) => JSON.parse(subject.aspects).indexOf(
+      aspName.toLowerCase()) > -1);
   },
 
   /**
