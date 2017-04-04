@@ -28,7 +28,6 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
-const getISOdate = require('../utils').getISOdate;
 
 const sampFields = {
   MSG_BODY: 'messageBody',
@@ -312,7 +311,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
                             dbConstants.statuses.Invalid;
       qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = getISOdate();
+      qbObj[sampFields.STS_CHNGED_AT] = new Date().toISOString();
       qbObj[sampFields.STATUS] = status;
     }
   }
@@ -331,7 +330,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  const dateNow = getISOdate();
+  const dateNow = new Date().toISOString();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
   }
@@ -496,8 +495,6 @@ module.exports = {
     const cmds = [];
     let sampObjToReturn;
 
-    console.log(sampleType)
-    console.log(sampleName)
     return redisOps.getHashPromise(sampleType, sampleName)
     .then((sampleObj) => {
       if (!sampleObj) {
@@ -568,7 +565,7 @@ module.exports = {
 
       const hmsetObj = {};
       hmsetObj.relatedLinks = updatedRlinks;
-      hmsetObj.updatedAt = getISOdate();
+      hmsetObj.updatedAt = new Date().toISOString();
 
       // stringify arrays
       constants.fieldsToStringify.sample.forEach((field) => {
@@ -625,11 +622,11 @@ module.exports = {
         const status = sampleUtils.computeStatus(aspObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
           reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-          reqBody[sampFields.STS_CHNGED_AT] = getISOdate();
+          reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
           reqBody[sampFields.STATUS] = status;
         }
 
-        reqBody[sampFields.UPD_AT] = getISOdate();
+        reqBody[sampFields.UPD_AT] = new Date().toISOString();
       }
 
       if (reqBody.relatedLinks) {
@@ -709,7 +706,7 @@ module.exports = {
       }
 
       // defaults
-      const dateNow = getISOdate();
+      const dateNow = new Date().toISOString();
       reqBody[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
@@ -781,13 +778,13 @@ module.exports = {
       const status = sampleUtils.computeStatus(aspectObj, value);
       if (currSampObj[sampFields.STATUS] !== status) {
         reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-        reqBody[sampFields.STS_CHNGED_AT] = getISOdate();
+        reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
         reqBody[sampFields.STATUS] = status;
       }
 
       // We have a value, so update value and updated_at always.
       reqBody[sampFields.VALUE] = value;
-      reqBody[sampFields.UPD_AT] = getISOdate();
+      reqBody[sampFields.UPD_AT] = new Date().toISOString();
 
       if (reqBody.relatedLinks) { // related links
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);

@@ -237,7 +237,6 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
   }
 } // getSubjectAndAspectBySampleName
 
-
 /**
  * @param {String} now ISO formatted date.
  * @return {Boolean} whether the sample timed out
