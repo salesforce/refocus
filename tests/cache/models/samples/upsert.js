@@ -119,6 +119,25 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
+  it('createdAt and updatedAt fields have the expected format', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${subject.absolutePath}|${aspect.name}`,
+      relatedLinks: updatedRelatedLinks,
+    })
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      const { updatedAt, createdAt } = res.body;
+      expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      expect(createdAt).to.equal(new Date(createdAt).toISOString());
+      done();
+    });
+  });
+
   it('update sample with relatedLinks', (done) => {
     api.post(path)
     .set('Authorization', token)

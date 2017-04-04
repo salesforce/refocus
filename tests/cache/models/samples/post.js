@@ -140,6 +140,23 @@ describe(`api: redisStore: POST ${path}`, () => {
     });
   });
 
+  it('createdAt and updatedAt fields have the expected format', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      const { updatedAt, createdAt } = res.body;
+      expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      expect(createdAt).to.equal(new Date(createdAt).toISOString());
+      done();
+    });
+  });
+
   it('does not return id', (done) => {
     api.post(path)
     .set('Authorization', token)
