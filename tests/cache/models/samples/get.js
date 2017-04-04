@@ -48,7 +48,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         done(err);
       }
 
-      for (var i = res.body.length - 1; i >= 0; i--) {
+      for (let i = res.body.length - 1; i >= 0; i--) {
         const { updatedAt, createdAt } = res.body[i];
         expect(createdAt).to.equal(new Date(createdAt).toISOString());
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
