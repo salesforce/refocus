@@ -115,7 +115,7 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
  * If no input, return the ISO formatted date with now time.
  */
 function convertToISO(date) {
-  return date ? new Date().toISOString() : date.toISOString();
+  return date ? date.toISOString() : new Date().toISOString();
 }
 
 /**
@@ -144,6 +144,8 @@ function cleanSample(s) {
   delete retval.aspect;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.sample);
+
+  // convert date time fields to proper format
   for (let j = constants.ISOfields.length - 1; j >= 0; j--) {
     retval[constants.ISOfields[j]] = convertToISO(retval[constants.ISOfields[j]]);
   }

@@ -330,8 +330,9 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         done(err);
       }
 
-      const { updatedAt } = res.body;
+      const { updatedAt, createdAt } = res.body;
       expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+      expect(createdAt).to.equal(new Date(createdAt).toISOString());
       done();
     });
   });

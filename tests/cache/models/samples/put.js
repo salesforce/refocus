@@ -86,8 +86,9 @@ describe(`api: cache: PUT ${path}`, () => {
         if (err) {
           done(err);
         }
-         const { updatedAt } = res.body;
+         const { updatedAt, createdAt } = res.body;
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
+        expect(createdAt).to.equal(new Date(createdAt).toISOString());
         done();
       });
     });

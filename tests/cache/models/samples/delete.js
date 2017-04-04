@@ -91,7 +91,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     });
   });
 
-  it('does not return id', (done) => {
+  it('does not return isDeleted field', (done) => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -100,7 +100,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.name).to.equal(sampleName);
+      expect(res.body.isDeleted).to.equal(undefined);
       done();
     });
   });
