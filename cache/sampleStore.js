@@ -167,7 +167,15 @@ function isSampleWritable(aspectModel, aspectName, userName) {
   const options = {};
   options.where = { name: { $iLike: aspectName } };
   return aspectModel.findOne(options)
-  .then((aspect) => Promise.resolve(aspect.isWritableBy(userName)));
+  .then((aspect) => {
+    if (!aspect) {
+      throw new redisErrors.ResourceNotFoundError({
+        explanation: 'Aspect not found.',
+      });
+    }
+
+    return Promise.resolve(aspect.isWritableBy(userName));
+  });
 } // isSampleWritable
 
 module.exports = {
