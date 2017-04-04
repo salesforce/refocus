@@ -146,8 +146,10 @@ function cleanSample(s) {
     constants.fieldsToStringify.sample);
 
   // convert date time fields to proper format
+  let key = '';
   for (let j = constants.ISOfields.length - 1; j >= 0; j--) {
-    retval[constants.ISOfields[j]] = convertToISO(retval[constants.ISOfields[j]]);
+    key = constants.ISOfields[j];
+    retval[key] = convertToISO(retval[key]);
   }
 
   return retval;
