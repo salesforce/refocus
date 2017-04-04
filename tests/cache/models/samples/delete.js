@@ -91,6 +91,20 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     });
   });
 
+  it('does not return isDeleted field', (done) => {
+    api.delete(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.isDeleted).to.equal(undefined);
+      done();
+    });
+  });
+
   it('is case in-sensitive', (done) => {
     api.delete(`${path}/${sampleName.toLowerCase()}`)
     .set('Authorization', token)

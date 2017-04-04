@@ -27,7 +27,6 @@ const db = require('../../db/index');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
-const subjectType = redisOps.subjectType;
 const featureToggles = require('feature-toggles');
 
 const sampFields = {
@@ -43,7 +42,6 @@ const sampFields = {
   UPD_AT: 'updatedAt',
   ASP_ID: 'aspectId',
   SUBJ_ID: 'subjectId',
-  IS_DELETED: 'isDeleted',
 };
 const sampleFieldsArr = Object.keys(sampFields).map(
   (field) => sampFields[field]
@@ -335,7 +333,6 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
   const dateNow = new Date().toString();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
-    qbObj[sampFields.IS_DELETED] = '0';
   }
 
   qbObj[sampFields.UPD_AT] = dateNow;
@@ -521,7 +518,6 @@ module.exports = {
 
       // attach aspect and links to sample
       const resSampAsp = cleanAddAspectToSample(sampObjToReturn, asp);
-      resSampAsp.isDeleted = Date.now();
       return resSampAsp;
     });
   },
@@ -717,7 +713,6 @@ module.exports = {
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
       reqBody[sampFields.CREATED_AT] = dateNow;
-      reqBody[sampFields.IS_DELETED] = '0';
 
       const cmds = [];
       cmds.push(redisOps.addAspectInSubjSetCmd(
