@@ -112,23 +112,6 @@ describe(`api: cache: PUT ${path}`, () => {
         done();
       });
     });
-
-    it('updates case sensitive name successfully', (done) => {
-      const name = sampleName;
-      const updatedName = name.toUpperCase();
-      api.put(`${path}/${name}`)
-      .set('Authorization', token)
-      .send({ name: updatedName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.name).to.equal(updatedName);
-        done();
-      });
-    });
   });
 
   describe('PUT Related Links ', () => {
