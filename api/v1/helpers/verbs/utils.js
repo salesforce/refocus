@@ -567,6 +567,8 @@ function cleanAndStripNulls(obj) {
       // to pass swagger's schema validation
       if (key === 'parentAbsolutePath' && !o[key]) {
         o[key] = '';
+      } else if (key === 'parentId' && !o[key]) {
+        o[key] = null;
       } else if (o[key] === undefined || o[key] === null) {
         delete o[key];
       } else if (Array.isArray(o[key])) {

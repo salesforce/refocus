@@ -339,60 +339,6 @@ describe(`api: PUT ${path}`, () => {
       done();
     });
   });
-
-  it('puts a child', (done) => {
-    api.put(`${path}/${i1}`)
-    .set('Authorization', token)
-    .send({
-      name: p1.name,
-      isPublished: p1.isPublished,
-      parentId: i0a,
-    })
-    .expect(constants.httpStatus.OK)
-    .expect(childCheckIfPut)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
-
-  it('puts a parent and clears description', (done) => {
-    api.put(`${path}/${i0}`)
-    .set('Authorization', token)
-    .send(p0)
-    .expect(constants.httpStatus.OK)
-    .expect(parentCheckIfPut)
-    .expect(childrenAbsPathUpdated)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
-
-  it('puts and re-parents a subject', (done) => {
-    api.put(`${path}/${i0}`)
-    .set('Authorization', token)
-    .send({
-      name: `${tu.namePrefix}Canada`,
-      parentId: i0a,
-      isPublished: true,
-    })
-    .expect(constants.httpStatus.OK)
-    .expect(reparented)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
-  });
 });
 
 describe('api: PUT subjects with related links', () => {
