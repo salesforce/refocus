@@ -258,7 +258,9 @@ module.exports = {
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(constants.featureName) &&
      helper.modelName === 'Sample') {
-      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params);
+      delRlinksPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o,

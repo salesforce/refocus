@@ -43,7 +43,9 @@ function doPut(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    putPromise = redisModelSample.putSample(req.swagger.params);
+    putPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.putSample(req.swagger.params, user));
   } else {
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
