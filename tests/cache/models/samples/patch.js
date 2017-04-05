@@ -62,6 +62,23 @@ describe(`api: redisStore: PATCH ${path}`, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('Lists: ', () => {
+    it('reject if name is in request body', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ name: '3' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        const error = res.body.errors[0];
+        expect(error.type).to.equal('ValidationError');
+        expect(error.description).to.contain('name');
+        done();
+      });
+    });
+
     it('basic patch does not return id', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -110,23 +127,6 @@ describe(`api: redisStore: PATCH ${path}`, () => {
           done(err);
         }
 
-        done();
-      });
-    });
-
-    it('updates case sensitive name successfully', (done) => {
-      const name = sampleName;
-      const updatedName = name.toUpperCase();
-      api.patch(`${path}/${name}`)
-      .set('Authorization', token)
-      .send({ name: updatedName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.name).to.equal(updatedName);
         done();
       });
     });

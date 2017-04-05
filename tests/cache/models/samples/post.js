@@ -115,6 +115,24 @@ describe(`api: redisStore: POST ${path}`, () => {
     });
   });
 
+  it('reject if name is in request body', (done) => {
+    sampleToPost.name = '!#@#$%^&';
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const error = res.body.errors[0];
+      expect(error.type).to.equal('ValidationError');
+      expect(error.description).to.contain('name');
+      done();
+    });
+  });
+
   it('basic post /samples', (done) => {
     api.post(path)
     .set('Authorization', token)
