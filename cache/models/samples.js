@@ -53,19 +53,6 @@ const TWO = 2;
 const MINUS_ONE = -1;
 
 /**
- * Check if name field is in the object.
- * Throws validation error if object contains name field.
- * @param  {Object} obj - Request object
- */
-function rejectIfNameInBody(obj) {
-  if (obj && obj.name) {
-    throw new redisErrors.ValidationError({
-      explanation: 'You cannot modify the read-only field: name',
-    });
-  }
-}
-
-/**
  * Sort by appending all fields value in a string and then comparing them.
  * If first fields starts with -, sort order is descending.
  * @param  {Array} sampArr - Sample objs array
@@ -602,12 +589,11 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   patchSample(params) {
-    const reqBody = params.queryBody.value;
-    rejectIfNameInBody(reqBody);
-
     const sampleName = params.key.value;
+    const reqBody = params.queryBody.value;
     let currSampObj;
     let aspectObj;
+
     return redisOps.getHashPromise(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
@@ -668,11 +654,10 @@ module.exports = {
    */
   postSample(params) {
     const reqBody = params.queryBody.value;
-    rejectIfNameInBody(reqBody);
-
     let subject;
     let sampleName;
     let aspectObj;
+
     return db.Subject.findById(reqBody.subjectId)
     .then((subjFromDb) => {
       if (!subjFromDb) {
@@ -755,12 +740,11 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   putSample(params) {
-    const reqBody = params.queryBody.value;
-    rejectIfNameInBody(reqBody);
-
     const sampleName = params.key.value;
+    const reqBody = params.queryBody.value;
     let currSampObj;
     let aspectObj;
+
     return redisOps.getHashPromise(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
