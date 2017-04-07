@@ -17,7 +17,7 @@ module.exports = {
       return qi.createTable('users', { id: Sequelize.INTEGER });
     */
     return qi.sequelize.transaction(() => qi.addIndex(TBL, ['status'],
-      { indexName: 'SampleStatus' }))
+      { indexName: 'SampleStatusIdx' }))
     .then(() => qi.addIndex(TBL, ['aspectId', 'subjectId'],
       { indexName: 'AspectIdSubjectId' }));
   },
@@ -30,7 +30,8 @@ module.exports = {
     //   Example:
     //   return qi.dropTable('users');
     // */
-    return qi.sequelize.transaction(() => qi.removeIndex(TBL, 'SampleStatus'))
+    return qi.sequelize.transaction(() =>
+      qi.removeIndex(TBL, 'SampleStatusIdx'))
     .then(() => qi.removeIndex(TBL, 'AspectIdSubjectId'));
   },
 };
