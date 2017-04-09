@@ -18,7 +18,16 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
+const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
+
+/**
+ * [deletePreviousStatus description]
+ * @return {[type]} [description]
+ */
+function deletePreviousStatus() {
+  return redisClient.delAsync(constants.previousStatusKey);
+}
 
 /**
  * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
@@ -27,6 +36,7 @@ const constants = samsto.constants;
  * @returns {Promise} upon completion.
  */
 function eradicate() {
+  // delete previous status key too
   const promises = Object.getOwnPropertyNames(constants.indexKey)
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
@@ -38,7 +48,8 @@ function eradicate() {
       console.error(err); // eslint-disable-line no-console
       Promise.resolve(true);
     }));
-  return Promise.all(promises);
+  return deletePreviousStatus()
+    .then(() => Promise.all(promises));
 } // eradicate
 
 /**
@@ -153,9 +164,9 @@ function populateSamples() {
  *  false if the feature is not enabled.
  */
 function populate() {
-  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
-    return Promise.resolve(false);
-  }
+  // if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+  //   return Promise.resolve(false);
+  // }
 
   const msg = 'Populating redis sample store from db';
   console.log(msg); // eslint-disable-line no-console
@@ -165,10 +176,21 @@ function populate() {
 } // populate
 
 /**
+ * Checks whether the redis sample store is currently being persisted to the
+ * db.
+ *
+ * @returns {Promise} resolves to true if the redis sample store is currently
+ *  being persisted to the db.
+ */
+function getPreviousStatus() {
+  return redisClient.getAsync(constants.previousStatusKey);
+} // persistInProgress
+
+/**
  * Checks whether the sample store exists by counting the members of the three
  * index keys (samples, subjects, aspects). If any has more than one member,
  * consider the sample store as existing.
- *
+ * if previousStatus === currentStatus do nothing
  * Note: I tried using the redis "exists" command but our travis build kept
  * failing with a message that I was passing the wrong number of args to the
  * "exists" command. I gave up and went with counting members using "scard"
@@ -177,18 +199,45 @@ function populate() {
  * @returns {Promise} which resolves to true if the sample store already
  *  exists.
  */
-function sampleStoreExists() {
-  const cmds = [
-    ['scard', constants.indexKey.aspect],
-    ['scard', constants.indexKey.sample],
-    ['scard', constants.indexKey.subject],
-  ];
-  return redisClient.batch(cmds).execAsync()
-  .then((batchResponse) =>
-    batchResponse[0] > 0 || // eslint-disable-line no-magic-numbers
-    batchResponse[1] > 0 || // eslint-disable-line no-magic-numbers
-    batchResponse[2] > 0); // eslint-disable-line no-magic-numbers
-} // sampleStoreExists
+function storeSampleToCacheOrDb() {
+  const currentStatus = featureToggles.isFeatureEnabled(constants.featureName)
+                                          || false;
+  return getPreviousStatus()
+  .then((prevState) => {
+    const previousStatus = (prevState == 'true') || false;
+
+    // set the previousStatus to the currentStatus
+    redisClient.setAsync(constants.previousStatusKey, currentStatus);
+
+    /*
+     * when the current status and the previous status do not match some action
+     * needs to be taken based on the current status
+    */
+    if (previousStatus !== currentStatus) {
+      /*
+       * call "popluate" when "enableRedisSampleStore" flag has been changed
+       * from false to true. Call "eradicate" and "storeSampleToDb" when
+       * "enableRedisSampleStore" flag has been changed from true to false
+       */
+      if (currentStatus) {
+        return populate();
+      }
+
+      return eradicate()
+      .then(() => samstoPersist.persistInProgress())
+      .then((inProgress) => {
+        if (inProgress) {
+          return Promise.resolve(false);
+        }
+
+        return samstoPersist.storeSampleToDb();
+      });
+    }
+
+    // when the current status and previous status are same, resolve to false
+    return Promise.resolve(false);
+  });
+} // storeSampleToCacheOrDb
 
 /**
  * Initializes the redis sample store from the db if the feature is enabled and
@@ -199,17 +248,16 @@ function sampleStoreExists() {
  *  enabled.
  */
 function init() {
-  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
-    return Promise.resolve(false);
-  }
+  // if (!featureToggles.isFeatureEnabled(constants.featureName)) {
+  //   return Promise.resolve(false);
+  // }
 
-  return sampleStoreExists()
-  .then((exists) => {
-    if (exists) {
-      return Promise.resolve(true);
-    }
-
-    return populate();
+  return storeSampleToCacheOrDb()
+  .then((ret) => Promise.resolve(ret))
+  .catch((err) => {
+    // NO-OP
+    console.error(err); // eslint-disable-line no-console
+    Promise.resolve(false);
   });
 } // init
 
