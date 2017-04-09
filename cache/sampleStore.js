@@ -41,6 +41,7 @@ const constants = {
   persistInProgressKey: PFX + SEP + 'persistInProgress',
   prefix: PFX,
   separator: SEP,
+  previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
 };
 
 /**

@@ -127,7 +127,11 @@ function start() { // eslint-disable-line max-statements
     });
   }
 
-  // Make sure sample store is initialized if feature is enabled.
+  /*
+   * Based on the change of state of the "enableSampleStore" feature flag
+   * populate the data into the cache or dump the data from the cache into the
+   * db
+   */
   sampleStore.init();
 
   /*
