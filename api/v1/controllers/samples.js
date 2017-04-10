@@ -283,6 +283,13 @@ module.exports = {
         u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
       }
 
+      /* send the updated sample to the client by publishing it to the redis
+      channel */
+      publisher.publishSample(
+        o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
+        helper.associatedModels.aspect
+      );
+
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
