@@ -24,7 +24,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const sampleStore = require('../../../cache/sampleStore');
-const constants = sampleStore.constants;
+const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
@@ -53,7 +53,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisModelSample.findSamples(req, res, resultObj)
       .then((response) => {
@@ -155,7 +155,7 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-          featureToggles.isFeatureEnabled(constants.featureName) ?
+          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample.upsertSample(
               sampleQueryBody, userName) :
           helper.model.upsertByName(sampleQueryBody, userName);
@@ -218,9 +218,9 @@ module.exports = {
           wrappedBulkUpsertData, req);
       } else {
         const bulkUpsertPromise =
-        featureToggles.isFeatureEnabled(constants.featureName) ?
-        redisModelSample.bulkUpsertSample(value, userName) :
-        helper.model.bulkUpsertByName(value, userName);
+        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
+          redisModelSample.bulkUpsertSample(value, userName) :
+          helper.model.bulkUpsertByName(value, userName);
 
         /*
          *send the upserted sample to the client by publishing it to the redis
@@ -256,8 +256,8 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(constants.featureName) &&
-     helper.modelName === 'Sample') {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+    helper.modelName === 'Sample') {
       delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params);
     } else {
       delRlinksPromise = u.findByKey(helper, params)
