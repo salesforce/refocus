@@ -257,8 +257,10 @@ module.exports = {
     const params = req.swagger.params;
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-    helper.modelName === 'Sample') {
-      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params);
+     helper.modelName === 'Sample') {
+      delRlinksPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o,
