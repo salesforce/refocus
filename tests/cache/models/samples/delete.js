@@ -194,6 +194,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
   });
 
   it('delete one relatedLink', (done) => {
+    console.log('##### this test fails on travis');
     api.delete(
       oneDeletePath.replace('{key}', sampleName).replace('{akey}', 'rlink0')
     )
@@ -209,6 +210,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
         done(err);
       }
 
+      console.log('##### I am done');
       done();
     });
   });
