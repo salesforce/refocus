@@ -130,7 +130,7 @@ function validateTags(requestBody, params) {
  * @param  {Object} req - The request object
  */
 function validateRequest(req) {
-  utils.noReadOnlyFieldsInReq(req, helper);
+  utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
   validateTags(req.body);
 } // validateRequest
 
