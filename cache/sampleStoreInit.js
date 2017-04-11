@@ -18,6 +18,7 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
+const winston = require('winston');
 const constants = samsto.constants;
 
 /**
@@ -158,7 +159,7 @@ function populate() {
   }
 
   const msg = 'Populating redis sample store from db';
-  console.log(msg); // eslint-disable-line no-console
+  winston.info(msg); // eslint-disable-line no-console
 
   const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
