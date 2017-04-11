@@ -415,7 +415,7 @@ module.exports = {
         u.handleError(next, err, helper.modelName);
       });
     } catch (err) {
-      err.info = 'Invalid library uploaded.';
+      err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
     }
   },
