@@ -55,6 +55,6 @@ module.exports = {
       medianQueueTimeMillis: 0,
       queueTimeMillis95th: 0,
       recordCount: 0,
-    }
+    },
   },
 };

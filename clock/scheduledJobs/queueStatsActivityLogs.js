@@ -112,5 +112,5 @@ function execute() {
 
 module.exports = {
   execute,
-  update
+  update,
 };
