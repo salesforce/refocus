@@ -159,7 +159,7 @@ function populate() {
   }
 
   const msg = 'Populating redis sample store from db';
-  winston.info(msg); // eslint-disable-line no-console
+  winston.info(msg);
 
   const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
