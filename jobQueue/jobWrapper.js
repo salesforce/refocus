@@ -20,6 +20,8 @@ const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
+const queueTimeActivityLogs =
+  require('../clock/scheduledJobs/queueStatsActivityLogs');
 
 // ttl converted to milliseconds
 const TIME_TO_LIVE =
@@ -103,6 +105,8 @@ function processJobOnComplete(job, logObject) {
 
         /* The second argument should match the activity type in
          /config/activityLog.js */
+        queueTimeActivityLogs
+          .update(jobResultObj.recordCount, jobResultObj.queueTime);
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
     });

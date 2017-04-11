@@ -20,8 +20,11 @@
  * inside the main web process.
  */
 const conf = require('../config');
+const featureToggles = require('feature-toggles');
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
+const queueStatsActivityLogs =
+  require('./scheduledJobs/queueStatsActivityLogs');
 
 /*
  * Add all the scheduled work here.
@@ -29,3 +32,10 @@ const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
 setInterval(sampleTimeoutJob.enqueue, conf.checkTimeoutIntervalMillis);
 setInterval(persistSampleStoreJob.enqueue,
   conf.persistRedisSampleStoreMilliseconds);
+
+// If queueStatsActivityLogs is true then write log
+if (featureToggles
+  .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+  setInterval(queueStatsActivityLogs.execute,
+  conf.queueStatsActivityLogsInterval);
+}

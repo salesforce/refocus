@@ -48,5 +48,13 @@ module.exports = {
       user: 'None',
       workTime: 'None',
     },
+    queueStats: {
+      activity: 'queueStats',
+      averageQueueTimeMillis: 0,
+      jobCount: 0,
+      medianQueueTimeMillis: 0,
+      queueTimeMillis95th: 0,
+      recordCount: 0,
+    }
   },
 };
