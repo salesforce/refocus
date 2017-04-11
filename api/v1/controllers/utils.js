@@ -62,13 +62,12 @@ function checkReadOnlyFieldInObj(field, obj) {
 /**
  * Throws a validation error if the read-only fields are found in the request.
  * @param  {Object} req - The request object
- * @param  {Object} props - The module containing the properties of the
- *  resource type.
+ * @param  {Array} readOnlyFields - Contains fields to exclude
  */
-function noReadOnlyFieldsInReq(req, props) {
+function noReadOnlyFieldsInReq(req, readOnlyFields) {
   const requestBody = req.body;
-  if (props.readOnlyFields) {
-    props.readOnlyFields.forEach((field) => {
+  if (readOnlyFields) {
+    readOnlyFields.forEach((field) => {
       // if request body is an array, check each object in array.
       if (Array.isArray(requestBody)) {
         requestBody.forEach((reqObj) => {

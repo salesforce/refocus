@@ -113,23 +113,6 @@ describe(`api: redisStore: PATCH ${path}`, () => {
         done();
       });
     });
-
-    it('updates case sensitive name successfully', (done) => {
-      const name = sampleName;
-      const updatedName = name.toUpperCase();
-      api.patch(`${path}/${name}`)
-      .set('Authorization', token)
-      .send({ name: updatedName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.name).to.equal(updatedName);
-        done();
-      });
-    });
   });
 
   describe('Patch Related Links ', () => {

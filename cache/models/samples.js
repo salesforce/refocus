@@ -53,6 +53,39 @@ const TWO = 2;
 const MINUS_ONE = -1;
 
 /**
+ * Checks if the user has the permission to perform the write operation or not
+ * @param  {String}  aspectName - Name of the aspect
+ * @param  {String}  sampleName - Name of the sample
+ * @param  {String}  userName -  User performing the operation
+ * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
+ * operation or not
+ * @returns {Promise} - which resolves to true if the user has write permission
+ */
+function checkWritePermission(aspectName, sampleName, userName, isBulk) {
+  const hasWritePerm = featureToggles
+                        .isFeatureEnabled('enforceWritePermission') ?
+                        sampleStore.isSampleWritable(aspectHelper.model,
+                          aspectName, userName) : Promise.resolve(true);
+  return hasWritePerm
+    .then((ok) => {
+      // reject the promise if the user does not have write permission
+      if (!ok) {
+        const err = new redisErrors.UpdateDeleteForbidden({
+          explanation: `The user: ${userName}, does not have write permission` +
+            ` on the sample: ${sampleName}`,
+        });
+        if (isBulk) {
+          return Promise.reject({ isFailed: true, explanation: err });
+        }
+
+        return Promise.reject(err);
+      }
+
+      return Promise.resolve(true);
+    });
+}
+
+/**
  * Sort by appending all fields value in a string and then comparing them.
  * If first fields starts with -, sort order is descending.
  * @param  {Array} sampArr - Sample objs array
@@ -385,10 +418,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   }
 
   const aspectName = subjAspArr[ONE];
-  const hasWritePerm = featureToggles
-                        .isFeatureEnabled('enforceWritePermission') ?
-                        sampleStore.isSampleWritable(aspectHelper.model,
-                          aspectName, userName) : Promise.resolve(true);
 
   const subjKey = sampleStore.toKey(
     constants.objectType.subject, subjAspArr[ZERO]
@@ -398,33 +427,19 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   );
   let aspectObj;
 
-  return hasWritePerm
-  .then((ok) => {
-    // reject the promise if the user does not have write permission
-    if (!ok) {
-      const err = new redisErrors.UpdateDeleteForbidden({
-        explanation: `The user: ${userName}, does not have write permission` +
-          ` on the sample: ${sampleName}`,
-      });
-      if (isBulk) {
-        return Promise.reject({ isFailed: true, explanation: err });
-      }
+  return checkWritePermission(aspectName, sampleName, userName, isBulk)
 
-      return Promise.reject(err);
-    }
-
-    /*
-     * if any of the promise errors, the subsequent promise does not process and
-     * error is returned, else sample is returned
-     */
-    return Promise.all([
-      redisClient.sismemberAsync(constants.indexKey.subject, subjKey),
-      redisClient.hgetallAsync(
-      sampleStore.toKey(constants.objectType.aspect, aspectName)
-      ),
-      redisClient.hgetallAsync(sampleKey),
-    ]);
-  })
+  /*
+   * if any of the promise errors, the subsequent promise does not process and
+   * error is returned, else sample is returned
+  */
+  .then(() => Promise.all([
+    redisClient.sismemberAsync(constants.indexKey.subject, subjKey),
+    redisClient.hgetallAsync(
+    sampleStore.toKey(constants.objectType.aspect, aspectName)
+    ),
+    redisClient.hgetallAsync(sampleKey),
+  ]))
   .then((responses) => {
     const [isSubjPresent, aspect, sample] = responses;
 
@@ -478,9 +493,10 @@ module.exports = {
    * sample index, delete aspect from subject set and delete sample hash. If
    * sample not found, throw Not found error.
    * @param  {String} sampleName - Sample name
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  deleteSample(sampleName) {
+  deleteSample(sampleName, userName) {
     const subjAspArr = sampleName.toLowerCase().split('|');
 
     if (subjAspArr.length < TWO) {
@@ -494,8 +510,8 @@ module.exports = {
     const aspName = subjAspArr[ONE];
     const cmds = [];
     let sampObjToReturn;
-
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return checkWritePermission(aspName, sampleName, userName)
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampleObj) => {
       if (!sampleObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -523,14 +539,23 @@ module.exports = {
   /**
    * Delete sample related links
    * @param  {Object} params - Request parameters
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  deleteSampleRelatedLinks(params) {
+  deleteSampleRelatedLinks(params, userName) {
     const sampleName = params.key.value;
+    const sampAspArr = sampleName.split('|');
+    if (sampAspArr.length < TWO) {
+      throw new redisErrors.ResourceNotFoundError({
+        explanation: 'Incorrect sample name.',
+      });
+    }
+
+    const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return checkWritePermission(aspectName, sampleName, userName)
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -539,7 +564,6 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      const aspectName = sampleName.split('|')[ONE];
       return redisOps.getHashPromise(aspectType, aspectName);
     })
     .then((aspObj) => {
@@ -586,15 +610,24 @@ module.exports = {
    * response. Note: Message body and message code will be updated if provided,
    * else no fields for message body/message code in redis object.
    * @param  {Object} params - Request parameters
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  patchSample(params) {
-    const sampleName = params.key.value;
+  patchSample(params, userName) {
     const reqBody = params.queryBody.value;
+    const sampleName = params.key.value;
+    const sampAspArr = sampleName.split('|');
+    if (sampAspArr.length < TWO) {
+      throw new redisErrors.ResourceNotFoundError({
+        explanation: 'Incorrect sample name.',
+      });
+    }
+
+    const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return checkWritePermission(aspectName, sampleName, userName)
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -603,7 +636,7 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      const aspectName = sampleName.split('|')[ONE];
+
       return redisOps.getHashPromise(aspectType, aspectName);
     })
     .then((aspObj) => {
@@ -650,9 +683,10 @@ module.exports = {
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
    * @param  {Object} params - Request parameters
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params) {
+  postSample(params, userName) {
     const reqBody = params.queryBody.value;
     let subject;
     let sampleName;
@@ -677,7 +711,19 @@ module.exports = {
       }
 
       aspectObj = aspFromDb;
-      sampleName = subject.absolutePath + '|' + aspFromDb.name;
+      return aspFromDb.isWritableBy(userName);
+    })
+    .then((isWritable) => {
+      sampleName = subject.absolutePath + '|' + aspectObj.name;
+      if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
+        !isWritable) {
+        const err = new redisErrors.UpdateDeleteForbidden({
+          explanation: `The user: ${userName}, does not have write permission` +
+            ` on the sample: ${sampleName}`,
+        });
+        return Promise.reject(err);
+      }
+
       return redisOps.getHashPromise(sampleType, sampleName);
     })
     .then((sampFromRedis) => {
@@ -737,15 +783,24 @@ module.exports = {
    * if needed. Delete message body and message code fields from hash
    * if not provided because they will be null. Then update sample.
    * @param  {Object} params - Request parameters
+   * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  putSample(params) {
-    const sampleName = params.key.value;
+  putSample(params, userName) {
     const reqBody = params.queryBody.value;
+    const sampleName = params.key.value;
+    const sampAspArr = sampleName.split('|');
+    if (sampAspArr.length < TWO) {
+      throw new redisErrors.ResourceNotFoundError({
+        explanation: 'Incorrect sample name.',
+      });
+    }
+
+    const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return checkWritePermission(aspectName, sampleName, userName)
+    .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -754,7 +809,6 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      const aspectName = sampleName.split('|')[ONE];
       return redisOps.getHashPromise(aspectType, aspectName);
     })
     .then((aspObj) => {

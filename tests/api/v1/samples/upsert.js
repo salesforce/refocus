@@ -28,6 +28,7 @@ describe(`api: POST ${path}`, () => {
   let aspect;
   let subject;
   let token;
+  const DONT_EXIST_NAME = 'iDontExist';
   const URL1 = 'https://samples.com';
   const URL2 = 'https://updatedsamples.com';
   const relatedLinks = [
@@ -63,7 +64,97 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe(`when aspect isPublished false`, () => {
+  it('name field is required', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      value: '2',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const error = res.body.errors[0];
+      expect(error.message).to.contain('name');
+      expect(error.type)
+        .to.equal(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  describe('not found cases', () => {
+    it('with non existing aspect', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${DONT_EXIST_NAME}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
+    });
+
+    it('with non existing subject', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${DONT_EXIST_NAME}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
+    });
+  });
+
+  describe(`un published subject`, () => {
+    let unPublishedSubjectAbsolutePath;
+
+    // unpublish the subject
+    beforeEach((done) => {
+      Subject.findById(subject.id)
+      .then((subjectOne) => subjectOne.update({
+        isPublished: false,
+      }))
+      .then((_subject) => {
+        unPublishedSubjectAbsolutePath = _subject.absolutePath;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('name refers to unpublished subject', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${unPublishedSubjectAbsolutePath.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        done();
+      });
+    });
+  });
+
+  describe(`un published aspect`, () => {
     let updatedAspect;
 
     // unpublish the aspects
@@ -79,7 +170,7 @@ describe(`api: POST ${path}`, () => {
       .catch(done);
     });
 
-    it('sample upsert returns not found', (done) => {
+    it('name refers to unpublished aspect', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({
@@ -355,60 +446,62 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('upsert with readOnly field status should fail', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        status: 'Invalid',
-      })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+    describe('with readOnly fields should fail', () => {
+      it('status', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send({
+          name: `${subject.absolutePath}|${aspect.name}`,
+          status: 'Invalid',
+        })
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: status');
-        return done();
+          expect(res.body.errors[0].description).to
+          .contain('You cannot modify the read-only field: status');
+          return done();
+        });
       });
-    });
 
-    it('upsert with readOnly field isDeleted should fail', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        isDeleted: 0,
-      })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+      it('isDeleted', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send({
+          name: `${subject.absolutePath}|${aspect.name}`,
+          isDeleted: 0,
+        })
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: isDeleted');
-        return done();
+          expect(res.body.errors[0].description).to
+          .contain('You cannot modify the read-only field: isDeleted');
+          return done();
+        });
       });
-    });
 
-    it('upsert with readOnly field createdAt should fail', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        createdAt: new Date().toString(),
-      })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+      it('createdAt', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send({
+          name: `${subject.absolutePath}|${aspect.name}`,
+          createdAt: new Date().toString(),
+        })
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: createdAt');
-        return done();
+          expect(res.body.errors[0].description).to
+          .contain('You cannot modify the read-only field: createdAt');
+          return done();
+        });
       });
     });
   });

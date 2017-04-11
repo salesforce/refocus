@@ -51,6 +51,21 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('reject if name field in request', (done) => {
+    api.patch(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ name: '2' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].type).to.contain('ValidationError');
+      done();
+    });
+  });
+
   it('apiLinks"s href ends with sample name' +
     'updatedAt', (done) => {
     api.patch(`${path}/${sampleName}`)
@@ -148,23 +163,6 @@ describe(`api: PATCH ${path}`, () => {
           done(err);
         }
 
-        done();
-      });
-    });
-
-    it('updates case sensitive name successfully', (done) => {
-      const name = u.sampleName;
-      const updatedName = name.toUpperCase();
-      api.patch(`${path}/${name}`)
-      .set('Authorization', token)
-      .send({ name: updatedName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.name).to.equal(updatedName);
         done();
       });
     });
