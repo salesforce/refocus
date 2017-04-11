@@ -39,7 +39,9 @@ function updateLensDetails(seqObj) {
     if (seqObj.hasOwnProperty('sourceName')) {
       seqObj.name = seqObj.sourceName;
     } else {
-      throw new apiErrors.ValidationError();
+      throw new apiErrors.ValidationError({
+        explanation: 'name or source name is required in lens json.',
+      });
     }
   }
 
@@ -109,10 +111,14 @@ function handleLensMetadata(requestObj, libraryParam, seqObj) {
     if (lensJsonFound && lensJsFound) {
       parseLensMetadata(zip, lensJson, seqObj);
     } else {
-      throw new apiErrors.ValidationError();
+      throw new apiErrors.ValidationError({
+        explanation: 'lens.js and lens.json are required files in lens zip.',
+      });
     }
   } else {
-    throw new apiErrors.ValidationError();
+    throw new apiErrors.ValidationError({
+      explanation: 'The library parameter mime type should be application/zip',
+    });
   }
 }
 
