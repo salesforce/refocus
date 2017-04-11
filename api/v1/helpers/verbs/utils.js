@@ -713,6 +713,51 @@ function checkDuplicateRLinks(rLinkArr) {
   });
 } // checkDuplicateRLinks
 
+/**
+ * Checks if the user has the permission to create the sample and creates the
+ * sample if so.
+ * @param  {Object} req  - The request object
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @returns {Promise}  which resolves to the created sample instance
+ */
+function createSample(req, props) {
+  const toCreate = req.swagger.params.queryBody.value;
+  const aspectModel = props.associatedModels.aspect;
+  const options = {};
+  options.where = whereClauseForNameOrId(toCreate.aspectId);
+  let user;
+
+  // get the user name from the request object
+  return getUserNameFromToken(req)
+  .then((usr) => {
+    user = usr;
+
+    // find the aspect related to the sample being created
+    return aspectModel.findOne(options);
+  })
+  .then((aspect) => {
+    if (!aspect) {
+      throw new apiErrors.ResourceNotFoundError({
+        explanation: 'Aspect not found.',
+      });
+    }
+
+    // check if the user has permission to create the sample
+    return aspect.isWritableBy(user);
+  })
+  .then((ok) => {
+    if (!ok) {
+      throw new apiErrors.ForbiddenError({
+        explanation: `The user: ${user}, does not have write permission` +
+            'on the sample',
+      });
+    }
+
+    // create the sample if the user has write permission
+    return props.model.create(toCreate);
+  });
+}
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -804,5 +849,7 @@ module.exports = {
   removeFieldsFromResponse,
 
   checkDuplicateRLinks,
+
+  createSample,
 
 }; // exports

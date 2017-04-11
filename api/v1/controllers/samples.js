@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
-
+const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -24,10 +24,11 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const sampleStore = require('../../../cache/sampleStore');
-const constants = sampleStore.constants;
+const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
+
 module.exports = {
 
   /**
@@ -53,7 +54,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    if (featureToggles.isFeatureEnabled(constants.featureName)) {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisModelSample.findSamples(req, res, resultObj)
       .then((response) => {
@@ -98,7 +99,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSample(req, res, next) {
-    utils.noReadOnlyFieldsInReq(req, helper);
+    utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     doPatch(req, res, next, helper);
   },
 
@@ -112,7 +113,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
-    utils.noReadOnlyFieldsInReq(req, helper);
+    utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     doPost(req, res, next, helper);
   },
 
@@ -127,7 +128,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSample(req, res, next) {
-    utils.noReadOnlyFieldsInReq(req, helper);
+    utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     doPut(req, res, next, helper);
   },
 
@@ -143,11 +144,14 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-    utils.noReadOnlyFieldsInReq(req, helper);
+
+    // make the name post-able
+    const readOnlyFields = helper.readOnlyFields.filter((field) => field !== 'name');
+    utils.noReadOnlyFieldsInReq(req, readOnlyFields);
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
-    u.getUserNameFromToken(req,
+    return u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
       if (sampleQueryBody.relatedLinks) {
@@ -155,7 +159,7 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-          featureToggles.isFeatureEnabled(constants.featureName) ?
+          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample.upsertSample(
               sampleQueryBody, userName) :
           helper.model.upsertByName(sampleQueryBody, userName);
@@ -197,7 +201,7 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
-    utils.noReadOnlyFieldsInReq(req, helper);
+
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
@@ -218,9 +222,9 @@ module.exports = {
           wrappedBulkUpsertData, req);
       } else {
         const bulkUpsertPromise =
-        featureToggles.isFeatureEnabled(constants.featureName) ?
-        redisModelSample.bulkUpsertSample(value, userName) :
-        helper.model.bulkUpsertByName(value, userName);
+        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
+          redisModelSample.bulkUpsertSample(value, userName) :
+          helper.model.bulkUpsertByName(value, userName);
 
         /*
          *send the upserted sample to the client by publishing it to the redis
@@ -256,9 +260,11 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(constants.featureName) &&
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
      helper.modelName === 'Sample') {
-      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params);
+      delRlinksPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o,

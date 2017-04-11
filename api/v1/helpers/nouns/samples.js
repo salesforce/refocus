@@ -43,6 +43,6 @@ module.exports = {
   },
   readOnlyFields: [
     'id', 'isDeleted', 'status', 'previousStatus',
-    'statusChangedAt', 'createdAt', 'updatedAt',
+    'statusChangedAt', 'createdAt', 'updatedAt', 'name',
   ],
 }; // exports

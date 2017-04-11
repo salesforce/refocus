@@ -15,8 +15,7 @@ const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
-const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
-const UpdateDeleteForbidden = require('../dbErrors').UpdateDeleteForbidden;
+const dbErrors = require('../dbErrors');
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
@@ -187,7 +186,7 @@ module.exports = function sample(seq, dataTypes) {
           })
           .then((ok) => {
             if (!ok) {
-              throw new UpdateDeleteForbidden();
+              throw new dbErrors.UpdateDeleteForbidden();
             }
 
             return Sample.findOne({
@@ -298,7 +297,7 @@ module.exports = function sample(seq, dataTypes) {
               inst.name += a.name;
               inst.status = u.computeStatus(a, inst.value);
             } else {
-              const err = new ResourceNotFoundError();
+              const err = new dbErrors.ResourceNotFoundError();
               err.resourceType = 'Aspect';
               err.resourceKey = inst.getDataValue('aspectId');
               throw err;
@@ -333,7 +332,7 @@ module.exports = function sample(seq, dataTypes) {
               inst.calculateStatus();
               inst.setStatusChangedAt();
             } else {
-              const err = new ResourceNotFoundError();
+              const err = new dbErrors.ResourceNotFoundError();
               err.resourceType = 'Aspect';
               err.resourceKey = inst.getDataValue('aspectId');
               throw err;

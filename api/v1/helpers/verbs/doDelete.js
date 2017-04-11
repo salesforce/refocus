@@ -36,7 +36,9 @@ function doDelete(req, res, next, props) {
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
    props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
-    delPromise = redisModelSample.deleteSample(sampleName);
+    delPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.deleteSample(sampleName, user));
   } else {
     delPromise = u.findByKey(
         props, req.swagger.params
