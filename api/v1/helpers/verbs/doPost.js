@@ -41,9 +41,13 @@ function doPost(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    postPromise = redisModelSample.postSample(req.swagger.params);
+    postPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.postSample(req.swagger.params, user));
   } else {
-    postPromise = props.model.create(toPost);
+    postPromise = featureToggles.isFeatureEnabled('enforceWritePermission') &&
+      props.modelName === 'Sample' ? u.createSample(req, props) :
+      props.model.create(toPost);
   }
 
   postPromise.then((o) => {

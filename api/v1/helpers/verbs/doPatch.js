@@ -43,7 +43,9 @@ function doPatch(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    patchPromise = redisModelSample.patchSample(req.swagger.params);
+    patchPromise = u.getUserNameFromToken(req,
+      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      .then((user) => redisModelSample.patchSample(req.swagger.params, user));
   } else {
     patchPromise = u.findByKey(
         props, req.swagger.params
