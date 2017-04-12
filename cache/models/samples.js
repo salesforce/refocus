@@ -653,8 +653,6 @@ module.exports = {
       );
 
       if (reqBody.value) {
-
-
         const status = sampleUtils.computeStatus(aspObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
           reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
