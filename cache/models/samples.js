@@ -420,9 +420,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   const sampleKey = sampleStore.toKey(
     constants.objectType.sample, sampleName
   );
+  const absolutePath = subjAspArr[ZERO];
   const aspectName = subjAspArr[ONE];
   const subjKey = sampleStore.toKey(
-    constants.objectType.subject, subjAspArr[ZERO]
+    constants.objectType.subject, absolutePath
   );
   let aspectObj = {};
   let subjectId = '';
@@ -471,6 +472,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       ['hmset', sampleKey, sampleQueryBodyObj],
     ]).execAsync();
   })
+  .then(() => redisOps.addAspectNameToSubject(subjKey, subjectId, aspectName))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
     updatedSamp.subjectId = subjectId;
@@ -767,20 +769,7 @@ module.exports = {
       cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
       cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
 
-      return redisOps.getAspectNamesInSubject(subject.absolutePath);
-    })
-    .then((aspectsStr) => {
-
-      // add aspect to the set of aspects attached to the subject
-      const aspectNames = JSON.parse(aspectsStr);
-      if (aspectNames.indexOf(aspectObj.name.toLowerCase()) < 0) {
-        aspectNames.push(aspectObj.name);
-      }
-
-      return redisClient.hmsetAsync(subjKey, {
-        subjectId: subject.id,
-        aspectNames: JSON.stringify(aspectNames),
-      });
+      return redisOps.addAspectNameToSubject(subjKey, subject.id, aspectObj.name);
     })
     .then(() => redisOps.executeBatchCmds(cmds))
     .then(() => redisOps.getHashPromise(sampleType, sampleName))

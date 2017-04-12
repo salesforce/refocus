@@ -243,6 +243,30 @@ function renameKeys(type, objectName, oldName, newName) {
 module.exports = {
 
   /**
+   * Add aspect to the set of aspects attached to the subject,
+   * if aspect is not already in subject.
+   *
+   * @param  {String} subjKey - The key to lookup subject
+   * @param  {String} subjectId - The id of the subject
+   * @param  {String} name - The aspect name to add to subject
+   * @returns {Promise} - to update the subject
+   */
+  addAspectNameToSubject(subjKey, subjectId, name) {
+    return redisClient.hgetallAsync(subjKey)
+    .then((subject) => {
+      const aspectNames = JSON.parse(subject.aspectNames || '[]');
+      if (aspectNames.indexOf(name.toLowerCase()) < 0) {
+        aspectNames.push(name);
+      }
+
+      return redisClient.hmsetAsync(subjKey, {
+        subjectId: subjectId,
+        aspectNames: JSON.stringify(aspectNames),
+      });
+    });
+  },
+
+  /**
    * Command to delete key from master index
    * @param  {String} type - Object type
    * @param  {String} name - Object name
@@ -297,17 +321,6 @@ module.exports = {
   },
 
   /**
-   * Promise to get aspects of a certain subject
-   * @param  {String} subjAbsPath - Subject absolute path
-   * @returns {String} - serialized aspect names of the subject
-   */
-  getAspectNamesInSubject(subjAbsPath) {
-    const key = redisStore.toKey(subjectType, subjAbsPath);
-    return redisClient.hgetallAsync(key)
-    .then((subject) => subject.aspectNames || '[]');
-  },
-
-  /**
    * Promise to check if aspect exists in subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
@@ -318,20 +331,6 @@ module.exports = {
     return redisClient.hgetallAsync(key)
     .then((subject) => JSON.parse(subject.aspectNames).indexOf(
       aspName.toLowerCase()) > -1);
-  },
-
-  /**
-   * Command to add aspect in subject set
-   * @param  {String} subjAbsPath - Subject absolute path
-   * @param  {String} aspName - Aspect name
-   * @returns {Array} - Command array
-   */
-  addAspectInSubjSetCmd(subjAbsPath, aspName) {
-    return [
-      'sadd',
-      redisStore.toKey(subjectType, subjAbsPath),
-      aspName.toLowerCase(),
-    ];
   },
 
   /**
