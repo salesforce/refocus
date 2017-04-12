@@ -112,6 +112,22 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('reject if name field in request', (done) => {
+    sampleToPost.name = '!@#$%^&*(';
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].type).to.contain('ValidationError');
+      done();
+    });
+  });
+
   it('basic post /samples', (done) => {
     api.post(path)
     .set('Authorization', token)
