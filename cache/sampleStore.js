@@ -131,7 +131,7 @@ function cleanSubject(subj) {
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.subject);
   return retval;
-} // cleanAspect
+} // cleanSubject
 
 /**
  * Remove nulls and stringify arrays.

@@ -240,31 +240,26 @@ function renameKeys(type, objectName, oldName, newName) {
   .catch((err) => Promise.reject(err));
 } // renameKeys
 
+/**
+ * Returns case insensitive comparison of a string vs.
+ * all the strings in an array
+ *
+ * @param {Array} arr Contains strings
+ * @param {String} str The string to check against strings in array
+ * @retuns {Boolean} whether the string is unique or not
+ */
+function isStringInArray(arr, str) {
+  let isStringUnique = true;
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i].toLowerCase() === str.toLowerCase()) {
+      isStringUnique = false;
+    }
+  }
+
+  return isStringUnique;
+}
+
 module.exports = {
-
-  /**
-   * Add aspect to the set of aspects attached to the subject,
-   * if aspect is not already in subject.
-   *
-   * @param  {String} subjKey - The key to lookup subject
-   * @param  {String} subjectId - The id of the subject
-   * @param  {String} name - The aspect name to add to subject
-   * @returns {Promise} - to update the subject
-   */
-  addAspectNameToSubject(subjKey, subjectId, name) {
-    return redisClient.hgetallAsync(subjKey)
-    .then((subject) => {
-      const aspectNames = JSON.parse(subject.aspectNames || '[]');
-      if (aspectNames.indexOf(name.toLowerCase()) < 0) {
-        aspectNames.push(name);
-      }
-
-      return redisClient.hmsetAsync(subjKey, {
-        subjectId: subjectId,
-        aspectNames: JSON.stringify(aspectNames),
-      });
-    });
-  },
 
   /**
    * Command to delete key from master index
@@ -321,6 +316,31 @@ module.exports = {
   },
 
   /**
+   * Add aspect to the set of aspects attached to the subject,
+   * if aspect is not already in subject.
+   *
+   * @param  {String} subjKey - The key to lookup subject
+   * @param  {String} subjectId - The id of the subject
+   * @param  {String} name - The aspect name to add to subject
+   * @returns {Promise} - to update the subject
+   */
+  addAspectNameToSubject(subjKey, subjectId, name) {
+    let isNameUnique = true;
+    return redisClient.hgetallAsync(subjKey)
+    .then((subject) => {
+      const aspectNames = JSON.parse(subject.aspectNames || '[]');
+      if (isStringInArray(aspectNames, name)) {
+        aspectNames.push(name);
+      }
+
+      return redisClient.hmsetAsync(subjKey, {
+        subjectId: subjectId,
+        aspectNames: JSON.stringify(aspectNames),
+      });
+    });
+  },
+
+  /**
    * Promise to check if aspect exists in subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
@@ -329,8 +349,12 @@ module.exports = {
   aspExistsInSubjSet(subjAbsPath, aspName) {
     const key = redisStore.toKey(subjectType, subjAbsPath);
     return redisClient.hgetallAsync(key)
-    .then((subject) => JSON.parse(subject.aspectNames).indexOf(
-      aspName.toLowerCase()) > -1);
+    .then((subject) => {
+
+      // if case insensitive match, return true
+      let aspects = JSON.parse(subject.aspectNames);
+      return !isStringInArray(aspects, aspName);
+    });
   },
 
   /**
