@@ -40,7 +40,7 @@ function updateLensDetails(seqObj) {
       seqObj.name = seqObj.sourceName;
     } else {
       throw new apiErrors.ValidationError({
-        explanation: 'name or source name is required in lens json.',
+        explanation: 'name is required in lens json.',
       });
     }
   }
@@ -61,13 +61,21 @@ function updateLensDetails(seqObj) {
 }
 
 /**
- * Parse lens metadata from lens json provided in lens zip
+ * Parse lens metadata from lens json provided in lens zip. Set sourceName,
+ * sourceDescription and sourceVersion from lens json name, description and
+ * version. Throw error is name not provided in lens json.
  * @param  {object} zip - lens zip
  * @param  {object} lensJson - lens metadata in json format
  * @param  {object} seqObj - lens object to create
  */
 function parseLensMetadata(zip, lensJson, seqObj) {
   const metadataJson = JSON.parse(zip.readAsText(lensJson));
+  if (!metadataJson.name) {
+    throw new apiErrors.ValidationError({
+      explanation: 'name is required in lens json.',
+    });
+  }
+
   for (const metadataEntry in metadataJson) {
     // lens metadata name will be saved as sourceName.
     //  Same with description and version

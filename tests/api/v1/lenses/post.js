@@ -133,6 +133,7 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .field('description', 'test description')
+    .field('name', 'testLens')
     .attach('library', 'tests/api/v1/lenses/lensZips/lensNoName.zip')
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
@@ -141,7 +142,7 @@ describe(`api: POST ${path}`, () => {
       }
 
       expect(res.body.errors[0].description).contains(
-        'name or source name is required in lens json'
+        'name is required in lens json'
       );
       done();
     });
