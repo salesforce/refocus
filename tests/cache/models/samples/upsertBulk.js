@@ -78,6 +78,32 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   after(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('name field is required', (done) => {
+    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
+    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        value: '0',
+      }, {
+        value: '20',
+      },
+    ])
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const error = res.body.errors[0];
+      expect(error.message).to.contain('name');
+      expect(error.type)
+        .to.equal(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
   it('all succeed', (done) => {
     const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
     const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`

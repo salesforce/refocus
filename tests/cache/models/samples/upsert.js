@@ -100,6 +100,26 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
+  it('name field is required', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      value: '2',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      const error = res.body.errors[0];
+      expect(error.message).to.contain('name');
+      expect(error.type)
+        .to.equal(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
   it('upsert succeeds when the sample does not exist', (done) => {
     api.post(path)
     .set('Authorization', token)
