@@ -180,6 +180,7 @@ function completeSubjectHierarchy(res, params) {
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
+    // once the filtering is done, reset it back.
     u.resetFilters(filters);
     return Promise.resolve(res);
   });

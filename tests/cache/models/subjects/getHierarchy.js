@@ -106,7 +106,7 @@ describe(`api: GET ${path}`, () => {
     it('should be a non empty object at the grandchild level', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
-      // .expect(constants.httpStatus.OK)
+      .expect(constants.httpStatus.OK)
       .end((err  , res ) => {
         if (err) {
           done(err);

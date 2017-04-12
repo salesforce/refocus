@@ -317,7 +317,7 @@ module.exports = {
    * @param  {String} aspName - Aspect name
    * @returns {Boolean} - Does it exist, or not
    */
-  aspExistsInSubjSetCmd(subjAbsPath, aspName) {
+  aspExistsInSubjSet(subjAbsPath, aspName) {
     // TODO: refactor aspects to aspectsName,
     // to use sets instead of array
     const key = redisStore.toKey(subjectType, subjAbsPath);

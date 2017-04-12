@@ -115,7 +115,7 @@ describe(`api: redisStore: POST ${path}`, () => {
     });
   });
 
-  it('returns aspectId, subjectId, and aspect object', (done) => {
+  it('returns aspectId, subjectId, and NO aspect object', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(sampleToPost)
@@ -125,7 +125,7 @@ describe(`api: redisStore: POST ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.aspect).to.be.an('object');
+      expect(res.body.aspect).to.be.undefined;
       expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
       expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
 
@@ -200,14 +200,12 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
-    })
-    .end((err /* , res */) => {
+    .end((err  , res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
       done();
     });
   });

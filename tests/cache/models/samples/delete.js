@@ -70,7 +70,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
         expect(response[0]).to.be.equal(null);
         expect(response[1]).to.be.equal(0);
       })
-      .then(() => redisOps.aspExistsInSubjSetCmd(
+      .then(() => redisOps.aspExistsInSubjSet(
         subjAspArr[0], subjAspArr[1]))
       .then((response) => {
         expect(response).to.be.equal(false);

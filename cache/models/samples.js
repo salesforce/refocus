@@ -467,7 +467,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     // add aspect name to subject set, add sample key to sample set,
     // create/update hash of sample
     return redisClient.batch([
-      ['sadd', constants.indexKey.aspect, aspectName],
       ['sadd', constants.indexKey.sample, sampleKey],
       ['hmset', sampleKey, sampleQueryBodyObj],
     ]).execAsync();
@@ -497,7 +496,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   deleteSample(sampleName, userName) {
-    let cmds = [];
+    const cmds = [];
     const subjAspArr = sampleName.toLowerCase().split('|');
 
     if (subjAspArr.length < TWO) {
@@ -649,11 +648,12 @@ module.exports = {
       }
 
       cleanQueryBodyObj(reqBody);
-      aspectObj = aspObj;
+      aspectObj = sampleStore.arrayStringsToJson(
+        aspObj, constants.fieldsToStringify.aspect
+      );
+
       if (reqBody.value) {
-        aspectObj = sampleStore.arrayStringsToJson(
-          aspObj, constants.fieldsToStringify.aspect
-        );
+
 
         const status = sampleUtils.computeStatus(aspObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
@@ -786,7 +786,8 @@ module.exports = {
     })
     .then(() => redisOps.executeBatchCmds(cmds))
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+    .then((sampleObj) => sampleStore.arrayStringsToJson(
+      sampleObj, constants.fieldsToStringify.sample));
   },
 
   /**
