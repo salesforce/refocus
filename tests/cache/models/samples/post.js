@@ -115,6 +115,24 @@ describe(`api: redisStore: POST ${path}`, () => {
     });
   });
 
+  it('reject if name is in request body', (done) => {
+    sampleToPost.name = '!#@#$%^&';
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.BAD_REQUEST)
+     .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      
+       const error = res.body.errors[0];
+      expect(error.type).to.equal('ValidationError');
+      expect(error.description).to.contain('name'); 
+      done();
+    });
+  });      
+  
   it('returns aspectId, subjectId, and NO aspect object', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -128,7 +146,6 @@ describe(`api: redisStore: POST ${path}`, () => {
       expect(res.body.aspect).to.be.undefined;
       expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
       expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
-
       done();
     });
   });

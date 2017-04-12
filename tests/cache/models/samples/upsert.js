@@ -99,7 +99,27 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       });
     });
   });
-
+  
+  it('name field is required', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      value: '2',
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+      
+      const error = res.body.errors[0];
+      expect(error.message).to.contain('name');
+      expect(error.type)
+        .to.equal(tu.schemaValidationErrorName);
+      done();
+    });
+  });    
+  
   it('returns aspectId, subjectId, and aspect object', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -116,7 +136,6 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       expect(res.body.aspect).to.be.an('object');
       expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
       expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
-
       done();
     });
   });

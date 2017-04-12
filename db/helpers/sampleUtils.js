@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const constants = require('../constants');
-const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
+const dbErrors = require('../dbErrors');
 const fourByteBase = 2;
 const fourByteExponent = 31;
 const fourByteLimit = Math.pow(fourByteBase, fourByteExponent);
@@ -160,7 +160,7 @@ function parseName(name) {
     return retval;
   }
 
-  const err = new ResourceNotFoundError();
+  const err = new dbErrors.ResourceNotFoundError();
   err.resourceType = 'Sample';
   err.resourceKey = name;
   throw err;
@@ -212,7 +212,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
         if (s) {
           retval.subject = s;
         } else {
-          const err = new ResourceNotFoundError();
+          const err = new dbErrors.ResourceNotFoundError();
           err.resourceType = 'Subject';
           err.resourceKey = parsedName.subject.absolutePath;
           throw err;
@@ -223,7 +223,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
         if (a) {
           retval.aspect = a;
         } else {
-          const err = new ResourceNotFoundError();
+          const err = new dbErrors.ResourceNotFoundError();
           err.resourceType = 'Aspect';
           err.resourceKey = parsedName.aspect.name;
           throw err;

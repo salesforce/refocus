@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/samples/get.js
+ * tests/api/v1/samples/put.js
  */
 'use strict';
 
@@ -77,6 +77,21 @@ describe(`api: PUT ${path}`, () => {
         }
       }
 
+      done();
+    });
+  });
+
+  it('reject if name field in request', (done) => {
+    api.put(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .send({ subjectId, aspectId, value: '2', name: '2' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].type).to.contain('ValidationError');
       done();
     });
   });

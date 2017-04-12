@@ -193,7 +193,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  it('upsert with readOnly field status should fail', (done) => {
+  it.skip('upsert with readOnly field status should fail', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -219,7 +219,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  it('upsert with readOnly field statusChangedAt should fail', (done) => {
+  it.skip('upsert with readOnly field statusChangedAt should fail', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
