@@ -99,7 +99,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       });
     });
   });
-  
+
   it('name field is required', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -111,15 +111,15 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       if (err) {
         done(err);
       }
-      
+
       const error = res.body.errors[0];
       expect(error.message).to.contain('name');
       expect(error.type)
         .to.equal(tu.schemaValidationErrorName);
       done();
     });
-  });    
-  
+  });
+
   it('returns aspectId, subjectId, and aspect object', (done) => {
     api.post(path)
     .set('Authorization', token)

@@ -404,17 +404,7 @@ function handleUpsertError(objectType, isBulk) {
  */
 function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   const sampleName = sampleQueryBodyObj.name;
-  const sampleKey = sampleStore.toKey(
-    constants.objectType.sample, sampleName
-  );
   const subjAspArr = sampleName.toLowerCase().split('|');
-  const aspectName = subjAspArr[ONE];
-  const subjKey = sampleStore.toKey(
-    constants.objectType.subject, subjAspArr[ZERO]
-  );
-  let aspectObj = {};
-  let subjectId = '';
-
   if (subjAspArr.length < TWO) {
     const err = new redisErrors.ValidationError({
       explanation: 'Incorrect sample name.',
@@ -426,6 +416,16 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
 
     return Promise.reject(err);
   }
+
+  const sampleKey = sampleStore.toKey(
+    constants.objectType.sample, sampleName
+  );
+  const aspectName = subjAspArr[ONE];
+  const subjKey = sampleStore.toKey(
+    constants.objectType.subject, subjAspArr[ZERO]
+  );
+  let aspectObj = {};
+  let subjectId = '';
 
   return checkWritePermission(aspectName, sampleName, userName, isBulk)
 
