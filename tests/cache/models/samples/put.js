@@ -66,20 +66,20 @@ describe(`api: cache: PUT ${path}`, () => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ name: '3' })
-      .expect(constants.httpStatus.BAD_REQUEST)    
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           done(err);
         }
-        
+
         const error = res.body.errors[0];
         expect(error.type).to.equal('ValidationError');
         expect(error.description).to.contain('name');
         done();
       });
     });
-    
-    it('returns aspectId, subjectId, and NO aspect object', (done) => {
+
+    it('returns aspectId, subjectId, and aspect object', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: '3' })
@@ -88,8 +88,8 @@ describe(`api: cache: PUT ${path}`, () => {
         if (err) {
           done(err);
         }
-        
-        expect(res.body.aspect).to.be.undefined;
+
+        expect(res.body.aspect).to.be.an('object');
         expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
         expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
         done();
