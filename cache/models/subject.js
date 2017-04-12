@@ -78,7 +78,7 @@ function attachSamples(res) {
   const subjectKey = sampleStore.toKey(constants.objectType.subject,
                               res.absolutePath);
   return redisClient.hgetallAsync(subjectKey).then((subjectObj) => {
-    const aspectNames = JSON.parse(subjectObj.aspects || '[]');
+    const aspectNames = JSON.parse(subjectObj.aspectNames || '[]');
     const cmds = [];
     aspectNames.forEach((aspect) => {
       const sampleKey = sampleStore.toKey(constants.objectType.sample,

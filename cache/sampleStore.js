@@ -30,7 +30,7 @@ const constants = {
       'okRange',
     ],
     sample: ['relatedLinks'],
-    subject: ['aspects'],
+    subject: ['aspectNames'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',

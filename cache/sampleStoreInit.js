@@ -116,13 +116,13 @@ function populateSamples() {
       if (!subjectSets.hasOwnProperty(subKey)) {
         subjectSets[subKey] = {
           subjectId: s.subjectId,
-          aspects: [aspName],
+          aspectNames: [aspName],
         };
       } else { // has key
-        if (subjectSets[subKey].aspects) {
-          subjectSets[subKey].aspects.push(aspName);
+        if (subjectSets[subKey].aspectNames) {
+          subjectSets[subKey].aspectNames.push(aspName);
         } else {
-          subjectSets[subKey].aspects = [aspName];
+          subjectSets[subKey].aspectNames = [aspName];
         }
       }
 

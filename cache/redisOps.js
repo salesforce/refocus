@@ -285,15 +285,13 @@ module.exports = {
    * @returns {Integer} - Successfully set updated subject, or not
    */
   delAspFromSubjSet(subjAbsPath, aspName) {
-    // TODO: refactor aspects to aspectsName,
-    // to use sets instead of array
     const key = redisStore.toKey(subjectType, subjAbsPath);
     return redisClient.hgetallAsync(key)
     .then((subject) => {
-      let aspects = JSON.parse(subject.aspects);
+      let aspects = JSON.parse(subject.aspectNames);
       aspects = aspects.filter((aspect) => aspect.toLowerCase() !==
         aspName.toLowerCase());
-      subject.aspects = JSON.stringify(aspects);
+      subject.aspectNames = JSON.stringify(aspects);
       return redisClient.hmsetAsync(key, subject);
     });
   },
@@ -304,11 +302,9 @@ module.exports = {
    * @returns {String} - serialized aspect names of the subject
    */
   getAspectNamesInSubject(subjAbsPath) {
-    // TODO: refactor aspects to aspectsName,
-    // to use sets instead of array
     const key = redisStore.toKey(subjectType, subjAbsPath);
     return redisClient.hgetallAsync(key)
-    .then((subject) => subject.aspects || '[]');
+    .then((subject) => subject.aspectNames || '[]');
   },
 
   /**
@@ -318,11 +314,9 @@ module.exports = {
    * @returns {Boolean} - Does it exist, or not
    */
   aspExistsInSubjSet(subjAbsPath, aspName) {
-    // TODO: refactor aspects to aspectsName,
-    // to use sets instead of array
     const key = redisStore.toKey(subjectType, subjAbsPath);
     return redisClient.hgetallAsync(key)
-    .then((subject) => JSON.parse(subject.aspects).indexOf(
+    .then((subject) => JSON.parse(subject.aspectNames).indexOf(
       aspName.toLowerCase()) > -1);
   },
 

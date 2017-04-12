@@ -781,7 +781,7 @@ module.exports = {
 
       return redisClient.hmsetAsync(subjKey, {
         subjectId: subject.id,
-        aspects: JSON.stringify(aspectNames),
+        aspectNames: JSON.stringify(aspectNames),
       });
     })
     .then(() => redisOps.executeBatchCmds(cmds))
