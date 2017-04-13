@@ -49,6 +49,7 @@ module.exports = {
       workTime: 'None',
     },
     queueStats: {
+      minute: 'None',
       activity: 'queueStats',
       averageQueueTimeMillis: 0,
       jobCount: 0,

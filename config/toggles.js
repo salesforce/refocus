@@ -56,6 +56,10 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
+  // Enable queueStatsActivityLogs
+  enableQueueStatsActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),
+
   // Enable realtime activity logging
   enableRealtimeActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
@@ -83,10 +87,6 @@ const longTermToggles = {
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
-
-  // Enable queueStatsActivityLogs
-  enableQueueStatsActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),
 }; // longTermToggles
 
 /*
