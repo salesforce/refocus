@@ -165,16 +165,16 @@ function update(rc, qt) {
   client.hgetall(key, (err, reply) => {
     if (reply) {
       client.hmset(key, {
-        'jobCount': Number(reply.jobCount) + ONE,
-        'recordCount': Number(reply.recordCount) + rc,
-        'queueTimeArray': addToArray(reply.queueTimeArray, qt),
+        jobCount: Number(reply.jobCount) + ONE,
+        recordCount: Number(reply.recordCount) + rc,
+        queueTimeArray: addToArray(reply.queueTimeArray, qt),
       });
     } else {
       client.hmset(key, {
-        'jobCount': ONE,
-        'recordCount': rc,
-        'queueTimeArray': addToArray('', qt),
-        'minute': timestamp,
+        jobCount: ONE,
+        recordCount: rc,
+        queueTimeArray: addToArray('', qt),
+        minute: timestamp,
       });
     }
 
