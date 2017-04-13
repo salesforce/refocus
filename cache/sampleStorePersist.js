@@ -30,6 +30,28 @@ function persistInProgress() {
 } // persistInProgress
 
 /**
+ * [storeSampleToDb description]
+ * @return {[type]} [description]
+ */
+function storeSampleToDb() {
+  return redisClient.setAsync(constants.persistInProgressKey, 'true')
+  .then(() => Sample.destroy({ truncate: true, force: true }))
+  .then(() => Sample.destroy({ truncate: true, force: true }))
+  .then(() => redisClient.smembersAsync(constants.indexKey.sample))
+  .then((keys) => keys.map((key) => ['hgetall', key]))
+  .then((cmds) => redisClient.batch(cmds).execAsync())
+  .then((res) => {
+    const samplesToCreate = res.map((sample) => {
+      sample.relatedLinks = JSON.parse(sample.relatedLinks);
+      return sample;
+    });
+    return Sample.bulkCreate(samplesToCreate);
+  })
+  .then(() => redisClient.delAsync(constants.persistInProgressKey))
+  .then(() => console.log('persisted redis sample store to db'));
+}
+
+/**
  * Truncate the sample table in the db and persist all the samples from redis
  * into the empty table.
  *
@@ -48,22 +70,8 @@ function persist() {
       Promise.resolve(false);
     }
 
-    return redisClient.setAsync(constants.persistInProgressKey, 'true');
+    return storeSampleToDb();
   })
-  .then(() => Sample.destroy({ truncate: true, force: true }))
-  .then(() => redisClient.smembersAsync(constants.indexKey.sample))
-  .then((keys) => keys.map((key) => ['hgetall', key]))
-  .then((cmds) => redisClient.batch(cmds).execAsync())
-  .then((res) => {
-    const samplesToCreate = res.map((sample) => {
-      sample.relatedLinks = JSON.parse(sample.relatedLinks);
-      return sample;
-    });
-    return Sample.bulkCreate(samplesToCreate);
-  })
-  .then(() => redisClient.delAsync(constants.persistInProgressKey))
-  .then(() => console.log('persisted redis sample store to db'))
-  .then(() => true)
   .catch((err) => {
     // NO-OP
     console.error(err); // eslint-disable-line no-console
@@ -74,4 +82,5 @@ function persist() {
 module.exports = {
   persist,
   persistInProgress,
+  storeSampleToDb,
 };

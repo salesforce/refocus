@@ -174,7 +174,7 @@ describe('sampleStore (feature on):', () => {
         .to.be.true;
     })
     .then(() => samstoinit.init())
-    .then((res) => expect(res).to.be.true)
+    .then((res) => expect(res).to.not.be.false)
     .then(() => done())
     .catch(done);
   });
