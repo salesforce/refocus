@@ -15,6 +15,7 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
+const redisOps = require('../../../../cache/redisOps');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const sampleStore = require('../../../../cache/sampleStore');
@@ -116,6 +117,49 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       expect(error.message).to.contain('name');
       expect(error.type)
         .to.equal(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('aspect is added', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${subject.absolutePath}|${aspect.name}`,
+      value: '2',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      redisOps.aspExistsInSubjSet(
+        subject.absolutePath, aspect.name)
+      .then((response) => {
+        expect(response).to.be.equal(true);
+      });
+
+      done();
+    });
+  });
+
+  it('returns aspectId, subjectId, and aspect object', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: `${subject.absolutePath}|${aspect.name}`,
+      value: '2',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspect).to.be.an('object');
+      expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
+      expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
       done();
     });
   });

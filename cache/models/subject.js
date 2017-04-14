@@ -77,7 +77,8 @@ function attachSamples(res) {
 
   const subjectKey = sampleStore.toKey(constants.objectType.subject,
                               res.absolutePath);
-  return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
+  return redisClient.hgetallAsync(subjectKey).then((subjectObj) => {
+    const aspectNames = JSON.parse(subjectObj.aspectNames || '[]');
     const cmds = [];
     aspectNames.forEach((aspect) => {
       const sampleKey = sampleStore.toKey(constants.objectType.sample,
@@ -159,8 +160,8 @@ function traverseHierarchy(res) {
 
     res.children = filteredChildrenArr;
     return attachSamples(res);
-  }).then((ret) => Promise.resolve(ret || filteredChildrenArr.length));
-
+  }).then((ret) => Promise.resolve(ret ||
+    filteredChildrenArr.length));
 } // traverseHierarchy
 
 /**
