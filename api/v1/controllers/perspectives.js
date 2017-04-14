@@ -190,7 +190,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchPerspective(req, res, next) {
-    helper.validateFilterAndThrowError(req.body);
     doPatch(req, res, next, helper);
   },
 
