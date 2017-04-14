@@ -49,13 +49,13 @@ module.exports = {
       workTime: 'None',
     },
     queueStats: {
-      minute: 'None',
       activity: 'queueStats',
       averageQueueTimeMillis: 0,
       jobCount: 0,
       medianQueueTimeMillis: 0,
       queueTimeMillis95th: 0,
       recordCount: 0,
+      timeStamp: 'None',
     },
   },
 };

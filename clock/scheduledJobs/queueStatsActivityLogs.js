@@ -138,7 +138,7 @@ function constructLogObject(qStats) {
   queueStats.jobCount = qStats.jobCount;
   queueStats.recordCount = qStats.recordCount;
   queueTimeArray = stringToArray(qStats.queueTimeArray);
-  queueStats.minute = qStats.minute;
+  queueStats.timeStamp = qStats.timeStamp;
 
   // Calculate stats based on queue timings
   const stats = calculateStats(queueTimeArray);
@@ -174,7 +174,7 @@ function update(rc, qt) {
         jobCount: ONE,
         recordCount: rc,
         queueTimeArray: addToArray('', qt),
-        minute: timestamp,
+        timeStamp: timestamp,
       });
     }
 
