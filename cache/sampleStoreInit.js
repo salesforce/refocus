@@ -78,6 +78,7 @@ function populateSubjects() {
     const cmds = [];
     subjects.forEach((s) => {
       const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
+      cmds.push(['hmset', key, { subjectId: s.id }]);
       cmds.push(['sadd', constants.indexKey.subject, key]);
     });
 
@@ -94,7 +95,6 @@ function populateSubjects() {
 function populateSamples() {
   return Sample.findAll()
   .then((samples) => {
-    const subjectIdx = new Set();
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
@@ -111,13 +111,19 @@ function populateSamples() {
 
       // Track each of these in the master indexes for each object type.
       sampleIdx.add(samKey);
-      subjectIdx.add(subKey);
 
       // For creating each individual subject set...
-      if (subjectSets.hasOwnProperty(subKey)) {
-        subjectSets[subKey].push(aspName);
-      } else {
-        subjectSets[subKey] = [aspName];
+      if (!subjectSets.hasOwnProperty(subKey)) {
+        subjectSets[subKey] = {
+          subjectId: s.subjectId,
+          aspectNames: [aspName],
+        };
+      } else { // has key
+        if (subjectSets[subKey].aspectNames) {
+          subjectSets[subKey].aspectNames.push(aspName);
+        } else {
+          subjectSets[subKey].aspectNames = [aspName];
+        }
       }
 
       // For creating each individual sample hash...
@@ -132,7 +138,7 @@ function populateSamples() {
 
     // Batch of commands to create each individal subject set...
     const subjectCmds = Object.keys(subjectSets)
-      .map((key) => ['sadd', key, subjectSets[key]]);
+      .map((key) => ['hmset', key, samsto.cleanSubject(subjectSets[key])]);
     batchPromises.push(redisClient.batch(subjectCmds).execAsync());
 
     // Batch of commands to create each individal sample hash...
