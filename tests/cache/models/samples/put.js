@@ -79,6 +79,23 @@ describe(`api: cache: PUT ${path}`, () => {
       });
     });
 
+    it('returns aspectId, subjectId, and aspect object', (done) => {
+      api.put(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.aspect).to.be.an('object');
+        expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
+        expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
+        done();
+      });
+    });
+
     it('basic put does not return id', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)

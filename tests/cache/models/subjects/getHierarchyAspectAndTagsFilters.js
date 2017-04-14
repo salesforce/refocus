@@ -176,7 +176,11 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
+      .end((err, res ) => {
+        if (err) {
+          return done(err);
+        }
+
         expect(res.body).to.not.equal(null);
 
         // north america. Check to make sure it does not return the parOther
@@ -195,12 +199,6 @@ describe(`api: GET ${path}:`, () => {
         expect(na.children).to.have.length(1);
         expect(na.children[0].children).to.have.length(1);
         expect(na.children[0].children[0].tags).to.include.members(['cold']);
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
         done();
       });
     });
@@ -305,6 +303,8 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         expect(res.body).to.not.equal(null);
         expect(res.body.children).to.have.length(1);
+
+
         expect(res.body.samples).to.have.length(1);
         expect(res.body.samples[0]).to.have.deep
           .property('aspect.name', 'humidity');
