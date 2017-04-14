@@ -295,7 +295,7 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, o.dataValues);
+      u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
