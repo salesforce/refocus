@@ -103,10 +103,12 @@ function processJobOnComplete(job, logObject) {
        jobResultObj && logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
 
-        /* The second argument should match the activity type in
-         /config/activityLog.js */
+        // Update queueStatsActivityLogs
         queueTimeActivityLogs
           .update(jobResultObj.recordCount, jobResultObj.queueTime);
+
+        /* The second argument should match the activity type in
+         /config/activityLog.js */
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
     });

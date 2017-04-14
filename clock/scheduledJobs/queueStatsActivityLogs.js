@@ -16,14 +16,16 @@ const activityLogUtil = require('../../utils/activityLog');
 const queueTimeMillis95th = require('../../config').queueTimeMillis95th;
 const redis = require('redis');
 const rconf = require('../../config').redis;
+const bluebird = require('bluebird');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const FLOAT_TWO = 2.0;
 const PERCENTILE_95TH = 0.95;
-let jobCount = 0;
-let recordCount = 0;
-let queueTimeArray = [];
+
+// bluebird promise for redis
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
 
 // Create Redis connection
 const client = redis.createClient(rconf.instanceUrl.realtimeLogging);
@@ -39,7 +41,7 @@ function arrayToString(array) {
 }
 
 /**
- * Convert array to string
+ * Convert string to array
  *
  * @param {string} string - string of array
  * @returns {array} array - array of integers
@@ -107,10 +109,10 @@ function calculateStats(qt) {
   average = sum / length;
 
   // calculate median
-  if (middle % TWO) {
-    median = (qt[middle - ONE] + qt[middle]) / FLOAT_TWO;
-  } else {
+  if (length % TWO) {
     median = qt[middle];
+  } else {
+    median = (qt[middle - ONE] + qt[middle]) / FLOAT_TWO;
   }
 
   // calculate 95th Percentile
@@ -137,7 +139,7 @@ function constructLogObject(qStats) {
 
   queueStats.jobCount = qStats.jobCount;
   queueStats.recordCount = qStats.recordCount;
-  queueTimeArray = stringToArray(qStats.queueTimeArray);
+  const queueTimeArray = stringToArray(qStats.queueTimeArray);
   queueStats.timeStamp = qStats.timeStamp;
 
   // Calculate stats based on queue timings
@@ -162,7 +164,7 @@ function update(rc, qt) {
   const timestamp = createTimeStamp();
   const key = 'queueStats.' + timestamp;
 
-  client.hgetall(key, (err, reply) => {
+  client.hgetallAsync(key).then((reply) => {
     if (reply) {
       client.hmset(key, {
         jobCount: Number(reply.jobCount) + ONE,
@@ -177,15 +179,10 @@ function update(rc, qt) {
         timeStamp: timestamp,
       });
     }
-
-    if (err) {
-      throw new Error();
-    }
+  })
+  .catch((err) => {
+    throw new Error(err);
   });
-
-  jobCount += ONE;
-  recordCount += rc;
-  queueTimeArray.push(qt);
 }
 
 /**
@@ -193,13 +190,13 @@ function update(rc, qt) {
  */
 function execute() {
   // Get queueStats from redis
-  client.keys('queueStats*', (err, keys) => {
+  client.keysAsync('queueStats*').then((keys) => {
     const currentTimeStamp = 'queueStats.' + createTimeStamp();
     if (keys) {
       for (let i = 0; i < keys.length; i++) {
         if (currentTimeStamp !== keys[i]) {
           // Get data based on key from redis
-          client.hgetall(keys[i], (_err, data) => {
+          client.hgetallAsync(keys[i]).then((data) => {
             if (data) {
               // Construct log object
               const queueStats = constructLogObject(data);
@@ -218,24 +215,26 @@ function execute() {
               // Delete key once logs is printed
               client.del(keys[i]);
             }
-
-            // If error then throw it
-            if (_err) {
-              throw new Error();
-            }
+          })
+          .catch((err) => {
+            throw new Error(err);
           });
         }
       }
     }
-
-    // If error then throw it
-    if (err) {
-      throw new Error();
-    }
+  })
+  .catch((_err) => {
+    throw new Error(_err);
   });
 } // execute
 
 module.exports = {
+  addToArray,
+  arrayToString,
+  calculateStats,
+  constructLogObject,
+  createTimeStamp,
   execute,
+  stringToArray,
   update,
 };

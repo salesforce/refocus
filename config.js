@@ -219,8 +219,7 @@ module.exports = {
   port,
   prioritizeJobsFrom,
   queueStatsActivityLogsInterval,
-  queueTimeMillis95th: pe.QUEUESTATS_95TH_WARNING_MILLIS ||
-    undefined,
+  queueTimeMillis95th: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   rateLimit,
   rateWindow,
   readReplicas,
