@@ -14,10 +14,24 @@
 
 const pfx = '___';
 const jwtUtil = require('../utils/jwtUtil');
+const constants = require('../api/v1/constants');
 const db = require('../db');
 const testStartTime = new Date();
 const userName = `${pfx}testUser@refocus.com`;
 const featureToggles = require('feature-toggles');
+
+/**
+ * Performs a regex test on the key to determine whether it looks like a
+ * postgres uuid. This helps us determine whether to try finding a record by
+ * id first then failing over to searching by name, or if the key doesn't meet
+ * the criteria to be a postgres uuid, just skip straight to searching by name.
+ *
+ * @param {String} key - The key to test
+ * @returns {Boolean} - True if the key looks like an id
+ */
+function looksLikeId(key) {
+  return constants.POSTGRES_UUID_RE.test(key);
+}
 
 /**
  * By convention, all the resources we create in our tests are named using
@@ -58,6 +72,7 @@ module.exports = {
   },
 
   db,
+  looksLikeId,
   dbErrorName: 'SequelizeDatabaseError',
   dbError: new Error('expecting SequelizeDatabaseError'),
   fkErrorName: 'SequelizeForeignKeyConstraintError',

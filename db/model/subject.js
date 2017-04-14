@@ -19,16 +19,7 @@ const throwNotMatchError = require('../helpers/subjectUtils').throwNotMatchError
 const updateParentFields = require('../helpers/subjectUtils').updateParentFields;
 const validateParentField = require('../helpers/subjectUtils').validateParentField;
 const constants = require('../constants');
-const SubjectDeleteConstraintError = require('../dbErrors')
-  .SubjectDeleteConstraintError;
-const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
-const ValidationError = require('../dbErrors').ValidationError;
-const ParentSubjectNotFound = require('../dbErrors')
-  .ParentSubjectNotFound;
-const ParentSubjectNotMatch = require('../dbErrors')
-  .ParentSubjectNotMatch;
-const IllegalSelfParenting = require('../dbErrors')
-  .IllegalSelfParenting;
+const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -62,7 +53,7 @@ module.exports = function subject(seq, dataTypes) {
       validate: {
         validateGeolocation(value) {
           if (value && value.length !== 2) {
-            throw new InvalidRangeSizeError();
+            throw new dbErrors.InvalidRangeSizeError();
           }
 
           if (value[0] === null || value[1] === null) {
@@ -270,7 +261,7 @@ module.exports = function subject(seq, dataTypes) {
               if (parent) {
                 if (parent.getDataValue('isPublished') === false &&
                   inst.getDataValue('isPublished') === true) {
-                  throw new ValidationError({
+                  throw new dbErrors.ValidationError({
                     message: 'You cannot insert a subject with ' +
                       'isPublished = true unless all its ancestors are also ' +
                       'published.',
@@ -281,7 +272,7 @@ module.exports = function subject(seq, dataTypes) {
                   parent.absolutePath + '.' + inst.name);
                 inst.setDataValue(param, parent.getDataValue(key1));
               } else {
-                throw new ParentSubjectNotFound({
+                throw new dbErrors.ParentSubjectNotFound({
                   message: 'parent' + key + ' not found.',
                 });
               }
@@ -492,7 +483,7 @@ module.exports = function subject(seq, dataTypes) {
           inst.getChildren()
           .then((kids) => {
             if (kids && kids.length > 0) {
-              const err = new SubjectDeleteConstraintError();
+              const err = new dbErrors.SubjectDeleteConstraintError();
               err.subject = inst.get();
               throw err;
             } else {
@@ -531,7 +522,7 @@ module.exports = function subject(seq, dataTypes) {
                 const len = children.length;
                 for (let i = 0; i < len; ++i) {
                   if (children[i].getDataValue('isPublished') === true) {
-                    throw new ValidationError({
+                    throw new dbErrors.ValidationError({
                       message: 'You cannot unpublish this subject until ' +
                         'all its descendants are unpublished.',
                     });
