@@ -22,7 +22,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/subjects/{key}/writers';
 const getWriterPath = '/v1/subjects/{key}/writers/{userNameOrId}';
 
-describe('api: subjects: get writers}', () => {
+describe('api: subjects: get writers: ', () => {
   let token;
   let subject;
   let user;
@@ -165,6 +165,28 @@ describe('api: subjects: get writers}', () => {
       }
 
       return done();
+    });
+  });
+
+  describe('with api activity logs enabled', () => {
+    before(() => tu.toggleOverride('enableApiActivityLogs', true));
+    after(() => tu.toggleOverride('enableApiActivityLogs', false));
+
+    it('find Writers that have writer permission' +
+      'associated with the model', (done) => {
+      api.get(getWritersPath.replace('{key}', subject.id))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.length(2);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
     });
   });
 });
