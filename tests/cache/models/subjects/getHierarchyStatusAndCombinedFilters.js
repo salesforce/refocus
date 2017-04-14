@@ -514,7 +514,11 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(2);
@@ -531,12 +535,6 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children[0].samples[0].status)
           .to.equal('Info');
         expect(res.body.children[0].children[0].children).to.have.length(0);
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
         done();
       });
     });

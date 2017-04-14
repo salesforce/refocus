@@ -50,29 +50,49 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (tu.gotExpectedLength(res.body, ZERO)) {
-        throw new Error('expecting sample');
-      }
-    })
-    .end((err /* , res */) => {
+    .end((err  , res ) => {
       if (err) {
         done(err);
       }
 
+      if (tu.gotExpectedLength(res.body, ZERO)) {
+        throw new Error('expecting sample');
+      }
       const subjAspArr = sampleName.toLowerCase().split('|');
 
       const cmds = [];
       cmds.push(redisOps.getHashCmd(objectType.sample, sampleName));
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.sample, sampleName));
-      cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
+
 
       redisOps.executeBatchCmds(cmds)
       .then((response) => {
         expect(response[0]).to.be.equal(null);
         expect(response[1]).to.be.equal(0);
-        expect(response[2]).to.be.equal(0);
+      })
+      .then(() => redisOps.aspExistsInSubjSet(
+        subjAspArr[0], subjAspArr[1]))
+      .then((response) => {
+        expect(response).to.be.equal(false);
       });
+
+      done();
+    });
+  });
+
+  it('returns aspectId, subjectId, and aspect object', (done) => {
+    api.delete(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspect).to.be.an('object');
+      expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
+      expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
+
       done();
     });
   });
