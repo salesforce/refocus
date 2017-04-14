@@ -94,6 +94,23 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       });
     });
 
+    it('returns aspectId, subjectId, and NO aspect object', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
+        expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
+
+        done();
+      });
+    });
+
     it('createdAt and updatedAt fields have the expected format', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)

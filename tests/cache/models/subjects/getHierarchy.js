@@ -107,17 +107,15 @@ describe(`api: GET ${path}`, () => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.children[0].children[0].samples).to.be
-          .an('array');
-        expect(res.body.children[0].children[0].samples).to.not
-          .empty;
-      })
-      .end((err /* , res */) => {
+      .end((err  , res ) => {
         if (err) {
           done(err);
         }
 
+        expect(res.body.children[0].children[0].samples).to.be
+          .an('array');
+        expect(res.body.children[0].children[0].samples).to.not
+          .empty;
         done();
       });
     });
@@ -129,7 +127,6 @@ describe(`api: GET ${path}`, () => {
       .expect((res) => {
         expect(res.body.children[0].children[0].samples).to.be
           .an('array');
-        console.log(res.body);
         expect(res.body.children[0].children[0].samples).to.have.lengthOf(1);
         expect(res.body.children[0].children[0].samples[0].aspect.rank).
           to.equal(10);
@@ -165,7 +162,11 @@ describe(`api: GET ${path}`, () => {
     api.get(path.replace('{key}', ipar))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
       // parent level
       expect(res.body.samples).to.be.an('array');
       expect(res.body.children).to.have.length(res.body.childCount);
@@ -175,11 +176,6 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.children[0].children).to.be.an('array');
       expect(res.body.children[0].children).to.have
         .length(res.body.children[0].childCount);
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
 
       done();
     });

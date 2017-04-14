@@ -30,6 +30,7 @@ const constants = {
       'okRange',
     ],
     sample: ['relatedLinks'],
+    subject: ['aspectNames'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
@@ -132,6 +133,20 @@ function convertToISO(obj) {
  * object instance or just a regular object.
  * @returns {Object} cleaned up and ready to store in redis.
  */
+function cleanSubject(subj) {
+  let retval = subj.get ? subj.get() : subj;
+  retval = removeNullsAndStringifyArrays(retval,
+    constants.fieldsToStringify.subject);
+  return retval;
+} // cleanSubject
+
+/**
+ * Remove nulls and stringify arrays.
+ *
+ * @param {Object} a - The aspect to clean. This can be either be a sequelize
+ * object instance or just a regular object.
+ * @returns {Object} cleaned up and ready to store in redis.
+ */
 function cleanAspect(a) {
   let retval = a.get ? a.get() : a;
   retval = removeNullsAndStringifyArrays(retval,
@@ -187,6 +202,7 @@ function isSampleWritable(aspectModel, aspectName, userName) {
 
 module.exports = {
   cleanAspect,
+  cleanSubject,
   cleanSample,
   constants,
   toKey,

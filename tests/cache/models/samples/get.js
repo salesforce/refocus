@@ -57,6 +57,24 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
+  it('returns aspectId, subjectId, and NO aspect object', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      for (let i = res.body.length - 1; i >= 0; i--) {
+        expect(tu.looksLikeId(res.body[i].aspectId)).to.be.true;
+        expect(tu.looksLikeId(res.body[i].subjectId)).to.be.true;
+      }
+
+      done();
+    });
+  });
+
   it('basic get all, sorted lexicographically by default', (done) => {
     api.get(path)
     .set('Authorization', token)

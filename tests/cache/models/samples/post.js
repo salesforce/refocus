@@ -29,6 +29,8 @@ const u = require('./utils');
 describe(`api: redisStore: POST ${path}`, () => {
   let sampleToPost;
   let token;
+  const sampleName = `${tu.namePrefix}TEST_SUBJECT` + '.' +
+  `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
@@ -121,14 +123,52 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.BAD_REQUEST)
+     .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+       const error = res.body.errors[0];
+      expect(error.type).to.equal('ValidationError');
+      expect(error.description).to.contain('name');
+      done();
+    });
+  });
+
+  it('aspect is added', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
         done(err);
       }
 
-      const error = res.body.errors[0];
-      expect(error.type).to.equal('ValidationError');
-      expect(error.description).to.contain('name');
+      const subjAspArr = sampleName.toLowerCase().split('|');
+      redisOps.aspExistsInSubjSet(
+        subjAspArr[0], subjAspArr[1])
+      .then((response) => {
+        expect(response).to.be.equal(true);
+      });
+
+      done();
+    });
+  });
+
+  it('returns aspectId, subjectId, and NO aspect object', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspect).to.be.undefined;
+      expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
+      expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
       done();
     });
   });
@@ -151,9 +191,7 @@ describe(`api: redisStore: POST ${path}`, () => {
         throw new Error('Incorrect Status Value');
       }
 
-      const samplename = `${tu.namePrefix}TEST_SUBJECT` + '.' +
-      `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
-      expect(res.body.name).to.be.equal(samplename);
+      expect(res.body.name).to.be.equal(sampleName);
       done();
     });
   });
@@ -200,14 +238,12 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
-    })
-    .end((err /* , res */) => {
+    .end((err  , res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
       done();
     });
   });
