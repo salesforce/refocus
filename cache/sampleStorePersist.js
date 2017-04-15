@@ -19,17 +19,6 @@ const samsto = require('./sampleStore');
 const constants = samsto.constants;
 
 /**
- * Checks whether the redis sample store is currently being persisted to the
- * db.
- *
- * @returns {Promise} resolves to true if the redis sample store is currently
- *  being persisted to the db.
- */
-function persistInProgress() {
-  return redisClient.getAsync(constants.persistInProgressKey);
-} // persistInProgress
-
-/**
  * Truncate the sample table in the DB and persist all the samples from redis
  * into the empty table.
  *
@@ -37,8 +26,7 @@ function persistInProgress() {
  * the database
  */
 function storeSampleToDb() {
-  return redisClient.setAsync(constants.persistInProgressKey, 'true')
-  .then(() => Sample.destroy({ truncate: true, force: true }))
+  return Sample.destroy({ truncate: true, force: true })
   .then(() => redisClient.smembersAsync(constants.indexKey.sample))
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
@@ -49,7 +37,6 @@ function storeSampleToDb() {
     });
     return Sample.bulkCreate(samplesToCreate);
   })
-  .then(() => redisClient.delAsync(constants.persistInProgressKey))
   .then(() => console.log('persisted redis sample store to db'))
   .then(() => true);
 } // storeSampleToDb
@@ -66,14 +53,7 @@ function persist() {
     return Promise.resolve(false);
   }
 
-  return persistInProgress()
-  .then((alreadyInProgress) => {
-    if (alreadyInProgress) {
-      return Promise.resolve(false);
-    }
-
-    return storeSampleToDb();
-  })
+  return storeSampleToDb()
   .catch((err) => {
     // NO-OP
     console.error(err); // eslint-disable-line no-console
@@ -83,6 +63,5 @@ function persist() {
 
 module.exports = {
   persist,
-  persistInProgress,
   storeSampleToDb,
 };

@@ -37,36 +37,23 @@ module.exports = {
   rebuildSampleStore(req, res, next) {
     authUtils.isAdmin(req)
     .then((ok) => {
-      if (ok) {
-        const enabled = featureToggles
-          .isFeatureEnabled(sampleStore.constants.featureName);
-        if (enabled) {
-          sampleStorePersist.persistInProgress()
-          .then((persistInProgress) => {
-            if (persistInProgress) {
-              const err = new apiErrors.RebuildSampleStoreNotPermittedNow({
-                explanation: 'You cannot rebuild the sample store from the ' +
-                  'database right now because it is currently being ' +
-                  'persisted *to* to the database. Please try again in a ' +
-                  'moment.',
-              });
-              return next(err);
-            }
-
-            return sampleStoreInit.eradicate()
-            .then(() => sampleStoreInit.populate())
-            .then(() => res.status(httpStatus.NO_CONTENT).json());
-          });
-        } else {
-          const err = new apiErrors.InvalidSampleStoreState({
-            explanation: 'You cannot rebuild the sample store if the ' +
-              'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
-          });
-          return next(err);
-        }
-      } else {
+      if (!ok) {
         u.forbidden(next);
       }
+
+      const enabled = featureToggles
+        .isFeatureEnabled(sampleStore.constants.featureName);
+      if (!enabled) {
+        const err = new apiErrors.InvalidSampleStoreState({
+          explanation: 'You cannot rebuild the sample store if the ' +
+            'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
+        });
+        return next(err);
+      }
+
+      return sampleStoreInit.eradicate()
+          .then(() => sampleStoreInit.populate())
+          .then(() => res.status(httpStatus.NO_CONTENT).json());
     })
     .catch(() => u.forbidden(next));
   },

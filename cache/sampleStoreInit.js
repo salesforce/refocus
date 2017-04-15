@@ -110,7 +110,7 @@ function populateSubjects() {
 
 /**
  * Populate the redis sample store with samples from the db.
- *
+ * Creates subjectAbspath to aspectMapping and sample to sampleObject Mapping
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateSamples() {
@@ -119,7 +119,6 @@ function populateSamples() {
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
-
     samples.forEach((s) => {
       const nameParts = s.name.split('|');
 
@@ -221,18 +220,8 @@ function storeSampleToCacheOrDb() {
         return populate();
       }
 
-      /*
-       * If samples are being persisted to the db by some other process, STOP
-       * and resolve to false.
-       */
-      return samstoPersist.persistInProgress()
-      .then((inProgress) => {
-        if (inProgress) {
-          return Promise.resolve(false);
-        }
-
-        return samstoPersist.storeSampleToDb();
-      }).then(() => eradicate()); // eradicate the cache
+      return samstoPersist.storeSampleToDb() // populate the sample table
+        .then(() => eradicate()); // eradicate the cache
     }
 
     // when the current status and previous status are same, resolve to false
