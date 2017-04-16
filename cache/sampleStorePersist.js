@@ -17,6 +17,7 @@ const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
+const log = require('winston');
 
 /**
  * Truncate the sample table in the DB and persist all the samples from redis
@@ -26,8 +27,13 @@ const constants = samsto.constants;
  * the database
  */
 function storeSampleToDb() {
+  log.info('Persis to db started :|. This will start by truncating the ' +
+    'sample table followed by persisting the sample to db');
   return Sample.destroy({ truncate: true, force: true })
-  .then(() => redisClient.smembersAsync(constants.indexKey.sample))
+  .then(() => {
+    log.info('truncated the sample table :|');
+    return redisClient.smembersAsync(constants.indexKey.sample);
+  })
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
   .then((res) => {
@@ -37,7 +43,7 @@ function storeSampleToDb() {
     });
     return Sample.bulkCreate(samplesToCreate);
   })
-  .then(() => console.log('persisted redis sample store to db'))
+  .then(() => log.info('persisted redis sample store to db :D'))
   .then(() => true);
 } // storeSampleToDb
 

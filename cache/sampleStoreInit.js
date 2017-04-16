@@ -18,13 +18,13 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
-const winston = require('winston');
+const log = require('winston');
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 
 /**
- * Deletes the key that does the previous value of the "enableRedisSampleStore"
- * flag.
+ * Deletes the previousStatuskey (that stores the previous value of the
+ * "enableRedisSampleStore" flag).
  * @returns {Promise} - which resolves to 0 when the key is deleted.
  */
 function deletePreviousStatus() {
@@ -59,7 +59,9 @@ function eradicate() {
       Promise.resolve(true);
     }));
   return deletePreviousStatus()
-    .then(() => Promise.all(promises));
+    .then(() => Promise.all(promises))
+    .then(() => log.info('Sample Store eradicated from cache :D'))
+    .then(() => true);
 } // eradicate
 
 /**
@@ -74,6 +76,8 @@ function populateAspects() {
     },
   })
   .then((aspects) => {
+    const msg = `Starting to load ${aspects.length} aspects to cache :|`;
+    log.info(msg);
     const aspectIdx = [];
     const cmds = [];
     aspects.forEach((a) => {
@@ -83,7 +87,9 @@ function populateAspects() {
     });
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
-    return redisClient.batch(cmds).execAsync();
+    return redisClient.batch(cmds).execAsync()
+      .then(() => log.info('Done loading aspects to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateAspects
@@ -96,6 +102,8 @@ function populateAspects() {
 function populateSubjects() {
   return Subject.findAll({ where: { isPublished: true } })
   .then((subjects) => {
+    const msg = `Starting to load ${subjects.length} subjects to cache :|`;
+    log.info(msg);
     const cmds = [];
     subjects.forEach((s) => {
       const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
@@ -103,7 +111,9 @@ function populateSubjects() {
       cmds.push(['sadd', constants.indexKey.subject, key]);
     });
 
-    return redisClient.batch(cmds).execAsync();
+    return redisClient.batch(cmds).execAsync()
+      .then(() => log.info('Done loading subjects to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSubjects
@@ -116,6 +126,8 @@ function populateSubjects() {
 function populateSamples() {
   return Sample.findAll()
   .then((samples) => {
+    const msg = `Starting to load ${samples.length} samples to cache :|`;
+    log.info(msg);
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
@@ -167,7 +179,9 @@ function populateSamples() {
     batchPromises.push(redisClient.batch(sampleCmds).execAsync());
 
     // Return once all batches have completed.
-    return Promise.all(batchPromises);
+    return Promise.all(batchPromises)
+      .then(() => log.info('Done loading samples to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSamples
@@ -179,8 +193,8 @@ function populateSamples() {
  *  false if the feature is not enabled.
  */
 function populate() {
-  const msg = 'Populating redis sample store from db';
-  winston.info(msg);
+  const msg = 'Populating redis sample store from db started :|';
+  log.info(msg);
 
   const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
@@ -217,9 +231,14 @@ function storeSampleToCacheOrDb() {
        * "enableRedisSampleStore" flag has been changed from true to false
        */
       if (currentStatus) {
+        log.info('"enableRedisSampleStore" flag was switched to true,' +
+          ' so populating the cache from db');
         return populate();
       }
 
+      log.info('"enableRedisSampleStore" flag was switched to false' +
+          ' so persisting to db from cache. The cache will be eradicated ' +
+          'after the samples are persisted to db');
       return samstoPersist.storeSampleToDb() // populate the sample table
         .then(() => eradicate()); // eradicate the cache
     }
