@@ -57,6 +57,29 @@ describe(`api: PATCH ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('update filter types to include ', (done) => {
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .send({
+      aspectFilterType: 'INCLUDE',
+      aspectTagFilterType: 'INCLUDE',
+      subjectTagFilterType: 'INCLUDE',
+      statusFilterType: 'INCLUDE',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspectFilterType).to.equal('INCLUDE');
+      expect(res.body.aspectTagFilterType).to.equal('INCLUDE');
+      expect(res.body.subjectTagFilterType).to.equal('INCLUDE');
+      expect(res.body.statusFilterType).to.equal('INCLUDE');
+      done();
+    });
+  });
+
   it('patch rootSubject', (done) => {
     api.patch(`${path}/${perspectiveId}`)
     .set('Authorization', token)
@@ -90,8 +113,10 @@ describe(`api: PATCH ${path}`, () => {
   it('cannot patch filter with include = []', (done) => {
     api.patch(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .send({ subjectTagFilter: [],
-    aspectFilterType: 'INCLUDE', })
+    .send({
+      subjectTagFilter: [],
+      subjectTagFilterType: 'INCLUDE',
+    })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
