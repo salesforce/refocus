@@ -97,13 +97,19 @@ module.exports = {
     .catch(done);
   },
 
-  forceDelete: (done) => {
+  forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => redisClient.flushallAsync())
+    .then(() => done())
+    .catch(done);
+  },
+
+  flushRedis(done) {
+    redisClient.flushallAsync()
     .then(() => done())
     .catch(done);
   },

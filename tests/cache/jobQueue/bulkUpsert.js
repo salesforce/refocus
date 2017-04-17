@@ -23,7 +23,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST using worker process' + path, () => {
+describe('redisStore: POST using worker process' + path, () => {
   let token;
 
   before((done) => {
@@ -73,6 +73,7 @@ describe('api: POST using worker process' + path, () => {
   });
 
   after(rtu.forceDelete);
+  after(rtu.flushRedis);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);

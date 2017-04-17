@@ -80,6 +80,7 @@ describe('api: post samples without perms', () => {
   });
 
   after(rtu.forceDelete);
+  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('enforceWritePermission', false));
 
