@@ -2405,6 +2405,26 @@ paths:
                 type: string
                 description: >
                   The id of Lens.
+              aspectFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              aspectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              subjectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              statusFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
             required:
               - name
               - lensId
