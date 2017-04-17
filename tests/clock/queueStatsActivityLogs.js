@@ -12,15 +12,11 @@
 
 const expect = require('chai').expect;
 const qs = require('../../clock/scheduledJobs/queueStatsActivityLogs');
-const redis = require('redis');
-const rconf = require('../../config').redis;
-const bluebird = require('bluebird');
+const redis = require('../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
-const client = redis.createClient(rconf.instanceUrl.realtimeLogging);
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
+const client = redis.client.realtimeLogging;
 
 describe('queueStatsActivityLogs', () => {
   it('arrayToString', (done) => {
