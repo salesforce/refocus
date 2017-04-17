@@ -108,15 +108,22 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
 /**
  * Returns the ISO formatted date
  *
- * ie. input: Mon Apr 03 2017 14:10:57 GMT-0700 (PDT)
- * output: 2017-03-14T02:22:42.255Z
+ * ie. input value: Mon Apr 03 2017 14:10:57 GMT-0700 (PDT)
+ * output value: 2017-03-14T02:22:42.255Z
  *
- * @param {Object} date Optional input
- * @return {String} If provided date object, return the ISO formatted date.
- * If no input, return the ISO formatted date with now time.
+ * @param {Object} Contains keys whose values need be converted
+ * If value is provided, return the ISO formatted date.
+ * If no value, return the ISO formatted date with now time.
  */
-function convertToISO(date) {
-  return date ? date.toISOString() : new Date().toISOString();
+function convertToISO(obj) {
+  let key = '';
+  for (let j = constants.ISOfields.length - 1; j >= 0; j--) {
+    key = constants.ISOfields[j];
+    obj[key] = obj[key] ? obj[key].toISOString() :
+      new Date().toISOString();
+  }
+
+  return obj;
 }
 
 /**
@@ -144,6 +151,10 @@ function cleanAspect(a) {
   let retval = a.get ? a.get() : a;
   retval = removeNullsAndStringifyArrays(retval,
     constants.fieldsToStringify.aspect);
+
+  // convert date time fields to proper format
+  convertToISO(retval);
+
   return retval;
 } // cleanAspect
 
@@ -161,11 +172,7 @@ function cleanSample(s) {
     constants.fieldsToStringify.sample);
 
   // convert date time fields to proper format
-  let key = '';
-  for (let j = constants.ISOfields.length - 1; j >= 0; j--) {
-    key = constants.ISOfields[j];
-    retval[key] = convertToISO(retval[key]);
-  }
+  convertToISO(retval);
 
   return retval;
 } // cleanSample
