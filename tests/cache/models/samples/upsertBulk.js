@@ -76,6 +76,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   });
 
   after(rtu.forceDelete);
+  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('name field is required', (done) => {

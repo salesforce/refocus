@@ -60,6 +60,7 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .catch(done);
   });
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('time fields have the expected format, after delete tags', (done) => {

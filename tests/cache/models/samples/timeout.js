@@ -99,6 +99,7 @@ describe('api::cache::timeout', () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('createdAt and updatedAt fields have the expected format', (done) => {

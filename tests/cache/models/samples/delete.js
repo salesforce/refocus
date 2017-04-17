@@ -44,6 +44,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
 
   beforeEach(rtu.populateRedis);
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('basic delete', (done) => {
@@ -197,6 +198,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('delete all related links', (done) => {

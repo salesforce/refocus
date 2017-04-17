@@ -74,6 +74,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('an entry for created subject should be found', (done) => {
