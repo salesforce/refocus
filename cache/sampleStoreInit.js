@@ -18,8 +18,27 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
-const winston = require('winston');
+const log = require('winston');
+const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
+
+/**
+ * Deletes the previousStatuskey (that stores the previous value of the
+ * "enableRedisSampleStore" flag).
+ * @returns {Promise} - which resolves to 0 when the key is deleted.
+ */
+function deletePreviousStatus() {
+  return redisClient.delAsync(constants.previousStatusKey);
+} // deletePreviousStatus
+
+/**
+ * Gets the value of "previousStatusKey"
+ *
+ * @returns {Promise} which resolves to the value of the previoiusStatusKey
+ */
+function getPreviousStatus() {
+  return redisClient.getAsync(constants.previousStatusKey);
+} // persistInProgress
 
 /**
  * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
@@ -39,7 +58,10 @@ function eradicate() {
       console.error(err); // eslint-disable-line no-console
       Promise.resolve(true);
     }));
-  return Promise.all(promises);
+  return deletePreviousStatus()
+    .then(() => Promise.all(promises))
+    .then(() => log.info('Sample Store eradicated from cache :D'))
+    .then(() => true);
 } // eradicate
 
 /**
@@ -54,6 +76,8 @@ function populateAspects() {
     },
   })
   .then((aspects) => {
+    const msg = `Starting to load ${aspects.length} aspects to cache :|`;
+    log.info(msg);
     const aspectIdx = [];
     const cmds = [];
     aspects.forEach((a) => {
@@ -63,7 +87,9 @@ function populateAspects() {
     });
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
-    return redisClient.batch(cmds).execAsync();
+    return redisClient.batch(cmds).execAsync()
+      .then(() => log.info('Done loading aspects to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateAspects
@@ -76,6 +102,8 @@ function populateAspects() {
 function populateSubjects() {
   return Subject.findAll({ where: { isPublished: true } })
   .then((subjects) => {
+    const msg = `Starting to load ${subjects.length} subjects to cache :|`;
+    log.info(msg);
     const cmds = [];
     subjects.forEach((s) => {
       const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
@@ -83,23 +111,26 @@ function populateSubjects() {
       cmds.push(['sadd', constants.indexKey.subject, key]);
     });
 
-    return redisClient.batch(cmds).execAsync();
+    return redisClient.batch(cmds).execAsync()
+      .then(() => log.info('Done loading subjects to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSubjects
 
 /**
  * Populate the redis sample store with samples from the db.
- *
+ * Creates subjectAbspath to aspectMapping and sample to sampleObject Mapping
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateSamples() {
   return Sample.findAll()
   .then((samples) => {
+    const msg = `Starting to load ${samples.length} samples to cache :|`;
+    log.info(msg);
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
-
     samples.forEach((s) => {
       const nameParts = s.name.split('|');
 
@@ -148,7 +179,9 @@ function populateSamples() {
     batchPromises.push(redisClient.batch(sampleCmds).execAsync());
 
     // Return once all batches have completed.
-    return Promise.all(batchPromises);
+    return Promise.all(batchPromises)
+      .then(() => log.info('Done loading samples to cache :D'))
+      .then(() => true);
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSamples
@@ -160,63 +193,76 @@ function populateSamples() {
  *  false if the feature is not enabled.
  */
 function populate() {
-  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
-    return Promise.resolve(false);
-  }
-
-  const msg = 'Populating redis sample store from db';
-  winston.info(msg);
+  const msg = 'Populating redis sample store from db started :|';
+  log.info(msg);
 
   const promises = [populateSubjects(), populateSamples(), populateAspects()];
   return Promise.all(promises);
 } // populate
 
 /**
- * Checks whether the sample store exists by counting the members of the three
- * index keys (samples, subjects, aspects). If any has more than one member,
- * consider the sample store as existing.
  *
- * Note: I tried using the redis "exists" command but our travis build kept
- * failing with a message that I was passing the wrong number of args to the
- * "exists" command. I gave up and went with counting members using "scard"
- * instead.
+ * Compare the current status of the "enableRedisSampleStore" flag with its
+ * previous status. If both current status and previous status are the same, do
+ * nothing. When the current status and the previous status do not match, take
+ * some action depending on the current status.
  *
  * @returns {Promise} which resolves to true if the sample store already
  *  exists.
  */
-function sampleStoreExists() {
-  const cmds = [
-    ['scard', constants.indexKey.aspect],
-    ['scard', constants.indexKey.sample],
-    ['scard', constants.indexKey.subject],
-  ];
-  return redisClient.batch(cmds).execAsync()
-  .then((batchResponse) =>
-    batchResponse[0] > 0 || // eslint-disable-line no-magic-numbers
-    batchResponse[1] > 0 || // eslint-disable-line no-magic-numbers
-    batchResponse[2] > 0); // eslint-disable-line no-magic-numbers
-} // sampleStoreExists
+function storeSampleToCacheOrDb() {
+  const currentStatus = featureToggles.isFeatureEnabled(constants.featureName)
+                                          || false;
+  return getPreviousStatus()
+  .then((prevState) => {
+    const previousStatus = (prevState == 'true') || false;
 
-/**
- * Initializes the redis sample store from the db if the feature is enabled and
- * the sample store index keys do not already exist.
- *
- * @returns {Promise} which resolves to true if sample store is enabled and
- *  has completed initialization; resolves to false if feature is not
- *  enabled.
- */
-function init() {
-  if (!featureToggles.isFeatureEnabled(constants.featureName)) {
-    return Promise.resolve(false);
-  }
+    // set the previousStatus to the currentStatus
+    redisClient.setAsync(constants.previousStatusKey, currentStatus);
 
-  return sampleStoreExists()
-  .then((exists) => {
-    if (exists) {
-      return Promise.resolve(true);
+    /*
+     * when the current status and the previous status do not match, actions
+     * needs to be taken based on the current status
+    */
+    if (previousStatus !== currentStatus) {
+      /*
+       * call "popluate" when "enableRedisSampleStore" flag has been changed
+       * from false to true. Call "eradicate" and "storeSampleToDb" when
+       * "enableRedisSampleStore" flag has been changed from true to false
+       */
+      if (currentStatus) {
+        log.info('"enableRedisSampleStore" flag was switched to true,' +
+          ' so populating the cache from db');
+        return populate();
+      }
+
+      log.info('"enableRedisSampleStore" flag was switched to false' +
+          ' so persisting to db from cache. The cache will be eradicated ' +
+          'after the samples are persisted to db');
+      return samstoPersist.storeSampleToDb() // populate the sample table
+        .then(() => eradicate()); // eradicate the cache
     }
 
-    return populate();
+    // when the current status and previous status are same, resolve to false
+    return Promise.resolve(false);
+  });
+} // storeSampleToCacheOrDb
+
+/**
+ * Calls "storeSampleToCacheOrDb" to either populate the cache from db or db
+ * from cache, depending on the change of state of the "enableRedisSampleStore"
+ * flag
+ *
+ * @returns {Promise} which resolves to false if no action was taken or resolves
+ * to a list of promises if some action was taken.
+ */
+function init() {
+  return storeSampleToCacheOrDb()
+  .then((ret) => Promise.resolve(ret))
+  .catch((err) => {
+    // NO-OP
+    console.error(err); // eslint-disable-line no-console
+    Promise.resolve(false);
   });
 } // init
 
