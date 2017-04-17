@@ -24,6 +24,10 @@ describe(`api: PUT ${path}`, () => {
   let createdLensId;
   let token;
   const name = 'testPersp';
+  const aspectFilterArr = ['temperature', 'humidity'];
+  const aspectTagFilterArr = ['temp', 'hum'];
+  const subjectTagFilterArr = ['ea', 'na'];
+  const statusFilterArr = ['Critical', '-OK'];
 
   before((done) => {
     tu.createToken()
@@ -40,10 +44,10 @@ describe(`api: PUT ${path}`, () => {
       name,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
-      aspectFilter: ['temperature', 'humidity'],
-      aspectTagFilter: ['temp', 'hum'],
-      subjectTagFilter: ['ea', 'na'],
-      statusFilter: ['Critical', '-OK'],
+      aspectFilter: aspectFilterArr,
+      aspectTagFilter: aspectTagFilterArr,
+      subjectTagFilter: subjectTagFilterArr,
+      statusFilter: statusFilterArr,
     }))
     .then((createdPersp) => {
       perspectiveId = createdPersp.id;
@@ -55,6 +59,37 @@ describe(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('update an perspective with include ', (done) => {
+    const ARR = ['temp', 'hum'];
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .send({
+      name: 'testPersp',
+      lensId: createdLensId,
+      rootSubject: 'changedMainSubject',
+      aspectFilter: aspectFilterArr,
+      aspectTagFilter: aspectTagFilterArr,
+      subjectTagFilter: subjectTagFilterArr,
+      statusFilter: statusFilterArr,
+      aspectFilterType: 'INCLUDE',
+      aspectTagFilterType: 'INCLUDE',
+      subjectTagFilterType: 'INCLUDE',
+      statusFilterType: 'INCLUDE',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspectFilterType).to.equal('INCLUDE');
+      expect(res.body.aspectTagFilterType).to.equal('INCLUDE');
+      expect(res.body.subjectTagFilterType).to.equal('INCLUDE');
+      expect(res.body.statusFilterType).to.equal('INCLUDE');
+      done();
+    });
+  });
 
   it('update name with different case succeeds', (done) => {
     const newName = name.toUpperCase();

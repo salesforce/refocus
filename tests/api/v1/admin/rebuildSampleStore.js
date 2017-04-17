@@ -264,23 +264,6 @@ describe(`api: POST ${path} (feature is on):`, () => {
     });
   });
 
-  it('user is admin but persist in progress', (done) => {
-    redisClient.setAsync(sampleStore.constants.persistInProgressKey, 'true')
-    .then(() => {
-      api.post(path)
-      .set('Authorization', predefinedAdminUserToken)
-      .send({})
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
-    });
-  });
-
   it('user is NOT admin', (done) => {
     api.post(path)
     .set('Authorization', testUserToken)
