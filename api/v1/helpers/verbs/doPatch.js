@@ -59,6 +59,10 @@ function doPatch(req, res, next, props) {
         // does give the needed effect; so adding it here!!!.
         if (props.modelName === 'Sample') {
           o.changed('value', true);
+        } else if (props.modelName === 'Perspective') {
+
+          // check the updated version of the perspective
+          helper.validateFilterAndThrowError(Object.assign(o.get(), requestBody));
         }
 
         u.patchJsonArrayFields(o, requestBody, props);
@@ -69,10 +73,6 @@ function doPatch(req, res, next, props) {
 
   patchPromise
   .then((retVal) => {
-    if (props.modelName === 'Perspective') {
-      helper.validateFilterAndThrowError(retVal.get());
-    }
-
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, retVal);
 
