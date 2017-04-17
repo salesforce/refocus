@@ -85,6 +85,22 @@ describe('redis: aspect: create: ', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('time fields should have the expected format', (done) => {
+    let aspKey;
+    Aspect.findById(aspHumdId)
+    .then((asp) => {
+      aspKey = redisStore.toKey('aspect', asp.name);
+      return redisClient.sismemberAsync(aspectIndexName, aspKey);
+    })
+    .then(() => redisClient.hgetallAsync(aspKey))
+    .then((asp) => {
+      expect(asp.updatedAt).to.equal(new Date(asp.updatedAt).toISOString());
+      expect(asp.createdAt).to.equal(new Date(asp.createdAt).toISOString());
+      done();
+    })
+    .catch(done);
+  });
+
   it('published aspects created should have an entry in aspectStore' +
           ' and the aspect hash should also be created', (done) => {
     let aspKey;

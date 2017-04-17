@@ -67,6 +67,27 @@ describe('api: aspects: DELETE RelatedLinks', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('time fields have the expected format, after delete all related links',
+    (done) => {
+    api.delete(allDeletePath.replace('{key}', i))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      redisOps.getHashPromise(objectType.aspect, n.name)
+      .then((aspect) => {
+        expect(aspect.createdAt)
+          .to.equal(new Date(aspect.createdAt).toISOString());
+        expect(aspect.updatedAt)
+          .to.equal(new Date(aspect.updatedAt).toISOString());
+        done();
+      });
+    });
+  });
+
   it('delete all related links', (done) => {
     api.delete(allDeletePath.replace('{key}', i))
     .set('Authorization', token)

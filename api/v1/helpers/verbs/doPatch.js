@@ -18,6 +18,7 @@ const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
+const helper = require('../nouns/perspectives');
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -58,6 +59,10 @@ function doPatch(req, res, next, props) {
         // does give the needed effect; so adding it here!!!.
         if (props.modelName === 'Sample') {
           o.changed('value', true);
+        } else if (props.modelName === 'Perspective') {
+
+          // check the updated version of the perspective
+          helper.validateFilterAndThrowError(Object.assign(o.get(), requestBody));
         }
 
         u.patchJsonArrayFields(o, requestBody, props);
