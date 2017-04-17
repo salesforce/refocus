@@ -77,9 +77,7 @@ function getArray(field, arrayOfObjects) {
   }
 
   for (let i = 0; i < arrayOfObjects.length; i++) {
-    if (arrayOfObjects[i].isPublished) {
-      arr.push(arrayOfObjects[i][field]);
-    }
+    arr.push(arrayOfObjects[i][field]);
   }
 
   return arr;
@@ -113,7 +111,7 @@ function convertCamelCase(string) {
  */
 function filteredArray(arr, removeThis) {
   return arr.filter((elem) => {
-    return elem !== removeThis;
+    return elem && elem !== removeThis;
   });
 }
 
@@ -176,8 +174,7 @@ function getConfig(values, key, value) {
   };
 
   if (key === 'subjects') {
-    let options = getArray('absolutePath', values[key]);
-    config.options = filteredArray(options, value);
+    config.options = filteredArray(values[key], value);
     config.placeholderText = 'Select a Subject...';
     config.isArray = false;
   } else if (key === 'lenses') {
@@ -197,8 +194,7 @@ function getConfig(values, key, value) {
     } else if (key === 'aspectFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
-      let options = getArray('name', values[key]);
-      config.options = getOptions(options, value);
+      config.options = filteredArray(values[key], value);
     }
 
     delete config.placeholderText;

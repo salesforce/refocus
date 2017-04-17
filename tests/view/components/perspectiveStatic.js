@@ -77,18 +77,6 @@ describe('Config perspective functions', () => {
   });
 
   describe('getArray', () => {
-    it('returns all items except ' +
-      'for the item whose field === third param key');
-
-    it('does not return unPublished resources', () => {
-      const unPublished = getArray(
-        'absolutePath',
-        // unpublished
-        getSubjects(NUM, 'absolutePath', false)
-      );
-      expect(unPublished.length).to.be.empty;
-    });
-
     it('returns published resources', () => {
       const published = getArray(
         'absolutePath',

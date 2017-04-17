@@ -37,9 +37,15 @@ describe('Perspective controller ', () => {
     const defaultProps = {
       params: {},
       values: {
-        aspectFilter: [],
-        aspectTags: [],
-        lenses: [LENS],
+        subjects: [], // { name: absolutePath, id }
+        aspectTagFilter: [], // { name, id }
+        aspectFilter: [], // strings
+        subjectTagFilter: [], // strings
+        lenses: [LENS], // { name, id }
+        statusFilter: [],
+        persNames: [], //strings
+        rootSubject: {},
+        lens: {}, // includes library
       },
     }
     const enzymeWrapper = mount(<PerspectiveController {...defaultProps} />);
