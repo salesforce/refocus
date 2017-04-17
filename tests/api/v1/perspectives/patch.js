@@ -22,6 +22,10 @@ const expect = require('chai').expect;
 describe(`api: PATCH ${path}`, () => {
   let perspectiveId;
   let token;
+  const aspectFilterArr = ['temperature', 'humidity'];
+  const aspectTagFilterArr = ['temp', 'hum'];
+  const subjectTagFilterArr = ['ea', 'na'];
+  const statusFilterArr = ['Critical', '-OK'];
 
   before((done) => {
     tu.createToken()
@@ -38,10 +42,10 @@ describe(`api: PATCH ${path}`, () => {
       name: `${tu.namePrefix}testPersp`,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
-      aspectFilter: ['temperature', 'humidity'],
-      aspectTagFilter: ['temp', 'hum'],
-      subjectTagFilter: ['ea', 'na'],
-      statusFilter: ['Critical', '-OK'],
+      aspectFilter: aspectFilterArr,
+      aspectTagFilter: aspectTagFilterArr,
+      subjectTagFilter: subjectTagFilterArr,
+      statusFilter: statusFilterArr,
     }))
     .then((createdPersp) => {
       perspectiveId = createdPersp.id;
