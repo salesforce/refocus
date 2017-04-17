@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cache/sampleStore.js
+ * tests/cache/sampleStoreFlagFlipFlop.js
  */
 'use strict'; // eslint-disable-line strict
 const sampleStore = require('../../cache/sampleStore');
@@ -37,7 +37,7 @@ describe('sampleStore (feature off):', () => {
   });
 });
 
-describe('sampleStore (feature on):', () => {
+describe('sampleStore flag flip flop:', () => {
   let a1;
   let a2;
   let a3;
@@ -47,7 +47,7 @@ describe('sampleStore (feature on):', () => {
   let s3;
 
   before((done) => {
-    tu.toggleOverride(sampleStore.constants.featureName, true);
+    tu.toggleOverride(sampleStore.constants.featureName, false);
     Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect1`,
@@ -138,11 +138,35 @@ describe('sampleStore (feature on):', () => {
     .catch(done);
   });
 
-  it('eradicate and populate', (done) => {
+  it('flag from false to false: cache should not be populated', (done) => {
     samstoinit.eradicate()
-    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
-    .then((res) => expect(res.length).to.eql(0))
-    .then(() => samstoinit.populate())
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
+    .then(() => samstoinit.init())
+    .then((res) => expect(res).to.be.false)
+    .then(() =>
+      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => redisClient
+      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => redisClient
+      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => done())
+    .catch(done);
+  });
+
+  it('flag from false to true: cache should be populated', (done) => {
+    samstoinit.eradicate()
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
+    .then(() => samstoinit.init())
+    .then((res) => expect(res).to.not.be.false)
     .then(() =>
       redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
@@ -173,8 +197,38 @@ describe('sampleStore (feature on):', () => {
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
     })
+    .then(() => done())
+    .catch(done);
+  });
+
+  it('flag from true to false: cache should be eradicated ' +
+      ' and db should be populated', (done) => {
+    samstoinit.eradicate()
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
+    .then(() => samstoinit.init())
+    .then(() => Sample.destroy({ truncate: true, force: true }))
+    .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)
+    .then(() =>
+      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => redisClient
+      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => redisClient
+      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then((res) => {
+      expect(res).to.have.length(0);
+    })
+    .then(() => Sample.findAll())
+    .then((samples) => {
+      expect(samples).to.have.length(3);
+    })
     .then(() => done())
     .catch(done);
   });
