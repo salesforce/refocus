@@ -14,21 +14,15 @@
 
 const activityLogUtil = require('../../utils/activityLog');
 const queueTimeMillis95th = require('../../config').queueTimeMillis95th;
-const redis = require('redis');
-const rconf = require('../../config').redis;
-const bluebird = require('bluebird');
+const redis = require('../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const FLOAT_TWO = 2.0;
 const PERCENTILE_95TH = 0.95;
 
-// bluebird promise for redis
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
-
-// Create Redis connection
-const client = redis.createClient(rconf.instanceUrl.realtimeLogging);
+// Redis connection
+const client = redis.client.realtimeLogging;
 
 /**
  * Convert array to string
