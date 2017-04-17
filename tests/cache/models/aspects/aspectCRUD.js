@@ -82,6 +82,7 @@ describe('redis: aspect: create: ', () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('published aspects created should have an entry in aspectStore' +

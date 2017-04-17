@@ -138,6 +138,7 @@ describe(`api: GET ${path}:`, () => {
   });
 
   after(rtu.forceDelete);
+  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('SubjectTag filter on hierarchy', () => {

@@ -69,6 +69,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('when aspect not present', () => {

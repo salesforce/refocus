@@ -37,6 +37,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
 
   before(rtu.populateRedis);
   after(rtu.forceDelete);
+  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('updatedAt and createdAt fields have the expected format', (done) => {
