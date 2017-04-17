@@ -71,6 +71,7 @@ describe(`api: redisStore: POST ${path}`, () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('post duplicate fails', () => {
@@ -317,6 +318,7 @@ describe(`api: redisStore: POST ${path} aspect isPublished false`, () => {
   });
 
   afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('cannot create sample if aspect not published', (done) => {
