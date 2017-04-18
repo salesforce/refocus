@@ -28,6 +28,7 @@ const constants = {
       'warningRange',
       'infoRange',
       'okRange',
+      'writers',
     ],
     sample: ['relatedLinks'],
     subject: ['aspectNames'],
