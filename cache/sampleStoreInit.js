@@ -93,7 +93,8 @@ function eradicate() {
 } // eradicate
 
 /**
- * Populate the redis sample store with aspects from the db.
+ * Populate the redis sample store with aspects from the db. If the aspect
+ * has any writers, add them to the aspect's writers field
  *
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
@@ -119,6 +120,8 @@ function populateAspects() {
   .then((writersArray) => {
     const aspectIdx = [];
     const cmds = [];
+
+    // for each aspect, add its writers to its writers field.
     for (let i = 0; i < aspects.length; i++) {
       const a = aspects[i];
       a.dataValues.writers = [];
