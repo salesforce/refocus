@@ -39,7 +39,9 @@ function updateLensDetails(seqObj) {
     if (seqObj.hasOwnProperty('sourceName')) {
       seqObj.name = seqObj.sourceName;
     } else {
-      throw new apiErrors.ValidationError();
+      throw new apiErrors.ValidationError({
+        explanation: 'name is required in lens json.',
+      });
     }
   }
 
@@ -59,13 +61,21 @@ function updateLensDetails(seqObj) {
 }
 
 /**
- * Parse lens metadata from lens json provided in lens zip
+ * Parse lens metadata from lens json provided in lens zip. Set sourceName,
+ * sourceDescription and sourceVersion from lens json name, description and
+ * version. Throw error is name not provided in lens json.
  * @param  {object} zip - lens zip
  * @param  {object} lensJson - lens metadata in json format
  * @param  {object} seqObj - lens object to create
  */
 function parseLensMetadata(zip, lensJson, seqObj) {
   const metadataJson = JSON.parse(zip.readAsText(lensJson));
+  if (!metadataJson.name) {
+    throw new apiErrors.ValidationError({
+      explanation: 'name is required in lens json.',
+    });
+  }
+
   for (const metadataEntry in metadataJson) {
     // lens metadata name will be saved as sourceName.
     //  Same with description and version
@@ -109,10 +119,14 @@ function handleLensMetadata(requestObj, libraryParam, seqObj) {
     if (lensJsonFound && lensJsFound) {
       parseLensMetadata(zip, lensJson, seqObj);
     } else {
-      throw new apiErrors.ValidationError();
+      throw new apiErrors.ValidationError({
+        explanation: 'lens.js and lens.json are required files in lens zip.',
+      });
     }
   } else {
-    throw new apiErrors.ValidationError();
+    throw new apiErrors.ValidationError({
+      explanation: 'The library parameter mime type should be application/zip',
+    });
   }
 }
 
@@ -409,7 +423,7 @@ module.exports = {
         u.handleError(next, err, helper.modelName);
       });
     } catch (err) {
-      err.info = 'Invalid library uploaded.';
+      err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
     }
   },

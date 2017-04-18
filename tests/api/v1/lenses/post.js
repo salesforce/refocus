@@ -100,11 +100,50 @@ describe(`api: POST ${path}`, () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/lenses/lensZips/missing_json_lens.zip')
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
+    .end((err, res) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body.errors[0].description).contains(
+        'lens.js and lens.json are required files in lens zip'
+      );
+      done();
+    });
+  });
+
+  it('Error if library is not zip file', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .attach('library', 'tests/api/v1/lenses/lensZips/lens.json')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'The library parameter mime type should be application/zip'
+      );
+      done();
+    });
+  });
+
+  it('Error if name not present in lens json', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .field('description', 'test description')
+    .field('name', 'testLens')
+    .attach('library', 'tests/api/v1/lenses/lensZips/lensNoName.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'name is required in lens json'
+      );
       done();
     });
   });
