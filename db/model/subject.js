@@ -392,7 +392,6 @@ module.exports = function subject(seq, dataTypes) {
           .catch((err) => {
             throw err;
           });
-
         }
 
         const changedKeys = Object.keys(inst._changed);
@@ -426,14 +425,18 @@ module.exports = function subject(seq, dataTypes) {
               ignoreAttributes);
             }
           } else {
-
             // Treat publishing a subject as an "add" event.
             common.publishChange(inst, eventName.add);
           }
         } else if (inst.previous('isPublished')) {
-
           // Treat unpublishing a subject as a "delete" event.
           common.publishChange(inst, eventName.del);
+          return new seq.Promise((resolve, reject) =>
+            inst.getSamples()
+            .each((samp) => samp.destroy())
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
+          );
         }
       }, // hooks.afterupdate
 
@@ -450,7 +453,6 @@ module.exports = function subject(seq, dataTypes) {
           common.publishChange(inst, eventName.del);
 
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-
             // delete the entry in the subject store
             redisOps.deleteKey(subjectType, inst.absolutePath);
 
@@ -472,7 +474,8 @@ module.exports = function subject(seq, dataTypes) {
       }, // hooks.afterDelete
 
       /**
-       * Prevents from deleting a subject which has children.
+       * Prevents from deleting a subject which has children. Delete the
+       * subject's samples.
        *
        * @param {Subject} inst - The instance being destroyed
        * @returns {Promise} which resolves to undefined or rejects if an error
@@ -490,6 +493,8 @@ module.exports = function subject(seq, dataTypes) {
               return common.setIsDeleted(seq.Promise, inst);
             }
           })
+          .then(() => inst.getSamples())
+          .each((samp) => samp.destroy())
           .then(() => resolve())
           .catch((err) => reject(err))
         );
