@@ -121,7 +121,7 @@ function populateAspects() {
     const aspectIdx = [];
     const cmds = [];
 
-    // for each aspect, add its writers to its writers field.
+    // for each aspect, add the associated writers to its "writers" field.
     for (let i = 0; i < aspects.length; i++) {
       const a = aspects[i];
       a.dataValues.writers = [];
@@ -132,6 +132,7 @@ function populateAspects() {
       aspectIdx.push(key);
       cmds.push(['hmset', key, samsto.cleanAspect(a)]);
     }
+
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
     return redisClient.batch(cmds).execAsync()
       .then(() => log.info('Done loading aspects to cache :D'))

@@ -67,6 +67,7 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
                         .isFeatureEnabled('enforceWritePermission') ?
                         aspect.writers.includes(userName) : true;
   }
+
   if (!isWritable) {
     const err = new redisErrors.UpdateDeleteForbidden({
       explanation: `The user: ${userName}, does not have write permission` +
@@ -541,6 +542,7 @@ module.exports = {
           explanation: 'Aspect not found.',
         });
       }
+
       aspect = aspObj;
       return checkWritePermission(aspect, sampObjToReturn, userName);
     })

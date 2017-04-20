@@ -16,7 +16,6 @@
 const featureToggles = require('feature-toggles');
 const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreInit = require('../../../cache/sampleStoreInit');
-const sampleStorePersist = require('../../../cache/sampleStorePersist');
 const apiErrors = require('../apiErrors');
 const httpStatus = require('../constants').httpStatus;
 const authUtils = require('../helpers/authUtils');
