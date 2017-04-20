@@ -147,7 +147,6 @@ function traverseHierarchy(res) {
 
   return Promise.all(traveHPromises)
   .then((values) => {
-
     /*
      * the resolved values from each of the promises is used to check if that
      * node needs to be added to the final list of children
@@ -160,8 +159,8 @@ function traverseHierarchy(res) {
 
     res.children = filteredChildrenArr;
     return attachSamples(res);
-  }).then((ret) => Promise.resolve(ret ||
-    filteredChildrenArr.length));
+  })
+  .then((ret) => Promise.resolve(ret || filteredChildrenArr.length));
 } // traverseHierarchy
 
 /**
