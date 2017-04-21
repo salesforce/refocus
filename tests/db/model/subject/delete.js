@@ -15,6 +15,8 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
+const Aspect = tu.db.Aspect;
+const Sample = tu.db.Sample;
 
 describe('db: subject: delete: ', () => {
   describe('no children: ', () => {
@@ -331,6 +333,57 @@ describe('db: subject: delete: ', () => {
       .then(() => Subject.findById(childId2))
       .then((child2) => {
         expect(child2.dataValues.parentId).to.equal(childId1);
+        done();
+      })
+      .catch(done);
+    });
+  });
+
+  describe('cascade delete samples: ', () => {
+    let sample;
+    let subject;
+
+    const aspectToCreate = {
+      isPublished: true,
+      name: `${tu.namePrefix}Aspect`,
+      timeout: '30s',
+      valueType: 'NUMERIC',
+    };
+
+    const subjectToCreate = {
+      isPublished: true,
+      name: `${tu.namePrefix}Subject`,
+    };
+
+    before((done) => {
+      let aId;
+      Aspect.create(aspectToCreate)
+      .then((asp) => {
+        aId = asp.id;
+        return Subject.create(subjectToCreate);
+      })
+      .then((subj) => {
+        subject = subj;
+        return Sample.create({
+          aspectId: aId,
+          subjectId: subject.id,
+        });
+      })
+      .then((samp) => {
+        sample = samp;
+        done();
+      })
+      .catch(done);
+    });
+
+    after(u.forceDelete);
+
+    it('samples deleted when subject is deleted', (done) => {
+      Subject.findById(subject.id)
+      .then((subj) => subj.destroy())
+      .then(() => Sample.findById(sample.id))
+      .then((samp) => {
+        expect(samp).to.equal(null);
         done();
       })
       .catch(done);
