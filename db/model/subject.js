@@ -426,10 +426,6 @@ module.exports = function subject(seq, dataTypes) {
           // Treat unpublishing a subject as a "delete" event.
           common.publishChange(inst, eventName.del);
 
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            subjectUtils.removeFromRedis(inst.absolutePath);
-          }
-
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())
