@@ -182,7 +182,7 @@ module.exports = function aspect(seq, dataTypes) {
             redisOps.hmSet(aspectType, inst.name, inst);
           }
         }
-      }, // hooks.afterDelete
+      }, // hooks.afterCreate
 
       /**
        * Set the isDeleted timestamp.

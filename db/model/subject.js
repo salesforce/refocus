@@ -13,23 +13,22 @@
 
 const featureToggles = require('feature-toggles');
 const sampleStoreFeature =
-                  require('../../cache/sampleStore').constants.featureName;
+  require('../../cache/sampleStore').constants.featureName;
 const common = require('../helpers/common');
-const throwNotMatchError = require('../helpers/subjectUtils').throwNotMatchError;
-const updateParentFields = require('../helpers/subjectUtils').updateParentFields;
-const validateParentField = require('../helpers/subjectUtils').validateParentField;
+const subjectUtils = require('../helpers/subjectUtils');
+const throwNotMatchError = subjectUtils.throwNotMatchError;
+const updateParentFields = subjectUtils.updateParentFields;
+const validateParentField = subjectUtils.validateParentField;
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
-
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
   del: 'refocus.internal.realtime.subject.remove',
 };
-
 const assoc = {};
 
 module.exports = function subject(seq, dataTypes) {
@@ -304,8 +303,7 @@ module.exports = function subject(seq, dataTypes) {
            * is published and the sampleStoreFeature is enabled
            */
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            redisOps.addKey(subjectType,
-                inst.getDataValue('absolutePath'));
+            redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
           }
         }
 
@@ -348,16 +346,12 @@ module.exports = function subject(seq, dataTypes) {
 
             // rename entries in sample store
             redisOps.renameKeys(sampleType, subjectType, oldAbsPath,
-                                                           newAbsPath);
+              newAbsPath);
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
             } else {
-              // delete the entry in the subject store
-              redisOps.deleteKey(subjectType, inst.absolutePath);
-
-              // delete multiple possible entries in sample store
-              redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
+              subjectUtils.removeFromRedis(inst.absolutePath);
             }
           }
         }
@@ -392,7 +386,6 @@ module.exports = function subject(seq, dataTypes) {
           .catch((err) => {
             throw err;
           });
-
         }
 
         const changedKeys = Object.keys(inst._changed);
@@ -426,14 +419,19 @@ module.exports = function subject(seq, dataTypes) {
               ignoreAttributes);
             }
           } else {
-
             // Treat publishing a subject as an "add" event.
             common.publishChange(inst, eventName.add);
           }
         } else if (inst.previous('isPublished')) {
-
           // Treat unpublishing a subject as a "delete" event.
           common.publishChange(inst, eventName.del);
+
+          return new seq.Promise((resolve, reject) =>
+            inst.getSamples()
+            .each((samp) => samp.destroy())
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
+          );
         }
       }, // hooks.afterupdate
 
@@ -450,12 +448,7 @@ module.exports = function subject(seq, dataTypes) {
           common.publishChange(inst, eventName.del);
 
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-
-            // delete the entry in the subject store
-            redisOps.deleteKey(subjectType, inst.absolutePath);
-
-            // delete multiple possible entries in sample store
-            redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
+            subjectUtils.removeFromRedis(inst.absolutePath);
           }
         }
 
@@ -472,7 +465,8 @@ module.exports = function subject(seq, dataTypes) {
       }, // hooks.afterDelete
 
       /**
-       * Prevents from deleting a subject which has children.
+       * Prevents from deleting a subject which has children. Delete the
+       * subject's samples.
        *
        * @param {Subject} inst - The instance being destroyed
        * @returns {Promise} which resolves to undefined or rejects if an error
@@ -490,6 +484,8 @@ module.exports = function subject(seq, dataTypes) {
               return common.setIsDeleted(seq.Promise, inst);
             }
           })
+          .then(() => inst.getSamples())
+          .each((samp) => samp.destroy())
           .then(() => resolve())
           .catch((err) => reject(err))
         );

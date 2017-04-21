@@ -18,32 +18,36 @@ const ParentSubjectNotMatch = require('../dbErrors')
   .ParentSubjectNotMatch;
 const IllegalSelfParenting = require('../dbErrors')
   .IllegalSelfParenting;
+const redisOps = require('../../cache/redisOps');
+const subjectType = redisOps.subjectType;
+const sampleType = redisOps.sampleType;
 
 /**
  * Validates a given field ie. parentAbsolutePath, parentId.
  * throws error if parent subject not found, or is child subject.
  * Else returns parent subject.
  *
- * @param {String} parentFieldValue ie. inst.parentAbsolutePath OR inst.parentId
- * @param {String} fieldValue ie. inst.absolutePath OR inst.id
- * @param {String} fieldName ie. absolutePath OR id
+ * @param {Object} Subject - the model
+ * @param {String} parentFieldVal - i.e. inst.parentAbsolutePath OR
+ *  inst.parentId
+ * @param {String} fieldVal - i.e. inst.absolutePath OR inst.id
+ * @param {String} fieldName - i.e. absolutePath OR id
  * @returns {Promise} contains parent subject
  */
-function validateParentField(Subject, parentFieldValue, fieldValue, fieldName)  {
-  return Subject.scope({
-    method: [fieldName, parentFieldValue],
-  }).find()
+function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
+  return Subject.scope({ method: [fieldName, parentFieldVal] })
+  .find()
   .then((parent) => {
     if (!parent) {
       throw new ParentSubjectNotFound({
-        message: parentFieldValue + ' not found.',
+        message: parentFieldVal + ' not found.',
       });
     }
 
     // if PAP === absolutePath || PID === id, throw cannot self parent error.
-    if (parentFieldValue === fieldValue) {
+    if (parentFieldVal === fieldVal) {
       throw new IllegalSelfParenting({
-        message: 'parentAbsolutePath cannot equal absolutePath: ' + fieldValue,
+        message: 'parentAbsolutePath cannot equal absolutePath: ' + fieldVal,
       });
     }
 
@@ -56,9 +60,12 @@ function validateParentField(Subject, parentFieldValue, fieldValue, fieldName)  
  * Decrements childCount on old parent
  * Sets the parent-related fields on inst
  *
- * @param {String} parentId The new parentId
- * @param {String} parentAbsolutePath The new parentAbsolutePath
- * for new absolutePath
+ * @param {Object} Subject - the model
+ * @param {String} parentId - The new parentId
+ * @param {String} parentAbsolutePath - The new parentAbsolutePath
+ *  for new absolutePath
+ * @param {Object} inst - the subject instance
+ * @returns {Object} the subject instance
  */
 function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
   return Subject.scope({ method:
@@ -91,8 +98,20 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
   });
 }
 
+/**
+ * Deletes the subject entry AND multiple possible sample entries from the
+ * redis sample store.
+ *
+ * @param {String} absolutePath - The absolutePath of the subject
+ */
+function removeFromRedis(absolutePath) {
+  redisOps.deleteKey(subjectType, absolutePath);
+  redisOps.deleteKeys(sampleType, subjectType, absolutePath);
+} // removeFromRedis
+
 module.exports = {
-  validateParentField,
-  updateParentFields,
+  removeFromRedis,
   throwNotMatchError,
+  updateParentFields,
+  validateParentField,
 };
