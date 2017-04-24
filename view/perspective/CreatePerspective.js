@@ -18,7 +18,7 @@ import Dropdown from '../admin/components/common/Dropdown';
 import ControlledInput from '../admin/components/common/ControlledInput';
 import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
-import { filteredArray, getConfig } from './configCreatePerspective';
+import { filteredArray, getConfig } from './utils';
 
 const ZERO = 0;
 
