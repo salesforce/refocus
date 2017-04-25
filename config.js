@@ -72,6 +72,9 @@ const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 // set time to live for "kue" jobs
 const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
 
+// set time interval for enableQueueStatsActivityLogs
+const queueStatsActivityLogsInterval = 60000;
+
 /*
  * Assigns each of the different redis uses cases to a particular redis
  * instance, if configured, or falls back to the primary redis instance.
@@ -215,6 +218,8 @@ module.exports = {
     DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
+  queueStatsActivityLogsInterval,
+  queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   rateLimit,
   rateWindow,
   readReplicas,
