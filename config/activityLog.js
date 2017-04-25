@@ -50,12 +50,12 @@ module.exports = {
     },
     queueStats: {
       activity: 'queueStats',
-      averageQueueTimeMillis: 0,
+      averageQueueTime: 0,
       jobCount: 0,
-      medianQueueTimeMillis: 0,
-      queueTimeMillis95th: 0,
+      medianQueueTime: 0,
+      queueTime95th: 0,
       recordCount: 0,
-      timeStamp: 'None',
+      timestamp: 'None',
     },
   },
 };

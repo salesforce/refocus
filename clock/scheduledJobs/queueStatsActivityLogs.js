@@ -13,7 +13,7 @@
  */
 
 const activityLogUtil = require('../../utils/activityLog');
-const queueTimeMillis95th = require('../../config').queueTimeMillis95th;
+const queueTime95th = require('../../config').queueTime95th;
 const redis = require('../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
@@ -116,10 +116,9 @@ function calculateStats(qt) {
   percentile95th = qt[index - ONE];
 
   // construct stats object
-  stats.averageQueueTimeMillis = average.toFixed(TWO) + 'ms';
-  stats.medianQueueTimeMillis = median.toFixed(TWO) + 'ms';
-  stats.queueTimeMillis95th = percentile95th + 'ms';
-  stats.queueTimeMillis95thNumber = percentile95th;
+  stats.averageQueueTime = average.toFixed(TWO);
+  stats.medianQueueTime = median.toFixed(TWO);
+  stats.queueTime95th = percentile95th;
 
   return stats;
 }
@@ -136,15 +135,14 @@ function constructLogObject(qStats) {
   queueStats.jobCount = qStats.jobCount;
   queueStats.recordCount = qStats.recordCount;
   const queueTimeArray = stringToArray(qStats.queueTimeArray);
-  queueStats.timeStamp = qStats.timeStamp;
+  queueStats.timestamp = qStats.timestamp;
 
   // Calculate stats based on queue timings
   const stats = calculateStats(queueTimeArray);
 
-  queueStats.medianQueueTimeMillis = stats.medianQueueTimeMillis;
-  queueStats.averageQueueTimeMillis = stats.averageQueueTimeMillis;
-  queueStats.queueTimeMillis95th = stats.queueTimeMillis95th;
-  queueStats.queueTimeMillis95thNumber = stats.queueTimeMillis95thNumber;
+  queueStats.medianQueueTime = stats.medianQueueTime;
+  queueStats.averageQueueTime = stats.averageQueueTime;
+  queueStats.queueTime95th = stats.queueTime95th;
 
   return queueStats;
 }
@@ -157,8 +155,8 @@ function constructLogObject(qStats) {
  * @param {integer} qt - queue time for individual job
  */
 function update(rc, qt) {
-  const timestamp = createTimeStamp();
-  const key = 'queueStats.' + timestamp;
+  const _timestamp = createTimeStamp();
+  const key = 'queueStats.' + _timestamp;
   const mainKey = 'queueStats';
 
   // get main key that containes array of timestamp keys
@@ -174,7 +172,7 @@ function update(rc, qt) {
         jobCount: ONE,
         recordCount: rc,
         queueTimeArray: addToArray('', qt),
-        timeStamp: timestamp,
+        timestamp: _timestamp,
       });
 
       client.hgetallAsync(mainKey).then((_reply) => {
@@ -216,8 +214,8 @@ function execute() {
 
               // If 95th Percentile time is higher then limit then
               // print warn log else info log
-              if (queueTimeMillis95th &&
-                queueStats.queueTimeMillis95thNumber > queueTimeMillis95th) {
+              if (queueTime95th &&
+                queueStats.queueTime95th > queueTime95th) {
                 activityLogUtil
                   .printActivityLogString(queueStats, 'queueStats', 'warn');
               } else {
@@ -233,7 +231,7 @@ function execute() {
             throw new Error(err);
           });
         } else {
-          // reset key value to containe only current timestamp key
+          // reset key value to contain only current timestamp key
           keyArray = currentTimeStamp;
         }
       }

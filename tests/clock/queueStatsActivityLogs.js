@@ -55,10 +55,9 @@ describe('queueStatsActivityLogs', () => {
 
     const resp = qs.calculateStats(qt);
     expect(resp).to.be.an('object');
-    expect(resp.averageQueueTimeMillis).to.equal('10.50ms');
-    expect(resp.medianQueueTimeMillis).to.equal('10.50ms');
-    expect(resp.queueTimeMillis95th).to.equal('19ms');
-    expect(resp.queueTimeMillis95thNumber).to.equal(19);
+    expect(resp.averageQueueTime).to.equal('10.50');
+    expect(resp.medianQueueTime).to.equal('10.50');
+    expect(resp.queueTime95th).to.equal(19);
 
     done();
   });
@@ -71,10 +70,9 @@ describe('queueStatsActivityLogs', () => {
 
     const resp = qs.calculateStats(qt);
     expect(resp).to.be.an('object');
-    expect(resp.averageQueueTimeMillis).to.equal('11.00ms');
-    expect(resp.medianQueueTimeMillis).to.equal('11.00ms');
-    expect(resp.queueTimeMillis95th).to.equal('20ms');
-    expect(resp.queueTimeMillis95thNumber).to.equal(20);
+    expect(resp.averageQueueTime).to.equal('11.00');
+    expect(resp.medianQueueTime).to.equal('11.00');
+    expect(resp.queueTime95th).to.equal(20);
 
     done();
   });
@@ -122,11 +120,10 @@ describe('queueStatsActivityLogs', () => {
             expect(resp).to.be.an('object');
             expect(resp.jobCount).to.equal('1');
             expect(resp.recordCount).to.equal('20');
-            expect(resp.averageQueueTimeMillis).to.equal('2.00ms');
-            expect(resp.medianQueueTimeMillis).to.equal('2.00ms');
-            expect(resp.queueTimeMillis95th).to.equal('2ms');
-            expect(resp.timeStamp).to.equal(timestamp);
-            expect(resp.queueTimeMillis95thNumber).to.equal(TWO);
+            expect(resp.averageQueueTime).to.equal('2.00');
+            expect(resp.medianQueueTime).to.equal('2.00');
+            expect(resp.queueTime95th).to.equal(2);
+            expect(resp.timestamp).to.equal(timestamp);
 
             client.del(key);
             done();
