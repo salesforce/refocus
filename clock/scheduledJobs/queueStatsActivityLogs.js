@@ -13,7 +13,7 @@
  */
 
 const activityLogUtil = require('../../utils/activityLog');
-const queueTime95th = require('../../config').queueTime95th;
+const queueTime95thMillis = require('../../config').queueTime95thMillis;
 const redis = require('../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
@@ -116,9 +116,9 @@ function calculateStats(qt) {
   percentile95th = qt[index - ONE];
 
   // construct stats object
-  stats.averageQueueTime = average.toFixed(TWO);
-  stats.medianQueueTime = median.toFixed(TWO);
-  stats.queueTime95th = percentile95th;
+  stats.averageQueueTimeMillis = average.toFixed(TWO);
+  stats.medianQueueTimeMillis = median.toFixed(TWO);
+  stats.queueTime95thMillis = percentile95th;
 
   return stats;
 }
@@ -140,9 +140,9 @@ function constructLogObject(qStats) {
   // Calculate stats based on queue timings
   const stats = calculateStats(queueTimeArray);
 
-  queueStats.medianQueueTime = stats.medianQueueTime;
-  queueStats.averageQueueTime = stats.averageQueueTime;
-  queueStats.queueTime95th = stats.queueTime95th;
+  queueStats.medianQueueTimeMillis = stats.medianQueueTimeMillis;
+  queueStats.averageQueueTimeMillis = stats.averageQueueTimeMillis;
+  queueStats.queueTime95thMillis = stats.queueTime95thMillis;
 
   return queueStats;
 }
@@ -214,8 +214,8 @@ function execute() {
 
               // If 95th Percentile time is higher then limit then
               // print warn log else info log
-              if (queueTime95th &&
-                queueStats.queueTime95th > queueTime95th) {
+              if (queueTime95thMillis &&
+                queueStats.queueTime95thMillis > queueTime95thMillis) {
                 activityLogUtil
                   .printActivityLogString(queueStats, 'queueStats', 'warn');
               } else {
