@@ -44,7 +44,9 @@ function stringToArray(string) {
   if (string.length) {
     const array = string.split(',');
     for (let i = 0; i < array.length; i++) {
-      array[i] = Number(array[i]);
+      if (!isNaN(array[i])) {
+        array[i] = Number(array[i]);
+      }
     }
 
     return array;
@@ -157,7 +159,9 @@ function constructLogObject(qStats) {
 function update(rc, qt) {
   const timestamp = createTimeStamp();
   const key = 'queueStats.' + timestamp;
+  const mainKey = 'queueStats';
 
+  // get main key that containes array of timestamp keys
   client.hgetallAsync(key).then((reply) => {
     if (reply) {
       client.hmset(key, {
@@ -172,6 +176,18 @@ function update(rc, qt) {
         queueTimeArray: addToArray('', qt),
         timeStamp: timestamp,
       });
+
+      client.hgetallAsync(mainKey).then((_reply) => {
+        if (_reply) {
+          client.hmset(mainKey, {
+            keyArray: addToArray(_reply.keyArray, key),
+          });
+        } else {
+          client.hmset(mainKey, {
+            keyArray: addToArray('', key),
+          });
+        }
+      });
     }
   })
   .catch((err) => {
@@ -184,9 +200,12 @@ function update(rc, qt) {
  */
 function execute() {
   // Get queueStats from redis
-  client.keysAsync('queueStats*').then((keys) => {
+  let keyArray;
+  const mainKey = 'queueStats';
+  client.hgetallAsync(mainKey).then((reply) => {
     const currentTimeStamp = 'queueStats.' + createTimeStamp();
-    if (keys) {
+    if (reply) {
+      const keys = stringToArray(reply.keyArray);
       for (let i = 0; i < keys.length; i++) {
         if (currentTimeStamp !== keys[i]) {
           // Get data based on key from redis
@@ -213,8 +232,15 @@ function execute() {
           .catch((err) => {
             throw new Error(err);
           });
+        } else {
+          // reset key value to containe only current timestamp key
+          keyArray = currentTimeStamp;
         }
       }
+
+      client.hmset(mainKey, {
+        keyArray: addToArray('', keyArray),
+      });
     }
   })
   .catch((_err) => {
