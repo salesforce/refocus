@@ -20,6 +20,8 @@ const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
+const queueTimeActivityLogs =
+  require('../clock/scheduledJobs/queueStatsActivityLogs');
 
 // ttl converted to milliseconds
 const TIME_TO_LIVE =
@@ -100,6 +102,10 @@ function processJobOnComplete(job, logObject) {
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
        jobResultObj && logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
+
+        // Update queueStatsActivityLogs
+        queueTimeActivityLogs
+          .update(jobResultObj.recordCount, jobResultObj.queueTime);
 
         /* The second argument should match the activity type in
          /config/activityLog.js */

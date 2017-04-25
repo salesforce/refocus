@@ -38,8 +38,10 @@ module.exports = {
    * Convert activity log object to String format and print.
    * @param  {Object} logObject - Log Object
    * @param  {string} logtype - worker, api or realtime
+   * @param  {string} logLevel - Log Level info, warn, error
+   * verbose, debug, silly. Default log info.
    */
-  printActivityLogString(logObject, logtype) {
+  printActivityLogString(logObject, logtype, logLevel='info') {
     // example: activity=worker user="igoldstein@salesforce.com" token="Eleven"
     // ipAddress="123.456.789.012" totalTime=123ms jobType=bulkUpsertSamples
     // queueTime=3ms workTime=487ms dbTime=413ms recordCount=2254 errorCount=1
@@ -61,7 +63,7 @@ module.exports = {
     }
 
     // print the log
-    winston.log('info', logStr);
+    winston.log(logLevel, logStr);
   },
 
   /**
