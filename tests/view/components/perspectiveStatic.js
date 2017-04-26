@@ -16,7 +16,7 @@ import { getArray,
   getConfig,
   filteredArray,
   getOptions,
-} from '../../../view/perspective/configCreatePerspective';
+} from '../../../view/perspective/utils';
 import { getSubjects } from './utils';
 
 describe('Config perspective functions', () => {

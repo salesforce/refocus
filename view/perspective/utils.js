@@ -6,11 +6,61 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 /**
- * view/perspective/configCreatePerspective.js
+ * view/perspective/utils.js
  *
  * JSON config for CreatePerspective.js
  * Includes all config for resources that need special treatment
  */
+
+/**
+ * Generate the filter string for the hierarchy API GET.
+ *
+ * @param {Object} p - The perspective object
+ * @returns {String} - The query string created generated based on the
+ *  perspective filters
+ */
+function getFilterQuery(p) {
+  let q = '';
+
+  if (p.aspectFilter && p.aspectFilter.length) {
+    const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
+    q += 'aspect' + '=' + sign +
+        p.aspectFilter.join().replace(/,/g, ',' + sign);
+  }
+
+  if (p.aspectTagFilter && p.aspectTagFilter.length) {
+    if (q) {
+      q += '&';
+    }
+
+    const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
+    q += 'aspectTags' + '=' + sign +
+        p.aspectTagFilter.join().replace(/,/g, ',' + sign);
+  }
+
+  if (p.subjectTagFilter && p.subjectTagFilter.length) {
+    if (q) {
+      q += '&';
+    }
+
+    const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
+    q += 'subjectTags' + '=' + sign +
+        p.subjectTagFilter.join().replace(/,/g, ',' + sign);
+  }
+
+  if (p.statusFilter.length) {
+    if (q) {
+      q += '&';
+    }
+
+    const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
+    q += 'status' + '=' + sign +
+        p.statusFilter.join().replace(/,/g, ',' + sign);
+  }
+
+  return q.length ? ('?' + q) : q;
+} // getFilterQuery
+
 /**
  * Given array of objects, returns array of strings or primitives
  * of arrayOfObjects[i][field].
@@ -158,6 +208,7 @@ function getConfig(values, key, value) {
 }
 
 export {
+  getFilterQuery,
   getOptions, // for testing
   filteredArray,
   getConfig,

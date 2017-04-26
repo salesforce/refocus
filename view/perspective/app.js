@@ -48,7 +48,7 @@ import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
-import { getTagsFromResources } from './configCreatePerspective';
+import { getFilterQuery, getTagsFromResources } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 let gotLens = false;
@@ -232,55 +232,6 @@ function handleLibraryFiles(res) {
    */
   document.body.appendChild(lensScript);
 } // handleLibraryFiles
-
-/**
- * Generate the filter string for the hierarchy API GET.
- *
- * @param {Object} p - The perspective object
- * @returns {String} - The query string created generated based on the
- *  perspective filters
- */
-function getFilterQuery(p) {
-  let q = '?';
-
-  if (p.aspectFilter && p.aspectFilter.length) {
-    const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspect' + '=' + sign +
-        p.aspectFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.aspectTagFilter && p.aspectTagFilter.length) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspectTags' + '=' + sign +
-        p.aspectTagFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.subjectTagFilter && p.subjectTagFilter.length) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'subjectTags' + '=' + sign +
-        p.subjectTagFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.statusFilter) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
-    q += 'status' + '=' + sign +
-        p.statusFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  return q;
-} // getFilterQuery
 
 /**
  * @param {String} name The key to the returned response object
