@@ -104,8 +104,11 @@ function processJobOnComplete(job, logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
 
         // Update queueStatsActivityLogs
-        queueTimeActivityLogs
-          .update(jobResultObj.recordCount, jobResultObj.queueTime);
+        if (featureToggles
+          .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+          queueTimeActivityLogs
+            .update(jobResultObj.recordCount, jobResultObj.queueTime);
+        }
 
         /* The second argument should match the activity type in
          /config/activityLog.js */
