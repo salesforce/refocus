@@ -107,8 +107,12 @@ function populateSubjects() {
     const cmds = [];
     subjects.forEach((s) => {
       const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
-      cmds.push(['hmset', key, { subjectId: s.id }]);
+
+      // add the subject absoluePath to the master subject index
       cmds.push(['sadd', constants.indexKey.subject, key]);
+
+      // create a mapping of subject absolutePath to subjectId
+      cmds.push(['set', key, s.id]);
     });
 
     return redisClient.batch(cmds).execAsync()
@@ -128,6 +132,7 @@ function populateSamples() {
   .then((samples) => {
     const msg = `Starting to load ${samples.length} samples to cache :|`;
     log.info(msg);
+    const subjectIdx = new Set();
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
@@ -138,24 +143,21 @@ function populateSamples() {
       const aspName = nameParts[1] // eslint-disable-line no-magic-numbers
         .toLowerCase();
       const samKey = samsto.toKey(constants.objectType.sample, s.name);
-      const subKey = samsto.toKey(constants.objectType.subject,
+      const subAspMapKey = samsto.toKey(constants.objectType.subAspMap,
         nameParts[0]); // eslint-disable-line no-magic-numbers
 
       // Track each of these in the master indexes for each object type.
       sampleIdx.add(samKey);
+      subjectIdx.add(subAspMapKey);
 
-      // For creating each individual subject set...
-      if (!subjectSets.hasOwnProperty(subKey)) {
-        subjectSets[subKey] = {
-          subjectId: s.subjectId,
-          aspectNames: [aspName],
-        };
-      } else { // has key
-        if (subjectSets[subKey].aspectNames) {
-          subjectSets[subKey].aspectNames.push(aspName);
-        } else {
-          subjectSets[subKey].aspectNames = [aspName];
-        }
+      /*
+       * For creating each individual subject set, which is a mapping of
+       * subject absolutepath and a list aspects
+       */
+      if (subjectSets.hasOwnProperty(subAspMapKey)) {
+        subjectSets[subAspMapKey].push(aspName);
+      } else {
+        subjectSets[subAspMapKey] = [aspName];
       }
 
       // For creating each individual sample hash...
@@ -170,7 +172,7 @@ function populateSamples() {
 
     // Batch of commands to create each individal subject set...
     const subjectCmds = Object.keys(subjectSets)
-      .map((key) => ['hmset', key, samsto.cleanSubject(subjectSets[key])]);
+      .map((key) => ['sadd', key, subjectSets[key]]);
     batchPromises.push(redisClient.batch(subjectCmds).execAsync());
 
     // Batch of commands to create each individal sample hash...
