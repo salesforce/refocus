@@ -35,6 +35,7 @@ describe(`api: GET ${path}`, () => {
     rank: 10,
   };
 
+  let aspectId;
   const sample1 = { value: '10' };
 
   let ipar = 0;
@@ -71,6 +72,7 @@ describe(`api: GET ${path}`, () => {
       return tu.db.Aspect.create(aspect);
     })
     .then((a) => {
+      aspectId = a.id;
       sample1.aspectId = a.id;
       return tu.db.Sample.create(sample1);
     })
@@ -108,15 +110,13 @@ describe(`api: GET ${path}`, () => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .end((err  , res ) => {
+      .end((err, res) => {
         if (err) {
           done(err);
         }
 
-        expect(res.body.children[0].children[0].samples).to.be
-          .an('array');
-        expect(res.body.children[0].children[0].samples).to.not
-          .empty;
+        expect(res.body.children[0].children[0].samples).to.be.an('array');
+        expect(res.body.children[0].children[0].samples).to.not.empty;
         done();
       });
     });
@@ -155,6 +155,20 @@ describe(`api: GET ${path}`, () => {
         }
 
         done();
+      });
+    });
+
+    it('samples in hierarchy should have aspectId field on them', (done) => {
+      api.get(path.replace('{key}', igrn))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.samples).to.be.an('array');
+        expect(res.body.samples).to.not.empty;
+        expect(res.body.samples[0].aspectId).to.equal(aspectId);
+      })
+      .end((err /* , res */) => {
+        return err ? done(err) : done();
       });
     });
   });

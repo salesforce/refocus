@@ -75,10 +75,9 @@ function attachSamples(res) {
     return Promise.resolve(filterOnSubject);
   }
 
-  const subjectKey = sampleStore.toKey(constants.objectType.subject,
+  const subjectKey = sampleStore.toKey(constants.objectType.subAspMap,
                               res.absolutePath);
-  return redisClient.hgetallAsync(subjectKey).then((subjectObj) => {
-    const aspectNames = JSON.parse(subjectObj.aspectNames || '[]');
+  return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
     const cmds = [];
     aspectNames.forEach((aspect) => {
       const sampleKey = sampleStore.toKey(constants.objectType.sample,
@@ -101,6 +100,7 @@ function attachSamples(res) {
         sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
 
         sample.aspect = asp;
+        sample.aspectId = asp.id;
         res.samples.push(sample);
       }
     }
