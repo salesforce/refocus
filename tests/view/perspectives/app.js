@@ -19,7 +19,7 @@ import { statuses } from '../../../api/v1/constants';
 import assert from 'assert';
 import React from 'react';
 import sinon from 'sinon';
-import { getValuesObject, getFilterQuery
+import { getValuesObject, getFilterQuery,
   getTagsFromArrays } from '../../../view/perspective/utils.js';
 
 describe('get filter query', () => {

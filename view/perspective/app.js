@@ -48,7 +48,7 @@ import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
-import { getFilterQuery, getTagsFromResources, getTagsFromResources, getValuesObject } from './utils';
+import { getFilterQuery, getTagsFromResources, getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 let gotLens = false;
@@ -234,59 +234,6 @@ function handleLibraryFiles(lensObject) {
 } // handleLibraryFiles
 
 /**
-<<<<<<< ba85687d04117637f950e7bb6ce8ad56d244819c
- * @param {String} name The key to the returned response object
-=======
- * Generate the filter string for the hierarchy API GET.
- *
- * @param {Object} p - The perspective object
- * @returns {String} - The query string created generated based on the
- *  perspective filters
- */
-function getFilterQuery(p) {
-  let q = '?';
-
-  if (p.aspectFilter && p.aspectFilter.length) {
-    const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspect' + '=' + sign +
-        p.aspectFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.aspectTagFilter && p.aspectTagFilter.length) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'aspectTags' + '=' + sign +
-        p.aspectTagFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.subjectTagFilter && p.subjectTagFilter.length) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
-    q += 'subjectTags' + '=' + sign +
-        p.subjectTagFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  if (p.statusFilter) {
-    if (!q.endsWith('?')) {
-      q += '&';
-    }
-
-    const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
-    q += 'status' + '=' + sign +
-        p.statusFilter.join().replace(/,/g, ',' + sign);
-  }
-
-  return q;
-} // getFilterQuery
-
-/**
->>>>>>> Refactor perspective app
  * @param {String} url The url to get from
  * @returns {Promise} For use in chaining.
  */

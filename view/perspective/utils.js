@@ -203,7 +203,110 @@ function getConfig(values, key, value) {
   return config;
 }
 
+/**
+ * Copyright (c) 2016, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * Testable perspective functions
+ *
+ * view/perspective/utils.js
+ */
+
+const statuses = require('../../api/v1/constants').statuses;
+/**
+ * Return array of unique tags
+ * @param {Array} Objects with tags: [tag1, tag2, ...]
+ * @returns {Array} contains unique tags
+ */
+function getTagsFromArrays(arr) {
+  let tags = new Set();
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i] && arr[i].tags && arr[i].tags.length) {
+      tags = new Set([...tags, ...new Set(arr[i].tags)]);
+    }
+  }
+
+  return [...tags].sort();
+}
+
+/**
+ * Accumulates information to load the perspective dropdown,
+ * and the edit/create perspective modal
+ *
+ * @param {Object} request Use supertest or superagent
+ * @returns {Object} The accumulated values
+ */
+function getValuesObject(request, getPerspectiveName) {
+  const valuesObj = {
+    subjects: [], // { name: absolutePath, id }
+    aspectTagFilter: [], // { name, id }
+    aspectFilter: [], // strings
+    subjectTagFilter: [], // strings
+    lenses: [], // { name, id }
+    statusFilter: Object.keys(statuses).sort(),
+    persNames: [], //strings
+    rootSubject: {},
+    lens: {}, // includes library
+  };
+
+  return request('/v1/perspectives')
+  .then((res) => {
+    valuesObj.persNames = res.body.map((perspective) => perspective.name).sort();
+    valuesObj.name = getPerspectiveName(valuesObj.persNames);
+    valuesObj.perspective = res.body.filter((perspective) => perspective.name === valuesObj.name)[0];
+
+    // need to get the lens, as GET /lenses does not return the library
+    return request('/v1/lenses/' + valuesObj.perspective.lensId);
+  })
+  .then((res) => {
+    valuesObj.lens = res.body;
+
+    return request('/v1/subjects');
+  })
+  .then((res) => {
+    valuesObj.subjectTagFilter = getTagsFromArrays(res.body);
+
+    valuesObj.subjects = res.body.filter((subject) => {
+      if (subject.absolutePath === valuesObj.perspective.rootSubject) {
+        valuesObj.rootSubject= subject;
+      }
+
+      if (subject.isPublished) {
+        return subject.absolutePath;
+      }
+    });
+
+    return request('/v1/lenses');
+  })
+  .then((res) => {
+    valuesObj.lenses = res.body.filter((lens) => {
+      if (lens.isPublished) {
+        return { name: lens.name, id: lens.id }
+      }
+    });
+
+    return request('/v1/aspects')
+  })
+  .then((res) => {
+    valuesObj.aspectFilter = res.body.filter((aspect) => {
+      if (aspect.isPublished) {
+        return aspect.name;
+      }
+    });
+
+    valuesObj.aspectTagFilter = getTagsFromArrays(res.body);
+    return valuesObj;
+  });
+} // getValuesObject
+
 export {
+  getValuesObject,
+  getTagsFromArrays,
   getFilterQuery,
   getOptions, // for testing
   filteredArray,
