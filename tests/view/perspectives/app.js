@@ -337,6 +337,7 @@ describe('Perspective app ', () => {
       setup({
         '/v1/aspects': {
           body: [{ name: ASPECT1, isPublished: true, tags: tags.slice(0, 2) },
+          { name: 'iDontShowUp', isPublished: false },
           { name: ASPECT2, isPublished: true, tags: tags.slice(2) }],
         }
       });
@@ -351,6 +352,7 @@ describe('Perspective app ', () => {
       setup({
         '/v1/aspects': {
           body: [{ name: ASPECT1, isPublished: true },
+          { name: 'iDontShowUp', isPublished: false },
           { name: ASPECT2, isPublished: true }],
         }
       });
