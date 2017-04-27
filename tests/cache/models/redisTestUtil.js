@@ -13,6 +13,7 @@
 const sampleStore = require('../../../cache/sampleStore');
 const samstoinit = require('../../../cache/sampleStoreInit');
 const redisClient = require('../../../cache/redisCache').client.sampleStore;
+const redisOps = require('../../../cache/redisOps');
 const tu = require('../../testUtils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
@@ -120,4 +121,5 @@ module.exports = {
 
   redisClient,
 
+  redisOps,
 };

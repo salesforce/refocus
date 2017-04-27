@@ -37,7 +37,8 @@ const constants = {
     sample: PFX + SEP + 'samples',
     subject: PFX + SEP + 'subjects',
   },
-  objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject', subAspMap: 'subaspmap' },
+  objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
+    subAspMap: 'subaspmap', },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
@@ -129,8 +130,8 @@ function convertToISO(obj) {
 /**
  * Remove nulls and stringify arrays.
  *
- * @param {Object} a - The aspect to clean. This can be either be a sequelize
- * object instance or just a regular object.
+ * @param {Object} subj - The subject to clean. This can be either be a
+ * sequelize object instance or just a regular object.
  * @returns {Object} cleaned up and ready to store in redis.
  */
 function cleanSubject(subj) {

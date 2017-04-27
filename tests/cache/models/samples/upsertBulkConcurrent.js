@@ -7,30 +7,19 @@
  */
 
 /**
- * tests/cache/models/samples/upsertBulk.js
+ * tests/cache/models/samples/upsertBulkConcurrent.js
  */
 'use strict';
 
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
-const samsto = require('../../../../cache/sampleStore');
-const bulkUpsert = require('../../../../cache/models/samples.js')
-                        .bulkUpsertSample;
-const stConst = samsto.constants;
 const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
-const URL1 = 'https://samples.com';
-const relatedLinks = [
-  { name: 'link1', url: URL1 },
-  { name: 'link2', url: URL1 },
-];
 
 describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   let token;

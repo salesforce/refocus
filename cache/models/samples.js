@@ -465,7 +465,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     }
 
     const subaspMapKey = sampleStore.toKey(
-    constants.objectType.subAspMap, absolutePath
+      constants.objectType.subAspMap, absolutePath
     );
 
     // add aspect name to subject set, add sample key to sample set,

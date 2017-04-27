@@ -157,20 +157,6 @@ describe(`api: GET ${path}`, () => {
         done();
       });
     });
-
-    it('samples in hierarchy should have aspectId field on them', (done) => {
-      api.get(path.replace('{key}', igrn))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.samples).to.be.an('array');
-        expect(res.body.samples).to.not.empty;
-        expect(res.body.samples[0].aspectId).to.equal(aspectId);
-      })
-      .end((err /* , res */) => {
-        return err ? done(err) : done();
-      });
-    });
   });
 
   it('by id', (done) => {

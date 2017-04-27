@@ -100,7 +100,6 @@ function attachSamples(res) {
         sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
 
         sample.aspect = asp;
-        sample.aspectId = asp.id;
         res.samples.push(sample);
       }
     }

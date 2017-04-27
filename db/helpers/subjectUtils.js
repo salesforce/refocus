@@ -21,6 +21,7 @@ const IllegalSelfParenting = require('../dbErrors')
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
+const subAspMapType = redisOps.subAspMapType;
 
 /**
  * Validates a given field ie. parentAbsolutePath, parentId.
@@ -107,6 +108,7 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
 function removeFromRedis(absolutePath) {
   redisOps.deleteKey(subjectType, absolutePath);
   redisOps.deleteKeys(sampleType, subjectType, absolutePath);
+  redisOps.deleteKey(subAspMapType, absolutePath);
 } // removeFromRedis
 
 module.exports = {
