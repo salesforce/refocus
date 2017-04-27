@@ -37,7 +37,7 @@ const constants = {
     sample: PFX + SEP + 'samples',
     subject: PFX + SEP + 'subjects',
   },
-  objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject' },
+  objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject', subAspMap: 'subaspmap' },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
