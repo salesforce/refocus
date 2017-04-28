@@ -304,6 +304,8 @@ module.exports = function subject(seq, dataTypes) {
            */
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
             redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
+            redisOps.setValue(subjectType, inst.getDataValue('absolutePath'),
+              inst.getDataValue('id'));
           }
         }
 
@@ -350,6 +352,8 @@ module.exports = function subject(seq, dataTypes) {
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
+              redisOps.setValue(subjectType, inst.getDataValue('absolutePath'),
+              inst.getDataValue('id'));
             } else {
               subjectUtils.removeFromRedis(inst.absolutePath);
             }

@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const sampleStore = require('../../cache/sampleStore');
+const ssConstants = sampleStore.constants;
 const samstoinit = require('../../cache/sampleStoreInit');
 const redisClient = require('../../cache/redisCache').client.sampleStore;
 const featureToggles = require('feature-toggles');
@@ -22,6 +23,8 @@ const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
+const subAspMapType = ssConstants.prefix + ssConstants.separator +
+  ssConstants.objectType.subAspMap;
 
 describe('sampleStore (feature off):', () => {
   before(() => tu.toggleOverride(sampleStore.constants.featureName, false));
@@ -172,6 +175,19 @@ describe('sampleStore (feature on):', () => {
         .to.be.true;
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
+    })
+     .then(() => redisClient
+      .keysAsync(subAspMapType + '*'))
+    .then((res) => {
+      expect(res.includes('samsto:subaspmap:___subject1.___subject2'))
+        .to.be.true;
+      expect(res.includes('samsto:subaspmap:___subject1.___subject3'))
+        .to.be.true;
+    })
+    .then(() =>
+      redisClient.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
+    .then((res) => {
+      expect(res.includes(['aspect1', 'aspect2']));
     })
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)

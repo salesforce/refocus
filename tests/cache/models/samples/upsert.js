@@ -134,11 +134,11 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       if (err) {
         done(err);
       }
-
-      redisOps.aspExistsInSubjSet(
-        subject.absolutePath, aspect.name)
+      const cmds = [];
+      cmds.push(redisOps.aspExistsInSubjSetCmd(subject.absolutePath, aspect.name));
+      redisOps.executeBatchCmds(cmds)
       .then((response) => {
-        expect(response).to.be.equal(true);
+        expect(response[0]).to.be.equal(1);
       });
 
       done();

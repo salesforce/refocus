@@ -22,7 +22,6 @@ const objectType = require('../../../../cache/sampleStore')
                     .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
 const ZERO = 0;
 const u = require('./utils');
 
@@ -125,15 +124,15 @@ describe(`api: redisStore: POST ${path}`, () => {
     .send(sampleToPost)
     .expect(constants.httpStatus.BAD_REQUEST)
      .end((err, res) => {
-      if (err) {
-        done(err);
-      }
+       if (err) {
+         done(err);
+       }
 
        const error = res.body.errors[0];
-      expect(error.type).to.equal('ValidationError');
-      expect(error.description).to.contain('name');
-      done();
-    });
+       expect(error.type).to.equal('ValidationError');
+       expect(error.description).to.contain('name');
+       done();
+     });
   });
 
   it('aspect is added', (done) => {
@@ -145,12 +144,12 @@ describe(`api: redisStore: POST ${path}`, () => {
       if (err) {
         done(err);
       }
-
+      const cmds = [];
       const subjAspArr = sampleName.toLowerCase().split('|');
-      redisOps.aspExistsInSubjSet(
-        subjAspArr[0], subjAspArr[1])
+      cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
+      redisOps.executeBatchCmds(cmds)
       .then((response) => {
-        expect(response).to.be.equal(true);
+        expect(response[0]).to.be.equal(1);
       });
 
       done();

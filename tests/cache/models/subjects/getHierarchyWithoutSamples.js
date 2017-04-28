@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cache/models/subjects/getHierarchy.js
+ * tests/cache/models/subjects/getHierarchyWithoutSamples.js
  */
 'use strict'; // eslint-disable-line strict
 
@@ -34,9 +34,6 @@ describe(`api: GET ${path}`, () => {
     isPublished: true,
     rank: 10,
   };
-
-  let aspectId;
-  const sample1 = { value: '10' };
 
   let ipar = 0;
   let ichi = 0;
@@ -67,17 +64,10 @@ describe(`api: GET ${path}`, () => {
       return Subject.create(grn);
     })
     .then((sub) => {
-      sample1.subjectId = sub.id;
       igrn = sub.id;
       return tu.db.Aspect.create(aspect);
     })
-    .then((a) => {
-      aspectId = a.id;
-      sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
-    })
-    .then((samp) => {
-      sample1.id = samp.id;
+    .then(() => {
       return samstoinit.populate();
     })
     .then(() => done())
@@ -88,8 +78,8 @@ describe(`api: GET ${path}`, () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('subject hierarchy with samples', () => {
-    it('should be an empty object at the parent level', (done) => {
+  describe('subject hierarchy without samples', () => {
+    it('hierarchy should load from the parent node', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -106,48 +96,13 @@ describe(`api: GET ${path}`, () => {
       });
     });
 
-    it('should be a non empty object at the grandchild level', (done) => {
-      api.get(path.replace('{key}', ipar))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.children[0].children[0].samples).to.be.an('array');
-        expect(res.body.children[0].children[0].samples).to.not.empty;
-        done();
-      });
-    });
-
-    it.skip('aspect rank must be included in the hierarchy', (done) => {
-      api.get(path.replace('{key}', ipar))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.children[0].children[0].samples).to.be
-          .an('array');
-        expect(res.body.children[0].children[0].samples).to.have.lengthOf(1);
-        expect(res.body.children[0].children[0].samples[0].aspect.rank).
-          to.equal(10);
-      })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        // done();
-      });
-    });
-
-    it('should be a non empty object at the 1st  of grandchild', (done) => {
+    it('hierarchy should load from grand child node', (done) => {
       api.get(path.replace('{key}', igrn))
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.samples).to.be.an('array');
-        expect(res.body.samples).to.not.empty;
+        expect(res.body.samples).to.be.empty;
       })
       .end((err /* , res */) => {
         if (err) {
@@ -157,52 +112,22 @@ describe(`api: GET ${path}`, () => {
         done();
       });
     });
-  });
 
-  it('by id', (done) => {
-    api.get(path.replace('{key}', ipar))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
+    it('hierarchy should load from child node', (done) => {
+      api.get(path.replace('{key}', ichi))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.samples).to.be.an('array');
+        expect(res.body.samples).to.be.empty;
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
 
-      // parent level
-      expect(res.body.samples).to.be.an('array');
-      expect(res.body.children).to.have.length(res.body.childCount);
-
-      // child level
-      expect(res.body.children[0].samples).to.be.an('array');
-      expect(res.body.children[0].children).to.be.an('array');
-      expect(res.body.children[0].children).to.have
-        .length(res.body.children[0].childCount);
-
-      done();
-    });
-  });
-
-  it('by abs path', (done) => {
-    api.get(path.replace('{key}', par.name))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      // parent level
-      expect(res.body.samples).to.be.an('array');
-      expect(res.body.children).to.have.length(res.body.childCount);
-
-      // child level
-      expect(res.body.children[0].samples).to.be.an('array');
-      expect(res.body.children[0].children).to.be.an('array');
-      expect(res.body.children[0].children).to.have
-        .length(res.body.children[0].childCount);
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
+        done();
+      });
     });
   });
 });

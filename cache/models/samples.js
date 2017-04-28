@@ -425,9 +425,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   const subjKey = sampleStore.toKey(
     constants.objectType.subject, absolutePath
   );
-  let aspectObj = {};
-  let subjectId = '';
 
+  let aspectObj = {};
+  let subjectId;
   return checkWritePermission(aspectName, sampleName, userName, isBulk)
 
   /*
@@ -435,15 +435,15 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
    * error is returned, else sample is returned
   */
   .then(() => Promise.all([
-    redisClient.hgetallAsync(subjKey),
+    redisClient.getAsync(subjKey),
     redisClient.hgetallAsync(
     sampleStore.toKey(constants.objectType.aspect, aspectName)
     ),
     redisClient.hgetallAsync(sampleKey),
   ]))
   .then((responses) => {
-    const [subject, aspect, sample] = responses;
-    if (!subject) {
+    const [subjId, aspect, sample] = responses;
+    if (!subjId) {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
 
@@ -451,11 +451,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       handleUpsertError(constants.objectType.aspect, isBulk);
     }
 
+    subjectId = subjId;
     aspectObj = sampleStore.arrayStringsToJson(
       aspect, constants.fieldsToStringify.aspect
     );
-
-    subjectId = subject.subjectId;
 
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
@@ -465,14 +464,18 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     }
 
+    const subaspMapKey = sampleStore.toKey(
+      constants.objectType.subAspMap, absolutePath
+    );
+
     // add aspect name to subject set, add sample key to sample set,
     // create/update hash of sample
     return redisClient.batch([
+      ['sadd', subaspMapKey, aspectName],
       ['sadd', constants.indexKey.sample, sampleKey],
       ['hmset', sampleKey, sampleQueryBodyObj],
     ]).execAsync();
   })
-  .then(() => redisOps.addAspectNameToSubject(subjKey, subjectId, aspectName))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
     updatedSamp.subjectId = subjectId;
@@ -521,13 +524,21 @@ module.exports = {
       }
 
       sampObjToReturn = sampleObj;
+
+      // get the aspect to attach it to the sample
       cmds.push(redisOps.getHashCmd(aspectType, aspName));
+
+      // delete sample entry from the master list of sample index
       cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
+
+      // delete the aspect from the subAspMap
+      cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
+
+      // delete the sample hash
       cmds.push(redisOps.delHashCmd(sampleType, sampleName));
 
-      return redisOps.delAspFromSubjSet(subjAbsPath, aspName);
+      return redisOps.executeBatchCmds(cmds);
     })
-    .then(() => redisOps.executeBatchCmds(cmds))
     .then((response) => {
       const asp = response[ZERO];
 
@@ -691,7 +702,6 @@ module.exports = {
    */
   postSample(params, userName) {
     const cmds = [];
-    let subjKey = '';
     const reqBody = params.queryBody.value;
     let subject;
     let sampleName;
@@ -706,9 +716,6 @@ module.exports = {
       }
 
       subject = subjFromDb;
-      subjKey = sampleStore.toKey(
-        constants.objectType.subject, subjFromDb.absolutePath
-      );
       return db.Aspect.findById(reqBody.aspectId);
     })
     .then((aspFromDb) => {
@@ -766,12 +773,19 @@ module.exports = {
       reqBody[sampFields.UPD_AT] = dateNow;
       reqBody[sampFields.CREATED_AT] = dateNow;
 
+      // add the aspect to the subjectSet
+      cmds.push(redisOps.addAspectInSubjSetCmd(
+        subject.absolutePath, aspectObj.name)
+      );
+
+      // add sample to the master list of sample index
       cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+
+      // create a sample set to store the values
       cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
 
-      return redisOps.addAspectNameToSubject(subjKey, subject.id, aspectObj.name);
+      return redisOps.executeBatchCmds(cmds);
     })
-    .then(() => redisOps.executeBatchCmds(cmds))
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampleObj) => sampleStore.arrayStringsToJson(
       sampleObj, constants.fieldsToStringify.sample));

@@ -64,19 +64,14 @@ describe(`api: redisStore: DELETE ${path}`, () => {
       const cmds = [];
       cmds.push(redisOps.getHashCmd(objectType.sample, sampleName));
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.sample, sampleName));
-
+      cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
 
       redisOps.executeBatchCmds(cmds)
       .then((response) => {
         expect(response[0]).to.be.equal(null);
         expect(response[1]).to.be.equal(0);
-      })
-      .then(() => redisOps.aspExistsInSubjSet(
-        subjAspArr[0], subjAspArr[1]))
-      .then((response) => {
-        expect(response).to.be.equal(false);
+        expect(response[2]).to.be.equal(0);
       });
-
       done();
     });
   });
