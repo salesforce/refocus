@@ -29,7 +29,7 @@ const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
-const DEFAULT_DB_CONNECTION_POOL = {
+const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   max: 5,
   min: 0,
   idle: 10000,
