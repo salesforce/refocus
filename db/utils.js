@@ -125,10 +125,8 @@ const primaryDb = dbConfigObjectFromDbURL();
 let seq;
 const opts = {
   logging: env.dbLogging,
+  pool: conf.db.connectionPool,
 };
-if (conf.db.useConnectionPool) {
-  opts.pool = conf.db.connectionPool;
-}
 
 /*
  * If read-only replicas are configured, we instantiate the Sequelize object

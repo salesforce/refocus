@@ -29,13 +29,11 @@ const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
-const DEFAULT_CONNECTION_POOL = {
-  max: 1,
-  min: 1,
+const DEFAULT_DB_CONNECTION_POOL = {
+  max: 5,
+  min: 0,
   idle: 10000,
 };
-const useConnectionPool = typeof pe.CONNECTION_POOL_MAX !== 'undefined' &&
-  pe.CONNECTION_POOL_MAX === parseInt(pe.CONNECTION_POOL_MAX, 10);
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -137,13 +135,12 @@ module.exports = {
       password: 'password',
     },
     connectionPool: {
-      max: pe.CONNECTION_POOL_MAX || DEFAULT_CONNECTION_POOL.max,
-      min: pe.CONNECTION_POOL_MIN || DEFAULT_CONNECTION_POOL.min,
-      idle: pe.CONNECTION_POOL_IDLE || DEFAULT_CONNECTION_POOL.idle,
+      max: pe.DB_CONNECTION_POOL_MAX || DEFAULT_DB_CONNECTION_POOL.max,
+      min: pe.DB_CONNECTION_POOL_MIN || DEFAULT_DB_CONNECTION_POOL.min,
+      idle: pe.DB_CONNECTION_POOL_IDLE || DEFAULT_DB_CONNECTION_POOL.idle,
     },
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,
-    useConnectionPool,
   },
   redis: {
     channelName: 'focus',
