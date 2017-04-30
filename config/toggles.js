@@ -56,6 +56,10 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
+  // Enable Kue stats activity logging
+  enableKueStatsActivityLogs:
+    environmentVariableTrue(pe, 'ENABLE_KUESTATS_ACTIVITY_LOGS'),
+
   // Enable queueStatsActivityLogs
   enableQueueStatsActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),

@@ -13,14 +13,6 @@
 
 module.exports = {
   activityType: {
-    realtime: {
-      activity: 'realtime',
-      ipAddress: 'None',
-      perspective: 'None',
-      token: 'None',
-      totalTime: 'None',
-      user: 'None',
-    },
     api: {
       activity: 'api',
       dbTime: '0ms',
@@ -32,6 +24,31 @@ module.exports = {
       token: 'None',
       totalTime: '0ms',
       uri: 'None',
+      user: 'None',
+    },
+    kueStats: {
+      activity: 'kueStats',
+      activeCount: 0,
+      completeCount: 0,
+      failedCount: 0,
+      inactiveCount: 0,
+      workTimeMillis: 0,
+    },
+    queueStats: {
+      activity: 'queueStats',
+      averageQueueTimeMillis: 0,
+      jobCount: 0,
+      medianQueueTimeMillis: 0,
+      queueTime95thMillis: 0,
+      recordCount: 0,
+      timestamp: 'None',
+    },
+    realtime: {
+      activity: 'realtime',
+      ipAddress: 'None',
+      perspective: 'None',
+      token: 'None',
+      totalTime: 'None',
       user: 'None',
     },
     worker: {
@@ -47,15 +64,6 @@ module.exports = {
       totalTime: 'None',
       user: 'None',
       workTime: 'None',
-    },
-    queueStats: {
-      activity: 'queueStats',
-      averageQueueTimeMillis: 0,
-      jobCount: 0,
-      medianQueueTimeMillis: 0,
-      queueTime95thMillis: 0,
-      recordCount: 0,
-      timestamp: 'None',
     },
   },
 };
