@@ -11,8 +11,14 @@
  */
 const expect = require('chai').expect;
 const u = require('../../db/utils');
+const tu = require('../testUtils');
 
 describe('db utils', () => {
+  it('pool', () => {
+    expect(tu.db.sequelize.config.pool).to.have.property('min', 0);
+    expect(tu.db.sequelize.config.pool).to.have.property('max', 5);
+    expect(tu.db.sequelize.config.pool).to.have.property('idle', 10000);
+  });
 
   it('dbConfigObjectFromDbURL localhost', (done) => {
     const dbconfig = u.dbConfigObjectFromDbURL(

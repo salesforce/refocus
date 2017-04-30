@@ -29,6 +29,11 @@ const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
+const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
+  max: 5,
+  min: 0,
+  idle: 10000,
+};
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -128,6 +133,11 @@ module.exports = {
       email: 'admin@refocus.admin',
       name: 'admin@refocus.admin',
       password: 'password',
+    },
+    connectionPool: {
+      max: pe.DB_CONNECTION_POOL_MAX || DEFAULT_DB_CONNECTION_POOL.max,
+      min: pe.DB_CONNECTION_POOL_MIN || DEFAULT_DB_CONNECTION_POOL.min,
+      idle: pe.DB_CONNECTION_POOL_IDLE || DEFAULT_DB_CONNECTION_POOL.idle,
     },
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,

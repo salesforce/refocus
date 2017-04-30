@@ -123,25 +123,25 @@ const primaryDb = dbConfigObjectFromDbURL();
 
 // create the sequelize object from the constructor.
 let seq;
-if (conf.readReplicas) {
+const opts = {
+  logging: env.dbLogging,
+  pool: conf.db.connectionPool,
+};
 
-  /*
-   * The sequelize object is constructed this way if read-only replicas are
-   * configured.
-   * This usage is of the form new Sequelize('database',
-   * 'username' 'password , options).
-   * The username and password are passed to the constructor through the
-   * replication property of options.
-   */
-  seq = new Sequelize(primaryDb.name, null, null, {
-    dialect: env.dialect,
-    replication: getDBReplicationObject(primaryDb),
-    logging: env.dbLogging,
-  });
+/*
+ * If read-only replicas are configured, we instantiate the Sequelize object
+ * using:
+ *   new Sequelize('database', 'username' 'password , options)
+ * Note that the username and password are passed to the constructor through
+ * the "replication" property of options, instead of using env.dbUrl which has
+ * username and password encoded in the url itself.
+ */
+if (conf.readReplicas) {
+  opts.dialect = env.dialect;
+  opts.replication = getDBReplicationObject(primaryDb);
+  seq = new Sequelize(primaryDb.name, null, null, opts);
 } else {
-  seq = new Sequelize(env.dbUrl, {
-    logging: env.dbLogging,
-  });
+  seq = new Sequelize(env.dbUrl, opts);
 }
 
 /**
