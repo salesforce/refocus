@@ -17,7 +17,7 @@ const ONE = 1;
 const TWO = 2;
 const client = redis.client.realtimeLogging;
 
-describe.only('kueStatsActivityLogs', () => {
+describe('kueStatsActivityLogs', () => {
   it('generateLogObject', (done) => {
     const obj = k.generateLogObject();
     expect(obj).to.be.an('object');
