@@ -32,6 +32,29 @@ function deletePreviousStatus() {
 } // deletePreviousStatus
 
 /**
+ * When passed an array of sample keys, it extracts the subject name part from
+ * each of the key and returns an array of keys prefixed with
+ * "samsto:subaspmap". For example if
+ * ['samsto:sample:subject1|aspect1','samsto:sample:subject2|aspect2']
+ * is the input, the output is
+ *['samsto:subaspmap:subject1','samsto:subaspmap:subject2']
+ * @param  {Array} keys - An array of sample keys
+ * @returns {Array} - An array of subaspmap keys
+ */
+function getSubAspMapKeys(keys) {
+  const subAspMapSet = new Set();
+  const subAspPrefix = constants.prefix + constants.separator +
+    constants.objectType.subAspMap + constants.separator;
+  keys.forEach((key) => {
+    const keyNameParts = key.split(constants.separator);
+    const sampleNamePart = keyNameParts[2].split('|');
+    const subjectNamePart = sampleNamePart[0];
+    subAspMapSet.add(subAspPrefix + subjectNamePart);
+  });
+  return Array.from(subAspMapSet);
+} // getSubAspMapKeys
+
+/**
  * Gets the value of "previousStatusKey"
  *
  * @returns {Promise} which resolves to the value of the previoiusStatusKey
@@ -41,8 +64,8 @@ function getPreviousStatus() {
 } // persistInProgress
 
 /**
- * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
- * redis.
+ * Clear all the "sampleStore" keys (for subjects, aspects, samples, subaspmap)
+ * from redis.
  *
  * @returns {Promise} upon completion.
  */
@@ -50,6 +73,11 @@ function eradicate() {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
+      if (constants.indexKey[s] === constants.indexKey.sample) {
+        // this is done to delete keys prefixed with "samsto:subaspmap:"
+        keys.push(...getSubAspMapKeys(keys));
+      }
+
       keys.push(constants.indexKey[s]);
       return redisClient.delAsync(keys);
     })
