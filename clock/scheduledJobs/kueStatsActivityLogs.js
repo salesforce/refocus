@@ -21,9 +21,12 @@ const WARNING_LOG_LEVEL = 'warn';
 const ZERO = 0;
 
 /**
- * Execute the call to write kue stats activity logs.
+ * Generate the logging object. (Separating this out and exporting for easier
+ * testing.)
+ *
+ * @returns {Object} logging object
  */
-function execute() {
+function generateLogObject() {
   const obj = JSON.parse(JSON.stringify(k));
   jobQueue.card('active', (err, n) => {
     if (!err) {
@@ -50,6 +53,14 @@ function execute() {
       obj.workTimeMillis = ms;
     }
   });
+  return obj;
+} // generateLogObject
+
+/**
+ * Execute the call to write kue stats activity logs.
+ */
+function execute() {
+  const obj = generateLogObject();
   let level = DEFAULT_LOG_LEVEL;
   if (warningThreshold > ZERO && obj.inactiveCount > warningThreshold) {
     level = WARNING_LOG_LEVEL;
@@ -60,4 +71,5 @@ function execute() {
 
 module.exports = {
   execute,
+  generateLogObject, // exporting this to make it easier to test
 };
