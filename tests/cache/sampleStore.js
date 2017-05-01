@@ -194,4 +194,15 @@ describe('sampleStore (feature on):', () => {
     .then(() => done())
     .catch(done);
   });
+
+  it('eradicate should delete all the objects in redis ' +
+    'having the sample store prefix', (done) => {
+    samstoinit.populate()
+    .then(() => samstoinit.eradicate())
+    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then((res) => {
+      expect(res.length).to.eql(0);
+      done();
+    }).catch(done);
+  });
 });
