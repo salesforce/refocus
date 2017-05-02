@@ -28,22 +28,23 @@ const ZERO = 0;
  */
 function generateLogObject() {
   const obj = JSON.parse(JSON.stringify(k));
-  jobQueue.card('active', (err, n) => {
+
+  jobQueue.activeCount((err, n) => {
     if (!err) {
       obj.activeCount = n;
     }
   });
-  jobQueue.card('complete', (err, n) => {
+  jobQueue.completeCount((err, n) => {
     if (!err) {
       obj.completeCount = n;
     }
   });
-  jobQueue.card('failed', (err, n) => {
+  jobQueue.failedCount((err, n) => {
     if (!err) {
       obj.failedCount = n;
     }
   });
-  jobQueue.card('inactive', (err, n) => {
+  jobQueue.inactiveCount((err, n) => {
     if (!err) {
       obj.inactiveCount = n;
     }
