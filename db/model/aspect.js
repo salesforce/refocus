@@ -397,6 +397,12 @@ module.exports = function aspect(seq, dataTypes) {
           'isDeleted',
         ],
       },
+      {
+        name: 'AspectNameIdxToDelete',
+        fields: [
+          'name',
+        ],
+      },
     ],
     instanceMethods: {
       isWritableBy(who) {

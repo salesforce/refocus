@@ -363,6 +363,12 @@ module.exports = function sample(seq, dataTypes) {
           'name',
         ],
       },
+      {
+        name: 'SampleNameIdxToDelete',
+        fields: [
+          'name',
+        ],
+      },
     ],
     instanceMethods: {
 
