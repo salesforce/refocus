@@ -207,7 +207,7 @@ function getConfig(values, key, value) {
   return config;
 }
 
-export {
+module.exports = {
   getFilterQuery,
   getOptions, // for testing
   filteredArray,
