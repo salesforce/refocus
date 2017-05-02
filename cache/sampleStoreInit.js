@@ -93,26 +93,45 @@ function eradicate() {
 } // eradicate
 
 /**
- * Populate the redis sample store with aspects from the db.
+ * Populate the redis sample store with aspects from the db. If the aspect
+ * has any writers, add them to the aspect's writers field
  *
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateAspects() {
+  let aspects;
   return Aspect.findAll({
     where: {
       isPublished: true,
     },
   })
-  .then((aspects) => {
-    const msg = `Starting to load ${aspects.length} aspects to cache :|`;
+  .then((allAspects) => {
+    const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
     log.info(msg);
+    aspects = allAspects;
+    const getWritersPromises = [];
+
+    // get Writers for all the aspects in the aspect table
+    aspects.forEach((aspect) => {
+      getWritersPromises.push(aspect.getWriters());
+    });
+    return Promise.all(getWritersPromises);
+  })
+  .then((writersArray) => {
     const aspectIdx = [];
     const cmds = [];
-    aspects.forEach((a) => {
+
+    // for each aspect, add the associated writers to its "writers" field.
+    for (let i = 0; i < aspects.length; i++) {
+      const a = aspects[i];
+      a.dataValues.writers = [];
+      writersArray[i].forEach((writer) => {
+        a.dataValues.writers.push(writer.dataValues.name);
+      });
       const key = samsto.toKey(constants.objectType.aspect, a.name);
       aspectIdx.push(key);
       cmds.push(['hmset', key, samsto.cleanAspect(a)]);
-    });
+    }
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
     return redisClient.batch(cmds).execAsync()

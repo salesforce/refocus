@@ -48,7 +48,10 @@ describe('sampleStore (feature on):', () => {
   let s1;
   let s2;
   let s3;
-
+  let user1;
+  let user2;
+  let user3;
+  let user4;
   before((done) => {
     tu.toggleOverride(sampleStore.constants.featureName, true);
     Aspect.create({
@@ -87,6 +90,26 @@ describe('sampleStore (feature on):', () => {
       okRange: [10, 100],
     }))
     .then((created) => (a4 = created))
+    .then(() => tu.createUser('myUNiqueUser1'))
+    .then((usr) => {
+      user1 = usr;
+      return a1.addWriter(user1);
+    })
+    .then(() => tu.createUser('myUniqueUser2'))
+    .then((usr) => {
+      user2 = usr;
+      return a1.addWriter(user2);
+    })
+    .then(() => tu.createUser('myUniqueUser3'))
+    .then((usr) => {
+      user3 = usr;
+      return a1.addWriter(user3);
+    })
+    .then(() => tu.createUser('myUniqueUser4'))
+    .then((usr) => {
+      user4 = usr;
+      return a2.addWriter(user4);
+    })
     .then(() => Subject.create({
       isPublished: true,
       name: `${tu.namePrefix}Subject1`,
@@ -188,6 +211,36 @@ describe('sampleStore (feature on):', () => {
       redisClient.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
     .then((res) => {
       expect(res.includes(['aspect1', 'aspect2']));
+    })
+    .then(() => samstoinit.init())
+    .then((res) => expect(res).to.not.be.false)
+    .then(() => done())
+    .catch(done);
+  });
+
+  it('aspects with associated writers should have its ' +
+      'writers field populated', (done) => {
+    samstoinit.eradicate()
+    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then((res) => expect(res.length).to.eql(0))
+    .then(() => samstoinit.populate())
+    .then(() =>
+      redisClient.hgetallAsync('samsto:aspect:___aspect1'))
+    .then((aspect) => {
+      sampleStore.arrayStringsToJson(aspect,
+          sampleStore.constants.fieldsToStringify.aspect);
+      expect(aspect.writers.length).equal(3);
+      expect(aspect.writers).to.have
+        .members([user1.name, user2.name, user3.name]);
+    })
+    .then(() =>
+      redisClient.hgetallAsync('samsto:aspect:___aspect2'))
+    .then((aspect) => {
+      sampleStore.arrayStringsToJson(aspect,
+        sampleStore.constants.fieldsToStringify.aspect);
+      expect(aspect.writers.length).to.equal(1);
+      expect(aspect.writers).to.have
+        .members([user4.name]);
     })
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)

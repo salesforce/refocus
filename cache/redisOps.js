@@ -13,6 +13,7 @@
 
 const redisStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
+const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
 const aspectType = redisStore.constants.objectType.aspect;
@@ -60,6 +61,32 @@ function setValue(objectName, name, value) {
   .then((ok) => Promise.resolve(ok))
   .catch((err) => Promise.reject(err));
 } // setValue
+
+/**
+ * Promise to get complete hash
+ * @param  {String} type - Object type
+ * @param  {String} name - Object name
+ * @returns {Promise} - Resolves to object
+ */
+function getHashPromise(type, name) {
+  return redisClient.hgetallAsync(redisStore.toKey(type, name));
+} // getHashPromise
+
+/**
+ * Get the value that is mapped to a key
+ * @param  {String} type - The type of the object on which the operation is to
+ * be performed
+ * @param  {String} name -  Name of the key
+ * @returns {Promise} - which resolves to the value associated with the key
+ */
+function getValue(type, name) {
+  return getHashPromise(type, name)
+  .then((value) => {
+    redisStore.arrayStringsToJson(value, rsConstant.fieldsToStringify[type]);
+    return Promise.resolve(value);
+  })
+  .catch((err) => Promise.reject(err));
+} // getValue
 
 /**
  * Adds an entry identified by name to the master list of indices identified
@@ -365,16 +392,6 @@ module.exports = {
   },
 
   /**
-   * Promise to get complete hash
-   * @param  {String} type - Object type
-   * @param  {String} name - Object name
-   * @returns {Promise} - Resolves to object
-   */
-  getHashPromise(type, name) {
-    return redisClient.hgetallAsync(redisStore.toKey(type, name));
-  },
-
-  /**
    * Command to set multiple fields in a hash
    * @param  {String} type - Object type
    * @param  {String} name - Object name
@@ -449,4 +466,8 @@ module.exports = {
   sampleType,
 
   subAspMapType,
+
+  getValue,
+
+  getHashPromise,
 }; // export
