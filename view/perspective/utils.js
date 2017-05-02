@@ -110,9 +110,7 @@ function convertCamelCase(string) {
  * @returns {Array} The array of strings or primitives
  */
 function filteredArray(arr, removeThis) {
-  return arr.filter((elem) => {
-    return elem && elem !== removeThis;
-  });
+  return arr.filter((elem) => elem && elem !== removeThis);
 }
 
 /**
@@ -204,21 +202,6 @@ function getConfig(values, key, value) {
 }
 
 /**
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or
- * https://opensource.org/licenses/BSD-3-Clause
- */
-
-/**
- * Testable perspective functions
- *
- * view/perspective/utils.js
- */
-
-const statuses = require('../../api/v1/constants').statuses;
-/**
  * Return array of unique tags
  * @param {Array} Objects with tags: [tag1, tag2, ...]
  * @returns {Array} contains unique tags
@@ -242,6 +225,7 @@ function getTagsFromArrays(arr) {
  * @returns {Object} The accumulated values
  */
 function getValuesObject(request, getPerspectiveName) {
+  const statuses = require('../../api/v1/constants').statuses;
   const valuesObj = {
     subjects: [], // { name: absolutePath, id }
     aspectTagFilter: [], // { name, id }
@@ -270,7 +254,6 @@ function getValuesObject(request, getPerspectiveName) {
   })
   .then((res) => {
     valuesObj.subjectTagFilter = getTagsFromArrays(res.body);
-
     valuesObj.subjects = res.body.filter((subject) => {
       if (subject.absolutePath === valuesObj.perspective.rootSubject) {
         valuesObj.rootSubject= subject;
@@ -301,7 +284,6 @@ function getValuesObject(request, getPerspectiveName) {
     }
 
     valuesObj.aspectFilter = aspectsArr;
-
     valuesObj.aspectTagFilter = getTagsFromArrays(res.body);
     return valuesObj;
   });

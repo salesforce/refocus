@@ -295,6 +295,7 @@ window.onload = () => {
 
     // synchronous events
     setupSocketIOClient(obj.perspective);
+
     // inject lens library files in perspective view.
     handleLibraryFiles(obj.lens); // synchronous
 

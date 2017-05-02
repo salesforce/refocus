@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -59,9 +59,6 @@ describe('dropdown and modal data', () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-
-  // test aspect tags: create aspect with tags
-  // test subject tags: create subject with tags
 
   it('basic get', (done) => {
     api.get(path)
