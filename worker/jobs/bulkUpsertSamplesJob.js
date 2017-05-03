@@ -82,4 +82,4 @@ module.exports = (job, done) => {
 
     return done();
   });
-}
+};
