@@ -91,6 +91,10 @@ const longTermToggles = {
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
+
+  //Enable Rooms functionality
+  endableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
+
 }; // longTermToggles
 
 /*
