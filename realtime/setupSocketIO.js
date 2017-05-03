@@ -132,11 +132,17 @@ function init(io) {
             console.log('Error ' + // eslint-disable-line no-console
               `retrieving socket id ${socket.id} from redis on client ` +
               'disconnect:', getErr);
-          } else {
-            // Calculate the totalTime and write out the log line.
+          } else { // eslint-disable-line lines-around-comment
+            /*
+             * Calculate the totalTime and write out the log line. If redis
+             * was flushed by an admin, the response here will be empty, so
+             * just skip the logging.
+             */
             const d = JSON.parse(getResp);
-            d.totalTime = (Date.now() - d.starttime) + 'ms';
-            activityLogUtil.printActivityLogString(d, 'realtime');
+            if (d && d.starttime) {
+              d.totalTime = (Date.now() - d.starttime) + 'ms';
+              activityLogUtil.printActivityLogString(d, 'realtime');
+            }
 
             // Remove the redis key for this socket.
             redisClient.del(socket.id, (delErr, delResp) => {
