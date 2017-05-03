@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
+const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
@@ -35,9 +36,9 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   idle: 10000,
 };
 
-//Enable Rooms Routes
-const swagger = pe.ENABLE_ROOMS ?
-'./api/v1/rooms-swagger.yaml' : './api/v1/swagger.yaml';
+// Enable Rooms Routes
+const swagger = featureToggles.isFeatureEnabled('enableRooms') ?
+  './api/v1/rooms-swagger.yaml' : './api/v1/swagger.yaml';
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';

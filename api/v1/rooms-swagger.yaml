@@ -6096,6 +6096,31 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
+# ---------------------------------------------------------------------------
+  /rooms:
+    x-swagger-router-controller: rooms
+    get:
+      tags: [ rooms ]
+      operationId: findRooms
+      responses:
+        200:
+          description: >-
+            Success
+          schema:
+            type: object
+            properties:
+              Success:
+                type: boolean
+                readOnly: true
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
 definitions:
 
