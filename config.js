@@ -34,7 +34,10 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   min: 0,
   idle: 10000,
 };
-const swagger = pe.ENABLE_ROOMS ? './api/v1/rooms-swagger.yaml' : './api/v1/swagger.yaml';//Enable Rooms Routes
+
+//Enable Rooms Routes
+const swagger = pe.ENABLE_ROOMS ?
+'./api/v1/rooms-swagger.yaml' : './api/v1/swagger.yaml';
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';

@@ -93,7 +93,7 @@ const longTermToggles = {
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
 
   //Enable Rooms functionality
-  endableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
+  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
 
 }; // longTermToggles
 
