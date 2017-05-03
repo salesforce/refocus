@@ -105,6 +105,21 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('successful result has a createdBy', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(basicParams)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy).to.be.an('string');
+      done();
+    });
+  });
+
   it('OK, with filters', (done) => {
     api.post(path)
     .set('Authorization', token)

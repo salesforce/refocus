@@ -6357,6 +6357,7 @@ definitions:
           This allows a lens to render sample data in different ways depending on
           their type.
       createdBy:
+        type: string
         readOnly: true
         $ref: "#/definitions/UsersResponse"
         description: >
@@ -6415,8 +6416,8 @@ definitions:
         type: string
         readOnly: true
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
           User who created this Aspect.
       createdAt:
@@ -6605,8 +6606,8 @@ definitions:
           Array of sample status to filter; Status values can only be one of these:
           Critical, Invalid, Timeout, Warning, Info, OK, -Critical, -Invalid, -Timeout, -Warning, -Info, -OK.
       createdBy:
-        readOnly: true
         type: string
+        readOnly: true
         description: >
           TODO
       createdAt:
@@ -6722,8 +6723,8 @@ definitions:
         items:
           $ref: "#/definitions/UsersResponse"
       createdBy:
-        readOnly: true
         type: string
+        readOnly: true
         description: >
           TODO
       createdAt:
@@ -6950,6 +6951,7 @@ definitions:
       #   description: >
       #    The number of direct children subjects under this subject.
       createdBy:
+        type: string
         readOnly: true
         $ref: "#/definitions/UsersResponse"
         description: >
@@ -7148,8 +7150,8 @@ definitions:
         description: >
           API token.
       createdBy:
-        readOnly: true
         type: string
+        readOnly: true
         description: >
           TODO
       apiLinks:

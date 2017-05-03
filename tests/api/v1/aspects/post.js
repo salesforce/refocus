@@ -49,6 +49,21 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('result contains createdBy', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(u.toCreate)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy).to.be.an('string');
+      done();
+    });
+  });
+
   it('posting with readOnly field id should fail', (done) => {
     api.post(path)
     .set('Authorization', token)
