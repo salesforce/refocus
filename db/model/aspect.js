@@ -283,7 +283,10 @@ module.exports = function aspect(seq, dataTypes) {
             // rename entry in aspectStore
             redisOps.renameKey(aspectType, oldAspectName, newAspName);
 
-            // delete multiple possible entries in sampleStore
+            /*
+             * delete multiple possible sample entries in the sample master
+             * list of index
+             */
             redisOps.deleteKeys(sampleType, aspectType, inst.name);
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
@@ -295,7 +298,10 @@ module.exports = function aspect(seq, dataTypes) {
               // delete the entry in the subject store
               redisOps.deleteKey(aspectType, inst.name);
 
-              // delete multiple possible entries in sample store
+              /*
+               * Delete multiple possible entries in the sample master list of
+               * index
+               */
               redisOps.deleteKeys(sampleType, aspectType, inst.name);
             }
           } else if (inst.isPublished) {
