@@ -20,6 +20,27 @@ const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
 
+describe.skip('post without token', () => {
+  afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('contains null createdBy', (done) => {
+    api.post(path)
+    .field('name', 'testLens')
+    .field('description', 'test description')
+    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy === null).to.be.true;
+      done();
+    });
+  });
+});
+
 describe(`api: POST ${path}`, () => {
   let token;
 

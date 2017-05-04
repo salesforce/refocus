@@ -52,10 +52,19 @@ function doPost(req, res, next, props) {
     } else {
       postPromise = authUtils.getUser(req)
       .then((user) => {
-        toPost.createdBy = user.id;
+        if (user) {
+          toPost.createdBy = user.id;
+        }
+
         return props.model.create(toPost);
       })
-      .catch((err) => u.handleError(next, err, props.modelName));
+      .catch((err) => {
+        if (err.status === 403) {
+          return props.model.create(toPost);
+        } else {
+          u.handleError(next, err, props.modelName);
+        }
+      });
     }
   }
 
