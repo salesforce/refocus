@@ -57,7 +57,7 @@ describe('db: sample: upsert: ', () => {
     .catch(done);
   });
 
-  it('When subject name changed then sample name should be changed',
+  it('When subject name changed then the related samples should be deleted',
   (done) => {
     const updatedSubjectName = subjectName + 1;
     let newSample;
@@ -81,12 +81,12 @@ describe('db: sample: upsert: ', () => {
         Sample.findOne({
           where: {
             name: {
-              $iLike: updatedSubjectName + `|` + aspectName
+              $iLike: updatedSubjectName + '|' + aspectName
             }
           }
         })
         .then((sample) => {
-          expect(sample.dataValues.name).to.equal(updatedSubjectName + `|` + aspectName);
+          expect(sample).to.equal(null);
           done();
         });
       }, 500);
@@ -97,14 +97,14 @@ describe('db: sample: upsert: ', () => {
   it('updateAt timestamp should change', (done) => {
     let newSample;
     Sample.upsertByName({
-      name: subjectName + `|` + aspectName,
+      name: subjectName + '|' + aspectName,
       value: '1',
     })
     .then((samp) => {
       newSample = samp;
     })
     .then(() => Sample.upsertByName({
-      name: subjectName + `|` + aspectName,
+      name: subjectName + '|' + aspectName,
       value: '1',
     }))
     .then((s) => {
@@ -118,7 +118,7 @@ describe('db: sample: upsert: ', () => {
 
   it('subject does not exist', (done) => {
     Sample.upsertByName({
-      name: subjectName + `|x`,
+      name: subjectName + '|x',
       value: '1',
     })
     .then(() => done('expecting to throw ResourceNotFoundError'))
@@ -130,7 +130,7 @@ describe('db: sample: upsert: ', () => {
 
   it('aspect does not exist', (done) => {
     Sample.upsertByName({
-      name: `x|` + aspectName,
+      name: 'x|' + aspectName,
       value: '1',
     })
     .then(() => done('expecting to throw ResourceNotFoundError'))
