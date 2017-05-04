@@ -170,13 +170,10 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
   sampleRes = sampleStore.arrayStringsToJson(
     sampleObj, constants.fieldsToStringify.sample
   );
-
   const aspect = sampleStore.arrayStringsToJson(
     aspectObj, constants.fieldsToStringify.aspect
   );
   sampleRes.aspect = aspect;
-  sampleRes.aspectId = aspect.id;
-
   return sampleRes;
 }
 
@@ -453,6 +450,8 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     }
 
     subjectId = subjId;
+    sampleQueryBodyObj.subjectId = subjectId;
+    sampleQueryBodyObj.aspectId = aspect.id;
     aspectObj = sampleStore.arrayStringsToJson(
       aspect, constants.fieldsToStringify.aspect
     );
@@ -483,10 +482,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     ]).execAsync();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
-  .then((updatedSamp) => {
-    updatedSamp.subjectId = subjectId;
-    return cleanAddAspectToSample(updatedSamp, aspectObj);
-  })
+  .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj))
   .catch((err) => {
     if (isBulk) {
       return err;
