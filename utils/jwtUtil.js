@@ -184,9 +184,9 @@ function getTokenDetailsFromRequest(req) {
   if (!t && req.session && req.session.token) {
     const username = req.session.passport.user.name;
     const tokenname = '__UI';
-    return new Promise((resolve) => {
-      return resolve({ username, tokenname });
-    });
+    return new Promise((resolve) =>
+      resolve({ username, tokenname })
+    );
   }
 
   return getTokenDetailsFromTokenString(t);
