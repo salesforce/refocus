@@ -321,9 +321,8 @@ function cleanQueryBodyObj(qbObj) {
  * @param  {Object} qbObj - Query body object
  * @param  {Object} sampObj - Sample object
  * @param  {Object} aspectObj - Aspect object
- * @param  {Boolean} isBulk - Whether bulk upsert or not
  */
-function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
+function createSampHsetCommand(qbObj, sampObj, aspectObj) {
   cleanQueryBodyObj(qbObj); // remove extra fields
   let value;
   if (qbObj[sampFields.VALUE]) {
@@ -345,18 +344,17 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  if (!isBulk) {
-    // only in upsert, not bulk upsert.
-    let rlinks = [];
-    if (qbObj[sampFields.RLINKS]) {
-      rlinks = qbObj[sampFields.RLINKS];
-    } else if (!sampObj) {
-      rlinks = []; // default value
-    }
+  let rlinks;
 
-    if (rlinks) {
-      qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
-    }
+  // if related link is passed in query object
+  if (qbObj[sampFields.RLINKS]) {
+    rlinks = qbObj[sampFields.RLINKS];
+  } else if (!sampObj) { // if we are creating new sample
+    rlinks = []; // default value
+  }
+
+  if (rlinks) {
+    qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
   }
 
   const dateNow = new Date().toISOString();
