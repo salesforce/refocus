@@ -244,9 +244,17 @@ function populateSamples() {
 function populate() {
   const msg = 'Populating redis sample store from db started :|';
   log.info(msg);
-
-  const promises = [populateSubjects(), populateSamples(), populateAspects()];
-  return Promise.all(promises);
+  let resp;
+  const promises = [populateSubjects(), populateAspects()];
+  return Promise.all(promises)
+  .then((retval) => {
+    resp = retval;
+    return populateSamples();
+  })
+  .then((sampresp) => {
+    resp.push(sampresp);
+    return resp;
+  });
 } // populate
 
 /**

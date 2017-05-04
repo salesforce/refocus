@@ -36,10 +36,22 @@ function storeSampleToDb() {
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
   .then((res) => {
+    log.info('Preparing list of samples to persist...');
+    log.info(`Checking ${res.length} samples...`);
     const samplesToCreate = res.map((sample) => {
       sample.relatedLinks = JSON.parse(sample.relatedLinks);
       return sample;
+    })
+    .filter((s) => {
+      if (!s.aspectId || !s.subjectId) {
+        log.warn('Skipping sample with missing aspectId or subjectId: ',
+          JSON.stringify(s));
+        return false;
+      }
+
+      return true;
     });
+    log.info(`Bulk creating ${samplesToCreate.length} samples...`);
     return Sample.bulkCreate(samplesToCreate);
   })
   .then((retval) => {
