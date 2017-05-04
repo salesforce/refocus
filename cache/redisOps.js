@@ -133,10 +133,10 @@ function deleteKey(type, name) {
 } // deleteKey
 
 /**
- * Deletes entries from the sampleStore that matches the "subject name" part
- * or the "aspect name" part of the entry. The hash identified by the
- * deleted entry is also deleted. Use this only to delete multiple keys in the
- * sampleStore and its related hashes.
+ * Deletes entries from the sample master list of indexes that matches
+ * the "subject name" part or the "aspect name" part of the entry. The hash
+ * identified by the deleted entry is also deleted. Use this only to delete
+ * multiple keys in the sample master list of indexes and its related hashes.
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
@@ -157,12 +157,12 @@ function deleteKeys(type, objectName, name) {
     const keyArr = [];
 
     /*
-     * Go through the members in the SampleStore. Split the name parts. If
-     * the object type is subject and the "subjectNamepart" matches the nameKey
-     * remove it from the SampleStore. There is also a hash with the same name
-     * as this, delete that hash too. If the object type is aspect and the
-     * and aspect name matches the name, remove it from the sampleStore and
-     * delete the hash.
+     * Go through the members in the sample master list of indexes.
+     * Split the name parts. If the object type is subject and the
+     * "subjectNamepart" matches the nameKey remove it from the SampleStore.
+     * There is also a hash with the same name as this, delete that hash too.
+     * If the object type is aspect and the and aspect name matches the name,
+     * remove it from the sample master index and delete the hash.
      */
     keys.forEach((key) => {
       const nameParts = key.split('|');

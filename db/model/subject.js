@@ -24,6 +24,7 @@ const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
+const subAspMapType = redisOps.subAspMapType;
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -346,9 +347,14 @@ module.exports = function subject(seq, dataTypes) {
             // rename entry in subject store
             redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
 
-            // rename entries in sample store
-            redisOps.renameKeys(sampleType, subjectType, oldAbsPath,
-              newAbsPath);
+            /*
+             * When subject absolutePath changes delete multiple possible
+             * entries in sample master list of index
+             */
+            redisOps.deleteKeys(sampleType, subjectType, oldAbsPath);
+
+            // also delete the subject to aspect mapping
+            redisOps.deleteKey(subAspMapType, oldAbsPath);
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
@@ -365,9 +371,7 @@ module.exports = function subject(seq, dataTypes) {
           inst.getSamples()
           .each((samp) => {
             if (samp) {
-              samp.update({
-                name: inst.absolutePath + '|' + samp.aspect.dataValues.name,
-              });
+              samp.destroy();
             }
           })
           .catch((err) => {
