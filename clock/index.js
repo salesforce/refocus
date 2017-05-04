@@ -21,21 +21,31 @@
  */
 const conf = require('../config');
 const featureToggles = require('feature-toggles');
-const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
+const kueStatsActivityLogs = require('./scheduledJobs/kueStatsActivityLogs');
 const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
 const queueStatsActivityLogs =
   require('./scheduledJobs/queueStatsActivityLogs');
+const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 
 /*
  * Add all the scheduled work here.
  */
 setInterval(sampleTimeoutJob.enqueue, conf.checkTimeoutIntervalMillis);
-setInterval(persistSampleStoreJob.enqueue,
-  conf.persistRedisSampleStoreMilliseconds);
+
+// If redis sample store feature is enabled, schedule persist to db
+if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+  setInterval(persistSampleStoreJob.enqueue,
+    conf.persistRedisSampleStoreMilliseconds);
+}
+
+// If enableKueStatsActivityLogs is true then write log
+if (featureToggles.isFeatureEnabled('enableKueStatsActivityLogs')) {
+  setInterval(kueStatsActivityLogs.execute,
+    conf.queueStatsActivityLogsInterval);
+}
 
 // If queueStatsActivityLogs is true then write log
-if (featureToggles
-  .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
   setInterval(queueStatsActivityLogs.execute,
-  conf.queueStatsActivityLogsInterval);
+    conf.queueStatsActivityLogsInterval);
 }

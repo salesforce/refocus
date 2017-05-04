@@ -23,11 +23,10 @@ const log = require('winston');
  * Truncate the sample table in the DB and persist all the samples from redis
  * into the empty table.
  *
- * @returns {Promise} - which resolves to true once the sample is persisted to
- * the database
+ * @returns {Promise} - which resolves to number of samples persisted to db
  */
 function storeSampleToDb() {
-  log.info('Persis to db started :|. This will start by truncating the ' +
+  log.info('Persist to db started :|. This will start by truncating the ' +
     'sample table followed by persisting the sample to db');
   return Sample.destroy({ truncate: true, force: true })
   .then(() => {
@@ -37,22 +36,36 @@ function storeSampleToDb() {
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
   .then((res) => {
+    log.info('Preparing list of samples to persist...');
+    log.info(`Checking ${res.length} samples...`);
     const samplesToCreate = res.map((sample) => {
       sample.relatedLinks = JSON.parse(sample.relatedLinks);
       return sample;
+    })
+    .filter((s) => {
+      if (!s.aspectId || !s.subjectId) {
+        log.warn('Skipping sample with missing aspectId or subjectId: ',
+          JSON.stringify(s));
+        return false;
+      }
+
+      return true;
     });
+    log.info(`Bulk creating ${samplesToCreate.length} samples...`);
     return Sample.bulkCreate(samplesToCreate);
   })
-  .then(() => log.info('persisted redis sample store to db :D'))
-  .then(() => true);
+  .then((retval) => {
+    log.info('persisted redis sample store to db :D');
+    return retval.length;
+  });
 } // storeSampleToDb
 
 /**
  * Calls the storeSampleToDb function to store sample data back to DB.
  *
- * @returns {Promise} which resolves to true upon complete if redis sample
- * store feature is enabled, or false on error or if feature is disabled or if
- * there is already a persist in progress.
+ * @returns {Promise} which resolves to number of samples persisted to db if
+ *  redis sample store feature is enabled, or false on error or if feature is
+ *  disabled.
  */
 function persist() {
   if (!featureToggles.isFeatureEnabled(constants.featureName)) {

@@ -32,6 +32,29 @@ function deletePreviousStatus() {
 } // deletePreviousStatus
 
 /**
+ * When passed an array of sample keys, it extracts the subject name part from
+ * each of the key and returns an array of keys prefixed with
+ * "samsto:subaspmap". For example if
+ * ['samsto:sample:subject1|aspect1','samsto:sample:subject2|aspect2']
+ * is the input, the output is
+ *['samsto:subaspmap:subject1','samsto:subaspmap:subject2']
+ * @param  {Array} keys - An array of sample keys
+ * @returns {Array} - An array of subaspmap keys
+ */
+function getSubAspMapKeys(keys) {
+  const subAspMapSet = new Set();
+  const subAspPrefix = constants.prefix + constants.separator +
+    constants.objectType.subAspMap + constants.separator;
+  keys.forEach((key) => {
+    const keyNameParts = key.split(constants.separator);
+    const sampleNamePart = keyNameParts[2].split('|');
+    const subjectNamePart = sampleNamePart[0];
+    subAspMapSet.add(subAspPrefix + subjectNamePart);
+  });
+  return Array.from(subAspMapSet);
+} // getSubAspMapKeys
+
+/**
  * Gets the value of "previousStatusKey"
  *
  * @returns {Promise} which resolves to the value of the previoiusStatusKey
@@ -41,8 +64,8 @@ function getPreviousStatus() {
 } // persistInProgress
 
 /**
- * Clear all the "sampleStore" keys (for subjects, aspects, samples) from
- * redis.
+ * Clear all the "sampleStore" keys (for subjects, aspects, samples, subaspmap)
+ * from redis.
  *
  * @returns {Promise} upon completion.
  */
@@ -50,6 +73,11 @@ function eradicate() {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
+      if (constants.indexKey[s] === constants.indexKey.sample) {
+        // this is done to delete keys prefixed with "samsto:subaspmap:"
+        keys.push(...getSubAspMapKeys(keys));
+      }
+
       keys.push(constants.indexKey[s]);
       return redisClient.delAsync(keys);
     })
@@ -65,26 +93,45 @@ function eradicate() {
 } // eradicate
 
 /**
- * Populate the redis sample store with aspects from the db.
+ * Populate the redis sample store with aspects from the db. If the aspect
+ * has any writers, add them to the aspect's writers field
  *
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateAspects() {
+  let aspects;
   return Aspect.findAll({
     where: {
       isPublished: true,
     },
   })
-  .then((aspects) => {
-    const msg = `Starting to load ${aspects.length} aspects to cache :|`;
+  .then((allAspects) => {
+    const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
     log.info(msg);
+    aspects = allAspects;
+    const getWritersPromises = [];
+
+    // get Writers for all the aspects in the aspect table
+    aspects.forEach((aspect) => {
+      getWritersPromises.push(aspect.getWriters());
+    });
+    return Promise.all(getWritersPromises);
+  })
+  .then((writersArray) => {
     const aspectIdx = [];
     const cmds = [];
-    aspects.forEach((a) => {
+
+    // for each aspect, add the associated writers to its "writers" field.
+    for (let i = 0; i < aspects.length; i++) {
+      const a = aspects[i];
+      a.dataValues.writers = [];
+      writersArray[i].forEach((writer) => {
+        a.dataValues.writers.push(writer.dataValues.name);
+      });
       const key = samsto.toKey(constants.objectType.aspect, a.name);
       aspectIdx.push(key);
       cmds.push(['hmset', key, samsto.cleanAspect(a)]);
-    });
+    }
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
     return redisClient.batch(cmds).execAsync()
@@ -197,9 +244,17 @@ function populateSamples() {
 function populate() {
   const msg = 'Populating redis sample store from db started :|';
   log.info(msg);
-
-  const promises = [populateSubjects(), populateSamples(), populateAspects()];
-  return Promise.all(promises);
+  let resp;
+  const promises = [populateSubjects(), populateAspects()];
+  return Promise.all(promises)
+  .then((retval) => {
+    resp = retval;
+    return populateSamples();
+  })
+  .then((sampresp) => {
+    resp.push(sampresp);
+    return resp;
+  });
 } // populate
 
 /**

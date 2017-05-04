@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
-const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');

@@ -221,6 +221,7 @@ module.exports = {
   deprioritizeJobsFrom,
   endpointToLimit,
   httpMethodToLimit,
+  kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   nodeEnv,
   payloadLimit,
   persistRedisSampleStoreMilliseconds:

@@ -13,6 +13,7 @@
 
 const redisStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
+const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
 const aspectType = redisStore.constants.objectType.aspect;
@@ -62,6 +63,32 @@ function setValue(objectName, name, value) {
 } // setValue
 
 /**
+ * Promise to get complete hash
+ * @param  {String} type - Object type
+ * @param  {String} name - Object name
+ * @returns {Promise} - Resolves to object
+ */
+function getHashPromise(type, name) {
+  return redisClient.hgetallAsync(redisStore.toKey(type, name));
+} // getHashPromise
+
+/**
+ * Get the value that is mapped to a key
+ * @param  {String} type - The type of the object on which the operation is to
+ * be performed
+ * @param  {String} name -  Name of the key
+ * @returns {Promise} - which resolves to the value associated with the key
+ */
+function getValue(type, name) {
+  return getHashPromise(type, name)
+  .then((value) => {
+    redisStore.arrayStringsToJson(value, rsConstant.fieldsToStringify[type]);
+    return Promise.resolve(value);
+  })
+  .catch((err) => Promise.reject(err));
+} // getValue
+
+/**
  * Adds an entry identified by name to the master list of indices identified
  * by "type"
  * @param  {String} type - The type of the master list on which the
@@ -106,10 +133,10 @@ function deleteKey(type, name) {
 } // deleteKey
 
 /**
- * Deletes entries from the sampleStore that matches the "subject name" part
- * or the "aspect name" part of the entry. The hash identified by the
- * deleted entry is also deleted. Use this only to delete multiple keys in the
- * sampleStore and its related hashes.
+ * Deletes entries from the sample master list of indexes that matches
+ * the "subject name" part or the "aspect name" part of the entry. The hash
+ * identified by the deleted entry is also deleted. Use this only to delete
+ * multiple keys in the sample master list of indexes and its related hashes.
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
@@ -130,12 +157,12 @@ function deleteKeys(type, objectName, name) {
     const keyArr = [];
 
     /*
-     * Go through the members in the SampleStore. Split the name parts. If
-     * the object type is subject and the "subjectNamepart" matches the nameKey
-     * remove it from the SampleStore. There is also a hash with the same name
-     * as this, delete that hash too. If the object type is aspect and the
-     * and aspect name matches the name, remove it from the sampleStore and
-     * delete the hash.
+     * Go through the members in the sample master list of indexes.
+     * Split the name parts. If the object type is subject and the
+     * "subjectNamepart" matches the nameKey remove it from the SampleStore.
+     * There is also a hash with the same name as this, delete that hash too.
+     * If the object type is aspect and the and aspect name matches the name,
+     * remove it from the sample master index and delete the hash.
      */
     keys.forEach((key) => {
       const nameParts = key.split('|');
@@ -365,16 +392,6 @@ module.exports = {
   },
 
   /**
-   * Promise to get complete hash
-   * @param  {String} type - Object type
-   * @param  {String} name - Object name
-   * @returns {Promise} - Resolves to object
-   */
-  getHashPromise(type, name) {
-    return redisClient.hgetallAsync(redisStore.toKey(type, name));
-  },
-
-  /**
    * Command to set multiple fields in a hash
    * @param  {String} type - Object type
    * @param  {String} name - Object name
@@ -449,4 +466,8 @@ module.exports = {
   sampleType,
 
   subAspMapType,
+
+  getValue,
+
+  getHashPromise,
 }; // export

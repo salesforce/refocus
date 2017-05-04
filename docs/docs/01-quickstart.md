@@ -157,7 +157,7 @@ An aspect is a characteristic of the monitored subject.
 
 So we want to monitor the unemployment rate and daily Gross Domestic Product (GDP) across the United States. Let's create the unemployment rate aspect first.
 
-POST to `/v1/aspects using the following body`:
+POST to `/v1/aspects` using the following body:
 
 ```json
 {
