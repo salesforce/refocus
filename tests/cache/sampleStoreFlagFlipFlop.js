@@ -23,7 +23,7 @@ const Sample = tu.db.Sample;
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 
-describe.only('sampleStore (feature off):', () => {
+describe('sampleStore (feature off):', () => {
   before(() => tu.toggleOverride(sampleStore.constants.featureName, false));
 
   after(() => tu.toggleOverride(sampleStore.constants.featureName,
