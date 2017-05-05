@@ -175,8 +175,8 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('when absolutePath changes, the sampleStore should reflect ' +
-     ' this change', (done) => {
+  it('when absolutePath changes, the subject should be updated and the ' +
+    'samples should be deleted', (done) => {
     let oldAbsPath;
     let newAbsPath;
 
@@ -227,11 +227,19 @@ describe('redis: subject: CRUD: ', () => {
         }
       });
 
-      // only samples with new name should be found
-      expect(samplesWithNewName.length).to.equal(2);
+      // samples should not be renamed to match the new subject absolute path
+      expect(samplesWithNewName.length).to.equal(0);
 
       // all the samples related to the subject should be deleted
       expect(samplesWithOldName.length).to.equal(0);
+      const subAspMapKey = redisStore.toKey('subaspmap', oldAbsPath);
+      return redisClient.keysAsync(subAspMapKey);
+    })
+    .then((values) => {
+
+      // the subject to aspect mapping for the subject with the old absolutepath
+      // should also be deleted
+      expect(values.length).to.equal(0);
       done();
     })
     .catch(done);

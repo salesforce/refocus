@@ -4049,7 +4049,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will not be updated. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        body, that field will not be updated. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. Beware! Updating a subject's name/parentId/parentAbsolutePath deletes all the samples associated with this subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchSubject
       parameters:
         -
@@ -4172,7 +4172,7 @@ paths:
       tags: [ subjects ]
       description: >-
         Update the specified subject. If a field is not included in the query
-        body, that field will be set to null or its default value. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        body, that field will be set to null or its default value. You can only unpublish a subject if it has no subject children of its own or if all its descendants are unpublished. Beware! Updating a subject's name/parentId/parentAbsolutePath deletes all the samples associated with this subject. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putSubject
       parameters:
         -

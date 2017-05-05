@@ -170,13 +170,10 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
   sampleRes = sampleStore.arrayStringsToJson(
     sampleObj, constants.fieldsToStringify.sample
   );
-
   const aspect = sampleStore.arrayStringsToJson(
     aspectObj, constants.fieldsToStringify.aspect
   );
   sampleRes.aspect = aspect;
-  sampleRes.aspectId = aspect.id;
-
   return sampleRes;
 }
 
@@ -324,9 +321,8 @@ function cleanQueryBodyObj(qbObj) {
  * @param  {Object} qbObj - Query body object
  * @param  {Object} sampObj - Sample object
  * @param  {Object} aspectObj - Aspect object
- * @param  {Boolean} isBulk - Whether bulk upsert or not
  */
-function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
+function createSampHsetCommand(qbObj, sampObj, aspectObj) {
   cleanQueryBodyObj(qbObj); // remove extra fields
   let value;
   if (qbObj[sampFields.VALUE]) {
@@ -348,18 +344,17 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj, isBulk) {
     }
   }
 
-  if (!isBulk) {
-    // only in upsert, not bulk upsert.
-    let rlinks = [];
-    if (qbObj[sampFields.RLINKS]) {
-      rlinks = qbObj[sampFields.RLINKS];
-    } else if (!sampObj) {
-      rlinks = []; // default value
-    }
+  let rlinks;
 
-    if (rlinks) {
-      qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
-    }
+  // if related link is passed in query object
+  if (qbObj[sampFields.RLINKS]) {
+    rlinks = qbObj[sampFields.RLINKS];
+  } else if (!sampObj) { // if we are creating new sample
+    rlinks = []; // default value
+  }
+
+  if (rlinks) {
+    qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
   }
 
   const dateNow = new Date().toISOString();
@@ -426,7 +421,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
 
   let aspectObj = {};
   let subjectId;
-  let subject;
   let aspect;
   let sample;
   return checkWritePermission(aspectName, sampleName, userName, isBulk)
@@ -434,7 +428,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   /*
    * if any of the promise errors, the subsequent promise does not process and
    * error is returned, else sample is returned
-  */
+   */
   .then(() => Promise.all([
     redisClient.getAsync(subjKey),
     redisClient.hgetallAsync(
@@ -443,8 +437,8 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     redisClient.hgetallAsync(sampleKey),
   ])
   .then((responses) => {
-    const [subjId, aspect, sample] = responses;
-    if (!subjId) {
+    [subjectId, aspect, sample] = responses;
+    if (!subjectId) {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
 
@@ -452,7 +446,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       handleUpsertError(constants.objectType.aspect, isBulk);
     }
 
-    subjectId = subjId;
+    sampleQueryBodyObj.subjectId = subjectId;
+    sampleQueryBodyObj.aspectId = aspect.id;
+
     aspectObj = sampleStore.arrayStringsToJson(
       aspect, constants.fieldsToStringify.aspect
     );
@@ -461,7 +457,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       userName, isBulk);
   })
   .then(() => {
-
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
 
@@ -483,10 +478,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     ]).execAsync();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
-  .then((updatedSamp) => {
-    updatedSamp.subjectId = subjectId;
-    return cleanAddAspectToSample(updatedSamp, aspectObj);
-  })
+  .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj))
   .catch((err) => {
     if (isBulk) {
       return err;

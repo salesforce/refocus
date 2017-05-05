@@ -163,6 +163,7 @@ describe('sampleStore flag flip flop:', () => {
   });
 
   it('flag from false to true: cache should be populated', (done) => {
+    let subjectIdToTest;
     samstoinit.eradicate()
     .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
     .then(() => samstoinit.init())
@@ -196,6 +197,16 @@ describe('sampleStore flag flip flop:', () => {
         .to.be.true;
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
+    })
+    .then(() => redisClient.getAsync('samsto:subject:___subject1.___subject3'))
+    .then((res) => {
+      expect(res).to.not.be.null;
+      subjectIdToTest = res;
+    })
+    .then(() => redisClient
+      .hgetallAsync('samsto:sample:___subject1.___subject3|___aspect1'))
+    .then((res) => {
+      expect(res).to.have.property('subjectId', subjectIdToTest);
     })
     .then(() => done())
     .catch(done);

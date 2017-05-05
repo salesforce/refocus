@@ -35,7 +35,7 @@ describe('persistSampleStoreJob', () => {
     initialFeatureState));
   it('ok, feature enabled', (done) => {
     j.execute()
-    .then((res) => expect(res).to.be.true)
+    .then((res) => expect(res).to.not.be.false)
     .then(() => done())
     .catch(done);
   });
