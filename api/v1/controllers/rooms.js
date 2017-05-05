@@ -16,8 +16,8 @@ const httpStatus = require('../constants').httpStatus;
 module.exports = {
   findRooms(req, res, next) {
     return res.status(httpStatus.OK).json({
-      success: true
+      success: true,
     });
   },
-}
+};
 
