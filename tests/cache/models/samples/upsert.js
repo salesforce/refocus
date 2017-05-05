@@ -365,7 +365,23 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
 
         expect(res.body.relatedLinks).to.have.length(2);
         expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
-        done();
+
+        // posting again without related link should still return related link
+        api.post(path)
+        .set('Authorization', token)
+        .send({
+          name: `${subject.absolutePath}|${aspect.name}`,
+          value: '3',
+        })
+        .end((err1, res1) => {
+          if (err1) {
+            done(err1);
+          }
+
+          expect(res1.body.relatedLinks).to.have.length(2);
+          expect(res1.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
+          done();
+        });
       });
     });
 
