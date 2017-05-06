@@ -290,6 +290,62 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     });
   });
 
+  it('bulk upsert should return OK even if every sample in the request ' +
+    'has readonly fields in them', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '2',
+        status: 'Invalid',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '4',
+        statusChangedAt: new Date().toString(),
+      },
+    ])
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.status).to.equal('OK');
+      return done();
+    });
+  });
+
+  it('samples with read only fields in them should not be upserted', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '10',
+        status: 'Info',
+      }
+    ])
+    .expect(constants.httpStatus.OK)
+    .then(() => {
+      /*
+       * the bulk api is asynchronous. The delay is used to give sometime for
+       * the upsert operation to complete
+       */
+      setTimeout(() => {
+        api.get('/v1/samples?name=' +
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].value).to.not.equal('10');
+          done();
+        });
+      }, 500);
+    });
+  });
+
   describe('upsert bulk when sample already exists', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
