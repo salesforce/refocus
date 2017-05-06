@@ -29,6 +29,7 @@ module.exports = (job, done) => {
   const samples = job.data.length ? job.data : job.data.upsertData;
   const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
+  const readOnlyFields = job.data.readOnlyFields;
 
   // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
   //   `with ${samples.length} samples`;
@@ -38,9 +39,11 @@ module.exports = (job, done) => {
 
   let bulkUpsertPromise;
   if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-    bulkUpsertPromise = cacheSampleModel.bulkUpsertSample(samples, userName);
+    bulkUpsertPromise = cacheSampleModel.bulkUpsertSample(samples, userName,
+      readOnlyFields);
   } else {
-    bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName);
+    bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName,
+      readOnlyFields);
   }
 
   bulkUpsertPromise.then((results) => {

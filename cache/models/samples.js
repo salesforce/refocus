@@ -27,6 +27,7 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
+const commonUtils = require('../../utils/common');
 const sampFields = {
   MSG_BODY: 'messageBody',
   MSG_CODE: 'messageCode',
@@ -1044,15 +1045,22 @@ module.exports = {
   },
 
   /**
-   * Upsert multiple samples in Redis.
+   * Upsert multiple samples in Redis concurrently.
    * @param  {Object} sampleQueryBody - Query body object
    * @param {String} userName - The user performing the write operation
+   * @param {Array} readOnlyFields - An array of read-only-fields
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertSample(sampleQueryBody, userName) {
-    const promises = sampleQueryBody.map(
-      (sampleReq) => upsertOneSample(sampleReq, true, userName)
-    );
+  bulkUpsertSample(sampleQueryBody, userName, readOnlyFields) {
+    const promises = sampleQueryBody.map((sampleReq) => {
+      try {
+        // thow an error if read-only-fields are in the upsert request
+        commonUtils.noReadOnlyFieldsInReq(sampleQueryBody, readOnlyFields);
+        return upsertOneSample(sampleReq, true, userName);
+      } catch (err) {
+        return Promise.resolve({ isFailed: true, explanation: err });
+      }
+    });
 
     return Promise.all(promises);
   },
