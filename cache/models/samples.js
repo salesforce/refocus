@@ -1051,11 +1051,11 @@ module.exports = {
    * @param {Array} readOnlyFields - An array of read-only-fields
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertSample(sampleQueryBody, userName, readOnlyFields) {
+  bulkUpsertByName(sampleQueryBody, userName, readOnlyFields) {
     const promises = sampleQueryBody.map((sampleReq) => {
       try {
-        // thow an error if read-only-fields are in the upsert request
-        commonUtils.noReadOnlyFieldsInReq(sampleQueryBody, readOnlyFields);
+        // thow an error if a sample is upserted with a read-only-field
+        commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
         return upsertOneSample(sampleReq, true, userName);
       } catch (err) {
         return Promise.resolve({ isFailed: true, explanation: err });

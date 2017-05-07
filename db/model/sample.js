@@ -234,8 +234,8 @@ module.exports = function sample(seq, dataTypes) {
       bulkUpsertByName(toUpsert, userName, readOnlyFields) {
         const promises = toUpsert.map((s) => {
           try {
-            // thow an error if read-only-fields are in the upsert request
-            commonUtils.noReadOnlyFieldsInReq(toUpsert, readOnlyFields);
+            // thow an error if a sample is upserted with a read-only-field
+            commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
             return this.upsertByName(s, userName, true);
           } catch (err) {
             return Promise.resolve({ explanation: err, isFailed: true });
