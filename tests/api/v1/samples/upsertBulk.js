@@ -226,6 +226,10 @@ describe('api: POST ' + path, () => {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '10',
         status: 'Info',
+      },
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '10',
       }
     ])
     .expect(constants.httpStatus.OK)
@@ -236,15 +240,14 @@ describe('api: POST ' + path, () => {
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' +
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
         .end((err, res) => {
           if (err) {
             done(err);
           }
-          console.log('here');
-          expect(res.body).to.have.length(1);
-          console.log(res.body[0].value);
+          expect(res.body).to.have.length(2);
           expect(res.body[0].value).to.not.equal('10');
+          expect(res.body[1].value).to.equal('10');
           return done();
         });
       }, 500);

@@ -37,52 +37,48 @@ module.exports = (job, done) => {
 
   const dbStartTime = Date.now();
 
-  let bulkUpsertPromise;
-  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-    bulkUpsertPromise = cacheSampleModel.bulkUpsertSample(samples, userName,
-      readOnlyFields);
-  } else {
-    bulkUpsertPromise = helper.model.bulkUpsertByName(samples, userName,
-      readOnlyFields);
-  }
+  const sampleModel =
+        featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
+          cacheSampleModel : helper.model;
 
-  bulkUpsertPromise.then((results) => {
-    let errorCount = 0;
+  sampleModel.bulkUpsertByName(samples, userName, readOnlyFields)
+    .then((results) => {
+      let errorCount = 0;
 
-    /*
-     * count failed promises and send the good samples to the client by
-     * publishing it to the redis channel
-     */
-    for (let i = 0; i < results.length; i++) {
-      if (results[i].isFailed) {
-        errorCount++;
-      } else {
-        publisher.publishSample(results[i], subHelper.model);
+      /*
+       * count failed promises and send the good samples to the client by
+       * publishing it to the redis channel
+       */
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].isFailed) {
+          errorCount++;
+        } else {
+          publisher.publishSample(results[i], subHelper.model);
+        }
       }
-    }
 
-    if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
-      const dbEndTime = Date.now();
-      const objToReturn = {};
+      if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+        const dbEndTime = Date.now();
+        const objToReturn = {};
 
-      // number of successful upserts
-      objToReturn.recordCount = results.length - errorCount;
+        // number of successful upserts
+        objToReturn.recordCount = results.length - errorCount;
 
-      // number of failed upserts
-      objToReturn.errorCount = errorCount;
+        // number of failed upserts
+        objToReturn.errorCount = errorCount;
 
-      const tempObj = {
-        jobStartTime,
-        reqStartTime,
-        dbStartTime,
-        dbEndTime,
-      };
+        const tempObj = {
+          jobStartTime,
+          reqStartTime,
+          dbStartTime,
+          dbEndTime,
+        };
 
-      // update time parameters in object to return.
-      activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
-      return done(null, objToReturn);
-    }
+        // update time parameters in object to return.
+        activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+        return done(null, objToReturn);
+      }
 
-    return done();
-  });
+      return done();
+    });
 };

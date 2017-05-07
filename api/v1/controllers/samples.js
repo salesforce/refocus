@@ -220,22 +220,22 @@ module.exports = {
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        const bulkUpsertPromise =
+        const sampleModel =
         featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.bulkUpsertSample(value, userName, readOnlyFields) :
-          helper.model.bulkUpsertByName(value, userName, readOnlyFields);
+          redisModelSample : helper.model;
 
         /*
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        bulkUpsertPromise.then((samples) => {
-          samples.forEach((sample) => {
-            if (!sample.isFailed) {
-              publisher.publishSample(sample, subHelper.model);
-            }
+        sampleModel.bulkUpsertByName(value, userName, readOnlyFields)
+          .then((samples) => {
+            samples.forEach((sample) => {
+              if (!sample.isFailed) {
+                publisher.publishSample(sample, subHelper.model);
+              }
+            });
           });
-        });
       }
     });
 
