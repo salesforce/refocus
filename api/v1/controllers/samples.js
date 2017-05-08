@@ -143,9 +143,9 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   upsertSample(req, res, next) {
-
     // make the name post-able
-    const readOnlyFields = helper.readOnlyFields.filter((field) => field !== 'name');
+    const readOnlyFields = helper.readOnlyFields.filter((field) =>
+      field !== 'name');
     utils.noReadOnlyFieldsInReq(req, readOnlyFields);
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
@@ -200,11 +200,11 @@ module.exports = {
    *  bulk upsert request has been received.
    */
   bulkUpsertSample(req, res/* , next */) {
-
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
-
+    const readOnlyFields = helper.readOnlyFields.filter((field) =>
+      field !== 'name');
     u.getUserNameFromToken(req,
       featureToggles.isFeatureEnabled('enforceWritePermission'))
     .then((userName) => {
@@ -216,26 +216,26 @@ module.exports = {
         wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
-
+        wrappedBulkUpsertData.readOnlyFields = helper.readOnlyFields;
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
-        const bulkUpsertPromise =
+        const sampleModel =
         featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.bulkUpsertSample(value, userName) :
-          helper.model.bulkUpsertByName(value, userName);
+          redisModelSample : helper.model;
 
         /*
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        bulkUpsertPromise.then((samples) => {
-          samples.forEach((sample) => {
-            if (!sample.isFailed) {
-              publisher.publishSample(sample, subHelper.model);
-            }
+        sampleModel.bulkUpsertByName(value, userName, readOnlyFields)
+          .then((samples) => {
+            samples.forEach((sample) => {
+              if (!sample.isFailed) {
+                publisher.publishSample(sample, subHelper.model);
+              }
+            });
           });
-        });
       }
     });
 

@@ -16,6 +16,7 @@ const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
 const dbErrors = require('../dbErrors');
+const commonUtils = require('../../utils/common');
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
@@ -223,9 +224,23 @@ module.exports = function sample(seq, dataTypes) {
         });
       }, // upsertByName
 
-      bulkUpsertByName(toUpsert, userName) {
-        const promises = toUpsert.map((s) =>
-          this.upsertByName(s, userName, true)
+      /**
+       * Upsert multiple samples concurrently.
+       * @param  {Array} toUpsert - An array of sample objects to upsert
+       * @param {String} userName - The user performing the write operation
+       * @param {Array} readOnlyFields - An array of read-only-fields
+       * @returns {Array} - Resolves to an array of resolved promises
+      */
+      bulkUpsertByName(toUpsert, userName, readOnlyFields) {
+        const promises = toUpsert.map((s) => {
+          try {
+            // thow an error if a sample is upserted with a read-only-field
+            commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
+            return this.upsertByName(s, userName, true);
+          } catch (err) {
+            return Promise.resolve({ explanation: err, isFailed: true });
+          }
+        }
         );
         return seq.Promise.all(promises);
       }, // bulkUpsertByName
