@@ -26,7 +26,7 @@ describe(`api: POST ${path} without token `, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('result contains null createdBy', (done) => {
+  it('result contains empty createdBy', (done) => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
@@ -68,7 +68,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  it.only('result contains createdBy', (done) => {
+  it('result contains createdBy and user object', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)
@@ -78,7 +78,6 @@ describe(`api: POST ${path}`, () => {
         done(err);
       }
 
-      console.log(res.body);
       expect(res.body.createdBy).to.be.an('string');
       expect(res.body.user).to.be.an('object');
       expect(res.body.user.name).to.be.an('string');

@@ -76,7 +76,8 @@ module.exports = function sample(seq, dataTypes) {
 
       postImport(models) {
         assoc.provider = Sample.belongsTo(models.User, {
-          foreignKey: 'provider',
+          foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.aspect = Sample.belongsTo(models.Aspect, {
           as: 'aspect',
@@ -97,7 +98,7 @@ module.exports = function sample(seq, dataTypes) {
         Sample.addScope('defaultScope', {
           include: [
             {
-              association: assoc.aspect,
+              association: assoc.provider,
               attributes: [
                 'id',
                 'description',
@@ -117,7 +118,10 @@ module.exports = function sample(seq, dataTypes) {
                 'rank',
               ],
             },
-            assoc.provider,
+            {
+              association: assoc.provider,
+              attributes: ['name'],
+            },
           ],
           order: ['Sample.name'],
         }, {

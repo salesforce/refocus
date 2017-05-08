@@ -44,8 +44,21 @@ module.exports = function user(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = GlobalConfig.belongsTo(models.User, {
+        assoc.user = GlobalConfig.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
+        });
+
+        GlobalConfig.addScope('defaultScope', {
+          order: ['GlobalConfig.key'],
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name'],
+            },
+          ],
+        }, {
+          override: true,
         });
       },
     },

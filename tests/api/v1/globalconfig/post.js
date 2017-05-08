@@ -127,7 +127,8 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  it('sucessful creation by predefined admin user', (done) => {
+  it('sucessful creation by predefined admin user' +
+    ' should have user-related fields', (done) => {
     api.post(path)
     .set('Authorization', predefinedAdminUserToken)
     .send({
@@ -138,11 +139,14 @@ describe(`api: POST ${path}`, () => {
     .end((err, res) => {
       if (err) {
         done(err);
-      } else {
-        expect(res.body.key).to.equal(key);
-        expect(res.body).to.have.property('value', 'def');
-        done();
       }
+
+      expect(res.body.key).to.equal(key);
+      expect(res.body).to.have.property('value', 'def');
+      expect(res.body.user).to.be.an('object');
+      expect(res.body.user.name).to.be.an('string');
+      expect(res.body.createdBy).to.be.an('string');
+      done();
     });
   });
 
