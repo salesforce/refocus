@@ -138,6 +138,7 @@ module.exports = function aspect(seq, dataTypes) {
       postImport(models) {
         assoc.user = Aspect.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.samples = Aspect.hasMany(models.Sample, {
           as: 'samples',

@@ -81,8 +81,9 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.installedBy = Lens.belongsTo(models.User, {
-          foreignKey: 'installedBy',
+        assoc.createdByUser = Lens.belongsTo(models.User, {
+          foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.writers = Lens.belongsToMany(models.User, {
           as: 'writers',
@@ -99,6 +100,10 @@ module.exports = function lens(seq, dataTypes) {
     },
     defaultScope: {
       attributes: { exclude: ['library'] },
+      include: {
+        association: assoc.createdByUser,
+        attributes: ['name'],
+      },
       order: ['Lens.name'],
     },
     hooks: {
