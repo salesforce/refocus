@@ -77,7 +77,9 @@ function getArray(field, arrayOfObjects) {
   }
 
   for (let i = 0; i < arrayOfObjects.length; i++) {
-    arr.push(arrayOfObjects[i][field]);
+    if (arrayOfObjects[i].isPublished) {
+      arr.push(arrayOfObjects[i][field]);
+    }
   }
 
   return arr;
@@ -250,28 +252,21 @@ function getValuesObject(request, getPerspectiveName) {
   })
   .then((res) => {
     valuesObj.lens = res.body;
-
     return request('/v1/subjects');
   })
   .then((res) => {
     valuesObj.subjectTagFilter = getTagsFromArrays(res.body);
-    valuesObj.subjects = res.body.filter((subject) => {
-      if (subject.absolutePath === valuesObj.perspective.rootSubject) {
-        valuesObj.rootSubject= subject;
-      }
-
-      if (subject.isPublished) {
-        return subject.absolutePath;
-      }
-    });
-
+    valuesObj.subjects = res.body;
+    const filterString  = getFilterQuery(valuesObj.perspective);
+    return request('/v1/subjects/' + valuesObj.perspective.rootSubject + '/hierarchy' + filterString);
+  })
+  .then((res) => {
+    valuesObj.rootSubject = res.body;
     return request('/v1/lenses');
   })
   .then((res) => {
-    valuesObj.lenses = res.body.filter((lens) => {
-      if (lens.isPublished) {
-        return { name: lens.name, id: lens.id }
-      }
+    valuesObj.lenses = res.body.map((lens) => {
+      return { name: lens.name, id: lens.id };
     });
 
     return request('/v1/aspects')
@@ -279,9 +274,7 @@ function getValuesObject(request, getPerspectiveName) {
   .then((res) => {
     const aspectsArr = [];
     for (let i = res.body.length - 1; i >= 0; i--) {
-      if (res.body[i].isPublished) {
-        aspectsArr.push(res.body[i].name);
-      }
+      aspectsArr.push(res.body[i].name);
     }
 
     valuesObj.aspectFilter = aspectsArr;
