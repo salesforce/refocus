@@ -78,8 +78,11 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    return res.status(httpStatus.CREATED)
-    .json(u.responsify(o, props, req.method));
+    o.reload()
+    .then((reloaded) => {
+      return res.status(httpStatus.CREATED)
+      .json(u.responsify(o, props, req.method));
+    });
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

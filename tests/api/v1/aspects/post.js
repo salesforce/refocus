@@ -68,7 +68,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  it.skip('result contains createdBy', (done) => {
+  it.only('result contains createdBy', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)

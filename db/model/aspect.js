@@ -136,9 +136,9 @@ module.exports = function aspect(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = Aspect.belongsTo(models.User, {
+        assoc.users = Aspect.belongsTo(models.User, {
           foreignKey: 'createdBy',
-          as: 'users',
+          as: 'user',
         });
         assoc.samples = Aspect.hasMany(models.Sample, {
           as: 'samples',
@@ -154,8 +154,8 @@ module.exports = function aspect(seq, dataTypes) {
           order: ['Aspect.name'],
           include: [
             {
-              association: assoc.createdBy,
-              attributes: { exclude: ['password'] },
+              association: assoc.users,
+              attributes: ['name'],
             },
           ],
         }, {

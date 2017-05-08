@@ -77,9 +77,6 @@ module.exports = function sample(seq, dataTypes) {
       postImport(models) {
         assoc.provider = Sample.belongsTo(models.User, {
           foreignKey: 'provider',
-
-          // TODO uncomment the next line once we have users/profiles done:
-          // allowNull: false,
         });
         assoc.aspect = Sample.belongsTo(models.Aspect, {
           as: 'aspect',
@@ -120,8 +117,7 @@ module.exports = function sample(seq, dataTypes) {
                 'rank',
               ],
             },
-
-            // assoc.provider,
+            assoc.provider,
           ],
           order: ['Sample.name'],
         }, {

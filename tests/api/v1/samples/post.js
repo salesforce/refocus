@@ -151,6 +151,22 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
+  it('basic post includes aspect object', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspect).to.be.an('object');
+      expect(res.body.aspect.name).to.be.an('string');
+      done();
+    })
+  });
+
   it('does not return id', (done) => {
     api.post(path)
     .set('Authorization', token)
