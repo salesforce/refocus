@@ -193,7 +193,8 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  it.skip('upsert with readOnly field status should fail', (done) => {
+  it('bulk upsert should return OK even if every sample in the request ' +
+    'has readonly fields in them', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -207,41 +208,49 @@ describe('api: POST ' + path, () => {
         statusChangedAt: new Date().toString(),
       },
     ])
-    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
-
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: status');
+      expect(res.body.status).to.equal('OK');
       return done();
     });
   });
 
-  it.skip('upsert with readOnly field statusChangedAt should fail', (done) => {
+  it('samples with read only fields in them should not be upserted', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
-        value: '2',
-        statusChangedAt: new Date().toString(),
-      }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
-        value: '4',
-        updatedAt: new Date().toString(),
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '10',
+        status: 'Info',
       },
-    ])
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '10',
       }
-
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: statusChangedAt');
-      return done();
+    ])
+    .expect(constants.httpStatus.OK)
+    .then(() => {
+      /*
+       * the bulk api is asynchronous. The delay is used to give sometime for
+       * the upsert operation to complete
+       */
+      setTimeout(() => {
+        api.get('/v1/samples?name=' +
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+          expect(res.body).to.have.length(2);
+          expect(res.body[0].value).to.not.equal('10');
+          expect(res.body[1].value).to.equal('10');
+          return done();
+        });
+      }, 500);
     });
   });
 

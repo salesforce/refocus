@@ -18,10 +18,8 @@ const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const redisClient = require('../../../../cache/redisCache').client.sampleStore;
-const samsto = require('../../../../cache/sampleStore');
 const bulkUpsert = require('../../../../cache/models/samples.js')
-                        .bulkUpsertSample;
-const stConst = samsto.constants;
+                        .bulkUpsertByName;
 const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
@@ -80,8 +78,6 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('name field is required', (done) => {
-    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -107,7 +103,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
 
   it('all succeed', (done) => {
     const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -290,6 +286,67 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     });
   });
 
+  it('bulk upsert should return OK even if every sample in the request ' +
+    'has readonly fields in them', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '2',
+        status: 'Invalid',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        value: '4',
+        statusChangedAt: new Date().toString(),
+      },
+    ])
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.status).to.equal('OK');
+      return done();
+    });
+  });
+
+  it('samples with read only fields in them should not be upserted', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '10',
+        status: 'Info',
+      },
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '10',
+      }
+    ])
+    .expect(constants.httpStatus.OK)
+    .then(() => {
+      /*
+       * the bulk api is asynchronous. The delay is used to give sometime for
+       * the upsert operation to complete
+       */
+      setTimeout(() => {
+        api.get('/v1/samples?name=' +
+        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+          expect(res.body).to.have.length(2);
+          expect(res.body[0].value).to.not.equal('10');
+          expect(res.body[1].value).to.equal('10');
+          done();
+        });
+      }, 500);
+    });
+  });
+
   describe('upsert bulk when sample already exists', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
@@ -341,7 +398,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
             `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase()
           );
 
-          //check that no extra samples are created as side effect
+          // check that no extra samples are created as side effect
           redisClient.keysAsync('samsto:sample:*')
           .then((responses) => {
             expect(responses.length).to.be.equal(2);
