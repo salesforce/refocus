@@ -316,7 +316,6 @@ describe('Perspective app ', () => {
         expect(obj.lenses.length).to.equal(2);
         expect(obj.lens.id).to.equal(DUMMY_ID);
         expect(obj.lens.name).to.equal(LENS_NAME);
-        expect(obj.rootSubject.absolutePath).to.equal(SUBJECT1);
         expect(obj.persNames.length).to.equal(2);
 
         // filters

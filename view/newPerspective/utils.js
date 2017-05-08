@@ -272,12 +272,7 @@ function getValuesObject(request, getPerspectiveName) {
     return request('/v1/aspects')
   })
   .then((res) => {
-    const aspectsArr = [];
-    for (let i = res.body.length - 1; i >= 0; i--) {
-      aspectsArr.push(res.body[i].name);
-    }
-
-    valuesObj.aspectFilter = aspectsArr;
+    valuesObj.aspectFilter = getArray('name', res.body);;
     valuesObj.aspectTagFilter = getTagsFromArrays(res.body);
     return valuesObj;
   });
