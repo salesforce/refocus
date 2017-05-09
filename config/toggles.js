@@ -110,6 +110,9 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  returnCreatedBy: environmentVariableTrue(pe,
+    'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

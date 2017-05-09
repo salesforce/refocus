@@ -14,7 +14,7 @@ const common = require('../helpers/common');
 const constants = require('../constants');
 const redisCache = require('../../cache/redisCache').client.cache;
 const lensUtil = require('../../utils/lensUtil');
-
+const featureToggles = require('feature-toggles');
 const assoc = {};
 
 module.exports = function lens(seq, dataTypes) {
@@ -81,8 +81,9 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.installedBy = Lens.belongsTo(models.User, {
-          foreignKey: 'installedBy',
+        assoc.user = Lens.belongsTo(models.User, {
+          foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.writers = Lens.belongsToMany(models.User, {
           as: 'writers',
@@ -95,12 +96,22 @@ module.exports = function lens(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Lens.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name'],
+            },
+          ],
+          attributes: { exclude: ['library'] },
+          order: ['Lens.name'],
+        }, {
+          override: true,
+        });
       },
     },
-    defaultScope: {
-      attributes: { exclude: ['library'] },
-      order: ['Lens.name'],
-    },
+
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
