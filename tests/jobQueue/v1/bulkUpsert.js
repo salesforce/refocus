@@ -22,7 +22,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST using worker process' + path, () => {
+describe('api: POST using worker process ' + path, () => {
   let token;
 
   before((done) => {
@@ -103,6 +103,8 @@ describe('api: POST using worker process' + path, () => {
       expect(jobQueue.testMode.jobs[0].data.upsertData).to.have.length(2);
       expect(jobQueue.testMode.jobs[0].data.upsertData[0])
         .to.have.all.keys('name', 'value');
+      expect(jobQueue.testMode.jobs[0].data.readOnlyFields).to
+        .be.instanceOf(Array);
       done();
     });
   });

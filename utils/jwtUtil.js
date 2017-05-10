@@ -180,6 +180,15 @@ function getTokenDetailsFromRequest(req) {
     t = req.headers.authorization;
   }
 
+  // if token is null and request from UI
+  if (!t && req.session && req.session.token) {
+    const username = req.session.passport.user.name;
+    const tokenname = '__UI';
+    return new Promise((resolve) =>
+      resolve({ username, tokenname })
+    );
+  }
+
   return getTokenDetailsFromTokenString(t);
 } // getTokenDetailsFromRequest
 
