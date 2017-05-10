@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
+const authUtils = require('../authUtils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
@@ -45,9 +46,28 @@ function doPost(req, res, next, props) {
       featureToggles.isFeatureEnabled('enforceWritePermission'))
       .then((user) => redisModelSample.postSample(req.swagger.params, user));
   } else {
-    postPromise = featureToggles.isFeatureEnabled('enforceWritePermission') &&
-      props.modelName === 'Sample' ? u.createSample(req, props) :
-      props.model.create(toPost);
+    if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
+      props.modelName === 'Sample') {
+      postPromise = u.createSample(req, props);
+    } else if (!featureToggles.isFeatureEnabled('returnCreatedBy')) {
+      postPromise = props.model.create(toPost);
+    } else {
+      postPromise = authUtils.getUser(req)
+        .then((user) => {
+          if (user) {
+            toPost.createdBy = user.id;
+          }
+
+          return props.model.create(toPost);
+        })
+        .catch((err) => {
+          if (err.status === 403) {
+            return props.model.create(toPost);
+          } else {
+            u.handleError(next, err, props.modelName);
+          }
+        });
+    }
   }
 
   postPromise.then((o) => {
@@ -60,8 +80,14 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    return res.status(httpStatus.CREATED)
-    .json(u.responsify(o, props, req.method));
+    if (featureToggles.isFeatureEnabled('returnCreatedBy')) {
+      o.reload()
+      .then((reloaded) => res.status(httpStatus.CREATED).json(
+          u.responsify(o, props, req.method)));
+    } else {
+      return res.status(httpStatus.CREATED)
+      .json(u.responsify(o, props, req.method));
+    }
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
