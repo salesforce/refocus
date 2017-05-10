@@ -155,7 +155,7 @@ module.exports = function aspect(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name'],
+              attributes: ['name', 'email'],
             },
           ],
           order: ['Aspect.name'],

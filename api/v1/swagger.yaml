@@ -6518,6 +6518,11 @@ definitions:
         type: string
         description: >
           TODO
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this Lens.
       createdAt:
         readOnly: true
         type: string

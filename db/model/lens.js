@@ -101,7 +101,7 @@ module.exports = function lens(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name'],
+              attributes: ['name', 'email'],
             },
           ],
           attributes: { exclude: ['library'] },

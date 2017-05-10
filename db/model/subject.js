@@ -131,8 +131,9 @@ module.exports = function subject(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = Subject.belongsTo(models.User, {
+        assoc.user = Subject.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.samples = Subject.hasMany(models.Sample, {
           foreignKey: 'subjectId',
@@ -146,6 +147,12 @@ module.exports = function subject(seq, dataTypes) {
           foreignKey: 'subjectId',
         });
         Subject.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
           order: ['absolutePath'],
         }, {
           override: true,

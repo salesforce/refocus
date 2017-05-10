@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/aspects/post.js
+ * tests/api/v1/aspects/postWithCreatedBy.js
  */
 'use strict'; // eslint-disable-line strict
 
@@ -37,7 +37,7 @@ describe(`api: POST with createdBy ${path}`, () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnCreatedBy', false));
 
-  it('OK', (done) => {
+  it('if token provided, createdBy and user fields are returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)
@@ -50,6 +50,7 @@ describe(`api: POST with createdBy ${path}`, () => {
       expect(res.body.createdBy).to.be.an('string');
       expect(res.body.user).to.be.an('object');
       expect(res.body.user.name).to.be.an('string');
+      expect(res.body.user.email).to.be.an('string');
       done();
     });
   });

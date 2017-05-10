@@ -7,22 +7,23 @@
  */
 
 /**
- * tests/api/v1/lenses/postWithCreatedBy.js
+ * tests/api/v1/subjects/postWithCreatedBy.js
  */
-'use strict'; // eslint-disable-line strict
+'use strict';
 
-const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/lenses';
+const Subject = tu.db.Subject;
+const path = '/v1/subjects';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST with createdBy ${path}`, () => {
+describe(`api: POST ${path} with createdBy`, () => {
   let token;
+  const n2b = { name: `${tu.namePrefix}Quebec` };
 
   before((done) => {
     tu.toggleOverride('returnCreatedBy', true);
@@ -41,11 +42,9 @@ describe(`api: POST with createdBy ${path}`, () => {
   it('if token provided, createdBy and user fields are returned', (done) => {
     api.post(path)
     .set('Authorization', token)
-    .field('name', 'testLens')
-    .field('description', 'test description')
-    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .send({ name: n2b.name })
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
         done(err);
       }
@@ -61,9 +60,7 @@ describe(`api: POST with createdBy ${path}`, () => {
    it('if token is NOT provided, createdBy and user fields are NOT' +
     ' returned', (done) => {
     api.post(path)
-    .field('name', 'testLens')
-    .field('description', 'test description')
-    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .send({ name: n2b.name })
     .expect(constants.httpStatus.CREATED)
     .end((err, res ) => {
       if (err) {
