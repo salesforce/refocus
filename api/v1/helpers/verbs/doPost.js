@@ -42,9 +42,21 @@ function doPost(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    postPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-      .then((user) => redisModelSample.postSample(req.swagger.params, user));
+    postPromise = authUtils.getUser(req)
+    .then((user) => {
+      const userObject = user && featureToggles.isFeatureEnabled('returnCreatedBy') ?
+        { name: user.name, id: user.id, email: user.email } : false;
+      return redisModelSample.postSample(req.swagger.params, userObject);
+    })
+    .catch((err) => {
+      if (err.status === 403) {
+
+        // no user found
+        return redisModelSample.postSample(req.swagger.params, false);
+      } else {
+        u.handleError(next, err, props.modelName);
+      }
+    });
   } else {
     if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
       props.modelName === 'Sample') {
@@ -53,20 +65,20 @@ function doPost(req, res, next, props) {
       postPromise = props.model.create(toPost);
     } else {
       postPromise = authUtils.getUser(req)
-        .then((user) => {
-          if (user) {
-            toPost.createdBy = user.id;
-          }
+      .then((user) => {
+        if (user) {
+          toPost.createdBy = user.id;
+        }
 
+        return props.model.create(toPost);
+      })
+      .catch((err) => {
+        if (err.status === 403) {
           return props.model.create(toPost);
-        })
-        .catch((err) => {
-          if (err.status === 403) {
-            return props.model.create(toPost);
-          } else {
-            u.handleError(next, err, props.modelName);
-          }
-        });
+        } else {
+          u.handleError(next, err, props.modelName);
+        }
+      });
     }
   }
 
@@ -80,7 +92,9 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    if (featureToggles.isFeatureEnabled('returnCreatedBy')) {
+    // if response directly from sequelize, call reload to attach
+    // the associations
+    if (featureToggles.isFeatureEnabled('returnCreatedBy') && o.get) {
       o.reload()
       .then((reloaded) => res.status(httpStatus.CREATED).json(
           u.responsify(o, props, req.method)));

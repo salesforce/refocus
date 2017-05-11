@@ -29,6 +29,8 @@ const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
 const sampFields = {
+  CREATED_BY: 'createdBy',
+  USER: 'user',
   MSG_BODY: 'messageBody',
   MSG_CODE: 'messageCode',
   NAME: 'name',
@@ -717,7 +719,9 @@ module.exports = {
    * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params, userName) {
+  postSample(params, userObj) {
+    const userEmail = userObj.email;
+    const userName = userObj.name;
     const cmds = [];
     const reqBody = params.queryBody.value;
     let subject;
@@ -789,6 +793,10 @@ module.exports = {
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
       reqBody[sampFields.CREATED_AT] = dateNow;
+      if (userObj) {
+        reqBody[sampFields.CREATED_BY] = userObj.id;
+        reqBody[sampFields.USER] = JSON.stringify({ name: userName, email: userObj.email });
+      }
 
       // add the aspect to the subjectSet
       cmds.push(redisOps.addAspectInSubjSetCmd(

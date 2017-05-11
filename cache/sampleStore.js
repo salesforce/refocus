@@ -30,7 +30,7 @@ const constants = {
       'okRange',
       'writers',
     ],
-    sample: ['relatedLinks'],
+    sample: ['relatedLinks', 'user'],
     subject: ['aspectNames'],
   },
   indexKey: {
