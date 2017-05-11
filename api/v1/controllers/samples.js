@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
+const authUtils = require('../helpers/authUtils');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -150,11 +151,23 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
-    return u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+    return authUtils.getUser(req)
+    .then((user) => {
       if (sampleQueryBody.relatedLinks) {
         u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+      }
+
+      if (featureToggles.isFeatureEnabled('returnCreatedBy') && user) {
+        sampleQueryBody.createdBy = user.id;
+      }
+
+      let userName = '';
+      if (!featureToggles.isFeatureEnabled('enforceWritePermission')) {
+        userName = true;
+      } else if (user) {
+        userName = user.name;
+      } else {
+        userName = false;
       }
 
       const upsertSamplePromise =

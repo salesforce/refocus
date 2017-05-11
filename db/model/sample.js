@@ -123,8 +123,6 @@ module.exports = function sample(seq, dataTypes) {
                 'rank',
               ],
             },
-
-            // assoc.provider,
           ],
           order: ['Sample.name'],
         }, {
@@ -203,6 +201,7 @@ module.exports = function sample(seq, dataTypes) {
             if (o === null) {
               return Sample.create(toUpsert);
             }
+
             /*
              * set value changed to true during updates to avoid timeouts.
              * Adding this to the before update hook does
@@ -211,7 +210,13 @@ module.exports = function sample(seq, dataTypes) {
             o.changed('value', true);
             return o.update(toUpsert);
           })
-          .then((o) => resolve(o))
+          .then((o) => {
+            if (featureToggles.isFeatureEnabled('returnCreatedBy')) {
+              return o.reload().then((o) => resolve(o));
+            } else {
+              return resolve(o);
+            }
+          })
           .catch((err) => {
             if (isBulk) {
               /*

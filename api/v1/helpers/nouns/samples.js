@@ -42,7 +42,7 @@ module.exports = {
     subject: Subject,
   },
   readOnlyFields: [
-    'id', 'isDeleted', 'status', 'previousStatus',
+    'id', 'isDeleted', 'status', 'previousStatus', 'createdBy',
     'statusChangedAt', 'createdAt', 'updatedAt', 'name',
   ],
 }; // exports
