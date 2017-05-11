@@ -20,7 +20,7 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe.only(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
   let sampleToPost;
   let token;
 
