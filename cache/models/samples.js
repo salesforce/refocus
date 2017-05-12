@@ -395,10 +395,11 @@ function handleUpsertError(objectType, isBulk) {
  * else creates a new one.
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
- * @param {String} userName - The user performing the write operation
+ * @param {Object} user - The user performing the write operation
  * @returns {Object} - Updated sample
  */
-function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
+function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
+  const userName = user ? user.name : false;
   const sampleName = sampleQueryBodyObj.name;
   const subjAspArr = sampleName.toLowerCase().split('|');
   if (subjAspArr.length < TWO) {
@@ -466,6 +467,11 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
     // if sample exists, just update sample.
     if (sample) {
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
+    } else if (user && featureToggles.isFeatureEnabled('returnCreatedBy')) {
+
+      // sample is new. add the createdBy and user fields
+      sampleQueryBodyObj.createdBy = user.id;
+      sampleQueryBodyObj.user = JSON.stringify({ name: user.name, email: user.email });
     }
 
     const subaspMapKey = sampleStore.toKey(
@@ -1045,11 +1051,11 @@ module.exports = {
   /**
    * Upsert sample in Redis.
    * @param  {Object} qbObj - Query body object
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} user - The user performing the write operation
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSample(qbObj, userName) {
-    return upsertOneSample(qbObj, false, userName);
+  upsertSample(qbObj, user) {
+    return upsertOneSample(qbObj, false, user);
   },
 
   /**

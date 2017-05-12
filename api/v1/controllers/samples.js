@@ -157,24 +157,13 @@ module.exports = {
         u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
       }
 
-      if (featureToggles.isFeatureEnabled('returnCreatedBy') && user) {
-        sampleQueryBody.createdBy = user.id;
-      }
-
-      let userName = '';
-      if (!featureToggles.isFeatureEnabled('enforceWritePermission')) {
-        userName = true;
-      } else if (user) {
-        userName = user.name;
-      } else {
-        userName = false;
-      }
-
+      // if upsert in cache AND retrun createdBy, use the sample object with
+      // createdBy and user object.
       const upsertSamplePromise =
           featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample.upsertSample(
-              sampleQueryBody, userName) :
-          helper.model.upsertByName(sampleQueryBody, userName);
+              sampleQueryBody, user) :
+          helper.model.upsertByName(sampleQueryBody, user);
 
       return upsertSamplePromise;
     })

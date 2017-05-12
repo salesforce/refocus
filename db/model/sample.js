@@ -166,7 +166,7 @@ module.exports = function sample(seq, dataTypes) {
        * doesn't invoke hooks, and we rely on hooks to publish the change.
        *
        * @param {Sample} toUpsert - The sample to upsert
-       * @param {String} userName - The user performing the write operation
+       * @param {Object} user - The user performing the write operation
        * @param {Boolean} isBulk - true when used with bulk upsert, false
        *  otherwise
        * @returns {Promise} which resolves to the newly-created or -updated
@@ -174,7 +174,8 @@ module.exports = function sample(seq, dataTypes) {
        *  looking up the associated subject and aspect, or if an error was
        *  encountered while performing the sample upsert operation itself.
        */
-      upsertByName(toUpsert, userName, isBulk) {
+      upsertByName(toUpsert, user, isBulk) {
+        let userName = user ? user.name : false;
         let subjasp;
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
@@ -199,6 +200,14 @@ module.exports = function sample(seq, dataTypes) {
           })
           .then((o) => {
             if (o === null) {
+
+              // add createdBy and user object, if conditions are met
+              if (user &&
+                featureToggles.isFeatureEnabled('returnCreatedBy')) {
+                toUpsert.createdBy = user.id;
+                toUpsert.user = { name: user.name, email: user.email };
+              }
+
               return Sample.create(toUpsert);
             }
 

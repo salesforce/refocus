@@ -43,8 +43,8 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
   ];
 
   before((done) => {
+    tu.toggleOverride('returnCreatedBy', true);
     tu.toggleOverride('enableRedisSampleStore', true);
-    tu.toggleOverride('enforceWritePermission', false);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -71,6 +71,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
   afterEach(rtu.forceDelete);
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+  after(() => tu.toggleOverride('returnCreatedBy', false));
 
   describe('when aspect not present', () => {
     // unpublish the aspects
