@@ -110,6 +110,9 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable using worker dyno for hierarchy queries
+  enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

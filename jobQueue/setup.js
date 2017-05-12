@@ -31,6 +31,7 @@ module.exports = {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
+    GET_HIERARCHY: 'GET_HIERARCHY',
   },
   ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,
 }; // exports

@@ -13,6 +13,9 @@
 'use strict'; // eslint-disable-line strict
 const activityLogParams = require('../config/activityLog');
 const winston = require('winston');
+const logger = new (winston.Logger)({
+  transports: [new (winston.transports.Console)()],
+});
 
 module.exports = {
 
@@ -63,7 +66,7 @@ module.exports = {
     }
 
     // print the log
-    winston.log(logLevel, logStr);
+    logger.log(logLevel, logStr);
   },
 
   /**
@@ -83,7 +86,7 @@ module.exports = {
 
       if (tempObj.jobStartTime) {
         // time spent from when the job is pulled off the queue to completion
-        resultObj.workTime = tempObj.dbEndTime - tempObj.jobStartTime;
+        resultObj.workTime = Date.now() - tempObj.jobStartTime;
       }
     }
 
@@ -97,4 +100,6 @@ module.exports = {
       }
     }
   },
+
+  logger,
 };

@@ -192,8 +192,8 @@ function calculateJobPriority(jobName, data, req) {
  */
 function createJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(jobName, data, req);
-  const job = jobQueue.create(jobName, data)
-  .ttl(TIME_TO_LIVE)
+  const job = jobQueue.create(jobName, data);
+  job.ttl(TIME_TO_LIVE)
   .priority(jobPriority)
   .save((err) => {
     if (err) {
