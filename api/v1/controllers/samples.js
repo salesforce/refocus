@@ -207,16 +207,15 @@ module.exports = {
     const value = req.swagger.params.queryBody.value;
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
       field !== 'name');
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+    authUtils.getUser(req)
+    .then((user) => {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
 
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
-        wrappedBulkUpsertData.userName = userName;
+        wrappedBulkUpsertData.user = user;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = helper.readOnlyFields;
         const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
@@ -230,7 +229,7 @@ module.exports = {
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        sampleModel.bulkUpsertByName(value, userName, readOnlyFields)
+        sampleModel.bulkUpsertByName(value, user, readOnlyFields)
           .then((samples) => {
             samples.forEach((sample) => {
               if (!sample.isFailed) {

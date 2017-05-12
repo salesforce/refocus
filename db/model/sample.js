@@ -243,16 +243,16 @@ module.exports = function sample(seq, dataTypes) {
       /**
        * Upsert multiple samples concurrently.
        * @param  {Array} toUpsert - An array of sample objects to upsert
-       * @param {String} userName - The user performing the write operation
+       * @param {Object} user - The user performing the write operation
        * @param {Array} readOnlyFields - An array of read-only-fields
        * @returns {Array} - Resolves to an array of resolved promises
       */
-      bulkUpsertByName(toUpsert, userName, readOnlyFields) {
+      bulkUpsertByName(toUpsert, user, readOnlyFields) {
         const promises = toUpsert.map((s) => {
           try {
             // thow an error if a sample is upserted with a read-only-field
             commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
-            return this.upsertByName(s, userName, true);
+            return this.upsertByName(s, user, true);
           } catch (err) {
             return Promise.resolve({ explanation: err, isFailed: true });
           }

@@ -1061,16 +1061,16 @@ module.exports = {
   /**
    * Upsert multiple samples in Redis concurrently.
    * @param  {Object} sampleQueryBody - Query body object
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} user - The user performing the write operation
    * @param {Array} readOnlyFields - An array of read-only-fields
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertByName(sampleQueryBody, userName, readOnlyFields) {
+  bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
     const promises = sampleQueryBody.map((sampleReq) => {
       try {
         // thow an error if a sample is upserted with a read-only-field
         commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-        return upsertOneSample(sampleReq, true, userName);
+        return upsertOneSample(sampleReq, true, user);
       } catch (err) {
         return Promise.resolve({ isFailed: true, explanation: err });
       }
