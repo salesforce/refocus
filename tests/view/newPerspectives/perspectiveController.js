@@ -7,13 +7,13 @@
  */
 
 /**
- * tests/view/components/persController.js
+ * tests/view/perspectives/perspectiveController.js
  */
 
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
-import PerspectiveController from '../../../view/perspective/PerspectiveController.js';
+import PerspectiveController from '../../../view/newPerspective/PerspectiveController.js';
 import { mount } from 'enzyme';
 
 describe('Perspective controller ', () => {
@@ -35,11 +35,16 @@ describe('Perspective controller ', () => {
 
   function setup() {
     const defaultProps = {
-      params: {},
       values: {
-        aspectFilter: [],
-        aspectTags: [],
-        lenses: [LENS],
+        subjects: [], // { name: absolutePath, id }
+        aspectTagFilter: [], // { name, id }
+        aspectFilter: [], // strings
+        subjectTagFilter: [], // strings
+        lenses: [LENS], // { name, id }
+        statusFilter: [],
+        persNames: [], //strings
+        rootSubject: {},
+        lens: {}, // includes library
       },
     }
     const enzymeWrapper = mount(<PerspectiveController {...defaultProps} />);

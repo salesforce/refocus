@@ -29,11 +29,13 @@ const TIME_TO_LIVE =
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
- * arbitary number large enough that it does not cause the leakage.
+ * arbitary number large enough that it does not cause the leakage. The delay
+ * is converted to milliseconds by multiplying it by 1000.
  *
  * TODO: Clean this up once we move job removal listener to the clock process.
  */
-const delayToRemoveJobs = 3000;
+const delayToRemoveJobs =
+  1000 * jobSetup.delayToRemoveJobs; // eslint-disable-line no-magic-numbers
 
 /**
  * Set log object params from job results.
@@ -75,6 +77,8 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
  * APIs to monitor the jobs.
  *
  * @param {Object} job - Job object to be cleaned up from the queue
+ * @param {Object} logObject - Object containing the information that needs to
+ * be logged.
  */
 function processJobOnComplete(job, logObject) {
   if (job) {
@@ -98,7 +102,7 @@ function processJobOnComplete(job, logObject) {
         }
       }, delayToRemoveJobs);
 
-      // if enableWorkerActivityLogs is enabled, update logObject
+      // when enableWorkerActivityLogs are enabled, update the logObject
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
        jobResultObj && logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
@@ -110,8 +114,10 @@ function processJobOnComplete(job, logObject) {
             .update(jobResultObj.recordCount, jobResultObj.queueTime);
         }
 
-        /* The second argument should match the activity type in
-         /config/activityLog.js */
+        /*
+         * The second argument should match the activity type in
+         *  /config/activityLog.js
+         */
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
     });
@@ -139,8 +145,10 @@ function logAndRemoveJobOnComplete(req, job) {
 
     logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
 
-    /* if req object, then extract user, token and ipaddress and update log
-      object */
+    /*
+     * if req object, then extract user, token and ipaddress and update log
+     * object
+     */
     if (req) {
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
