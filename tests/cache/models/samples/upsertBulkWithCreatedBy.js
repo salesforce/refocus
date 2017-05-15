@@ -30,7 +30,7 @@ const relatedLinks = [
   { name: 'link2', url: URL1 },
 ];
 
-describe.only('api::redisEnabled::POST::bulkUpsert ' + path, () => {
+describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   let token;
 
   before((done) => {
