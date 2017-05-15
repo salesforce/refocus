@@ -19,6 +19,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
+const featureToggles = require('feature-toggles');
 
 /**
  * In-place removal of certain keys from the input object
@@ -212,7 +213,7 @@ function isWritable(req, modelInst, isEnabled) {
  */
 function getUserNameFromToken(req, doDecode) {
   return new Promise((resolve, reject) => {
-    if (!doDecode) {
+    if (!doDecode || !featureToggles.isFeatureEnabled('requireAccessToken')) {
       resolve(true);
     }
 
