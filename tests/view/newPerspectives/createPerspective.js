@@ -13,8 +13,7 @@
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
-import { getSubjects } from './utils';
-import CreatePerspective from '../../../view/perspective/CreatePerspective';
+import CreatePerspective from '../../../view/newPerspective/CreatePerspective';
 import { mount } from 'enzyme';
 
 describe('Perspective view ', () => {
@@ -56,11 +55,17 @@ describe('Perspective view ', () => {
       sendResource: spy,
       // options or all possible values
       values: {
-        aspectTagFilter: [],
-        subjectTagFilter: [],
-        lenses: [LENS],
+        subjects: [], // { name: absolutePath, id }
+        aspectTagFilter: [], // { name, id }
+        aspectFilter: [], // strings
+        subjectTagFilter: [], // strings
+        lenses: [LENS], // { name, id }
+        statusFilter: [],
+        persNames: DUMMY_ARRAY, //strings
+        rootSubject: {},
+        lens: {}, // includes library
         // actual values
-        perspectives: [{
+        perspective: {
           name: PERS_NAME,
           lens: LENS,
           rootSubject: DUMMY_STRING,
@@ -72,7 +77,7 @@ describe('Perspective view ', () => {
           subjectTagFilter: [ ], // empty for testing
           statusFilterType: "EXCLUDE",
           statusFilter: DUMMY_ARRAY, // not empty for testing
-        }],
+        },
       },
     };
     // update defaultProps as needed
@@ -123,26 +128,6 @@ describe('Perspective view ', () => {
   });
 
   describe('on create', () => {
-    it('on create, state is set to params values', () => {
-      const params = {
-        'subjects': 'NorthAmerica',
-        'lenses': 'MultiTable',
-        'statusFilterType': 'INCLUDE',
-        'statusFilter': ['OK'],
-        'subjectTagFilterType': 'EXCLUDE',
-        'subjectTagFilter': [],
-        'aspectTagFilterType': 'INCLUDE',
-        'aspectTagFilter': ['OK'],
-        'aspectFilterType': 'EXCLUDE',
-        'aspectFilter': []
-      }
-      const enzymeWrapper = setup({}, { params });
-      const instance = enzymeWrapper.instance();
-      for (let key in params) {
-        expect(instance.state[key]).to.equal(params[key]);
-      }
-    });
-
     it('dropdown options still contains all the lenses,' +
       ' even though state lens is empty', () => {
       // be default, not editing
