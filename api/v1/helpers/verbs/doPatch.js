@@ -73,6 +73,11 @@ function doPatch(req, res, next, props) {
 
   patchPromise
   .then((retVal) => {
+    if (props.modelName === 'Perspective') {
+      helper.validateFilterAndThrowError(retVal.get());
+
+    }
+
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, retVal);
 
