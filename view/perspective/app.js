@@ -491,7 +491,8 @@ function getPerspective(perspNameOrId) {
  * @param {Array} pnames - Array of perspective names
  */
 function whichPerspective(pnames) {
-  let h = window.location.href;
+  let h = window.location.pathname;
+  const query = window.location.search;
   if (!h.endsWith('/')) {
     h += '/';
   }
@@ -513,7 +514,7 @@ function whichPerspective(pnames) {
       }
 
       // Add the perspective name to the URL and redirect.
-      window.location.href = h + p;
+      window.location.href = h + p + query;
     });
   }
 } // whichPerspective
