@@ -217,8 +217,9 @@ module.exports = {
         wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.user = user;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
-        wrappedBulkUpsertData.readOnlyFields = helper.readOnlyFields;
-        const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
+        wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
+
+        jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
           wrappedBulkUpsertData, req);
       } else {
         const sampleModel =

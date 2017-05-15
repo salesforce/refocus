@@ -92,23 +92,27 @@ describe('redisStore: POST using worker process' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
+    .end((err, res) => {
 
-      // make sure only 1 job is created for each bulk upsert call
-      expect(jobQueue.testMode.jobs.length).to.equal(1);
+      // needs the timeout, because the getUser promise takes a while
+       setTimeout(() => {
+        if (err) {
+          done(err);
+        }
 
-      // make sure the job type is correct
-      expect(jobQueue.testMode.jobs[0].type)
-        .to.equal(jobType.BULKUPSERTSAMPLES);
+        // make sure only 1 job is created for each bulk upsert call
+        expect(jobQueue.testMode.jobs.length).to.equal(1);
 
-      // make sure the queue has the right data inside it
-      expect(jobQueue.testMode.jobs[0].data.upsertData).to.have.length(2);
-      expect(jobQueue.testMode.jobs[0].data.upsertData[0])
-        .to.have.all.keys('name', 'value');
-      done();
+        // make sure the job type is correct
+        expect(jobQueue.testMode.jobs[0].type)
+          .to.equal(jobType.BULKUPSERTSAMPLES);
+
+        // make sure the queue has the right data inside it
+        expect(jobQueue.testMode.jobs[0].data.upsertData).to.have.length(2);
+        expect(jobQueue.testMode.jobs[0].data.upsertData[0])
+          .to.have.all.keys('name', 'value');
+        done();
+      }, 500);
     });
   });
 
