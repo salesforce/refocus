@@ -465,6 +465,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
 
     // if sample exists, just update sample.
+
     if (sample) {
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     } else if (user && featureToggles.isFeatureEnabled('returnCreatedBy')) {

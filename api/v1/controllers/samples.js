@@ -231,13 +231,13 @@ module.exports = {
          *channel
          */
         sampleModel.bulkUpsertByName(value, user, readOnlyFields)
-          .then((samples) => {
-            samples.forEach((sample) => {
-              if (!sample.isFailed) {
-                publisher.publishSample(sample, subHelper.model);
-              }
-            });
+        .then((samples) => {
+          samples.forEach((sample) => {
+            if (!sample.isFailed) {
+              publisher.publishSample(sample, subHelper.model);
+            }
           });
+        });
       }
     });
 
