@@ -60,6 +60,19 @@ function start() { // eslint-disable-line max-statements
     expire: conf.rateWindow,
   });
 
+  // redis client to for request limiter
+  const limiterRedisClient = require('redis').createClient(env.redisUrl);
+
+  // request limiter setting
+  const limiter = require('express-limiter')(app, limiterRedisClient);
+  limiter({
+    path: conf.endpointToLimit,
+    method: conf.httpMethodToLimit,
+    lookup: ['headers.x-forwarded-for'],
+    total: conf.rateLimit,
+    expire: conf.rateWindow,
+  });
+
   /*
    * Compress(gzip) all the api responses and all the static files.
    * Since this is called before the static pages and the API routes, this will
