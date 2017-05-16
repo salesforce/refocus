@@ -38,7 +38,7 @@ function doPost(req, res, next, props) {
   let postPromise;
   const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName) &&
      props.modelName === 'Sample';
-
+  console.log('in doPost')
   // if either "cache is on" or returnCreatedBy, get User
   if (isCacheOn ||
     featureToggles.isFeatureEnabled('returnCreatedBy')) {
@@ -65,7 +65,9 @@ function doPost(req, res, next, props) {
     })
     .catch((err) => {
       if (err.status === apiConstants.httpStatus.FORBIDDEN) {
-        return redisModelSample.postSample(req.swagger.params, false);
+        return isCacheOn ?
+          redisModelSample.postSample(req.swagger.params, false) :
+          props.model.create(toPost);
       }
 
       return u.handleError(next, err, props.modelName);
