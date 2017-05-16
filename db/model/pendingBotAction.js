@@ -19,18 +19,19 @@ module.exports = function user(seq, dataTypes) {
     pending: {
       type: dataTypes.BOOLEAN,
       defaultValue: true,
-      comment: 'Determines if bot is still active'
+      comment: 'Determines if bot is still active',
     },
     parameters: {
       type: dataTypes.STRING,
       allowNull: false,
-      comment: 'Name of bot action'
+      comment: 'Name of bot action',
     }
   }, {
     classMethods: {
       getPendingBotActionAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.room = PendingBotAction.belongsTo(models.Room, {
           foreignKey: 'roomId',

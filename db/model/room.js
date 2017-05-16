@@ -20,18 +20,19 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING,
       allowNull: false,
       unique: true,
-      comment: 'Create a named room '
+      comment: 'Create a named room ',
     },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
-      comment: 'Determines if room is still active'
+      comment: 'Determines if room is still active',
     }
   }, {
     classMethods: {
       getRoomAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.type = Room.belongsTo(models.RoomType, {
           foreignKey: 'type',

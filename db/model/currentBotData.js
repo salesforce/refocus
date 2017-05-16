@@ -18,13 +18,14 @@ module.exports = function user(seq, dataTypes) {
   const CurrentBotData = seq.define('CurrentBotData', {
     value: {
       type: dataTypes.STRING,
-      comment: 'Current Value for bot data'
+      comment: 'Current Value for bot data',
     }
   }, {
     classMethods: {
       getCurrentBotDataAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.room = CurrentBotData.belongsTo(models.Room, {
           foreignKey: 'roomId',

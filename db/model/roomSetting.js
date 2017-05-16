@@ -20,19 +20,20 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING,
       allowNull: false,
       unique: true,
-      comment: 'Reference Key for all room type settings'
+      comment: 'Reference Key for all room type settings',
     },
     value: {
       type: dataTypes.STRING,
       allowNull: false,
       unique: false,
-      comment: 'Value for all room type settings'
+      comment: 'Value for all room type settings',
     }
   }, {
     classMethods: {
       getRoomSettingAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.room = RoomSetting.belongsTo(models.RoomType, {
           foreignKey: 'roomTypeId',

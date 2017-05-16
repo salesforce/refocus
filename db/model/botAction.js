@@ -19,23 +19,24 @@ module.exports = function user(seq, dataTypes) {
     name: {
       type: dataTypes.STRING,
       allowNull: false,
-      comment: 'Name of bot action'
+      comment: 'Name of bot action',
     },
     paramList: {
       type: dataTypes.STRING,
       allowNull: false,
-      comment: 'Paramaters needed'
+      comment: 'Paramaters needed',
     },
     numOfParam: {
       type: dataTypes.INTEGER,
       allowNull: false,
-      comment: 'Value for all room type settings'
-    }
+      comment: 'Value for all room type settings',
+    },
   }, {
     classMethods: {
       getBotActionAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.bot = BotAction.belongsTo(models.Bot, {
           foreignKey: 'botId',

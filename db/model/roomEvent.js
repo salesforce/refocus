@@ -19,7 +19,7 @@ module.exports = function user(seq, dataTypes) {
     log: {
       type: dataTypes.STRING,
       allowNull: false,
-      comment: 'Readable log line'
+      comment: 'Readable log line',
     },
     type: {
       type: dataTypes.ENUM('ACTION', 'DATAUPDATE', 'DATACREATE', 'CONNECT', 'REFRESH'),
@@ -28,12 +28,12 @@ module.exports = function user(seq, dataTypes) {
     pendingAction: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
-      comment: 'Determines if an pending action is completed'
+      comment: 'Determines if an pending action is completed',
     },
     name: {
       type: dataTypes.STRING,
       allowNull: true,
-      comment: 'Name of action or data updated'
+      comment: 'Name of action or data updated',
     },
   }, {
     classMethods: {

@@ -20,18 +20,19 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING,
       allowNull: false,
       unique: true,
-      comment: 'Create a named room type'
+      comment: 'Create a named room type',
     },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
-      comment: 'Determines if room type is still active'
+      comment: 'Determines if room type is still active',
     }
   }, {
     classMethods: {
       getRoomTypeAssociations() {
         return assoc;
       },
+
       postImport(models) {
         assoc.settings = RoomType.hasMany(models.RoomSetting, {
           as: 'settings',
