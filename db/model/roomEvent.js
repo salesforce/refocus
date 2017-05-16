@@ -61,6 +61,6 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'pendingId',
         });
       },
-    }
+    },
   });  return RoomEvent;
 };

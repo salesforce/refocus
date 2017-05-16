@@ -26,7 +26,7 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
       comment: 'Determines if room is still active',
-    }
+    },
   }, {
     classMethods: {
       getRoomAssociations() {
@@ -43,7 +43,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'roomId',
         });
       },
-    }
+    },
   });
   return Room;
 };

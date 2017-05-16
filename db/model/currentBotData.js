@@ -19,7 +19,7 @@ module.exports = function user(seq, dataTypes) {
     value: {
       type: dataTypes.STRING,
       comment: 'Current Value for bot data',
-    }
+    },
   }, {
     classMethods: {
       getCurrentBotDataAssociations() {
@@ -34,7 +34,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'botDataId',
         });
       },
-    }
+    },
   });
   return CurrentBotData;
 };

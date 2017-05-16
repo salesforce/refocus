@@ -21,7 +21,7 @@ module.exports = function user(seq, dataTypes) {
       allowNull: false,
       unique: true,
       comment: 'The criteria for a rule in a Lisps S-expressions JSON logic',
-    }
+    },
   }, {
     classMethods: {
       getRoomRuleAssociations() {
@@ -33,7 +33,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'roomTypeId',
         });
       },
-    }
+    },
   });
   return RoomRule;
 };

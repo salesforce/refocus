@@ -27,7 +27,7 @@ module.exports = function user(seq, dataTypes) {
       allowNull: false,
       unique: false,
       comment: 'Value for all room type settings',
-    }
+    },
   }, {
     classMethods: {
       getRoomSettingAssociations() {
@@ -39,7 +39,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'roomTypeId',
         });
       },
-    }
+    },
   });
   return RoomSetting;
 };

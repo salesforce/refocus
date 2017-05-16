@@ -36,7 +36,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'botId',
         });
       },
-    }
+    },
   });
   return BotData;
 };

@@ -25,7 +25,7 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING,
       allowNull: false,
       comment: 'Name of bot action',
-    }
+    },
   }, {
     classMethods: {
       getPendingBotActionAssociations() {
@@ -43,7 +43,7 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'botActionId',
         });
       },
-    }
+    },
   });
   return PendingBotAction;
 };
