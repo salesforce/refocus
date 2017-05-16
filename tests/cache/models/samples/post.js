@@ -257,16 +257,14 @@ describe(`api: redisStore: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', token)
     .send(sampleToPost)
-    .expect((res) => {
-      expect(res.body).to.have.property('errors');
-      expect(res.body.errors[ZERO].description)
-        .to.contain('Name of the relatedlinks should be unique.');
-    })
-    .end((err /* , res */) => {
+    .end((err, res ) => {
       if (err) {
         done(err);
       }
 
+      expect(res.body).to.have.property('errors');
+      expect(res.body.errors[ZERO].description)
+        .to.contain('Name of the relatedlinks should be unique.');
       done();
     });
   });

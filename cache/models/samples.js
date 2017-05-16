@@ -472,7 +472,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
       // sample is new. add the createdBy and user fields
       sampleQueryBodyObj.createdBy = user.id;
-      sampleQueryBodyObj.user = JSON.stringify({ name: user.name, email: user.email });
+      sampleQueryBodyObj.user = JSON.stringify({
+        name: user.name, email: user.email,
+      });
     }
 
     const subaspMapKey = sampleStore.toKey(
