@@ -12,8 +12,8 @@
 'use strict';
 
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
+const api = supertest(require('../../index').app);
+const constants = require('../../api/v1/constants');
 const path = '/v1/rooms';
 const expect = require('chai').expect;
 
