@@ -57,6 +57,7 @@ describe(`api: PUT ${path} with parents`, () => {
       return Subject.create(n0);
     })
     .then((subj) => {
+      console.log('hierarchyLevel is', subj.hierarchyLevel)
       i0 = subj.id;
       const ch = n1;
       ch.parentId = i0;
@@ -264,6 +265,8 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
+      // not a root
+      expect(res.body.hierarchyLevel).to.be.above(ONE);
       expect(res.body.parentId).to.equal(i0a);
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
       done();
@@ -285,6 +288,8 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
+      // not a root
+      expect(res.body.hierarchyLevel).to.be.above(ONE);
       expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
@@ -303,6 +308,8 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
+      // is a root
+      expect(res.body.hierarchyLevel).to.equal(ONE);
       expect(res.body.parentAbsolutePath).to.equal('');
       expect(res.body.parentId).to.equal(null);
       expect(res.body.absolutePath).to.equal(NAME);
