@@ -30,6 +30,7 @@ module.exports = (job, done) => {
   const userName = job.data.userName;
   const reqStartTime = job.data.reqStartTime;
   const readOnlyFields = job.data.readOnlyFields;
+  const errors = [];
 
   // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
   //   `with ${samples.length} samples`;
@@ -52,14 +53,18 @@ module.exports = (job, done) => {
       for (let i = 0; i < results.length; i++) {
         if (results[i].isFailed) {
           errorCount++;
+          errors.push(results[i]);
         } else {
           publisher.publishSample(results[i], subHelper.model);
         }
       }
 
+      const objToReturn = {};
+
+      // attach the errors from "bulkUpsertByName"
+      objToReturn.errors = errors;
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
         const dbEndTime = Date.now();
-        const objToReturn = {};
 
         // number of successful upserts
         objToReturn.recordCount = results.length - errorCount;
@@ -76,9 +81,13 @@ module.exports = (job, done) => {
 
         // update time parameters in object to return.
         activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
-        return done(null, objToReturn);
       }
 
-      return done();
+      /*
+       * passing an object as the second argument of done maps it to the
+       * "results" key and attaches it to a hash identified by q:job:{jobId},
+       * to be stored in redis
+       */
+      return done(null, objToReturn);
     });
 };

@@ -133,7 +133,13 @@ module.exports = function loadView(app, passport) {
         // updates
         if ((key === '/perspectives' && Object.keys(req.query).length) ||
         key === '/perspectives/:key') {
-          res.render(viewmap[key], templateVars);
+
+          // if ?beta=true in URL, use the new perspective loader
+          if (req.query.beta) {
+            res.render('newPerspective/perspective', templateVars);
+          } else {
+            res.render(viewmap[key], templateVars);
+          }
         } else {
           res.render(viewmap[key], trackObj);
         }

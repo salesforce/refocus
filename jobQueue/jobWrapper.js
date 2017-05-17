@@ -29,11 +29,13 @@ const TIME_TO_LIVE =
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
- * arbitary number large enough that it does not cause the leakage.
+ * arbitary number large enough that it does not cause the leakage. The delay
+ * is converted to milliseconds by multiplying it by 1000.
  *
  * TODO: Clean this up once we move job removal listener to the clock process.
  */
-const delayToRemoveJobs = 3000;
+const delayToRemoveJobs =
+  1000 * jobSetup.delayToRemoveJobs; // eslint-disable-line no-magic-numbers
 
 /**
  * Set log object params from job results.
@@ -75,6 +77,8 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
  * APIs to monitor the jobs.
  *
  * @param {Object} job - Job object to be cleaned up from the queue
+ * @param {Object} logObject - Object containing the information that needs to
+ * be logged.
  */
 function processJobOnComplete(job, logObject) {
   if (job) {
@@ -98,7 +102,7 @@ function processJobOnComplete(job, logObject) {
         }
       }, delayToRemoveJobs);
 
-      // if enableWorkerActivityLogs is enabled, update logObject
+      // when enableWorkerActivityLogs are enabled, update the logObject
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
        jobResultObj && logObject) {
         mapJobResultsToLogObject(jobResultObj, logObject);
@@ -110,8 +114,10 @@ function processJobOnComplete(job, logObject) {
             .update(jobResultObj.recordCount, jobResultObj.queueTime);
         }
 
-        /* The second argument should match the activity type in
-         /config/activityLog.js */
+        /*
+         * The second argument should match the activity type in
+         *  /config/activityLog.js
+         */
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
     });
@@ -137,11 +143,12 @@ function logAndRemoveJobOnComplete(req, job) {
       logObject.jobId = job.id;
     }
 
-    logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
-
-    /* if req object, then extract user, token and ipaddress and update log
-      object */
+    /*
+     * If req object is defined; extract the user name, token and ipaddress and
+     * update the log object
+     */
     if (req) {
+      logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
         logObject.user = resObj.username;
@@ -180,6 +187,36 @@ function calculateJobPriority(jobName, data, req) {
 } // calculateJobPriority
 
 /**
+ * This is a promisified version of the createJob function which resolves to
+ * the job created and saved by the Kue api.
+ *
+ * @param {String} jobName - The job name. A worker process will be
+ *  listening for this jobName to process the jobs.
+ * @param {Object} data - Data for the job to work with.
+ * @param {Object} req - Request object.
+ * @returns {Object} - A job object. The job object will be null when the
+ *  jobQueue is created in the test mode.
+ */
+function createPromisifiedJob(jobName, data, req) {
+  const jobPriority = calculateJobPriority(jobName, data, req);
+  return new Promise((resolve, reject) => {
+    const job = jobQueue.create(jobName, data)
+    .ttl(TIME_TO_LIVE)
+    .priority(jobPriority)
+    .save((err) => {
+      if (err) {
+        const msg =
+          `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
+        return reject(msg);
+      }
+
+      logAndRemoveJobOnComplete(req, job);
+      return resolve(job);
+    });
+  });
+} // createPromisifiedJob
+
+/**
  * Creates a job to be processed using the KUE api, given the jobName and
  * data to be processed by the job.
  *
@@ -211,6 +248,7 @@ function createJob(jobName, data, req) {
 module.exports = {
   jobQueue,
   createJob,
+  createPromisifiedJob,
   mapJobResultsToLogObject,
   logAndRemoveJobOnComplete,
 }; // exports
