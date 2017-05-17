@@ -30,7 +30,6 @@ describe('enableWorkerLog: api: POST ' + path, () => {
   let token;
 
   before((done) => {
-    jobQueue.testMode.enter();
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     tu.createToken()
@@ -58,7 +57,6 @@ describe('enableWorkerLog: api: POST ' + path, () => {
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.testMode.clear();
   });
 
   it('all succeed', (done) => {

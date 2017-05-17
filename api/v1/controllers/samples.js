@@ -191,18 +191,20 @@ module.exports = {
    * POST /samples/upsert/bulk
    *
    * Upserts multiple samples. Returns "OK" without waiting for the upserts to
-   * happen. When "enableWorkerProcess" is enabled, the bulk upsert is enqueued
-   * to be processed by a separate worker process.
+   * happen. When "enableWorkerProcess" is set to true, the bulk upsert is
+   * enqueued to be processed by a separate worker process and the response
+   * is returned with a job id.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @returns {ServerResponse} - The response object indicating merely that the
    *  bulk upsert request has been received.
    */
-  bulkUpsertSample(req, res/* , next */) {
+  bulkUpsertSample(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
+    const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
       field !== 'name');
     u.getUserNameFromToken(req,
@@ -211,22 +213,30 @@ module.exports = {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
-
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.userName = userName;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
-        const j = jobWrapper.createJob(jobType.BULKUPSERTSAMPLES,
-          wrappedBulkUpsertData, req);
+
+        const jobPromise = jobWrapper
+          .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
+            wrappedBulkUpsertData, req);
+        jobPromise.then((job) => {
+          // set the job id in the response object before it is returned
+          body.jobId = job.id;
+          u.logAPI(req, resultObj, body, value.length);
+          return res.status(httpStatus.OK).json(body);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const sampleModel =
         featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample : helper.model;
 
         /*
-         *send the upserted sample to the client by publishing it to the redis
-         *channel
+         * Send the upserted sample to the client by publishing it to the redis
+         * channel
          */
         sampleModel.bulkUpsertByName(value, userName, readOnlyFields)
           .then((samples) => {
@@ -236,12 +246,10 @@ module.exports = {
               }
             });
           });
+        u.logAPI(req, resultObj, body, value.length);
+        return res.status(httpStatus.OK).json(body);
       }
     });
-
-    const body = { status: 'OK' };
-    u.logAPI(req, resultObj, body, value.length);
-    return res.status(httpStatus.OK).json(body);
   },
 
   /**

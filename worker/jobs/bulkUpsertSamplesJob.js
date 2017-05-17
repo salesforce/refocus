@@ -53,7 +53,7 @@ module.exports = (job, done) => {
       for (let i = 0; i < results.length; i++) {
         if (results[i].isFailed) {
           errorCount++;
-          errors.push(results);
+          errors.push(results[i]);
         } else {
           publisher.publishSample(results[i], subHelper.model);
         }
