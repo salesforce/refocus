@@ -64,6 +64,12 @@ const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
 const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
 
+// default set to 30 minutes
+const DEFAULT_JOB_REMOVAL_DELAY_SECONDS = 1800;
+
+const JOB_REMOVAL_DELAY_SECONDS = pe.KUE_JOBS_REMOVAL_DELAY ||
+  DEFAULT_JOB_REMOVAL_DELAY_SECONDS;
+
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
  * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of ip addresses if
@@ -218,6 +224,7 @@ module.exports = {
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS,
+  JOB_REMOVAL_DELAY_SECONDS,
   deprioritizeJobsFrom,
   endpointToLimit,
   httpMethodToLimit,
