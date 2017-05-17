@@ -31,6 +31,18 @@ describe(`api: GET using worker process ${path}`, () => {
     require('../../../worker/jobProcessor');
   });
 
+  before(() => {
+    jobQueue.testMode.enter(true);
+  });
+
+  afterEach(() => {
+    jobQueue.testMode.clear();
+  });
+
+  after(() => {
+    jobQueue.testMode.exit()
+  });
+
   //run normal getHierarchy tests with worker enabled
   require('../models/subjects/getHierarchy');
   require('../models/subjects/getHierarchyAspectAndTagsFilters');
@@ -123,16 +135,6 @@ describe(`api: GET using worker process ${path}`, () => {
         nonWorkerResponse = res.body;
         done();
       });
-    });
-
-    // force the job queue to enter the test mode.
-    beforeEach((done) => {
-      jobQueue.testMode.enter(true);
-      done();
-    });
-
-    afterEach(() => {
-      jobQueue.testMode.clear();
     });
 
     after(rtu.forceDelete);
