@@ -77,11 +77,8 @@ function getArray(field, arrayOfObjects) {
   }
 
   for (let i = 0; i < arrayOfObjects.length; i++) {
-    if (arrayOfObjects[i].isPublished) {
-      arr.push(arrayOfObjects[i][field]);
-    }
+    arr.push(arrayOfObjects[i][field]);
   }
-
   return arr;
 }
 
@@ -112,9 +109,7 @@ function convertCamelCase(string) {
  * @returns {Array} The array of strings or primitives
  */
 function filteredArray(arr, removeThis) {
-  return arr.filter((elem) => {
-    return elem !== removeThis;
-  });
+  return arr.filter((elem) => elem && elem !== removeThis);
 }
 
 /**
@@ -176,9 +171,9 @@ function getConfig(values, key, value) {
   };
 
   if (key === 'subjects') {
+    config.placeholderText = 'Select a Subject...';
     let options = getArray('absolutePath', values[key]);
     config.options = filteredArray(options, value);
-    config.placeholderText = 'Select a Subject...';
     config.isArray = false;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
@@ -198,7 +193,7 @@ function getConfig(values, key, value) {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
       let options = getArray('name', values[key]);
-      config.options = getOptions(options, value);
+      config.options = filteredArray(values[key], value);
     }
 
     delete config.placeholderText;
@@ -207,11 +202,97 @@ function getConfig(values, key, value) {
   return config;
 }
 
-module.exports = {
+/**
+ * Return array of unique tags
+ * @param {Array} Objects with tags: [tag1, tag2, ...]
+ * @returns {Array} contains unique tags
+ */
+function getTagsFromArrays(arr) {
+  let tags = new Set();
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i] && arr[i].tags && arr[i].tags.length) {
+      tags = new Set([...tags, ...new Set(arr[i].tags)]);
+    }
+  }
+
+  return [...tags].sort();
+}
+
+/**
+ * Return only the published objects.
+ * @param {Array} the array to filter from.
+ * Contains objects with key isPublished
+ * @returns {Array} with only objects containing isPublished: true
+*/
+function getPublishedFromArr(arr) {
+  return arr.filter((elem) => elem.isPublished);
+}
+
+/**
+ * Accumulates information to load the perspective dropdown,
+ * and the edit/create perspective modal
+ *
+ * @param {Object} request Use supertest or superagent
+ * @returns {Object} The accumulated values
+ */
+function getValuesObject(request, getPerspectiveName) {
+  const statuses = require('../../api/v1/constants').statuses;
+  const valuesObj = {
+    subjects: [], // { name: absolutePath, id }
+    aspectTagFilter: [], // { name, id }
+    aspectFilter: [], // strings
+    subjectTagFilter: [], // strings
+    lenses: [], // { name, id }
+    statusFilter: Object.keys(statuses).sort(),
+    persNames: [], //strings
+    rootSubject: {},
+    lens: {}, // includes library
+  };
+
+  return request('/v1/perspectives')
+  .then((res) => {
+    valuesObj.persNames = res.body.map((perspective) => perspective.name).sort();
+    valuesObj.name = getPerspectiveName(valuesObj.persNames);
+    valuesObj.perspective = res.body.filter((perspective) => perspective.name === valuesObj.name)[0];
+
+    // need to get the lens, as GET /lenses does not return the library
+    return request('/v1/lenses/' + valuesObj.perspective.lensId);
+  })
+  .then((res) => {
+    valuesObj.lens = res.body;
+    return request('/v1/subjects');
+  })
+  .then((res) => {
+
+    // set the published subjects
+    valuesObj.subjects = getPublishedFromArr(res.body);
+    valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
+    const filterString  = getFilterQuery(valuesObj.perspective);
+    return request('/v1/subjects/' + valuesObj.perspective.rootSubject + '/hierarchy' + filterString);
+  })
+  .then((res) => {
+    valuesObj.rootSubject = res.body;
+    return request('/v1/lenses');
+  })
+  .then((res) => {
+    valuesObj.lenses = getPublishedFromArr(res.body);
+    return request('/v1/aspects')
+  })
+  .then((res) => {
+    valuesObj.aspectFilter = getPublishedFromArr(res.body);
+    valuesObj.aspectTagFilter = getTagsFromArrays(valuesObj.aspectFilter);
+    return valuesObj;
+  });
+} // getValuesObject
+
+module.exports =  {
+  getValuesObject,
+  getTagsFromArrays,
   getFilterQuery,
   getOptions, // for testing
   filteredArray,
   getConfig,
   getArray,
   getTagsFromResources,
+  getPublishedFromArr,
 };
