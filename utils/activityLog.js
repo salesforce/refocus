@@ -86,7 +86,7 @@ module.exports = {
 
       if (tempObj.jobStartTime) {
         // time spent from when the job is pulled off the queue to completion
-        resultObj.workTime = Date.now() - tempObj.jobStartTime;
+        resultObj.workTime = tempObj.dbEndTime - tempObj.jobStartTime;
       }
     }
 
