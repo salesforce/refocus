@@ -6854,7 +6854,14 @@ definitions:
         readOnly: true
         description: >
           Status.
-
+      jobId:
+        type: integer
+        readOnly: true
+        description: >
+          Optionally a jobId is returned with the response when the bulk upsert
+          request is enqueued as a job for the workers to process it
+          asynchronously. The returned jobId can be used to check the status
+          of the bulk upsert request.
   SubjectsResponse:
     type: object
     description: >
