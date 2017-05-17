@@ -57,7 +57,6 @@ describe(`api: PUT ${path} with parents`, () => {
       return Subject.create(n0);
     })
     .then((subj) => {
-      console.log('hierarchyLevel is', subj.hierarchyLevel)
       i0 = subj.id;
       const ch = n1;
       ch.parentId = i0;
@@ -79,6 +78,77 @@ describe(`api: PUT ${path} with parents`, () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  describe('with identical parent: ', () => {
+    it('with parentId does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentId: i0,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+
+    it('with parentAbsolutePath does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: n0.name
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+
+    it('with BOTH parentId and parentAbsolutePath does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: n0.name
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+  });
 
   /**
   (0) PUT /v1/subjects/{key} unpublishing child subject with parentId or parentAbsolutePath field should re-parent the subject
@@ -265,8 +335,6 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
-      // not a root
-      expect(res.body.hierarchyLevel).to.be.above(ONE);
       expect(res.body.parentId).to.equal(i0a);
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
       done();
@@ -288,8 +356,6 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
-      // not a root
-      expect(res.body.hierarchyLevel).to.be.above(ONE);
       expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
@@ -308,8 +374,6 @@ describe(`api: PUT ${path} with parents`, () => {
         done(err);
       }
 
-      // is a root
-      expect(res.body.hierarchyLevel).to.equal(ONE);
       expect(res.body.parentAbsolutePath).to.equal('');
       expect(res.body.parentId).to.equal(null);
       expect(res.body.absolutePath).to.equal(NAME);
