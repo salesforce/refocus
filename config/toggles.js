@@ -72,6 +72,9 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
+  // Enable Rooms functionality
+  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
+
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
@@ -91,9 +94,6 @@ const longTermToggles = {
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
-
-  //Enable Rooms functionality
-  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
 
 }; // longTermToggles
 

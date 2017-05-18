@@ -35,10 +35,8 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   min: 0,
   idle: 10000,
 };
-
-// Enable Rooms Routes
-const swagger = featureToggles.isFeatureEnabled('enableRooms') ?
-  './api/v1/rooms-swagger.yaml' : './api/v1/swagger.yaml';
+const hiddenRoutes = pe.HIDDEN_ROUTES ?
+  pe.HIDDEN_ROUTES.split[','] : ['/rooms']; // Routes to hide
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -119,7 +117,7 @@ module.exports = {
       offset: 10,
     },
     swagger: {
-      doc: swagger,
+      doc: './api/v1/swagger.yaml',
       router: {
         controllers: './api/v1/controllers',
       },
@@ -246,4 +244,5 @@ module.exports = {
   rateLimit,
   rateWindow,
   readReplicas,
+  hiddenRoutes,
 };
