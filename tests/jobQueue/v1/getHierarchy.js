@@ -32,6 +32,7 @@ describe(`api: GET using worker process ${path}`, () => {
 
   before(() => {
     jobQueue.testMode.enter(true);
+    jobQueue.testMode.clear();
   });
 
   afterEach(() => {
@@ -216,18 +217,22 @@ describe(`api: GET using worker process ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
+        logger.removeListener('logging', testLogMessage);
+        tu.toggleOverride('enableApiActivityLogs', false);
+        tu.toggleOverride('enableWorkerActivityLogs', false);
+
         if (err) {
           done(err);
         }
 
         expect(workerLogged).to.be.true;
         expect(apiLogged).to.be.true;
-        tu.toggleOverride('enableApiActivityLogs', false);
-        tu.toggleOverride('enableWorkerActivityLogs', false);
+
         done();
       });
 
-      logger.on('logging', function (transport, level, msg, meta) {
+      logger.on('logging', testLogMessage);
+      function testLogMessage(transport, level, msg, meta) {
         const logObj = {};
         msg.split(' ').forEach((entry) => {
           logObj[entry.split('=')[0]] = entry.split('=')[1];
@@ -276,7 +281,7 @@ describe(`api: GET using worker process ${path}`, () => {
           }
         }
 
-      });
+      };
     });
 
     it('Error handling - Not Found', (done) => {
