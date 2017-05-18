@@ -13,7 +13,6 @@
 
 const tu = require('../../testUtils');
 const testStartTime = new Date();
-
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
