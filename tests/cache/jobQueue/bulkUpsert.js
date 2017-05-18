@@ -10,8 +10,6 @@
  * tests/cache/jobQueue/bulkUpsert.js
  */
 'use strict';
-const jobQueue = require('../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../jobQueue/setup').jobType;
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../index').app);
@@ -35,12 +33,6 @@ describe('redisStore: POST using worker process' + path, () => {
       done();
     })
     .catch((err) => done(err));
-  });
-
-  // force the job queue to enter the test mode.
-  beforeEach((done) => {
-    jobQueue.testMode.enter();
-    done();
   });
 
   before((done) => {
@@ -68,10 +60,6 @@ describe('redisStore: POST using worker process' + path, () => {
     .catch((err) => done(err));
   });
 
-  afterEach(() => {
-    jobQueue.testMode.clear();
-  });
-
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => {
@@ -79,40 +67,8 @@ describe('redisStore: POST using worker process' + path, () => {
     tu.toggleOverride('enableRedisSampleStore', false);
   });
 
-  it('sample bulkUpsert should be sent to the queue', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send([
-      {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
-        value: '2',
-      }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
-        value: '4',
-      },
-    ])
-    .expect(constants.httpStatus.OK)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      // make sure only 1 job is created for each bulk upsert call
-      expect(jobQueue.testMode.jobs.length).to.equal(1);
-
-      // make sure the job type is correct
-      expect(jobQueue.testMode.jobs[0].type)
-        .to.equal(jobType.BULKUPSERTSAMPLES);
-
-      // make sure the queue has the right data inside it
-      expect(jobQueue.testMode.jobs[0].data.upsertData).to.have.length(2);
-      expect(jobQueue.testMode.jobs[0].data.upsertData[0])
-        .to.have.all.keys('name', 'value');
-      done();
-    });
-  });
-
-  it('should still return ok for good or bad samples', (done) => {
+  it('should return ok status with the job id for good ' +
+      'or bad samples', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -125,7 +81,11 @@ describe('redisStore: POST using worker process' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .expect((res) => expect(res.body.status).to.contain('OK'))
+    .expect((res) => {
+      expect(res.body.status).to.contain('OK');
+      // make sure that the jobId is returned as a part of the response.
+      expect(res.body.jobId).to.be.at.least(1);
+    })
     .end((err) => {
       if (err) {
         done(err);

@@ -3145,14 +3145,12 @@ paths:
           items:
             type: string
             enum:
-              - id
               - messageBody
               - messageCode
               - status
               - value
               - createdAt
               - updatedAt
-              - -id
               - -messageBody
               - -messageCode
               - -status
@@ -3303,7 +3301,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample to delete.
+            The name of the sample to delete.
           required: true
           type: string
       responses:
@@ -3324,7 +3322,7 @@ paths:
       summary: Retrieve the specified sample
       tags: [ samples ]
       description: >-
-        Retrieve the specified sample by its id or name. You may also optionally
+        Retrieve the specified sample by its name. You may also optionally
         specify a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getSample
       parameters:
@@ -3332,7 +3330,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample to retrieve
+            The name of the sample to retrieve
           required: true
           type: string
         -
@@ -3363,7 +3361,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample to update.
+            The name of the sample to update.
           required: true
           type: string
         -
@@ -3432,7 +3430,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample to update.
+            The name of the sample to update.
           required: true
           type: string
         -
@@ -3644,7 +3642,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample for which related links needs to be
+            The name of the sample for which related links needs to be
             deleted.
           required: true
           type: string
@@ -3679,7 +3677,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the sample for which related link needs to be
+            The name of the sample for which related link needs to be
             deleted.
           required: true
           type: string
@@ -6750,9 +6748,6 @@ definitions:
       An observation of a particular aspect for a particular subject at a
       particular point in time.
     properties:
-      id:
-        type: string
-        readOnly: true
       messageBody:
         type: string
         readOnly: true
@@ -6854,7 +6849,14 @@ definitions:
         readOnly: true
         description: >
           Status.
-
+      jobId:
+        type: integer
+        readOnly: true
+        description: >
+          Optionally a jobId is returned with the response when the bulk upsert
+          request is enqueued as a job for the workers to process it
+          asynchronously. The returned jobId can be used to check the status
+          of the bulk upsert request.
   SubjectsResponse:
     type: object
     description: >
