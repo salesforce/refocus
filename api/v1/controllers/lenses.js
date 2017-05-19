@@ -77,6 +77,16 @@ function parseLensMetadata(zip, lensJson, seqObj) {
   }
 
   for (const metadataEntry in metadataJson) {
+    // validate lens name
+    if (metadataEntry === 'name' &&
+     (/^[0-9A-Za-z_\\-]{0,60}$/).test(metadataJson[metadataEntry]) === false) {
+      throw new apiErrors.ValidationError({
+        explanation: 'Name field should be max 60 characters; case ' +
+        'insensitive; allows alpha-numeric characters,underscore (_) ' +
+        'and dash (-).',
+      });
+    }
+
     // lens metadata name will be saved as sourceName.
     //  Same with description and version
     if (metadataEntry === 'name' || metadataEntry === 'description' ||
