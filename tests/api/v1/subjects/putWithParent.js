@@ -79,6 +79,77 @@ describe(`api: PUT ${path} with parents`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  describe('with identical parent: ', () => {
+    it('with parentId does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentId: i0,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+
+    it('with parentAbsolutePath does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: n0.name
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+
+    it('with BOTH parentId and parentAbsolutePath does NOT' +
+      ' update the hierarchyLevel', (done) => {
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: n1.name,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: n0.name
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        // not a root
+        expect(res.body.hierarchyLevel).to.equal(TWO);
+        expect(res.body.parentId).to.equal(i0);
+        expect(res.body.parentAbsolutePath).to.equal(n0.name);
+        done();
+      });
+    });
+  });
+
   /**
   (0) PUT /v1/subjects/{key} unpublishing child subject with parentId or parentAbsolutePath field should re-parent the subject
   (1) PUT /v1/subjects/{key} unpublishing child subject without parentId nor parentAbsolutePath field should set the subject as top level subject

@@ -16,6 +16,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const Lens = tu.db.Lens;
 const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -161,6 +162,53 @@ describe(`api: POST ${path}`, () => {
 
       expect(res.body.name).to.equal(res.body.sourceName);
       done();
+    });
+  });
+
+  it('name with dot in lens json should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .attach('library', 'tests/api/v1/lenses/lensZips/lensWithDotInName.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'Name field should be max 60 characters; case ' +
+        'insensitive; allows alpha-numeric characters,underscore (_) ' +
+        'and dash (-).'
+      );
+      Lens.findOne({ where: { name: 'testLensv1.1' } })
+      .then((resp) => {
+        expect(resp).to.be.null;
+      })
+      .then(done);
+    });
+  });
+
+  it('name with dot in request field should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .field('name', 'testLensv1.1')
+    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.errors[0].message).contains(
+        'Request validation failed: Parameter (name) does not match required ' +
+        'pattern'
+      );
+
+      Lens.findOne({ where: { name: 'testLensv1.1' } })
+      .then((resp) => {
+        expect(resp).to.be.null;
+      })
+      .then(done);
     });
   });
 });

@@ -1533,9 +1533,12 @@ paths:
           name: name
           in: formData
           description: >-
-            A unique name for the lens. Leave empty if you want to use the
-            name provided by the lens publisher (i.e. sourceName).
+            A unique name for the lens. Max 60 characters; case insensitive;
+            allows alpha-numeric characters, underscore (_) and dash (-). Leave
+            empty if you want to use the name provided by the lens publisher
+            (i.e. sourceName).
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: version
           in: formData
@@ -1663,9 +1666,12 @@ paths:
                 default: false
               name:
                 description: >-
-                  A unique name for the lens. Leave empty if you want to use the
-                  name provided by the lens publisher (i.e. sourceName).
+                  A unique name for the lens. Max 60 characters; case insensitive;
+                  allows alpha-numeric characters, underscore (_) and dash (-). Leave
+                  empty if you want to use the name provided by the lens publisher
+                  (i.e. sourceName).
                 type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               version:
                 description: >-
                   A version for the lens. Leave empty if you want to use the
@@ -1731,9 +1737,12 @@ paths:
           name: name
           in: formData
           description: >-
-            A unique name for the lens. Leave empty if you want to use the
-            name provided by the lens publisher (i.e. sourceName).
+            A unique name for the lens. Max 60 characters; case insensitive;
+            allows alpha-numeric characters, underscore (_) and dash (-). Leave
+            empty if you want to use the name provided by the lens publisher
+            (i.e. sourceName).
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: version
           in: formData
@@ -6486,7 +6495,8 @@ definitions:
         readOnly: true
         pattern: ^[0-9A-Za-z_\\-]{0,60}$
         description: >
-          The name of the lens.
+          The name of lens. Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-).
       sourceDescription:
         type: string
         readOnly: true
