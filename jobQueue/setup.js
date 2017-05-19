@@ -34,4 +34,5 @@ module.exports = {
   },
   ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
+  kue,
 }; // exports

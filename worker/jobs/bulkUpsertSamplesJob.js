@@ -53,7 +53,9 @@ module.exports = (job, done) => {
       for (let i = 0; i < results.length; i++) {
         if (results[i].isFailed) {
           errorCount++;
-          errors.push(results[i]);
+
+          // we just need "explanation" to be added to the errors
+          errors.push(results[i].explanation);
         } else {
           publisher.publishSample(results[i], subHelper.model);
         }
@@ -63,6 +65,7 @@ module.exports = (job, done) => {
 
       // attach the errors from "bulkUpsertByName"
       objToReturn.errors = errors;
+
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
         const dbEndTime = Date.now();
 
