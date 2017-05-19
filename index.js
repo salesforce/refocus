@@ -151,8 +151,9 @@ function start() { // eslint-disable-line max-statements
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
-  if(!featureToggles.isFeatureEnabled('enableRooms')){
-    for (var i in conf.hiddenRoutes) {
+  // Filter out hidden routes
+  if (!featureToggles.isFeatureEnabled('enableRooms')) {
+    for (let i =0; i < conf.hiddenRoutes.length; i++) {
       delete swaggerDoc.paths[conf.hiddenRoutes[i]];
     }
   }
