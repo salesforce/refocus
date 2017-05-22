@@ -12,6 +12,7 @@
 'use strict';
 const jobQueue = require('../../../jobQueue/setup').jobQueue;
 const jobType = require('../../../jobQueue/setup').jobType;
+const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../index').app);
@@ -27,7 +28,7 @@ describe(`api: GET using worker process ${path}`, () => {
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
-    require('../../../worker/jobProcessor');
+    jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
   });
 
   before(() => {
