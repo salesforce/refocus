@@ -22,6 +22,25 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 
+describe(`api: POST ${path} without token `, () => {
+  afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('result contains empty createdBy', (done) => {
+    api.post(path)
+    .send(u.toCreate)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy).to.equal('');
+      done();
+    });
+  });
+});
+
 describe(`api: POST ${path}`, () => {
   let token;
   before((done) => {
@@ -45,6 +64,23 @@ describe(`api: POST ${path}`, () => {
         done(err);
       }
 
+      done();
+    });
+  });
+
+  it('result contains createdBy and user object', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(u.toCreate)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy).to.be.an('string');
+      expect(res.body.user).to.be.an('object');
+      expect(res.body.user.name).to.be.an('string');
       done();
     });
   });

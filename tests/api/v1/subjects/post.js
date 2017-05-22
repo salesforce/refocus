@@ -22,8 +22,29 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe(`api: POST ${path}`, () => {
-  let token;
+  const n0 = { name: `${tu.namePrefix}NorthAmerica` };
+  const n2b = { name: `${tu.namePrefix}Quebec` };
 
+  describe(`api: POST ${path} without token `, () => {
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('result contains empty createdBy', (done) => {
+      api.post(path)
+      .send({ name: n2b.name })
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res ) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.createdBy).to.equal('');
+        done();
+      });
+    });
+  });
+
+  let token;
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -36,8 +57,6 @@ describe(`api: POST ${path}`, () => {
   after(tu.forceDeleteUser);
 
   describe('Simple', () => {
-    const n0 = { name: `${tu.namePrefix}NorthAmerica` };
-    const n2b = { name: `${tu.namePrefix}Quebec` };
     let i0 = 0;
 
     function parentBodyCheck(res) {
@@ -123,6 +142,23 @@ describe(`api: POST ${path}`, () => {
             .to.equal(tu.uniErrorName);
           done();
         });
+      });
+    });
+
+    it('contains user object, and createdBy field', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: n2b.name })
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.user).to.be.an('object');
+        expect(res.body.user.name).to.be.an('string');
+        expect(res.body.createdBy).to.be.an('string');
+        done();
       });
     });
 

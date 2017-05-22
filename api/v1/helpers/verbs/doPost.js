@@ -18,6 +18,7 @@ const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 const featureToggles = require('feature-toggles');
+const authUtils = require('../authUtils');
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -45,9 +46,26 @@ function doPost(req, res, next, props) {
       featureToggles.isFeatureEnabled('enforceWritePermission'))
       .then((user) => redisModelSample.postSample(req.swagger.params, user));
   } else {
-    postPromise = featureToggles.isFeatureEnabled('enforceWritePermission') &&
-      props.modelName === 'Sample' ? u.createSample(req, props) :
-      props.model.create(toPost);
+    if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
+      props.modelName === 'Sample') {
+      postPromise = u.createSample(req, props);
+    } else {
+      postPromise = authUtils.getUser(req)
+      .then((user) => {
+        if (user) {
+          toPost.createdBy = user.id;
+        }
+
+        return props.model.create(toPost);
+      })
+      .catch((err) => {
+        if (err.status === 403) {
+          return props.model.create(toPost);
+        } else {
+          u.handleError(next, err, props.modelName);
+        }
+      });
+    }
   }
 
   postPromise.then((o) => {
@@ -60,8 +78,11 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    return res.status(httpStatus.CREATED)
-    .json(u.responsify(o, props, req.method));
+    o.reload()
+    .then((reloaded) => {
+      return res.status(httpStatus.CREATED)
+      .json(u.responsify(o, props, req.method));
+    });
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

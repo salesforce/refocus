@@ -45,6 +45,20 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('without token, result contains empty createdBy', (done) => {
+    api.post(path)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.createdBy).to.equal('');
+      done();
+    });
+  });
+
   describe('post duplicate fails', () => {
     beforeEach((done) => {
       tu.db.Sample.create(sampleToPost)
@@ -149,6 +163,39 @@ describe(`api: POST ${path}`, () => {
 
       done();
     });
+  });
+
+  it('basic post include user object, and createdBy', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.user).to.be.an('object');
+      expect(res.body.user.name).to.be.an('string');
+      expect(res.body.createdBy).to.be.an('string');
+      done();
+    })
+  });
+
+  it.skip('basic post includes aspect object', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.aspect).to.be.an('object');
+      expect(res.body.aspect.name).to.be.an('string');
+      done();
+    })
   });
 
   it('does not return id', (done) => {

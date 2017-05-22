@@ -565,7 +565,7 @@ function cleanAndStripNulls(obj) {
 
       // if undefined, parentAbsolutePath needs to be set to empty string,
       // to pass swagger's schema validation
-      if (key === 'parentAbsolutePath' && !o[key]) {
+      if ((key === 'parentAbsolutePath' || key === 'createdBy') && !o[key]) {
         o[key] = '';
       } else if (key === 'parentId' && !o[key]) {
         o[key] = null;
