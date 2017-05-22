@@ -22,12 +22,14 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const apiErrors = require('../apiErrors');
 const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
-
+const kueSetup = require('../../../jobQueue/setup');
+const kue = kueSetup.kue;
 module.exports = {
 
   /**
@@ -87,6 +89,36 @@ module.exports = {
   },
 
   /**
+   * GET /samples/upsert/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk upsert job and sends it back in the
+   * response
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getSampleBulkUpsertStatus(req, res, next) {
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+    kue.Job.get(jobId, (_err, job) => {
+      /*
+       * throw the "ResourceNotFoundError" if there is an error in getting the
+       * job or the job is not a bulkUpsert job
+       */
+      if (_err || !job || job.type !== kueSetup.jobType.BULKUPSERTSAMPLES) {
+        const err = new apiErrors.ResourceNotFoundError();
+        return u.handleError(next, err, helper.modelName);
+      }
+
+      // return the job status and the errors in the response
+      const ret = {};
+      ret.status = job._state;
+      ret.errors = job.result ? job.result.errors : [];
+      return res.status(httpStatus.OK).json(ret);
+    });
+  },
+
+  /**
    * PATCH /samples/{key}
    *
    * Updates the sample and sends it back in the response. PATCH will only
@@ -141,6 +173,9 @@ module.exports = {
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
+   * @returns {ServerResponse} - The response object indicating that the sample
+   * has been either created or updated.
+   *
    */
   upsertSample(req, res, next) {
     // make the name post-able
