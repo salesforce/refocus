@@ -46,9 +46,7 @@ describe('api: upsert samples without perms', () => {
     tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -76,8 +74,9 @@ describe('api: upsert samples without perms', () => {
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
-      return samstoinit.populate();
     })
+    .then(() => samstoinit.eradicate())
+    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   });

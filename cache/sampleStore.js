@@ -31,7 +31,7 @@ const constants = {
       'writers',
     ],
     sample: ['relatedLinks'],
-    subject: ['aspectNames'],
+    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
