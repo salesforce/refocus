@@ -671,6 +671,12 @@ module.exports = function subject(seq, dataTypes) {
           'isPublished',
         ],
       },
+      {
+        name: 'SubjectNameIdxToDelete',
+        fields: [
+          'name',
+        ],
+      },
     ],
     instanceMethods: {
 
