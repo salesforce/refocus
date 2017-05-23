@@ -1533,9 +1533,12 @@ paths:
           name: name
           in: formData
           description: >-
-            A unique name for the lens. Leave empty if you want to use the
-            name provided by the lens publisher (i.e. sourceName).
+            A unique name for the lens. Max 60 characters; case insensitive;
+            allows alpha-numeric characters, underscore (_) and dash (-). Leave
+            empty if you want to use the name provided by the lens publisher
+            (i.e. sourceName).
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: version
           in: formData
@@ -1663,9 +1666,12 @@ paths:
                 default: false
               name:
                 description: >-
-                  A unique name for the lens. Leave empty if you want to use the
-                  name provided by the lens publisher (i.e. sourceName).
+                  A unique name for the lens. Max 60 characters; case insensitive;
+                  allows alpha-numeric characters, underscore (_) and dash (-). Leave
+                  empty if you want to use the name provided by the lens publisher
+                  (i.e. sourceName).
                 type: string
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               version:
                 description: >-
                   A version for the lens. Leave empty if you want to use the
@@ -1731,9 +1737,12 @@ paths:
           name: name
           in: formData
           description: >-
-            A unique name for the lens. Leave empty if you want to use the
-            name provided by the lens publisher (i.e. sourceName).
+            A unique name for the lens. Max 60 characters; case insensitive;
+            allows alpha-numeric characters, underscore (_) and dash (-). Leave
+            empty if you want to use the name provided by the lens publisher
+            (i.e. sourceName).
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: version
           in: formData
@@ -3621,6 +3630,37 @@ paths:
           $ref: "#/responses/400"
         403:
           $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+# ---------------------------------------------------------------------------
+  /samples/upsert/bulk/{key}/status:
+    x-swagger-router-controller: samples
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified sample
+      tags: [ samples ]
+      description: >-
+        Retrieve the status of the job identified by id in the request.
+      operationId: getSampleBulkUpsertStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the job
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/GetBulkUpsertStatusResponse"
+        400:
+          $ref: "#/responses/400"
         404:
           $ref: "#/responses/404"
         default:
@@ -6095,6 +6135,31 @@ paths:
             $ref: '#/definitions/ErrorResponse'
 
 # =============================================================================
+  /rooms:
+    x-swagger-router-controller: rooms
+    get:
+      tags: [ rooms ]
+      operationId: findRooms
+      responses:
+        200:
+          description: >-
+            Success
+          schema:
+            type: object
+            properties:
+              Success:
+                type: boolean
+                readOnly: true
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
 definitions:
 
   AuthenticationError:
@@ -6486,7 +6551,8 @@ definitions:
         readOnly: true
         pattern: ^[0-9A-Za-z_\\-]{0,60}$
         description: >
-          The name of the lens.
+          The name of lens. Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-).
       sourceDescription:
         type: string
         readOnly: true
@@ -6857,6 +6923,27 @@ definitions:
           request is enqueued as a job for the workers to process it
           asynchronously. The returned jobId can be used to check the status
           of the bulk upsert request.
+
+  GetBulkUpsertStatusResponse:
+    type: object
+    description: >
+      Status of bulk upsert request.
+    properties:
+      status:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          Status.
+      errors:
+        type: array
+        readOnly: true
+        description: >
+          An array containing the error information of the samples that
+          were not upserted.
+        items:
+          type: object
+
   SubjectsResponse:
     type: object
     description: >

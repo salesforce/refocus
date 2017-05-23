@@ -150,6 +150,14 @@ function start() { // eslint-disable-line max-statements
   const swaggerFile = fs // eslint-disable-line no-sync
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
+
+  // Filter out hidden routes
+  if (!featureToggles.isFeatureEnabled('enableRooms')) {
+    for (let i = 0; i < conf.hiddenRoutes.length; i++) {
+      delete swaggerDoc.paths[conf.hiddenRoutes[i]];
+    }
+  }
+
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     app.use('/static', express.static(path.join(__dirname, 'public')));
 
