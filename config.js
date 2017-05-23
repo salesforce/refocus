@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
+const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
@@ -34,6 +35,8 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   min: 0,
   idle: 10000,
 };
+const hiddenRoutes = pe.HIDDEN_ROUTES ?
+  pe.HIDDEN_ROUTES.split[','] : ['/rooms']; // Routes to hide
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -241,4 +244,5 @@ module.exports = {
   rateLimit,
   rateWindow,
   readReplicas,
+  hiddenRoutes,
 };
