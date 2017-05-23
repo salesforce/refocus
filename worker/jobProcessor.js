@@ -26,6 +26,6 @@ const workerStarted = 'Worker Process Started';
 console.log(workerStarted); // eslint-disable-line no-console
 
 jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
-jobQueue.process(jobType.SAMPLE_TIMEOUT, sampleTimeoutJob);
-jobQueue.process(jobType.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
 jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
+jobQueue.process(jobType.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
+jobQueue.process(jobType.SAMPLE_TIMEOUT, sampleTimeoutJob);

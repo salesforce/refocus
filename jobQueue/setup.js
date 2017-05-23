@@ -29,9 +29,9 @@ module.exports = {
   jobQueue: kue.createQueue(redisOptions),
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
+    GET_HIERARCHY: 'GET_HIERARCHY',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
-    GET_HIERARCHY: 'GET_HIERARCHY',
   },
   ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
