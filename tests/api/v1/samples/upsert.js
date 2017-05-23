@@ -208,6 +208,26 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
+    it('case-incorrect name becomes a combination of subject absolutePath' +
+      ' and aspect name', (done) => {
+      const sampleName = `${subject.absolutePath}|${aspect.name}`;
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: sampleName.toLowerCase(),
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(sampleName);
+        done();
+      });
+    });
+
     it('id is not returned', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -339,6 +359,26 @@ describe(`api: POST ${path}`, () => {
       })
       .then(() => done())
       .catch(done);
+    });
+
+    it('case-incorrect name becomes a combination of subject absolutePath' +
+      ' and aspect name', (done) => {
+      const sampleName = `${subject.absolutePath}|${aspect.name}`;
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: sampleName.toLowerCase(),
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(sampleName);
+        done();
+      });
     });
 
     it('id is not returned', (done) => {
@@ -502,40 +542,6 @@ describe(`api: POST ${path}`, () => {
           .contain('You cannot modify the read-only field: createdAt');
           return done();
         });
-      });
-    });
-  });
-
-  describe('on case insensitive upsert', () => {
-    beforeEach((done) => {
-      Sample.create({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: '1',
-        aspectId: aspect.id,
-        subjectId: subject.id,
-      })
-      .then(() => api.post(path)
-      .set('Authorization', token)
-      .send({
-        // updates the name to use lowercase
-        name: `${subject.absolutePath}|${aspect.name}`.toLowerCase(),
-        value: '2',
-      }))
-      .then(() => done())
-      .catch(done);
-    });
-
-    it('existing sample is not duplicated', (done) => {
-      api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body).to.have.length(1);
-        expect(res.body[0].name)
-        .to.equal(`${subject.absolutePath}|${aspect.name}`.toLowerCase());
-        done();
       });
     });
   });
