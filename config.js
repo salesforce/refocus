@@ -12,6 +12,8 @@
  * Configuration Settings
  */
 'use strict'; // eslint-disable-line strict
+require('./config/toggles'); // Loads the feature toggles
+const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
