@@ -82,7 +82,7 @@ module.exports = function lens(seq, dataTypes) {
 
       postImport(models) {
         assoc.user = Lens.belongsTo(models.User, {
-          foreignKey: 'createdBy',
+          foreignKey: 'installedBy',
           as: 'user',
         });
         assoc.writers = Lens.belongsToMany(models.User, {
