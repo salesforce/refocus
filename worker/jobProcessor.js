@@ -15,15 +15,19 @@
  * Add a new jobQueue.process(...) block for each new type of job.
  */
 'use strict'; // eslint-disable-line strict
-const jobType = require('../jobQueue/setup').jobType;
+const jobSetup = require('../jobQueue/setup');
+const jobConcurrency = jobSetup.jobConcurrency;
+const jobType = jobSetup.jobType;
 const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
 const bulkUpsertSamplesJob = require('./jobs/bulkUpsertSamplesJob');
 const sampleTimeoutJob = require('./jobs/sampleTimeoutJob');
 const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
 const workerStarted = 'Worker Process Started';
-
 console.log(workerStarted); // eslint-disable-line no-console
 
-jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
-jobQueue.process(jobType.SAMPLE_TIMEOUT, sampleTimeoutJob);
-jobQueue.process(jobType.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
+jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
+  bulkUpsertSamplesJob);
+jobQueue.process(jobType.SAMPLE_TIMEOUT, jobConcurrency.SAMPLE_TIMEOUT,
+  sampleTimeoutJob);
+jobQueue.process(jobType.PERSIST_SAMPLE_STORE,
+  jobConcurrency.PERSIST_SAMPLE_STORE, persistSampleStoreJob);

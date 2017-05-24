@@ -32,15 +32,17 @@ module.exports = (job, done) => {
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
 
-  // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
-  //   `with ${samples.length} samples`;
-  // console.log(msg); // eslint-disable-line no-console
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    const msg =
+      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
+      `sampleCount=${samples.length}`;
+    console.log(msg); // eslint-disable-line no-console
+  }
 
   const dbStartTime = Date.now();
-
   const sampleModel =
-        featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
-          cacheSampleModel : helper.model;
+    featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
+      cacheSampleModel : helper.model;
 
   sampleModel.bulkUpsertByName(samples, userName, readOnlyFields)
     .then((results) => {

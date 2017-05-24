@@ -14,6 +14,11 @@ const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
 
 module.exports = (job, done) => {
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    const msg = '[KJI] Entered sampleTimeoutJob.js';
+    console.log(msg); // eslint-disable-line no-console
+  }
+
   const jobStartTime = Date.now();
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();
