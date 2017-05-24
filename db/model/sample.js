@@ -201,6 +201,11 @@ module.exports = function sample(seq, dataTypes) {
             if (o === null) {
               return Sample.create(toUpsert);
             }
+
+            // DO NOT update the name
+            // for existing samples
+            delete toUpsert.name;
+
             /*
              * set value changed to true during updates to avoid timeouts.
              * Adding this to the before update hook does

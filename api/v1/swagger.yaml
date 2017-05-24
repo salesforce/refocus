@@ -3634,6 +3634,37 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+# ---------------------------------------------------------------------------
+  /samples/upsert/bulk/{key}/status:
+    x-swagger-router-controller: samples
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified sample
+      tags: [ samples ]
+      description: >-
+        Retrieve the status of the job identified by id in the request.
+      operationId: getSampleBulkUpsertStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the job
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/GetBulkUpsertStatusResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
   /samples/{key}/relatedLinks:
@@ -6104,6 +6135,31 @@ paths:
             $ref: '#/definitions/ErrorResponse'
 
 # =============================================================================
+  /rooms:
+    x-swagger-router-controller: rooms
+    get:
+      tags: [ rooms ]
+      operationId: findRooms
+      responses:
+        200:
+          description: >-
+            Success
+          schema:
+            type: object
+            properties:
+              Success:
+                type: boolean
+                readOnly: true
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
 definitions:
 
   AuthenticationError:
@@ -6872,6 +6928,27 @@ definitions:
           request is enqueued as a job for the workers to process it
           asynchronously. The returned jobId can be used to check the status
           of the bulk upsert request.
+
+  GetBulkUpsertStatusResponse:
+    type: object
+    description: >
+      Status of bulk upsert request.
+    properties:
+      status:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          Status.
+      errors:
+        type: array
+        readOnly: true
+        description: >
+          An array containing the error information of the samples that
+          were not upserted.
+        items:
+          type: object
+
   SubjectsResponse:
     type: object
     description: >
