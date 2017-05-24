@@ -6420,10 +6420,10 @@ definitions:
           This allows a lens to render sample data in different ways depending on
           their type.
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
-          User who created this Aspect.
+          Id of the User who created this Aspect.
       createdAt:
         readOnly: true
         type: string
@@ -6478,8 +6478,8 @@ definitions:
         type: string
         readOnly: true
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
           User who created this Aspect.
       createdAt:
@@ -6582,6 +6582,11 @@ definitions:
         type: string
         description: >
           TODO
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this Lens.
       createdAt:
         readOnly: true
         type: string
@@ -7039,10 +7044,10 @@ definitions:
       #   description: >
       #    The number of direct children subjects under this subject.
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
-          User who created this Aspect.
+          Id of the User who created this Aspect.
       createdAt:
         type: string
         readOnly: true

@@ -13,6 +13,7 @@
 
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
+const authUtils = require('../helpers/authUtils');
 const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
@@ -420,18 +421,52 @@ module.exports = {
 
       updateLensDetails(seqObj);
       const assocToCreate = u.includeAssocToCreate(seqObj, helper);
-      helper.model.create(seqObj, assocToCreate)
-      .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        delete o.dataValues.library;
-        u.logAPI(req, resultObj, o.dataValues);
-        res.status(httpStatus.CREATED).json(
-          u.responsify(o, helper, req.method)
-        );
-      })
-      .catch((err) => {
-        u.handleError(next, err, helper.modelName);
-      });
+
+      /**
+       * Creates the lens using the model.
+       * If returnUser flag is set,
+       * reloads the lens instance to return associations.
+       *
+       * @returns {Promise} The promise to create the lens.
+       */
+      const createLens = () => helper.model.create(seqObj, assocToCreate)
+        .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          delete o.dataValues.library;
+          u.logAPI(req, resultObj, o.dataValues);
+          if (featureToggles.isFeatureEnabled('returnUser')) {
+            o.reload()
+            .then(() => res.status(httpStatus.CREATED).json(
+                u.responsify(o, helper, req.method)));
+          } else {
+            res.status(httpStatus.CREATED).json(
+              u.responsify(o, helper, req.method)
+            );
+          }
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
+
+      if (featureToggles.isFeatureEnabled('returnUser')) {
+        authUtils.getUser(req)
+        .then((user) => {
+          if (user) {
+            seqObj.createdBy = user.id;
+          }
+
+          return createLens();
+        })
+        .catch((err) => {
+          if (err.status === httpStatus.FORBIDDEN) {
+            return createLens();
+          }
+
+          return u.handleError(next, err, helper.modelName);
+        });
+      } else {
+        createLens();
+      }
     } catch (err) {
       err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
