@@ -85,16 +85,19 @@ function processJobOnComplete(job, logObject) {
     job.on('complete', (jobResultObj) => {
       setTimeout(() => {
         try {
-          // console.log('Ready to ' + // eslint-disable-line no-console
-          //   `remove job ${job.id}`);
+          if (featureToggles.isFeatureEnabled('instrumentKue')) {
+            console.log('[KJI] Ready to ' + // eslint-disable-line no-console
+              `remove job ${job.id}`);
+          }
+
           job.remove((err) => {
             if (err) {
               console.log('Error removing ' + // eslint-disable-line no-console
                 `${job.id}`, err);
-            } /* else {
-              console.log('Removed ' + // eslint-disable-line no-console
+            } else if (featureToggles.isFeatureEnabled('instrumentKue')) {
+              console.log('[KJI] Removed ' + // eslint-disable-line no-console
                 `completed job ${job.id}`);
-            } */
+            }
           });
         } catch (err) {
           console.log('Error removing ' + // eslint-disable-line no-console
@@ -115,8 +118,8 @@ function processJobOnComplete(job, logObject) {
         }
 
         /*
-         * The second argument should match the activity type in
-         *  /config/activityLog.js
+         * The second argument should match the activity logging type in
+         * /config/activityLog.js
          */
         activityLogUtil.printActivityLogString(logObject, 'worker');
       }
@@ -199,6 +202,12 @@ function calculateJobPriority(jobName, data, req) {
  */
 function createPromisifiedJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(jobName, data, req);
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    console.log('[KJI] Entered ' + // eslint-disable-line no-console
+      `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
+      `jobPriority=${jobPriority}`);
+  }
+
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data)
     .ttl(TIME_TO_LIVE)
@@ -229,6 +238,12 @@ function createPromisifiedJob(jobName, data, req) {
  */
 function createJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(jobName, data, req);
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    console.log('[KJI] Entered ' + // eslint-disable-line no-console
+      `jobWrapper.js createJob: jobName=${jobName} ` +
+      `jobPriority=${jobPriority}`);
+  }
+
   const job = jobQueue.create(jobName, data)
   .ttl(TIME_TO_LIVE)
   .priority(jobPriority)

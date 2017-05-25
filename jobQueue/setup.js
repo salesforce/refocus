@@ -15,6 +15,7 @@
 'use strict'; // eslint-disable-line strict
 const PROTOCOL_PREFIX = 'redis:';
 const conf = require('../config');
+const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
 const redisOptions = {
@@ -25,8 +26,24 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
 }
 
+const jobQueue = kue.createQueue(redisOptions);
+jobQueue.on('error', (err) => {
+  console.error('Kue Error!', err); // eslint-disable-line no-console
+});
+if (featureToggles.isFeatureEnabled('instrumentKue')) {
+  jobQueue.on('job enqueue', (id, type) => {
+    console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
+      'id=%s type=%s', id, type);
+  });
+}
+
 module.exports = {
-  jobQueue: kue.createQueue(redisOptions),
+  jobConcurrency: {
+    BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
+    PERSIST_SAMPLE_STORE: 1,
+    SAMPLE_TIMEOUT: 1,
+  },
+  jobQueue,
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
