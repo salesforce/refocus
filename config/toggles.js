@@ -114,8 +114,10 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
-  returnUser: environmentVariableTrue(pe,
-    'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+  // Add some job queue instrumentation logging
+  instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+
+  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
 }; // shortTermToggles
 
