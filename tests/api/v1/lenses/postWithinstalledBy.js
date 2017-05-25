@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/lenses/postWithCreatedBy.js
+ * tests/api/v1/lenses/postWithinstalledBy.js
  */
 'use strict'; // eslint-disable-line strict
 
@@ -24,7 +24,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => {
   let token;
   let user;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -46,7 +46,7 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('if token provided, createdBy and user fields are returned', (done) => {
+  it('if token provided, installedBy and user fields are returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .field('name', 'testLens')
@@ -58,14 +58,14 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.createdBy).to.equal(user.id);
+      expect(res.body.installedBy).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();
     });
   });
 
-   it('if token is NOT provided, createdBy and user fields are NOT' +
+   it('if token is NOT provided, installedBy and user fields are NOT' +
     ' returned', (done) => {
     api.post(path)
     .field('name', 'testLens')
@@ -77,13 +77,13 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.createdBy).to.be.undefined;
+      expect(res.body.installedBy).to.be.undefined;
       expect(res.body.user).to.be.undefined;
       done();
     });
   });
 
-  it('on invalid token, createdBy and user fields are NOT' +
+  it('on invalid token, installedBy and user fields are NOT' +
     ' returned', (done) => {
     api.post(path)
     .set('Authorization', 'iDontExist')
@@ -96,13 +96,13 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.createdBy).to.be.undefined;
+      expect(res.body.installedBy).to.be.undefined;
       expect(res.body.user).to.be.undefined;
       done();
     });
   });
 
-  it('on revoked token, createdBy and user fields are returned', (done) => {
+  it('on revoked token, installedBy and user fields are returned', (done) => {
     api.post(tokenPath)
     .set('Authorization', token)
     .send({ name: 'newToken' })
@@ -131,7 +131,7 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
             done(err);
           }
 
-          expect(res.body.createdBy).to.equal(user.id);
+          expect(res.body.installedBy).to.equal(user.id);
           expect(res.body.user.name).to.equal(user.name);
           expect(res.body.user.email).to.equal(user.email);
           done();

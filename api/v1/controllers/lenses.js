@@ -452,7 +452,7 @@ module.exports = {
         authUtils.getUser(req)
         .then((user) => {
           if (user) {
-            seqObj.createdBy = user.id;
+            seqObj.installedBy = user.id;
           }
 
           return createLens();
