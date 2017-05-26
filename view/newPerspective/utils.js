@@ -260,7 +260,7 @@ function getValuesObject(request, getPerspectiveName) {
   })
   .then((res) => {
     valuesObj.lens = res.body;
-    return request('/v1/subjects?fields=absolutePath,tags');
+    return request('/v1/subjects?fields=isPublished,absolutePath,tags');
   })
   .then((res) => {
 

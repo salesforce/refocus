@@ -376,7 +376,7 @@ function loadExtraStuffForCreatePerspective(perspective, params, promisesArr,
   pcValues.name = perspective.name;
   const pArr = promisesArr || [];
 
-  const getAllSubjectsPromise = getPromiseWithUrl('subjects', '/v1/subjects');
+  const getAllSubjectsPromise = getPromiseWithUrl('subjects', '/v1/subjects?fields=isPublished,absolutePath,tags');
   let subjectPromise;
   if (getRoot) {
     subjectPromise = getAllSubjectsPromise.then((val) => {
