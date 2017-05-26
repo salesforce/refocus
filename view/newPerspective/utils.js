@@ -276,7 +276,7 @@ function getValuesObject(request, getPerspectiveName) {
   })
   .then((res) => {
     valuesObj.lenses = getPublishedFromArr(res.body);
-    return request('/v1/aspects')
+    return request('/v1/aspects?fields=isPublished,name,tags')
   })
   .then((res) => {
     valuesObj.aspectFilter = getPublishedFromArr(res.body);
