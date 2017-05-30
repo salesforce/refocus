@@ -312,8 +312,7 @@ module.exports = function subject(seq, dataTypes) {
            */
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
             redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
-            redisOps.setValue(subjectType, inst.getDataValue('absolutePath'),
-              inst.getDataValue('id'));
+            redisOps.hmSet(subjectType, inst.getDataValue('absolutePath'), inst.get());
           }
         }
 
@@ -353,6 +352,7 @@ module.exports = function subject(seq, dataTypes) {
 
             // rename entry in subject store
             redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
+            redisOps.hmSet(subjectType, newAbsPath, inst.get());
 
             /*
              * When subject absolutePath changes delete multiple possible
@@ -365,8 +365,7 @@ module.exports = function subject(seq, dataTypes) {
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
               redisOps.addKey(subjectType, inst.absolutePath);
-              redisOps.setValue(subjectType, inst.getDataValue('absolutePath'),
-              inst.getDataValue('id'));
+              redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
             } else {
               subjectUtils.removeFromRedis(inst.absolutePath);
             }

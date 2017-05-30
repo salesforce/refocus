@@ -421,7 +421,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   );
 
   let aspectObj = {};
-  let subjectId;
+  let subject;
   let aspect;
   let sample;
   return checkWritePermission(aspectName, sampleName, userName, isBulk)
@@ -431,15 +431,15 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
    * error is returned, else sample is returned
    */
   .then(() => Promise.all([
-    redisClient.getAsync(subjKey),
+    redisClient.hgetallAsync(subjKey),
     redisClient.hgetallAsync(
     sampleStore.toKey(constants.objectType.aspect, aspectName)
     ),
     redisClient.hgetallAsync(sampleKey),
   ])
   .then((responses) => {
-    [subjectId, aspect, sample] = responses;
-    if (!subjectId) {
+    [subject, aspect, sample] = responses;
+    if (!subject) {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
 
@@ -447,7 +447,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       handleUpsertError(constants.objectType.aspect, isBulk);
     }
 
-    sampleQueryBodyObj.subjectId = subjectId;
+    sampleQueryBodyObj.subjectId = subject.id;
     sampleQueryBodyObj.aspectId = aspect.id;
 
     aspectObj = sampleStore.arrayStringsToJson(
@@ -463,8 +463,15 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
 
     // if sample exists, just update sample.
     if (sample) {
+      // to avoid updating sample name
+      delete sampleQueryBodyObj.name;
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     }
+
+    // sample is new
+    // make sure the name is a combination of subject
+    // and aspect fields
+    sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
 
     const subaspMapKey = sampleStore.toKey(
       constants.objectType.subAspMap, absolutePath

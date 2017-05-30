@@ -184,6 +184,26 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
+  it('when the sample does not exist, name should match subject absolutePath,' +
+    ' aspect name', (done) => {
+    const sampleName = `${subject.absolutePath}|${aspect.name}`;
+    api.post(path)
+    .set('Authorization', token)
+    .send({
+      name: sampleName.toLowerCase(),
+      value: '2',
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.equal(sampleName);
+      done();
+    });
+  });
+
   it('createdAt and updatedAt fields have the expected format', (done) => {
     api.post(path)
     .set('Authorization', token)
@@ -323,6 +343,26 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       .catch(done);
     });
 
+    it('name should match subject absolutePath,' +
+      ' aspect name', (done) => {
+      const sampleName = `${subject.absolutePath}|${aspect.name}`;
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: sampleName.toLowerCase(),
+        value: '2',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(sampleName);
+        done();
+      });
+    });
+
     it('value is updated', (done) => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
       .end((err, res) => {
@@ -404,56 +444,6 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
             .to.equal(`${subject.absolutePath}|${aspect.name}`);
           done();
         });
-      });
-    });
-  });
-
-  describe('on case insensitive upsert', () => {
-    beforeEach((done) => {
-      const subjKey = sampleStore.toKey(
-        sampleStore.constants.objectType.subject, subject.absolutePath
-      );
-      const sampleKey = sampleStore.toKey(
-        sampleStore.constants.objectType.sample, `${subject.absolutePath}|${aspect.name}`
-      );
-      const aspectName = aspect.name;
-      redisClient.batch([
-        ['sadd', subjKey, aspectName],
-        ['sadd', sampleStore.constants.indexKey.sample, sampleKey],
-        ['hmset', sampleKey, {
-          name: `${subject.absolutePath}|${aspect.name}`,
-          value: '1',
-          aspectId: aspect.id,
-          subjectId: subject.id,
-          previousStatus: 'Invalid',
-          status: 'Invalid',
-        },
-        ],
-      ]).execAsync()
-      .then(() => api.post(path)
-      .set('Authorization', token)
-      .send({
-        // updates the name to use lowercase
-        name: `${subject.absolutePath}|${aspect.name}`.toLowerCase(),
-        value: '2',
-      }))
-      .then(() => {
-        done();
-      })
-      .catch(done);
-    });
-
-    it('existing sample is not duplicated', (done) => {
-      api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body).to.have.length(1);
-        expect(res.body[0].name)
-        .to.equal(`${subject.absolutePath}|${aspect.name}`.toLowerCase());
-        done();
       });
     });
   });
