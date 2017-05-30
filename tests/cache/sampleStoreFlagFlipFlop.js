@@ -198,10 +198,10 @@ describe('sampleStore flag flip flop:', () => {
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
     })
-    .then(() => redisClient.getAsync('samsto:subject:___subject1.___subject3'))
+    .then(() => redisClient.hgetallAsync('samsto:subject:___subject1.___subject3'))
     .then((res) => {
       expect(res).to.not.be.null;
-      subjectIdToTest = res;
+      subjectIdToTest = res.id;
     })
     .then(() => redisClient
       .hgetallAsync('samsto:sample:___subject1.___subject3|___aspect1'))
