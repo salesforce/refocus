@@ -32,6 +32,37 @@ describe('db: bot: create: ', () => {
     .catch(done);
     });
 
+    it('fail, bot empty name', (done) => {
+      Bot.create({
+        name: '',
+        location: 'http://www.bar.com',
+        active: true,
+      })
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        expect(err.message.toLowerCase()).to.contain('validation is failed');
+        expect(err.errors[0].path).to.equal('name');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, duplicate bot name', (done) => {
+      Promise.all([Bot.create(u.getStandard()), Bot.create(u.getStandard())])
+      .then(() => done(tu.uniError))
+      .catch((err) => {
+        debugger;
+        expect(err.name).to.equal(tu.uniErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        expect(err.errors[0].message).to.contain('name must be unique');
+        expect(err.errors[0].type).to.equal('unique violation');
+        done();
+      })
+    .catch(done);
+    });
+
     it('fail, bot wrong url', (done) => {
       Bot.create({
         name: u.name,
