@@ -373,45 +373,5 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         });
       });
     });
-
-    it('check that duplication of sample is not happening even for ' +
-    'sample name in different case', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send([
-        {
-          name:
-            `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase(),
-          value: '6',
-        },
-      ])
-      .then(() => {
-        api.get('/v1/samples?name=' +
-          `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
-        .end((err, res) => {
-          if (err) {
-            done(err);
-          }
-
-          expect(res.body).to.have.length(1);
-          expect(res.body[0].name).to.equal(
-            `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`.toLowerCase()
-          );
-
-          // check that no extra samples are created as side effect
-          redisClient.keysAsync('samsto:sample:*')
-          .then((responses) => {
-            expect(responses.length).to.be.equal(2);
-            expect(responses).to.include(
-              'samsto:sample:___subject|___aspect1'
-            );
-            expect(responses).to.include(
-              'samsto:sample:___subject|___aspect2'
-            );
-            done();
-          });
-        });
-      });
-    });
   });
 });
