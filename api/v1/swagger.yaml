@@ -1635,7 +1635,7 @@ paths:
       summary: Update selected metadata fields for the specified lens
       tags: [ lenses ]
       description: >-
-        Update selected metadata fields for the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Update selected metadata fields for the specified lens. Note that if you are updating the lens library, you must use PUT (which accepts multipart/form-data). If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchLens
       parameters:
         -
