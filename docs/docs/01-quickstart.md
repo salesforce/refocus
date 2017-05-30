@@ -83,6 +83,7 @@ You have two ways to deploy Refocus. Select the one that best meets your needs.
 
 - I want [one-click Heroku deployment](./03-quickstartheroku.html)
 - I want to [download and build and deploy locally](./04-quickstartlocal.html)
+- I want to [run Refocus locally as docker container](./05-quickstartlocaldocker.html)
 
 Refocus requires that both Redis and PostgreSQL are running. After Refocus is deployed, create an account and sign in.
 
