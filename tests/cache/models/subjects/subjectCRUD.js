@@ -24,7 +24,6 @@ const Sample = tu.db.Sample;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const redisOps = rtu.redisOps;
 
-
 describe('redis: subject: CRUD: ', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const parUnPub =
@@ -71,6 +70,8 @@ describe('redis: subject: CRUD: ', () => {
       return Sample.create(sample1);
     })
     .then(() => Sample.create(sample2))
+    .then(() => samstoinit.eradicate())
+    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   });
@@ -79,19 +80,21 @@ describe('redis: subject: CRUD: ', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('an entry for created subject should be found', (done) => {
+  it('created subject should be found', (done) => {
+    let absolutePath;
     Subject.findById(ipar)
     .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
+      absolutePath = subj.absolutePath;
+      const key = redisStore.toKey('subject', absolutePath);
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['get', key]);
+        absolutePath));
+      cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
       expect(res[0]).to.equal(1);
-      expect(res[1]).to.equal(ipar);
+      expect(res[1].absolutePath).to.equal(absolutePath);
       done();
     })
     .catch(done);
@@ -108,7 +111,7 @@ describe('redis: subject: CRUD: ', () => {
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subj.absolutePath));
-      cmds.push(['get', key]);
+      cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
@@ -120,12 +123,13 @@ describe('redis: subject: CRUD: ', () => {
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subj.absolutePath));
-      cmds.push(['get', key]);
+      cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
       expect(res[0]).to.equal(1);
-      expect(res[1]).to.equal(iparUnPub);
+      expect(res[1].absolutePath).to.equal(subj.absolutePath);
+      expect(res[1].id).to.equal(iparUnPub);
       done();
     })
     .catch(done);
@@ -133,12 +137,13 @@ describe('redis: subject: CRUD: ', () => {
 
   it('when absolutePath changes, the subjectStore should reflect' +
    ' this change', (done) => {
+    const newName = par.name + '_newName'
     let oldAbsPath;
     let newAbsPath;
     Subject.findById(ipar)
     .then((subj) => {
       oldAbsPath = subj.absolutePath;
-      return subj.update({ name: subj.name + '_newName' });
+      return subj.update({ name: newName });
     })
     .then((subj) => {
       newAbsPath = subj.absolutePath;
@@ -146,9 +151,9 @@ describe('redis: subject: CRUD: ', () => {
       const oldKey = redisStore.toKey('subject', oldAbsPath);
       const newKey = redisStore.toKey('subject', newAbsPath);
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, oldAbsPath));
-      cmds.push(['get', oldKey]);
+      cmds.push(['hgetall', oldKey]);
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, newAbsPath));
-      cmds.push(['get', newKey]);
+      cmds.push(['hgetall', newKey]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
@@ -162,7 +167,8 @@ describe('redis: subject: CRUD: ', () => {
       expect(res[2]).to.equal(1);
 
       // new absolutePath key should be mapped to the id
-      expect(res[3]).to.equal(ipar);
+      expect(res[3].id).to.equal(ipar);
+      expect(res[3].absolutePath).to.equal(newName);
 
       return redisClient.keysAsync(newAbsPath + '*');
     })
@@ -179,12 +185,12 @@ describe('redis: subject: CRUD: ', () => {
     'samples should be deleted', (done) => {
     let oldAbsPath;
     let newAbsPath;
+    const ARRAY = 'hello'.split('');
 
-    samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    Subject.findById(ipar)
     .then((subj) => {
       oldAbsPath = subj.absolutePath;
-      return subj.update({ name: subj.name + '_newName' });
+      return subj.update({ name: subj.name + '_newName', tags: ARRAY });
     })
     .then((subj) => {
       newAbsPath = subj.absolutePath;
@@ -192,9 +198,9 @@ describe('redis: subject: CRUD: ', () => {
       const oldKey = redisStore.toKey('subject', oldAbsPath);
       const newKey = redisStore.toKey('subject', newAbsPath);
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, oldAbsPath));
-      cmds.push(['get', oldKey]);
+      cmds.push(['hgetall', oldKey]);
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, newAbsPath));
-      cmds.push(['get', newKey]);
+      cmds.push(['hgetall', newKey]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
@@ -207,8 +213,10 @@ describe('redis: subject: CRUD: ', () => {
       // new abspath should be added to the subject index
       expect(res[2]).to.equal(1);
 
-      // new absolutePath key should be mapped to the id
-      expect(res[3]).to.equal(ipar);
+      // new absolutePath key should be mapped to the subject
+      expect(res[3].id).to.equal(ipar);
+      expect(res[3].tags).to.deep.equal(JSON.stringify(ARRAY));
+      expect(res[3].absolutePath).to.equal(newAbsPath);
 
       return redisClient.smembersAsync(sampleIndexName);
     })
@@ -254,7 +262,7 @@ describe('redis: subject: CRUD: ', () => {
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subj.absolutePath));
-      cmds.push(['get', key]);
+      cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
@@ -270,8 +278,7 @@ describe('redis: subject: CRUD: ', () => {
 
     // of the form samsto:samples:
     let subjectWithPrefix;
-    samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    Subject.findById(ipar)
     .then((s) => s.destroy())
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);
@@ -297,8 +304,7 @@ describe('redis: subject: CRUD: ', () => {
 
     // of the form samsto:samples:
     let subjectWithPrefix;
-    samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    Subject.findById(ipar)
     .then((s) => s.update({ isPublished: false }))
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);

@@ -164,6 +164,33 @@ describe('sampleStore (feature on):', () => {
     .catch(done);
   });
 
+  it('subject is populated', (done) => {
+    const absolutePath = '___subject1.___subject2';
+    samstoinit.eradicate()
+    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then((res) => expect(res.length).to.eql(0))
+    .then(() => samstoinit.populate())
+    .then(() => redisClient
+      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then((res) => {
+      expect(res.includes('samsto:subject:' + absolutePath))
+        .to.be.true;
+      expect(res.includes('samsto:subject:___subject1.___subject3'))
+        .to.be.true;
+    })
+    .then(() => redisClient.hgetallAsync('samsto:subject:' + absolutePath))
+    .then((subject) => {
+
+      // the absolutePath in the key is lowercase
+      expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath)
+    })
+    .then(() => samstoinit.init())
+    .then((res) => expect(res).to.not.be.false)
+    .then(() => done())
+    .catch(done);
+  });
+
+
   it('eradicate and populate', (done) => {
     samstoinit.eradicate()
     .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
