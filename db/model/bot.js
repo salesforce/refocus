@@ -46,7 +46,7 @@ module.exports = function bot(seq, dataTypes) {
       comment: 'Determines if bot is still active',
     },
     actions: {
-      type: dataTypes.ARRAY(dataTypes.JSON),
+      type: dataTypes.ARRAY(dataTypes.JSONB),
       allowNull: true,
       validate: {
         contains: u.validateActionArray,
@@ -54,7 +54,7 @@ module.exports = function bot(seq, dataTypes) {
       comment: 'List of actions a Bot can take',
     },
     data: {
-      type: dataTypes.ARRAY(dataTypes.JSON),
+      type: dataTypes.ARRAY(dataTypes.JSONB),
       allowNull: true,
       validate: {
         contains: u.validateDataArray,
