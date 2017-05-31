@@ -1085,6 +1085,7 @@ module.exports = {
         commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
         return upsertOneSample(sampleReq, true, user);
       } catch (err) {
+        console.log('failed')
         return Promise.resolve({ isFailed: true, explanation: err });
       }
     });

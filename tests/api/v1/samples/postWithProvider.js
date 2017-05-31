@@ -68,4 +68,37 @@ describe('api: POST /samples with provider ' +
       done();
     });
   });
+
+  it('if token is not, provider and user fields are not returned', (done) => {
+    const path = '/v1/samples';
+    api.post(path)
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.provider).to.be.undefined;
+      expect(res.body.user).to.be.undefined;
+      done();
+    });
+  });
+
+  it('if token is invalid, provider and user fields are not returned', (done) => {
+    const path = '/v1/samples';
+    api.post(path)
+    .set('Authorization', 'iDontExist')
+    .send(sampleToPost)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.provider).to.be.undefined;
+      expect(res.body.user).to.be.undefined;
+      done();
+    });
+  });
 });

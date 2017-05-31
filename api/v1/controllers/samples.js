@@ -268,8 +268,6 @@ module.exports = {
      * @returns {Object} response object with status and body
      */
     function bulkUpsert(user) {
-      console.log('in bulkUpsert')
-
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
 
         const jobType = require('../../../jobQueue/setup').jobType;
@@ -292,8 +290,6 @@ module.exports = {
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-      console.log('in bulkUpsert')
-
         const sampleModel =
         featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample : helper.model;
@@ -319,7 +315,16 @@ module.exports = {
     // perform bulk upsert anyway.
     authUtils.getUser(req)
     .then(bulkUpsert)
-    .catch(bulkUpsert);
+    .catch((err) => {
+
+      // proceed to do upsert iff user is found and do NOT need permission
+      if (err.status === httpStatus.FORBIDDEN &&
+        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
+        return bulkUpsert(false);
+      }
+
+      u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
