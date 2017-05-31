@@ -61,6 +61,7 @@ describe('api: DELETE Sample without permission', () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+  after(() => tu.toggleOverride('enforceWritePermission', false));
 
   it('deleting sample without permission should return 403', (done) => {
     api.delete(`${path}/${sampleName}`)

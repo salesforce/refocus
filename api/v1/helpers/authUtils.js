@@ -29,9 +29,7 @@ function getUser(req) {
     } else if (req.headers.authorization) { // use the token
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => User.findOne({ where: { name: resObj.username } }))
-      .then((user) => {
-        resolve(user);
-      })
+      .then((user) => resolve(user))
       .catch(reject);
     } else {
       reject(new apiErrors.ForbiddenError({
