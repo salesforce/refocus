@@ -27,6 +27,16 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: false,
       comment: 'Determines if room type is still active',
     },
+    settings: {
+      type: dataTypes.ARRAY(dataTypes.JSON),
+      allowNull: true,
+      comment: 'Key/Value pairs for user specific settings',
+    },
+    rules: {
+      type: dataTypes.ARRAY(dataTypes.JSON),
+      allowNull: true,
+      comment: 'Logic and resulting actions for rooms',
+    },
   }, {
     classMethods: {
       getRoomTypeAssociations() {
@@ -34,11 +44,6 @@ module.exports = function user(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.connectedBot = RoomType.belongsToMany(models.Bot, {
-          as: 'bots',
-          through: 'RoomBots',
-          foreignKey: 'roomTypeId',
-        });
         assoc.writers = RoomType.belongsToMany(models.User, {
           as: 'writers',
           through: 'RoomTypeWriters',

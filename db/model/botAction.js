@@ -7,7 +7,7 @@
  */
 
 /**
- * db/model/pendingBotAction.js
+ * db/model/botAction.js
  *
  * Once an action is intiated from refocus bots need to be able to
  * check if they have any actions to perform. This table will act
@@ -15,9 +15,11 @@
  */
 
 const assoc = {};
+const dbErrors = require('../dbErrors');
+const constants = require('../constants');
 
-module.exports = function user(seq, dataTypes) {
-  const PendingBotAction = seq.define('PendingBotAction', {
+module.exports = function botAction(seq, dataTypes) {
+  const BotAction = seq.define('BotAction', {
     id: {
       type: dataTypes.UUID,
       primaryKey: true,
@@ -28,6 +30,14 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: true,
       comment: 'Determines if bot action is still active',
     },
+    name: {
+      type: dataTypes.STRING,
+      allowNull: false,
+      validate: {
+        is: constants.nameRegex,
+      },
+      comment: 'Name of the bot action',
+    },
     parameters: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
@@ -35,20 +45,61 @@ module.exports = function user(seq, dataTypes) {
     },
   }, {
     classMethods: {
-      getPendingBotActionAssociations() {
+      getBotActionAssociations() {
         return assoc;
       },
 
       postImport(models) {
-        assoc.room = PendingBotAction.belongsTo(models.Room, {
+        assoc.room = BotAction.belongsTo(models.Room, {
           foreignKey: 'roomId',
+          allowNull: false,
         });
-        assoc.bot = PendingBotAction.belongsTo(models.Bot, {
+        assoc.bot = BotAction.belongsTo(models.Bot, {
           foreignKey: 'botId',
+          allowNull: false,
         });
       },
     },
+    hooks: {
+
+      /**
+       * Check if the paramaters required are being passed.
+       * @param  {BotAction} inst The instance being created
+       * @returns {Promise}
+       */
+      beforeCreate(inst /* , opts */) {
+        return new seq.Promise((resolve, reject) =>
+          models.Bot.findOne({
+            where: {
+              id: inst.getDataValue('botId'),
+              actions: {
+                $contains: {
+                  name: inst.getDataValue('name'),
+                },
+              },
+            }
+          })
+          .then((dataFound) => {
+            if (dataFound) {
+              if (inst.getDataValue('parameters').length !==
+                dataFound.parameters.length) {
+                throw new dbErrors.ValidationError({
+                  message:
+                    'Not enough parameters were sent to run this action',
+                });
+              }
+            } else {
+              throw new dbErrors.ValidationError({
+                message: 'Action name not found',
+              });
+            }
+          })
+          .then(() => resolve(inst))
+          .catch((err) => reject(err))
+        );
+      }, // hooks.beforeCreate
+    },
   });
-  return PendingBotAction;
+  return BotAction;
 };
 
