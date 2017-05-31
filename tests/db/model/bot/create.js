@@ -15,7 +15,6 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
-const constants = require('../../../../db/constants');
 
 describe('db: bot: create: ', () => {
   after(u.forceDelete);
@@ -25,8 +24,13 @@ describe('db: bot: create: ', () => {
       Bot.create(u.getStandard())
       .then((o) => {
         expect(o).to.have.property('name');
-        expect(o).to.have.property('location').to.equal('http://www.bar.com');
+        expect(o).to.have.property('url').to.equal('http://www.bar.com');
         expect(o).to.have.property('active').to.equal(true);
+        expect(o).to.have.property('actions');
+        expect(o.actions.length).to.equal(2);
+        expect(o.actions[0].parameters.length).to.equal(4);
+        expect(o).to.have.property('data');
+        expect(o.data.length).to.equal(5);
         done();
       })
     .catch(done);
@@ -35,7 +39,7 @@ describe('db: bot: create: ', () => {
     it('fail, bot empty name', (done) => {
       Bot.create({
         name: '',
-        location: 'http://www.bar.com',
+        url: 'http://www.bar.com',
         active: true,
       })
       .then(() => done(tu.valError))
@@ -66,7 +70,7 @@ describe('db: bot: create: ', () => {
     it('fail, bot wrong url', (done) => {
       Bot.create({
         name: u.name,
-        location: 'notURL',
+        url: 'notURL',
         active: true,
       })
       .then(() => done(tu.valError))
@@ -83,7 +87,7 @@ describe('db: bot: create: ', () => {
     it('fail, bot wrong name', (done) => {
       Bot.create({
         name: `^1213@#@@#`,
-        location: 'http://www.test.com',
+        url: 'http://www.test.com',
         active: true,
       })
       .then(() => done(tu.valError))

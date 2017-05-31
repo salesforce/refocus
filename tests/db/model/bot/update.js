@@ -15,7 +15,6 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
-const constants = require('../../../../db/constants');
 
 describe('db: bot: update: ', () => {
   beforeEach((done) => {
@@ -40,10 +39,10 @@ describe('db: bot: update: ', () => {
 
     it('ok, bot url updated', (done) => {
       Bot.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ location: 'http://www.test.com' }))
+      .then((o) => o.update({ url: 'http://www.test.com' }))
       .then(() => Bot.findOne({ where: { name: u.name } }))
       .then((o) => {
-        expect(o).to.have.property('location').to.equal('http://www.test.com');
+        expect(o).to.have.property('url').to.equal('http://www.test.com');
         done();
       })
       .catch(done);
@@ -51,7 +50,7 @@ describe('db: bot: update: ', () => {
 
     it('fail, bot url bad', (done) => {
       Bot.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ location: 'noURL' }))
+      .then((o) => o.update({ url: 'noURL' }))
       .then(() => Bot.findOne({ where: { name: u.name } }))
       .catch((err) => {
         expect(err.name).to.equal(tu.valErrorName);
