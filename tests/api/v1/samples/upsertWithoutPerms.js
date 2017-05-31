@@ -62,6 +62,7 @@ describe('api: upsert samples without perms', () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+  after(() => tu.toggleOverride('enforceWritePermission', false));
 
 
   it('upsert should fail when upserting a sample ' +

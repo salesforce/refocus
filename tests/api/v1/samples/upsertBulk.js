@@ -250,7 +250,7 @@ describe('api: POST ' + path, () => {
           expect(res.body[1].value).to.equal('10');
           return done();
         });
-      }, 500);
+      }, 100);
     });
   });
 

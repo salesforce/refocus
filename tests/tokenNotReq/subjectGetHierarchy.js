@@ -20,7 +20,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}`, () => {
+describe(`token not required api: GET ${path}`, () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
