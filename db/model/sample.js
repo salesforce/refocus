@@ -76,11 +76,9 @@ module.exports = function sample(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.provider = Sample.belongsTo(models.User, {
+        assoc.user = Sample.belongsTo(models.User, {
           foreignKey: 'provider',
-
-          // TODO uncomment the next line once we have users/profiles done:
-          // allowNull: false,
+          as: 'user',
         });
         assoc.aspect = Sample.belongsTo(models.Aspect, {
           as: 'aspect',
@@ -100,6 +98,10 @@ module.exports = function sample(seq, dataTypes) {
         });
         Sample.addScope('defaultScope', {
           include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
             {
               association: assoc.aspect,
               attributes: [
@@ -121,8 +123,6 @@ module.exports = function sample(seq, dataTypes) {
                 'rank',
               ],
             },
-
-            // assoc.provider,
           ],
           order: ['Sample.name'],
         }, {
@@ -166,7 +166,7 @@ module.exports = function sample(seq, dataTypes) {
        * doesn't invoke hooks, and we rely on hooks to publish the change.
        *
        * @param {Sample} toUpsert - The sample to upsert
-       * @param {String} userName - The user performing the write operation
+       * @param {Object} user - The user performing the write operation
        * @param {Boolean} isBulk - true when used with bulk upsert, false
        *  otherwise
        * @returns {Promise} which resolves to the newly-created or -updated
@@ -174,7 +174,8 @@ module.exports = function sample(seq, dataTypes) {
        *  looking up the associated subject and aspect, or if an error was
        *  encountered while performing the sample upsert operation itself.
        */
-      upsertByName(toUpsert, userName, isBulk) {
+      upsertByName(toUpsert, user, isBulk) {
+        let userName = user ? user.name : false;
         let subjasp;
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
@@ -199,12 +200,19 @@ module.exports = function sample(seq, dataTypes) {
           })
           .then((o) => {
             if (o === null) {
+
+              // add provider and user object, if conditions are met
+              if (user &&
+                featureToggles.isFeatureEnabled('returnUser')) {
+                toUpsert.provider = user.id;
+                toUpsert.user = { name: user.name, email: user.email };
+              }
+
               return Sample.create(toUpsert);
             }
 
-            // DO NOT update the name
-            // for existing samples
-            delete toUpsert.name;
+            // Sample exists. Make sure the name is correct
+            toUpsert.name = subjasp.subject.absolutePath + '|' + subjasp.aspect.name;
 
             /*
              * set value changed to true during updates to avoid timeouts.
@@ -214,7 +222,13 @@ module.exports = function sample(seq, dataTypes) {
             o.changed('value', true);
             return o.update(toUpsert);
           })
-          .then((o) => resolve(o))
+          .then((o) => {
+            if (featureToggles.isFeatureEnabled('returnUser')) {
+              return o.reload().then((o) => resolve(o));
+            } else {
+              return resolve(o);
+            }
+          })
           .catch((err) => {
             if (isBulk) {
               /*
@@ -232,16 +246,16 @@ module.exports = function sample(seq, dataTypes) {
       /**
        * Upsert multiple samples concurrently.
        * @param  {Array} toUpsert - An array of sample objects to upsert
-       * @param {String} userName - The user performing the write operation
+       * @param {Object} user - The user performing the write operation
        * @param {Array} readOnlyFields - An array of read-only-fields
        * @returns {Array} - Resolves to an array of resolved promises
       */
-      bulkUpsertByName(toUpsert, userName, readOnlyFields) {
+      bulkUpsertByName(toUpsert, user, readOnlyFields) {
         const promises = toUpsert.map((s) => {
           try {
             // thow an error if a sample is upserted with a read-only-field
             commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
-            return this.upsertByName(s, userName, true);
+            return this.upsertByName(s, user, true);
           } catch (err) {
             return Promise.resolve({ explanation: err, isFailed: true });
           }

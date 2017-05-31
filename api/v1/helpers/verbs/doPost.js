@@ -35,40 +35,54 @@ function doPost(req, res, next, props) {
   const toPost = req.swagger.params.queryBody.value;
   u.mergeDuplicateArrayElements(toPost, props);
   let postPromise;
-  if (featureToggles.isFeatureEnabled(constants.featureName) &&
-   props.modelName === 'Sample') {
-    const rLinks = toPost.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
+  const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName) &&
+     props.modelName === 'Sample';
 
-    postPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-      .then((user) => redisModelSample.postSample(req.swagger.params, user));
-  } else if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
-    props.modelName === 'Sample') {
-    postPromise = u.createSample(req, props);
-  } else if (featureToggles.isFeatureEnabled('returnUser')) {
+  // if either "cache is on" or returnUser, get User
+  if (isCacheOn ||
+    featureToggles.isFeatureEnabled('returnUser')) {
     postPromise = authUtils.getUser(req)
     .then((user) => {
+      if (isCacheOn) {
+        const rLinks = toPost.relatedLinks;
+        if (rLinks) {
+          u.checkDuplicateRLinks(rLinks);
+        }
+
+        const userObject = user &&
+        featureToggles.isFeatureEnabled('returnUser') ?
+          { name: user.name, id: user.id, email: user.email } : false;
+        return redisModelSample.postSample(req.swagger.params, userObject);
+      }
+
+      // cache is off
       if (user) {
-        toPost.createdBy = user.id;
+        if (props.modelName === 'Sample') {
+          toPost.provider = user.id;
+        } else {
+          toPost.createdBy = user.id;
+        }
       }
 
       return props.model.create(toPost);
     })
     .catch((err) => {
       if (err.status === httpStatus.FORBIDDEN) {
-        return props.model.create(toPost);
+        return isCacheOn ?
+          redisModelSample.postSample(req.swagger.params, false) :
+          props.model.create(toPost);
       }
 
       return u.handleError(next, err, props.modelName);
     });
+  } else if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
+    props.modelName === 'Sample') {
+    postPromise = u.createSample(req, props);
   } else {
     postPromise = props.model.create(toPost);
   }
 
-  postPromise.then((o) => {
+  return postPromise.then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
 
@@ -78,7 +92,9 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    if (featureToggles.isFeatureEnabled('returnUser')) {
+    // if response directly from sequelize, call reload to attach
+    // the associations
+    if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
       o.reload()
       .then(() => res.status(httpStatus.CREATED).json(
           u.responsify(o, props, req.method)));
