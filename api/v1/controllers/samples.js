@@ -186,8 +186,13 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
-    return authUtils.getUser(req)
-    .then((user) => {
+    /**
+     * Call the appropriate upsert and return a response.
+     *
+     * @param {Object} user object. Optional.
+     * @returns {Object} The response object.
+     */
+    function doUpsert(user) {
       if (sampleQueryBody.relatedLinks) {
         u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
       }
@@ -198,28 +203,40 @@ module.exports = {
               sampleQueryBody, user) :
           helper.model.upsertByName(sampleQueryBody, user);
 
-      return upsertSamplePromise;
-    })
-    .then((samp) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const dataValues = samp.dataValues ? samp.dataValues : samp;
+      return upsertSamplePromise
+      .then((samp) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const dataValues = samp.dataValues ? samp.dataValues : samp;
 
-      // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+        }
+
+        /*
+         *send the upserted sample to the client by publishing it to the redis
+         *channel
+         */
+        publisher.publishSample(samp, subHelper.model);
+
+        u.logAPI(req, resultObj, dataValues);
+        return res.status(httpStatus.OK)
+          .json(u.responsify(samp, helper, req.method));
+      });
+    }
+
+    return authUtils.getUser(req)
+    .then(doUpsert)
+    .catch((err) => {
+
+      // proceed to do upsert iff user is found and do NOT need permission
+      if (err.status === httpStatus.FORBIDDEN &&
+        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
+        return doUpsert(false);
       }
 
-      /*
-       *send the upserted sample to the client by publishing it to the redis
-       *channel
-       */
-      publisher.publishSample(samp, subHelper.model);
-
-      u.logAPI(req, resultObj, dataValues);
-      return res.status(httpStatus.OK)
-        .json(u.responsify(samp, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**

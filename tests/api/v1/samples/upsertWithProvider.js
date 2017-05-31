@@ -31,6 +31,7 @@ describe(`api: upsert without cache`, () => {
   let token;
   let user;
   const DONT_EXIST_NAME = 'iDontExist';
+  const expectedValue = '100';
 
   before((done) => {
     tu.toggleOverride('returnUser', true);
@@ -60,7 +61,7 @@ describe(`api: upsert without cache`, () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  describe(`when sample does not exist`, () => {
+  describe(`new sample:`, () => {
     it('upsert succeeds when token is provided, and the result returns ' +
       ' non-empty provider and user fields', (done) => {
       api.post(path)
@@ -81,9 +82,50 @@ describe(`api: upsert without cache`, () => {
         done();
       });
     });
+
+    it('upsert succeeds without token, and the result returns ' +
+      'without user and provider fields', (done) => {
+      api.post(path)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: expectedValue,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.value).to.equal(expectedValue);
+        expect(res.body.provider).to.be.undefined;
+        expect(res.body.user).to.be.undefined;
+        done();
+      });
+    });
+
+    it('upsert succeeds with invalid token, and the result returns ' +
+      ' without provider and user fields', (done) => {
+      api.post(path)
+      .set('Authorization', DONT_EXIST_NAME)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: expectedValue,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.value).to.equal(expectedValue);
+        expect(res.body.provider).to.be.undefined;
+        expect(res.body.user).to.be.undefined;
+        done();
+      });
+    });
   });
 
-  describe('when the sample already exists', () => {
+  describe('existing sample:', () => {
     beforeEach((done) => {
       Sample.create({
         name: `${subject.absolutePath}|${aspect.name}`,
@@ -118,6 +160,7 @@ describe(`api: upsert without cache`, () => {
         .set('Authorization', predefinedAdminUserToken)
         .send({
           name: `${subject.absolutePath}|${aspect.name}`,
+          value: expectedValue,
         })
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
@@ -125,6 +168,7 @@ describe(`api: upsert without cache`, () => {
             done(err);
           }
 
+          expect(res.body.value).to.equal(expectedValue);
           expect(res.body.provider).to.equal(user.id);
           expect(res.body.user).to.be.an('object');
           expect(res.body.user.name).to.equal(user.name);
@@ -137,9 +181,9 @@ describe(`api: upsert without cache`, () => {
     it('upsert succeeds even WITHOUT token, and the result returns ' +
       ' the original provider and user fields', (done) => {
       api.post(path)
-      .set('Authorization', token)
       .send({
         name: `${subject.absolutePath}|${aspect.name}`,
+        value: expectedValue,
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -147,6 +191,30 @@ describe(`api: upsert without cache`, () => {
           done(err);
         }
 
+        expect(res.body.value).to.equal(expectedValue);
+        expect(res.body.provider).to.equal(user.id);
+        expect(res.body.user).to.be.an('object');
+        expect(res.body.user.name).to.equal(user.name);
+        expect(res.body.user.email).to.equal(user.email);
+        done();
+      });
+    });
+
+    it('upsert succeeds with INVALID token, and the result returns ' +
+      ' the original provider and user fields', (done) => {
+      api.post(path)
+      .set('Authorization', DONT_EXIST_NAME)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: expectedValue,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.value).to.equal(expectedValue);
         expect(res.body.provider).to.equal(user.id);
         expect(res.body.user).to.be.an('object');
         expect(res.body.user.name).to.equal(user.name);
