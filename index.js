@@ -21,6 +21,7 @@ const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
+require('newrelic');
 
 /**
  * Entry point for each newly clustered process
