@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cache/models/samples/postWithprovider.js
+ * tests/cache/models/samples/postWithProvider.js
  */
 'use strict'; // eslint-disable-line strict
 
@@ -18,6 +18,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/samples';
 const rtu = require('../redisTestUtil');
+const redisClient = rtu.redisClient;
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
                     .constants.objectType;
@@ -76,7 +77,8 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('when token is provided, provider and user object is returned', (done) => {
+  it('when token is provided, provider and user object is ' +
+    'returned, and such fields are also found in cache', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(sampleToPost)
@@ -90,7 +92,18 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
       expect(res.body.user).to.be.an('object');
       expect(res.body.user.name).to.be.an('string');
       expect(res.body.user.email).to.be.an('string');
-      done();
+
+      const sampleKey = 'samsto:sample:' + res.body.name.toLowerCase();
+      return redisClient.hgetallAsync(sampleKey)
+      .then((sample) => {
+        expect(sample.provider).to.be.an('string');
+
+        const user = JSON.parse(sample.user);
+        expect(user.name).to.be.an('string');
+        expect(user.email).to.be.an('string');
+        done();
+      })
+      .catch(done);
     });
   });
 

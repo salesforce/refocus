@@ -52,10 +52,11 @@ function doPost(req, res, next, props) {
         }
 
         // since cache is on AND get user.
-        // populate the user object
+        // populate the user object.
+        // need to pass down the user id to populate provider field
         const userObject = user &&
         featureToggles.isFeatureEnabled('returnUser') ?
-          { name: user.name, email: user.email } : false;
+          { name: user.name, id: user.id, email: user.email } : false;
         return redisModelSample.postSample(req.swagger.params, userObject);
       }
 
