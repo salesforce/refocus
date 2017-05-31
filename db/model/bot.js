@@ -34,11 +34,11 @@ module.exports = function bot(seq, dataTypes) {
       },
       comment: 'Create a named bot',
     },
-    location: {
+    url: {
       type: dataTypes.STRING,
       allowNull: false,
       validate: { isUrl: true },
-      comment: 'The URL to load UI from',
+      comment: 'The URL to load bot',
     },
     active: {
       type: dataTypes.BOOLEAN,

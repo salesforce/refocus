@@ -19,7 +19,7 @@ const n2 = n+'NonActive';
 
 const standard = {
   name: n,
-  location: 'http://www.bar.com',
+  url: 'http://www.bar.com',
   active: true,
   actions: [
     {
@@ -91,7 +91,7 @@ const standard = {
 
 const nonActive = {
   name: n2,
-  location: 'http://www.bar.com',
+  url: 'http://www.bar.com',
   active: false,
   actions: [
     {
