@@ -733,12 +733,11 @@ module.exports = {
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
    * @param  {Object} params - Request parameters
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} userObj - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
   postSample(params, userObj) {
-    const userEmail = userObj.email;
-    const userName = userObj.name;
+    const userName = userObj ? userObj.name : false;
     const cmds = [];
     const reqBody = params.queryBody.value;
     let subject;
@@ -812,7 +811,10 @@ module.exports = {
       reqBody[sampFields.CREATED_AT] = dateNow;
       if (userObj) {
         reqBody[sampFields.PROVIDER] = userObj.id;
-        reqBody[sampFields.USER] = JSON.stringify({ name: userName, email: userObj.email });
+        reqBody[sampFields.USER] = JSON.stringify({
+          name: userName,
+          email: userObj.email,
+        });
       }
 
       // add the aspect to the subjectSet

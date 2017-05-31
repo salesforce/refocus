@@ -175,7 +175,7 @@ module.exports = function sample(seq, dataTypes) {
        *  encountered while performing the sample upsert operation itself.
        */
       upsertByName(toUpsert, user, isBulk) {
-        let userName = user ? user.name : false;
+        const userName = user ? user.name : false;
         let subjasp;
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
@@ -201,18 +201,22 @@ module.exports = function sample(seq, dataTypes) {
           .then((o) => {
             if (o === null) {
 
-              // add provider and user object, if conditions are met
+              // New sample. Add provider and user object,
+              // if conditions are met
               if (user &&
                 featureToggles.isFeatureEnabled('returnUser')) {
                 toUpsert.provider = user.id;
                 toUpsert.user = { name: user.name, email: user.email };
               }
 
+              // Make sure the name is correct
+              toUpsert.name = subjasp.subject.absolutePath +
+                '|' + subjasp.aspect.name;
               return Sample.create(toUpsert);
             }
 
-            // Sample exists. Make sure the name is correct
-            toUpsert.name = subjasp.subject.absolutePath + '|' + subjasp.aspect.name;
+            // Existing sample. Do not update sample name
+            delete toUpsert.name;
 
             /*
              * set value changed to true during updates to avoid timeouts.
@@ -225,9 +229,9 @@ module.exports = function sample(seq, dataTypes) {
           .then((o) => {
             if (featureToggles.isFeatureEnabled('returnUser')) {
               return o.reload().then((o) => resolve(o));
-            } else {
-              return resolve(o);
             }
+
+            return resolve(o);
           })
           .catch((err) => {
             if (isBulk) {

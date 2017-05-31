@@ -43,19 +43,24 @@ function doPost(req, res, next, props) {
     featureToggles.isFeatureEnabled('returnUser')) {
     postPromise = authUtils.getUser(req)
     .then((user) => {
+
+      // if cache is on, check relatedLinks
       if (isCacheOn) {
         const rLinks = toPost.relatedLinks;
         if (rLinks) {
           u.checkDuplicateRLinks(rLinks);
         }
 
+        // since cache is on AND get user.
+        // populate the user object
         const userObject = user &&
         featureToggles.isFeatureEnabled('returnUser') ?
-          { name: user.name, id: user.id, email: user.email } : false;
+          { name: user.name, email: user.email } : false;
         return redisModelSample.postSample(req.swagger.params, userObject);
       }
 
-      // cache is off
+      // cache is off AND returnUser is true.
+      // if there is a user, set the provider value.
       if (user) {
         if (props.modelName === 'Sample') {
           toPost.provider = user.id;
@@ -67,6 +72,8 @@ function doPost(req, res, next, props) {
       return props.model.create(toPost);
     })
     .catch((err) => {
+
+      // if no user found, proceed with post sample
       if (err.status === httpStatus.FORBIDDEN) {
         return isCacheOn ?
           redisModelSample.postSample(req.swagger.params, false) :
@@ -75,10 +82,14 @@ function doPost(req, res, next, props) {
 
       return u.handleError(next, err, props.modelName);
     });
-  } else if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
-    props.modelName === 'Sample') {
+  } else if (props.modelName === 'Sample') {
+
+    // cache is off and returnUser is false.
     postPromise = u.createSample(req, props);
   } else {
+
+    // cache is off and returnUser is false.
+    // not a sample
     postPromise = props.model.create(toPost);
   }
 
