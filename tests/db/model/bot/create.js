@@ -94,5 +94,57 @@ describe('db: bot: create: ', () => {
       })
     .catch(done);
     });
+
+    it('fail, bot wrong action parameter name', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0].parameters[0].name = '^1213@#@@#';
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot wrong action parameter type', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0].parameters[0].type = '^1213@#@@#';
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot wrong data parameter name', (done) => {
+      let bot = u.getStandard();
+      bot.data[0].name = '^1213@#@@#';
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot wrong data parameter type', (done) => {
+      let bot = u.getStandard();
+      bot.data[0].type = '^1213@#@@#';
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
   });
 });
