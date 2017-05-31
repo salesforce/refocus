@@ -21,6 +21,72 @@ const standard = {
   name: n,
   location: 'http://www.bar.com',
   active: true,
+  actions: [
+    {
+      name: 'Action1',
+      parameters: [
+        {
+          name: 'Param1',
+          type: 'BOOLEAN',
+        },
+        {
+          name: 'Param2',
+          type: 'INTEGER',
+        },
+        {
+          name: 'Param3',
+          type: 'DECIMAL',
+        },
+        {
+          name: 'Param4',
+          type: 'STRING',
+        },
+      ],
+    },
+    {
+      name: 'Action2',
+      parameters: [
+        {
+          name: 'Param1',
+          type: 'BOOLEAN',
+        },
+        {
+          name: 'Param2',
+          type: 'INTEGER',
+        },
+        {
+          name: 'Param3',
+          type: 'DECIMAL',
+        },
+        {
+          name: 'Param4',
+          type: 'STRING',
+        },
+      ],
+    }
+  ],
+  data: [
+    {
+      name: 'Data1',
+      type: 'BOOLEAN',
+    },
+    {
+      name: 'Data2',
+      type: 'INTEGER',
+    },
+    {
+      name: 'Data3',
+      type: 'DECIMAL',
+    },
+    {
+      name: 'Data4',
+      type: 'STRING',
+    },
+    {
+      name: 'Data5',
+      type: 'ARRAY',
+    },
+  ],
 };
 
 const nonActive = {

@@ -15,16 +15,20 @@
  */
 
 const constants = require('../constants');
-
+const u = require('../helpers/botUtils');
 const assoc = {};
 
-module.exports = function user(seq, dataTypes) {
+module.exports = function bot(seq, dataTypes) {
   const Bot = seq.define('Bot', {
+    id: {
+      type: dataTypes.UUID,
+      primaryKey: true,
+      defaultValue: dataTypes.UUIDV4,
+    },
     name: {
       type: dataTypes.STRING,
       allowNull: false,
       unique: true,
-      primaryKey: true,
       validate: {
         is: constants.nameRegex,
       },
@@ -41,6 +45,22 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: false,
       comment: 'Determines if bot is still active',
     },
+    actions: {
+      type: dataTypes.ARRAY(dataTypes.JSON),
+      allowNull: true,
+      validate: {
+        contains: u.validateActionArray,
+      },
+      comment: 'List of actions a Bot can take',
+    },
+    data: {
+      type: dataTypes.ARRAY(dataTypes.JSON),
+      allowNull: true,
+      validate: {
+        contains: u.validateDataArray,
+      },
+      comment: 'List of data variables a bot has available',
+    },
   }, {
     classMethods: {
       getBotAssociations() {
@@ -48,14 +68,6 @@ module.exports = function user(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.action = Bot.hasMany(models.BotAction, {
-          as: 'actions',
-          foreignKey: 'botId',
-        });
-        assoc.data = Bot.hasMany(models.BotData, {
-          as: 'datas',
-          foreignKey: 'botId',
-        });
         assoc.writers = Bot.belongsToMany(models.User, {
           as: 'writers',
           through: 'BotWriters',
