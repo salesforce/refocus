@@ -24,12 +24,13 @@ const dataTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
  * @param {Array} types - allowed types
  * @returns {Boolean} - True/False
  */
-function correctType(str, types){
+function correctType(str, types) {
   for (let i = 0; i < types.length; i++) {
     if (types[i] === str) {
       return true;
     }
   }
+
   return false;
 }
 
@@ -74,6 +75,7 @@ function validateActionArray(arr) {
         if (!constants.nameRegex.test(arr[i].name)) {
           throw new ValidationError();
         }
+
         arrayHasValidParameters(arr[i].parameters);
       } else {
         throw new ValidationError();
