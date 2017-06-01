@@ -244,8 +244,8 @@ function createJob(jobName, data, req) {
       `jobPriority=${jobPriority}`);
   }
 
-  const job = jobQueue.create(jobName, data)
-  .ttl(TIME_TO_LIVE)
+  const job = jobQueue.create(jobName, data);
+  job.ttl(TIME_TO_LIVE)
   .priority(jobPriority)
   .save((err) => {
     if (err) {
