@@ -60,9 +60,15 @@ function doPatch(req, res, next, props) {
         if (props.modelName === 'Sample') {
           o.changed('value', true);
         } else if (props.modelName === 'Perspective') {
+          // clone the object so that we can copy the new request object values
+          // in memory and validate them, instead of updating the db object in
+          // memory (which will prevent updating the object in db).
+          const clonedObj = JSON.parse(JSON.stringify(o.get()));
 
           // check the updated version of the perspective
-          helper.validateFilterAndThrowError(Object.assign(o.get(), requestBody));
+          helper.validateFilterAndThrowError(
+            Object.assign(clonedObj, requestBody)
+          );
         }
 
         u.patchJsonArrayFields(o, requestBody, props);
