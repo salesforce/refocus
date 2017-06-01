@@ -1635,7 +1635,7 @@ paths:
       summary: Update selected metadata fields for the specified lens
       tags: [ lenses ]
       description: >-
-        Update selected metadata fields for the specified lens. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Update selected metadata fields for the specified lens. Note that if you are updating the lens library, you must use PUT (which accepts multipart/form-data). If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: patchLens
       parameters:
         -
@@ -6420,10 +6420,10 @@ definitions:
           This allows a lens to render sample data in different ways depending on
           their type.
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
-          User who created this Aspect.
+          Id of the User who created this Aspect.
       createdAt:
         readOnly: true
         type: string
@@ -6478,8 +6478,8 @@ definitions:
         type: string
         readOnly: true
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
           User who created this Aspect.
       createdAt:
@@ -6582,6 +6582,11 @@ definitions:
         type: string
         description: >
           TODO
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this Lens.
       createdAt:
         readOnly: true
         type: string
@@ -7039,10 +7044,10 @@ definitions:
       #   description: >
       #    The number of direct children subjects under this subject.
       createdBy:
+        type: string
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
         description: >
-          User who created this Aspect.
+          Id of the User who created this Aspect.
       createdAt:
         type: string
         readOnly: true

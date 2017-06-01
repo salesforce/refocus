@@ -29,6 +29,8 @@ const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
 const sampFields = {
+  PROVIDER: 'provider',
+  USER: 'user',
   MSG_BODY: 'messageBody',
   MSG_CODE: 'messageCode',
   NAME: 'name',
@@ -393,10 +395,11 @@ function handleUpsertError(objectType, isBulk) {
  * else creates a new one.
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
- * @param {String} userName - The user performing the write operation
+ * @param {Object} user - The user performing the write operation
  * @returns {Object} - Updated sample
  */
-function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
+function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
+  const userName = user ? user.name : false;
   const sampleName = sampleQueryBodyObj.name;
   const subjAspArr = sampleName.toLowerCase().split('|');
   if (subjAspArr.length < TWO) {
@@ -421,7 +424,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
   );
 
   let aspectObj = {};
-  let subjectId;
+  let subject;
   let aspect;
   let sample;
   return checkWritePermission(aspectName, sampleName, userName, isBulk)
@@ -431,15 +434,15 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
    * error is returned, else sample is returned
    */
   .then(() => Promise.all([
-    redisClient.getAsync(subjKey),
+    redisClient.hgetallAsync(subjKey),
     redisClient.hgetallAsync(
     sampleStore.toKey(constants.objectType.aspect, aspectName)
     ),
     redisClient.hgetallAsync(sampleKey),
   ])
   .then((responses) => {
-    [subjectId, aspect, sample] = responses;
-    if (!subjectId) {
+    [subject, aspect, sample] = responses;
+    if (!subject) {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
 
@@ -447,7 +450,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
       handleUpsertError(constants.objectType.aspect, isBulk);
     }
 
-    sampleQueryBodyObj.subjectId = subjectId;
+    sampleQueryBodyObj.subjectId = subject.id;
     sampleQueryBodyObj.aspectId = aspect.id;
 
     aspectObj = sampleStore.arrayStringsToJson(
@@ -463,7 +466,23 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, userName) {
 
     // if sample exists, just update sample.
     if (sample) {
+
+      // to avoid updating sample name
+      delete sampleQueryBodyObj.name;
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
+    }
+
+    // sample is new
+    // make sure the name is a combination of subject
+    // and aspect fields
+    sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
+
+    // add the provider and user fields
+    if (user && featureToggles.isFeatureEnabled('returnUser')) {
+      sampleQueryBodyObj.provider = user.id;
+      sampleQueryBodyObj.user = JSON.stringify({
+        name: user.name, email: user.email,
+      });
     }
 
     const subaspMapKey = sampleStore.toKey(
@@ -714,10 +733,11 @@ module.exports = {
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
    * @param  {Object} params - Request parameters
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} userObj - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params, userName) {
+  postSample(params, userObj) {
+    const userName = userObj ? userObj.name : false;
     const cmds = [];
     const reqBody = params.queryBody.value;
     let subject;
@@ -789,6 +809,13 @@ module.exports = {
       reqBody[sampFields.STS_CHNGED_AT] = dateNow;
       reqBody[sampFields.UPD_AT] = dateNow;
       reqBody[sampFields.CREATED_AT] = dateNow;
+      if (userObj) {
+        reqBody[sampFields.PROVIDER] = userObj.id;
+        reqBody[sampFields.USER] = JSON.stringify({
+          name: userName,
+          email: userObj.email,
+        });
+      }
 
       // add the aspect to the subjectSet
       cmds.push(redisOps.addAspectInSubjSetCmd(
@@ -1037,26 +1064,26 @@ module.exports = {
   /**
    * Upsert sample in Redis.
    * @param  {Object} qbObj - Query body object
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} user - The user performing the write operation
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSample(qbObj, userName) {
-    return upsertOneSample(qbObj, false, userName);
+  upsertSample(qbObj, user) {
+    return upsertOneSample(qbObj, false, user);
   },
 
   /**
    * Upsert multiple samples in Redis concurrently.
    * @param  {Object} sampleQueryBody - Query body object
-   * @param {String} userName - The user performing the write operation
+   * @param {Object} user - The user performing the write operation
    * @param {Array} readOnlyFields - An array of read-only-fields
    * @returns {Array} - Resolves to an array of resolved promises
    */
-  bulkUpsertByName(sampleQueryBody, userName, readOnlyFields) {
+  bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
     const promises = sampleQueryBody.map((sampleReq) => {
       try {
         // thow an error if a sample is upserted with a read-only-field
         commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-        return upsertOneSample(sampleReq, true, userName);
+        return upsertOneSample(sampleReq, true, user);
       } catch (err) {
         return Promise.resolve({ isFailed: true, explanation: err });
       }

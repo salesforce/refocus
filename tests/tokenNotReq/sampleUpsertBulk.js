@@ -20,7 +20,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe('token not required api: POST ' + path, () => {
   before((done) => {
     Aspect.create({
       isPublished: true,
@@ -58,9 +58,9 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(200)
-    .end((err, res) => {
+    .end((err /* , res */) => {
       if (err) {
-        return done(err);
+        done(err);
       }
 
       done();

@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cache/jobQueue/v1/getBulkUpsertStatus.js
+ * tests/cache/jobQueue/getBulkUpsertStatus.js
  */
 'use strict'; // eslint-disable-line strict
 

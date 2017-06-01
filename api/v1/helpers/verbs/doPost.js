@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
+const authUtils = require('../authUtils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
@@ -34,23 +35,66 @@ function doPost(req, res, next, props) {
   const toPost = req.swagger.params.queryBody.value;
   u.mergeDuplicateArrayElements(toPost, props);
   let postPromise;
-  if (featureToggles.isFeatureEnabled(constants.featureName) &&
-   props.modelName === 'Sample') {
-    const rLinks = toPost.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
+  const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName) &&
+     props.modelName === 'Sample';
 
-    postPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-      .then((user) => redisModelSample.postSample(req.swagger.params, user));
+  // if either "cache is on" or returnUser, get User
+  if (isCacheOn ||
+    featureToggles.isFeatureEnabled('returnUser')) {
+    postPromise = authUtils.getUser(req)
+    .then((user) => {
+
+      // if cache is on, check relatedLinks
+      if (isCacheOn) {
+        const rLinks = toPost.relatedLinks;
+        if (rLinks) {
+          u.checkDuplicateRLinks(rLinks);
+        }
+
+        // since cache is on AND get user.
+        // populate the user object.
+        // need to pass down the user id to populate provider field
+        const userObject = user &&
+        featureToggles.isFeatureEnabled('returnUser') ?
+          { name: user.name, id: user.id, email: user.email } : false;
+        return redisModelSample.postSample(req.swagger.params, userObject);
+      }
+
+      // cache is off AND returnUser is true.
+      // if there is a user, set the provider value.
+      if (user) {
+        if (props.modelName === 'Sample') {
+          toPost.provider = user.id;
+        } else {
+          toPost.createdBy = user.id;
+        }
+      }
+
+      return props.model.create(toPost);
+    })
+    .catch((err) => {
+
+      // if no user found, proceed with post sample
+      if (err.status === httpStatus.FORBIDDEN) {
+        return isCacheOn ?
+          redisModelSample.postSample(req.swagger.params, false) :
+          props.model.create(toPost);
+      }
+
+      return u.handleError(next, err, props.modelName);
+    });
+  } else if (props.modelName === 'Sample') {
+
+    // cache is off and returnUser is false.
+    postPromise = u.createSample(req, props);
   } else {
-    postPromise = featureToggles.isFeatureEnabled('enforceWritePermission') &&
-      props.modelName === 'Sample' ? u.createSample(req, props) :
-      props.model.create(toPost);
+
+    // cache is off and returnUser is false.
+    // not a sample
+    postPromise = props.model.create(toPost);
   }
 
-  postPromise.then((o) => {
+  return postPromise.then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
 
@@ -60,8 +104,16 @@ function doPost(req, res, next, props) {
         event.sample.add, props.associatedModels.aspect);
     }
 
-    return res.status(httpStatus.CREATED)
-    .json(u.responsify(o, props, req.method));
+    // if response directly from sequelize, call reload to attach
+    // the associations
+    if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
+      o.reload()
+      .then(() => res.status(httpStatus.CREATED).json(
+          u.responsify(o, props, req.method)));
+    } else {
+      return res.status(httpStatus.CREATED)
+      .json(u.responsify(o, props, req.method));
+    }
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

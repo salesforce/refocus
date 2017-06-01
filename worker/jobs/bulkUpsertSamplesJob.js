@@ -23,26 +23,28 @@ module.exports = (job, done) => {
    * check is done to get the sample data based on the shape of the object.
    * The old job objects look like this {data : [sample1, sample2]} and
    * the new ones look like this
-   *  {data: {upsertData: [sample1,sample2], userName: 'name'}}
+   *  {data: {upsertData: [sample1,sample2], user: { name, email, ...}}}
    */
   const jobStartTime = Date.now();
   const samples = job.data.length ? job.data : job.data.upsertData;
-  const userName = job.data.userName;
+  const user = job.data.user;
   const reqStartTime = job.data.reqStartTime;
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
 
-  // const msg = `Processing ${jobType.BULKUPSERTSAMPLES} job ${job.id} ` +
-  //   `with ${samples.length} samples`;
-  // console.log(msg); // eslint-disable-line no-console
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    const msg =
+      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
+      `sampleCount=${samples.length}`;
+    console.log(msg); // eslint-disable-line no-console
+  }
 
   const dbStartTime = Date.now();
-
   const sampleModel =
-        featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
-          cacheSampleModel : helper.model;
+    featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
+      cacheSampleModel : helper.model;
 
-  sampleModel.bulkUpsertByName(samples, userName, readOnlyFields)
+  sampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
       let errorCount = 0;
 
@@ -65,7 +67,6 @@ module.exports = (job, done) => {
 
       // attach the errors from "bulkUpsertByName"
       objToReturn.errors = errors;
-
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
         const dbEndTime = Date.now();
 

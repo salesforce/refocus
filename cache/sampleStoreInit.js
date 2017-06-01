@@ -158,8 +158,8 @@ function populateSubjects() {
       // add the subject absoluePath to the master subject index
       cmds.push(['sadd', constants.indexKey.subject, key]);
 
-      // create a mapping of subject absolutePath to subjectId
-      cmds.push(['set', key, s.id]);
+      // create a mapping of subject absolutePath to subject object
+      cmds.push(['hmset', key, samsto.cleanSubject(s)]);
     });
 
     return redisClient.batch(cmds).execAsync()

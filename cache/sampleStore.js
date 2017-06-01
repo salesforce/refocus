@@ -1,3 +1,4 @@
+
 /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -30,8 +31,8 @@ const constants = {
       'okRange',
       'writers',
     ],
-    sample: ['relatedLinks'],
-    subject: ['aspectNames'],
+    sample: ['relatedLinks', 'user'],
+    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',

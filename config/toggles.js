@@ -117,6 +117,11 @@ const shortTermToggles = {
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
 
+  // Add some job queue instrumentation logging
+  instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+
+  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
