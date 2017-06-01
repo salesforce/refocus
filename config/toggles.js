@@ -114,6 +114,9 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable using worker dyno for hierarchy queries
+  enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
+
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 

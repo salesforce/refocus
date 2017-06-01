@@ -157,5 +157,18 @@ apiErrors.create({
 });
 
 // ----------------------------------------------------------------------------
+// Worker Timeout Error
+// ----------------------------------------------------------------------------
+apiErrors.create({
+  code: 11500,
+  status: 503,
+  name: 'WorkerTimeoutError',
+  parent: apiErrors.RefocusApiError,
+  defaultMessage: 'Timeout exceeded in worker process',
+  resourceType: '',
+  resourceKey: '',
+});
+
+// ----------------------------------------------------------------------------
 
 module.exports = apiErrors;
