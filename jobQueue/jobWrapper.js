@@ -238,7 +238,6 @@ function createPromisifiedJob(jobName, data, req) {
  */
 function createJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(jobName, data, req);
-
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     console.log('[KJI] Entered ' + // eslint-disable-line no-console
       `jobWrapper.js createJob: jobName=${jobName} ` +
