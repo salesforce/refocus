@@ -21,7 +21,6 @@ const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
-require('newrelic');
 
 /**
  * Entry point for each newly clustered process
@@ -29,6 +28,10 @@ require('newrelic');
 function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
+  if (conf.newRelicKey) {   
+    require('newrelic');    
+  }
+
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
 
