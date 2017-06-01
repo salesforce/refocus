@@ -40,6 +40,7 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 module.exports = {
   jobConcurrency: {
     BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
+    GET_HIERARCHY: 1,
     PERSIST_SAMPLE_STORE: 1,
     SAMPLE_TIMEOUT: 1,
   },
