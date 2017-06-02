@@ -52,8 +52,6 @@ import { getFilterQuery, getTagsFromResources, getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 let gotLens = false;
-const lensLoadEvent = new CustomEvent('refocus.lens.load');
-let hierarchyLoadEvent;
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
@@ -177,29 +175,25 @@ function setupSocketIOClient(persBody) {
 } // setupSocketIOClient
 
 /**
- * Create style tag for lens css file.
- * @param  {Object} lensResponse Response from lens api
- * @param  {String} filename   name of file in lens library
+ * @param {String} url The url to get from
+ * @returns {Promise} For use in chaining.
  */
-function injectStyleTag(lensResponse, filename) {
-  const style = document.createElement('style');
-  style.type = 'text/css';
-
-  const t = document.createTextNode(lensResponse.body.library[filename]);
-  style.appendChild(t);
-  const head = document.head ||
-   document.getElementsByTagName('head')[ZERO];
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = lensResponse.body.library[filename];
-  } else {
-    style.appendChild(
-      document.createTextNode(lensResponse.body.library[filename])
-    );
-  }
-
-  head.appendChild(style);
-} // injectStyleTag
+function getPromiseWithUrl(url) {
+  return new Promise((resolve, reject) => {
+    request.get(url)
+    .set(REQ_HEADERS)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
+          url + '. Make sure the path is valid and the resource is published.';
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // getPromiseWithUrl
 
 /**
  * Create DOM elements for each of the files in the lens library.
@@ -232,27 +226,6 @@ function handleLibraryFiles(lensObject) {
    */
   document.body.appendChild(lensScript);
 } // handleLibraryFiles
-
-/**
- * @param {String} url The url to get from
- * @returns {Promise} For use in chaining.
- */
-function getPromiseWithUrl(url) {
-  return new Promise((resolve, reject) => {
-    request.get(url)
-    .set(REQ_HEADERS)
-    .end((error, response) => {
-      // reject if error is present, otherwise resolve request
-      if (error) {
-        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
-          url + '. Make sure the path is valid and the resource is published.';
-        reject(error);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-} // getPromiseWithUrl
 
 /**
  * Figure out which perspective to load. If it's in the URL path, load that
@@ -290,29 +263,8 @@ function whichPerspective(pnames) {
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, whichPerspective)
-  .then((obj) => {
-
-    // synchronous events
-    setupSocketIOClient(obj.perspective);
-
-    // inject lens library files in perspective view.
-    handleLibraryFiles(obj.lens); // synchronous
-
-    // remove spinner and load lens
-    const spinner = document.getElementById('lens_loading_spinner');
-    spinner.parentNode.removeChild(spinner);
-
-    // trigger refocus.lens.load event
-    LENS_DIV.dispatchEvent(lensLoadEvent);
-
-    hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-      detail: obj.rootSubject,
-    });
-
-    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-    loadController(obj);
-  })
+  getValuesObject(getPromiseWithUrl, whichPerspective, LENS_DIV, handleLibraryFiles)
+  .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML += error;
   });
