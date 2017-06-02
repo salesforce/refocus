@@ -227,6 +227,15 @@ function handleLibraryFiles(lensObject) {
   document.body.appendChild(lensScript);
 } // handleLibraryFiles
 
+function handleDomEvents(lensObject) {
+  // inject lens library files in perspective view.
+  handleLibraryFiles(lensObject);
+
+  // remove spinner and load lens
+  const spinner = document.getElementById('lens_loading_spinner');
+  spinner.parentNode.removeChild(spinner);
+}
+
 /**
  * Figure out which perspective to load. If it's in the URL path, load that
  * one.
@@ -263,7 +272,7 @@ function whichPerspective(pnames) {
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, whichPerspective, LENS_DIV, handleLibraryFiles)
+  getValuesObject(getPromiseWithUrl, whichPerspective, LENS_DIV, handleDomEvents)
   .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML += error;

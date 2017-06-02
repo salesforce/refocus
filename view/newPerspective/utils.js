@@ -235,7 +235,7 @@ function getPublishedFromArr(arr) {
  * @param {Object} request Use supertest or superagent
  * @returns {Object} The accumulated values
  */
-function getValuesObject(request, getPerspectiveName, LENS_DIV, handleLibraryFiles) {
+function getValuesObject(request, getPerspectiveName, LENS_DIV, handleDomEvents) {
   const statuses = require('../../api/v1/constants').statuses;
   const valuesObj = {
     name: '',
@@ -274,12 +274,7 @@ function getValuesObject(request, getPerspectiveName, LENS_DIV, handleLibraryFil
     const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
     .then((res) => {
 
-      // inject lens library files in perspective view.
-      handleLibraryFiles(res);
-
-      // remove spinner and load lens
-      const spinner = document.getElementById('lens_loading_spinner');
-      spinner.parentNode.removeChild(spinner);
+      handleDomEvents(res.body);
 
       // trigger refocus.lens.load event
       gotLens = true;
