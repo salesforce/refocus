@@ -227,14 +227,56 @@ function handleLibraryFiles(lensObject) {
   document.body.appendChild(lensScript);
 } // handleLibraryFiles
 
-function handleDomEvents(lensObject) {
+
+/**
+ * Dispatch hierarchyLoad event, if the lens is received.
+ *
+ * @param {Object} rootSubject
+ * @param {Boolean} gotLens
+ */
+function handleHierarchyEvent(rootSubject, gotLens) {
+  const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
+    detail: rootSubject,
+  });
+
+  /*
+   * The order of events matters so only dispatch the hierarchyLoad event if
+   * we received the lens response back. If hierarchy happens to
+   * have come back first, then it will be dispatched from getLens.
+   */
+  if (gotLens) {
+    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+  }
+}
+
+/**
+ * On receiving the lens, load the lens.
+ * Load the hierarchy if hierarchy event is passed in.
+ *
+ * @param {Object} lensObject the perspective's lens
+ * @param {Object} hierarchyLoadEvent undefined or
+ * a Custom Event
+ */
+function handleLensDomEvent(lensObject, hierarchyLoadEvent) {
   // inject lens library files in perspective view.
   handleLibraryFiles(lensObject);
 
   // remove spinner and load lens
   const spinner = document.getElementById('lens_loading_spinner');
   spinner.parentNode.removeChild(spinner);
-}
+
+  const lensLoadEvent = new CustomEvent('refocus.lens.load');
+  LENS_DIV.dispatchEvent(lensLoadEvent);
+
+  /*
+   * The order of events matters so if we happened to have gotten the
+   * hierarchy *before* the lens, then dispatch the lens.hierarchyLoad event
+   * now.
+   */
+  if (hierarchyLoadEvent) {
+    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+  }
+} // handleLensDomEvent
 
 /**
  * Figure out which perspective to load. If it's in the URL path, load that
@@ -272,7 +314,7 @@ function whichPerspective(pnames) {
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, whichPerspective, LENS_DIV, handleDomEvents)
+  getValuesObject(getPromiseWithUrl, whichPerspective, handleHierarchyEvent, handleLensDomEvent)
   .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML += error;

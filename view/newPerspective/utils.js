@@ -235,7 +235,7 @@ function getPublishedFromArr(arr) {
  * @param {Object} request Use supertest or superagent
  * @returns {Object} The accumulated values
  */
-function getValuesObject(request, getPerspectiveName, LENS_DIV, handleDomEvents) {
+function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, handleLensDomEvent) {
   const statuses = require('../../api/v1/constants').statuses;
   const valuesObj = {
     name: '',
@@ -274,21 +274,13 @@ function getValuesObject(request, getPerspectiveName, LENS_DIV, handleDomEvents)
     const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
     .then((res) => {
 
-      handleDomEvents(res.body);
+      // hierarchyLoadEvent can be undefined or a custom event
+      handleLensDomEvent(res.body, hierarchyLoadEvent);
 
-      // trigger refocus.lens.load event
+      // if hierarchy is not loaded, set the lens received flag
+      // to true, to dispatch lens load when hierarchy
+      // is returned in getHierarchy
       gotLens = true;
-      const lensLoadEvent = new CustomEvent('refocus.lens.load');
-      LENS_DIV.dispatchEvent(lensLoadEvent);
-
-      /*
-       * The order of events matters so if we happened to have gotten the
-       * hierarchy *before* the lens, then dispatch the lens.hierarchyLoad event
-       * now.
-       */
-      if (hierarchyLoadEvent) {
-        LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-      }
 
       return res;
     });
@@ -297,18 +289,9 @@ function getValuesObject(request, getPerspectiveName, LENS_DIV, handleDomEvents)
     const getHierarchy = request('/v1/subjects/' +
       valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
     .then((res) => {
-      hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-        detail: res.body,
-      });
 
-      /*
-       * The order of events matters so only dispatch the hierarchyLoad event if
-       * we received the lens response back. If hierarchy happens to
-       * have come back first, then it will be dispatched from getLens.
-       */
-      if (gotLens) {
-        LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-      }
+      // load the hierarchy event
+      handleHierarchyEvent(res.body, gotLens);
 
       return res;
     });
