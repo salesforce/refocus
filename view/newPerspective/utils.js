@@ -249,38 +249,51 @@ function getValuesObject(request, getPerspectiveName) {
     lens: {}, // includes library
   };
 
-  return request('/v1/perspectives')
-  .then((res) => {
-    valuesObj.persNames = res.body.map((perspective) => perspective.name).sort();
+  return Promise.all([
+    request('/v1/perspectives'),
+    request('/v1/lenses'),
+    request('/v1/subjects?fields=isPublished,absolutePath,tags'),
+    request('/v1/aspects?fields=isPublished,name,tags')
+  ])
+  .then((responses) => {
+    const perspectives = responses[0].body;
+    const lenses = responses[1].body;
+    const subjects = responses[2].body;
+    const aspects = responses[3].body;
+
+    // assign perspective-related values to the accumulator object
+    valuesObj.persNames = perspectives.map((perspective) => perspective.name).sort();
     valuesObj.name = getPerspectiveName(valuesObj.persNames);
-    valuesObj.perspective = res.body.filter((perspective) => perspective.name === valuesObj.name)[0];
+    valuesObj.perspective = perspectives.filter((perspective) => perspective.name === valuesObj.name)[0];
 
-    // need to get the lens, as GET /lenses does not return the library
-    return request('/v1/lenses/' + valuesObj.perspective.lensId);
-  })
-  .then((res) => {
-    valuesObj.lens = res.body;
-    return request('/v1/subjects?fields=isPublished,absolutePath,tags');
-  })
-  .then((res) => {
-
-    // set the published subjects
-    valuesObj.subjects = getPublishedFromArr(res.body);
+    // set the published resources
+    valuesObj.subjects = getPublishedFromArr(subjects);
     valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
-    const filterString  = getFilterQuery(valuesObj.perspective);
-    return request('/v1/subjects/' + valuesObj.perspective.rootSubject + '/hierarchy' + filterString);
-  })
-  .then((res) => {
-    valuesObj.rootSubject = res.body;
-    return request('/v1/lenses');
-  })
-  .then((res) => {
-    valuesObj.lenses = getPublishedFromArr(res.body);
-    return request('/v1/aspects?fields=isPublished,name,tags')
-  })
-  .then((res) => {
-    valuesObj.aspectFilter = getPublishedFromArr(res.body);
+    valuesObj.lenses = getPublishedFromArr(lenses);
+    valuesObj.aspectFilter = getPublishedFromArr(aspects);
     valuesObj.aspectTagFilter = getTagsFromArrays(valuesObj.aspectFilter);
+
+    // GET perspective specific resources
+    if (valuesObj.perspective) {
+      const filterString  = getFilterQuery(valuesObj.perspective);
+
+      return Promise.all([
+        request('/v1/lenses/' + valuesObj.perspective.lensId),
+        request('/v1/subjects/' + valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
+      ])
+      .then((responses) => {
+        const lens = responses[0].body;
+        const subject = responses[1].body;
+
+        // assign perspective-related values to the accumulator object
+        valuesObj.lens = lens;
+        valuesObj.rootSubject = subject;
+
+        return valuesObj;
+      });
+    }
+
+    // no perspective. return the accumulator object
     return valuesObj;
   });
 } // getValuesObject
