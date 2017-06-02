@@ -20,13 +20,14 @@ describe('/utils/activityLog: functions', () => {
     const tempObj = {
       reqStartTime: 10,
       jobStartTime: 15,
+      jobEndTime: 29,
       dbStartTime: 23,
       dbEndTime: 27,
     };
 
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
-    expect(resultObj.workTime).to.be.equal(12);
+    expect(resultObj.workTime).to.be.equal(14);
     expect(resultObj.reqStartTime).to.be.equal(10);
     expect(resultObj.queueTime).to.be.equal(5);
     done();
