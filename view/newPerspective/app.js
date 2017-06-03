@@ -223,11 +223,9 @@ function getPromiseWithUrl(url) {
 /**
  * Create DOM elements for each of the files in the lens library.
  *
- * @param {Object} lensObject - Body of the response from lens api call
+ * @param {Object} lib - Library of the response from lens api call
  */
-function handleLibraryFiles(lensObject) {
-  const lib = lensObject.body.library;
-
+function handleLibraryFiles(lib) {
   const lensScript = document.createElement('script');
   for (const filename in lib) {
     const ext = (LENS_LIBRARY_REX.exec(filename)[ONE] || '').toLowerCase();
@@ -286,13 +284,13 @@ function handleHierarchyEvent(rootSubject, gotLens) {
  * On receiving the lens, load the lens.
  * Load the hierarchy if hierarchy event is passed in.
  *
- * @param {Object} lensObject the perspective's lens
+ * @param {Object} library the perspective's lens's library
  * @param {Object} hierarchyLoadEvent undefined or
  * a Custom Event
  */
-function handleLensDomEvent(lensObject, hierarchyLoadEvent) {
+function handleLensDomEvent(library, hierarchyLoadEvent) {
   // inject lens library files in perspective view.
-  handleLibraryFiles(lensObject);
+  handleLibraryFiles(library);
 
   // remove spinner and load lens
   const spinner = document.getElementById('lens_loading_spinner');

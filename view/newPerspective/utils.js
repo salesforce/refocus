@@ -275,7 +275,7 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
     .then((res) => {
 
       // hierarchyLoadEvent can be undefined or a custom event
-      handleLensDomEvent(res, hierarchyLoadEvent);
+      handleLensDomEvent(res.body.library, hierarchyLoadEvent);
 
       // if hierarchy is not loaded, set the lens received flag
       // to true, to dispatch lens load when hierarchy
@@ -317,10 +317,13 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
     valuesObj.lens = lens;
     valuesObj.rootSubject = rootSubject;
 
-    // assign non-perspective values to the accumulator object
+    // assign non-perspective values to the accumulator object.
+    // TODO: subjects are objects. Change to use strings
     valuesObj.subjects = getPublishedFromArr(subjects);
     valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
     valuesObj.lenses = getPublishedFromArr(lenses);
+
+    // aspectFilter is an array of strings
     const publishedAspects = getPublishedFromArr(aspects);
     valuesObj.aspectFilter = publishedAspects.map((aspect) => aspect.name);
     valuesObj.aspectTagFilter = getTagsFromArrays(publishedAspects);
