@@ -200,27 +200,6 @@ function injectStyleTag(library, filename) {
 } // injectStyleTag
 
 /**
- * @param {String} url The url to get from
- * @returns {Promise} For use in chaining.
- */
-function getPromiseWithUrl(url) {
-  return new Promise((resolve, reject) => {
-    request.get(url)
-    .set(REQ_HEADERS)
-    .end((error, response) => {
-      // reject if error is present, otherwise resolve request
-      if (error) {
-        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
-          url + '. Make sure the path is valid and the resource is published.';
-        reject(error);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-} // getPromiseWithUrl
-
-/**
  * Create DOM elements for each of the files in the lens library.
  *
  * @param {Object} lib - Library of the response from lens api call
@@ -251,6 +230,26 @@ function handleLibraryFiles(lib) {
   document.body.appendChild(lensScript);
 } // handleLibraryFiles
 
+/**
+ * @param {String} url The url to get from
+ * @returns {Promise} For use in chaining.
+ */
+function getPromiseWithUrl(url) {
+  return new Promise((resolve, reject) => {
+    request.get(url)
+    .set(REQ_HEADERS)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
+          url + '. Make sure the path is valid and the resource is published.';
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // getPromiseWithUrl
 
 /**
  * Dispatch hierarchyLoad event, if the lens is received.

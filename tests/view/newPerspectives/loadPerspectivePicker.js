@@ -139,8 +139,8 @@ describe('Perspective app ', () => {
       const obj = getValuesObject(request, request, DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.aspectFilter.length).to.equal(2);
-        expect(obj.aspectFilter[0].name).to.equal(ASPECT1);
-        expect(obj.aspectFilter[1].name).to.equal(ASPECT2);
+        expect(obj.aspectFilter[0]).to.equal(ASPECT1);
+        expect(obj.aspectFilter[1]).to.equal(ASPECT2);
       });
     });
 
