@@ -51,7 +51,6 @@ import PerspectiveController from './PerspectiveController';
 import { getFilterQuery, getTagsFromResources, getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
-let gotLens = false;
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;

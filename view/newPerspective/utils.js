@@ -267,19 +267,37 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
     valuesObj.name = getPerspectiveName(valuesObj.persNames);
     valuesObj.perspective = response.body.filter((perspective) => perspective.name === valuesObj.name)[0];
 
-    // Whenever we get the response back with the hierarchy, we dispatch the
-    // lens.hierarchyLoad event to the lens. (If we happen to get the hierarchy
-    // back *before* the lens, hold onto it, wait for the lens, *then* dispatch the
-    // lens.hierarchyLoad event *after* the lens.load event.)
+    /**
+     * getLens and getHierarchy are dispatched simultaneously.
+     * Both lensLoadEvent and hierarchyLoadEvent will be called once:
+     *
+     * If getLens resolves first,
+     * 1. In handleLensDomEvent:
+     * hierarchyLoadEvent is NOT be dispatched since it is not defined,
+     * lensLoadEvent is dispatched.
+     * 2. gotLens is set to true.
+     * 3. When getHierarchy resolves:
+     * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
+     * is dispatched.
+
+     * Else if getHierarchy is resolved first:
+     * 1. in handleHierarchyEvent:
+     * Because gotLens is false,
+     * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
+     * to the variable hierarchyLoadEvent.
+     * 2. When getLens resolves, in handleLensDomEvent:
+     * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
+     * it is also dispatched.
+     */
     const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
     .then((res) => {
 
       // hierarchyLoadEvent can be undefined or a custom event
+      // if hierarchyLoadEvent is custom event, it will be dispatched
       handleLensDomEvent(res.body.library, hierarchyLoadEvent);
 
-      // if hierarchy is not loaded, set the lens received flag
-      // to true, to dispatch lens load when hierarchy
-      // is returned in getHierarchy
+      // set the lens received flag to true, to dispatch lens load
+       // when hierarchy is resolved in getHierarchy
       gotLens = true;
 
       return res;
@@ -290,8 +308,8 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
       valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
     .then((res) => {
 
-      // if gotLens is false, hierarchyLoadEvent will be assigned.
-      // otherwise dispatch the hierarchy event
+      // if gotLens is false, hierarchyLoadEvent will be assigned
+      // and NOT dispatched. Otherwise dispatch the hierarchy event
       hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
 
       return res;
