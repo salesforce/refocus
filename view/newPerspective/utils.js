@@ -275,7 +275,7 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
     .then((res) => {
 
       // hierarchyLoadEvent can be undefined or a custom event
-      handleLensDomEvent(res.body, hierarchyLoadEvent);
+      handleLensDomEvent(res, hierarchyLoadEvent);
 
       // if hierarchy is not loaded, set the lens received flag
       // to true, to dispatch lens load when hierarchy
@@ -290,8 +290,9 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
       valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
     .then((res) => {
 
-      // load the hierarchy event
-      handleHierarchyEvent(res.body, gotLens);
+      // if gotLens is false, hierarchyLoadEvent will be assigned.
+      // otherwise dispatch the hierarchy event
+      hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
 
       return res;
     });
@@ -320,8 +321,9 @@ function getValuesObject(request, getPerspectiveName, handleHierarchyEvent, hand
     valuesObj.subjects = getPublishedFromArr(subjects);
     valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
     valuesObj.lenses = getPublishedFromArr(lenses);
-    valuesObj.aspectFilter = getPublishedFromArr(aspects);
-    valuesObj.aspectTagFilter = getTagsFromArrays(valuesObj.aspectFilter);
+    const publishedAspects = getPublishedFromArr(aspects);
+    valuesObj.aspectFilter = publishedAspects.map((aspect) => aspect.name);
+    valuesObj.aspectTagFilter = getTagsFromArrays(publishedAspects);
 
     return valuesObj;
   });

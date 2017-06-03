@@ -175,6 +175,31 @@ function setupSocketIOClient(persBody) {
 } // setupSocketIOClient
 
 /**
+ * Create style tag for lens css file.
+ * @param  {Object} library From the the lens api
+ * @param  {String} filename   name of file in lens library
+ */
+function injectStyleTag(library, filename) {
+  const style = document.createElement('style');
+  style.type = 'text/css';
+
+  const t = document.createTextNode(library[filename]);
+  style.appendChild(t);
+  const head = document.head ||
+   document.getElementsByTagName('head')[ZERO];
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = library[filename];
+  } else {
+    style.appendChild(
+      document.createTextNode(library[filename])
+    );
+  }
+
+  head.appendChild(style);
+} // injectStyleTag
+
+/**
  * @param {String} url The url to get from
  * @returns {Promise} For use in chaining.
  */
@@ -201,14 +226,15 @@ function getPromiseWithUrl(url) {
  * @param {Object} lensObject - Body of the response from lens api call
  */
 function handleLibraryFiles(lensObject) {
-  const lib = lensObject.library;
+  const lib = lensObject.body.library;
+
   const lensScript = document.createElement('script');
   for (const filename in lib) {
     const ext = (LENS_LIBRARY_REX.exec(filename)[ONE] || '').toLowerCase();
     if (filename === 'lens.js') {
       lensScript.appendChild(document.createTextNode(lib[filename]));
     } else if (ext === 'css') {
-      injectStyleTag(res, filename);
+      injectStyleTag(lib, filename);
     } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
       const image = new Image();
       image.src = 'data:image/' + ext + ';base64,' + lib[filename];
@@ -230,9 +256,12 @@ function handleLibraryFiles(lensObject) {
 
 /**
  * Dispatch hierarchyLoad event, if the lens is received.
+ * Return the hierarchyLoadEvent otherwise
  *
  * @param {Object} rootSubject
  * @param {Boolean} gotLens
+ * @returns {CustomEvent} if lens is received, return undefined,
+ * else return hierarchyLoadEvent.
  */
 function handleHierarchyEvent(rootSubject, gotLens) {
   const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
@@ -241,12 +270,16 @@ function handleHierarchyEvent(rootSubject, gotLens) {
 
   /*
    * The order of events matters so only dispatch the hierarchyLoad event if
-   * we received the lens response back. If hierarchy happens to
-   * have come back first, then it will be dispatched from getLens.
+   * we received the lens response back.
    */
   if (gotLens) {
     LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+    return;
   }
+
+  // lens is not received yet. Return hierarchyLoadEvent
+  // to be dispatched from getLens
+  return hierarchyLoadEvent;
 }
 
 /**
