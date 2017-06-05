@@ -322,8 +322,9 @@ function getPerspectiveUrl() {
     document.title += ' - ' + p;
     return { url: '/v1/perspectives/' + p, named: true };
   } else {
-
-    return { url: GET_DEFAULT_PERSPECTIVE, named: false };
+    const object = { named: false };
+    object.url = GET_DEFAULT_PERSPECTIVE;
+    return object;
   }
 } // whichPerspective
 
