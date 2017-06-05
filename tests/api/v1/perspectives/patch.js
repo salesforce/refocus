@@ -18,6 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
+const Perspective = tu.db.Perspective;
 
 describe(`api: PATCH ${path}`, () => {
   let perspectiveId;
@@ -76,7 +77,15 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.aspectTagFilterType).to.equal('INCLUDE');
       expect(res.body.subjectTagFilterType).to.equal('INCLUDE');
       expect(res.body.statusFilterType).to.equal('INCLUDE');
-      done();
+      Perspective.findById(perspectiveId)
+      .then((p) => {
+        expect(p.aspectFilterType).to.equal('INCLUDE');
+        expect(p.aspectTagFilterType).to.equal('INCLUDE');
+        expect(p.subjectTagFilterType).to.equal('INCLUDE');
+        expect(p.statusFilterType).to.equal('INCLUDE');
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -91,7 +100,12 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
-      done();
+      Perspective.findById(perspectiveId)
+      .then((p) => {
+        expect(p.rootSubject).to.be.equal('changedMainSubject');
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -106,7 +120,12 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.aspectTagFilter).to.eql(['ctemp', 'chum']);
-      done();
+      Perspective.findById(perspectiveId)
+      .then((p) => {
+        expect(p.aspectTagFilter).to.eql(['ctemp', 'chum']);
+        done();
+      })
+      .catch(done);
     });
   });
 

@@ -13,6 +13,9 @@
 'use strict'; // eslint-disable-line strict
 const activityLogParams = require('../config/activityLog');
 const winston = require('winston');
+const logger = new (winston.Logger)({
+  transports: [new (winston.transports.Console)()],
+});
 
 module.exports = {
 
@@ -63,7 +66,7 @@ module.exports = {
     }
 
     // print the log
-    winston.log(logLevel, logStr);
+    logger.log(logLevel, logStr);
   },
 
   /**
@@ -97,4 +100,6 @@ module.exports = {
       }
     }
   },
+
+  logger,
 };

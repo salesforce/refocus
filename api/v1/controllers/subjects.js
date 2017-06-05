@@ -24,6 +24,7 @@ const doPostAssoc =
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
+const doGetHierarchy = require('../helpers/verbs/doGetHierarchy');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
@@ -33,6 +34,9 @@ const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
 const sampleStoreFeature =
                   require('../../../cache/sampleStore').constants.featureName;
+const jobType = require('../../../jobQueue/setup').jobType;
+const jobWrapper = require('../../../jobQueue/jobWrapper');
+const WORKER_TTL = 30000;
 const ZERO = 0;
 
 /**
@@ -230,16 +234,15 @@ module.exports = {
    * GET /subjects/{key}/hierarchy
    *
    * Retrieves the subject with all its descendents included and sends it back
-   * in the response.
+   * in the response. When "enableWorkerProcess" is enabled, the job is
+   * enqueued to be processed by a separate worker process.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectHierarchy(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
-    const depth = Number(params.depth.value);
     const filterParams = ['subjectTags', 'aspectTags', 'aspect', 'status'];
 
     // Filter Parameter Validation
@@ -249,32 +252,67 @@ module.exports = {
       }
     }
 
-    const findByKeyPromise =
-      featureToggles.isFeatureEnabled(sampleStoreFeature) ?
-            u.findByKey(helper, params, ['subjectHierarchy']) :
-              u.findByKey(helper, params, ['hierarchy', 'samples']);
-    findByKeyPromise
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      let retval = u.responsify(o, helper, req.method);
-      if (depth > ZERO) {
-        retval = helper.deleteChildren(retval, depth);
-      }
+    const resultObj = {
+      reqStartTime: Date.now(),
+      params: params,
+    };
 
-      // if samples are stored in redis, get the samples from there.
-      if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-        redisSubjectModel.completeSubjectHierarchy(retval, params)
-        .then((_retval) => {
-          u.logAPI(req, resultObj, _retval);
-          res.status(httpStatus.OK).json(_retval);
-        });
-      } else {
-        retval = helper.modifyAPIResponse(retval, params);
-        u.logAPI(req, resultObj, retval);
-        res.status(httpStatus.OK).json(retval);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    if (featureToggles.isFeatureEnabled('enableWorkerProcess')
+    && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
+      jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
+      .ttl(WORKER_TTL)
+      .on('complete', (resultObj) => {
+        u.logAPI(req, resultObj, resultObj.retval);
+        res.status(httpStatus.OK).json(resultObj.retval);
+      })
+      .on('failed', (errString) => {
+        let parsedErr;
+        try {
+          parsedErr = JSON.parse(errString);
+        } catch (e) {
+          parsedErr = null;
+        }
+
+        let newErr;
+        if (parsedErr) { //errString contains a serialized error object.
+
+          //create a new error object of the correct type
+          if (apiErrors[parsedErr.name]) {
+            newErr = new apiErrors[parsedErr.name]();
+          } else if (global[parsedErr.name]) {
+            newErr = new global[parsedErr.name]();
+          } else {
+            newErr = new Error();
+          }
+
+          //copy props to new error
+          Object.keys(parsedErr).forEach((prop) => {
+            if (!newErr.hasOwnProperty(prop)
+            || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
+              newErr[prop] = parsedErr[prop];
+            }
+          });
+
+        } else { //errString contains an error message.
+          if (errString === 'TTL exceeded') {
+            newErr = new apiErrors.WorkerTimeoutError();
+          } else {
+            newErr = new Error(errString);
+          }
+        }
+
+        u.handleError(next, newErr, helper.modelName);
+      });
+    } else {
+      doGetHierarchy(resultObj)
+      .then((resultObj) => {
+        u.logAPI(req, resultObj, resultObj.retval);
+        res.status(httpStatus.OK).json(resultObj.retval);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
+    }
   }, // getSubjectHierarchy
 
   /**

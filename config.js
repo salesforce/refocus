@@ -38,6 +38,7 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
   pe.HIDDEN_ROUTES.split[','] : ['/rooms']; // Routes to hide
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
+const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -226,6 +227,8 @@ module.exports = {
 
   bulkUpsertSampleJobConcurrency: pe.BULK_UPSERT_JOB_CONCURRENCY ||
     DEFAULT_BULK_UPSERT_JOB_CONCURRENCY,
+  getHierarchyJobConcurrency: pe.GET_HIERARCHY_JOB_CONCURRENCY ||
+  DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   CACHE_EXPIRY_IN_SECS,
