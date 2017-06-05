@@ -252,6 +252,7 @@ describe(`api: GET using worker process ${path}`, () => {
           try {
             expect(logObj.totalTime).to.match(/\d+ms/);
             expect(logObj.queueTime).to.match(/\d+ms/);
+            expect(logObj.queueResponseTime).to.match(/\d+ms/);
             expect(logObj.workTime).to.match(/\d+ms/);
             expect(logObj.dbTime).to.match(/\d+ms/);
             expect(logObj.recordCount).to.equal('1');
@@ -259,13 +260,15 @@ describe(`api: GET using worker process ${path}`, () => {
 
             const totalTime = parseInt(logObj.totalTime);
             const queueTime = parseInt(logObj.queueTime);
+            const queueResponseTime = parseInt(logObj.queueResponseTime);
             const workTime = parseInt(logObj.workTime);
             const dbTime = parseInt(logObj.dbTime);
 
             expect(workTime).to.be.at.least(dbTime);
             expect(totalTime).to.be.at.least(workTime);
             expect(totalTime).to.be.at.least(queueTime);
-            expect(queueTime + workTime).to.be.at.most(totalTime);
+            expect(totalTime).to.be.at.least(queueResponseTime);
+            expect(queueTime + workTime + queueResponseTime).to.equal(totalTime);
 
             workerLogged = true;
           } catch (err) {

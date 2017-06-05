@@ -20,8 +20,10 @@ module.exports = (job, done) => {
   doGetHierarchy(job.data)
   .then((resultObj) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+      const jobEndTime = Date.now();
       const tempObj = {
         jobStartTime: jobStartTime,
+        jobEndTime: jobEndTime,
         reqStartTime: resultObj.reqStartTime,
         dbStartTime: resultObj.dbStartTime,
         dbEndTime: resultObj.dbEndTime,
