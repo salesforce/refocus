@@ -83,10 +83,15 @@ module.exports = {
         the time spent in sequelize calls */
         resultObj.dbTime = tempObj.dbEndTime - tempObj.dbStartTime;
       }
+    }
+
+    if (tempObj.jobEndTime) {
+      // jobEndTime, when job is finished and ready to be sent back
+      resultObj.jobEndTime = tempObj.jobEndTime;
 
       if (tempObj.jobStartTime) {
         // time spent from when the job is pulled off the queue to completion
-        resultObj.workTime = tempObj.dbEndTime - tempObj.jobStartTime;
+        resultObj.workTime = tempObj.jobEndTime - tempObj.jobStartTime;
       }
     }
 

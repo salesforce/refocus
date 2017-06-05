@@ -28,6 +28,10 @@ const sampleStore = require('./cache/sampleStoreInit');
 function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
+  if (conf.newRelicKey) {
+    require('newrelic');
+  }
+
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
 

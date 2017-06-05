@@ -39,13 +39,14 @@ module.exports = (job, done) => {
     console.log(msg); // eslint-disable-line no-console
   }
 
-  const dbStartTime = Date.now();
   const sampleModel =
     featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
       cacheSampleModel : helper.model;
 
+  const dbStartTime = Date.now();
   sampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
+      const dbEndTime = Date.now();
       let errorCount = 0;
 
       /*
@@ -68,7 +69,7 @@ module.exports = (job, done) => {
       // attach the errors from "bulkUpsertByName"
       objToReturn.errors = errors;
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
-        const dbEndTime = Date.now();
+        const jobEndTime = Date.now();
 
         // number of successful upserts
         objToReturn.recordCount = results.length - errorCount;
@@ -78,6 +79,7 @@ module.exports = (job, done) => {
 
         const tempObj = {
           jobStartTime,
+          jobEndTime,
           reqStartTime,
           dbStartTime,
           dbEndTime,
