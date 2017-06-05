@@ -33,6 +33,7 @@ describe('db: bot: delete: ', () => {
       .then(() => Bot.findAll())
       .then((o) => {
         expect(o.length).to.equal(1);
+        expect(o[0]).to.equal(u.getStandard());
         done();
       })
       .catch(done);

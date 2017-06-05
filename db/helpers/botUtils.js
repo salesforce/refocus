@@ -35,11 +35,11 @@ function correctType(str, types) {
 }
 
 /**
- * Confirms that the array contains only parameter values
+ * Confirms that the array elements contains name and type attributes
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK
- * @throws {validationError} if the array does not contain two elements
+ * @throws {validationError} - if the array does not contain valid attributes
  */
 function arrayHasValidParameters(arr) {
   if (Array.isArray(arr)) {
@@ -48,24 +48,30 @@ function arrayHasValidParameters(arr) {
         (arr[i].hasOwnProperty('name')) && (arr[i].hasOwnProperty('type'))) {
         if ((!constants.nameRegex.test(arr[i].name)) ||
           (!correctType(arr[i].type, parameterTypes))) {
-          throw new ValidationError();
+          throw new ValidationError({
+            message: 'Missing a valid name or parameter type',
+          });
         }
       } else {
-        throw new ValidationError();
+        throw new ValidationError({
+          message: 'Object missing a name or type attribute',
+        });
       }
     }
   } else {
-    throw new ValidationError();
+    throw new ValidationError({
+      message: 'Objects not contained in an array',
+    });
   }
 } // arrayHasValidParameters
 
 /**
- * Custom validation rule that checks wheter the the actions values have names
+ * Custom validation rule that checks whether the the actions values have names
  * and that the parameters listed at valid parameter types
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK
- * @throws {validationError}
+ * @throws {validationError} - Invalid actions array
  */
 function validateActionArray(arr) {
   if (Array.isArray(arr)) {
@@ -73,16 +79,22 @@ function validateActionArray(arr) {
       if ((arr[i].hasOwnProperty('name')) &&
         (arr[i].hasOwnProperty('parameters'))) {
         if (!constants.nameRegex.test(arr[i].name)) {
-          throw new ValidationError();
+          throw new ValidationError({
+            message: 'Missing a valid name',
+          });
         }
 
         arrayHasValidParameters(arr[i].parameters);
       } else {
-        throw new ValidationError();
+        throw new ValidationError({
+          message: 'Missing a name or parameter attribute',
+        });
       }
     }
   } else {
-    throw new ValidationError();
+    throw new ValidationError({
+      message: 'Objects not contained in an array',
+    });
   }
 } // validateActionArray
 
@@ -92,7 +104,7 @@ function validateActionArray(arr) {
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK
- * @throws {validationError}
+ * @throws {validationError} - Invalid data array
  */
 function validateDataArray(arr) {
   if (Array.isArray(arr)) {
@@ -100,14 +112,20 @@ function validateDataArray(arr) {
       if ((arr[i].hasOwnProperty('name')) && (arr[i].hasOwnProperty('type'))) {
         if ((!constants.nameRegex.test(arr[i].name)) ||
           (!correctType(arr[i].type, dataTypes))) {
-          throw new ValidationError();
+          throw new ValidationError({
+            message: 'Missing a valid name or data type',
+          });
         }
       } else {
-        throw new ValidationError();
+        throw new ValidationError({
+          message: 'Object missing a name or type attribute',
+        });
       }
     }
   } else {
-    throw new ValidationError();
+    throw new ValidationError({
+      message: 'Objects not contained in an array',
+    });
   }
 } // validateDataArray
 
