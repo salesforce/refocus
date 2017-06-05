@@ -9,17 +9,25 @@
 /**
  * db/model/roomType.js
  */
-const common = require('../helpers/common');
-const constants = require('../constants');
 
+const constants = require('../constants');
+const u = require('../helpers/roomTypeUtils');
 const assoc = {};
 
 module.exports = function user(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
+    id: {
+      type: dataTypes.UUID,
+      primaryKey: true,
+      defaultValue: dataTypes.UUIDV4,
+    },
     name: {
       type: dataTypes.STRING,
       allowNull: false,
       unique: true,
+      validate: {
+        is: constants.nameRegex,
+      },
       comment: 'Create a named room type',
     },
     active: {
@@ -30,11 +38,17 @@ module.exports = function user(seq, dataTypes) {
     settings: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
+      validate: {
+        contains: u.validateSettings,
+      },
       comment: 'Key/Value pairs for user specific settings',
     },
     rules: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
+      validate: {
+        contains: u.validateRules,
+      },
       comment: 'Logic and resulting actions for rooms',
     },
   }, {
