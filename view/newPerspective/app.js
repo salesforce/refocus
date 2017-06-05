@@ -240,8 +240,6 @@ function getPromiseWithUrl(url) {
     .end((error, response) => {
       // reject if error is present, otherwise resolve request
       if (error) {
-        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
-          url + '. Make sure the path is valid and the resource is published.';
         reject(error);
       } else {
         resolve(response);
@@ -308,42 +306,29 @@ function handleLensDomEvent(library, hierarchyLoadEvent) {
 } // handleLensDomEvent
 
 /**
- * Figure out which perspective to load. If it's in the URL path, load that
- * one.
- * If it's not in the URL path, either use the DEFAULT_PERSPECTIVE from global
- * config OR the first perspective from the list of perspective names
- * (alphabetical order), and redirect to the URL using that perspective name.
+ * Figure out which perspective to load.
+ * If the perspective name is in url, change the documnet title to
+ * have the name of the perspective.
  *
- * @param {Array} pnames - Array of perspective names
- * @returns {String} perspectiveName - The named perspective
+ * @returns {String} url to load the perspective
  */
-function whichPerspective(pnames) {
+function getPerspectiveUrl() {
   let h = window.location.pathname;
   let hsplit = h.split('/');
   let p = hsplit.pop();
 
   // named perspective
   if (p && p !== 'perspectives') {
-
-    // check if name is valid
-    if (pnames.indexOf(p) < 0) {
-      const errMessage = 'Did not find perspective ' + p;
-      throw new Error(errMessage);
-    }
-
     document.title += ' - ' + p;
-    return p;
+    return { url: '/v1/perspectives/' + p, named: true };
   } else {
 
-    // find name of perspective
-    const name = pnames.length ? pnames.shift() : GET_DEFAULT_PERSPECTIVE;
-    window.location.href = '/perspectives/' + name;
-    return name;
+    return { url: GET_DEFAULT_PERSPECTIVE, named: false };
   }
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, whichPerspective, handleHierarchyEvent, handleLensDomEvent)
+  getValuesObject(getPromiseWithUrl, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent)
   .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML += error;
