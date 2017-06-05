@@ -40,12 +40,14 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 module.exports = {
   jobConcurrency: {
     BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
+    GET_HIERARCHY: conf.getHierarchyJobConcurrency,
     PERSIST_SAMPLE_STORE: 1,
     SAMPLE_TIMEOUT: 1,
   },
   jobQueue,
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
+    GET_HIERARCHY: 'GET_HIERARCHY',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },

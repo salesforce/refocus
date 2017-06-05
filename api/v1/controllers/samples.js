@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
+const authUtils = require('../helpers/authUtils');
+const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -22,7 +24,6 @@ const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const apiErrors = require('../apiErrors');
 const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
@@ -30,6 +31,7 @@ const utils = require('./utils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
+
 module.exports = {
 
   /**
@@ -175,7 +177,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    * @returns {ServerResponse} - The response object indicating that the sample
    * has been either created or updated.
-   *
    */
   upsertSample(req, res, next) {
     // make the name post-able
@@ -185,9 +186,13 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
-    return u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+    /**
+     * Call the appropriate upsert and return a response.
+     *
+     * @param {Object} user object. Optional.
+     * @returns {Object} The response object.
+     */
+    function doUpsert(user) {
       if (sampleQueryBody.relatedLinks) {
         u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
       }
@@ -195,31 +200,43 @@ module.exports = {
       const upsertSamplePromise =
           featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample.upsertSample(
-              sampleQueryBody, userName) :
-          helper.model.upsertByName(sampleQueryBody, userName);
+              sampleQueryBody, user) :
+          helper.model.upsertByName(sampleQueryBody, user);
 
-      return upsertSamplePromise;
-    })
-    .then((samp) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const dataValues = samp.dataValues ? samp.dataValues : samp;
+      return upsertSamplePromise
+      .then((samp) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const dataValues = samp.dataValues ? samp.dataValues : samp;
 
-      // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+        // loop through remove values to delete property
+        if (helper.fieldsToExclude) {
+          u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
+        }
+
+        /*
+         *send the upserted sample to the client by publishing it to the redis
+         *channel
+         */
+        publisher.publishSample(samp, subHelper.model);
+
+        u.logAPI(req, resultObj, dataValues);
+        return res.status(httpStatus.OK)
+          .json(u.responsify(samp, helper, req.method));
+      });
+    }
+
+    return authUtils.getUser(req)
+    .then(doUpsert)
+    .catch((err) => {
+
+      // proceed to do upsert iff user is found and do NOT need permission
+      if (err.status === httpStatus.FORBIDDEN &&
+        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
+        return doUpsert(false);
       }
 
-      /*
-       *send the upserted sample to the client by publishing it to the redis
-       *channel
-       */
-      publisher.publishSample(samp, subHelper.model);
-
-      u.logAPI(req, resultObj, dataValues);
-      return res.status(httpStatus.OK)
-        .json(u.responsify(samp, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
@@ -242,15 +259,23 @@ module.exports = {
     const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
       field !== 'name');
-    u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
-    .then((userName) => {
+
+    /**
+     * Performs bulk upsert through worker, cache, or db model.
+     * Works regardless of whether user if provided or not.
+     *
+     * @param {Object} user Sequelize result. Optional
+     * @returns {Object} response object with status and body
+     */
+    function bulkUpsert(user) {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
+
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
+
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
-        wrappedBulkUpsertData.userName = userName;
+        wrappedBulkUpsertData.user = user;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
 
@@ -273,17 +298,32 @@ module.exports = {
          * Send the upserted sample to the client by publishing it to the redis
          * channel
          */
-        sampleModel.bulkUpsertByName(value, userName, readOnlyFields)
-          .then((samples) => {
-            samples.forEach((sample) => {
-              if (!sample.isFailed) {
-                publisher.publishSample(sample, subHelper.model);
-              }
-            });
+        sampleModel.bulkUpsertByName(value, user, readOnlyFields)
+        .then((samples) => {
+          samples.forEach((sample) => {
+            if (!sample.isFailed) {
+              publisher.publishSample(sample, subHelper.model);
+            }
           });
+        });
         u.logAPI(req, resultObj, body, value.length);
         return res.status(httpStatus.OK).json(body);
       }
+    }
+
+    // if authUtils throws error, it is because user is not found
+    // perform bulk upsert anyway.
+    authUtils.getUser(req)
+    .then(bulkUpsert)
+    .catch((err) => {
+
+      // proceed to do upsert iff user is found and do NOT need permission
+      if (err.status === httpStatus.FORBIDDEN &&
+        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
+        return bulkUpsert(false);
+      }
+
+      u.handleError(next, err, helper.modelName);
     });
   },
 
