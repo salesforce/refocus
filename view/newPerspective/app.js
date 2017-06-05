@@ -306,11 +306,13 @@ function handleLensDomEvent(library, hierarchyLoadEvent) {
 } // handleLensDomEvent
 
 /**
- * Figure out which perspective to load.
- * If the perspective name is in url, change the documnet title to
+ * Figure out which url to load the perspective.
+ * If the perspective name is in url, also change the document title to
  * have the name of the perspective.
+ * Otherwise return the default perspctive URL.
  *
- * @returns {String} url to load the perspective
+ * @returns {Object} which url to load the perspective, and whether the
+ * perspective is named or not.
  */
 function getPerspectiveUrl() {
   let h = window.location.pathname;

@@ -275,7 +275,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
       // either named perspective or another error.
       throw err;
     })
-    ];
+  ];
 
   return Promise.all(arr)
   .then((responses) => {
