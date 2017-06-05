@@ -43,22 +43,30 @@ describe('jobWrapper: functions ', () => {
   it('mapJobResultsToLogObject function ok', (done) => {
     const currTime = Date.now();
     const jobResultObj = {
-      reqStartTime: currTime - 10,
+      reqStartTime: currTime - 30,
+      jobEndTime: currTime - 5,
       queueTime: 10,
       workTime: 15,
-      dbTime: 16,
+      dbTime: 14,
       recordCount: 4,
       errorCount: 2,
     };
     const logObject = {};
 
     jobWrapper.mapJobResultsToLogObject(jobResultObj, logObject);
-    expect(logObject).to.include.keys('totalTime');
+    expect(logObject.totalTime).to.be.oneOf(['30ms', '31ms']);
+    expect(logObject.queueResponseTime).to.be.oneOf(['5ms', '6ms']);
     expect(logObject.queueTime).to.be.equal(`${jobResultObj.queueTime}ms`);
     expect(logObject.workTime).to.be.equal(`${jobResultObj.workTime}ms`);
     expect(logObject.dbTime).to.be.equal(`${jobResultObj.dbTime}ms`);
     expect(logObject.recordCount).to.be.equal(jobResultObj.recordCount);
     expect(logObject.errorCount).to.be.equal(jobResultObj.errorCount);
+
+    const queueTime = parseInt(logObject.queueTime);
+    const workTime = parseInt(logObject.workTime);
+    const queueResponseTime = parseInt(logObject.queueResponseTime);
+    const totalTime = parseInt(logObject.totalTime);
+    expect(queueTime + workTime + queueResponseTime).to.equal(totalTime);
     done();
   });
 
