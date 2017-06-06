@@ -73,11 +73,11 @@ function arrayHasValidParameters(arr) {
  * @returns {undefined} - OK
  * @throws {validationError} - Invalid actions array
  */
-function validateActionArray(arr) {
+function validateSettings(arr) {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
-      if ((arr[i].hasOwnProperty('name')) &&
-        (arr[i].hasOwnProperty('parameters'))) {
+      if ((arr[i].hasOwnProperty('key')) &&
+        (arr[i].hasOwnProperty('value'))) {
         if (!constants.nameRegex.test(arr[i].name)) {
           throw new ValidationError({
             message: 'Missing a valid name',
@@ -87,7 +87,7 @@ function validateActionArray(arr) {
         arrayHasValidParameters(arr[i].parameters);
       } else {
         throw new ValidationError({
-          message: 'Missing a name or parameter attribute',
+          message: 'Missing a key or value attribute',
         });
       }
     }
@@ -96,7 +96,7 @@ function validateActionArray(arr) {
       message: 'Objects not contained in an array',
     });
   }
-} // validateActionArray
+} // validateSettings
 
 /**
  * Custom validation rule that checks wheter the the data values have names
