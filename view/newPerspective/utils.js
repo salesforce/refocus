@@ -242,7 +242,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
 
   const valuesObj = {
     name: '',
-    perspective: {},
+    perspective: {}, // if not found, becomes null
     persNames: [], //strings
     rootSubject: {},
     lens: {}, // includes library
@@ -273,7 +273,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
       }
 
       // either named perspective or another error.
-      throw err;
+      // throw err;
     })
   ];
 
@@ -285,14 +285,14 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
     valuesObj.persNames = perspectives.map((perspective) => perspective.name).sort();
 
     // if named  perspective or default exists, .body is an object.
-    if (responses[1]) {
+    if (responses[1] && responses[1].body) {
       valuesObj.perspective = responses[1].body;
       valuesObj.name = valuesObj.perspective.name;
 
       // get default perspective does NOT exist. GET the first perspective by
       // alphabetical order.
       // check to see there are perspectives
-    } else if (perspectives.length) {
+    } else if (!named && perspectives.length) {
       valuesObj.name = perspectives[0].name;
 
       // redirect to the first perspective. The rest of the code
@@ -301,76 +301,82 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
     } else {
 
       // no perspectives exist
-      throw new Error('no perspectives exist.');
+      valuesObj.perspective = null;
+      // throw new Error('no perspectives exist.');
     }
 
     // valuesObj.perspective have been assigned.
-    /**
-     * getLens and getHierarchy are dispatched simultaneously.
-     * Both lensLoadEvent and hierarchyLoadEvent will be called once:
-     *
-     * If getLens resolves first,
-     * 1. In handleLensDomEvent:
-     * hierarchyLoadEvent is NOT be dispatched since it is not defined,
-     * lensLoadEvent is dispatched.
-     * 2. gotLens is set to true.
-     * 3. When getHierarchy resolves:
-     * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
-     * is dispatched.
-     * Else if getHierarchy is resolved first:
-     * 1. in handleHierarchyEvent:
-     * Because gotLens is false,
-     * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
-     * to the variable hierarchyLoadEvent.
-     * 2. When getLens resolves, in handleLensDomEvent:
-     * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
-     * it is also dispatched.
-     */
-    const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
-    .then((res) => {
-
-      // hierarchyLoadEvent can be undefined or a custom event
-      // if hierarchyLoadEvent is custom event, it will be dispatched
-      handleLensDomEvent(res.body.library, hierarchyLoadEvent);
-
-      // set the lens received flag to true, to dispatch lens load
-       // when hierarchy is resolved in getHierarchy
-      gotLens = true;
-
-      return res;
-    });
-
-    const filterString  = getFilterQuery(valuesObj.perspective);
-    const getHierarchy = request('/v1/subjects/' +
-      valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
-    .then((res) => {
-
-      // if gotLens is false, hierarchyLoadEvent will be assigned
-      // and NOT dispatched. Otherwise dispatch the hierarchy event
-      hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
-
-      return res;
-    });
-
     const promisesArr = [
-      getLens,
-      getHierarchy,
-      request('/v1/lenses'),
+      request('/v1/lenses?fields=isPublished,name'),
       request('/v1/subjects?fields=isPublished,absolutePath,tags'),
       request('/v1/aspects?fields=isPublished,name,tags'),
     ];
+
+    if (valuesObj.perspective) {
+      /*
+       * getLens and getHierarchy are dispatched simultaneously.
+       * Both lensLoadEvent and hierarchyLoadEvent will be called once:
+       *
+       * If getLens resolves first,
+       * 1. In handleLensDomEvent:
+       * hierarchyLoadEvent is NOT be dispatched since it is not defined,
+       * lensLoadEvent is dispatched.
+       * 2. gotLens is set to true.
+       * 3. When getHierarchy resolves:
+       * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
+       * is dispatched.
+       * Else if getHierarchy is resolved first:
+       * 1. in handleHierarchyEvent:
+       * Because gotLens is false,
+       * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
+       * to the variable hierarchyLoadEvent.
+       * 2. When getLens resolves, in handleLensDomEvent:
+       * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
+       * it is also dispatched.
+       */
+      const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
+      .then((res) => {
+
+        // hierarchyLoadEvent can be undefined or a custom event
+        // if hierarchyLoadEvent is custom event, it will be dispatched
+        handleLensDomEvent(res.body.library, hierarchyLoadEvent);
+
+        // set the lens received flag to true, to dispatch lens load
+         // when hierarchy is resolved in getHierarchy
+        gotLens = true;
+
+        return res;
+      });
+
+      const filterString  = getFilterQuery(valuesObj.perspective);
+      const getHierarchy = request('/v1/subjects/' +
+        valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
+      .then((res) => {
+
+        // if gotLens is false, hierarchyLoadEvent will be assigned
+        // and NOT dispatched. Otherwise dispatch the hierarchy event
+        hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
+
+        return res;
+      });
+
+      promisesArr.push(getLens);
+      promisesArr.push(getHierarchy);
+    }
+
     return Promise.all(promisesArr);
   })
   .then((responses) => {
-    const lens = responses[0].body;
-    const rootSubject = responses[1].body;
-    const lenses = responses[2].body;
-    const subjects = responses[3].body;
-    const aspects = responses[4].body;
+    const lenses = responses[0].body;
+    const subjects = responses[1].body;
+    const aspects = responses[2].body;
 
-    // assign perspective-related values to the accumulator object
-    valuesObj.lens = lens;
-    valuesObj.rootSubject = rootSubject;
+    // assign perspective-related values to the accumulator object.
+    // if perspective exists, lens and rootSubject are returned.
+    if (valuesObj.perspective) {
+      valuesObj.lens = responses[3].body;
+      valuesObj.rootSubject = responses[4].body;
+    }
 
     // assign non-perspective values to the accumulator object.
     // TODO: subjects are objects. Change to use strings
@@ -383,6 +389,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
     valuesObj.aspectFilter = publishedAspects.map((aspect) => aspect.name);
     valuesObj.aspectTagFilter = getTagsFromArrays(publishedAspects);
 
+    console.log(JSON.stringify(valuesObj))
     return valuesObj;
   });
 } // getValuesObject

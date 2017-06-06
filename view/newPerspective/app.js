@@ -331,10 +331,10 @@ function getPerspectiveUrl() {
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent)
+  getValuesObject(getPromiseWithUrl, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent, handleError)
   .then(loadController)
   .catch((error) => {
-    document.getElementById('errorInfo').innerHTML += error;
+    document.getElementById('errorInfo').innerHTML = error;
   });
 };
 
