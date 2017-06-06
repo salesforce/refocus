@@ -89,7 +89,6 @@ const _io = io; // eslint-disable-line no-undef
  * @param {Object} err - The error object
  */
 function handleError(err) {
-  console.log(err)
   let msg = DEFAULT_ERROR_MESSAGE;
   if (err.response.body.errors[ZERO].description) {
     msg = err.response.body.errors[ZERO].description;
@@ -343,7 +342,10 @@ window.onload = () => {
     getPerspectiveUrl,
     handleHierarchyEvent,
     handleLensDomEvent,
-    handleError,
+    customHandleError: (msg) => {
+        ERROR_INFO_DIV.innerHTML = msg;
+      removeSpinner();
+    },
   };
 
   getValuesObject(accumulatorObject)

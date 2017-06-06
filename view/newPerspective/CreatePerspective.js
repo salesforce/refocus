@@ -94,30 +94,42 @@ class CreatePerspective extends React.Component {
   componentDidMount() {
     const { values, name, isEditing } = this.props;
 
-    // operating on a named, saved perspective.
-    // if editing, use the value in perspective
-    // else use empty string or array
-    if (values && values.perspective) {
-      const perspective = values.perspective;
-      this.setState({
-        name: !isEditing ? '' : perspective.name,
-        lenses: !isEditing ? '' : perspective.lens.name || '',
-        subjects: !isEditing ? '' : perspective.rootSubject || '',
-        statusFilterType: !isEditing ? 'EXCLUDE' : perspective.statusFilterType,
-        statusFilter: !isEditing ? [] : perspective.statusFilter || [],
-        subjectTagFilter: !isEditing ? [] : perspective.subjectTagFilter || [],
-        subjectTagFilterType: !isEditing ? 'EXCLUDE' : perspective.subjectTagFilterType,
-        aspectTagFilter: !isEditing ? [] : perspective.aspectTagFilter || [],
-        aspectTagFilterType: !isEditing ? 'EXCLUDE' : perspective.aspectTagFilterType,
-        aspectFilter: !isEditing ? [] : perspective.aspectFilter || [],
-        aspectFilterType: !isEditing ? 'EXCLUDE' : perspective.aspectFilterType,
-      }, () => {
-        this.updateDropdownConfig(perspective);
+    if (values) {
+
+      // use default values
+      const stateObject = (!values.perspective || !isEditing) ? {
+        name: '',
+        lenses: '',
+        subjects: '',
+        statusFilterType: 'EXCLUDE',
+        statusFilter: [],
+        subjectTagFilter: [],
+        subjectTagFilterType: 'EXCLUDE',
+        aspectTagFilter: [],
+        aspectTagFilterType: 'EXCLUDE',
+        aspectFilter: [],
+        aspectFilterType: 'EXCLUDE',
+      } : {
+        name: values.perspective.name,
+        lenses: values.perspective.lens.name,
+        subjects: values.perspective.rootSubject,
+        statusFilterType: values.perspective.statusFilterType,
+        statusFilter: values.perspective.statusFilter,
+        subjectTagFilter: values.perspective.subjectTagFilter,
+        subjectTagFilterType: values.perspective.subjectTagFilterType,
+        aspectTagFilter: values.perspective.aspectTagFilter,
+        aspectTagFilterType: values.perspective.aspectTagFilterType,
+        aspectFilter: values.perspective.aspectFilter,
+        aspectFilterType: values.perspective.aspectFilterType,
+      };
+
+      this.setState(stateObject, () => {
+        this.updateDropdownConfig();
       });
     }
   }
 
-  updateDropdownConfig(perspective) {
+  updateDropdownConfig() {
 
     // attach config to keys, keys to dropdownConfig
     const { dropdownConfig } = this.state;

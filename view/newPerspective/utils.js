@@ -241,7 +241,7 @@ function getValuesObject(accumulatorObject) {
     getPerspectiveUrl,
     handleHierarchyEvent,
     handleLensDomEvent,
-    handleError,
+    customHandleError,
   } = accumulatorObject;
   const constants = require('../../api/v1/constants');
   const httpStatus = constants.httpStatus;
@@ -270,18 +270,7 @@ function getValuesObject(accumulatorObject) {
   // get the perspectives and the named/default perspective
   const arr = [getPromiseWithUrl('/v1/perspectives?fields=name'),
     getPromiseWithUrl(url)
-    .catch((err) => {
-
-      // if default perspective is not found,
-      // do not throw error. After the perspectives resolves
-      // GET the first perspective
-      if (!named && err.status === httpStatus.NOT_FOUND) {
-        return Promise.resolve();
-      }
-
-      // either named perspective or another error.
-      // throw err;
-    })
+    .catch(console.log)
   ];
 
   return Promise.all(arr)
@@ -306,10 +295,16 @@ function getValuesObject(accumulatorObject) {
       // won't be executed.
       window.location.href = '/perspectives/' + valuesObj.name;
     } else {
-
-      // no perspectives exist
       valuesObj.perspective = null;
-      // throw new Error('no perspectives exist.');
+
+      if (named) {
+        customHandleError('Sorry. Perspective ' + url.split('/').pop() + ' not found.');
+      } else {
+
+        // un named perspectives and perspectives === [];
+        // no perspectives exist
+        customHandleError('no perspectives exist.');
+      }
     }
 
     // valuesObj.perspective have been assigned.
