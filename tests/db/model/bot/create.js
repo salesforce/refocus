@@ -15,6 +15,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
+const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('db: bot: create: ', () => {
   after(u.forceDelete);
@@ -77,7 +78,7 @@ describe('db: bot: create: ', () => {
       .catch((err) => {
         expect(err.name).to.equal(tu.valErrorName);
         expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
+        expect(err.message.toLowerCase()).to.contain('validation isurl ' +
             'failed');
         done();
       })
@@ -86,7 +87,7 @@ describe('db: bot: create: ', () => {
 
     it('fail, bot wrong name', (done) => {
       Bot.create({
-        name: `^1213@#@@#`,
+        name: invalidValue,
         url: 'http://www.test.com',
         active: true,
       })
@@ -101,7 +102,7 @@ describe('db: bot: create: ', () => {
 
     it('fail, bot wrong action parameter name', (done) => {
       let bot = u.getStandard();
-      bot.actions[0].parameters[0].name = '^1213@#@@#';
+      bot.actions[0].parameters[0].name = invalidValue;
       Bot.create(bot)
       .then(() => done(tu.valError))
       .catch((err) => {
@@ -114,7 +115,7 @@ describe('db: bot: create: ', () => {
 
     it('fail, bot wrong action parameter type', (done) => {
       let bot = u.getStandard();
-      bot.actions[0].parameters[0].type = '^1213@#@@#';
+      bot.actions[0].parameters[0].type = invalidValue;
       Bot.create(bot)
       .then(() => done(tu.valError))
       .catch((err) => {
@@ -127,7 +128,7 @@ describe('db: bot: create: ', () => {
 
     it('fail, bot wrong data parameter name', (done) => {
       let bot = u.getStandard();
-      bot.data[0].name = '^1213@#@@#';
+      bot.data[0].name = invalidValue;
       Bot.create(bot)
       .then(() => done(tu.valError))
       .catch((err) => {
@@ -140,7 +141,111 @@ describe('db: bot: create: ', () => {
 
     it('fail, bot wrong data parameter type', (done) => {
       let bot = u.getStandard();
-      bot.data[0].type = '^1213@#@@#';
+      bot.data[0].type = invalidValue;
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot data is not an array', (done) => {
+      let bot = u.getStandard();
+      bot.data = invalidValue;
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot data missing name', (done) => {
+      let bot = u.getStandard();
+      bot.data[0] = { type: 'INTEGER' };
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot data missing type', (done) => {
+      let bot = u.getStandard();
+      bot.data[0] = { name: 'testName' };
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot action is not an array', (done) => {
+      let bot = u.getStandard();
+      bot.actions = invalidValue;
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot action missing name', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0] = { parameters: [] };
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot actions bad name', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0].name = invalidValue;
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot action parameters not array', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0].parameters = invalidValue;
+      Bot.create(bot)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, bot action parameters not array of object', (done) => {
+      let bot = u.getStandard();
+      bot.actions[0].parameters[0] = [invalidValue];
       Bot.create(bot)
       .then(() => done(tu.valError))
       .catch((err) => {
