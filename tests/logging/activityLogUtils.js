@@ -20,15 +20,107 @@ describe('/utils/activityLog: functions', () => {
     const tempObj = {
       reqStartTime: 10,
       jobStartTime: 15,
+      jobEndTime: 29,
       dbStartTime: 23,
       dbEndTime: 27,
     };
 
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
-    expect(resultObj.workTime).to.be.equal(12);
+    expect(resultObj.jobEndTime).to.be.equal(29);
+    expect(resultObj.workTime).to.be.equal(14);
     expect(resultObj.reqStartTime).to.be.equal(10);
     expect(resultObj.queueTime).to.be.equal(5);
+    done();
+  });
+
+  it('updateActivityLogParams - missing dbEndTime', (done) => {
+    const resultObj = {};
+    const tempObj = {
+      reqStartTime: 10,
+      jobStartTime: 15,
+      jobEndTime: 29,
+      dbStartTime: 23,
+    };
+
+    activityLogUtils.updateActivityLogParams(resultObj, tempObj);
+    expect(resultObj.dbTime).to.not.exist;
+    expect(resultObj.jobEndTime).to.be.equal(29);
+    expect(resultObj.workTime).to.be.equal(14);
+    expect(resultObj.reqStartTime).to.be.equal(10);
+    expect(resultObj.queueTime).to.be.equal(5);
+    done();
+  });
+
+  it('updateActivityLogParams - missing dbStartTime', (done) => {
+    const resultObj = {};
+    const tempObj = {
+      reqStartTime: 10,
+      jobStartTime: 15,
+      jobEndTime: 29,
+      dbEndTime: 27,
+    };
+
+    activityLogUtils.updateActivityLogParams(resultObj, tempObj);
+    expect(resultObj.dbTime).to.not.exist;
+    expect(resultObj.jobEndTime).to.be.equal(29);
+    expect(resultObj.workTime).to.be.equal(14);
+    expect(resultObj.reqStartTime).to.be.equal(10);
+    expect(resultObj.queueTime).to.be.equal(5);
+    done();
+  });
+
+  it('updateActivityLogParams - missing jobEndTime', (done) => {
+    const resultObj = {};
+    const tempObj = {
+      reqStartTime: 10,
+      jobStartTime: 15,
+      dbStartTime: 23,
+      dbEndTime: 27,
+    };
+
+    activityLogUtils.updateActivityLogParams(resultObj, tempObj);
+    expect(resultObj.dbTime).to.be.equal(4);
+    expect(resultObj.jobEndTime).to.not.exist;
+    expect(resultObj.workTime).to.not.exist;
+    expect(resultObj.reqStartTime).to.be.equal(10);
+    expect(resultObj.queueTime).to.be.equal(5);
+    done();
+  });
+
+  it('updateActivityLogParams - missing jobStartTime', (done) => {
+    const resultObj = {};
+    const tempObj = {
+      reqStartTime: 10,
+      jobEndTime: 29,
+      dbStartTime: 23,
+      dbEndTime: 27,
+    };
+
+    activityLogUtils.updateActivityLogParams(resultObj, tempObj);
+    expect(resultObj.dbTime).to.be.equal(4);
+    expect(resultObj.jobEndTime).to.be.equal(29);
+    expect(resultObj.workTime).to.not.exist;
+    expect(resultObj.reqStartTime).to.be.equal(10);
+    expect(resultObj.queueTime).to.not.exist;
+    done();
+  });
+
+  it('updateActivityLogParams - missing reqStartTime', (done) => {
+    const resultObj = {};
+    const tempObj = {
+      jobStartTime: 15,
+      jobEndTime: 29,
+      dbStartTime: 23,
+      dbEndTime: 27,
+    };
+
+    activityLogUtils.updateActivityLogParams(resultObj, tempObj);
+    expect(resultObj.dbTime).to.be.equal(4);
+    expect(resultObj.jobEndTime).to.be.equal(29);
+    expect(resultObj.workTime).to.be.equal(14);
+    expect(resultObj.reqStartTime).to.not.exist;
+    expect(resultObj.queueTime).to.not.exist;
     done();
   });
 });

@@ -59,6 +59,7 @@ module.exports = {
       jobId: 'None',
       jobType: 'None',
       queueTime: 'None',
+      queueResponseTime: 'None',
       recordCount: 0,
       token: 'None',
       totalTime: 'None',
