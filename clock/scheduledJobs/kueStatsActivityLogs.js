@@ -27,47 +27,52 @@ const ZERO = 0;
  * @returns {Object} logging object
  */
 function generateLogObject() {
-  const obj = JSON.parse(JSON.stringify(k));
-
-  jobQueue.activeCount((err, n) => {
-    if (!err) {
-      obj.activeCount = n;
-    }
+  return new Promise((resolve, reject) => {
+    const obj = JSON.parse(JSON.stringify(k));
+    const promises = [
+      new Promise((resolve, reject) => {
+        jobQueue.activeCount((err, n) => resolve(n || 0));
+      }),
+      new Promise((resolve, reject) => {
+        jobQueue.completeCount((err, n) => resolve(n || 0));
+      }),
+      new Promise((resolve, reject) => {
+        jobQueue.failedCount((err, n) => resolve(n || 0));
+      }),
+      new Promise((resolve, reject) => {
+        jobQueue.inactiveCount((err, n) => resolve(n || 0));
+      }),
+      new Promise((resolve, reject) => {
+        jobQueue.workTime((err, ms) => resolve(ms || 0));
+      }),
+    ];
+    Promise.all(promises)
+    .then((res) => {
+      console.log('res', res);
+      obj.activeCount = res[0];
+      obj.completeCount = res[1];
+      obj.failedCount = res[2];
+      obj.inactiveCount = res[3];
+      obj.workTimeMillis = res[4];
+      console.log('obj', obj);
+      resolve(obj);
+    });
   });
-  jobQueue.completeCount((err, n) => {
-    if (!err) {
-      obj.completeCount = n;
-    }
-  });
-  jobQueue.failedCount((err, n) => {
-    if (!err) {
-      obj.failedCount = n;
-    }
-  });
-  jobQueue.inactiveCount((err, n) => {
-    if (!err) {
-      obj.inactiveCount = n;
-    }
-  });
-  jobQueue.workTime((err, ms) => {
-    if (!err) {
-      obj.workTimeMillis = ms;
-    }
-  });
-  return obj;
 } // generateLogObject
 
 /**
  * Execute the call to write kue stats activity logs.
  */
 function execute() {
-  const obj = generateLogObject();
-  let level = DEFAULT_LOG_LEVEL;
-  if (warningThreshold > ZERO && obj.inactiveCount > warningThreshold) {
-    level = WARNING_LOG_LEVEL;
-  }
+  generateLogObject()
+  .then((obj) => {
+    let level = DEFAULT_LOG_LEVEL;
+    if (warningThreshold > ZERO && obj.inactiveCount > warningThreshold) {
+      level = WARNING_LOG_LEVEL;
+    }
 
-  activityLogUtil.printActivityLogString(obj, key, level);
+    activityLogUtil.printActivityLogString(obj, key, level);
+  });
 } // execute
 
 module.exports = {
