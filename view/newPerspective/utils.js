@@ -232,10 +232,17 @@ function getPublishedFromArr(arr) {
  * Accumulates information to load the perspective dropdown,
  * and the edit/create perspective modal
  *
- * @param {Object} request Use supertest or superagent
+ * @param {Object} accumulatorObject
  * @returns {Object} The accumulated values
  */
-function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent) {
+function getValuesObject(accumulatorObject) {
+  const {
+    getPromiseWithUrl,
+    getPerspectiveUrl,
+    handleHierarchyEvent,
+    handleLensDomEvent,
+    handleError,
+  } = accumulatorObject;
   const constants = require('../../api/v1/constants');
   const httpStatus = constants.httpStatus;
   const statuses = constants.statuses;
@@ -261,8 +268,8 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
   const { url, named } = getPerspectiveUrl();
 
   // get the perspectives and the named/default perspective
-  const arr = [request('/v1/perspectives?fields=name'),
-    request(url)
+  const arr = [getPromiseWithUrl('/v1/perspectives?fields=name'),
+    getPromiseWithUrl(url)
     .catch((err) => {
 
       // if default perspective is not found,
@@ -307,9 +314,9 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
 
     // valuesObj.perspective have been assigned.
     const promisesArr = [
-      request('/v1/lenses?fields=isPublished,name'),
-      request('/v1/subjects?fields=isPublished,absolutePath,tags'),
-      request('/v1/aspects?fields=isPublished,name,tags'),
+      getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
+      getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
+      getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags'),
     ];
 
     if (valuesObj.perspective) {
@@ -334,7 +341,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
        * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
        * it is also dispatched.
        */
-      const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
+      const getLens = getPromiseWithUrl('/v1/lenses/' + valuesObj.perspective.lensId)
       .then((res) => {
 
         // hierarchyLoadEvent can be undefined or a custom event
@@ -349,7 +356,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
       });
 
       const filterString  = getFilterQuery(valuesObj.perspective);
-      const getHierarchy = request('/v1/subjects/' +
+      const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
         valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
       .then((res) => {
 

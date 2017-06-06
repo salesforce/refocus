@@ -84,16 +84,19 @@ const _io = io; // eslint-disable-line no-undef
 
 /**
  * Add error message to the errorInfo div in the page.
+ * Remove the spinner.
  *
  * @param {Object} err - The error object
  */
 function handleError(err) {
+  console.log(err)
   let msg = DEFAULT_ERROR_MESSAGE;
   if (err.response.body.errors[ZERO].description) {
     msg = err.response.body.errors[ZERO].description;
   }
 
   ERROR_INFO_DIV.innerHTML = msg;
+  removeSpinner();
 } // handleError
 
 /**
@@ -276,6 +279,11 @@ function handleHierarchyEvent(rootSubject, gotLens) {
   return hierarchyLoadEvent;
 }
 
+function removeSpinner() {
+  const spinner = document.getElementById('lens_loading_spinner');
+  spinner.parentNode.removeChild(spinner);
+}
+
 /**
  * On receiving the lens, load the lens.
  * Load the hierarchy if hierarchy event is passed in.
@@ -288,10 +296,9 @@ function handleLensDomEvent(library, hierarchyLoadEvent) {
   // inject lens library files in perspective view.
   handleLibraryFiles(library);
 
-  // remove spinner and load lens
-  const spinner = document.getElementById('lens_loading_spinner');
-  spinner.parentNode.removeChild(spinner);
+  removeSpinner();
 
+  // load lens
   const lensLoadEvent = new CustomEvent('refocus.lens.load');
   LENS_DIV.dispatchEvent(lensLoadEvent);
 
@@ -331,7 +338,15 @@ function getPerspectiveUrl() {
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent, handleError)
+  const accumulatorObject = {
+    getPromiseWithUrl,
+    getPerspectiveUrl,
+    handleHierarchyEvent,
+    handleLensDomEvent,
+    handleError,
+  };
+
+  getValuesObject(accumulatorObject)
   .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML = error;
