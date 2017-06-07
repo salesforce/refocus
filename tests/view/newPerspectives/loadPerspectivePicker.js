@@ -63,10 +63,13 @@ describe('Perspective app ', () => {
 
     const valueObject = Object.assign(defaultValuePairs, valuePairs);
 
-    // for second argument
-    request.withArgs(sinon.match([DUMMY_STRING, 'perspective2'])).returns(DUMMY_STRING);
     // for first argument
+    request.withArgs(sinon.match('/v1/perspectives/' + DUMMY_STRING))
+      .returns(Promise.resolve({
+        body: valueObject['/v1/perspectives'].body[0] ,
+      }));
     request.withArgs(sinon.match('/v1/perspectives')).returns(Promise.resolve(valueObject['/v1/perspectives']));
+
     request.withArgs(sinon.match('/v1/subjects')).returns(Promise.resolve(valueObject['/v1/subjects']));
     request.withArgs(sinon.match('/v1/lenses/' + DUMMY_ID)).returns(Promise.resolve({
       body: { name: LENS_NAME, id: DUMMY_ID },
@@ -86,10 +89,18 @@ describe('Perspective app ', () => {
     sandbox.restore();
   });
 
+  function getNamedPerspectiveUrl() {
+    return {
+      url: '/v1/perspectives/' + DUMMY_STRING,
+      named: true,
+    };
+  }
+
   describe('results from GET requests', () => {
     it('default fields', () => {
       setup();
-      const obj = getValuesObject(request, request);
+      const obj = getValuesObject(request, getNamedPerspectiveUrl,
+        DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.name).to.equal(DUMMY_STRING);
         expect(obj.perspective.name).to.equal(DUMMY_STRING);
@@ -121,7 +132,8 @@ describe('Perspective app ', () => {
           { name: ASPECT2, isPublished: true, tags: tags.slice(2) }],
         }
       });
-      const obj = getValuesObject(request, request);
+      const obj = getValuesObject(request, getNamedPerspectiveUrl,
+        DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.aspectTagFilter.length).to.equal(tags.length);
         expect(obj.aspectTagFilter).to.deep.equal(tags.sort())
@@ -136,11 +148,12 @@ describe('Perspective app ', () => {
           { name: ASPECT2, isPublished: true }],
         }
       });
-      const obj = getValuesObject(request, request);
+      const obj = getValuesObject(request, getNamedPerspectiveUrl,
+        DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.aspectFilter.length).to.equal(2);
-        expect(obj.aspectFilter[0].name).to.equal(ASPECT1);
-        expect(obj.aspectFilter[1].name).to.equal(ASPECT2);
+        expect(obj.aspectFilter[0]).to.equal(ASPECT1);
+        expect(obj.aspectFilter[1]).to.equal(ASPECT2);
       });
     });
 
@@ -152,7 +165,8 @@ describe('Perspective app ', () => {
           { absolutePath: SUBJECT2, isPublished: true, tags: subjectTags }],
         }
       });
-      const obj = getValuesObject(request, request);
+      const obj = getValuesObject(request, getNamedPerspectiveUrl,
+        DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.subjectTagFilter.length).to.equal(subjectTags.length);
         expect(obj.subjectTagFilter).to.deep.equal(subjectTags);
@@ -173,7 +187,8 @@ describe('Perspective app ', () => {
           }],
         }));
       });
-      const obj = getValuesObject(request, request);
+      const obj = getValuesObject(request, getNamedPerspectiveUrl,
+        DUMMY_FUNCTION, DUMMY_FUNCTION);
       return obj.then((obj) => {
         expect(obj.perspective.aspectTagFilterType).to.equal('EXCLUDE');
         expect(obj.perspective.aspectFilterType).to.equal('EXCLUDE');
