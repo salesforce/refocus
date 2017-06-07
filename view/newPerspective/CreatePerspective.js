@@ -94,34 +94,48 @@ class CreatePerspective extends React.Component {
   componentDidMount() {
     const { values, name, isEditing } = this.props;
 
-    if (values) {
+    /*
+     * Possible cases:
+     * on edit: load the perspective according to name.
+     * on new: load the default object
+     */
+    let stateObject;
 
-      // use default values
-      const stateObject = (!values.perspective || !isEditing) ? {
-        name: '',
-        lenses: '',
-        subjects: '',
-        statusFilterType: 'EXCLUDE',
-        statusFilter: [],
-        subjectTagFilter: [],
-        subjectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: [],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectFilter: [],
-        aspectFilterType: 'EXCLUDE',
-      } : {
-        name: values.perspective.name,
-        lenses: values.perspective.lens.name,
-        subjects: values.perspective.rootSubject,
-        statusFilterType: values.perspective.statusFilterType,
-        statusFilter: values.perspective.statusFilter,
-        subjectTagFilter: values.perspective.subjectTagFilter,
-        subjectTagFilterType: values.perspective.subjectTagFilterType,
-        aspectTagFilter: values.perspective.aspectTagFilter,
-        aspectTagFilterType: values.perspective.aspectTagFilterType,
-        aspectFilter: values.perspective.aspectFilter,
-        aspectFilterType: values.perspective.aspectFilterType,
-      };
+    // wait for props values to be assigned
+    if (values) {
+      if (isEditing) {
+        const _perspective = values.perspectives
+          .filter((pers) => pers.name === name)[0];
+        console.log('editing', _perspective.lens.name)
+        stateObject = {
+          name: _perspective.name,
+          lenses: _perspective.lens.name,
+          subjects: _perspective.rootSubject,
+          statusFilterType: _perspective.statusFilterType,
+          statusFilter: _perspective.statusFilter,
+          subjectTagFilter: _perspective.subjectTagFilter,
+          subjectTagFilterType: _perspective.subjectTagFilterType,
+          aspectTagFilter: _perspective.aspectTagFilter,
+          aspectTagFilterType: _perspective.aspectTagFilterType,
+          aspectFilter: _perspective.aspectFilter,
+          aspectFilterType: _perspective.aspectFilterType,
+        };
+      } else {
+        // use default values
+        stateObject = {
+          name: '',
+          lenses: '',
+          subjects: '',
+          statusFilterType: 'EXCLUDE',
+          statusFilter: [],
+          subjectTagFilter: [],
+          subjectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectFilter: [],
+          aspectFilterType: 'EXCLUDE',
+        }
+      }
 
       this.setState(stateObject, () => {
         this.updateDropdownConfig();

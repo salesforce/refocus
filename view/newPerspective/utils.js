@@ -249,8 +249,9 @@ function getValuesObject(accumulatorObject) {
 
   const valuesObj = {
     name: '',
-    perspective: {}, // if not found, becomes null
-    persNames: [], //strings
+    perspectives: [], // will be array of objects
+    perspective: null, // if found becomes object
+    persNames: [], // will be array of strings
     rootSubject: {},
     lens: {}, // includes library
     subjects: [], // { name: absolutePath, id }
@@ -267,43 +268,67 @@ function getValuesObject(accumulatorObject) {
   // otherwise get the default perspective
   const { url, named } = getPerspectiveUrl();
 
-  // get the perspectives and the named/default perspective
-  const arr = [getPromiseWithUrl('/v1/perspectives?fields=name'),
-    getPromiseWithUrl(url)
-    .catch(console.log)
-  ];
+  // Need to get all perspectives, for editing perspectives
+  const arr = [getPromiseWithUrl('/v1/perspectives')];
+
+  // if page ends with /perspectives, GET the default perspective.
+  // do NOT throw error if 404
+  if (!named) {
+    arr.push(getPromiseWithUrl(url).catch(console.log));
+  }
 
   return Promise.all(arr)
   .then((responses) => {
-    const perspectives = responses[0].body;
+    const defaultPerspective = responses[1] ? responses[1].body : null;
+    valuesObj.perspectives = responses[0].body;
 
     // assign perspective-related values to the accumulator object
-    valuesObj.persNames = perspectives.map((perspective) => perspective.name).sort();
+    valuesObj.persNames = valuesObj.perspectives.map((perspective) => perspective.name).sort();
 
-    // if named  perspective or default exists, .body is an object.
-    if (responses[1] && responses[1].body) {
-      valuesObj.perspective = responses[1].body;
-      valuesObj.name = valuesObj.perspective.name;
+    /*
+     * One out of four situations can happen:
+     * GET named perspective: exists. Assign valuesObj.perspective
+     * GET named perspective: does NOT exist: handleError
+     * GET default perspective: exists. Assign valuesObj.perspective
+     * GET default perspective: does NOT exist: perspective is the first
+     *  perspective in the perspectives array. If no perspectives exist,
+     *  valuesObj.perspective = null
+     */
+    if (named) {
+      const name = url.split('/').pop();
+      const perspectiveIndex = valuesObj.persNames.indexOf(name);
 
-      // get default perspective does NOT exist. GET the first perspective by
-      // alphabetical order.
-      // check to see there are perspectives
-    } else if (!named && perspectives.length) {
-      valuesObj.name = perspectives[0].name;
-
-      // redirect to the first perspective. The rest of the code
-      // won't be executed.
-      window.location.href = '/perspectives/' + valuesObj.name;
-    } else {
-      valuesObj.perspective = null;
-
-      if (named) {
-        customHandleError('Sorry. Perspective ' + url.split('/').pop() + ' not found.');
+      // validate perspective by name
+      if (perspectiveIndex < 0) {
+        customHandleError('Sorry. Perspective ' + name + ' not found.');
       } else {
+        valuesObj.perspective = valuesObj.perspectives[perspectiveIndex];
+        valuesObj.name = valuesObj.perspective.name;
+      }
+    } else {
 
-        // un named perspectives and perspectives === [];
-        // no perspectives exist
-        customHandleError('no perspectives exist.');
+      // attempted to GET unnamed perspective.
+      // check whether attempt was successful
+      if (defaultPerspective) {
+        valuesObj.perspective = defaultPerspective;
+        valuesObj.name = valuesObj.perspective.name;
+
+        // get default perspective does NOT exist. GET the first perspective by
+        // alphabetical order.
+        // check to see there are perspectives
+      } else if (valuesObj.perspectives.length) {
+        valuesObj.perspective = valuesObj.perspectives[0];
+        valuesObj.name = valuesObj.perspective.name;
+
+        // redirect to the first perspective. The rest of the code
+        // won't be executed.
+        window.location.href = '/perspectives/' + valuesObj.name;
+      } else {
+        valuesObj.perspective = null;
+
+          // un named perspectives and perspectives === [];
+          // no perspectives exist
+          customHandleError('no perspectives exist.');
       }
     }
 
@@ -391,7 +416,6 @@ function getValuesObject(accumulatorObject) {
     valuesObj.aspectFilter = publishedAspects.map((aspect) => aspect.name);
     valuesObj.aspectTagFilter = getTagsFromArrays(publishedAspects);
 
-    console.log(JSON.stringify(valuesObj))
     return valuesObj;
   });
 } // getValuesObject
