@@ -18,14 +18,14 @@ const constants = require('../constants');
 /**
  * Determines actions parameters contain a name and value
  *
- * @param {String} arr - list of actions
+ * @param {String} arr - list of parameters
  * @returns {undefined} - OK
  * @throws {validationError} - Missing attribute
  */
 function validateActionsParameters(arr) {
-  for (let j = 0; j < arr.parameters.length; j++) {
-    if ((arr.parameters[j].hasOwnProperty('name') !== true) ||
-      (arr.parameters[j].hasOwnProperty('value') !== true)) {
+  for (let j = 0; j < arr.length; j++) {
+    if ((arr[j].hasOwnProperty('name') !== true) ||
+      (arr[j].hasOwnProperty('value') !== true)) {
       throw new ValidationError({
         message: 'Missing a name or value attribute',
       });
@@ -34,33 +34,25 @@ function validateActionsParameters(arr) {
 } // validateActionsParameters
 
 /**
- * Determines if each actions have a name and parameters
+ * Determines if the action has a name and valid parameters
  *
- * @param {String} arr - listed type
+ * @param {Object} obj - action object
  * @returns {undefined} - OK
  * @throws {validationError} - Missing attribute
  */
-function validateActions(arr) {
-  if (Array.isArray(arr)) {
-    for (let i = 0; i < arr.length; i++) {
-      if ((arr[i].hasOwnProperty('name')) &&
-        (arr[i].hasOwnProperty('parameters'))) {
-        if (!constants.nameRegex.test(arr[i].name)) {
-          throw new ValidationError({
-            message: 'Missing a valid name',
-          });
-        }
-
-        validateActionsParameters(arr[i]);
-      } else {
-        throw new ValidationError({
-          message: 'Object missing a name or parameters attribute',
-        });
-      }
+function validateActions(obj) {
+  if ((obj.hasOwnProperty('name')) &&
+    (obj.hasOwnProperty('parameters'))) {
+    if (!constants.nameRegex.test(obj.name)) {
+      throw new ValidationError({
+        message: 'Missing a valid name',
+      });
     }
+
+    validateActionsParameters(obj.parameters);
   } else {
     throw new ValidationError({
-      message: 'Objects not contained in an array',
+      message: 'Object missing a name or parameters attribute',
     });
   }
 } // validateActions
@@ -121,8 +113,9 @@ function validateSettingsArray(arr) {
 } // validateSettings
 
 /**
- * Makesure
- *
+ * All rules need to have a rule and an action. Each rule
+ * and will be validated by other methods after they are
+ * found to exist.
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK

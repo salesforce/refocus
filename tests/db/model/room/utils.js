@@ -7,179 +7,33 @@
  */
 
 /**
- * tests/db/model/bot/utils.js
+ * tests/db/model/room/utils.js
  */
 'use strict';
 
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
-const n = `${tu.namePrefix}TestBot`;
-const n2 = n+'NonActive';
+const n = `${tu.namePrefix}TestRoom`;
 
 const standard = {
   name: n,
-  url: 'http://www.bar.com',
   active: true,
-  actions: [
-    {
-      name: 'Action1',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    },
-    {
-      name: 'Action2',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    }
-  ],
-  data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
-    },
-    {
-      name: 'Data2',
-      type: 'INTEGER',
-    },
-    {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
-    },
-  ],
-};
-
-const nonActive = {
-  name: n2,
-  url: 'http://www.bar.com',
-  active: false,
-  actions: [
-    {
-      name: 'Action1',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    },
-    {
-      name: 'Action2',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    }
-  ],
-  data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
-    },
-    {
-      name: 'Data2',
-      type: 'INTEGER',
-    },
-    {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
-    },
-  ],
 };
 
 module.exports = {
   name: n,
 
-  nameNonActive: n2,
-
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
   },
 
-  createNonActive() {
-    return tu.db.Bot.create(nonActive);
-  },
-
   createStandard() {
-    return tu.db.Bot.create(standard);
+    return tu.db.Room.create(standard);
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Bot, testStartTime)
+    tu.forceDelete(tu.db.Room, testStartTime)
     .then(() => done())
     .catch(done);
   },

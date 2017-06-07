@@ -8,6 +8,17 @@
 
 /**
  * db/model/roomType.js
+ *
+ * Room Types are specialized configurations for rooms. They hold intial
+ * data such as settings and rules to quickly make a room usable.
+ *
+ * Settings are key/value pairings that work similar to enviromental variables
+ * they store data that configure bots so the rooms they are in.
+ *
+ * Rules contain rule that is a JSON Logic Object(http://jsonlogic.com/) and
+ * and an action object that has the name of the action and parameters values
+ * of the action needed to be taken when rule is valid.
+ *
  */
 
 const constants = require('../constants');

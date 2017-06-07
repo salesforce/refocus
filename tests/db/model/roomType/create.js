@@ -7,14 +7,14 @@
  */
 
 /**
- * tests/db/model/bot/create.js
+ * tests/db/model/roomType/create.js
  */
 'use strict';
 
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Bot = tu.db.Bot;
+const RoomType = tu.db.RoomType;
 
 describe('db: roomType: create: ', () => {
   after(u.forceDelete);
