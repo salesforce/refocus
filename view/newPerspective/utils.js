@@ -268,65 +268,112 @@ function getValuesObject(accumulatorObject) {
   // otherwise get the default perspective
   const { url, named } = getPerspectiveUrl();
 
-  // Need to get all perspectives, for editing perspectives
-  const arr = [getPromiseWithUrl('/v1/perspectives')];
+  function getPageLoadingPromises(perspective) {
+    /*
+     * getLens and getHierarchy are dispatched simultaneously.
+     * Both lensLoadEvent and hierarchyLoadEvent will be called once:
+     *
+     * If getLens resolves first,
+     * 1. In handleLensDomEvent:
+     * hierarchyLoadEvent is NOT be dispatched since it is not defined,
+     * lensLoadEvent is dispatched.
+     * 2. gotLens is set to true.
+     * 3. When getHierarchy resolves:
+     * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
+     * is dispatched.
+     * Else if getHierarchy is resolved first:
+     * 1. in handleHierarchyEvent:
+     * Because gotLens is false,
+     * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
+     * to the variable hierarchyLoadEvent.
+     * 2. When getLens resolves, in handleLensDomEvent:
+     * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
+     * it is also dispatched.
+     */
+    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
+    .then((res) => {
 
-  // if page ends with /perspectives, GET the default perspective.
-  // do NOT throw error if 404
-  if (!named) {
-    arr.push(getPromiseWithUrl(url).catch(console.log));
+      // hierarchyLoadEvent can be undefined or a custom event
+      // if hierarchyLoadEvent is custom event, it will be dispatched
+      handleLensDomEvent(res.body.library, hierarchyLoadEvent);
+
+      // set the lens received flag to true, to dispatch lens load
+       // when hierarchy is resolved in getHierarchy
+      gotLens = true;
+
+      valuesObj.lens = res.bpdy;
+    });
+
+    const filterString  = getFilterQuery(perspective);
+    const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
+    perspective.rootSubject + '/hierarchy' + filterString)
+    .then((res) => {
+
+      // if gotLens is false, hierarchyLoadEvent will be assigned
+      // and NOT dispatched. Otherwise dispatch the hierarchy event
+      hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
+
+      valuesObj.rootSubject = res.body;
+    });
+
+    return [getLens, getHierarchy];
   }
+
+  // Need to get all perspectives, for editing perspectives.
+  // for GET perspective, do NOT throw error if 404, since
+  // throwing an error skips loading the perspective picker.
+  // If successful, load the hierarchy and lens
+  const arr = [
+    getPromiseWithUrl('/v1/perspectives'),
+    getPromiseWithUrl(url)
+    .then((res) => {
+      Promise.all(getPageLoadingPromises(res.body));
+      return res;
+    })
+    .catch(console.log)
+  ];
 
   return Promise.all(arr)
   .then((responses) => {
-    const defaultPerspective = responses[1] ? responses[1].body : null;
     valuesObj.perspectives = responses[0].body;
 
+    // use ternary as if pespective does not exist, responses[1] is undefined
+    const returnedPerspective = responses[1] ? responses[1].body : null;
+
     // assign perspective-related values to the accumulator object
-    valuesObj.persNames = valuesObj.perspectives.map((perspective) => perspective.name).sort();
+    valuesObj.persNames = valuesObj.perspectives
+      .map((perspective) => perspective.name).sort();
 
     /*
      * One out of four situations can happen:
-     * GET named perspective: exists. Assign valuesObj.perspective
+     * GET named perspective: exists. Assign perspective
+     * GET default perspective: exists. Assign perspective
      * GET named perspective: does NOT exist: handleError
-     * GET default perspective: exists. Assign valuesObj.perspective
      * GET default perspective: does NOT exist: perspective is the first
      *  perspective in the perspectives array. If no perspectives exist,
      *  valuesObj.perspective = null
      */
-    if (named) {
-      const name = url.split('/').pop();
-      const perspectiveIndex = valuesObj.persNames.indexOf(name);
+     if (returnedPerspective) {
+        valuesObj.perspective = returnedPerspective;
+        valuesObj.name = valuesObj.perspective.name;
+     } else if (named) {
 
-      // validate perspective by name
-      if (perspectiveIndex < 0) {
+        // named perspective does not exist
+        const name = url.split('/').pop();
         customHandleError('Sorry. Perspective ' + name + ' not found.');
       } else {
-        valuesObj.perspective = valuesObj.perspectives[perspectiveIndex];
-        valuesObj.name = valuesObj.perspective.name;
-      }
-    } else {
 
-      // attempted to GET unnamed perspective.
-      // check whether attempt was successful
-      if (defaultPerspective) {
-        valuesObj.perspective = defaultPerspective;
-        valuesObj.name = valuesObj.perspective.name;
+        // default perspective does NOT exist.
+        // GET the first perspective by alphabetical order.
+        // Check to see there are perspectives
+        if (valuesObj.perspectives.length) {
 
-        // get default perspective does NOT exist. GET the first perspective by
-        // alphabetical order.
-        // check to see there are perspectives
-      } else if (valuesObj.perspectives.length) {
-        valuesObj.perspective = valuesObj.perspectives[0];
-        valuesObj.name = valuesObj.perspective.name;
+          // redirect to the first perspective. The rest of the code
+          // won't be executed.
+          window.location.href = '/perspectives/' + valuesObj.perspectives[0].name;
+        } else {
+          valuesObj.perspective = null;
 
-        // redirect to the first perspective. The rest of the code
-        // won't be executed.
-        window.location.href = '/perspectives/' + valuesObj.name;
-      } else {
-        valuesObj.perspective = null;
-
-          // un named perspectives and perspectives === [];
           // no perspectives exist
           customHandleError('no perspectives exist.');
       }
@@ -339,71 +386,12 @@ function getValuesObject(accumulatorObject) {
       getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags'),
     ];
 
-    if (valuesObj.perspective) {
-      /*
-       * getLens and getHierarchy are dispatched simultaneously.
-       * Both lensLoadEvent and hierarchyLoadEvent will be called once:
-       *
-       * If getLens resolves first,
-       * 1. In handleLensDomEvent:
-       * hierarchyLoadEvent is NOT be dispatched since it is not defined,
-       * lensLoadEvent is dispatched.
-       * 2. gotLens is set to true.
-       * 3. When getHierarchy resolves:
-       * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
-       * is dispatched.
-       * Else if getHierarchy is resolved first:
-       * 1. in handleHierarchyEvent:
-       * Because gotLens is false,
-       * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
-       * to the variable hierarchyLoadEvent.
-       * 2. When getLens resolves, in handleLensDomEvent:
-       * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
-       * it is also dispatched.
-       */
-      const getLens = getPromiseWithUrl('/v1/lenses/' + valuesObj.perspective.lensId)
-      .then((res) => {
-
-        // hierarchyLoadEvent can be undefined or a custom event
-        // if hierarchyLoadEvent is custom event, it will be dispatched
-        handleLensDomEvent(res.body.library, hierarchyLoadEvent);
-
-        // set the lens received flag to true, to dispatch lens load
-         // when hierarchy is resolved in getHierarchy
-        gotLens = true;
-
-        return res;
-      });
-
-      const filterString  = getFilterQuery(valuesObj.perspective);
-      const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
-        valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
-      .then((res) => {
-
-        // if gotLens is false, hierarchyLoadEvent will be assigned
-        // and NOT dispatched. Otherwise dispatch the hierarchy event
-        hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
-
-        return res;
-      });
-
-      promisesArr.push(getLens);
-      promisesArr.push(getHierarchy);
-    }
-
     return Promise.all(promisesArr);
   })
   .then((responses) => {
     const lenses = responses[0].body;
     const subjects = responses[1].body;
     const aspects = responses[2].body;
-
-    // assign perspective-related values to the accumulator object.
-    // if perspective exists, lens and rootSubject are returned.
-    if (valuesObj.perspective) {
-      valuesObj.lens = responses[3].body;
-      valuesObj.rootSubject = responses[4].body;
-    }
 
     // assign non-perspective values to the accumulator object.
     // TODO: subjects are objects. Change to use strings
