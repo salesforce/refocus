@@ -19,6 +19,7 @@ const n = `${tu.namePrefix}TestRoom`;
 const standard = {
   name: n,
   active: true,
+  type: '23',
 };
 
 module.exports = {

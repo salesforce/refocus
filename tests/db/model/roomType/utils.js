@@ -59,14 +59,16 @@ const standard = {
       rule: {
         'or': [
           { '>': [1,0] },
-          'and': [
-            { '>': [1,0] },
-            { '<': [1,2] },
-          ],
+          {
+            'and': [
+              { '>': [1,0] },
+              { '<': [1,2] },
+            ],
+          },
         ],
       },
       action: {
-        name: 'Action1',
+        name: 'Action2',
         parameters: [
           {
             name: 'Parameter1',

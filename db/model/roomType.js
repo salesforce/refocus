@@ -50,7 +50,7 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
       validate: {
-        contains: u.validateSettings,
+        contains: u.validateSettingsArray,
       },
       comment: 'Key/Value pairs for user specific settings',
     },
@@ -58,7 +58,7 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
       validate: {
-        contains: u.validateRules,
+        contains: u.validateRulesArray,
       },
       comment: 'Logic and resulting actions for rooms',
     },

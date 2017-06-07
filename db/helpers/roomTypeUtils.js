@@ -70,7 +70,7 @@ function validateRules(obj) {
   for (let i = 0; i < keys.length; i++) {
     if ((keys[i] ==='and') || (keys[i] === 'or')) {
       for (let j = 0; j < obj[keys[i]].length; i++) {
-        validateRules(obj[keys[i]][j]);
+        return validateRules(obj[keys[i]][j]);
       }
     }
     if (Array.isArray(obj[keys[i]]) !== true) {
@@ -79,6 +79,7 @@ function validateRules(obj) {
       });
     }
   }
+  return true;
 } // validateRules
 
 /**
@@ -126,8 +127,8 @@ function validateRulesArray(arr) {
     for (let i = 0; i < arr.length; i++) {
       if ((arr[i].hasOwnProperty('rule')) &&
         (arr[i].hasOwnProperty('action'))) {
-        validateRules(arr[i].rules);
-        validateActions(arr[i].actions);
+        validateRules(arr[i].rule);
+        validateActions(arr[i].action);
       } else {
         throw new ValidationError({
           message: 'Object missing a rules or actions attribute',

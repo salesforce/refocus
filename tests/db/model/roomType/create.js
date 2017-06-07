@@ -19,8 +19,13 @@ const RoomType = tu.db.RoomType;
 describe('db: roomType: create: ', () => {
   after(u.forceDelete);
 
-  describe('Create a new bot', () => {
-    it('fail, bot wrong data parameter type', (done) => {
+  describe('Create a new room type', () => {
+    it('ok, room created', (done) => {
+      RoomType.create(u.getStandard())
+      .then((o) => {
+        expect(o).to.have.property('name');
+        done();
+      })
     .catch(done);
     });
   });
