@@ -43,6 +43,12 @@ module.exports = function botAction(seq, dataTypes) {
       allowNull: true,
       comment: 'List of parameters needed to run bot action',
     },
+    response: {
+      type: dataTypes.JSON,
+      allowNull: true,
+      comment:
+        'After an action is completed the bot may have a response',
+    },
   }, {
     classMethods: {
       getBotActionAssociations() {

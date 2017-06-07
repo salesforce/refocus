@@ -47,6 +47,7 @@ module.exports = function user(seq, dataTypes) {
       postImport(models) {
         assoc.type = Room.belongsTo(models.RoomType, {
           foreignKey: 'type',
+          allowNull: false,
         });
         assoc.writers = Room.belongsToMany(models.User, {
           as: 'writers',

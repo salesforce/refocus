@@ -14,47 +14,47 @@
 
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
-const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING'];
-const dataTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
 
 /**
- * Determines if the type in the types list
+ * Determines actions parameters contain a name and value
  *
- * @param {String} str - listed type
- * @param {Array} types - allowed types
- * @returns {Boolean} - True/False
+ * @param {String} arr - list of actions
+ * @returns {undefined} - OK
+ * @throws {validationError} - Missing attribute
  */
-function correctType(str, types) {
-  for (let i = 0; i < types.length; i++) {
-    if (types[i] === str) {
-      return true;
+function validateActionsParameters(arr) {
+  for (let j = 0; j < arr.parameters.length; j++) {
+    if ((arr.parameters[j].hasOwnProperty('name') !== true) ||
+      (arr.parameters[j].hasOwnProperty('value') !== true)) {
+      throw new ValidationError({
+        message: 'Missing a name or value attribute',
+      });
     }
   }
-
-  return false;
-}
+} // validateActionsParameters
 
 /**
- * Confirms that the array elements contains name and type attributes
+ * Determines if each actions have a name and parameters
  *
- * @param {Array} arr - The array to test
+ * @param {String} arr - listed type
  * @returns {undefined} - OK
- * @throws {validationError} - if the array does not contain valid attributes
+ * @throws {validationError} - Missing attribute
  */
-function arrayHasValidParameters(arr) {
+function validateActions(arr) {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
-      if ((typeof arr[i] === 'object') &&
-        (arr[i].hasOwnProperty('name')) && (arr[i].hasOwnProperty('type'))) {
-        if ((!constants.nameRegex.test(arr[i].name)) ||
-          (!correctType(arr[i].type, parameterTypes))) {
+      if ((arr[i].hasOwnProperty('name')) &&
+        (arr[i].hasOwnProperty('parameters'))) {
+        if (!constants.nameRegex.test(arr[i].name)) {
           throw new ValidationError({
-            message: 'Missing a valid name or parameter type',
+            message: 'Missing a valid name',
           });
         }
+
+        validateActionsParameters(arr[i]);
       } else {
         throw new ValidationError({
-          message: 'Object missing a name or type attribute',
+          message: 'Object missing a name or parameters attribute',
         });
       }
     }
@@ -63,28 +63,50 @@ function arrayHasValidParameters(arr) {
       message: 'Objects not contained in an array',
     });
   }
-} // arrayHasValidParameters
+} // validateActions
 
 /**
- * Custom validation rule that checks whether the the actions values have names
- * and that the parameters listed at valid parameter types
+ * Confirms that rule adheres to the JSON Logic Structure
+ * described here http://jsonlogic.com/
+ *
+ * @param {Object} obj - Rule
+ * @returns {undefined} - OK
+ * @throws {validationError} - Incorrect JSON logic structure
+ */
+function validateRules(obj) {
+  const keys = Object.keys(obj);
+  for (let i = 0; i < keys.length; i++) {
+    if ((keys[i] ==='and') || (keys[i] === 'or')) {
+      for (let j = 0; j < obj[keys[i]].length; i++) {
+        validateRules(obj[keys[i]][j]);
+      }
+    }
+    if (Array.isArray(obj[keys[i]]) !== true) {
+      throw new ValidationError({
+        message: 'Invalid JSON Logic Expression',
+      });
+    }
+  }
+} // validateRules
+
+/**
+ * Custom validation rule that checks the settings array to have
+ * all valid entries. Meaning each element contains key and a value.
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK
- * @throws {validationError} - Invalid actions array
+ * @throws {validationError} - Invalid settings array
  */
-function validateSettings(arr) {
+function validateSettingsArray(arr) {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
       if ((arr[i].hasOwnProperty('key')) &&
         (arr[i].hasOwnProperty('value'))) {
-        if (!constants.nameRegex.test(arr[i].name)) {
+        if (!constants.nameRegex.test(arr[i].key)) {
           throw new ValidationError({
-            message: 'Missing a valid name',
+            message: 'Missing a valid key',
           });
         }
-
-        arrayHasValidParameters(arr[i].parameters);
       } else {
         throw new ValidationError({
           message: 'Missing a key or value attribute',
@@ -99,26 +121,23 @@ function validateSettings(arr) {
 } // validateSettings
 
 /**
- * Custom validation rule that checks wheter the the data values have names
- * and valid data types
+ * Makesure
+ *
  *
  * @param {Array} arr - The array to test
  * @returns {undefined} - OK
  * @throws {validationError} - Invalid data array
  */
-function validateDataArray(arr) {
+function validateRulesArray(arr) {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
-      if ((arr[i].hasOwnProperty('name')) && (arr[i].hasOwnProperty('type'))) {
-        if ((!constants.nameRegex.test(arr[i].name)) ||
-          (!correctType(arr[i].type, dataTypes))) {
-          throw new ValidationError({
-            message: 'Missing a valid name or data type',
-          });
-        }
+      if ((arr[i].hasOwnProperty('rule')) &&
+        (arr[i].hasOwnProperty('action'))) {
+        validateRules(arr[i].rules);
+        validateActions(arr[i].actions);
       } else {
         throw new ValidationError({
-          message: 'Object missing a name or type attribute',
+          message: 'Object missing a rules or actions attribute',
         });
       }
     }
@@ -130,6 +149,6 @@ function validateDataArray(arr) {
 } // validateDataArray
 
 module.exports = {
-  validateSettings,
-  validateRules,
+  validateSettingsArray,
+  validateRulesArray,
 }; // exports
