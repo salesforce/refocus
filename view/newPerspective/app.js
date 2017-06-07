@@ -51,9 +51,6 @@ import PerspectiveController from './PerspectiveController';
 import { getFilterQuery, getTagsFromResources, getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
-let gotLens = false;
-const lensLoadEvent = new CustomEvent('refocus.lens.load');
-let hierarchyLoadEvent;
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
@@ -178,23 +175,23 @@ function setupSocketIOClient(persBody) {
 
 /**
  * Create style tag for lens css file.
- * @param  {Object} lensResponse Response from lens api
+ * @param  {Object} library From the the lens api
  * @param  {String} filename   name of file in lens library
  */
-function injectStyleTag(lensResponse, filename) {
+function injectStyleTag(library, filename) {
   const style = document.createElement('style');
   style.type = 'text/css';
 
-  const t = document.createTextNode(lensResponse.body.library[filename]);
+  const t = document.createTextNode(library[filename]);
   style.appendChild(t);
   const head = document.head ||
    document.getElementsByTagName('head')[ZERO];
 
   if (style.styleSheet) {
-    style.styleSheet.cssText = lensResponse.body.library[filename];
+    style.styleSheet.cssText = library[filename];
   } else {
     style.appendChild(
-      document.createTextNode(lensResponse.body.library[filename])
+      document.createTextNode(library[filename])
     );
   }
 
@@ -204,17 +201,16 @@ function injectStyleTag(lensResponse, filename) {
 /**
  * Create DOM elements for each of the files in the lens library.
  *
- * @param {Object} lensObject - Body of the response from lens api call
+ * @param {Object} lib - Library of the response from lens api call
  */
-function handleLibraryFiles(lensObject) {
-  const lib = lensObject.library;
+function handleLibraryFiles(lib) {
   const lensScript = document.createElement('script');
   for (const filename in lib) {
     const ext = (LENS_LIBRARY_REX.exec(filename)[ONE] || '').toLowerCase();
     if (filename === 'lens.js') {
       lensScript.appendChild(document.createTextNode(lib[filename]));
     } else if (ext === 'css') {
-      injectStyleTag(res, filename);
+      injectStyleTag(lib, filename);
     } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
       const image = new Image();
       image.src = 'data:image/' + ext + ';base64,' + lib[filename];
@@ -244,8 +240,6 @@ function getPromiseWithUrl(url) {
     .end((error, response) => {
       // reject if error is present, otherwise resolve request
       if (error) {
-        document.getElementById('errorInfo').innerHTML += 'Failed to GET ' +
-          url + '. Make sure the path is valid and the resource is published.';
         reject(error);
       } else {
         resolve(response);
@@ -255,64 +249,90 @@ function getPromiseWithUrl(url) {
 } // getPromiseWithUrl
 
 /**
- * Figure out which perspective to load. If it's in the URL path, load that
- * one.
- * If it's not in the URL path, either use the DEFAULT_PERSPECTIVE from global
- * config OR the first perspective from the list of perspective names
- * (alphabetical order), and redirect to the URL using that perspective name.
+ * Dispatch hierarchyLoad event, if the lens is received.
+ * Return the hierarchyLoadEvent otherwise
  *
- * @param {Array} pnames - Array of perspective names
- * @returns {String} perspectiveName - The named perspective
+ * @param {Object} rootSubject
+ * @param {Boolean} gotLens
+ * @returns {CustomEvent} if lens is received, return undefined,
+ * else return hierarchyLoadEvent.
  */
-function whichPerspective(pnames) {
+function handleHierarchyEvent(rootSubject, gotLens) {
+  const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
+    detail: rootSubject,
+  });
+
+  /*
+   * The order of events matters so only dispatch the hierarchyLoad event if
+   * we received the lens response back.
+   */
+  if (gotLens) {
+    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+    return;
+  }
+
+  // lens is not received yet. Return hierarchyLoadEvent
+  // to be dispatched from getLens
+  return hierarchyLoadEvent;
+}
+
+/**
+ * On receiving the lens, load the lens.
+ * Load the hierarchy if hierarchy event is passed in.
+ *
+ * @param {Object} library the perspective's lens's library
+ * @param {Object} hierarchyLoadEvent undefined or
+ * a Custom Event
+ */
+function handleLensDomEvent(library, hierarchyLoadEvent) {
+  // inject lens library files in perspective view.
+  handleLibraryFiles(library);
+
+  // remove spinner and load lens
+  const spinner = document.getElementById('lens_loading_spinner');
+  spinner.parentNode.removeChild(spinner);
+
+  const lensLoadEvent = new CustomEvent('refocus.lens.load');
+  LENS_DIV.dispatchEvent(lensLoadEvent);
+
+  /*
+   * The order of events matters so if we happened to have gotten the
+   * hierarchy *before* the lens, then dispatch the lens.hierarchyLoad event
+   * now.
+   */
+  if (hierarchyLoadEvent) {
+    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+  }
+} // handleLensDomEvent
+
+/**
+ * Figure out which url to load the perspective.
+ * If the perspective name is in url, also change the document title to
+ * have the name of the perspective.
+ * Otherwise return the default perspctive URL.
+ *
+ * @returns {Object} which url to load the perspective, and whether the
+ * perspective is named or not.
+ */
+function getPerspectiveUrl() {
   let h = window.location.pathname;
   let hsplit = h.split('/');
   let p = hsplit.pop();
 
   // named perspective
   if (p && p !== 'perspectives') {
-
-    // check if name is valid
-    if (pnames.indexOf(p) < 0) {
-      const errMessage = 'Did not find perspective ' + p;
-      throw new Error(errMessage);
-    }
-
     document.title += ' - ' + p;
-    return p;
+    return { url: '/v1/perspectives/' + p, named: true };
   } else {
-
-    // find name of perspective
-    const name = pnames.length ? pnames.shift() : GET_DEFAULT_PERSPECTIVE;
-    window.location.href = '/perspectives/' + name;
-    return name;
+    const object = { named: false };
+    object.url = GET_DEFAULT_PERSPECTIVE;
+    return object;
   }
 } // whichPerspective
 
 window.onload = () => {
-  getValuesObject(getPromiseWithUrl, whichPerspective)
-  .then((obj) => {
-
-    // synchronous events
-    setupSocketIOClient(obj.perspective);
-
-    // inject lens library files in perspective view.
-    handleLibraryFiles(obj.lens); // synchronous
-
-    // remove spinner and load lens
-    const spinner = document.getElementById('lens_loading_spinner');
-    spinner.parentNode.removeChild(spinner);
-
-    // trigger refocus.lens.load event
-    LENS_DIV.dispatchEvent(lensLoadEvent);
-
-    hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-      detail: obj.rootSubject,
-    });
-
-    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-    loadController(obj);
-  })
+  getValuesObject(getPromiseWithUrl, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent)
+  .then(loadController)
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML += error;
   });
