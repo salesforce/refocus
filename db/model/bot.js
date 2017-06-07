@@ -12,6 +12,16 @@
  * Bots are distributed webapps that will interact with our
  * different routes. This object will be used to track
  * and organize the bots that are associated with refocus.
+ *
+ * Actions are objects that have a name and parameters analogous
+ * function methods. The name is how the actions will be refered to
+ * and the parameters is an array of objects that contain name and types.
+ * Each parameter describe the expected parameters needed to run an action.
+ *
+ * Data are analogous to state variables; they describe what kind of data
+ * can be retreived from bots. Each data value in the array have a name
+ * and type that so the data can be easily parsed for later use.
+ *
  */
 
 const constants = require('../constants');

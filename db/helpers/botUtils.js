@@ -99,7 +99,7 @@ function validateActionArray(arr) {
 } // validateActionArray
 
 /**
- * Custom validation rule that checks wheter the the data values have names
+ * Custom validation rule that checks whether the data values have names
  * and valid data types
  *
  * @param {Array} arr - The array to test

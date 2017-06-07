@@ -29,11 +29,14 @@ describe('db: bot: delete: ', () => {
 
   describe('Delete bot', () => {
     it('ok, bot deleted', (done) => {
-      Bot.destroy({ where: { active: true } })
+      const testStandard = u.getStandard();
+      Bot.destroy({ where: { active: false } })
       .then(() => Bot.findAll())
       .then((o) => {
         expect(o.length).to.equal(1);
-        expect(o[0]).to.equal(u.getStandard());
+        expect(o[0].dataValues.name).to.equal(testStandard.name);
+        expect(o[0].dataValues.url).to.equal(testStandard.url);
+        expect(o[0].dataValues.active).to.equal(testStandard.active);
         done();
       })
       .catch(done);
