@@ -43,8 +43,13 @@ const delayToRemoveJobs =
  * @param  {Object} logObject - Log object
  */
 function mapJobResultsToLogObject(jobResultObj, logObject) {
+  const now = Date.now();
   if (jobResultObj.reqStartTime) {
-    logObject.totalTime = `${Date.now() - jobResultObj.reqStartTime}ms`;
+    logObject.totalTime = `${now - jobResultObj.reqStartTime}ms`;
+  }
+
+  if (jobResultObj.jobEndTime) {
+    logObject.queueResponseTime = `${now - jobResultObj.jobEndTime}ms`;
   }
 
   if (jobResultObj.queueTime) {

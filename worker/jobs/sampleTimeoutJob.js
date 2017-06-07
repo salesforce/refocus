@@ -26,6 +26,7 @@ module.exports = (job, done) => {
   .then((dbRes) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
+      const jobEndTime = Date.now();
       const objToReturn = {};
 
       // recordCount = number of successul timeouts
@@ -35,6 +36,7 @@ module.exports = (job, done) => {
       objToReturn.errorCount = dbRes.numberEvaluated - dbRes.numberTimedOut;
       const tempObj = {
         jobStartTime,
+        jobEndTime,
         reqStartTime,
         dbStartTime,
         dbEndTime,

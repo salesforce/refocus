@@ -22,6 +22,7 @@ const nodeEnv = pe.NODE_ENV || 'development';
 const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
 const payloadLimit = pe.REQUEST_PAYLOAD_LIMIT || defaultPayloadLimit;
+const newRelicKey = pe.NEW_RELIC_LICENSE_KEY || '';
 const pgdatabase = pe.PGDATABASE || 'focusdb';
 const pguser = pe.PGUSER || 'postgres';
 const pgpass = pe.PGPASS || 'postgres';
@@ -238,6 +239,7 @@ module.exports = {
   endpointToLimit,
   httpMethodToLimit,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
+  newRelicKey,
   nodeEnv,
   payloadLimit,
   persistRedisSampleStoreMilliseconds:
