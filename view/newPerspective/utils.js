@@ -301,7 +301,7 @@ function getValuesObject(accumulatorObject) {
        // when hierarchy is resolved in getHierarchy
       gotLens = true;
 
-      valuesObj.lens = res.bpdy;
+      valuesObj.lens = res.body;
     });
 
     const filterString  = getFilterQuery(perspective);
