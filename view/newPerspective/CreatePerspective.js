@@ -106,7 +106,6 @@ class CreatePerspective extends React.Component {
       if (isEditing) {
         const _perspective = values.perspectives
           .filter((pers) => pers.name === name)[0];
-        console.log('editing', _perspective.lens.name)
         stateObject = {
           name: _perspective.name,
           lenses: _perspective.lens.name,
