@@ -47,7 +47,7 @@ module.exports = function user(seq, dataTypes) {
       comment: 'Determines if room type is still active',
     },
     settings: {
-      type: dataTypes.ARRAY(dataTypes.JSON),
+      type: dataTypes.ARRAY(dataTypes.JSONB),
       allowNull: true,
       validate: {
         contains: u.validateSettingsArray,
@@ -55,7 +55,7 @@ module.exports = function user(seq, dataTypes) {
       comment: 'Key/Value pairs for user specific settings',
     },
     rules: {
-      type: dataTypes.ARRAY(dataTypes.JSON),
+      type: dataTypes.ARRAY(dataTypes.JSONB),
       allowNull: true,
       validate: {
         contains: u.validateRulesArray,

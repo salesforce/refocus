@@ -35,6 +35,7 @@ module.exports = {
 
   forceDelete(done) {
     tu.forceDelete(tu.db.Room, testStartTime)
+    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
   },

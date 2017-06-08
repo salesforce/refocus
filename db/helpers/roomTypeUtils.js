@@ -14,6 +14,7 @@
 
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
+const MAX_ARGUMENTS = 2;
 
 /**
  * Determines actions parameters contain a name and value
@@ -66,14 +67,17 @@ function validateActions(obj) {
  * @throws {validationError} - Incorrect JSON logic structure
  */
 function validateRules(obj) {
+  let j = 0;
   const keys = Object.keys(obj);
   for (let i = 0; i < keys.length; i++) {
     if ((keys[i] ==='and') || (keys[i] === 'or')) {
-      for (let j = 0; j < obj[keys[i]].length; i++) {
-        return validateRules(obj[keys[i]][j]);
+      while (j < obj[keys[i]].length) {
+        if (validateRules(obj[keys[i]][j])) {
+          j++;
+        }
       }
-    }
-    if (Array.isArray(obj[keys[i]]) !== true) {
+    } else if ((Array.isArray(obj[keys[i]]) !== true) &&
+      (obj[keys[i]].length !== MAX_ARGUMENTS)){
       throw new ValidationError({
         message: 'Invalid JSON Logic Expression',
       });
