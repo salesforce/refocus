@@ -46,6 +46,19 @@ describe('Perspective view ', () => {
    * @returns {Object} The rendered component
    */
   function setup(valuesAddons, otherPropsObj) {
+    const PERSPECITVE_OBJECT = {
+      name: PERS_NAME,
+      lens: LENS,
+      rootSubject: DUMMY_STRING,
+      aspectFilterType: "EXCLUDE",
+      aspectFilter: [ ],
+      aspectTagFilterType: "EXCLUDE",
+      aspectTagFilter: [ ],
+      subjectTagFilterType: "EXCLUDE",
+      subjectTagFilter: [ ], // empty for testing
+      statusFilterType: "EXCLUDE",
+      statusFilter: DUMMY_ARRAY, // not empty for testing
+    };
     // simulate loading config
     const defaultProps = {
       name: PERS_NAME,
@@ -55,6 +68,7 @@ describe('Perspective view ', () => {
       sendResource: spy,
       // options or all possible values
       values: {
+        perspectives: [PERSPECITVE_OBJECT],
         subjects: [], // { name: absolutePath, id }
         aspectTagFilter: [], // { name, id }
         aspectFilter: [], // strings
@@ -65,19 +79,7 @@ describe('Perspective view ', () => {
         rootSubject: {},
         lens: {}, // includes library
         // actual values
-        perspective: {
-          name: PERS_NAME,
-          lens: LENS,
-          rootSubject: DUMMY_STRING,
-          aspectFilterType: "EXCLUDE",
-          aspectFilter: [ ],
-          aspectTagFilterType: "EXCLUDE",
-          aspectTagFilter: [ ],
-          subjectTagFilterType: "EXCLUDE",
-          subjectTagFilter: [ ], // empty for testing
-          statusFilterType: "EXCLUDE",
-          statusFilter: DUMMY_ARRAY, // not empty for testing
-        },
+        perspective: PERSPECITVE_OBJECT,
       },
     };
     // update defaultProps as needed
