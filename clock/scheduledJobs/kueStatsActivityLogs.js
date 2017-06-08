@@ -48,13 +48,11 @@ function generateLogObject() {
     ];
     Promise.all(promises)
     .then((res) => {
-      console.log('res', res);
       obj.activeCount = res[0];
       obj.completeCount = res[1];
       obj.failedCount = res[2];
       obj.inactiveCount = res[3];
       obj.workTimeMillis = res[4];
-      console.log('obj', obj);
       resolve(obj);
     });
   });
