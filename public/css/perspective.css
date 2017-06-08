@@ -22,6 +22,10 @@ body {
     padding: 5px;
 }
 
+#errorInfo {
+    font-size: 2em;
+}
+
 #refocus_perspective_dropdown_container {
     position: relative;
     z-index: 2000;
