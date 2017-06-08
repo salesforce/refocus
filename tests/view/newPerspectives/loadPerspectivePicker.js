@@ -34,6 +34,11 @@ describe('Perspective app ', () => {
   const DUMMY_FUNCTION = () => {};
   let request;
   let sandbox;
+  let accumulatorObject = {
+    handleHierarchyEvent: DUMMY_FUNCTION,
+    handleLensDomEvent: DUMMY_FUNCTION,
+    customHandleError: DUMMY_FUNCTION,
+  };
   function setup(valuePairs) {
     const defaultValuePairs = {
       '/v1/aspects': {
@@ -99,8 +104,9 @@ describe('Perspective app ', () => {
   describe('results from GET requests', () => {
     it('default fields', () => {
       setup();
-      const obj = getValuesObject(request, getNamedPerspectiveUrl,
-        DUMMY_FUNCTION, DUMMY_FUNCTION);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
+      const obj = getValuesObject(accumulatorObject);
       return obj.then((obj) => {
         expect(obj.name).to.equal(DUMMY_STRING);
         expect(obj.perspective.name).to.equal(DUMMY_STRING);
@@ -132,8 +138,9 @@ describe('Perspective app ', () => {
           { name: ASPECT2, isPublished: true, tags: tags.slice(2) }],
         }
       });
-      const obj = getValuesObject(request, getNamedPerspectiveUrl,
-        DUMMY_FUNCTION, DUMMY_FUNCTION);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
+      const obj = getValuesObject(accumulatorObject);
       return obj.then((obj) => {
         expect(obj.aspectTagFilter.length).to.equal(tags.length);
         expect(obj.aspectTagFilter).to.deep.equal(tags.sort())
@@ -148,8 +155,9 @@ describe('Perspective app ', () => {
           { name: ASPECT2, isPublished: true }],
         }
       });
-      const obj = getValuesObject(request, getNamedPerspectiveUrl,
-        DUMMY_FUNCTION, DUMMY_FUNCTION);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
+      const obj = getValuesObject(accumulatorObject);
       return obj.then((obj) => {
         expect(obj.aspectFilter.length).to.equal(2);
         expect(obj.aspectFilter[0]).to.equal(ASPECT1);
@@ -165,8 +173,9 @@ describe('Perspective app ', () => {
           { absolutePath: SUBJECT2, isPublished: true, tags: subjectTags }],
         }
       });
-      const obj = getValuesObject(request, getNamedPerspectiveUrl,
-        DUMMY_FUNCTION, DUMMY_FUNCTION);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
+      const obj = getValuesObject(accumulatorObject);
       return obj.then((obj) => {
         expect(obj.subjectTagFilter.length).to.equal(subjectTags.length);
         expect(obj.subjectTagFilter).to.deep.equal(subjectTags);
@@ -187,8 +196,9 @@ describe('Perspective app ', () => {
           }],
         }));
       });
-      const obj = getValuesObject(request, getNamedPerspectiveUrl,
-        DUMMY_FUNCTION, DUMMY_FUNCTION);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
+      const obj = getValuesObject(accumulatorObject);
       return obj.then((obj) => {
         expect(obj.perspective.aspectTagFilterType).to.equal('EXCLUDE');
         expect(obj.perspective.aspectFilterType).to.equal('EXCLUDE');

@@ -20,6 +20,10 @@
  * inside the main web process.
  */
 const conf = require('../config');
+if (conf.newRelicKey) {
+  require('newrelic');
+}
+
 const featureToggles = require('feature-toggles');
 const kueStatsActivityLogs = require('./scheduledJobs/kueStatsActivityLogs');
 const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
