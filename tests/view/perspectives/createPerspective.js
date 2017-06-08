@@ -13,7 +13,7 @@
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
-import CreatePerspective from '../../../view/newPerspective/CreatePerspective';
+import CreatePerspective from '../../../view/perspective/CreatePerspective';
 import { mount } from 'enzyme';
 
 describe('Perspective view ', () => {

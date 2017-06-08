@@ -13,7 +13,7 @@
 
 const expect = require('chai').expect;
 const eventsQueue = require(
-  '../../../view/newPerspective/eventsQueue'
+  '../../../view/perspective/eventsQueue'
 );
 
 describe('event queue', () => {

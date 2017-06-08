@@ -14,7 +14,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 import { getFilterQuery,
-  getTagsFromArrays } from '../../../view/newPerspective/utils.js';
+  getTagsFromArrays } from '../../../view/perspective/utils.js';
 
 describe('get filter query', () => {
   it('given default exclude and no filter, should return ' +

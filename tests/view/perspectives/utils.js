@@ -16,7 +16,7 @@ import { getArray,
   getConfig,
   filteredArray,
   getOptions,
-} from '../../../view/newPerspective/utils';
+} from '../../../view/perspective/utils';
 
 const ZERO = 0;
 
