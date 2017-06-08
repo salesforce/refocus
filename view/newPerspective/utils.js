@@ -232,18 +232,26 @@ function getPublishedFromArr(arr) {
  * Accumulates information to load the perspective dropdown,
  * and the edit/create perspective modal
  *
- * @param {Object} request Use supertest or superagent
+ * @param {Object} accumulatorObject
  * @returns {Object} The accumulated values
  */
-function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handleLensDomEvent) {
+function getValuesObject(accumulatorObject) {
+  const {
+    getPromiseWithUrl,
+    getPerspectiveUrl,
+    handleHierarchyEvent,
+    handleLensDomEvent,
+    customHandleError,
+  } = accumulatorObject;
   const constants = require('../../api/v1/constants');
   const httpStatus = constants.httpStatus;
   const statuses = constants.statuses;
 
   const valuesObj = {
     name: '',
-    perspective: {},
-    persNames: [], //strings
+    perspectives: [], // will be array of objects
+    perspective: null, // if found becomes object
+    persNames: [], // will be array of strings
     rootSubject: {},
     lens: {}, // includes library
     subjects: [], // { name: absolutePath, id }
@@ -260,52 +268,8 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
   // otherwise get the default perspective
   const { url, named } = getPerspectiveUrl();
 
-  // get the perspectives and the named/default perspective
-  const arr = [request('/v1/perspectives?fields=name'),
-    request(url)
-    .catch((err) => {
-
-      // if default perspective is not found,
-      // do not throw error. After the perspectives resolves
-      // GET the first perspective
-      if (!named && err.status === httpStatus.NOT_FOUND) {
-        return Promise.resolve();
-      }
-
-      // either named perspective or another error.
-      throw err;
-    })
-  ];
-
-  return Promise.all(arr)
-  .then((responses) => {
-    const perspectives = responses[0].body;
-
-    // assign perspective-related values to the accumulator object
-    valuesObj.persNames = perspectives.map((perspective) => perspective.name).sort();
-
-    // if named  perspective or default exists, .body is an object.
-    if (responses[1]) {
-      valuesObj.perspective = responses[1].body;
-      valuesObj.name = valuesObj.perspective.name;
-
-      // get default perspective does NOT exist. GET the first perspective by
-      // alphabetical order.
-      // check to see there are perspectives
-    } else if (perspectives.length) {
-      valuesObj.name = perspectives[0].name;
-
-      // redirect to the first perspective. The rest of the code
-      // won't be executed.
-      window.location.href = '/perspectives/' + valuesObj.name;
-    } else {
-
-      // no perspectives exist
-      throw new Error('no perspectives exist.');
-    }
-
-    // valuesObj.perspective have been assigned.
-    /**
+  function getPageLoadingPromises(perspective) {
+    /*
      * getLens and getHierarchy are dispatched simultaneously.
      * Both lensLoadEvent and hierarchyLoadEvent will be called once:
      *
@@ -326,7 +290,7 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
      * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
      * it is also dispatched.
      */
-    const getLens = request('/v1/lenses/' + valuesObj.perspective.lensId)
+    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
     .then((res) => {
 
       // hierarchyLoadEvent can be undefined or a custom event
@@ -337,40 +301,99 @@ function getValuesObject(request, getPerspectiveUrl, handleHierarchyEvent, handl
        // when hierarchy is resolved in getHierarchy
       gotLens = true;
 
-      return res;
+      valuesObj.lens = res.body;
     });
 
-    const filterString  = getFilterQuery(valuesObj.perspective);
-    const getHierarchy = request('/v1/subjects/' +
-      valuesObj.perspective.rootSubject + '/hierarchy' + filterString)
+    const filterString  = getFilterQuery(perspective);
+    const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
+    perspective.rootSubject + '/hierarchy' + filterString)
     .then((res) => {
 
       // if gotLens is false, hierarchyLoadEvent will be assigned
       // and NOT dispatched. Otherwise dispatch the hierarchy event
       hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
 
-      return res;
+      valuesObj.rootSubject = res.body;
     });
 
+    return [getLens, getHierarchy];
+  }
+
+  // Need to get all perspectives, for editing perspectives.
+  // for GET perspective, do NOT throw error if 404, since
+  // throwing an error skips loading the perspective picker.
+  // If successful, load the hierarchy and lens
+  const arr = [
+    getPromiseWithUrl('/v1/perspectives'),
+    getPromiseWithUrl(url)
+    .then((res) => {
+      Promise.all(getPageLoadingPromises(res.body));
+      return res;
+    })
+    .catch(console.log)
+  ];
+
+  return Promise.all(arr)
+  .then((responses) => {
+    valuesObj.perspectives = responses[0].body;
+
+    // use ternary as if pespective does not exist, responses[1] is undefined
+    const returnedPerspective = responses[1] ? responses[1].body : null;
+
+    // assign perspective-related values to the accumulator object
+    valuesObj.persNames = valuesObj.perspectives
+      .map((perspective) => perspective.name).sort();
+
+    /*
+     * One out of four situations can happen:
+     * GET named perspective: exists. Assign perspective
+     * GET default perspective: exists. Assign perspective
+     * GET named perspective: does NOT exist: handleError
+     * GET default perspective: does NOT exist: perspective is the first
+     *  perspective in the perspectives array. If no perspectives exist,
+     *  valuesObj.perspective = null
+     */
+     if (returnedPerspective) {
+        valuesObj.perspective = returnedPerspective;
+        valuesObj.name = valuesObj.perspective.name;
+     } else if (named) {
+
+        // named perspective does not exist
+        const name = url.split('/').pop();
+        customHandleError('Sorry, but the perspective you were trying ' +
+          'to load, ' + name + ', does not exist. Please select a ' +
+          'perspective from the dropdown.');
+      } else {
+
+        // default perspective does NOT exist.
+        // GET the first perspective by alphabetical order.
+        // Check to see there are perspectives
+        if (valuesObj.perspectives.length) {
+
+          // redirect to the first perspective. The rest of the code
+          // won't be executed.
+          window.location.href = '/perspectives/' + valuesObj.perspectives[0].name;
+        } else {
+          valuesObj.perspective = null;
+
+          // no perspectives exist
+          customHandleError('no perspectives exist.');
+      }
+    }
+
+    // valuesObj.perspective have been assigned.
     const promisesArr = [
-      getLens,
-      getHierarchy,
-      request('/v1/lenses'),
-      request('/v1/subjects?fields=isPublished,absolutePath,tags'),
-      request('/v1/aspects?fields=isPublished,name,tags'),
+      getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
+      getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
+      getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags'),
     ];
+
     return Promise.all(promisesArr);
   })
   .then((responses) => {
-    const lens = responses[0].body;
-    const rootSubject = responses[1].body;
-    const lenses = responses[2].body;
-    const subjects = responses[3].body;
-    const aspects = responses[4].body;
-
-    // assign perspective-related values to the accumulator object
-    valuesObj.lens = lens;
-    valuesObj.rootSubject = rootSubject;
+    const lenses = responses[0].body;
+    const subjects = responses[1].body;
+    const aspects = responses[2].body;
 
     // assign non-perspective values to the accumulator object.
     // TODO: subjects are objects. Change to use strings
