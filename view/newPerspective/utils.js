@@ -360,7 +360,9 @@ function getValuesObject(accumulatorObject) {
 
         // named perspective does not exist
         const name = url.split('/').pop();
-        customHandleError('Sorry. Perspective ' + name + ' not found.');
+        customHandleError('Sorry, but the perspective you were trying ' +
+          'to load, ' + name + ', does not exist. Please select a ' +
+          'perspective from the dropdown.');
       } else {
 
         // default perspective does NOT exist.
