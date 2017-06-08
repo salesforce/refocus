@@ -76,7 +76,7 @@ function validateRules(obj) {
           j++;
         }
       }
-    } else if ((Array.isArray(obj[keys[i]]) !== true) &&
+    } else if ((Array.isArray(obj[keys[i]]) !== true) ||
       (obj[keys[i]].length !== MAX_ARGUMENTS)){
       throw new ValidationError({
         message: 'Invalid JSON Logic Expression',
