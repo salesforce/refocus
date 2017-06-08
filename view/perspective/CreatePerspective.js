@@ -92,55 +92,61 @@ class CreatePerspective extends React.Component {
   }
 
   componentDidMount() {
-    const { values, name, isEditing, params } = this.props;
-    if (isEditing) {
+    const { values, name, isEditing } = this.props;
 
-      // operating on a named, saved perspective
-      if (values && Array.isArray(values.perspectives) && values.perspectives.length) {
-        const perspective = values.perspectives.filter((pers) => pers.name === name)[0];
-        this.setState({
-          name,
-          lenses: perspective.lens.name || '',
-          subjects: perspective.rootSubject || '',
-          statusFilterType: perspective.statusFilterType || 'EXCLUDE',
-          statusFilter: perspective.statusFilter || [],
-          subjectTagFilter: perspective.subjectTagFilter || [],
-          subjectTagFilterType: perspective.subjectTagFilterType || 'EXCLUDE',
-          aspectTagFilter: perspective.aspectTagFilter || [],
-          aspectTagFilterType: perspective.aspectTagFilterType || 'EXCLUDE',
-          aspectFilter: perspective.aspectFilter || [],
-          aspectFilterType: perspective.aspectFilterType || 'EXCLUDE',
-        }, () => {
-          this.updateDropdownConfig(perspective);
-        });
+    /*
+     * Possible cases:
+     * on edit: load the perspective according to name.
+     * on new: load the default object
+     */
+    let stateObject;
+
+    // wait for props values to be assigned
+    if (values) {
+      if (isEditing) {
+        const _perspective = values.perspectives
+          .filter((pers) => pers.name === name)[0];
+        stateObject = {
+          name: _perspective.name,
+          lenses: _perspective.lens.name,
+          subjects: _perspective.rootSubject,
+          statusFilterType: _perspective.statusFilterType,
+          statusFilter: _perspective.statusFilter,
+          subjectTagFilter: _perspective.subjectTagFilter,
+          subjectTagFilterType: _perspective.subjectTagFilterType,
+          aspectTagFilter: _perspective.aspectTagFilter,
+          aspectTagFilterType: _perspective.aspectTagFilterType,
+          aspectFilter: _perspective.aspectFilter,
+          aspectFilterType: _perspective.aspectFilterType,
+        };
+      } else {
+        // use default values
+        stateObject = {
+          name: '',
+          lenses: '',
+          subjects: '',
+          statusFilterType: 'EXCLUDE',
+          statusFilter: [],
+          subjectTagFilter: [],
+          subjectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectFilter: [],
+          aspectFilterType: 'EXCLUDE',
+        }
       }
-    } else {
 
-      // unnamed perspective defined in url
-      this.setState({
-        name: '',
-        lenses: params.lenses || '',
-        subjects: params.subjects || '',
-        statusFilterType: params.statusFilterType || 'EXCLUDE',
-        statusFilter: params.statusFilter || [],
-        subjectTagFilter: params.subjectTagFilter || [],
-        subjectTagFilterType: params.subjectTagFilterType || 'EXCLUDE',
-        aspectTagFilter: params.aspectTagFilter || [],
-        aspectTagFilterType: params.aspectTagFilterType || 'EXCLUDE',
-        aspectFilter: params.aspectFilter || [],
-        aspectFilterType: params.aspectFilterType || 'EXCLUDE',
-      }, () => {
-        this.updateDropdownConfig(params);
+      this.setState(stateObject, () => {
+        this.updateDropdownConfig();
       });
     }
   }
 
-  updateDropdownConfig(perspective) {
+  updateDropdownConfig() {
 
     // attach config to keys, keys to dropdownConfig
     const { dropdownConfig } = this.state;
     const { values, BLOCK_SIZE } = this.props;
-
     let stateObject = getStateDataOnly(this.state);
     for (let key in stateObject) {
       let value = this.state[key];
@@ -372,6 +378,7 @@ class CreatePerspective extends React.Component {
         if (dropdownConfig[key].isArray) {
           pillOutput = <Pill
             title={ value }
+            key={ value }
             onRemove={this.deletePill}
           />;
         } else if (typeof value === 'string') {
@@ -379,6 +386,7 @@ class CreatePerspective extends React.Component {
           pillOutput = <Pill
             icon={ accountIcon }
             title={ [value] }
+            key={ value }
             onRemove={this.deletePill}
           />;
         }

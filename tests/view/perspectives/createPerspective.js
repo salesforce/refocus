@@ -13,7 +13,7 @@
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
-import CreatePerspective from '../../../view/perspective/CreatePerspective';
+import CreatePerspective from '../../../view/newPerspective/CreatePerspective';
 import { mount } from 'enzyme';
 
 describe('Perspective view ', () => {
@@ -46,6 +46,19 @@ describe('Perspective view ', () => {
    * @returns {Object} The rendered component
    */
   function setup(valuesAddons, otherPropsObj) {
+    const PERSPECITVE_OBJECT = {
+      name: PERS_NAME,
+      lens: LENS,
+      rootSubject: DUMMY_STRING,
+      aspectFilterType: "EXCLUDE",
+      aspectFilter: [ ],
+      aspectTagFilterType: "EXCLUDE",
+      aspectTagFilter: [ ],
+      subjectTagFilterType: "EXCLUDE",
+      subjectTagFilter: [ ], // empty for testing
+      statusFilterType: "EXCLUDE",
+      statusFilter: DUMMY_ARRAY, // not empty for testing
+    };
     // simulate loading config
     const defaultProps = {
       name: PERS_NAME,
@@ -55,23 +68,18 @@ describe('Perspective view ', () => {
       sendResource: spy,
       // options or all possible values
       values: {
-        aspectTagFilter: [],
-        subjectTagFilter: [],
-        lenses: [LENS],
+        perspectives: [PERSPECITVE_OBJECT],
+        subjects: [], // { name: absolutePath, id }
+        aspectTagFilter: [], // { name, id }
+        aspectFilter: [], // strings
+        subjectTagFilter: [], // strings
+        lenses: [LENS], // { name, id }
+        statusFilter: [],
+        persNames: DUMMY_ARRAY, //strings
+        rootSubject: {},
+        lens: {}, // includes library
         // actual values
-        perspectives: [{
-          name: PERS_NAME,
-          lens: LENS,
-          rootSubject: DUMMY_STRING,
-          aspectFilterType: "EXCLUDE",
-          aspectFilter: [ ],
-          aspectTagFilterType: "EXCLUDE",
-          aspectTagFilter: [ ],
-          subjectTagFilterType: "EXCLUDE",
-          subjectTagFilter: [ ], // empty for testing
-          statusFilterType: "EXCLUDE",
-          statusFilter: DUMMY_ARRAY, // not empty for testing
-        }],
+        perspective: PERSPECITVE_OBJECT,
       },
     };
     // update defaultProps as needed
@@ -122,26 +130,6 @@ describe('Perspective view ', () => {
   });
 
   describe('on create', () => {
-    it('on create, state is set to params values', () => {
-      const params = {
-        'subjects': 'NorthAmerica',
-        'lenses': 'MultiTable',
-        'statusFilterType': 'INCLUDE',
-        'statusFilter': ['OK'],
-        'subjectTagFilterType': 'EXCLUDE',
-        'subjectTagFilter': [],
-        'aspectTagFilterType': 'INCLUDE',
-        'aspectTagFilter': ['OK'],
-        'aspectFilterType': 'EXCLUDE',
-        'aspectFilter': []
-      }
-      const enzymeWrapper = setup({}, { params });
-      const instance = enzymeWrapper.instance();
-      for (let key in params) {
-        expect(instance.state[key]).to.equal(params[key]);
-      }
-    });
-
     it('dropdown options still contains all the lenses,' +
       ' even though state lens is empty', () => {
       // be default, not editing
