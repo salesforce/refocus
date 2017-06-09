@@ -66,12 +66,6 @@ class PerspectiveController extends React.Component {
   render() {
     const { values, params } = this.props;
     const { showCreatePanel, isEditing, name } = this.state;
-    let persNames = [];
-    if (values && values.perspectives) {
-      persNames = values.perspectives.map((persObject) => {
-        return persObject.name;
-      });
-    }
     return (
       <div>
         <Dropdown
@@ -80,7 +74,7 @@ class PerspectiveController extends React.Component {
           placeholderText='Search Perspectives'
           showEditIcon={ true }
           onEdit={ this.onEdit.bind(this) }
-          options={ persNames }
+          options={ values.persNames }
           // if there's lenses, open modal
           onAddNewButton={ values.lenses && this.openCreatePanel.bind(this) }
           newButtonText='New Perspective'
