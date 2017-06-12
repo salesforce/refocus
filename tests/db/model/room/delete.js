@@ -7,36 +7,44 @@
  */
 
 /**
- * tests/db/model/bot/delete.js
+ * tests/db/model/room/delete.js
  */
 'use strict';
 
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Bot = tu.db.Bot;
-const constants = require('../../../../db/constants');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const v = require('../roomType/utils');
 
-describe('db: bot: delete: ', () => {
+describe('db: room: delete: ', () => {
   beforeEach((done) => {
-    u.createStandard()
-    .then(() => u.createNonActive())
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      const room2 = u.getStandard();
+      room2.type = room.type;
+      room2.name = 'TestRoom';
+      return Room.create(room2);
+    })
     .then(() => done())
     .catch(done);
   });
 
   afterEach(u.forceDelete);
 
-  describe('Delete bot', () => {
-    it('ok, bot deleted', (done) => {
-      const testStandard = u.getStandard();
-      Bot.destroy({ where: { active: false } })
-      .then(() => Bot.findAll())
+  describe('Delete Room', () => {
+    it('ok, Room deleted', (done) => {
+      Room.destroy({ where: { name: u.name } })
+      .then(() => Room.findAll())
       .then((o) => {
         expect(o.length).to.equal(1);
-        expect(o[0].dataValues.name).to.equal(testStandard.name);
-        expect(o[0].dataValues.url).to.equal(testStandard.url);
-        expect(o[0].dataValues.active).to.equal(testStandard.active);
+        expect(o[0].dataValues.name).to.equal('TestRoom');
         done();
       })
       .catch(done);

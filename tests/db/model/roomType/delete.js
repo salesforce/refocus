@@ -7,24 +7,22 @@
  */
 
 /**
- * tests/db/model/room/find.js
+ * tests/db/model/roomType/delete.js
  */
 'use strict';
 
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
-const v = require('../roomType/utils');
 
-describe('db: room: find: ', () => {
+describe('db: room type: delete: ', () => {
   beforeEach((done) => {
-    RoomType.create(v.getStandard())
-    .then((roomType) => {
-      const room = u.getStandard();
-      room.type = roomType.id;
-      return Room.create(room);
+    RoomType.create(u.getStandard())
+    .then((room) => {
+      const room2 = u.getStandard();
+      room2.name = 'TestRoomType';
+      return RoomType.create(room2);
     })
     .then(() => done())
     .catch(done);
@@ -32,11 +30,13 @@ describe('db: room: find: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Find room', () => {
-    it('ok, room active', (done) => {
-      Room.findOne({ where: { active: true } })
+  describe('Delete Room Type', () => {
+    it('ok, Room Type deleted', (done) => {
+      RoomType.destroy({ where: { name: u.name } })
+      .then(() => RoomType.findAll())
       .then((o) => {
-        expect(o).to.have.property('name').to.equal(u.name);
+        expect(o.length).to.equal(1);
+        expect(o[0].dataValues.name).to.equal('TestRoomType');
         done();
       })
       .catch(done);

@@ -7,37 +7,30 @@
  */
 
 /**
- * tests/db/model/room/update.js
+ * tests/db/model/roomType/update.js
  */
 'use strict';
 
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
-const v = require('../roomType/utils');
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
-describe('db: room: update: ', () => {
+describe('db: room type: update: ', () => {
   beforeEach((done) => {
-    RoomType.create(v.getStandard())
-    .then((roomType) => {
-      const room = u.getStandard();
-      room.type = roomType.id;
-      return Room.create(room);
-    })
+    RoomType.create(u.getStandard())
     .then(() => done())
     .catch(done);
   });
 
   afterEach(u.forceDelete);
 
-  describe('Update room', () => {
-    it('ok, room active updated', (done) => {
-      Room.findOne({ where: { name: u.name } })
+  describe('Update room type', () => {
+    it('ok, room type active updated', (done) => {
+      RoomType.findOne({ where: { name: u.name } })
       .then((o) => o.update({ active: false }))
-      .then(() => Room.findOne({ where: { name: u.name } }))
+      .then(() => RoomType.findOne({ where: { name: u.name } }))
       .then((o) => {
         expect(o).to.have.property('active').to.equal(false);
         done();
@@ -45,19 +38,19 @@ describe('db: room: update: ', () => {
       .catch(done);
     });
 
-    it('ok, room name updated', (done) => {
-      Room.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ name: 'RoomTest' }))
-      .then(() => Room.findOne({ where: { name: 'RoomTest' } }))
+    it('ok, room type name updated', (done) => {
+      RoomType.findOne({ where: { name: u.name } })
+      .then((o) => o.update({ name: 'RoomTypeTest' }))
+      .then(() => RoomType.findOne({ where: { name: 'RoomTypeTest' } }))
       .then((o) => {
-        expect(o).to.have.property('name').to.equal('RoomTest');
+        expect(o).to.have.property('name').to.equal('RoomTypeTest');
         done();
       })
       .catch(done);
     });
 
-    it('fail, room name bad', (done) => {
-      Room.findOne({ where: { name: u.name } })
+    it('fail, room type name bad', (done) => {
+      RoomType.findOne({ where: { name: u.name } })
       .then((o) => o.update({ name: invalidValue }))
       .catch((err) => {
         expect(err.name).to.equal(tu.valErrorName);
