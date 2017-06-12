@@ -15,6 +15,11 @@
  * Add a new jobQueue.process(...) block for each new type of job.
  */
 'use strict'; // eslint-disable-line strict
+const conf = require('../config');
+if (conf.newRelicKey) {
+  require('newrelic');
+}
+
 const jobSetup = require('../jobQueue/setup');
 const jobConcurrency = jobSetup.jobConcurrency;
 const jobType = jobSetup.jobType;

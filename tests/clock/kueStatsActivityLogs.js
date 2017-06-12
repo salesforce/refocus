@@ -19,14 +19,16 @@ const client = redis.client.realtimeLogging;
 
 describe('kueStatsActivityLogs', () => {
   it('generateLogObject', (done) => {
-    const obj = k.generateLogObject();
-    expect(obj).to.be.an('object');
-    expect(obj).to.have.property('activity', 'kueStats');
-    expect(obj).to.have.property('activeCount');
-    expect(obj).to.have.property('completeCount');
-    expect(obj).to.have.property('failedCount');
-    expect(obj).to.have.property('inactiveCount');
-    expect(obj).to.have.property('workTimeMillis');
-    done();
+    k.generateLogObject()
+    .then((obj) => {
+        expect(obj).to.be.an('object');
+        expect(obj).to.have.property('activity', 'kueStats');
+        expect(obj).to.have.property('activeCount');
+        expect(obj).to.have.property('completeCount');
+        expect(obj).to.have.property('failedCount');
+        expect(obj).to.have.property('inactiveCount');
+        expect(obj).to.have.property('workTimeMillis');
+        done();
+    })
   });
 });
