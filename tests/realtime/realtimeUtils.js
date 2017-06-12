@@ -180,5 +180,37 @@ describe('realtime utils Tests:', () => {
         expect(obj.hasOwnProperty('new')).to.equal(false);
       });
     });
+
+    describe('isIpWhitelisted', () => {
+      it('ok', () => {
+        const addr = '5.6.7.805';
+        const whitelist = [['1.2.3.4', '2.3.4.5'], ['5.6.7.0', '5.6.7.805']];
+        expect(realtimeUtils.isIpWhitelisted(addr, whitelist)).to.equal(true);
+      });
+
+      it('not in range', () => {
+        const addr = '5.6.7.805';
+        const whitelist = [['1.2.3.4', '2.3.4.5'], ['5.6.7.9', '5.7.7.7']];
+        try {
+          realtimeUtils.isIpWhitelisted(addr, whitelist);
+          expect(false);
+        } catch (err) {
+          expect(err).to.have.property('message',
+            'IP address "5.6.7.805" is not whitelisted');
+        }
+      });
+
+      it('range not legit', () => {
+        const addr = '5.6.7.805';
+        const whitelist = [[0], ['1.2.3.4', '9.3.4.5']];
+        try {
+          realtimeUtils.isIpWhitelisted(addr, whitelist);
+          expect(false);
+        } catch (err) {
+          expect(err).to.have.property('message',
+            'IP address "5.6.7.805" is not whitelisted');
+        }
+      });
+    });
   });
 });
