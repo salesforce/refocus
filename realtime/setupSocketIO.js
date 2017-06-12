@@ -120,7 +120,7 @@ function init(io, redisStore) {
       } else {
         throw new Error('disconnecting socket: could not identify ip address');
       }
-     
+
       if (logEnabled) {
         const toLog = {
           ipAddress,
