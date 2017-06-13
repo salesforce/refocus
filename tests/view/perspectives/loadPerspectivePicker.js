@@ -38,6 +38,7 @@ describe('Perspective app ', () => {
     handleHierarchyEvent: DUMMY_FUNCTION,
     handleLensDomEvent: DUMMY_FUNCTION,
     customHandleError: DUMMY_FUNCTION,
+    setupSocketIOClient: DUMMY_FUNCTION,
   };
   function setup(valuePairs) {
     const defaultValuePairs = {
