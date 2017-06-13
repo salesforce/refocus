@@ -41,10 +41,10 @@ module.exports = function roomType(seq, dataTypes) {
       },
       comment: 'Create a named room type',
     },
-    active: {
+    isEnabled: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
-      comment: 'Determines if room type is still active',
+      comment: 'Determines if room type is still enabled for use',
     },
     settings: {
       type: dataTypes.ARRAY(dataTypes.JSONB),
@@ -69,6 +69,9 @@ module.exports = function roomType(seq, dataTypes) {
       },
 
       postImport(models) {
+        assoc.type = RoomType.hasMany(models.Room, {
+          foreignKey: 'type',
+        });
         assoc.writers = RoomType.belongsToMany(models.User, {
           as: 'writers',
           through: 'RoomTypeWriters',

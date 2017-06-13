@@ -27,12 +27,12 @@ describe('db: room type: update: ', () => {
   afterEach(u.forceDelete);
 
   describe('Update room type', () => {
-    it('ok, room type active updated', (done) => {
+    it('ok, room type isEnabled updated', (done) => {
       RoomType.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ active: false }))
+      .then((o) => o.update({ isEnabled: false }))
       .then(() => RoomType.findOne({ where: { name: u.name } }))
       .then((o) => {
-        expect(o).to.have.property('active').to.equal(false);
+        expect(o).to.have.property('isEnabled').to.equal(false);
         done();
       })
       .catch(done);

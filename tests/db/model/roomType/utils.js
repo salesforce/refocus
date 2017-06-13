@@ -18,7 +18,7 @@ const n = `${tu.namePrefix}TestRoomType`;
 
 const standard = {
   name: n,
-  active: true,
+  isEnabled: true,
   settings: [
     {
       key: 'Key1',

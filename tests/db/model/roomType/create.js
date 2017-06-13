@@ -25,7 +25,7 @@ describe('db: roomType: create: ', () => {
       RoomType.create(u.getStandard())
       .then((o) => {
         expect(o).to.have.property('name');
-        expect(o).to.have.property('active').to.equal(true);
+        expect(o).to.have.property('isEnabled').to.equal(true);
         expect(o).to.have.property('settings');
         expect(o).to.have.property('rules');
         done();
@@ -33,13 +33,13 @@ describe('db: roomType: create: ', () => {
     .catch(done);
     });
 
-    it('ok, room type created active false', (done) => {
+    it('ok, room type created isEnabled false', (done) => {
       const roomtype = u.getStandard();
-      roomtype.active = false;
+      roomtype.isEnabled = false;
       RoomType.create(roomtype)
       .then((o) => {
         expect(o).to.have.property('name');
-        expect(o).to.have.property('active').to.equal(false);
+        expect(o).to.have.property('isEnabled').to.equal(false);
         done();
       })
     .catch(done);

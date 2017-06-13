@@ -26,8 +26,8 @@ describe('db: room type: find: ', () => {
   afterEach(u.forceDelete);
 
   describe('Find room type', () => {
-    it('ok, room type active', (done) => {
-      RoomType.findOne({ where: { active: true } })
+    it('ok, room type isEnabled', (done) => {
+      RoomType.findOne({ where: { isEnabled: true } })
       .then((o) => {
         expect(o).to.have.property('name').to.equal(u.name);
         done();
