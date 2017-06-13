@@ -15,7 +15,6 @@
 const ResourceNotFoundError = require('../db/dbErrors').ResourceNotFoundError;
 const perspective = require('../db/index').Perspective;
 const featureToggles = require('feature-toggles');
-const jwtUtil = require('../utils/jwtUtil');
 const rtUtils = require('./utils');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
@@ -23,7 +22,6 @@ const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
 const logEnabled =
   featureToggles.isFeatureEnabled('enableRealtimeActivityLogs');
-const ZERO = 0;
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;
 
@@ -111,7 +109,6 @@ function init(io, redisStore) {
     const sid = sidMatch[1];
     getUserFromSession(sid, redisStore)
     .then((user) => {
-      console.log('got user from session', user);
 
       // OK, we've got a user from the session!
       let ipAddress;
@@ -183,8 +180,6 @@ function init(io, redisStore) {
       return setupNamespace(io);
     })
     .catch((err) => {
-      console.log('error on socket connection', err);
-
       // no realtime events :(
       socket.disconnect();
       return;

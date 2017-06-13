@@ -200,6 +200,11 @@ describe('realtime utils Tests:', () => {
         }
       });
 
+      it('ok when whitelist is not defined', () => {
+        const addr = '5.6.7.805';
+        expect(realtimeUtils.isIpWhitelisted(addr)).to.equal(true);
+      });
+
       it('range not legit', () => {
         const addr = '5.6.7.805';
         const whitelist = [[0], ['1.2.3.4', '9.3.4.5']];
