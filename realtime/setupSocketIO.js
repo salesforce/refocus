@@ -14,46 +14,46 @@
 'use strict'; // eslint-disable-line strict
 const ResourceNotFoundError = require('../db/dbErrors').ResourceNotFoundError;
 const perspective = require('../db/index').Perspective;
+const featureToggles = require('feature-toggles');
 const jwtUtil = require('../utils/jwtUtil');
 const rtUtils = require('./utils');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
+const conf = require('../config');
+const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
-const featureToggles = require('feature-toggles');
 const logEnabled =
   featureToggles.isFeatureEnabled('enableRealtimeActivityLogs');
 const ZERO = 0;
 const ONE = 1;
+const SID_REX = /connect.sid=s%3A([^\.]*)\./;
 
 /**
- * Extract the token info from the socket.
+ * Load the authenticated user name from the session id.
  *
- * @param {Socket} socket - The socket.
- * @returns {Promise} - Resolves to object with "username" and "tokenname"
- *  attributes.
+ * @param {String} sid - The session id from the cookie
+ * @param {Object} redisStore - The RedisStore object
+ * @param {String} username, or empty string if requireAccessToken is turned
+ *  off
+ * @throws {Error} missing session or user name
  */
-function extractTokenInfo(socket) {
-  const resp = { username: '', tokenname: '' };
-  return new Promise((resolve) => {
-    try {
-      const token = socket.handshake.headers.cookie.split('; ')
-        .filter((c) => c.startsWith('Authorization='))[ZERO]
-        .split('=')[ONE];
-      if (token) {
-        jwtUtil.getTokenDetailsFromTokenString(token)
-        .then(resolve)
-        .catch(() => {
-          // Write out log with empty username/tokenname if not available
-          resolve(resp);
-        });
-      } else { // No token, just write out log with empty username/tokenname
-        resolve(resp);
-      }
-    } catch (err) {
-      // Socket doesn't contain expected handshake.headers.cookie.
-      resolve(resp); // Write out log with empty username/tokenname
+function getUserFromSession(sid, redisStore) {
+  return new Promise((resolve, reject) => {
+    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
+      redisStore.get(sid, (err, sessionData) => {
+        if (err) {
+          reject(err);
+        } else if (sessionData && sessionData.passport &&
+        sessionData.passport.user && sessionData.passport.user.name) {
+          resolve(sessionData.passport.user.name);
+        } else {
+          reject(new Error('Expecting valid session'));
+        }
+      });
+    } else {
+      resolve('');
     }
   });
-} // extractTokenInfo
+} // getUserFromSession
 
 /**
  * Fetches all the perspectives and calls initializeNamespace to initialize
@@ -90,78 +90,108 @@ function setupNamespace(io) {
  *  server-side object with the namespace initialized. (This is returned for
  *  testability.)
  */
-function init(io) {
+function init(io, redisStore) {
   io.sockets.on('connection', (socket) => {
-    if (logEnabled) {
-      const toLog = {
-        starttime: Date.now(),
-      };
+    // Socket handshake must have "cookie" header with connect.sid.
+    if (!socket.handshake.headers.cookie) {
+      // disconnecting socket -- expecting header with cookie
+      console.log('socketIO disconnected because cookie is null-----', socket.handshake.headers);
+      socket.disconnect();
+      return;
+    } // no cookie
+
+    // Pull the sesssion id off the cookie.
+    const sidMatch = SID_REX.exec(socket.handshake.headers.cookie);
+    if (!sidMatch || sidMatch.length < 2) {
+      // disconnecting socket -- expecting session id in cookie header
+      console.log('socketIO disconnected because cookie is regex does not match-----', sidMatch.length);
+      socket.disconnect();
+      return;
+    }
+
+    // Load the session from redisStore.
+    const sid = sidMatch[1];
+    getUserFromSession(sid, redisStore)
+    .then((user) => {
+      console.log('got user from session', user);
+
+      // OK, we've got a user from the session!
+      let ipAddress;
+
+      // Get IP address and perspective name from socket handshake.
       if (socket.handshake) {
         if (socket.handshake.headers &&
-          socket.handshake.headers['x-forwarded-for']) {
-          toLog.ipAddress = socket.handshake.headers['x-forwarded-for'];
+        socket.handshake.headers['x-forwarded-for']) {
+          ipAddress = socket.handshake.headers['x-forwarded-for'];
         } else if (socket.handshake.address) {
-          toLog.ipAddress = socket.handshake.address;
+          ipAddress = socket.handshake.address;
         }
+
+        rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
+      } else {
+        throw new Error('disconnecting socket: could not identify ip address');
+      }
+
+      if (logEnabled) {
+        const toLog = {
+          ipAddress,
+          starttime: Date.now(),
+          user,
+        };
 
         if (socket.handshake.query && socket.handshake.query.p) {
           toLog.perspective = socket.handshake.query.p;
         }
-      }
 
-      extractTokenInfo(socket)
-      .then((resp) => {
-        if (resp.username) {
-          toLog.user = resp.username;
-        }
-
-        if (resp.tokenname) {
-          toLog.token = resp.tokenname;
-        }
-
-        // Store the logging info in redis keyed off the socket id.
         redisClient.set(socket.id, JSON.stringify(toLog));
-      });
-    } // if logEnabled
 
-    if (logEnabled) {
-      socket.on('disconnect', () => {
-        // Retrieve the logging info for this socket.
-        redisClient.get(socket.id, (getErr, getResp) => {
-          if (getErr) {
-            console.log('Error ' + // eslint-disable-line no-console
-              `retrieving socket id ${socket.id} from redis on client ` +
-              'disconnect:', getErr);
-          } else { // eslint-disable-line lines-around-comment
-            /*
-             * Calculate the totalTime and write out the log line. If redis
-             * was flushed by an admin, the response here will be empty, so
-             * just skip the logging.
-             */
-            const d = JSON.parse(getResp);
-            if (d && d.starttime) {
-              d.totalTime = (Date.now() - d.starttime) + 'ms';
-              activityLogUtil.printActivityLogString(d, 'realtime');
+        socket.on('disconnect', () => {
+          // Retrieve the logging info for this socket.
+          redisClient.get(socket.id, (getErr, getResp) => {
+            if (getErr) {
+              console.log('Error ' + // eslint-disable-line no-console
+                `retrieving socket id ${socket.id} from redis on client ` +
+                'disconnect:', getErr);
+            } else { // eslint-disable-line lines-around-comment
+              /*
+               * Calculate the totalTime and write out the log line. If redis
+               * was flushed by an admin, the response here will be empty, so
+               * just skip the logging.
+               */
+              const d = JSON.parse(getResp);
+              if (d && d.starttime) {
+                d.totalTime = (Date.now() - d.starttime) + 'ms';
+                activityLogUtil.printActivityLogString(d, 'realtime');
+              }
+
+              // Remove the redis key for this socket.
+              redisClient.del(socket.id, (delErr, delResp) => {
+                if (delErr) {
+                  console.log('Error ' + // eslint-disable-line no-console
+                    `deleting socket id ${socket.id} from redis on ` +
+                    'client disconnect:', delErr);
+                } else if (delResp !== ONE) {
+                  console.log('Expecting' + // eslint-disable-line no-console
+                    `unique socket id ${socket.id} to delete from redis on ` +
+                    `client disconnect, but ${delResp} were deleted.`);
+                }
+              }); // redisClient.del
             }
 
-            // Remove the redis key for this socket.
-            redisClient.del(socket.id, (delErr, delResp) => {
-              if (delErr) {
-                console.log('Error ' + // eslint-disable-line no-console
-                  `deleting socket id ${socket.id} from redis on ` +
-                  'client disconnect:', delErr);
-              } else if (delResp !== ONE) {
-                console.log('Expecting' + // eslint-disable-line no-console
-                  `unique socket id ${socket.id} to delete from redis on ` +
-                  `client disconnect, but ${delResp} were deleted.`);
-              }
-            }); // redisClient.del
-          }
-        }); // redisClient.get
-      }); // on disconnect
-    } // if logEnabled
+          }); // redisClient.get
+        }); // on disconnect
+      } // if logEnabled
+
+      return setupNamespace(io);
+    })
+    .catch((err) => {
+      console.log('error on socket connection', err);
+
+      // no realtime events :(
+      socket.disconnect();
+      return;
+    });
   }); // on connect
-  return setupNamespace(io);
 } // init
 
 module.exports = {
