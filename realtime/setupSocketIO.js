@@ -111,6 +111,8 @@ function init(io, redisStore) {
     const sid = sidMatch[1];
     getUserFromSession(sid, redisStore)
     .then((user) => {
+      console.log('got user from session', user);
+
       // OK, we've got a user from the session!
       let ipAddress;
 
@@ -181,6 +183,8 @@ function init(io, redisStore) {
       return setupNamespace(io);
     })
     .catch((err) => {
+      console.log('error on socket connection', err);
+
       // no realtime events :(
       socket.disconnect();
       return;
