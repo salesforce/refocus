@@ -21,7 +21,6 @@ const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
-const featureToggles = require('feature-toggles');
 const logEnabled =
   featureToggles.isFeatureEnabled('enableRealtimeActivityLogs');
 const ZERO = 0;
