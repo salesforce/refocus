@@ -97,6 +97,7 @@ describe('db: roomType: create: ', () => {
       roomtype.settings = [
         {
           key: invalidValue,
+          value: 'value1',
         },
       ];
       RoomType.create(roomtype)
@@ -444,6 +445,50 @@ describe('db: roomType: create: ', () => {
           },
           action: {
             name: invalidValue,
+            parameters: [
+              {
+                name: 'Parameter1',
+                value: 'Value1',
+              },
+              {
+                name: 'Parameter2',
+                value: 'Value2',
+              },
+              {
+                name: 'Parameter3',
+                value: 'Value3',
+              },
+            ],
+          },
+        },
+      ];
+      RoomType.create(roomtype)
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.name).to.equal(tu.valErrorName);
+        expect(err.message.toLowerCase()).to.contain('validation error');
+        done();
+      })
+    .catch(done);
+    });
+
+    it('fail, room type nest rule fails', (done) => {
+      const roomtype = u.getStandard();
+      roomtype.rules = [
+        {
+          rule: {
+            'and': [
+              {
+                'and': [
+                  { '>': [7,8] },
+                  { '<': '[9,10]' },
+                ],
+              },
+              { '<': [1,2] },
+            ],
+          },
+          action: {
+            name: 'Action1',
             parameters: [
               {
                 name: 'Parameter1',

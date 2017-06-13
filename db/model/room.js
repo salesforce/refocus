@@ -17,7 +17,7 @@ const constants = require('../constants');
 
 const assoc = {};
 
-module.exports = function user(seq, dataTypes) {
+module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
     id: {
       type: dataTypes.INTEGER,

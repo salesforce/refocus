@@ -70,19 +70,20 @@ function validateRules(obj) {
   let j = 0;
   const keys = Object.keys(obj);
   for (let i = 0; i < keys.length; i++) {
-    if ((keys[i] ==='and') || (keys[i] === 'or')) {
+    if ((keys[i] === 'and') || (keys[i] === 'or')) {
       while (j < obj[keys[i]].length) {
         if (validateRules(obj[keys[i]][j])) {
           j++;
         }
       }
     } else if ((Array.isArray(obj[keys[i]]) !== true) ||
-      (obj[keys[i]].length !== MAX_ARGUMENTS)){
+      (obj[keys[i]].length !== MAX_ARGUMENTS)) {
       throw new ValidationError({
         message: 'Invalid JSON Logic Expression',
       });
     }
   }
+
   return true;
 } // validateRules
 

@@ -25,7 +25,7 @@ const constants = require('../constants');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
 
-module.exports = function user(seq, dataTypes) {
+module.exports = function roomType(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
     id: {
       type: dataTypes.UUID,
