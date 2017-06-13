@@ -242,6 +242,7 @@ function getValuesObject(accumulatorObject) {
     handleHierarchyEvent,
     handleLensDomEvent,
     customHandleError,
+    setupSocketIOClient,
   } = accumulatorObject;
   const constants = require('../../api/v1/constants');
   const httpStatus = constants.httpStatus;
@@ -354,6 +355,7 @@ function getValuesObject(accumulatorObject) {
      *  valuesObj.perspective = null
      */
      if (returnedPerspective) {
+        setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
         valuesObj.name = valuesObj.perspective.name;
      } else if (named) {
