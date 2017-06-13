@@ -2,7 +2,13 @@
 
 # Using Jekyll Locally
 
-Locally
+* Install Jekyll
+
+`gem install bundle jekyll`
+
+`bundle install`
+
+* Start a server locally
 
 `bundle exec jekyll serve`
 
