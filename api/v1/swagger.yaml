@@ -6211,11 +6211,17 @@ paths:
             required:
               - name
       responses:
-        200:
+        201:
           description: >-
-            Created Bot
+            Created.
           schema:
             $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
 
