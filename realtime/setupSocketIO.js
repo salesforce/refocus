@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const ResourceNotFoundError = require('../db/dbErrors').ResourceNotFoundError;
 const perspective = require('../db/index').Perspective;
+const featureToggles = require('feature-toggles');
 const jwtUtil = require('../utils/jwtUtil');
 const rtUtils = require('./utils');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
@@ -32,19 +33,26 @@ const SID_REX = /connect.sid=s%3A([^\.]*)\./;
  *
  * @param {String} sid - The session id from the cookie
  * @param {Object} redisStore - The RedisStore object
+ * @param {String} username, or empty string if requireAccessToken is turned
+ *  off
+ * @throws {Error} missing session or user name
  */
 function getUserFromSession(sid, redisStore) {
   return new Promise((resolve, reject) => {
-    redisStore.get(sid, (err, sessionData) => {
-      if (err) {
-        reject(err);
-      } else if (sessionData && sessionData.passport &&
-      sessionData.passport.user && sessionData.passport.user.name) {
-        resolve(sessionData.passport.user.name);
-      } else {
-        reject(new Error('Expecting valid session'));
-      }
-    });
+    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
+      redisStore.get(sid, (err, sessionData) => {
+        if (err) {
+          reject(err);
+        } else if (sessionData && sessionData.passport &&
+        sessionData.passport.user && sessionData.passport.user.name) {
+          resolve(sessionData.passport.user.name);
+        } else {
+          reject(new Error('Expecting valid session'));
+        }
+      });
+    } else {
+      resolve('');
+    }
   });
 } // getUserFromSession
 
@@ -125,7 +133,7 @@ function init(io, redisStore) {
         const toLog = {
           ipAddress,
           starttime: Date.now(),
-          user,
+          user: user,
         };
 
         if (socket.handshake.query && socket.handshake.query.p) {
