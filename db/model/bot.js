@@ -89,3 +89,17 @@ module.exports = function bot(seq, dataTypes) {
   return Bot;
 };
 
+/*
+{
+  "name": "as222d211",
+  "url": "http://aa.com",
+  "active": true,
+  "actions": [
+    { "name": "Action1", "parameters": [ { "name": "Param1", "type": "BOOLEAN" } ] }
+  ],
+  "data": [
+    { "name": "test", "type": "BOOLEAN" }
+  ]
+}
+*/
+

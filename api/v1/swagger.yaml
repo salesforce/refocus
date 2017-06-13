@@ -28,7 +28,7 @@ info:
   #   url: http://focus.salesforce.com/license
 
 # =============================================================================
-host: localhost:10010
+host: localhost:3000
 
 # =============================================================================
 basePath: /v1
@@ -41,7 +41,6 @@ basePath: /v1
 
 # =============================================================================
 schemes:
-  - https
   - http
 
 # =============================================================================
@@ -6135,27 +6134,88 @@ paths:
             $ref: '#/definitions/ErrorResponse'
 
 # =============================================================================
-  /rooms:
-    x-swagger-router-controller: rooms
+  /bots:
+    x-swagger-router-controller: bots
     get:
-      tags: [ rooms ]
-      operationId: findRooms
+      summary: Retrieve all bots
+      tags: [ bots ]
+      operationId: findBots
+      parameters:
+        -
+          name: name
+          description: Get bots by name
+          in: query
+          required: false
+          type: string
+        -
+          name: active
+          description: Get active bots
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
       responses:
         200:
           description: >-
-            Success
+            Success, returns all Bots
           schema:
-            type: object
-            properties:
-              Success:
-                type: boolean
-                readOnly: true
+            type: array
+            items:
+              $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
         404:
           $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new bot
+      tags: [ bots ]
+      description: Create a new bot with a name
+      operationId: postBots
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create bot properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot
+              url:
+                type: string
+                description: Bot url
+              active:
+                type: boolean
+                description: If the bot is active
+              actions:
+                type: array
+                items:
+                  type: object
+              data:
+                type: array
+                items:
+                  type: object
+            required:
+              - name
+      responses:
+        200:
+          description: >-
+            Created Bot
+          schema:
+            $ref: "#/definitions/BotResponse"
         default:
           $ref: "#/responses/genericError"
 
@@ -7372,6 +7432,27 @@ definitions:
         type: string
         description: >
           Timestamp at which the the write permission was modified
+
+  BotResponse:
+    type: object
+    description: A response for information about a bot
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+      active:
+        type: boolean
+      actions:
+        type: array
+        items:
+          type: object
+      data:
+        type: array
+        items:
+          type: object
 
 # =============================================================================
 parameters:
