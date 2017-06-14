@@ -19,7 +19,7 @@ import { statuses } from '../../../api/v1/constants';
 import sinon from 'sinon';
 import { getValuesObject } from '../../../view/perspective/utils.js';
 
-describe('Perspective app ', () => {
+describe.only('Perspective app ', () => {
   const tags = ['one', 'two', 'three', 'four', 'five'];
   const ZERO = 0;
   const ONE = 1;
@@ -115,8 +115,8 @@ describe('Perspective app ', () => {
     };
   }
 
-  describe.only('results from GET requests', () => {
-    it.only('redirect is called when default perspective exists', () => {
+  describe('results from GET requests', () => {
+    it.skip('redirect is called when default perspective exists', () => {
       const globalconfigObject = {};
 
       // on request GET_DEFAULT_PERSPECTIVE, return object with key
@@ -129,12 +129,33 @@ describe('Perspective app ', () => {
       const obj = getValuesObject(accumulatorObject);
 
       // check redirectToUrl is called with the expected url
+      // by looking into the first argument of the first call to redirectToUrl
       obj.then((obj) => {
         expect(spy.args[0][0]).to.equal('/perspectives/' + DUMMY_STRING);
       });
     });
 
-    it('redirect is called when default perspective does not exist, but perspectives do')
+    it.skip('redirect is called when default perspective does not exist, but ' +
+      'perspectives do', () => {
+      const globalconfigObject = {};
+
+      // on request GET_DEFAULT_PERSPECTIVE, response does not contain the body.
+      // expect the app to redirect to url ending with the name of
+      // the first perspective by alphabetical order
+      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = {};
+      setup(globalconfigObject);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getDefaultPerspectiveUrl;
+      accumulatorObject.redirectToUrl = spy;
+      const obj = getValuesObject(accumulatorObject);
+
+      // check redirectToUrl is called with the expected url
+      // by looking into the first argument of the first call to redirectToUrl
+      obj.then((obj) => {
+        expect(spy.args[0][0]).to.equal('/perspectives/' + DUMMY_STRING);
+      });
+    });
+
     it('default fields', () => {
       setup();
       accumulatorObject.getPromiseWithUrl = request;

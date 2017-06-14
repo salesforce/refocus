@@ -337,7 +337,6 @@ function getValuesObject(accumulatorObject) {
 
     // use ternary as if pespective does not exist, responses[1] is undefined
     const returnedPerspective = responses[1] ? responses[1].body : null;
-    console.log('in responses', named, returnedPerspective)
 
     // assign perspective-related values to the accumulator object
     valuesObj.persNames = valuesObj.perspectives
@@ -355,16 +354,21 @@ function getValuesObject(accumulatorObject) {
      if (!named && returnedPerspective) {
 
       // the key field has the name of the default perspective
-      console.log('about to redirectToUrl', returnedPerspective.key, redirectToUrl.calledOnce, redirectToUrl.args[0])
       redirectToUrl('/perspectives/' + returnedPerspective.key);
-      console.log(redirectToUrl.calledOnce, redirectToUrl.args[0]);
-
      }
+
+     const promisesArr = [
+      getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
+      getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
+      getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags')
+     ];
      if (named && returnedPerspective) {
         setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
         valuesObj.name = valuesObj.perspective.name;
-        return Promise.all(getPageLoadingPromises(returnedPerspective));
+
+        // perspective exists. GET its hierarchy and lenses soon.
+        promisesArr.concat(getPageLoadingPromises(returnedPerspective));
      } else if (named) {
 
         // named perspective does not exist
@@ -389,13 +393,6 @@ function getValuesObject(accumulatorObject) {
           customHandleError('no perspectives exist.');
       }
     }
-
-    // valuesObj.perspective have been assigned.
-    const promisesArr = [
-      getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
-      getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
-      getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags'),
-    ];
 
     return Promise.all(promisesArr);
   })
