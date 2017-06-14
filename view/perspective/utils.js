@@ -344,25 +344,47 @@ function getValuesObject(accumulatorObject) {
 
     /*
      * One out of four situations can happen:
-     * GET named perspective: exists. Assign perspective
      * GET default perspective: exists. Redirect to the default perspective
-     * GET named perspective: does NOT exist: handleError
      * GET default perspective: does NOT exist: perspective is the first
-     *  perspective in the perspectives array. If no perspectives exist,
-     *  valuesObj.perspective = null
+     *  perspective in the perspectives array.
+     * If no perspectives exist, valuesObj.perspective = null
      */
-     if (!named && returnedPerspective) {
+     if (!named) {
+      if (returnedPerspective) {
 
-      // the value field has the name of the default perspective
-      redirectToUrl('/perspectives/' + returnedPerspective.value);
+        // the value field has the name of the default perspective.
+        // need the return statement to skip executing the rest of code
+        return redirectToUrl('/perspectives/' + returnedPerspective.value);
+      }
+
+      // default perspective does NOT exist.
+      // GET the first perspective by alphabetical order.
+      // Check to see there are perspectives
+      if (valuesObj.perspectives.length) {
+
+        // redirect to the first perspective. The rest of the code
+        // won't be executed.
+        return redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
+      } else {
+        valuesObj.perspective = null;
+
+        // no perspectives exist.
+        // Execution needs to continue after this, to
+        //  load the perspective picker
+        customHandleError('no perspectives exist.');
+      }
      }
 
+    /*
+     * GET named perspective: exists. Assign perspective
+     * GET named perspective: does NOT exist: handleError
+     */
      const promisesArr = [
       getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
       getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
       getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags')
      ];
-     if (named && returnedPerspective) {
+     if (returnedPerspective) {
         setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
         valuesObj.name = valuesObj.perspective.name;
@@ -371,27 +393,11 @@ function getValuesObject(accumulatorObject) {
         promisesArr.concat(getPageLoadingPromises(returnedPerspective));
      } else if (named) {
 
-        // named perspective does not exist
-        const name = url.split('/').pop();
-        customHandleError('Sorry, but the perspective you were trying ' +
-          'to load, ' + name + ', does not exist. Please select a ' +
-          'perspective from the dropdown.');
-      } else {
-
-        // default perspective does NOT exist.
-        // GET the first perspective by alphabetical order.
-        // Check to see there are perspectives
-        if (valuesObj.perspectives.length) {
-
-          // redirect to the first perspective. The rest of the code
-          // won't be executed.
-          redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
-        } else {
-          valuesObj.perspective = null;
-
-          // no perspectives exist
-          customHandleError('no perspectives exist.');
-      }
+      // named perspective does not exist
+      const name = url.split('/').pop();
+      customHandleError('Sorry, but the perspective you were trying ' +
+        'to load, ' + name + ', does not exist. Please select a ' +
+        'perspective from the dropdown.');
     }
 
     return Promise.all(promisesArr);
