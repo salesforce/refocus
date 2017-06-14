@@ -24,7 +24,7 @@ module.exports = {
   /**
    * DELETE /bots/{key}
    *
-   * Deletes the profile and sends it back in the response.
+   * Deletes the bot and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -37,7 +37,7 @@ module.exports = {
   /**
    * GET /bots
    *
-   * Finds zero or more Bots and sends them back in the response.
+   * Finds zero or more bots and sends them back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -50,7 +50,7 @@ module.exports = {
   /**
    * GET /bots/{key}
    *
-   * Retrieves the profile and sends it back in the response.
+   * Retrieves the bot and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -63,9 +63,7 @@ module.exports = {
   /**
    * PATCH /bots/{key}
    *
-   * Updates the profile and sends it back in the response. PATCH will only
-   * update the attributes of the profile provided in the body of the request.
-   * Other attributes will not be updated.
+   * Update the specificed bot
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -78,7 +76,7 @@ module.exports = {
   /**
    * POST /bots
    *
-   * Creates a new profile and sends it back in the response.
+   * Creates a new bot and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -91,8 +89,7 @@ module.exports = {
   /**
    * PUT /bots/{key}
    *
-   * Updates a profile and sends it back in the response. If any attributes
-   * are missing from the body of the request, those attributes are cleared.
+   * Overrides the bot with that ID
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
