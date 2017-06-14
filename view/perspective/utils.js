@@ -353,8 +353,8 @@ function getValuesObject(accumulatorObject) {
      */
      if (!named && returnedPerspective) {
 
-      // the key field has the name of the default perspective
-      redirectToUrl('/perspectives/' + returnedPerspective.key);
+      // the value field has the name of the default perspective
+      redirectToUrl('/perspectives/' + returnedPerspective.value);
      }
 
      const promisesArr = [

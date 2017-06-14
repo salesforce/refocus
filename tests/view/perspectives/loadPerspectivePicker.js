@@ -116,12 +116,13 @@ describe('Perspective app ', () => {
   }
 
   describe('results from GET requests', () => {
-    it.skip('redirect is called when default perspective exists', () => {
+    it('redirect is called when default perspective exists', () => {
       const globalconfigObject = {};
 
-      // on request GET_DEFAULT_PERSPECTIVE, return object with key
-      // expect the app to redirect to url ending with key.
-      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = { body: { key: DUMMY_STRING } };
+      // on request GET_DEFAULT_PERSPECTIVE, return object with
+      // 'value' field.
+      // expect the app to redirect to url ending with 'value' field.
+      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = { body: { value: DUMMY_STRING } };
       setup(globalconfigObject);
       accumulatorObject.getPromiseWithUrl = request;
       accumulatorObject.getPerspectiveUrl = getDefaultPerspectiveUrl;
@@ -135,7 +136,7 @@ describe('Perspective app ', () => {
       });
     });
 
-    it.skip('redirect is called when default perspective does not exist, but ' +
+    it('redirect is called when default perspective does not exist, but ' +
       'perspectives do', () => {
       const globalconfigObject = {};
 
