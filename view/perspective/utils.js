@@ -373,7 +373,8 @@ function getValuesObject(accumulatorObject) {
 
       // Execution needs to continue after this, to
       //  load the perspective picker
-      customHandleError('no perspectives exist.');
+      customHandleError('There are no perspectives yet. Click the ' +
+        ' "Search Perspectives" input box then click "New Perspective".');
      }
 
     /*
