@@ -346,6 +346,7 @@ window.onload = () => {
         ERROR_INFO_DIV.innerHTML = msg;
       removeSpinner();
     },
+    setupSocketIOClient,
   };
 
   getValuesObject(accumulatorObject)

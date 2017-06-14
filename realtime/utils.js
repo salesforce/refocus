@@ -263,12 +263,45 @@ function initializeNamespace(inst, io) {
   return io;
 }
 
-module.exports = {
+/**
+ * Utility function checks an ip address against a whitelist.
+ *
+ * @param {String} addr - The address to test
+ * @param {Array} whitelist - An array of arrays
+ * @returns {Boolean} true if address is whitelisted
+ * @throws {Error} if address is NOT whitelisted
+ */
+function isIpWhitelisted(addr, whitelist) {
+  /*
+   * if the whitelist passed is not defined or it is not an array, assume
+   * that the ip address is whitelisted
+   */
+  if (!Array.isArray(whitelist)) {
+    return true;
+  }
 
+  const ok = whitelist.some((range) => {
+    if (Array.isArray(range) && range.length === 2) {
+      if (range[0] <= range[1] && addr >= range[0] && addr <= range[1]) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  if (ok) {
+    return ok;
+  }
+
+  throw new Error(`IP address "${addr}" is not whitelisted`);
+} // isIpWhitelisted
+
+module.exports = {
   getNamespaceString,
-  initializeNamespace,
   getNewObjAsString,
+  initializeNamespace,
+  isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-
 }; // exports
