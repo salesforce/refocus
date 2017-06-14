@@ -14,14 +14,9 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const tu = require('../../../testUtils');
 const u = require('./utils');
-const Bot = tu.db.Bot;
 const path = '/v1/bots';
 const expect = require('chai').expect;
-const ZERO = 0;
-const ONE = 1;
-const TWO = 2;
 
 describe(`api: DELETE ${path}`, () => {
   let testBot;
@@ -54,10 +49,10 @@ describe(`api: DELETE ${path}`, () => {
     it('Fail, bot not found', (done) => {
       api.delete(`${path}/INVALID_ID`)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res) => {
+      .end((err) => {
         done(err);
       });
     });
   });
-
 });
+

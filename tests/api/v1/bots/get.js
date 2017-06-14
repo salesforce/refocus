@@ -14,9 +14,7 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const tu = require('../../../testUtils');
 const u = require('./utils');
-const Bot = tu.db.Bot;
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -106,7 +104,7 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
-        expect(res.body[0].name).to.equal(u.name);
+        expect(res.body[ZERO].name).to.equal(u.name);
       });
     });
 
@@ -126,10 +124,10 @@ describe(`api: GET ${path}`, () => {
     it('Fail, id not found', (done) => {
       api.get(`${path}/INVALID_ID`)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res) => {
+      .end(() => {
         done();
       });
     });
   });
-
 });
+

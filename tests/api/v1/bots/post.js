@@ -14,17 +14,12 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const tu = require('../../../testUtils');
 const u = require('./utils');
-const Bot = tu.db.Bot;
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
-const ONE = 1;
-const TWO = 2;
 
 describe(`api: POST ${path}`, () => {
-
   afterEach(u.forceDelete);
 
   describe('POST bot', () => {
@@ -44,7 +39,7 @@ describe(`api: POST ${path}`, () => {
 
     it('Fail, duplicate bot', (done) => {
       u.createStandard()
-      .then(() => done())
+      .then(() => done());
 
       api.post(`${path}`)
       .send(u.getStandard())
@@ -53,7 +48,7 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           done(err);
         }
-        expect(res.body.errors[0].type).to
+        expect(res.body.errors[ZERO].type).to
         .contain('SequelizeUniqueConstraintError');
       });
     });
@@ -69,12 +64,11 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           done(err);
         }
-        expect(res.body.errors[0].type).to
+        expect(res.body.errors[ZERO].type).to
         .contain('SCHEMA_VALIDATION_FAILED');
         done();
       });
     });
-
   });
-
 });
+

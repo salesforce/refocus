@@ -6202,10 +6202,12 @@ paths:
                 description: If the bot is active
               actions:
                 type: array
+                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
                 items:
                   type: object
               data:
                 type: array
+                description: Array of objects that contain the name of data on a bot
                 items:
                   type: object
             required:
@@ -6213,7 +6215,7 @@ paths:
       responses:
         201:
           description: >-
-            Created.
+            Created bot
           schema:
             $ref: "#/definitions/BotResponse"
         400:
@@ -6292,7 +6294,7 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns all Bots
+            Success, returns specified bot
           schema:
             type: array
             items:
@@ -6341,76 +6343,17 @@ paths:
                 description: If the bot is active
               actions:
                 type: array
-                description: The actions the bot can take
+                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
                 items:
                   type: object
               data:
                 type: array
-                description: The data a bot has to use
+                description: Array of objects that contain the name of data on a bot
                 items:
                   type: object
-      responses:
-        201:
+        200:
           description: >-
-            Updated.
-          schema:
-            $ref: "#/definitions/BotResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        default:
-          $ref: "#/responses/genericError"
-
-    put:
-      security:
-        - jwt: []
-      summary: Update specified bot
-      tags: [ bots ]
-      description: Update bot
-      operationId: putBots
-      parameters:
-        -
-          name: key
-          in: path
-          description: >-
-            The id or name of the bot to retrieve
-          required: true
-          type: string
-        -
-          name: queryBody
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Create bot properties
-            properties:
-              name:
-                type: string
-                maxLength: 254
-                description: Name of the bot
-              url:
-                type: string
-                description: Bot url
-              active:
-                type: boolean
-                description: If the bot is active
-              actions:
-                type: array
-                description: The actions the bot can take
-                items:
-                  type: object
-              data:
-                type: array
-                description: The data a bot has to use
-                items:
-                  type: object
-      responses:
-        201:
-          description: >-
-            Updated.
+            Updated field
           schema:
             $ref: "#/definitions/BotResponse"
         400:
