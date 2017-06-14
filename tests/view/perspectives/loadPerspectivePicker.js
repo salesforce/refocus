@@ -19,7 +19,7 @@ import { statuses } from '../../../api/v1/constants';
 import sinon from 'sinon';
 import { getValuesObject } from '../../../view/perspective/utils.js';
 
-describe.only('Perspective app ', () => {
+describe('Perspective app ', () => {
   const tags = ['one', 'two', 'three', 'four', 'five'];
   const ZERO = 0;
   const ONE = 1;
