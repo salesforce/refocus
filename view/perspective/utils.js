@@ -243,6 +243,7 @@ function getValuesObject(accumulatorObject) {
     handleLensDomEvent,
     customHandleError,
     setupSocketIOClient,
+    redirectToUrl, // here for testing purposes
   } = accumulatorObject;
   const constants = require('../../api/v1/constants');
   const httpStatus = constants.httpStatus;
@@ -327,10 +328,6 @@ function getValuesObject(accumulatorObject) {
   const arr = [
     getPromiseWithUrl('/v1/perspectives'),
     getPromiseWithUrl(url)
-    .then((res) => {
-      Promise.all(getPageLoadingPromises(res.body));
-      return res;
-    })
     .catch(console.log)
   ];
 
@@ -340,6 +337,7 @@ function getValuesObject(accumulatorObject) {
 
     // use ternary as if pespective does not exist, responses[1] is undefined
     const returnedPerspective = responses[1] ? responses[1].body : null;
+    console.log('in responses', named, returnedPerspective)
 
     // assign perspective-related values to the accumulator object
     valuesObj.persNames = valuesObj.perspectives
@@ -348,16 +346,25 @@ function getValuesObject(accumulatorObject) {
     /*
      * One out of four situations can happen:
      * GET named perspective: exists. Assign perspective
-     * GET default perspective: exists. Assign perspective
+     * GET default perspective: exists. Redirect to the default perspective
      * GET named perspective: does NOT exist: handleError
      * GET default perspective: does NOT exist: perspective is the first
      *  perspective in the perspectives array. If no perspectives exist,
      *  valuesObj.perspective = null
      */
-     if (returnedPerspective) {
+     if (!named && returnedPerspective) {
+
+      // the key field has the name of the default perspective
+      console.log('about to redirectToUrl', returnedPerspective.key, redirectToUrl.calledOnce, redirectToUrl.args[0])
+      redirectToUrl('/perspectives/' + returnedPerspective.key);
+      console.log(redirectToUrl.calledOnce, redirectToUrl.args[0]);
+
+     }
+     if (named && returnedPerspective) {
         setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
         valuesObj.name = valuesObj.perspective.name;
+        return Promise.all(getPageLoadingPromises(returnedPerspective));
      } else if (named) {
 
         // named perspective does not exist
@@ -374,7 +381,7 @@ function getValuesObject(accumulatorObject) {
 
           // redirect to the first perspective. The rest of the code
           // won't be executed.
-          window.location.href = '/perspectives/' + valuesObj.perspectives[0].name;
+          redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
         } else {
           valuesObj.perspective = null;
 
