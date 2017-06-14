@@ -89,8 +89,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 
 /**
  * The sample object needs to be attached its subject object and it also needs
- * a absolutePath field added to it before the sample is published to the redis
- * channel.
+ * an absolutePath field added to it before the sample is published to the
+ * redis channel.
+ *
  * @param  {Object} sampleInst - The sample instance to be published
  * @param  {Model} subjectModel - The subject model to get the related
  * subject instance
@@ -126,8 +127,8 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     if (sub) {
 
       /*
-       *pass the sample instance to the publishObject function only if the
-       *aspect and subject are published
+       * pass the sample instance to the publishObject function only if the
+       * aspect and subject are published
        */
       if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
         // attach subject to the sample
@@ -135,7 +136,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
         // attach absolutePath field to the sample
         sample.absolutePath = subName;
-        publishObject(sample, eventType);
+        publishObject(sample, eventType, ['apiLinks']);
       }
     }
 

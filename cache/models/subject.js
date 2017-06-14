@@ -88,7 +88,8 @@ function attachSamples(res) {
     });
 
     return redisClient.batch(cmds).execAsync();
-  }).then((saArray) => {
+  })
+  .then((saArray) => {
     for (let i = 0; i < saArray.length; i += TWO) {
       const sample = saArray[i];
       const asp = saArray[i + ONE];
@@ -96,10 +97,11 @@ function attachSamples(res) {
 
         // parse the array fields to JSON before adding them to the sample list
         sampleStore.arrayStringsToJson(sample,
-                                    constants.fieldsToStringify.sample);
-        sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
-
+          constants.fieldsToStringify.sample);
+        sampleStore.arrayStringsToJson(asp,
+          constants.fieldsToStringify.aspect);
         sample.aspect = asp;
+        delete sample.apiLinks;
         res.samples.push(sample);
       }
     }
@@ -122,7 +124,8 @@ function attachSamples(res) {
     !filters.aspectTags.includes && !filters.status.includes)));
 
     return Promise.resolve(isFiltered);
-  }).catch((err) => {
+  })
+  .catch((err) => {
     throw err;
   });
 } // attachSamples
@@ -163,8 +166,8 @@ function traverseHierarchy(res) {
 } // traverseHierarchy
 
 /**
- *  When passed a partial subject hierarchy without samples, the subject
- *  hierarchy is completed by attaching samples to it.
+ * When passed a partial subject hierarchy without samples, the subject
+ * hierarchy is completed by attaching samples to it.
  *
  * @param {ServerResponse} res - The subject response containing the samples
  *  and children as an array
