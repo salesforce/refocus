@@ -6352,6 +6352,7 @@ paths:
                 description: Array of objects that contain the name of data on a bot
                 items:
                   type: object
+      responses:
         200:
           description: >-
             Updated field
