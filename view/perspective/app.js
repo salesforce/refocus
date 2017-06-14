@@ -347,6 +347,7 @@ window.onload = () => {
       removeSpinner();
     },
     setupSocketIOClient,
+    redirectToUrl: (url) => window.location.href = url,
   };
 
   getValuesObject(accumulatorObject)
