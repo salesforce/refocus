@@ -184,7 +184,7 @@ POST to `/v1/aspects` using the following body:
   "criticalRange": [0, 2000000000],
   "warningRange": [2000000001, 4000000000],
   "infoRange": [4000000001, 5500000000],
-  "okRange": [5500000001, 1000000000],
+  "okRange": [5500000001, 10000000000],
   "tags": [
     { "name": "economic" }
   ],

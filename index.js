@@ -73,17 +73,17 @@ function start() { // eslint-disable-line max-statements
   app.use(compress());
 
   const httpServer = require('http').Server(app);
-
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
-  socketIOSetup.init(io);
-  require('./realtime/redisSubscriber')(io);
 
   // modules for authentication
   const passportModule = require('passport');
   const cookieParser = require('cookie-parser');
   const session = require('express-session');
   const RedisStore = require('connect-redis')(session);
+  const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
+  socketIOSetup.init(io, rstore);
+  require('./realtime/redisSubscriber')(io);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
@@ -224,7 +224,7 @@ function start() { // eslint-disable-line max-statements
   app.use(cookieParser());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(session({
-    store: new RedisStore({ url: conf.redis.instanceUrl.session }),
+    store: rstore,
     secret: conf.api.sessionSecret,
     resave: false,
     saveUninitialized: false,
