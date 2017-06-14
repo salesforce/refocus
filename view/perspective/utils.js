@@ -365,14 +365,15 @@ function getValuesObject(accumulatorObject) {
         // redirect to the first perspective. The rest of the code
         // won't be executed.
         return redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
-      } else {
-        valuesObj.perspective = null;
-
-        // no perspectives exist.
-        // Execution needs to continue after this, to
-        //  load the perspective picker
-        customHandleError('no perspectives exist.');
       }
+
+      // default perspective does NOT exist AND
+      // there are no perspectives
+      valuesObj.perspective = null;
+
+      // Execution needs to continue after this, to
+      //  load the perspective picker
+      customHandleError('no perspectives exist.');
      }
 
     /*
