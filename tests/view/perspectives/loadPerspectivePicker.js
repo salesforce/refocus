@@ -122,7 +122,7 @@ describe('Perspective app ', () => {
       // on request GET_DEFAULT_PERSPECTIVE, return object with
       // 'value' field.
       // expect the app to redirect to url ending with 'value' field.
-      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = { body: { value: DUMMY_STRING } };
+      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = { body: { value: 'perspective2' } };
       setup(globalconfigObject);
       accumulatorObject.getPromiseWithUrl = request;
       accumulatorObject.getPerspectiveUrl = getDefaultPerspectiveUrl;
@@ -132,7 +132,7 @@ describe('Perspective app ', () => {
       // check redirectToUrl is called with the expected url
       // by looking into the first argument of the first call to redirectToUrl
       obj.then((obj) => {
-        expect(spy.args[0][0]).to.equal('/perspectives/' + DUMMY_STRING);
+        expect(spy.args[0][0]).to.equal('/perspectives/' + 'perspective2');
       });
     });
 
