@@ -34,14 +34,22 @@ describe('Perspective app ', () => {
   const DUMMY_FUNCTION = () => {};
   let request;
   let sandbox;
+  let spy;
+  const GET_DEFAULT_PERSPECTIVE = '/v1/globalconfig/DEFAULT_PERSPECTIVE';
   let accumulatorObject = {
     handleHierarchyEvent: DUMMY_FUNCTION,
     handleLensDomEvent: DUMMY_FUNCTION,
     customHandleError: DUMMY_FUNCTION,
     setupSocketIOClient: DUMMY_FUNCTION,
+    redirectToUrl: DUMMY_FUNCTION,
   };
+
   function setup(valuePairs) {
     const defaultValuePairs = {
+      '/v1/lenses': {
+        body: [{ name: LENS_NAME, isPublished: true, id: DUMMY_ID },
+        { name: DUMMY_STRING, isPublished: true, id: DUMMY_ID+2 }],
+      },
       '/v1/aspects': {
         body: [ { name: 'COOLCOOLCOOLCOOL', isPublished: true },
         { name: 'COOLCOOLCOOLCOOL', isPublished: true } ]},
@@ -73,23 +81,21 @@ describe('Perspective app ', () => {
     request.withArgs(sinon.match('/v1/perspectives/' + DUMMY_STRING))
       .returns(Promise.resolve({
         body: valueObject['/v1/perspectives'].body[0] ,
-      }));
-    request.withArgs(sinon.match('/v1/perspectives')).returns(Promise.resolve(valueObject['/v1/perspectives']));
+    }));
 
-    request.withArgs(sinon.match('/v1/subjects')).returns(Promise.resolve(valueObject['/v1/subjects']));
     request.withArgs(sinon.match('/v1/lenses/' + DUMMY_ID)).returns(Promise.resolve({
-      body: { name: LENS_NAME, id: DUMMY_ID },
+      body: valueObject['/v1/lenses'].body[0] ,
     }));
-    request.withArgs(sinon.match('/v1/lenses')).returns(Promise.resolve({
-      body: [{ name: LENS_NAME, isPublished: true, id: DUMMY_ID },
-      { name: DUMMY_STRING, isPublished: true, id: DUMMY_ID+2 }],
-    }));
-    request.withArgs(sinon.match('/v1/aspects')).returns(Promise.resolve(valueObject['/v1/aspects']));
+
+    for (let key in valueObject) {
+      request.withArgs(sinon.match(key)).returns(Promise.resolve(valueObject[key]));
+    }
   }
 
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
     request = sandbox.stub();
+    spy = sandbox.spy();
   });
   afterEach(() => {
     sandbox.restore();
@@ -102,7 +108,55 @@ describe('Perspective app ', () => {
     };
   }
 
+  function getDefaultPerspectiveUrl() {
+    return {
+      url: GET_DEFAULT_PERSPECTIVE,
+      named: false,
+    };
+  }
+
   describe('results from GET requests', () => {
+    it('redirect is called when default perspective exists', () => {
+      const globalconfigObject = {};
+
+      // on request GET_DEFAULT_PERSPECTIVE, return object with
+      // 'value' field.
+      // expect the app to redirect to url ending with 'value' field.
+      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = { body: { value: 'perspective2' } };
+      setup(globalconfigObject);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getDefaultPerspectiveUrl;
+      accumulatorObject.redirectToUrl = spy;
+      const obj = getValuesObject(accumulatorObject);
+
+      // check redirectToUrl is called with the expected url
+      // by looking into the first argument of the first call to redirectToUrl
+      obj.then((obj) => {
+        expect(spy.args[0][0]).to.equal('/perspectives/' + 'perspective2');
+      });
+    });
+
+    it('redirect is called when default perspective does not exist, but ' +
+      'perspectives do', () => {
+      const globalconfigObject = {};
+
+      // on request GET_DEFAULT_PERSPECTIVE, response does not contain the body.
+      // expect the app to redirect to url ending with the name of
+      // the first perspective by alphabetical order
+      globalconfigObject[GET_DEFAULT_PERSPECTIVE] = {};
+      setup(globalconfigObject);
+      accumulatorObject.getPromiseWithUrl = request;
+      accumulatorObject.getPerspectiveUrl = getDefaultPerspectiveUrl;
+      accumulatorObject.redirectToUrl = spy;
+      const obj = getValuesObject(accumulatorObject);
+
+      // check redirectToUrl is called with the expected url
+      // by looking into the first argument of the first call to redirectToUrl
+      obj.then((obj) => {
+        expect(spy.args[0][0]).to.equal('/perspectives/' + DUMMY_STRING);
+      });
+    });
+
     it('default fields', () => {
       setup();
       accumulatorObject.getPromiseWithUrl = request;
