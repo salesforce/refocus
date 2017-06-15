@@ -93,8 +93,8 @@ function init(io, redisStore) {
     // Socket handshake must have "cookie" header with connect.sid.
     if (!socket.handshake.headers.cookie) {
       // disconnecting socket -- expecting header with cookie
-      console.log('[WSDEBUG] disconnecting socket -- expecting header ' +
-        'with cookie');
+      // console.log('[WSDEBUG] disconnecting socket -- expecting header ' +
+      //   'with cookie');
       socket.disconnect();
       return;
     } // no cookie
@@ -103,16 +103,16 @@ function init(io, redisStore) {
     const sidMatch = SID_REX.exec(socket.handshake.headers.cookie);
     if (!sidMatch || sidMatch.length < 2) {
       // disconnecting socket -- expecting session id in cookie header
-      console.log('[WSDEBUG] disconnecting socket -- expecting session id ' +
-        'in cookie header');
+      // console.log('[WSDEBUG] disconnecting socket -- expecting session ' +
+      //   'id in cookie header');
       socket.disconnect();
       return;
     }
 
     // Load the session from redisStore.
     const sid = sidMatch[1];
-    console.log('[WSDEBUG] cookie', socket.handshake.headers.cookie);
-    console.log('[WSDEBUG] sid', sid);
+    // console.log('[WSDEBUG] cookie', socket.handshake.headers.cookie);
+    // console.log('[WSDEBUG] sid', sid);
     getUserFromSession(sid, redisStore)
     .then((user) => {
 
@@ -124,7 +124,10 @@ function init(io, redisStore) {
         if (socket.handshake.headers &&
         socket.handshake.headers['x-forwarded-for']) {
           ipAddress = socket.handshake.headers['x-forwarded-for'];
+          console.log('[IPDEBUG] socket.handshake.headers' +
+            '[x-forwarded-for]', ipAddress);
         } else if (socket.handshake.address) {
+          console.log('[IPDEBUG] socket.handshake.address', ipAddress);
           ipAddress = socket.handshake.address;
         }
 
@@ -187,7 +190,7 @@ function init(io, redisStore) {
     })
     .catch((err) => {
       // no realtime events :(
-      console.log('[WSDEBUG] caught error', err);
+      // console.log('[WSDEBUG] caught error', err);
       socket.disconnect();
       return;
     });
