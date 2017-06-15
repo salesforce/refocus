@@ -9,6 +9,7 @@
 /**
  * realTime/utils.js
  */
+const ip = require('ip');
 
 'use strict'; // eslint-disable-line strict
 const constants = require('./constants');
@@ -280,9 +281,12 @@ function isIpWhitelisted(addr, whitelist) {
     return true;
   }
 
+  const thisAddr = ip.toLong(addr);
   const ok = whitelist.some((range) => {
     if (Array.isArray(range) && range.length === 2) {
-      if (range[0] <= range[1] && addr >= range[0] && addr <= range[1]) {
+      const lo = ip.toLong(range[0]);
+      const hi = ip.toLong(range[1]);
+      if (lo <= hi && thisAddr >= lo && thisAddr <= hi) {
         return true;
       }
     }
