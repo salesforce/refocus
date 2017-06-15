@@ -346,6 +346,8 @@ window.onload = () => {
         ERROR_INFO_DIV.innerHTML = msg;
       removeSpinner();
     },
+    setupSocketIOClient,
+    redirectToUrl: (url) => window.location.href = url,
   };
 
   getValuesObject(accumulatorObject)
