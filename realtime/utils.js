@@ -9,6 +9,7 @@
 /**
  * realTime/utils.js
  */
+const ip = require('ip');
 
 'use strict'; // eslint-disable-line strict
 const constants = require('./constants');
@@ -263,12 +264,48 @@ function initializeNamespace(inst, io) {
   return io;
 }
 
-module.exports = {
+/**
+ * Utility function checks an ip address against a whitelist.
+ *
+ * @param {String} addr - The address to test
+ * @param {Array} whitelist - An array of arrays
+ * @returns {Boolean} true if address is whitelisted
+ * @throws {Error} if address is NOT whitelisted
+ */
+function isIpWhitelisted(addr, whitelist) {
+  /*
+   * if the whitelist passed is not defined or it is not an array, assume
+   * that the ip address is whitelisted
+   */
+  if (!Array.isArray(whitelist)) {
+    return true;
+  }
 
+  const thisAddr = ip.toLong(addr);
+  const ok = whitelist.some((range) => {
+    if (Array.isArray(range) && range.length === 2) {
+      const lo = ip.toLong(range[0]);
+      const hi = ip.toLong(range[1]);
+      if (lo <= hi && thisAddr >= lo && thisAddr <= hi) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  if (ok) {
+    return ok;
+  }
+
+  throw new Error(`IP address "${addr}" is not whitelisted`);
+} // isIpWhitelisted
+
+module.exports = {
   getNamespaceString,
-  initializeNamespace,
   getNewObjAsString,
+  initializeNamespace,
+  isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-
 }; // exports
