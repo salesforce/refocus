@@ -111,6 +111,7 @@ function init(io, redisStore) {
 
     // Load the session from redisStore.
     const sid = sidMatch[1];
+
     // console.log('[WSDEBUG] cookie', socket.handshake.headers.cookie);
     // console.log('[WSDEBUG] sid', sid);
     getUserFromSession(sid, redisStore)
@@ -124,10 +125,11 @@ function init(io, redisStore) {
         if (socket.handshake.headers &&
         socket.handshake.headers['x-forwarded-for']) {
           ipAddress = socket.handshake.headers['x-forwarded-for'];
-          console.log('[IPDEBUG] socket.handshake.headers' +
-            '[x-forwarded-for]', ipAddress);
+
+          // console.log('[IPDEBUG] socket.handshake.headers' +
+          //   '[x-forwarded-for]', ipAddress);
         } else if (socket.handshake.address) {
-          console.log('[IPDEBUG] socket.handshake.address', ipAddress);
+          // console.log('[IPDEBUG] socket.handshake.address', ipAddress);
           ipAddress = socket.handshake.address;
         }
 
