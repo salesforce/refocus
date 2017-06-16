@@ -68,7 +68,8 @@ const replicaConfigLabel = 'REPLICAS';
 // an array of read-only data base URLs
 const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
-const DEFAULT_JOB_QUEUE_TTL_SECONDS = 3600;
+const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
+const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
 // default set to 30 minutes
 const DEFAULT_JOB_REMOVAL_DELAY_SECONDS = 1800;
@@ -87,7 +88,10 @@ const prioritizeJobsFrom = configUtil.csvToArray(pe.PRIORITIZE_JOBS_FROM);
 const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
 
 // set time to live for "kue" jobs
-const JOB_QUEUE_TTL_SECONDS = pe.TTL_KUE_JOBS || DEFAULT_JOB_QUEUE_TTL_SECONDS;
+const JOB_QUEUE_TTL_SECONDS_ASYNC = pe.TTL_KUE_JOBS_ASYNC
+  || DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC;
+const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
+  || DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC;
 
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
@@ -233,7 +237,8 @@ module.exports = {
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   CACHE_EXPIRY_IN_SECS,
-  JOB_QUEUE_TTL_SECONDS,
+  JOB_QUEUE_TTL_SECONDS_ASYNC,
+  JOB_QUEUE_TTL_SECONDS_SYNC,
   JOB_REMOVAL_DELAY_SECONDS,
   deprioritizeJobsFrom,
   endpointToLimit,
