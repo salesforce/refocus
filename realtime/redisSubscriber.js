@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
 const sub = require('../cache/redisCache').client.sub;
+const featureToggles = require('feature-toggles');
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -21,6 +22,10 @@ const sub = require('../cache/redisCache').client.sub;
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
+    if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
+      console.log(`[RT] subscribe channel=${channel} size=${mssgStr.length}`);
+    }
+
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
