@@ -84,7 +84,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   if (obj[event]) {
     const objectAsString = JSON.stringify(obj);
     if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
-      console.log(`[RT] publish channel=${channelName} ` +
+      console.log(`[RT] publishTimestamp=${new Date()} ` +
         `size=${objectAsString.length}`);
     }
 

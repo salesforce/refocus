@@ -23,7 +23,8 @@ const featureToggles = require('feature-toggles');
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
     if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
-      console.log(`[RT] subscribe channel=${channel} size=${mssgStr.length}`);
+      console.log(`[RT] subscribeTimestamp=${new Date()} ` +
+        `size=${mssgStr.length}`);
     }
 
     // message object to be sent to the clients
