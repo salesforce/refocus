@@ -51,7 +51,8 @@ module.exports = {
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },
-  ttlForJobs: conf.JOB_QUEUE_TTL_SECONDS,
+  ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
+  ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
 }; // exports

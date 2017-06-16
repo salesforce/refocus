@@ -6,6 +6,10 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * view/perspective/eventsQueue.js
+ *
+ */
 
 'use strict';
 const ZERO = 0;

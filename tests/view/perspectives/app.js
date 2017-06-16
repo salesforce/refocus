@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,14 +7,14 @@
  */
 
 /**
- * tests/view/perspectives/utils.js
+ * tests/view/perspectives/app.js
  */
 'use strict';
 
-const expect = require('chai').expect;
-const utils = require(
-  '../../../view/perspective/utils'
-);
+const chai = require('chai');
+const expect = chai.expect;
+import { getFilterQuery,
+  getTagsFromArrays } from '../../../view/perspective/utils.js';
 
 describe('get filter query', () => {
   it('given default exclude and no filter, should return ' +
@@ -30,7 +30,7 @@ describe('get filter query', () => {
       aspectTagFilter: [],
     };
 
-    const url = utils.getFilterQuery(perspectiveObject);
+    const url = getFilterQuery(perspectiveObject);
     expect(url).to.equal('');
   });
 
@@ -47,7 +47,7 @@ describe('get filter query', () => {
         aspectTagFilter: [],
       };
 
-      const url = utils.getFilterQuery(perspectiveObject);
+      const url = getFilterQuery(perspectiveObject);
       expect(url).to.equal('?aspect=aspect1&status=-Critical');
     });
 
@@ -65,7 +65,7 @@ describe('get filter query', () => {
 
       const url = '?aspect=aspect1,aspect2&aspectTags=-' +
         'aspectTag1,-aspectTag2&subjectTags=-subjectTag1,-subjectTag2&status=Critical,OK';
-      expect(utils.getFilterQuery(perspectiveObject)).to.equal(url);
+      expect(getFilterQuery(perspectiveObject)).to.equal(url);
     });
   });
 
@@ -82,7 +82,7 @@ describe('get filter query', () => {
         aspectTagFilter: [],
       };
 
-      const url = utils.getFilterQuery(perspectiveObject);
+      const url = getFilterQuery(perspectiveObject);
       expect(url).to.equal('?aspect=-aspect1,-aspect2');
     });
 
@@ -98,7 +98,7 @@ describe('get filter query', () => {
         aspectTagFilter: ['aspectTag1'],
       };
 
-      const url = utils.getFilterQuery(perspectiveObject);
+      const url = getFilterQuery(perspectiveObject);
       expect(url).to.equal('?aspect=-aspect1&aspectTags=-aspectTag1');
     });
 
@@ -116,7 +116,7 @@ describe('get filter query', () => {
 
       const url = '?aspect=-aspect1&aspectTags' +
         '=-aspectTag1&subjectTags=-subjectTag1';
-      expect(utils.getFilterQuery(perspectiveObject)).to.equal(url);
+      expect(getFilterQuery(perspectiveObject)).to.equal(url);
     });
 
     it('all filters', () => {
@@ -133,7 +133,7 @@ describe('get filter query', () => {
 
       const url = '?aspect=-aspect1,-aspect2&aspectTags=-aspectTag1,-aspectTag2' +
         '&subjectTags=-subjectTag1,-subjectTag2&status=-Critical,-OK';
-      expect(utils.getFilterQuery(perspectiveObject))
+      expect(getFilterQuery(perspectiveObject))
         .to.equal(url);
     });
   });
@@ -151,7 +151,7 @@ describe('get filter query', () => {
         aspectTagFilter: [],
       };
 
-      const url = utils.getFilterQuery(perspectiveObject);
+      const url = getFilterQuery(perspectiveObject);
       expect(url).to.equal('?aspect=aspect1');
     });
 
@@ -167,7 +167,7 @@ describe('get filter query', () => {
         aspectTagFilter: ['aspectTag1', 'aspectTag2'],
       };
 
-      const url = utils.getFilterQuery(perspectiveObject);
+      const url = getFilterQuery(perspectiveObject);
       expect(url).to.equal('?aspect=aspect1&aspectTags=aspectTag1,aspectTag2');
     });
 
@@ -185,7 +185,7 @@ describe('get filter query', () => {
 
       const url = '?aspect=aspect1&aspectTags=aspectTag1' +
         '&subjectTags=subjectTag1,subjectTag2';
-      expect(utils.getFilterQuery(perspectiveObject)).to.equal(url);
+      expect(getFilterQuery(perspectiveObject)).to.equal(url);
     });
 
     it('all filters', () => {
@@ -202,7 +202,33 @@ describe('get filter query', () => {
 
       const url = '?aspect=aspect1&aspectTags=aspectTag1' +
         '&subjectTags=subjectTag1&status=Critical';
-      expect(utils.getFilterQuery(perspectiveObject)).to.equal(url);
+      expect(getFilterQuery(perspectiveObject)).to.equal(url);
     });
   });
 });
+
+describe('get array:', () => {
+  it('by default, returns nothing', () => {
+    const array = [{ absolutePath: 'COOLCOOLCOOL' },
+    { absolutePath: 'COOLCOOLCOOL' }];
+    const result = getTagsFromArrays(array);
+    expect(result).to.be.empty;
+  });
+
+  it('returns unique elements', () => {
+    const tagsArr = ['a', 'b'];
+    const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr },
+    { absolutePath: 'COOLCOOLCOOL', tags: tagsArr }];
+    const result = getTagsFromArrays(array);
+    expect(result).to.deep.equal(['a', 'b']);
+  });
+
+  it('returns all elements', () => {
+    const tagsArr = ['a', 'b', 'c', 'd'];
+    const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(0, 2) },
+    { absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(2) }];
+    const result = getTagsFromArrays(array);
+    expect(result).to.deep.equal(tagsArr);
+  });
+});
+
