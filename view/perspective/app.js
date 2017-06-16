@@ -48,7 +48,7 @@ import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
-import { getFilterQuery, getTagsFromResources, getValuesObject } from './utils';
+import { getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
@@ -127,6 +127,10 @@ function handleEvent(eventData, eventTypeName) {
  * @param  {Object} persBody - Perspective object
  */
 function setupSocketIOClient(persBody) {
+  if (!persBody) {
+    throw new Error('Cannot set up socket IO client without a perspective');
+  }
+
   /*
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
@@ -351,7 +355,13 @@ window.onload = () => {
   };
 
   getValuesObject(accumulatorObject)
-  .then(loadController)
+  .then((valuesObject) => {
+
+    // skip loading the controller if nothing is returned
+    if (valuesObject) {
+      loadController(valuesObject);
+    }
+  })
   .catch((error) => {
     document.getElementById('errorInfo').innerHTML = error;
   });
