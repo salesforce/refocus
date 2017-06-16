@@ -36,7 +36,8 @@ const sampleStoreFeature =
                   require('../../../cache/sampleStore').constants.featureName;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
-const WORKER_TTL = 30000;
+const jobSetup = require('../../../jobQueue/setup');
+const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 
 /**
