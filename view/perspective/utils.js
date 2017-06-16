@@ -386,25 +386,35 @@ function getValuesObject(accumulatorObject) {
       getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
       getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags')
      ];
-     if (returnedPerspective) {
+
+     if (named) {
+      if (returnedPerspective) {
         setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
         valuesObj.name = valuesObj.perspective.name;
 
         // perspective exists. GET its hierarchy and lenses soon.
         promisesArr.concat(getPageLoadingPromises(returnedPerspective));
-     } else if (named) {
+      } else {
 
-      // named perspective does not exist
-      const name = url.split('/').pop();
-      customHandleError('Sorry, but the perspective you were trying ' +
-        'to load, ' + name + ', does not exist. Please select a ' +
-        'perspective from the dropdown.');
+        // named perspective does not exist
+        const name = url.split('/').pop();
+        customHandleError('Sorry, but the perspective you were trying ' +
+          'to load, ' + name + ', does not exist. Please select a ' +
+          'perspective from the dropdown.');
+      }
     }
 
     return Promise.all(promisesArr);
   })
   .then((responses) => {
+
+    // on redirect, responses is a string
+    // otherwise it is an array of API responses
+    if (typeof responses === 'string') {
+      return;
+    }
+
     const lenses = responses[0].body;
     const subjects = responses[1].body;
     const aspects = responses[2].body;
