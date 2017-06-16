@@ -23,7 +23,7 @@ const featureToggles = require('feature-toggles');
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
     if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
-      console.log(`[RT] subscribeTimestamp=${new Date()} ` +
+      console.log(`[RT] subscribeTimestamp=${(new Date()).toISOString()} ` +
         `size=${mssgStr.length}`);
     }
 
