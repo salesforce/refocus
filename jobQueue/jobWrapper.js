@@ -25,7 +25,7 @@ const queueTimeActivityLogs =
 
 // ttl converted to milliseconds
 const TIME_TO_LIVE =
-  1000 * jobSetup.ttlForJobs; // eslint-disable-line no-magic-numbers
+  1000 * jobSetup.ttlForJobsAsync; // eslint-disable-line no-magic-numbers
 
 /*
  * The delay is introduced to avoid the job.id leakage. It can be any
