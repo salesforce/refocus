@@ -14,6 +14,7 @@
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
+const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -81,7 +82,13 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    return pub.publish(channelName.toString(), JSON.stringify(obj));
+    const objectAsString = JSON.stringify(obj);
+    if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
+      console.log(`[RT] publishTimestamp=${(new Date()).toISOString()} ` +
+        `size=${objectAsString.length}`);
+    }
+
+    return pub.publish(channelName, objectAsString);
   }
 
   return obj;
