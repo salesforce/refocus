@@ -167,12 +167,14 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
 
   for (let i = inputsAndSelects.length - ONE; i >= ZERO; i--) {
 
-    // add all values together, wkthout duplicates
+    // add all values together, without duplicates
     if (inputsAndSelects[i].name &&
       !jsonData.hasOwnProperty(inputsAndSelects[i].name)) {
 
       // do not include radio button values
-      jsonData[inputsAndSelects[i].name] = inputsAndSelects[i].value;
+      if (inputsAndSelects[i].type !== 'radio') {
+        jsonData[inputsAndSelects[i].name] = inputsAndSelects[i].value;
+      }
     }
   }
 
