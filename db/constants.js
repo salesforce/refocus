@@ -33,4 +33,9 @@ module.exports = {
     Info: 'Info',
     OK: 'OK',
   },
+  collectorStatuses: {
+    Stopped: 'Stopped',
+    Running: 'Running',
+    Paused: 'Paused',
+  },
 };
