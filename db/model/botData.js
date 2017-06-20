@@ -73,8 +73,8 @@ module.exports = function botData(seq, dataTypes) {
           .then((dataFound) => {
             if (dataFound) {
               throw new dbErrors.ValidationError({
-                message: 'The data with the name ' + inst.getDataValue('name') +
-                'already is in use at ID ' + dataFound.id,
+                message: 'Bot data with the name ' + inst.getDataValue('name') +
+                'already is in use in this room at ID ' + dataFound.id,
               });
             }
           })

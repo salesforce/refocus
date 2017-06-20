@@ -1,3 +1,4 @@
+
 /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -15,8 +16,6 @@
  */
 
 const assoc = {};
-const dbErrors = require('../dbErrors');
-const constants = require('../constants');
 
 module.exports = function event(seq, dataTypes) {
   const Event = seq.define('Event', {

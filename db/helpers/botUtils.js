@@ -45,16 +45,22 @@ function arrayHasValidParameters(arr) {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
       if ((typeof arr[i] === 'object') &&
-        (arr[i].hasOwnProperty('name')) && (arr[i].hasOwnProperty('type'))) {
-        if ((!constants.nameRegex.test(arr[i].name)) ||
+        (arr[i].hasOwnProperty('name')) &&
+        ((arr[i].hasOwnProperty('type') || arr[i].hasOwnProperty('value')))) {
+        if (!constants.nameRegex.test(arr[i].name)) {
+          throw new ValidationError({
+            message: 'Missing a valid name',
+          });
+        }
+        if ((arr[i].hasOwnProperty('type')) &&
           (!correctType(arr[i].type, parameterTypes))) {
           throw new ValidationError({
-            message: 'Missing a valid name or parameter type',
+            message: 'Missing a valid parameter type',
           });
         }
       } else {
         throw new ValidationError({
-          message: 'Object missing a name or type attribute',
+          message: 'Object missing a name, type or value attribute',
         });
       }
     }
@@ -130,6 +136,7 @@ function validateDataArray(arr) {
 } // validateDataArray
 
 module.exports = {
+  arrayHasValidParameters,
   validateActionArray,
   validateDataArray,
 }; // exports

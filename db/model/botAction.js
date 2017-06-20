@@ -17,6 +17,7 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
+const u = require('../helpers/botUtils');
 
 module.exports = function botAction(seq, dataTypes) {
   const BotAction = seq.define('BotAction', {
@@ -41,6 +42,9 @@ module.exports = function botAction(seq, dataTypes) {
     parameters: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
+      validate: {
+        contains: u.arrayHasValidParameters,
+      },
       comment: 'List of parameters needed to run bot action',
     },
     response: {
