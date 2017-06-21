@@ -9,7 +9,7 @@
 /**
  * db/model/roomType.js
  *
- * Room Types are specialized configurations for rooms. They hold intial
+ * Room Types are specialized configurations for rooms. They hold initial
  * data such as settings and rules to quickly make a room usable.
  *
  * Settings are key/value pairings that work similar to enviromental variables
