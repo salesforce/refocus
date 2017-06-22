@@ -34,7 +34,7 @@ describe('tests/db/model/collector/delete.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('Delete collector, expect error on bulk delete', (done) => {
+  it('ok, bulk delete', (done) => {
     Collector.destroy({ where: { id: collectorDb.id } })
     .then(() => Collector.findAll())
     .then((res) => {
@@ -44,7 +44,7 @@ describe('tests/db/model/collector/delete.js >', () => {
     .catch(done);
   });
 
-  it('Delete collector, expect error on an instance delete', (done) => {
+  it('ok, an instance delete', (done) => {
     Collector.findById(collectorDb.id)
     .then((c) => c.destroy())
     .then((o) => {
@@ -53,6 +53,17 @@ describe('tests/db/model/collector/delete.js >', () => {
       } else {
         done(new Error('expecting it to be soft-deleted'));
       }
+    })
+    .catch(done);
+  });
+
+  it('ok, should not be able to find a collector once deleted', (done) => {
+    Collector.findById(collectorDb.id)
+    .then((c) => c.destroy())
+    .then((o) => Collector.findById(o.id))
+    .then((o) => {
+      expect(o).to.equal(null);
+      done();
     })
     .catch(done);
   });

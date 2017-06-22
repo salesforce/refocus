@@ -54,7 +54,7 @@ describe('tests/db/model/collector/create.js >', () => {
     .then((w) => {
       expect(w.length).to.be.equal(1);
       expect(w[0].email).to.be.equal('testUser@testUser.com');
-      expect(w[0].CollectorWriters.UserId).to.be.equal(userId);
+      expect(w[0].CollectorWriters.userId).to.be.equal(userId);
       expect(w[0].CollectorWriters.collectorId).to.be.equal(cObj.id);
       done();
     })
