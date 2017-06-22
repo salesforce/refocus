@@ -33,9 +33,11 @@ describe('tests/db/model/collector/create.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('Create collector, OK', (done) => {
+  it('Create collector, OK, check collector writer', (done) => {
+    let cObj;
     Collector.create(collectorObj)
     .then((obj) => {
+      cObj = obj;
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
       expect(obj.status).to.be.equal('Stopped');
@@ -47,6 +49,13 @@ describe('tests/db/model/collector/create.js >', () => {
       expect(obj.createdBy).to.be.equal(userId);
       expect(obj.updatedAt).to.not.be.null;
       expect(obj.createdAt).to.not.be.null;
+      return obj.getWriters();
+    })
+    .then((w) => {
+      expect(w.length).to.be.equal(1);
+      expect(w[0].email).to.be.equal('testUser@testUser.com');
+      expect(w[0].CollectorWriters.UserId).to.be.equal(userId);
+      expect(w[0].CollectorWriters.collectorId).to.be.equal(cObj.id);
       done();
     })
     .catch(done);
@@ -103,5 +112,24 @@ describe('tests/db/model/collector/create.js >', () => {
       );
       done();
     });
+  });
+
+  it('isWritableBy, OK', (done) => {
+    let cObj;
+    Collector.create(collectorObj)
+    .then((obj) => {
+      cObj = obj;
+      return obj.getWriters();
+    })
+    .then((w) => {
+      expect(w.length).to.be.equal(1);
+      expect(w[0].id).to.be.equal(userId);
+      return cObj.isWritableBy(userId);
+    })
+    .then((res) => {
+      expect(res).to.be.true;
+      done();
+    })
+    .catch(done);
   });
 });

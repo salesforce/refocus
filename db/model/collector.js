@@ -61,12 +61,31 @@ module.exports = function collector(seq, dataTypes) {
         assoc.createdBy = Collector.belongsTo(models.User, {
           foreignKey: 'createdBy',
         });
+
+        assoc.writers = Collector.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'CollectorWriters',
+          foreignKey: 'collectorId',
+        });
       },
     },
     defaultScope: {
       order: ['Collector.name'],
     },
     hooks: {
+      afterCreate(inst /* , opts*/) {
+        // Add createdBy user to Collector writers.
+        if (inst.createdBy) {
+          return new seq.Promise((resolve, reject) =>
+            inst.addWriter(inst.createdBy)
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
+          );
+        }
+
+        return inst;
+      }, // hooks.beforeCreate
+
       beforeDestroy() {
         throw new CollectorDeleteConstraintError();
       }, // hooks.beforeDestroy
@@ -84,6 +103,21 @@ module.exports = function collector(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          }));
+      }, // isWritableBy
+    },
   });
   return Collector;
 }; // exports
