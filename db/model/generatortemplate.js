@@ -95,6 +95,11 @@ module.exports = function user(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
+    isDeleted: {
+      type: dataTypes.BIGINT,
+      defaultValue: 0,
+      allowNull: false,
+    },
     name: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
@@ -181,6 +186,24 @@ module.exports = function user(seq, dataTypes) {
         });
       },
     },
+
+    hooks: {
+      beforeDestroy(inst /* , opts */) {
+        return common.setIsDeleted(seq.Promise, inst);
+      }, // beforeDestroy
+
+      afterCreate(inst /* , opts*/) {
+        if (inst.createdBy) {
+          return new seq.Promise((resolve, reject) =>
+            inst.addWriter(inst.createdBy)
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
+          );
+        }
+
+        return inst;
+      }, // afterCreate
+    },
     validate: {
       eitherUrlORtoUrl() {
         if (this.connection.url && this.connection.toUrl ||
@@ -196,9 +219,25 @@ module.exports = function user(seq, dataTypes) {
         fields: [
           'name',
           'version',
+          'isDeleted',
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          }));
+      }, // isWritableBy
+    },
     paranoid: true,
   });
   return GeneratorTemplate;

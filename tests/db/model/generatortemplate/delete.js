@@ -26,17 +26,30 @@ describe('db: Generatortemplate: delete: ', () => {
     .then((o) => o.destroy())
     .then((o) => {
       expect(o.deletedAt).to.not.equal(null);
+      expect(o.isDeleted).to.not.equal(null);
       done();
     })
     .catch(done);
   });
 
-  it('ok, should be able to find a template once deleted', (done) => {
+  it('ok, should not be able to find a template once deleted', (done) => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
     .then((o) => GeneratorTemplate.findById(o.id))
     .then((o) => {
       expect(o).to.equal(null);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, should be able to create template with the same name and version ' +
+    'as the one deleted', (done) => {
+    GeneratorTemplate.create(gt)
+    .then((o) => o.destroy())
+    .then(() => GeneratorTemplate.create(gt))
+    .then((o) => {
+      expect(o.isDeleted).to.equal('0');
       done();
     })
     .catch(done);

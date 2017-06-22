@@ -19,6 +19,16 @@ const constants = require('../../../../db/constants');
 
 describe('db: Generatortemplate: create: ', () => {
   const gt = u.getGeneratorTemplate();
+  let userInst;
+  beforeEach((done) => {
+    tu.createUser('GTOwner')
+    .then((user) => {
+      userInst = user;
+      gt.createdBy = user.id;
+      done();
+    })
+    .catch(done);
+  });
 
   afterEach(u.forceDelete);
 
@@ -36,8 +46,57 @@ describe('db: Generatortemplate: create: ', () => {
       expect(o.keywords).to.deep.equal(gt.keywords);
       expect(o.transform).to.deep.equal(gt.transform);
       expect(o.contextDefinition).to.deep.equal(gt.contextDefinition);
-      expect(o.helpUrl).to.deep.equal(gt.helpUrl);
-      expect(o.helpEmail).to.deep.equal(gt.helpEmail);
+      expect(o.helpUrl).to.equal(gt.helpUrl);
+      expect(o.helpEmail).to.equal(gt.helpEmail);
+      expect(o.createdBy).to.equal(gt.createdBy);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, create should set the creater as the sole writer ', (done) => {
+    GeneratorTemplate.create(gt)
+    .then((o) => {
+      expect(o.id).to.not.equal(undefined);
+      expect(o.createdBy).to.equal(gt.createdBy);
+      return o.getWriters();
+    })
+    .then((writers) => {
+      expect(writers.length).to.equal(1);
+      expect(writers[0].id).to.equal(userInst.id);
+      expect(writers[0].email).to.equal(userInst.email);
+      expect(writers[0].name).to.equal(userInst.name);
+      expect(writers[0].GeneratorTemplateWriters).to.not.equal(null);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, isWritableBy should return true for createdBy user', (done) => {
+    GeneratorTemplate.create(gt)
+    .then((o) => {
+      expect(o.id).to.not.equal(undefined);
+      return o.isWritableBy(o.createdBy);
+    })
+    .then((ret) => {
+      expect(ret).to.equal(true);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, no writers when createdBy is not specified', (done) => {
+    const _gt = JSON.parse(JSON.stringify(gt));
+    delete _gt.createdBy;
+    GeneratorTemplate.create(_gt)
+    .then((o) => {
+      expect(o.id).to.not.equal(undefined);
+      expect(o.createdBy).to.equal(null);
+
+      return o.getWriters();
+    })
+    .then((writers) => {
+      expect(writers.length).to.equal(0);
       done();
     })
     .catch(done);
@@ -58,6 +117,7 @@ describe('db: Generatortemplate: create: ', () => {
     })
     .catch();
   });
+
 
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
@@ -234,6 +294,4 @@ describe('db: Generatortemplate: create: ', () => {
       done();
     });
   });
-
-
 });
