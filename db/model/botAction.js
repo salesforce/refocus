@@ -82,7 +82,7 @@ module.exports = function botAction(seq, dataTypes) {
           seq.models.Bot.findOne({
             where: {
               id: inst.getDataValue('botId'),
-            }
+            },
           })
           .then((botFound) => {
             if (botFound) {
@@ -92,6 +92,7 @@ module.exports = function botAction(seq, dataTypes) {
                 }
               }
             }
+
             return null;
           })
           .then((dataFound) => {

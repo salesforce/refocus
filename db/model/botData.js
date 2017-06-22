@@ -68,7 +68,7 @@ module.exports = function botData(seq, dataTypes) {
               roomId: inst.getDataValue('roomId'),
               botId: inst.getDataValue('botId'),
               name: inst.getDataValue('name'),
-            }
+            },
           })
           .then((dataFound) => {
             if (dataFound) {

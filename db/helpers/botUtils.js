@@ -52,6 +52,7 @@ function arrayHasValidParameters(arr) {
             message: 'Missing a valid name',
           });
         }
+
         if ((arr[i].hasOwnProperty('type')) &&
           (!correctType(arr[i].type, parameterTypes))) {
           throw new ValidationError({

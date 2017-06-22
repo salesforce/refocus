@@ -58,7 +58,7 @@ module.exports = function event(seq, dataTypes) {
           foreignKey: 'userId',
         });
       },
-    }
+    },
   });
   return Event;
 };
