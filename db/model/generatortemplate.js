@@ -11,6 +11,8 @@
  */
 const common = require('../helpers/common');
 const constants = require('../constants');
+const ValidationError = require('../dbErrors').ValidationError;
+
 const assoc = {};
 
 const authorSchema = {
@@ -52,19 +54,22 @@ const repositorySchema = {
 const connectionSchema = {
   properties: {
     method: {
-      description: 'The http method ',
+      description: 'The http method',
       enum: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'],
+      required: true,
     },
     url: {
-      description: 'Optional Url given by the author',
+      description: 'The url to connect to. Specify variables for variable ' +
+      'expansion using double curly braces. One of ' +
+      '["url", "toUrl"] is required.',
       type: 'string',
     },
     toUrl: {
-      description: 'Optional toUrl given by the author',
-      type: 'string',
+      description: 'The string body of a function which returns the url ' +
+      'to connect to. One of ["url", "toUrl"] is required.',
     },
     headers: {
-      description: 'Optional connection header information',
+      description: 'Optional connection headers',
       type: 'object',
     },
   },
@@ -174,6 +179,14 @@ module.exports = function user(seq, dataTypes) {
           through: 'GeneratorTemplateWriters',
           foreignKey: 'generatortemplateId',
         });
+      },
+    },
+    validate: {
+      eitherUrlORtoUrl() {
+        if (this.connection.url && this.connection.toUrl ||
+            (!this.connection.url && !this.connection.toUrl)) {
+          throw new ValidationError('Only one of ["url", "toUrl"] is required');
+        }
       },
     },
     indexes: [

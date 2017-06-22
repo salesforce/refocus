@@ -32,7 +32,8 @@ const GT_SIMPLE = {
     url: 'git+https://github.com/templates/template-generators.git',
   },
   connection: {
-    url: '{{baseTrustUrl}}/v1/instances/status/preview'
+    url: '{{baseTrustUrl}}/v1/instances/status/preview',
+    method: 'GET',
   },
   transform: 'return [{ name: "S1|A1", value: 10 }, ' +
           '{ name: "S2|A1", value: 2 }] ',
@@ -40,7 +41,7 @@ const GT_SIMPLE = {
     okValue: {
       required: false,
       default: '0',
-      description: "An ok sample's value, e.g. '0'.",
+      description: 'An ok sample\'s value, e.g. \'0\'',
     },
   },
   helpUrl: 'http://help.com',

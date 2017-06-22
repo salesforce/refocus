@@ -184,6 +184,42 @@ describe('db: Generatortemplate: create: ', () => {
     });
   });
 
+  it('not ok, with both toUrl and url present in connection schema', (done) => {
+    const _gt = JSON.parse(JSON.stringify(gt));
+    _gt.connection.url = 'http://example.com';
+    _gt.connection.toUrl = function () {
+      return 'http://example.com';
+    };
+    GeneratorTemplate.create(_gt)
+    .then(() => {
+      done(' Error: Expecting validation error');
+    })
+    .catch((err) => {
+      expect(err.message)
+        .to.contain('Only one of ["url", "toUrl"] is required');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('eitherUrlORtoUrl');
+      done();
+    });
+  });
+
+  it('not ok, when both toUrl and url are not in connection schema', (done) => {
+    const _gt = JSON.parse(JSON.stringify(gt));
+    delete _gt.connection.url;
+    delete _gt.connection.toUrl;
+    GeneratorTemplate.create(_gt)
+    .then(() => {
+      done(' Error: Expecting validation error');
+    })
+    .catch((err) => {
+      expect(err.message)
+        .to.contain('Only one of ["url", "toUrl"] is required');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('eitherUrlORtoUrl');
+      done();
+    });
+  });
+
   it('not ok, with contextDefinition key not having description', (done) => {
     const _gt = JSON.parse(JSON.stringify(gt));
     _gt.contextDefinition.pod = { required: true };
@@ -198,4 +234,6 @@ describe('db: Generatortemplate: create: ', () => {
       done();
     });
   });
+
+
 });
