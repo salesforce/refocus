@@ -64,6 +64,8 @@ const connectionSchema = {
       '["url", "toUrl"] is required.',
       type: 'string',
     },
+
+    // TODO: revisit toUrl validation, while doing the api changes
     toUrl: {
       description: 'The string body of a function which returns the url ' +
       'to connect to. One of ["url", "toUrl"] is required.',
