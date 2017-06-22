@@ -242,7 +242,7 @@ function setIsDeleted(Promise, inst) {
  * @param  {Object} object - The input object to be instered into the database
  * @param  {Object} schema - The schema against which the object is to be
  * validated
- * @throws {ValidationError} If the object does not conforms to the schema
+ * @throws {ValidationError} If the object does not conform to the schema
  */
 function validateObject(object, schema) {
   const options = { additionalProperties: false };

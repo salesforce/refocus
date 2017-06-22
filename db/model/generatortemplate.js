@@ -168,9 +168,14 @@ module.exports = function user(seq, dataTypes) {
         assoc.createdBy = GeneratorTemplate.belongsTo(models.User, {
           foreignKey: 'createdBy',
         });
+
+        assoc.writers = GeneratorTemplate.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'GeneratorTemplateWriters',
+          foreignKey: 'generatortemplateId',
+        });
       },
     },
-
     indexes: [
       {
         name: 'GTNameVersion',
