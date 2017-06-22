@@ -18,7 +18,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
 describe('db: Generatortemplate: create: ', () => {
-  const gt = u.getGeneratorTemplate();
+  const gt = JSON.parse(JSON.stringify(u.getGeneratorTemplate()));
   let userInst;
   beforeEach((done) => {
     tu.createUser('GTOwner')
