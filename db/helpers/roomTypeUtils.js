@@ -136,7 +136,7 @@ function validateRulesArray(arr) {
         validateActions(arr[i].action);
       } else {
         throw new ValidationError({
-          message: 'Object missing a rules or actions attribute',
+          message: 'Object missing a rule or action attribute',
         });
       }
     }
