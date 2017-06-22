@@ -26,8 +26,7 @@ module.exports = {
   },
 
   forceDelete(done) {
-    // Using raw query because delete is restricted using ORM in delete hooks
-    seq.query('DELETE from "Collectors"')
+    tu.forceDelete(tu.db.Collector, testStartTime)
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())

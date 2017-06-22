@@ -131,15 +131,6 @@ dbErrors.create({
   defaultMessage: 'Not allowed to delete the system-created token.',
   explanation: 'Not allowed to delete the system-created token.',
 });
-dbErrors.create({
-  code: 10304,
-  status: 403,
-  name: 'CollectorDeleteConstraintError',
-  parent: dbErrors.DeleteConstraintError,
-  token: {},
-  defaultMessage: 'Not allowed to delete the collector.',
-  explanation: 'Not allowed to delete the collector.',
-});
 
 // ----------------------------------------------------------------------------
 // Create Constraint Errors

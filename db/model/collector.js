@@ -11,9 +11,6 @@
  */
 
 const constants = require('../constants');
-const CollectorDeleteConstraintError = require('../dbErrors')
-  .CollectorDeleteConstraintError;
-
 const assoc = {};
 
 module.exports = function collector(seq, dataTypes) {
@@ -51,6 +48,11 @@ module.exports = function collector(seq, dataTypes) {
       defaultValue: constants.collectorStatuses.Stopped,
       allowNull: false,
     },
+    isDeleted: {
+      type: dataTypes.BIGINT,
+      defaultValue: 0,
+      allowNull: false,
+    },
   }, {
     classMethods: {
       getCollectorAssociations() {
@@ -85,14 +87,6 @@ module.exports = function collector(seq, dataTypes) {
 
         return inst;
       }, // hooks.beforeCreate
-
-      beforeDestroy() {
-        throw new CollectorDeleteConstraintError();
-      }, // hooks.beforeDestroy
-
-      beforeBulkDestroy() {
-        throw new CollectorDeleteConstraintError();
-      }, // hooks.beforeBulkDestroy
     }, // hooks
     indexes: [
       {
@@ -118,6 +112,7 @@ module.exports = function collector(seq, dataTypes) {
           }));
       }, // isWritableBy
     },
+    paranoid: true,
   });
   return Collector;
 }; // exports

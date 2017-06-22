@@ -36,26 +36,24 @@ describe('tests/db/model/collector/delete.js >', () => {
 
   it('Delete collector, expect error on bulk delete', (done) => {
     Collector.destroy({ where: { id: collectorDb.id } })
-    .then(() => done(new Error('expecting CollectorDeleteConstraintError')))
-    .catch((err) => {
-      expect(err.name).to.equal('CollectorDeleteConstraintError');
-      expect(err.message).to.contain(
-        'Not allowed to delete the collector.'
-      );
+    .then(() => Collector.findAll())
+    .then((res) => {
+      expect(res.length).to.be.equal(0);
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('Delete collector, expect error on an instance delete', (done) => {
     Collector.findById(collectorDb.id)
     .then((c) => c.destroy())
-    .then(() => done(new Error('expecting CollectorDeleteConstraintError')))
-    .catch((err) => {
-      expect(err.name).to.equal('CollectorDeleteConstraintError');
-      expect(err.message).to.contain(
-        'Not allowed to delete the collector.'
-      );
-      done();
-    });
+    .then((o) => {
+      if (o.deletedAt && o.isDeleted) {
+        done();
+      } else {
+        done(new Error('expecting it to be soft-deleted'));
+      }
+    })
+    .catch(done);
   });
 });
