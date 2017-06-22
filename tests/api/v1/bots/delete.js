@@ -17,9 +17,20 @@ const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
+const tu = require('../../../testUtils');
 
 describe(`api: DELETE ${path}`, () => {
   let testBot;
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   beforeEach((done) => {
     u.createStandard()
@@ -31,10 +42,12 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  afterEach(tu.forceDeleteUser);
 
   describe('DELETE bot', () => {
     it('Pass, delete bot', (done) => {
       api.delete(`${path}/${testBot.id}`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -48,6 +61,7 @@ describe(`api: DELETE ${path}`, () => {
 
     it('Fail, bot not found', (done) => {
       api.delete(`${path}/INVALID_ID`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err) => {
         done(err);

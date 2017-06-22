@@ -18,9 +18,20 @@ const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
+const tu = require('../../../testUtils');
 
 describe(`api: PATCH ${path}`, () => {
   let testBot;
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   beforeEach((done) => {
     u.createStandard()
@@ -32,11 +43,13 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  afterEach(tu.forceDeleteUser);
 
   describe('PATCH bot', () => {
     it('Pass, patch bot name', (done) => {
       const newName = 'newName';
       api.patch(`${path}/${testBot.id}`)
+      .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -52,6 +65,7 @@ describe(`api: PATCH ${path}`, () => {
     it('Fail, patch bot invalid name', (done) => {
       const newName = '~!invalidName';
       api.patch(`${path}/${testBot.id}`)
+      .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
@@ -67,6 +81,7 @@ describe(`api: PATCH ${path}`, () => {
 
     it('Fail, patch bot invalid attribute', (done) => {
       api.patch(`${path}/${testBot.id}`)
+      .set('Authorization', token)
       .send({ invalid: true })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {

@@ -18,13 +18,27 @@ const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
+const tu = require('../../../testUtils');
 
 describe(`api: POST ${path}`, () => {
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
   afterEach(u.forceDelete);
+  afterEach(tu.forceDeleteUser);
 
   describe('POST bot', () => {
     it('Pass, post bot', (done) => {
       api.post(`${path}`)
+      .set('Authorization', token)
       .send(u.getStandard())
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
@@ -42,6 +56,7 @@ describe(`api: POST ${path}`, () => {
       .then(() => done());
 
       api.post(`${path}`)
+      .set('Authorization', token)
       .send(u.getStandard())
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
@@ -58,6 +73,7 @@ describe(`api: POST ${path}`, () => {
       testBot.actions = 'INVALID_VALUE';
 
       api.post(`${path}`)
+      .set('Authorization', token)
       .send(testBot)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {

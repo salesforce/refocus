@@ -6292,7 +6292,7 @@ paths:
     get:
       summary: Retrieve a bot
       tags: [ bots ]
-      operationId: getBots
+      operationId: getBot
       parameters:
         -
           name: key
@@ -6303,13 +6303,13 @@ paths:
           type: string
         -
           name: name
-          description: Get bots by name
+          description: Get bot by name
           in: query
           required: false
           type: string
         -
           name: active
-          description: Get active bots
+          description: Get bots depending on its active tag
           in: query
           required: false
           type: boolean
@@ -6339,8 +6339,8 @@ paths:
         - jwt: []
       summary: Update specified fields in bot
       tags: [ bots ]
-      description: Update bot feilds
-      operationId: patchBots
+      description: Update bot fields
+      operationId: patchBot
       parameters:
         -
           name: key
@@ -6355,7 +6355,7 @@ paths:
           required: true
           schema:
             type: object
-            description: Create bot properties
+            description: Update specified bot fields
             properties:
               name:
                 type: string

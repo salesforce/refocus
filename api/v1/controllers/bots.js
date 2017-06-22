@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -56,7 +56,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  getBots(req, res, next) {
+  getBot(req, res, next) {
     doGet(req, res, next, helper);
   },
 
@@ -69,7 +69,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  patchBots(req, res, next) {
+  patchBot(req, res, next) {
     doPatch(req, res, next, helper);
   },
 

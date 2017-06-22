@@ -20,9 +20,20 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const tu = require('../../../testUtils');
 
 describe(`api: GET ${path}`, () => {
   let testBot;
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   beforeEach((done) => {
     u.createStandard()
@@ -34,10 +45,12 @@ describe(`api: GET ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
+  afterEach(tu.forceDeleteUser);
 
   describe('GET bot', () => {
     it('Pass, get array of one', (done) => {
       api.get(`${path}`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -55,6 +68,7 @@ describe(`api: GET ${path}`, () => {
       .catch(done);
 
       api.get(`${path}`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -67,6 +81,7 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get active', (done) => {
       api.get(`${path}?active=true`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -80,6 +95,7 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get inactive', (done) => {
       api.get(`${path}?active=false`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -97,6 +113,7 @@ describe(`api: GET ${path}`, () => {
       .catch(done);
 
       api.get(`${path}?name=`+u.name)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -110,6 +127,7 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get by id', (done) => {
       api.get(`${path}/${testBot.id}`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -123,6 +141,7 @@ describe(`api: GET ${path}`, () => {
 
     it('Fail, id not found', (done) => {
       api.get(`${path}/INVALID_ID`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end(() => {
         done();
