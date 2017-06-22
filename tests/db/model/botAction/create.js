@@ -97,5 +97,69 @@ describe('db: bot action: create: ', () => {
         done();
       });
     });
+
+    it('fail, bot action missing parameters', (done) => {
+      const testBotAction = u.getStandard();
+      RoomType.create(rt.getStandard())
+      .then((roomType) => {
+        const room = r.getStandard();
+        room.type = roomType.id;
+        return Room.create(room);
+      })
+      .then((room) => {
+        testBotAction.roomId = room.id;
+        return Bot.create(b.getStandard());
+      })
+      .then((bot) => {
+        testBotAction.botId = bot.id;
+        testBotAction.parameters = [
+          {
+            name: 'Param1',
+            value: true,
+          },
+          {
+            name: 'Param2',
+            value: 4,
+          },
+          {
+            name: 'Param3',
+            value: 62.2,
+          },
+        ];
+        return BotAction.create(testBotAction);
+      })
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.message).to.equal('Not enough parameters were sent to run this action');
+        done();
+      });
+    });
+
+    it('ok, bot action no parameters', (done) => {
+      const testBotAction = {
+        pending: true,
+        name: 'Action1',
+      }
+      RoomType.create(rt.getStandard())
+      .then((roomType) => {
+        const room = r.getStandard();
+        room.type = roomType.id;
+        return Room.create(room);
+      })
+      .then((room) => {
+        testBotAction.roomId = room.id;
+        return Bot.create(b.getStandard());
+      })
+      .then((bot) => {
+        testBotAction.botId = bot.id;
+        testBotAction.parameters = null;
+        return BotAction.create(testBotAction);
+      })
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.message).to.equal('Action must contain parameters');
+        done();
+      });
+    });
   });
 });

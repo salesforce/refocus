@@ -85,18 +85,16 @@ module.exports = function botAction(seq, dataTypes) {
             },
           })
           .then((botFound) => {
-            if (botFound) {
-              for (let i = 0; i < botFound.actions.length; i++) {
-                if (botFound.actions[i].name === inst.getDataValue('name')) {
-                  return botFound.actions[i];
-                }
+            for (let i = 0; i < botFound.actions.length; i++) {
+              if (botFound.actions[i].name === inst.getDataValue('name')) {
+                return botFound.actions[i];
               }
             }
 
             return null;
           })
           .then((dataFound) => {
-            if (dataFound) {
+            if (inst.getDataValue('parameters') != null) {
               if (inst.getDataValue('parameters').length !==
                 dataFound.parameters.length) {
                 throw new dbErrors.ValidationError({
@@ -106,7 +104,7 @@ module.exports = function botAction(seq, dataTypes) {
               }
             } else {
               throw new dbErrors.ValidationError({
-                message: 'Action name not found',
+                message: 'Action must contain parameters',
               });
             }
           })
