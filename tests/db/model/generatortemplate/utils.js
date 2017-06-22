@@ -34,6 +34,7 @@ const GT_SIMPLE = {
   connection: {
     url: '{{baseTrustUrl}}/v1/instances/status/preview',
     method: 'GET',
+    proxy: 'pro.xy.server.net'
   },
   transform: 'return [{ name: "S1|A1", value: 10 }, ' +
           '{ name: "S2|A1", value: 2 }] ',

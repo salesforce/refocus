@@ -68,6 +68,10 @@ const connectionSchema = {
       description: 'The string body of a function which returns the url ' +
       'to connect to. One of ["url", "toUrl"] is required.',
     },
+    proxy: {
+      description: ' The Proxy server for the http request, if needed',
+      type: 'string',
+    },
     headers: {
       description: 'Optional connection headers',
       type: 'object',
