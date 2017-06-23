@@ -10,6 +10,7 @@
  * db/model/collector.js
  */
 
+const common = require('../helpers/common');
 const constants = require('../constants');
 const assoc = {};
 
@@ -75,6 +76,10 @@ module.exports = function collector(seq, dataTypes) {
       order: ['Collector.name'],
     },
     hooks: {
+      beforeDestroy(inst /* , opts */) {
+        return common.setIsDeleted(seq.Promise, inst);
+      }, // beforeDestroy
+
       afterCreate(inst /* , opts*/) {
         // Add createdBy user to Collector writers.
         if (inst.createdBy) {
@@ -90,10 +95,11 @@ module.exports = function collector(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'CollectorUniqueLowercaseName',
+        name: 'CollectorUniqueLowercaseNameIsDeleted',
         unique: true,
         fields: [
           seq.fn('lower', seq.col('name')),
+          'isDeleted',
         ],
       },
     ],

@@ -48,7 +48,7 @@ describe('tests/db/model/collector/delete.js >', () => {
     Collector.findById(collectorDb.id)
     .then((c) => c.destroy())
     .then((o) => {
-      if (o.deletedAt && o.isDeleted) {
+      if (o.deletedAt && (o.isDeleted !== 0)) {
         done();
       } else {
         done(new Error('expecting it to be soft-deleted'));
