@@ -28,7 +28,6 @@ RUN chmod +x $HOME/wait-for-postgres.sh
 RUN apk update
 RUN apk add postgresql-client #need for script
 
-
 USER refocus
 WORKDIR $HOME
 RUN npm install
@@ -38,4 +37,4 @@ ENV REDIS_URL=//redis:6379
 
 EXPOSE 3000
 
-CMD [ "/bin/sh", "-c", "$HOME/wait-for-postgres.sh; npm start" ]
+CMD [ "/bin/sh", "-c", "$HOME/wait-for-postgres.sh pg 'npm start'" ]

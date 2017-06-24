@@ -13,7 +13,7 @@ services:
     expose:
         - 5432
     environment:
-      POSTGRES_DB: "focusdb" #for postgres image to create db
+      POSTGRES_DB: "focusdb" #needed for postgres container to create db
 
   redis:
     image: "redis:3-alpine"
