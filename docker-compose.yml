@@ -3,16 +3,19 @@ services:
   refocus-app:
     build: .
     ports:
-     - "3000:3000"
+      - "3000:3000"
     depends_on:
-     - "redis"
-     - "pg"
-  redis:
-    image: "redis:3.2.8"
-    expose:
-       - 6379
-  pg:
-    image: "postgres:9.6.2"
-    expose:
-       - 5432
+      - "pg"
+      - "redis"
 
+  pg:
+    image: "postgres:9.6-alpine"
+    expose:
+        - 5432
+    environment:
+      POSTGRES_DB: "focusdb" #for postgres image to create db
+
+  redis:
+    image: "redis:3-alpine"
+    expose:
+        - 6379

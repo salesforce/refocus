@@ -1,19 +1,41 @@
-FROM node:6.10.3
+FROM node:8-alpine
 
-RUN useradd -U -d /opt/refocus refocus 
-ENV HOME=/opt/refocus
+ENV HOME=/home/refocus
+RUN addgroup -S refocus
+RUN adduser -D -G refocus -h $HOME refocus
 COPY . $HOME 
+
+RUN echo $'#!/bin/sh\n\
+# wait-for-postgres.sh\n\
+# from https://docs.docker.com/compose/startup-order/ \n\
+\n\
+set -e\n\
+\n\
+host="$1"\n\
+shift\n\
+cmd="$@"\n\
+\n\
+until psql -h "$host" -U "postgres" -c "\l"; do\n\
+  >&2 echo "Postgres is unavailable - sleeping"\n\
+  sleep 1\n\
+done\n\
+\n\
+>&2 echo "Postgres is up - executing command"\n\
+exec $cmd' > $HOME/wait-for-postgres.sh
+
 RUN chown -R refocus:refocus $HOME
+RUN chmod +x $HOME/wait-for-postgres.sh
+RUN apk update
+RUN apk add postgresql-client #need for script
+
 
 USER refocus
 WORKDIR $HOME
-RUN npm install 
+RUN npm install
 
-# sleep is to support pause during startup for deploys in kubernetes - delays start of refocus container to let pg and redis containers to start within the same pod.
-ENV SLEEP=0
 ENV PGHOST=pg
 ENV REDIS_URL=//redis:6379
 
 EXPOSE 3000
 
-CMD [ "/bin/sh", "-c", "sleep $SLEEP; npm start" ]
+CMD [ "/bin/sh", "-c", "$HOME/wait-for-postgres.sh; npm start" ]
