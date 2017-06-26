@@ -163,9 +163,10 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
  */
 module.exports = function doFind(req, res, next, props) {
   const opts = fu.options(req.swagger.params, props);
+  const cacheKey = JSON.stringify(opts);
 
-  if (props.cacheEnabled) {
-    const cacheKey = JSON.stringify(opts);
+  //only cache requests with no params
+  if (props.cacheEnabled && cacheKey === '{"where":{}}') {
 
     redisCache.get(cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
