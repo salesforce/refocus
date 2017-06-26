@@ -1,8 +1,7 @@
 FROM node:8-alpine
 
 ENV HOME=/home/refocus
-RUN addgroup -S refocus
-RUN adduser -D -G refocus -h $HOME refocus
+RUN adduser -D -h $HOME refocus
 COPY . $HOME 
 
 RUN echo $'#!/bin/sh\n\
@@ -23,10 +22,8 @@ done\n\
 >&2 echo "Postgres is up - executing command"\n\
 exec $cmd' > $HOME/wait-for-postgres.sh
 
-RUN chown -R refocus:refocus $HOME
-RUN chmod +x $HOME/wait-for-postgres.sh
-RUN apk update
-RUN apk add postgresql-client #need for script
+RUN chown -R refocus:refocus $HOME && chmod +x $HOME/wait-for-postgres.sh
+RUN apk update && apk add postgresql-client #need for script
 
 USER refocus
 WORKDIR $HOME
@@ -38,3 +35,4 @@ ENV REDIS_URL=//redis:6379
 EXPOSE 3000
 
 CMD [ "/bin/sh", "-c", "$HOME/wait-for-postgres.sh pg 'npm start'" ]
+
