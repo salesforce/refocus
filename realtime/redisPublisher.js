@@ -11,6 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const redisStore = require('../cache/sampleStore');
+const redisClient = require('../cache/redisCache').client.sampleStore;
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
@@ -124,12 +126,12 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   };
   const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
                             Promise.resolve(sample.aspect);
-  return getAspect
-  .then((asp) => {
+  return Promise.all([getAspect, subjectModel.findOne(subOpts)])
+  .then((responses) => {
+    const asp = responses[0];
+    const sub = responses[1];
+
     sample.aspect = asp.get ? asp.get() : asp;
-    return subjectModel.findOne(subOpts);
-  })
-  .then((sub) => {
     if (sub) {
 
       /*
