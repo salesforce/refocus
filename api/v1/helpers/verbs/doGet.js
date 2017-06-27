@@ -35,14 +35,12 @@ const redisModelSample = require('../../../../cache/models/samples');
  */
 function doGet(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
-  if (props.cacheEnabled) {
-    const reqParams = req.swagger.params;
-    let cacheKey = reqParams.key.value;
+  const reqParams = req.swagger.params;
+  const fields = reqParams.fields ? reqParams.fields.value : null;
 
-    // cache key is combination of key and fields in specified order.
-    if (reqParams.fields && reqParams.fields.value) {
-      cacheKey += reqParams.fields.value;
-    }
+  //only cache requests with no params
+  if (props.cacheEnabled && !fields) {
+    let cacheKey = reqParams.key.value;
 
     redisCache.get(cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
