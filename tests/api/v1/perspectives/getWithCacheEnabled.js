@@ -18,11 +18,35 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 describe(`api: GET ${path}`, () => {
   let lensId;
   let perspectiveId;
   let token;
+  let perspectiveModel;
+  const patchData = { rootSubject: 'UPDATED' };
+
+  const originalPerspective = {
+    name: `${tu.namePrefix}testPersp`,
+    rootSubject: 'myMainSubject',
+    aspectFilter: ['temperature', 'humidity'],
+    aspectTagFilter: ['temp', 'hum'],
+    subjectTagFilter: ['ea', 'na'],
+    statusFilter: ['Critical', '-OK'],
+  };
+
+  const updatedPerspective = {
+    name: `${tu.namePrefix}testPersp`,
+    rootSubject: 'UPDATED',
+    aspectFilter: ['temperature', 'humidity'],
+    aspectTagFilter: ['temp', 'hum'],
+    subjectTagFilter: ['ea', 'na'],
+    statusFilter: ['Critical', '-OK'],
+  };
+
+  const expectedKeys = ['name', 'lensId', 'lens', 'aspectFilter',
+    'aspectTagFilter', 'subjectTagFilter', 'statusFilter'];
 
   before((done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
@@ -37,21 +61,63 @@ describe(`api: GET ${path}`, () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
-      name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
-      rootSubject: 'myMainSubject',
-      aspectFilter: ['temperature', 'humidity'],
-      aspectTagFilter: ['temp', 'hum'],
-      subjectTagFilter: ['ea', 'na'],
-      statusFilter: ['Critical', '-OK'],
-    }))
+    .then((createdLens) => {
+      lensId = createdLens.id;
+      originalPerspective.lensId = lensId;
+      updatedPerspective.lensId = lensId;
+
+      done();
+    })
+    .catch(done);
+  });
+
+  //create the perspective
+  beforeEach((done) => {
+
+    tu.db.Perspective.create(originalPerspective)
     .then((createdPersp) => {
-      lensId = createdPersp.lensId;
+      perspectiveModel = createdPersp;
       perspectiveId = createdPersp.id;
       done();
     })
     .catch(done);
+  });
+
+  //get requests to prime the cache
+  beforeEach((done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      api.get(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        api.get(`${path}?fields=rootSubject`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+
+          api.get(`${path}/${perspectiveId}?fields=rootSubject`)
+          .set('Authorization', token)
+          .expect(constants.httpStatus.OK)
+          .end((err, res) => {
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  afterEach((done) => {
+    redisCache.flushdb();
+    perspectiveModel.destroy()
+    .then(() => {
+      perspectiveModel = undefined;
+      done();
+    });
   });
 
   after(u.forceDelete);
@@ -61,34 +127,353 @@ describe(`api: GET ${path}`, () => {
   after(() => tu.toggleOverride('enableCachePerspective', false));
 
 
-  it('basic get by id', (done) => {
+  it('get all', (done) => {
+
+    // get from the cache
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      if (err) done(err);
+      expect(res.body).to.be.an.array;
+      const perspective = res.body.find(p => p.id === perspectiveId);
+      expect(perspective.rootSubject).to.equal('myMainSubject');
+      expect(perspective).to.include.all.keys(expectedKeys);
+      done();
+    });
+  });
+
+  it('put then get all', (done) => {
+
+    // put the perspective
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(updatedPerspective)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(path)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.include.all.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('patch then get all', (done) => {
+
+    // patch the perspective
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(patchData)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(path)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.include.all.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('delete then get all', (done) => {
+
+    // delete the perspective
+    api.delete(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      // attempt to get the perspective from the db
+      api.get(path)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective).to.not.exist;
+        done();
+      });
+    });
+  });
+
+
+  it('get by id', (done) => {
+
+    // get from the cache
     api.get(`${path}/${perspectiveId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((_err, _res) => {
-      if (_err) {
-        done(_err);
-      }
+    .end((err, res) => {
 
-      // get the same perspective again to hit the cache
+      if (err) done(err);
+      const perspective = res.body;
+      expect(perspective.rootSubject).to.equal('myMainSubject');
+      expect(perspective).to.include.all.keys(expectedKeys);
+      done();
+    });
+  });
+
+  it('put then get by id', (done) => {
+
+    // put the perspective
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(updatedPerspective)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
       api.get(`${path}/${perspectiveId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
-        expect(res.body.rootSubject).to.equal('myMainSubject');
-        expect(res.body.lensId).to.equal(lensId);
-        expect(res.body).to.have.property('lens');
-        expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);
-        expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);
-        expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
-        expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
-        // done();
+
+        if (err) done(err);
+        const perspective = res.body;
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.include.all.keys(expectedKeys);
+        done();
       });
+    });
+  });
+
+  it('patch then get by id', (done) => {
+
+    // patch the perspective
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(patchData)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        const perspective = res.body;
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.include.all.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('delete then get by id', (done) => {
+
+    // delete the perspective
+    api.delete(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      // attempt to get the perspective from the db
+      api.get(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) done(err);
+        else done();
+      });
+    });
+  });
+
+
+  it('get all with fields', (done) => {
+
+    // get from the db
+    api.get(`${path}/?fields=rootSubject`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      if (err) done(err);
+      expect(res.body).to.be.an.array;
+      const perspective = res.body.find(p => p.id === perspectiveId);
+      expect(perspective.rootSubject).to.equal('myMainSubject');
+      expect(perspective).to.not.have.any.keys(expectedKeys);
       done();
     });
   });
+
+  it('put then get all with fields', (done) => {
+
+    // put the perspective
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(updatedPerspective)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(`${path}/?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.not.have.any.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('patch then get all with fields', (done) => {
+
+    // patch the perspective
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(patchData)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(`${path}/?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.not.have.any.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('delete then get all with fields', (done) => {
+
+    // delete the perspective
+    api.delete(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      // attempt to get the perspective from the db
+      api.get(`${path}/?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        expect(res.body).to.be.an.array;
+        const perspective = res.body.find(p => p.id === perspectiveId);
+        expect(perspective).to.not.exist;
+        done();
+      });
+    });
+  });
+
+
+  it('get by id with fields', (done) => {
+
+    // get from the db
+    api.get(`${path}/${perspectiveId}?fields=rootSubject`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      if (err) done(err);
+      const perspective = res.body;
+      expect(perspective.rootSubject).to.equal('myMainSubject');
+      expect(perspective).to.not.have.any.keys(expectedKeys);
+      done();
+    });
+  });
+
+  it('put then get by id with fields', (done) => {
+
+    // put the perspective
+    api.put(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(updatedPerspective)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(`${path}/${perspectiveId}?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        const perspective = res.body;
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.not.have.any.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('patch then get by id with fields', (done) => {
+
+    // patch the perspective
+    api.patch(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .send(patchData)
+    .end((err, res) => {
+
+      // get the updated perspective from the db
+      api.get(`${path}/${perspectiveId}?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+
+        if (err) done(err);
+        const perspective = res.body;
+        expect(perspective.rootSubject).to.equal('UPDATED');
+        expect(perspective).to.not.have.any.keys(expectedKeys);
+        done();
+      });
+    });
+  });
+
+  it('delete then get by id with fields', (done) => {
+
+    // delete the perspective
+    api.delete(`${path}/${perspectiveId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+
+      // attempt to get the perspective from the db
+      api.get(`${path}/${perspectiveId}?fields=rootSubject`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) done(err);
+        else done();
+      });
+    });
+  });
+
 });

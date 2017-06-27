@@ -18,6 +18,7 @@ const httpStatus = require('../../constants').httpStatus;
 const featureToggles = require('feature-toggles');
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Deletes a record and sends the deleted record back in the json response
@@ -78,6 +79,14 @@ function doDelete(req, res, next, props) {
     if (props.publishEvents) {
       publisher.publishSample(retVal, props.associatedModels.subject,
           event.sample.del);
+    }
+
+    // update the cache
+    if (props.cacheEnabled) {
+      const getCacheKey = req.swagger.params.key.value;
+      const findCacheKey = '{"where":{}}';
+      redisCache.del(getCacheKey);
+      redisCache.del(findCacheKey);
     }
 
     // when a resource is deleted, delete all its associations too
