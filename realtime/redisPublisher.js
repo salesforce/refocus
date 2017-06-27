@@ -10,8 +10,8 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-
 const redisStore = require('../cache/sampleStore');
+const constants = redisStore.constants;
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
@@ -110,23 +110,38 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
+
   const sample = sampleInst.get ? sampleInst.get() : sampleInst;
   const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
-  const subOpts = {
-    where: {
-      absolutePath: subName,
-    },
-  };
-  const aspOpts = {
-    where: {
-      name: aspName,
-    },
-  };
-  const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
-                            Promise.resolve(sample.aspect);
-  return Promise.all([getAspect, subjectModel.findOne(subOpts)])
+  let promisesArr = [];
+
+  // if redis cache is on, get subject and aspect from cache
+  if (featureToggles.isFeatureEnabled(constants.featureName)) {
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const subKey = redisStore.toKey('subject', subName);
+    promisesArr = [
+      redisClient.hgetallAsync(aspKey),
+      redisClient.hgetallAsync(subKey)];
+  } else {
+    const subOpts = {
+      where: {
+        absolutePath: subName,
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: aspName,
+      },
+    };
+
+    const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
+                              Promise.resolve(sample.aspect);
+    promisesArr = [getAspect, subjectModel.findOne(subOpts)];
+  }
+
+  return Promise.all(promisesArr)
   .then((responses) => {
     const asp = responses[0];
     const sub = responses[1];
@@ -139,8 +154,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
        *aspect and subject are published
        */
       if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
+
         // attach subject to the sample
-        sample.subject = sub.get();
+        sample.subject = sub.get ? sub.get() : sub;
 
         // attach absolutePath field to the sample
         sample.absolutePath = subName;
