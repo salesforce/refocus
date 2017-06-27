@@ -123,7 +123,8 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     const subKey = redisStore.toKey('subject', subName);
     promisesArr = [
       redisClient.hgetallAsync(aspKey),
-      redisClient.hgetallAsync(subKey)];
+      redisClient.hgetallAsync(subKey),
+    ];
   } else {
     const subOpts = {
       where: {
