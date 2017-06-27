@@ -16,6 +16,8 @@
 const pub = require('../../cache/redisCache').client.pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
+const revalidator = require('revalidator');
+const ValidationError = require('../dbErrors').ValidationError;
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {
@@ -130,7 +132,8 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
     }
   }
 
-  logDB(instance, eventType, changedVals);
+  // TODO: revisit this to fix logDB
+  // logDB(instance, eventType, changedVals);
 }
 
 /**
@@ -233,6 +236,42 @@ function setIsDeleted(Promise, inst) {
     .catch((err) => reject(err)));
 } // setIsDeleted
 
+/**
+ * Validates a function against a schema. It throws an error if the object
+ * does not match the schema. The revalidator library is used for this purpose
+ * @param  {Object} object - The input object to be instered into the database
+ * @param  {Object} schema - The schema against which the object is to be
+ * validated
+ * @throws {ValidationError} If the object does not conform to the schema
+ */
+function validateObject(object, schema) {
+  const options = { additionalProperties: false };
+  const result = revalidator.validate(object, schema, options);
+  if (!result.valid) {
+    // convert the error message to a readable string before throwing the error
+    throw new ValidationError(JSON.stringify(result.errors));
+  }
+} // validateObject
+
+/**
+ * A custom validator to validate the context definition object
+ * @param  {Object} contextDef - A context definition object
+ * @param {Array} requiredProps - Any array of the required field names
+ * @throws {ValidationError} If the object does not pass the validation.
+ */
+function validateContextDef(contextDef, requiredProps) {
+  const message = requiredProps.join(' and ');
+  const keys = Object.keys(contextDef);
+  for (let i = 0; i < keys.length; i++) {
+    const nestedKeys = new Set(Object.keys(contextDef[keys[i]]));
+    const intersection = new Set(requiredProps.filter((element) =>
+      nestedKeys.has(element)));
+    if (intersection.size !== requiredProps.length) {
+      throw new ValidationError(message + ' is required');
+    }
+  }
+} // validateContextDef
+
 module.exports = {
   dbconf,
   setIsDeleted,
@@ -242,4 +281,6 @@ module.exports = {
   validateJsonSchema,
   createDBLog,
   changeType,
+  validateObject,
+  validateContextDef,
 }; // exports

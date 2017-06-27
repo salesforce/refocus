@@ -22,6 +22,7 @@ module.exports = {
   },
   nameRegex: /^[0-9a-z_-]+$/i,
   sortByRegex: /^[0-9a-z_-]*$/i,
+  versionRegex: /^\d+\.\d+\.\d+$/i,
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
@@ -32,5 +33,10 @@ module.exports = {
     Warning: 'Warning',
     Info: 'Info',
     OK: 'OK',
+  },
+  collectorStatuses: {
+    Stopped: 'Stopped',
+    Running: 'Running',
+    Paused: 'Paused',
   },
 };
