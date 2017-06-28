@@ -18,6 +18,7 @@ const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -91,6 +92,14 @@ function doPut(req, res, next, props) {
     if (props.publishEvents) {
       publisher.publishSample(o, props.associatedModels.subject,
        event.sample.upd);
+    }
+
+    // update the cache
+    if (props.cacheEnabled) {
+      const getCacheKey = req.swagger.params.key.value;
+      const findCacheKey = '{"where":{}}';
+      redisCache.del(getCacheKey);
+      redisCache.del(findCacheKey);
     }
 
     res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
