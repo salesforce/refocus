@@ -107,19 +107,11 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  it('get with limit and sort, response present in cache', (done) => {
+  it('get with limit and sort, response not present in cache', (done) => {
     redisCache.get('{"order":["name"],"limit":10,"where":{}}',
       (cacheErr, reply) => {
-        if (reply) {
-          const jsonReply = JSON.parse(reply);
-          expect(jsonReply).to.have.length(ONE);
-          expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
-          expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
-
-          done();
-        } else {
-          throw new Error('Expected response value in cache');
-        }
+        expect(reply).to.not.exist;
+        done();
       });
   });
 
