@@ -128,23 +128,6 @@ function removeNullsAndParseArrays(obj, arrayFields) {
 } // removeNullsAndParseArrays
 
 /**
- * Remove null fields.
- *
- * @param {Object} obj - The object to clean.
- * @param {Array} arrayFields - List of array fields to stringify.
- * @returns {Object} the object with no nulls.
- */
-function removeNulls(obj, arrayFields) {
-  Object.keys(obj).forEach((key) => {
-    if (obj[key] === null) {
-      delete obj[key];
-    }
-  });
-
-  return obj;
-} // removeNulls
-
-/**
  * Returns the ISO formatted date
  *
  * ie. input value: Mon Apr 03 2017 14:10:57 GMT-0700 (PDT)
@@ -219,7 +202,7 @@ function cleanSample(s) {
 } // cleanSample
 
 module.exports = {
-  removeNulls,
+  removeNullsAndParseArrays,
   cleanAspect,
   cleanSubject,
   cleanSample,
