@@ -66,7 +66,8 @@ describe('publishSample with redis cache on', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('certain fields in aspect should be array', (done) => {
+  it('certain fields in aspect should be array, and others' +
+    ' should be undefined', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
     .then((pubObj) => {
@@ -74,18 +75,21 @@ describe('publishSample with redis cache on', () => {
       expect(pubObj.aspect.name).to.equal(aspectName);
       expect(pubObj.aspect.writers).to.be.undefined;
       expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
       done();
     })
     .catch(done);
   });
 
-  it('certain fields in subject should be array', (done) => {
+  it('certain fields in subject should be array, and others' +
+    ' should be undefined', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
     .then((pubObj) => {
       expect(pubObj.subject).to.not.equal(null);
       expect(pubObj.subject.name).to.equal(subjectName);
       expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
       done();
     })
     .catch(done);
