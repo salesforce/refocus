@@ -125,7 +125,6 @@ function removeNulls(obj, arrayFields) {
   return obj;
 } // removeNulls
 
-
 /**
  * Returns the ISO formatted date
  *
