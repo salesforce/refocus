@@ -510,6 +510,8 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
 module.exports = {
 
+  cleanAddAspectToSample,
+
   /**
    * Delete sample. Get sample. If found, get aspect, delete sample entry from
    * sample index, delete aspect from subject set and delete sample hash. If
