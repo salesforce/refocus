@@ -144,7 +144,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     const asp = responses[0];
     const sub = responses[1];
 
-    const aspect = asp.get ? asp.get() : asp;
+    let aspect = asp.get ? asp.get() : asp;
+    aspect = redisStore.removeNulls(aspect,
+      constants.fieldsToStringify.aspect);
     delete aspect.writers;
     sample = cleanAddAspectToSample(sample, aspect);
     if (sub) {
@@ -156,7 +158,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
 
         // attach subject to the sample
-        const subject = sub.get ? sub.get() : sub;
+        let subject = sub.get ? sub.get() : sub;
+        subject = redisStore.removeNulls(subject,
+          constants.fieldsToStringify.subject);
         sample.subject = redisStore.arrayStringsToJson(
           subject, constants.fieldsToStringify.subject
         );

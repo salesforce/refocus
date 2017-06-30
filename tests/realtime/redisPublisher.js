@@ -176,9 +176,11 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.helpEmail).to.be.undefined;
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
         done();
       })
       .catch(done);
@@ -191,9 +193,11 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.helpEmail).to.be.undefined;
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
         done();
       })
       .catch(done);
@@ -210,12 +214,14 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
         expect(pubObj.aspect.name).to.equal(humidity.name);
+        expect(pubObj.subject.helpEmail).to.be.undefined;
         expect(pubObj.aspect.tags.length).to.equal(0);
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
 
         done();
       })
