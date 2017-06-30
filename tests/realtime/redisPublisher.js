@@ -95,23 +95,6 @@ describe('publishSample with redis cache on', () => {
     .catch(done);
   });
 
-  it('sample should be published with subject' +
-    ' object and aspect object', (done) => {
-    Sample.findOne({ where: { name: sampleName } })
-    .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
-    .then((pubObj) => {
-      expect(pubObj.subject).to.not.equal(null);
-      expect(pubObj.subject.name).to.equal(subjectName);
-      expect(pubObj.subject.tags.length).to.equal(0);
-
-      expect(pubObj.aspect).to.not.equal(null);
-      expect(pubObj.aspect.name).to.equal(aspectName);
-      expect(pubObj.aspect.tags.length).to.equal(0);
-      done();
-    })
-    .catch(done);
-  });
-
   it('when tried to publish sample without aspect,'+
     ' aspect should be attached, along with subject', (done) => {
     Sample.findOne({ where: { name: sampleName } })
@@ -123,13 +106,15 @@ describe('publishSample with redis cache on', () => {
     .then((pubObj) => {
       expect(pubObj.aspect).to.not.equal(null);
       expect(pubObj.aspect.name).to.equal(aspectName);
-      expect(pubObj.aspect.tags.length).to.equal(0);
+      expect(pubObj.aspect.writers).to.be.undefined;
+      expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
 
       // check subject is still there
-      expect(pubObj.subject.tags.length).to.equal(0);
       expect(pubObj.subject).to.not.equal(null);
       expect(pubObj.subject.name).to.equal(subjectName);
-      expect(pubObj.absolutePath).to.equal(subjectName);
+      expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
       done();
     })
     .catch(done);
