@@ -109,6 +109,25 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
 } // removeNullsAndStringifyArrays
 
 /**
+ * Remove null fields; JSON.parse fields.
+ *
+ * @param {Object} obj - The object to clean.
+ * @param {Array} arrayFields - List of array fields to JSON.parse
+ * @returns {Object} the object with no nulls and parsed arrays.
+ */
+function removeNullsAndParseArrays(obj, arrayFields) {
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] === null) {
+      delete obj[key];
+    } else if (arrayFields.includes(key)) {
+      obj[key] = JSON.parse(obj[key]);
+    }
+  });
+
+  return obj;
+} // removeNullsAndParseArrays
+
+/**
  * Remove null fields.
  *
  * @param {Object} obj - The object to clean.

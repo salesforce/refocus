@@ -10,7 +10,6 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const cleanAddAspectToSample = require('../cache/models/samples').cleanAddAspectToSample;
 const redisStore = require('../cache/sampleStore');
 const constants = redisStore.constants;
 const redisClient = require('../cache/redisCache').client.sampleStore;
@@ -144,11 +143,12 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     const asp = responses[0];
     const sub = responses[1];
 
-    let aspect = asp.get ? asp.get() : asp;
-    aspect = redisStore.removeNulls(aspect,
-      constants.fieldsToStringify.aspect);
+    const aspect = asp.get ? asp.get() : asp;
     delete aspect.writers;
-    sample = cleanAddAspectToSample(sample, aspect);
+    sample.aspect = redisStore.removeNullsAndParseArrays(aspect,
+      constants.fieldsToStringify.aspect);
+    sample = redisStore.removeNullsAndParseArrays(sample,
+      constants.fieldsToStringify.sample);
     if (sub) {
 
       /*
@@ -158,12 +158,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
 
         // attach subject to the sample
-        let subject = sub.get ? sub.get() : sub;
-        subject = redisStore.removeNulls(subject,
+        const subject = sub.get ? sub.get() : sub;
+        subject = redisStore.removeNullsAndParseArrays(subject,
           constants.fieldsToStringify.subject);
-        sample.subject = redisStore.arrayStringsToJson(
-          subject, constants.fieldsToStringify.subject
-        );
 
         // attach absolutePath field to the sample
         sample.absolutePath = subName;
