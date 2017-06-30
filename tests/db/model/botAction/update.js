@@ -47,11 +47,11 @@ describe('db: bot action: update: ', () => {
   afterEach(u.forceDelete);
 
   describe('Update bot action', () => {
-    it('ok, update bot action pending', (done) => {
+    it('ok, update bot action isPending', (done) => {
       BotAction.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ pending: false }))
+      .then((o) => o.update({ isPending: false }))
       .then((o) => {
-        expect(o).to.have.property('pending').to.equal(false);
+        expect(o).to.have.property('isPending').to.equal(false);
         done();
       })
       .catch(done);

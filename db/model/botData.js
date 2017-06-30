@@ -10,8 +10,8 @@
  * db/model/botData.js
  *
  * During a room session bots data will need to be localized
- * so that it can be retrieved quickly in room rule checks.
- * This table will hold the current value for bot data.
+ * so that it can be retrieved quickly in room rule checks. This table
+ * will hold the current value for bot data for particular rooms.
  */
 
 const assoc = {};

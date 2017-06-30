@@ -17,7 +17,7 @@ const testStartTime = new Date();
 const Action1 = 'Action1';
 
 const standard = {
-  pending: true,
+  isPending: true,
   name: Action1,
   parameters: [
     {
@@ -40,7 +40,7 @@ const standard = {
 };
 
 const res = {
-  pending: false,
+  isPending: false,
   name: 'Action1',
   parameters: [
     {

@@ -130,16 +130,18 @@ describe('db: bot action: create: ', () => {
       })
       .then(() => done(tu.valError))
       .catch((err) => {
-        expect(err.message).to.equal('Not enough parameters were sent to run this action');
+        expect(err.message).to.equal(
+          'Not enough parameters were sent to run this action'
+        );
         done();
       });
     });
 
     it('ok, bot action no parameters', (done) => {
       const testBotAction = {
-        pending: true,
+        isPending: true,
         name: 'Action1',
-      }
+      };
       RoomType.create(rt.getStandard())
       .then((roomType) => {
         const room = r.getStandard();

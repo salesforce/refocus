@@ -9,7 +9,7 @@
 /**
  * db/model/botAction.js
  *
- * Once an action is intiated from refocus bots need to be able to
+ * Once an action is initiated from refocus bots need to be able to
  * check if they have any actions to perform. This table will act
  * as an action queue for bots.
  */
@@ -26,7 +26,7 @@ module.exports = function botAction(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    pending: {
+    isPending: {
       type: dataTypes.BOOLEAN,
       defaultValue: true,
       comment: 'Determines if bot action is still active',
@@ -67,6 +67,10 @@ module.exports = function botAction(seq, dataTypes) {
         assoc.bot = BotAction.belongsTo(models.Bot, {
           foreignKey: 'botId',
           allowNull: false,
+        });
+        assoc.user = BotAction.belongsTo(models.User, {
+          foreignKey: 'userId',
+          allowNull: true,
         });
       },
     },
