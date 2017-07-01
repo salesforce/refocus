@@ -110,6 +110,9 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
 
 /**
  * Remove null fields; JSON.parse fields.
+ * Checks the name and the value of the field: if it is
+ * supposed to be an array, and its value is a string, proceed
+ * with parsing. Otherwise don't parse it.
  *
  * @param {Object} obj - The object to clean.
  * @param {Array} arrayFields - List of array fields to JSON.parse

@@ -112,10 +112,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promisesArr = [];
-  const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName);
 
   // if redis cache is on, get subject and aspect from cache
-  if (isCacheOn) {
+  if (featureToggles.isFeatureEnabled(constants.featureName)) {
     const aspKey = redisStore.toKey('aspect', aspName);
     const subKey = redisStore.toKey('subject', subName);
     promisesArr = [
