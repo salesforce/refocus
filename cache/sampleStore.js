@@ -119,7 +119,7 @@ function removeNullsAndParseArrays(obj, arrayFields) {
   Object.keys(obj).forEach((key) => {
     if (obj[key] === null) {
       delete obj[key];
-    } else if (arrayFields.includes(key)) {
+    } else if (arrayFields.includes(key) && typeof obj[key] === 'string') {
       obj[key] = JSON.parse(obj[key]);
     }
   });

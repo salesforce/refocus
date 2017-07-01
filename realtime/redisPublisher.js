@@ -112,9 +112,10 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promisesArr = [];
+  const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName);
 
   // if redis cache is on, get subject and aspect from cache
-  if (featureToggles.isFeatureEnabled(constants.featureName)) {
+  if (isCacheOn) {
     const aspKey = redisStore.toKey('aspect', aspName);
     const subKey = redisStore.toKey('subject', subName);
     promisesArr = [
@@ -145,10 +146,13 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
     const aspect = asp.get ? asp.get() : asp;
     delete aspect.writers;
-    sample.aspect = redisStore.removeNullsAndParseArrays(aspect,
-      constants.fieldsToStringify.aspect);
+
+    // if field value is stringified, will parse the value.
     sample = redisStore.removeNullsAndParseArrays(sample,
       constants.fieldsToStringify.sample);
+    sample.aspect = redisStore.removeNullsAndParseArrays(aspect,
+      constants.fieldsToStringify.aspect);
+
     if (sub) {
 
       /*
@@ -159,7 +163,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
         // attach subject to the sample
         const subject = sub.get ? sub.get() : sub;
-        subject = redisStore.removeNullsAndParseArrays(subject,
+        sample.subject = redisStore.removeNullsAndParseArrays(subject,
           constants.fieldsToStringify.subject);
 
         // attach absolutePath field to the sample
