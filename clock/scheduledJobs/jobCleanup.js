@@ -30,9 +30,9 @@ function execute() {
   }
 
   return rangeByStateAsync('complete', 0, -1, 'asc') // get all completed jobs
-  .then((jobs) => {
-    return Promise.all(jobs.map((job) => {
-      return job.removeAsync()
+  .then((jobs) =>
+    Promise.all(jobs.map((job) =>
+      job.removeAsync()
       .then(() => {
         if (featureToggles.isFeatureEnabled('instrumentKue')) {
           console.log(`[KJI] Removed completed job ${job.id}`);
@@ -41,9 +41,9 @@ function execute() {
       .catch((err) => {
         console.log(`Error removing job ${job.id}`, err);
         return Promise.reject(err);
-      });
-    }));
-  })
+      })
+    ))
+  )
   .catch((err) => {
     console.log('Error getting completed jobs from queue', err);
     return Promise.reject(err);
