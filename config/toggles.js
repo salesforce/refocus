@@ -89,10 +89,6 @@ const longTermToggles = {
   enforceWritePermission:
     environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
 
-  // Add some instrumentation for real time events
-  instrumentRealtimeEvents:
-    environmentVariableTrue(pe, 'INSTRUMENT_REALTIME_EVENTS'),
-
   // Enforce that all API requests have valid API token
   requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 
