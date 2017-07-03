@@ -30,6 +30,7 @@ const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
 const queueStatsActivityLogs =
   require('./scheduledJobs/queueStatsActivityLogs');
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
+const jobCleanup = require('./scheduledJobs/jobCleanup');
 
 /*
  * Add all the scheduled work here.
@@ -53,3 +54,6 @@ if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
   setInterval(queueStatsActivityLogs.execute,
     conf.queueStatsActivityLogsInterval);
 }
+
+// Clean up completed jobs
+setInterval(jobCleanup.execute, conf.JOB_REMOVAL_INTERVAL_SECONDS * 1000);

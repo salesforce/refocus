@@ -70,8 +70,8 @@ describe('jobWrapper: functions ', () => {
     done();
   });
 
-  it('logAndRemoveJobOnComplete function ok', (done) => {
-    sinon.spy(jobWrapper, 'logAndRemoveJobOnComplete');
+  it('logJobOnComplete function ok', (done) => {
+    sinon.spy(jobWrapper, 'logJobOnComplete');
     const reqObject = {
       headers: {
         authorization: token,
@@ -85,9 +85,9 @@ describe('jobWrapper: functions ', () => {
     const testData = { foo: 'bar' };
     const job = jobQueue.createJob(jobType, testData);
 
-    jobWrapper.logAndRemoveJobOnComplete(reqObject, job);
+    jobWrapper.logJobOnComplete(reqObject, job);
     expect(jobWrapper.processJobOnComplete).to.have.been.called;
-    jobWrapper.logAndRemoveJobOnComplete.restore();
+    jobWrapper.logJobOnComplete.restore();
     done();
   });
 });
