@@ -19,6 +19,93 @@ const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const publisher = require('../../realtime/redisPublisher');
 const sampleEvent = require('../../realtime/constants').events.sample;
+const rtu = require('../cache/models/redisTestUtil');
+const samstoinit = require('../../cache/sampleStoreInit');
+
+describe('publishSample with redis cache on', () => {
+  const subjectName = `${tu.namePrefix}Subject`;
+  const aspectName = `${tu.namePrefix}Aspect`;
+  const sampleName = `${subjectName}|${aspectName}`;
+
+  before(() => tu.toggleOverride('enableRedisSampleStore', true));
+  beforeEach((done) => {
+    let a1;
+    let s1;
+    Aspect.create({
+      isPublished: true,
+      name: aspectName,
+      timeout: '30s',
+      valueType: 'NUMERIC',
+      criticalRange: [0, 1],
+      relatedLinks: [
+        { name: 'Google', value: 'http://www.google.com' },
+        { name: 'Yahoo', value: 'http://www.yahoo.com' },
+      ],
+    })
+    .then((created) => (a1 = created))
+    .then(() => Subject.create({
+      isPublished: true,
+      name: subjectName,
+    }))
+    .then((created) => (s1 = created))
+    .then(() => Sample.create({
+      messageCode: '25',
+      subjectId: s1.id,
+      aspectId: a1.id,
+      value: '0',
+      relatedLinks: [
+        { name: 'Salesforce', value: 'http://www.salesforce.com' },
+      ],
+    }))
+    .then(() => samstoinit.populate())
+    .then(() => done())
+    .catch(done);
+  });
+
+  afterEach(rtu.forceDelete);
+  afterEach(rtu.flushRedis);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  it('with EventType argument: sample should be published with subject' +
+    ' object and aspect object', (done) => {
+    Sample.findOne({ where: { name: sampleName } })
+    .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+    .then((pubObj) => {
+      expect(pubObj.subject).to.not.equal(null);
+      expect(pubObj.subject.name).to.equal(subjectName);
+      expect(JSON.parse(pubObj.subject.tags).length).to.equal(0);
+
+      expect(pubObj.aspect).to.not.equal(null);
+      expect(pubObj.aspect.name).to.equal(aspectName);
+      expect(JSON.parse(pubObj.aspect.tags).length).to.equal(0);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('when tried to publish sample without aspect,'+
+    ' aspect should be attached, along with subject', (done) => {
+    Sample.findOne({ where: { name: sampleName } })
+    .then((sam) => {
+      const sampInst = sam.get();
+      delete sampInst.aspect;
+      return publisher.publishSample(sam, null, sampleEvent.upd);
+    })
+    .then((pubObj) => {
+      expect(pubObj.aspect).to.not.equal(null);
+      expect(pubObj.aspect.name).to.equal(aspectName);
+      expect(JSON.parse(pubObj.aspect.tags).length).to.equal(0);
+
+      // check subject is still there
+      expect(JSON.parse(pubObj.subject.tags).length).to.equal(0);
+      expect(pubObj.subject).to.not.equal(null);
+      expect(pubObj.subject.name).to.equal(subjectName);
+      expect(pubObj.absolutePath).to.equal(subjectName);
+      done();
+    })
+    .catch(done);
+  });
+});
 
 describe('redis Publisher', () => {
   const subjectNA = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -51,6 +138,7 @@ describe('redis Publisher', () => {
     .catch(done);
   });
   after(u.forceDelete);
+
   describe('publishSample function tests: ', () => {
     it('with EventType argument: sample should be published with subject  ' +
       ' object and asbolutePath field', (done) => {

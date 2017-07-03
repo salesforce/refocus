@@ -29,10 +29,6 @@ module.exports = (io, key, mssgObj) => {
     if (nsp && rtUtils.shouldIEmitThisObj(nsp, obj)) {
       // newObjectAsString contains { key: {new: obj }}
       io.of(nsp).emit(key, newObjectAsString);
-
-      if (featureToggles.isFeatureEnabled('instrumentRealtimeEvents')) {
-        console.log(`[RT] namespace=${nsp} bytes=${newObjectAsString.length}`);
-      }
     }
   }
 };

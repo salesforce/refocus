@@ -70,6 +70,13 @@ module.exports = function user(seq, dataTypes) {
           },
           hooks: true,
         });
+
+        assoc.writableGeneratorTemplates =
+          User.belongsToMany(models.GeneratorTemplate, {
+            as: 'writableGeneratorTemplates',
+            through: 'GeneratorTemplateWriters',
+            foreignKey: 'userId',
+          });
         assoc.writableAspects = User.belongsToMany(models.Aspect, {
           as: 'writableAspects',
           through: 'AspectWriters',
@@ -88,6 +95,11 @@ module.exports = function user(seq, dataTypes) {
         assoc.writableSubjects = User.belongsToMany(models.Subject, {
           as: 'writableSubjects',
           through: 'SubjectWriters',
+          foreignKey: 'userId',
+        });
+        assoc.writableCollectors = User.belongsToMany(models.Collector, {
+          as: 'writableCollectors',
+          through: 'CollectorWriters',
           foreignKey: 'userId',
         });
         assoc.tokens = User.hasMany(models.Token, {

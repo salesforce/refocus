@@ -152,13 +152,13 @@ module.exports = {
   // create user object from a given user name
   createUser(usrName) {
     return db.Profile.create({
-      name: `${pfx}`+usrName+'profile',
+      name: `${pfx}` + usrName + 'profile',
     })
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: `${pfx}`+usrName,
-        email: usrName+'@'+usrName+'.com',
+        name: `${pfx}` + usrName,
+        email: usrName + '@' + usrName + '.com',
         password: usrName,
       })
     );

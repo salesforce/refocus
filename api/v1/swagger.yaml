@@ -6160,6 +6160,239 @@ paths:
           $ref: "#/responses/genericError"
 
 # =============================================================================
+  /bots:
+    x-swagger-router-controller: bots
+    get:
+      summary: Retrieve all bots
+      tags: [ bots ]
+      operationId: findBots
+      parameters:
+        -
+          name: name
+          description: Get bots by name
+          in: query
+          required: false
+          type: string
+        -
+          name: active
+          description: Get active bots
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all Bots
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new bot
+      tags: [ bots ]
+      description: Create a new bot with a name
+      operationId: postBots
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create bot properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot
+              url:
+                type: string
+                description: Bot url
+              active:
+                type: boolean
+                description: If the bot is active
+              actions:
+                type: array
+                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+                items:
+                  type: object
+              data:
+                type: array
+                description: Array of objects that contain the name of data on a bot
+                items:
+                  type: object
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created bot
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /bots/{key}:
+    x-swagger-router-controller: bots
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified bot
+      tags: [ bots ]
+      description: >-
+        Delete a specific bot
+      operationId: deleteBots
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted Bot
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a bot
+      tags: [ bots ]
+      operationId: getBot
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: name
+          description: Get bot by name
+          in: query
+          required: false
+          type: string
+        -
+          name: active
+          description: Get bots depending on its active tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified bot
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in bot
+      tags: [ bots ]
+      description: Update bot fields
+      operationId: patchBot
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified bot fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot
+              url:
+                type: string
+                description: Bot url
+              active:
+                type: boolean
+                description: If the bot is active
+              actions:
+                type: array
+                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+                items:
+                  type: object
+              data:
+                type: array
+                description: Array of objects that contain the name of data on a bot
+                items:
+                  type: object
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
 definitions:
 
   AuthenticationError:
@@ -7372,6 +7605,27 @@ definitions:
         type: string
         description: >
           Timestamp at which the the write permission was modified
+
+  BotResponse:
+    type: object
+    description: A response for information about a bot
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+      active:
+        type: boolean
+      actions:
+        type: array
+        items:
+          type: object
+      data:
+        type: array
+        items:
+          type: object
 
 # =============================================================================
 parameters:

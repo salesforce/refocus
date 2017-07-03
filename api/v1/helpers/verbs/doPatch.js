@@ -19,6 +19,7 @@ const httpStatus = require('../../constants').httpStatus;
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 const helper = require('../nouns/perspectives');
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -86,6 +87,14 @@ function doPatch(req, res, next, props) {
     if (props.publishEvents) {
       publisher.publishSample(retVal,
         props.associatedModels.subject, event.sample.upd);
+    }
+
+    // update the cache
+    if (props.cacheEnabled) {
+      const getCacheKey = req.swagger.params.key.value;
+      const findCacheKey = '{"where":{}}';
+      redisCache.del(getCacheKey);
+      redisCache.del(findCacheKey);
     }
 
     return res.status(httpStatus.OK)
