@@ -183,12 +183,9 @@ function init(io, redisStore) {
                 }
               }); // redisClient.del
             }
-
           }); // redisClient.get
         }); // on disconnect
       } // if logEnabled
-
-      return setupNamespace(io);
     })
     .catch((err) => {
       // no realtime events :(
@@ -197,6 +194,8 @@ function init(io, redisStore) {
       return;
     });
   }); // on connect
+
+  return setupNamespace(io); // executes only on server start
 } // init
 
 module.exports = {
