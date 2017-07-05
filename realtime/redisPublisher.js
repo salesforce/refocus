@@ -147,9 +147,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     delete aspect.writers;
 
     // if field value is stringified, will parse the value.
-    sample = redisStore.removeNullsAndParseArrays(sample,
+    sample = redisStore.arrayStringsToJson(sample,
       constants.fieldsToStringify.sample);
-    sample.aspect = redisStore.removeNullsAndParseArrays(aspect,
+    sample.aspect = redisStore.arrayStringsToJson(aspect,
       constants.fieldsToStringify.aspect);
 
     if (sub) {
@@ -162,7 +162,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
         // attach subject to the sample
         const subject = sub.get ? sub.get() : sub;
-        sample.subject = redisStore.removeNullsAndParseArrays(subject,
+        sample.subject = redisStore.arrayStringsToJson(subject,
           constants.fieldsToStringify.subject);
 
         // attach absolutePath field to the sample
