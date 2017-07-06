@@ -107,7 +107,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
 
   // will be over written when unwrapping json.stringified fields
-  let sample = sampleInst.get ? sampleInst.get() : sampleInst;
+  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
   const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
@@ -147,8 +147,6 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     delete aspect.writers;
 
     // if field value is stringified, will parse the value.
-    sample = redisStore.arrayStringsToJson(sample,
-      constants.fieldsToStringify.sample);
     sample.aspect = redisStore.arrayStringsToJson(aspect,
       constants.fieldsToStringify.aspect);
 
