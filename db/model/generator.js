@@ -7,7 +7,7 @@
  */
 
 /**
- * db/model/generatortemplate.js
+ * db/model/generator.js
  */
 const common = require('../helpers/common');
 const constants = require('../constants');
@@ -15,76 +15,27 @@ const ValidationError = require('../dbErrors').ValidationError;
 
 const assoc = {};
 
-const authorSchema = {
+const generatorTemplateSchema = {
   properties: {
-    url: {
-      description: 'Optional Url given by the author',
-      type: 'string',
-      format: 'url',
-    },
     name: {
-      description: 'Name of the author',
+      description: 'GeneratorTemplate name associated with this generator',
       type: 'string',
       maxLength: constants.fieldlen.normalName,
+      pattern: constants.nameRegex,
       required: true,
     },
-    email: {
-      description: 'Author\'s email address',
+    version: {
+      description: 'Version of the generatorTemplate associated with this ' +
+        'generator',
       type: 'string',
-      format: 'email',
+      pattern: constants.versionRegex,
       require: true,
     },
   },
 };
 
-const repositorySchema = {
-  properties: {
-    url: {
-      description: 'Url repository',
-      type: 'string',
-    },
-    type: {
-      description: 'Type of the version control system',
-      type: 'string',
-      maxLength: constants.fieldlen.normalName,
-    },
-  },
-};
-
-const connectionSchema = {
-  properties: {
-    method: {
-      description: 'The http method',
-      enum: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'],
-      required: true,
-    },
-    url: {
-      description: 'The url to connect to. Specify variables for variable ' +
-      'expansion using double curly braces. One of ' +
-      '["url", "toUrl"] is required.',
-      type: 'string',
-    },
-
-    // TODO: revisit toUrl validation, while doing the api changes
-    toUrl: {
-      description: 'The string body of a function which returns the url ' +
-      'to connect to. One of ["url", "toUrl"] is required.',
-    },
-    proxy: {
-      description: ' The Proxy server for the http request, if needed',
-      type: 'string',
-    },
-    headers: {
-      description: 'Optional connection headers',
-      type: 'object',
-    },
-  },
-};
-
-const ctxDefRequiredProps = ['description'];
-
 module.exports = function user(seq, dataTypes) {
-  const GeneratorTemplate = seq.define('GeneratorTemplate', {
+  const Generator = seq.define('Generator', {
     description: {
       type: dataTypes.TEXT,
     },
@@ -106,6 +57,11 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: 0,
       allowNull: false,
     },
+    isActive: {
+      type: dataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     name: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
@@ -113,66 +69,37 @@ module.exports = function user(seq, dataTypes) {
         is: constants.nameRegex,
       },
     },
-    version: {
-      defaultValue: '1.0.0',
-      type: dataTypes.STRING(constants.fieldlen.shortish),
-      validate: {
-        is: constants.versionRegex,
-      },
+    subjectQuery: {
+      type: dataTypes.STRING,
     },
-    bulk: {
-      type: dataTypes.BOOLEAN,
-      defaultValue: false,
+    subjects: {
+      type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+    },
+    aspects: {
+      type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
+      allowNull: false,
     },
     keywords: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
     },
-    author: {
-      type: dataTypes.JSON,
-      allowedNull: false,
-      validate: {
-        validateObject(value) {
-          common.validateObject(value, authorSchema);
-        },
-      },
-    },
-    repository: {
+    generatorTemplate: {
       type: dataTypes.JSON,
       allowNull: true,
       validate: {
         validateObject(value) {
-          common.validateObject(value, repositorySchema);
+          common.validateObject(value, generatorTemplateSchema);
         },
       },
     },
     connection: {
       type: dataTypes.JSON,
       allowNull: true,
-      validate: {
-        validateObject(value) {
-          common.validateObject(value, connectionSchema);
-        },
-      },
     },
-    contextDefinition: {
+    context: {
       type: dataTypes.JSON,
       allowNull: true,
-      validate: {
-        validateObject(value) {
-          common.validateContextDef(value, ctxDefRequiredProps);
-        },
-      },
-    },
-    transform: {
-      type: dataTypes.TEXT,
-      allowNull: false,
-    },
-    isPublished: {
-      type: dataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
     },
   }, {
     classMethods: {
@@ -181,14 +108,20 @@ module.exports = function user(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = GeneratorTemplate.belongsTo(models.User, {
+        assoc.createdBy = Generator.belongsTo(models.User, {
           foreignKey: 'createdBy',
         });
 
-        assoc.writers = GeneratorTemplate.belongsToMany(models.User, {
+        assoc.collectors = Generator.belongsToMany(models.Collector, {
+          as: 'collectors',
+          through: 'GeneratorCollectors',
+          foreignKey: 'generatorId',
+        });
+
+        assoc.writers = Generator.belongsToMany(models.User, {
           as: 'writers',
-          through: 'GeneratorTemplateWriters',
-          foreignKey: 'generatorTemplateId',
+          through: 'GeneratorWriters',
+          foreignKey: 'generatorId',
         });
       },
     },
@@ -211,20 +144,20 @@ module.exports = function user(seq, dataTypes) {
       }, // afterCreate
     },
     validate: {
-      eitherUrlORtoUrl() {
-        if (this.connection.url && this.connection.toUrl ||
-            (!this.connection.url && !this.connection.toUrl)) {
-          throw new ValidationError('Only one of ["url", "toUrl"] is required');
+      eitherSubjectsORsubjectQuery() {
+        if (this.subjects && this.subjectQuery ||
+            (!this.subjects && !this.subjectQuery)) {
+          throw new ValidationError('Only one of ["subjects", ' +
+            '"subjectQuery"] is required');
         }
       },
     },
     indexes: [
       {
-        name: 'GTUniqueLowercaseNameVersionIsDeleted',
+        name: 'GeneratorUniqueLowercaseNameIsDeleted',
         unique: true,
         fields: [
           seq.fn('lower', seq.col('name')),
-          'version',
           'isDeleted',
         ],
       },
@@ -246,5 +179,5 @@ module.exports = function user(seq, dataTypes) {
     },
     paranoid: true,
   });
-  return GeneratorTemplate;
+  return Generator;
 };

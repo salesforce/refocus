@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/model/subject/create.js
+ * tests/db/model/generatortemplate/create.js
  */
 'use strict';
 
@@ -144,7 +144,8 @@ describe('db: Generatortemplate: create: ', () => {
     .catch((err) => {
       expect(err.message).to.contain('Validation error');
       expect(err.name).to.contain('SequelizeUniqueConstraintError');
-      expect(err.errors[0].message).to.contain('name must be unique');
+      expect(err.errors[0].message).to.contain('lower(name::text) ' +
+        'must be unique');
       expect(err.errors[1].message).to.contain('version must be unique');
       done();
     });
