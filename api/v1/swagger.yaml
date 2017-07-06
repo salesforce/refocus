@@ -1488,13 +1488,13 @@ paths:
         403:
           description: >-
             The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the kill command.
+            the collector or refocus admin can issue the STOP command.
         404:
           description: Collector not found
 
   # ---------------------------------------------------------------------------
 
-  /collectors/{key}/kill:
+  /collectors/{key}/stop:
     post:
       security:
         - jwt: []
@@ -1520,7 +1520,7 @@ paths:
         403:
           description: >-
             The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the kill command.
+            the collector or refocus admin can issue the STOP command.
         404:
           description: Collector not found
 
@@ -1552,7 +1552,7 @@ paths:
         403:
           description: >-
             The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the kill command.
+            the collector or refocus admin can issue the STOP command.
         404:
           description: Collector not found
 
@@ -1584,7 +1584,7 @@ paths:
         403:
           description: >-
             The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the kill command.
+            the collector or refocus admin can issue the STOP command.
         404:
           description: Collector not found
 
