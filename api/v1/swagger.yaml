@@ -1190,7 +1190,7 @@ paths:
           required: true
           schema:
             type: object
-            description: A collector of observation which can be measured.
+            description: Access restricted to Refocus Collector only.
             properties:
               name:
                 type: string
@@ -1395,11 +1395,11 @@ paths:
     post:
       security:
         - jwt: []
-      summary: De-registers a collector.
+      summary: Access restricted to Refocus Collector only.
       tags: [ collectors ]
       description: >-
-        De-registers a collector. This request may only be issued by the refocus-collector
-        deregister command. Only valid if the collector is registered and its status is STOPPED.
+        Access restricted to Refocus Collector only. Only valid if the collector is
+        registered and its status is STOPPED.
       operationId: deregisterCollector
       parameters:
         -
@@ -1414,12 +1414,11 @@ paths:
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
-          description: Collector is already de-registered, or its status is RUNNING or PAUSED.
+          $ref: "#/responses/400"
         403:
-          description: >-
-            The user sending the request is not authorized.
+          $ref: "#/responses/403"
         404:
-          description: Collector not found
+            $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
@@ -1427,11 +1426,12 @@ paths:
     post:
       security:
         - jwt: []
-      summary: Sends logs to refocus.
+      summary: Access restricted to Refocus Collector only.
       tags: [ collectors ]
       description: >-
+        Access restricted to Refocus Collector only.
         Sends logs to refocus. This request may only be issued by a RUNNING or PAUSED
-        Refocus Collector. Request body includes all the log lines since the last heartbeat.
+        Refocus Collector.
       operationId: sendHeartbeat
       parameters:
         -
@@ -1480,17 +1480,15 @@ paths:
                         description: How long the work took to complete, in miliseconds (ms).
       responses:
         200:
-          description: Success, returns the specified collector's metadata.
+          description: Success.
           schema:
             $ref: "#/definitions/HeartbeatResponse"
         400:
-          description: Collector's status is not RUNNING.
+          $ref: "#/responses/400"
         403:
-          description: >-
-            The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the STOP command.
+          $ref: "#/responses/403"
         404:
-          description: Collector not found
+            $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
@@ -1516,13 +1514,11 @@ paths:
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
-          description: Collector's status is STOPPED.
+          $ref: "#/responses/400"
         403:
-          description: >-
-            The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the STOP command.
+          $ref: "#/responses/403"
         404:
-          description: Collector not found
+            $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
@@ -1548,14 +1544,11 @@ paths:
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
-          description: Collector's status is not RUNNING.
+          $ref: "#/responses/400"
         403:
-          description: >-
-            The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the STOP command.
+          $ref: "#/responses/403"
         404:
-          description: Collector not found
-
+            $ref: "#/responses/404"
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/resume:
@@ -1580,13 +1573,11 @@ paths:
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
-          description: Collector's status is not PAUSED.
+          $ref: "#/responses/400"
         403:
-          description: >-
-            The user sending the request is not authorized. Only the writers of
-            the collector or refocus admin can issue the STOP command.
+          $ref: "#/responses/403"
         404:
-          description: Collector not found
+            $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
