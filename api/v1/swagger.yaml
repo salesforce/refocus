@@ -1472,7 +1472,7 @@ paths:
                         type: integer
                         description: Access restricted to Refocus Collector only.
       responses:
-        201:
+        200:
           description: Success.
           schema:
             $ref: "#/definitions/HeartbeatResponse"
