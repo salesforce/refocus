@@ -52,6 +52,11 @@ module.exports = function botData(seq, dataTypes) {
           foreignKey: 'botId',
           allowNull: false,
         });
+        assoc.writers = BotData.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'BotDataWriters',
+          foreignKey: 'botId',
+        });
       },
     },
     hooks: {
@@ -83,6 +88,13 @@ module.exports = function botData(seq, dataTypes) {
         );
       }, // hooks.beforeCreate
     },
+    indexes: [
+      {
+        name: 'BotDataRoomBotandName',
+        unique: true,
+        fields: ['roomId', 'botId', 'name'],
+      },
+    ],
   });
   return BotData;
 };

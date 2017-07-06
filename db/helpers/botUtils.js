@@ -11,7 +11,7 @@
  *
  * Used by the Bot model.
  */
-
+const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
 const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING'];

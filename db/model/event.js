@@ -10,8 +10,8 @@
 /**
  * db/model/event.js
  *
- * This model is to store any log that might need to be serarched
- * for later. The context JSON, can be any format that log line
+ * This model is to store any log that might need to be searched
+ * for later. The context JSON can be any format that log line
  * requires.
  */
 
@@ -45,20 +45,32 @@ module.exports = function event(seq, dataTypes) {
         assoc.room = Event.belongsTo(models.Room, {
           foreignKey: 'roomId',
         });
-        assoc.room = Event.belongsTo(models.Bot, {
+        assoc.bot = Event.belongsTo(models.Bot, {
           foreignKey: 'botId',
         });
-        assoc.room = Event.belongsTo(models.BotData, {
+        assoc.botData = Event.belongsTo(models.BotData, {
           foreignKey: 'botDataId',
         });
-        assoc.room = Event.belongsTo(models.BotAction, {
+        assoc.botAction = Event.belongsTo(models.BotAction, {
           foreignKey: 'botActionId',
         });
-        assoc.room = Event.belongsTo(models.User, {
+        assoc.user = Event.belongsTo(models.User, {
           foreignKey: 'userId',
+        });
+        assoc.writers = Event.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'EventWriters',
+          foreignKey: 'botId',
         });
       },
     },
+    indexes: [
+      {
+        name: 'SpecificEvent',
+        unique: true,
+        fields: ['roomId', 'botId', 'name'],
+      },
+    ],
   });
   return Event;
 };

@@ -72,6 +72,11 @@ module.exports = function botAction(seq, dataTypes) {
           foreignKey: 'userId',
           allowNull: true,
         });
+        assoc.writers = BotAction.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'BotActionWriters',
+          foreignKey: 'botId',
+        });
       },
     },
     hooks: {
@@ -98,7 +103,7 @@ module.exports = function botAction(seq, dataTypes) {
             return null;
           })
           .then((dataFound) => {
-            if (inst.getDataValue('parameters') != null) {
+            if (inst.getDataValue('parameters') !== null) {
               if (inst.getDataValue('parameters').length !==
                 dataFound.parameters.length) {
                 throw new dbErrors.ValidationError({
@@ -117,6 +122,13 @@ module.exports = function botAction(seq, dataTypes) {
         );
       }, // hooks.beforeCreate
     },
+    indexes: [
+      {
+        name: 'BotActionNameisPending',
+        unique: true,
+        fields: ['isPending', 'name'],
+      },
+    ],
   });
   return BotAction;
 };
