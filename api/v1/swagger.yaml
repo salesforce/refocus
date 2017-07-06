@@ -1179,11 +1179,8 @@ paths:
       security:
         - jwt: []
       tags: [ collectors ]
-      summary: Create a new collector
-      description: >-
-        Create a new collector. This request may only be issued by the refocus-collector register command.
-        The new record is automatically write-protected for just the user who created it. The default status: STOPPED.
-        isRegistered is true. System fills in the timeStamp fields.
+      summary: Access restricted to Refocus Collector only.
+      description: Access restricted to Refocus Collector only.
       operationId: postCollector
       parameters:
         -
@@ -1196,55 +1193,39 @@ paths:
             description: A collector of observation which can be measured.
             properties:
               name:
-                type: "string"
-                description: "Should be unique."
-              status:
-                type: "string"
-                description: "The collector status."
-                enum:
-                - "STOPPED"
-                - "RUNNING"
-                - "PAUSED"
+                type: string
+                description: Should be unique.
               description:
                 type: string
                 maxLength: 4096
-                description: >
-                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+                description: Access restricted to Refocus Collector only.
               helpEmail:
                 type: string
-                description: >
-                  The email address where a user can go to get more help about the collector.
+                description: Access restricted to Refocus Collector only.
                 maxLength: 254
               helpUrl:
                 type: string
                 maxLength: 2082
-                description: >
-                  The url where a user can go to get more help about the collector.
+                description: Access restricted to Refocus Collector only.
             required:
               - name
       responses:
         201:
-          description: >-
-            Collector is created.
+          description: Success.
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
-          description: >-
-            Fields in request body is not in the list of writable fields, or if a collector with the name has been registered,
-            even if that collector is currently de-registered.
+          $ref: "#/responses/400"
         403:
-          description: If the caller is not a refocus collector, ie. a user or another entity.
+          $ref: "#/responses/403"
     get:
       security:
         - jwt: []
       tags: [ collectors ]
-      summary: List all the Refocus Collectors.
+      summary: Find a collector or collectors.
       description: >-
-        These fields are filterable: name, helpEmail, helpUrl by using asterisk (*) wildcards.
-        These fields are sortable: name, status, isRegistered, timestamp fields, createdBy,
-        lastUpdatedBy, helpEmail, and helpUrl. You can return a list of fields to include in the response.
-        Returning fields=[] means all the fields will be returned.
-      operationId: "findCollectors"
+        Find a collector or collectors. You may query using field filters with asterisk (*) wildcards.
+        You may also optionally specify sort, limit, offset, and a list of fields to include in the response.
       parameters:
         -
           $ref: "#/parameters/CollectorFieldsParam"
@@ -1263,7 +1244,7 @@ paths:
               - name
               - status
               - isRegistered
-              - lastHeartBeatSentAt
+              - lastHeartBeat
               - lastModifiedAt
               - createdBy
               - lastUpdatedBy
@@ -1272,7 +1253,7 @@ paths:
               - -name
               - -status
               - -isRegistered
-              - -lastHeartBeatSentAt
+              - -lastHeartBeat
               - -lastModifiedAt
               - -createdBy
               - -lastUpdatedBy
@@ -1280,8 +1261,7 @@ paths:
               - -helpUrl
       responses:
         200:
-          description: >-
-            Success, returns all refocus collectors.
+          description: Success, returns an array of zero or more Refocus collectors.
           schema:
             type: "array"
             items:
@@ -1297,9 +1277,9 @@ paths:
       summary: >-
         Returns metadata for a single collector.
       description: >-
-        Retrieve the specified collector metadata. by the collector's id or name.
+        Retrieve the specified collector metadata by the collector's id or name.
         You may also optionally specify a list of fields to include in the response.
-      operationId: "getCollector"
+      operationId: getCollector
       parameters:
         -
           name: key
@@ -1341,7 +1321,7 @@ paths:
           required: true
           schema:
             type: object
-            description: Allowable fields when PATCH collector.
+            description: Fields permitted for patching.
             properties:
               description:
                 type: string
@@ -1386,7 +1366,7 @@ paths:
           required: true
           schema:
             type: object
-            description: Allowable fields when PUT collector.
+            description: Fields permitted for putting.
             properties:
               description:
                 type: string
@@ -1614,10 +1594,10 @@ paths:
     get:
       security:
         - jwt: []
-      summary: Returns a list of users.
+      summary: Returns a list of users permitted to modify this collector.
       tags: [ collectors ]
       description: >-
-        Returns a list of users who may edit this Collector metadata. DOES NOT use wildcards.
+        Returns a list of users permitted to modify this collector. DOES NOT use wildcards.
       operationId: getCollectorWriters
       parameters:
         -
@@ -1648,7 +1628,7 @@ paths:
       summary: Add users to the list of authorized writers.
       tags: [ collectors ]
       description: >-
-         Add one or more users to an collector's list of authorized writers.
+         Add one or more users to a collector's list of authorized writers.
       operationId: postCollectorWriters
       parameters:
         -
@@ -8243,7 +8223,7 @@ definitions:
         - "STOPPED"
         - "RUNNING"
         - "PAUSED"
-      lastHeartBeatSentAt:
+      lastHeartBeat:
         readOnly: true
         type: string
         description: >
@@ -8430,7 +8410,7 @@ parameters:
         - status
         - isRegistered
         - currentGenerators
-        - lastHeartBeatSentAt
+        - lastHeartBeat
         - lastModifiedAt
         - createdBy
         - lastUpdatedBy
