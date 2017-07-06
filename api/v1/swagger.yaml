@@ -1194,7 +1194,7 @@ paths:
             properties:
               name:
                 type: string
-                description: Should be unique.
+                description: Access restricted to Refocus Collector only.
               description:
                 type: string
                 maxLength: 4096
@@ -1244,7 +1244,7 @@ paths:
               - name
               - status
               - isRegistered
-              - lastHeartBeat
+              - lastHeartbeat
               - lastModifiedAt
               - createdBy
               - lastUpdatedBy
@@ -1253,7 +1253,7 @@ paths:
               - -name
               - -status
               - -isRegistered
-              - -lastHeartBeat
+              - -lastHeartbeat
               - -lastModifiedAt
               - -createdBy
               - -lastUpdatedBy
@@ -1398,14 +1398,13 @@ paths:
       summary: Access restricted to Refocus Collector only.
       tags: [ collectors ]
       description: >-
-        Access restricted to Refocus Collector only. Only valid if the collector is
-        registered and its status is STOPPED.
+        Access restricted to Refocus Collector only.
       operationId: deregisterCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to retrieve.
+          description: Access restricted to Refocus Collector only.
           required: true
           type: string
       responses:
@@ -1430,56 +1429,50 @@ paths:
       tags: [ collectors ]
       description: >-
         Access restricted to Refocus Collector only.
-        Sends logs to refocus. This request may only be issued by a RUNNING or PAUSED
-        Refocus Collector.
-      operationId: sendHeartbeat
+      operationId: heartbeat
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to retrieve.
+          description: Access restricted to Refocus Collector only.
           required: true
           type: string
         -
           name: queryBody
           in: body
-          description: Request body
+          description: Access restricted to Refocus Collector only.
           required: true
           schema:
             type: array
             items:
               type: object
-              description: Objects of log lines with information fields.
+              description: Access restricted to Refocus Collector only.
               properties:
                 logLines:
                   type: array
                   items:
                     type: object
-                    description: Log lines fields.
+                    description: Access restricted to Refocus Collector only.
                     properties:
                       timeStamp:
                         type: string
-                        description: >
-                          Timestamp at which the the log line was created.
+                        description: Access restricted to Refocus Collector only.
                       sampleCount:
                         type: integer
-                        description: >
-                          Number of samples in this log line.
+                        description: Access restricted to Refocus Collector only.
                       sourceUrls:
                         type: array
                         items:
                           type: string
-                        description: Where the samples originated from.
+                        description: Access restricted to Refocus Collector only.
                       username:
                         type: string
-                        description: >-
-                          The name of the user who authorized the activity that
-                          resulted in this log line.
+                        description: Access restricted to Refocus Collector only.
                       workTime:
                         type: integer
-                        description: How long the work took to complete, in miliseconds (ms).
+                        description: Access restricted to Refocus Collector only.
       responses:
-        200:
+        201:
           description: Success.
           schema:
             $ref: "#/definitions/HeartbeatResponse"
@@ -1586,7 +1579,7 @@ paths:
       security:
         - jwt: []
       summary: Returns a list of users permitted to modify this collector.
-      tags: [ collectors ]
+      tags: [ collectors, writers ]
       description: >-
         Returns a list of users permitted to modify this collector. DOES NOT use wildcards.
       operationId: getCollectorWriters
@@ -1617,7 +1610,7 @@ paths:
       security:
         - jwt: []
       summary: Add users to the list of authorized writers.
-      tags: [ collectors ]
+      tags: [ collectors, writers ]
       description: >-
          Add one or more users to a collector's list of authorized writers.
       operationId: postCollectorWriters
@@ -1666,7 +1659,7 @@ paths:
     get:
       security:
         - jwt: []
-      tags: [ collectors ]
+      tags: [ collectors, writers ]
       summary: "Get the writer of collector by user name or id."
       description: >-
         Determine whether a user is an authorized writer for a Collector.
@@ -1696,7 +1689,7 @@ paths:
       security:
         - jwt: []
       summary: Remove a user from a collector’s list of authorized writers
-      tags: [ collectors ]
+      tags: [ collectors, writers ]
       description: >-
         Remove a user from a collector’s list of authorized writers.
       operationId: deletecollectorWriter
@@ -8214,7 +8207,7 @@ definitions:
         - "STOPPED"
         - "RUNNING"
         - "PAUSED"
-      lastHeartBeat:
+      lastHeartbeat:
         readOnly: true
         type: string
         description: >
@@ -8285,8 +8278,8 @@ definitions:
         $ref: "#/definitions/CollectorConfigUpdatesResponse"
       generatersAdded:
         $ref: "#/definitions/GeneratorsAddedResponse"
-      generatersModified:
-        $ref: "#/definitions/GeneratorsModifiedResponse"
+      generatersUpdated:
+        $ref: "#/definitions/GeneratorsUpdatedResponse"
       generatorsRemoved:
         $ref: "#/definitions/GeneratorsRemovedResponse"
 
@@ -8336,7 +8329,7 @@ definitions:
     items:
       $ref: "#/definitions/GeneratorTemplateResponse"
 
-  GeneratorsModifiedResponse:
+  GeneratorsUpdatedResponse:
     type: array
     description: >-
       List of generators assigned to this agent, but were modified
@@ -8401,7 +8394,7 @@ parameters:
         - status
         - isRegistered
         - currentGenerators
-        - lastHeartBeat
+        - lastHeartbeat
         - lastModifiedAt
         - createdBy
         - lastUpdatedBy
