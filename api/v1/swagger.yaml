@@ -1174,6 +1174,554 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /collectors:
+    post:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Access restricted to Refocus Collector only.
+      description: Access restricted to Refocus Collector only.
+      operationId: postCollector
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Access restricted to Refocus Collector only.
+            properties:
+              name:
+                type: string
+                description: Access restricted to Refocus Collector only.
+              description:
+                type: string
+                maxLength: 4096
+                description: Access restricted to Refocus Collector only.
+              helpEmail:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: Access restricted to Refocus Collector only.
+            required:
+              - name
+      responses:
+        201:
+          description: Success.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Find a collector or collectors.
+      description: >-
+        Find a collector or collectors. You may query using field filters with asterisk (*) wildcards.
+        You may also optionally specify sort, limit, offset, and a list of fields to include in the response.
+      parameters:
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - status
+              - isRegistered
+              - lastHeartbeat
+              - lastModifiedAt
+              - createdBy
+              - lastUpdatedBy
+              - helpEmail
+              - helpUrl
+              - -name
+              - -status
+              - -isRegistered
+              - -lastHeartbeat
+              - -lastModifiedAt
+              - -createdBy
+              - -lastUpdatedBy
+              - -helpEmail
+              - -helpUrl
+      responses:
+        200:
+          description: Success, returns an array of zero or more Refocus collectors.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorResponse"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}:
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: >-
+        Returns metadata for a single collector.
+      description: >-
+        Retrieve the specified collector metadata by the collector's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: getCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Collector not found"
+    patch:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Update the specified collector.
+      description: >-
+        Update the specified collector's config data. If a field is not included
+        in the querybody, that field will not be updated.
+      operationId: updateCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: Fields permitted for patching.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+      responses:
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+    put:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Update the specified collector.
+      description: >-
+        Update the specified collector's config data. If a field is not included
+        in the querybody, that field will be set to null.
+      operationId: updateCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: Fields permitted for putting.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+      responses:
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/deregister:
+    post:
+      security:
+        - jwt: []
+      summary: Access restricted to Refocus Collector only.
+      tags: [ collectors ]
+      description: >-
+        Access restricted to Refocus Collector only.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/heartbeat:
+    post:
+      security:
+        - jwt: []
+      summary: Access restricted to Refocus Collector only.
+      tags: [ collectors ]
+      description: >-
+        Access restricted to Refocus Collector only.
+      operationId: heartbeat
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Access restricted to Refocus Collector only.
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              description: Access restricted to Refocus Collector only.
+              properties:
+                logLines:
+                  type: array
+                  items:
+                    type: object
+                    description: Access restricted to Refocus Collector only.
+                    properties:
+                      timeStamp:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      sampleCount:
+                        type: integer
+                        description: Access restricted to Refocus Collector only.
+                      sourceUrls:
+                        type: array
+                        items:
+                          type: string
+                        description: Access restricted to Refocus Collector only.
+                      username:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      workTime:
+                        type: integer
+                        description: Access restricted to Refocus Collector only.
+      responses:
+        200:
+          description: Success.
+          schema:
+            $ref: "#/definitions/HeartbeatResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/stop:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to STOPPED.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to STOPPED. Invalid if the collector's status is STOPPED.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/pause:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to PAUSED.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to PAUSED. Invalid if the collector's status is not RUNNING.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/resume:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to RUNNING.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to RUNNING. Invalid if the collector's status is not PAUSED.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/writers:
+    get:
+      security:
+        - jwt: []
+      summary: Returns a list of users permitted to modify this collector.
+      tags: [ collectors, writers ]
+      description: >-
+        Returns a list of users permitted to modify this collector. DOES NOT use wildcards.
+      operationId: getCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns The users having write permission to the collector metadata..
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the collector metadata.
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add users to the list of authorized writers.
+      tags: [ collectors, writers ]
+      description: >-
+         Add one or more users to a collector's list of authorized writers.
+      operationId: postCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CollectorWriterResponse"
+              description: >-
+                The users who have write permission to the collector metadata.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/writers/{userNameOrId}:
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors, writers ]
+      summary: "Get the writer of collector by user name or id."
+      description: >-
+        Determine whether a user is an authorized writer for a Collector.
+        If user is unauthorized, there is no writer by this name for this collector.
+      operationId: getCollectorWriter
+      parameters:
+      - name: key
+        in: path
+        description: "ID of collector to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "userNameOrId"
+        in: "path"
+        description: "ID of collector to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Return authorized user"
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        404:
+          description: "userNameOrId does not identify a User"
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from a collector’s list of authorized writers
+      tags: [ collectors, writers ]
+      description: >-
+        Remove a user from a collector’s list of authorized writers.
+      operationId: deletecollectorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the collector.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /globalconfig:
     x-swagger-router-controller: globalconfig
     get:
@@ -7627,8 +8175,232 @@ definitions:
         items:
           type: object
 
+  CollectorResponse:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      name:
+        type: "string"
+        description: "Should be unique."
+      currentGenerators:
+        readOnly: true
+        type: "array"
+        items:
+          type: "object"
+        description: "Generators assigned to this collector."
+      isRegistered:
+        type: "string"
+        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+        enum:
+        - true
+        - false
+      status:
+        type: "string"
+        description: "The collector status."
+        enum:
+        - "STOPPED"
+        - "RUNNING"
+        - "PAUSED"
+      lastHeartbeat:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the last heartbeat was sent.
+      lastModifiedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent modification.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Collector.
+      lastUpdatedBy:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent update.
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the collector.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the collector.
+
+  CollectorWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the collector
+    properties:
+      collectorId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a collector
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the collector
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  HeartbeatResponse:
+    type: object
+    description: >
+      Gets the config and sample collection metadata from the Refocus server.
+    properties:
+      collectorConfigUpdates:
+        $ref: "#/definitions/CollectorConfigUpdatesResponse"
+      generatersAdded:
+        $ref: "#/definitions/GeneratorsAddedResponse"
+      generatersUpdated:
+        $ref: "#/definitions/GeneratorsUpdatedResponse"
+      generatorsRemoved:
+        $ref: "#/definitions/GeneratorsRemovedResponse"
+
+  CollectorConfigUpdatesResponse:
+    type: object
+    description: Collector config variables changed since last heartbeat.
+    properties:
+      heartbeatInterval:
+        type: integer
+        description: >
+          The number of milliseconds to wait before aborting a request to Refocus.
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the config update.
+      sampleCollectorTimeout:
+        type: integer
+        description: >-
+          The number of milliseconds to wait before aborting a request to a remote data source.
+          This value may be overridden by each Generator.
+      sampleUpsertQueueTime:
+        type: integer
+        description: >-
+          The maximum number of milliseconds that samples will wait before being sent to Refocus.
+          When samples are returned by Generator transform, the Collector enqueues those samples
+          to send as part of a larger bulk upsert to Refocus. In order to manage upsert load, a
+          system-wide minimum sample upsert queue time will be defined in Refocus config;
+          a Refocus admin will also be able to override that with a MINIMUM_SAMPLE_UPSERT_QUEUE_TIME
+          environment variable.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the collector.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the collector.
+
+  GeneratorsAddedResponse:
+    type: array
+    description: >-
+      List of generators assigned to this agent since last heartbeat.
+      New generator templates are included as well.
+    items:
+      $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorsUpdatedResponse:
+    type: array
+    description: >-
+      List of generators assigned to this agent, but were modified
+      since last heartbeat.
+    items:
+      $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorsRemovedResponse:
+    readOnly: true
+    type: array
+    description: >
+      List of generators which used to be assigned to this agent but is
+      no longer assigned to this agent. Array of generator names.
+    items:
+      type: string
+
+  GeneratorResponse:
+    type: object
+    description: >-
+      The designation of which subjects and aspects to collect, plus any additional context data
+    properties:
+      generatorTemplate:
+        $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorTemplateResponse:
+    type: object
+    description: >-
+      The transform logic and the definition of what additional context data is required.
+    properties:
+      name:
+        type: string
+        description: The name of the generator template.
+      description:
+        type: string
+        description: Describes the generator template.
+      context:
+        type: object
+        description: Fields passed to the transform function.
+      transform:
+        description: >-
+          Stringified javascript commands to convert values in context to samples.
+        type: array
+        items:
+          type: string
+
 # =============================================================================
 parameters:
+
+  CollectorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - id
+        - status
+        - isRegistered
+        - currentGenerators
+        - lastHeartbeat
+        - lastModifiedAt
+        - createdBy
+        - lastUpdatedBy
+        - description
+        - helpEmail
+        - helpUrl
 
   limitParam:
     name: limit
