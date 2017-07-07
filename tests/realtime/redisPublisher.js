@@ -66,18 +66,30 @@ describe('publishSample with redis cache on', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('with EventType argument: sample should be published with subject' +
-    ' object and aspect object', (done) => {
+  it('certain fields in aspect should be array, and others' +
+    ' should be undefined', (done) => {
+    Sample.findOne({ where: { name: sampleName } })
+    .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+    .then((pubObj) => {
+      expect(pubObj.aspect).to.not.equal(null);
+      expect(pubObj.aspect.name).to.equal(aspectName);
+      expect(pubObj.aspect.writers).to.be.undefined;
+      expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('certain fields in subject should be array, and others' +
+    ' should be undefined', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
     .then((pubObj) => {
       expect(pubObj.subject).to.not.equal(null);
       expect(pubObj.subject.name).to.equal(subjectName);
-      expect(JSON.parse(pubObj.subject.tags).length).to.equal(0);
-
-      expect(pubObj.aspect).to.not.equal(null);
-      expect(pubObj.aspect.name).to.equal(aspectName);
-      expect(JSON.parse(pubObj.aspect.tags).length).to.equal(0);
+      expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
       done();
     })
     .catch(done);
@@ -94,13 +106,15 @@ describe('publishSample with redis cache on', () => {
     .then((pubObj) => {
       expect(pubObj.aspect).to.not.equal(null);
       expect(pubObj.aspect.name).to.equal(aspectName);
-      expect(JSON.parse(pubObj.aspect.tags).length).to.equal(0);
+      expect(pubObj.aspect.writers).to.be.undefined;
+      expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
 
       // check subject is still there
-      expect(JSON.parse(pubObj.subject.tags).length).to.equal(0);
       expect(pubObj.subject).to.not.equal(null);
       expect(pubObj.subject.name).to.equal(subjectName);
-      expect(pubObj.absolutePath).to.equal(subjectName);
+      expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
+      expect(pubObj.subject.helpEmail).to.be.undefined;
       done();
     })
     .catch(done);
@@ -147,9 +161,11 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.helpEmail).to.be.null;
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
         done();
       })
       .catch(done);
@@ -162,9 +178,11 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
+        expect(pubObj.subject.helpEmail).to.be.null;
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
         done();
       })
       .catch(done);
@@ -181,12 +199,14 @@ describe('redis Publisher', () => {
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
         expect(pubObj.aspect.name).to.equal(humidity.name);
+        expect(pubObj.subject.helpEmail).to.be.null;
         expect(pubObj.aspect.tags.length).to.equal(0);
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectNA.name);
         expect(pubObj.subject.tags.length).to.equal(0);
         expect(pubObj.absolutePath).to.equal(subjectNA.name);
         expect(pubObj.aspect.tags.length).to.equal(0);
+        expect(pubObj.aspect.writers).to.be.undefined;
 
         done();
       })
