@@ -55,6 +55,42 @@ describe('db: Generator: update: ', () => {
     .catch(done);
   });
 
+  it('ok, generator template version must accept semver format ' +
+    'with ^', (done) => {
+    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
+      version: '^1.1.0' } })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then((o) => {
+      expect(o.generatorTemplate.version).to.equal('^1.1.0');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, generator template version must accept semver format ' +
+    'with >=', (done) => {
+    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
+      version: '>=1.1.0' } })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then((o) => {
+      expect(o.generatorTemplate.version).to.equal('>=1.1.0');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, generator template version must accept semver format ' +
+    'with alpha beta', (done) => {
+    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
+      version: '1.2.3-alpha.10.beta' } })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then((o) => {
+      expect(o.generatorTemplate.version).to.equal('1.2.3-alpha.10.beta');
+      done();
+    })
+    .catch(done);
+  });
+
   it('ok, generators should have the associated collectors', (done) => {
     Generator.findById(generatorDBInstance.id)
     .then((o) => {

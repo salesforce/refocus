@@ -22,6 +22,10 @@ const GENERATOR_SIMPLE = {
     'status',
     'STATUS'
   ],
+  generatorTemplate: {
+    name: 'refocus-ok-template',
+    version: '1.0.0'
+  },
   context: {
     okValue: {
       required: false,

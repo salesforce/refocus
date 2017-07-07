@@ -12,7 +12,7 @@
 const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
-
+const semverRegex = require('semver-regex');
 const assoc = {};
 
 const generatorTemplateSchema = {
@@ -25,11 +25,11 @@ const generatorTemplateSchema = {
       required: true,
     },
     version: {
-      description: 'Version of the generatorTemplate associated with this ' +
-        'generator',
+      description: 'Generator template version or version range',
       type: 'string',
-      pattern: constants.versionRegex,
       require: true,
+      conform: (thisVersion) => semverRegex().test(thisVersion),
+      message: 'The version must match the semantic version format',
     },
   },
 };
@@ -86,7 +86,7 @@ module.exports = function user(seq, dataTypes) {
     },
     generatorTemplate: {
       type: dataTypes.JSON,
-      allowNull: true,
+      allowNull: false,
       validate: {
         validateObject(value) {
           common.validateObject(value, generatorTemplateSchema);

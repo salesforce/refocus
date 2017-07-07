@@ -43,6 +43,8 @@ describe('db: Generator: create: ', () => {
       expect(o.helpEmail).to.equal(generator.helpEmail);
       expect(o.createdBy).to.equal(generator.createdBy);
       expect(o.isActive).to.equal(false);
+      expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
+      expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getCollectors).to.equal('function');
       done();
@@ -129,18 +131,17 @@ describe('db: Generator: create: ', () => {
     });
   });
 
-  it('not ok, with bad name and helpEmail', (done) => {
+  it('version not ok, when version = 1.1.a', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
-    _generator.name = 'Name$$$';
-    _generator.helpEmail = 'email.com';
+    _generator.generatorTemplate.version = '1.1.a';
     Generator.create(_generator)
     .then(() => {
       done(' Error: Expecting validation error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.errors[0].message).to.contain('The version must match ' +
+        'the semantic version format');
       expect(err.name).to.contain('SequelizeValidationError');
-      expect(err.errors.length).to.equal(2);
       done();
     });
   });
