@@ -11,12 +11,151 @@
  */
 const apiConstants = require('../../api/v1/constants');
 const defaults = require('../../config').api.defaults;
+const sampleStore = require('../sampleStore');
 const u = require('../../api/v1/helpers/verbs/utils');
 const featureToggles = require('feature-toggles');
 const redisErrors = require('../redisErrors');
 const MINUS_ONE = -1;
 const ONE = 1;
 const ZERO = 0;
+
+/**
+ * Apply field list filter.
+ * @param  {Object} sample - Sample object
+ * @param  {Array} attributes - Sample fields array
+ */
+function applyFieldListFilter(sample, attributes) {
+  // apply field list filter
+  Object.keys(sample).forEach((sampField) => {
+    if (!attributes.includes(sampField)) {
+      delete sample[sampField];
+    }
+  });
+}
+
+/**
+ * Apply filters on sample array list
+ * @param  {Array} sampObjArray - Sample objects array
+ * @param  {Object} opts - Filter options
+ * @returns {Array} - Filtered sample objects array
+ */
+function applyFiltersOnSampObjs(sampObjArray, opts) {
+  let filteredSamples = sampObjArray;
+
+  // apply wildcard expr if other than name because
+  // name filter was applied before redis call
+  if (opts.filter) {
+    const filterOptions = opts.filter;
+    Object.keys(filterOptions).forEach((field) => {
+      if (field !== 'name') {
+        const filteredKeys = filterByFieldWildCardExpr(
+          sampObjArray, field, filterOptions[field]
+        );
+        filteredSamples = filteredKeys;
+      }
+    });
+  }
+
+  // sort and apply limits to samples
+  if (opts.order) {
+    const sortedSamples = sortByOrder(filteredSamples, opts.order);
+    filteredSamples = sortedSamples;
+
+    const slicedSampObjs = applyLimitAndOffset(opts, filteredSamples);
+    filteredSamples = slicedSampObjs;
+  }
+
+  return filteredSamples;
+}
+
+/**
+ * Apply limit and offset filter to resource array
+ * @param  {Object} opts - Filter options
+ * @param  {Array} arr - Array of resource keys or objects
+ * @returns {Array} - Sliced array
+ */
+function applyLimitAndOffset(opts, arr) {
+  let startIndex = 0;
+  let endIndex = arr.length;
+  if (opts.offset) {
+    startIndex = opts.offset;
+  }
+
+  if (opts.limit) {
+    endIndex = startIndex + opts.limit;
+  }
+
+  // apply limit and offset, default 0 to length
+  return arr.slice(startIndex, endIndex);
+}
+
+/**
+ * Apply filters on sample keys list
+ * @param  {Array} sampKeysArr - Sample key names array
+ * @param  {Object} opts - Filter options
+ * @returns {Array} - Filtered sample keys array
+ */
+function applyFiltersOnSampKeys(sampKeysArr, opts) {
+  let resArr = sampKeysArr;
+
+  // apply limit and offset if no sort order defined
+  if (!opts.order) {
+    resArr = applyLimitAndOffset(opts, sampKeysArr);
+  }
+
+  // apply wildcard expr on name, if specified
+  if (opts.filter && opts.filter.name) {
+    const filteredKeys = filterByFieldWildCardExpr(
+      resArr, 'name', opts.filter.name
+    );
+    resArr = filteredKeys;
+  }
+
+  return resArr;
+}
+
+
+/**
+ * Remove extra fields from query body object.
+ * @param  {Object} qbObj - Query body object
+ * @param  {Array} fieldsArr - Array of field names
+ */
+function cleanQueryBodyObj(qbObj, fieldsArr) {
+  Object.keys(qbObj).forEach((qbField) => {
+    if (!fieldsArr.includes(qbField)) {
+      delete qbObj[qbField];
+    }
+  });
+}
+
+/**
+ * Apply wildcard filter on sample array of keys or objects. For each entry,
+ * if given property exists for sample, apply regex to the property value,
+ * else if, the property is 'name', then the function was called before getting
+ * obj, hence apply regex filter on sample name.
+ * @param  {Array}  sampArr - Array of sample keys or sample objects
+ * @param  {String}  prop  - Property name
+ * @param  {String} propExpr - Wildcard expression
+ * @returns {Array} - Filtered array
+ */
+function filterByFieldWildCardExpr(sampArr, prop, propExpr) {
+  // regex to match wildcard expr, i option means case insensitive
+  const escapedExp = propExpr.split('_').join('\\_')
+                      .split('|').join('\\|').split('.').join('\\.');
+
+  const re = new RegExp('^' + escapedExp.split('*').join('.*') + '$', 'i');
+  return sampArr.filter((sampEntry) => {
+    if (sampEntry[prop]) { // sample object
+      return re.test(sampEntry[prop]);
+    } else if (prop === 'name') { // sample key
+      const sampName = sampleStore.getNameFromKey(sampEntry);
+      return re.test(sampName);
+    }
+
+    return false;
+  });
+}
+
 /**
  * Checks if the user has the permission to perform the write operation on the
  * sample or not
@@ -126,29 +265,12 @@ function getOptionsFromReq(params, helper) {
   return opts;
 }
 
-
-/**
- * Apply limit and offset filter to resource array
- * @param  {Object} opts - Filter options
- * @param  {Array} arr - Array of resource keys or objects
- * @returns {Array} - Sliced array
- */
-function applyLimitAndOffset(opts, arr) {
-  let startIndex = 0;
-  let endIndex = arr.length;
-  if (opts.offset) {
-    startIndex = opts.offset;
-  }
-
-  if (opts.limit) {
-    endIndex = startIndex + opts.limit;
-  }
-
-  // apply limit and offset, default 0 to length
-  return arr.slice(startIndex, endIndex);
-}
-
 module.exports = {
+  applyFiltersOnSampObjs,
+  cleanQueryBodyObj,
+  filterByFieldWildCardExpr,
+  applyFieldListFilter,
+  applyFiltersOnSampKeys,
   applyLimitAndOffset,
   checkWritePermission,
   getOptionsFromReq,
