@@ -11,10 +11,12 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const helper = require('../../api/v1/helpers/nouns/subjects');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
 const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
+const modelUtils = require('./utils');
 const ONE = 1;
 const TWO = 2;
 
@@ -186,4 +188,69 @@ function completeSubjectHierarchy(res, params) {
 
 module.exports = {
   completeSubjectHierarchy,
+
+  /**
+   * Finds subjects with filter options if provided. We get subject keys from
+   * redis using default alphabetical order. Then we apply limit/offset and
+   * wildcard expr on subject names. Using filtered keys we get subjects
+   * from redis in an array. Then, we apply wildcard
+   * expr (other than name) to subjects array, then we sort, then apply
+   * limit/offset and finally field list filters.
+   * @param  {Object} req - Request object
+   * @param  {Object} res - Result object
+   * @param  {Object} logObject - Log object
+   * @returns {Promise} - Resolves to a list of all subjects objects
+   */
+  findSubjects(req, res, logObject) {
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const response = [];
+
+    if (opts.limit || opts.offset) {
+      res.links({
+        prev: req.originalUrl,
+        next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
+      });
+    }
+
+    // get all Subjects sorted lexicographically
+    return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
+    .then((allSubjectKeys) => {
+      const commands = [];
+      const filteredSubjectKeys = modelUtils
+        .applyFiltersOnSampKeys(allSubjectKeys, opts);
+
+      // add to commands
+      filteredSubjectKeys.forEach((subjectKey) => {
+        console.log(subjectKey)
+        // not sure if the keys are already in key format
+        commands.push(['hgetall', subjectKey]); // get subject
+        // commands.push(
+        //   ['hgetall',
+        //    sampleStore.toKey(constants.objectType.aspect, aspectName),
+        //   ]);
+      });
+
+      return redisClient.batch(commands).execAsync();
+    })
+    .then((redisResponses) => { // subjects and aspects
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+      const subjects = [];
+      const filteredSubjects = modelUtils.applyFiltersOnSampObjs(subjects, opts);
+      filteredSubjects.forEach((subject) => {
+
+        const sampName = subject.name;
+        if (opts.attributes) { // delete subject fields, hence no return obj
+          modelUtils.applyFieldListFilter(subject, opts.attributes);
+        }
+
+        // add api links
+        subject.apiLinks = u.getApiLinks(
+          subject.name, helper, req.method
+        );
+        response.push(subject); // add sample to response
+      });
+
+      return response;
+    });
+  },
 }; // exports
