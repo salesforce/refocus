@@ -127,8 +127,10 @@ function toSequelizeWhere(filter, props) {
       if (Array.isArray(props.fieldsWithEnum) &&
         props.fieldsWithEnum.indexOf(key) > -ONE) {
 
-        const enumArr = (props.fieldsToCamelCase.indexOf(key) === -ONE) ?
-          filter[key] : convertArrayElementsToCamelCase(filter[key]);
+        // if specified in props, convert the array in query to camelcase.
+        const enumArr = (props.fieldsToCamelCase &&
+          props.fieldsToCamelCase.indexOf(key) > -ONE) ?
+          convertArrayElementsToCamelCase(filter[key]) : filter[key];
 
         // to use $in instead of $contains in toWhereClause
         props.isEnum = true;
