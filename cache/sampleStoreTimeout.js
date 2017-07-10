@@ -12,6 +12,7 @@
  * Timeout samples
  */
 'use strict'; // eslint-disable-line strict
+const logger = require('winston');
 const sampleStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
 const isTimedOut = require('../db/helpers/sampleUtils').isTimedOut;
@@ -127,7 +128,8 @@ module.exports = {
       const samples = [];
       for (let num = 0; num < samplesCount; num++) {
         const samp = redisResponses[num];
-        if (samp.status !== constants.statuses.Timeout) {
+        if (samp && samp.status &&
+        samp.status !== constants.statuses.Timeout) {
           samples.push(samp);
         }
       }
