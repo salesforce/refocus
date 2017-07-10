@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/model/subject/update.js
+ * tests/db/model/generatortemplate/update.js
  */
 'use strict';
 

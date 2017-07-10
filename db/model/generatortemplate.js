@@ -220,10 +220,10 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'GTNameVersion',
+        name: 'GTUniqueLowercaseNameVersionIsDeleted',
         unique: true,
         fields: [
-          'name',
+          seq.fn('lower', seq.col('name')),
           'version',
           'isDeleted',
         ],

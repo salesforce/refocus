@@ -7,22 +7,22 @@
  */
 
 /**
- * tests/db/model/generatortemplate/delete.js
+ * tests/db/model/generator/delete.js
  */
 'use strict';
 
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const GeneratorTemplate = tu.db.GeneratorTemplate;
+const Generator = tu.db.Generator;
 
-describe('db: Generatortemplate: delete: ', () => {
-  const gt = u.getGeneratorTemplate();
+describe('db: Generator: delete: ', () => {
+  const generator = u.getGenerator();
 
   afterEach(u.forceDelete);
 
   it('ok, soft delete successful', (done) => {
-    GeneratorTemplate.create(gt)
+    Generator.create(generator)
     .then((o) => o.destroy())
     .then((o) => {
       expect(o.deletedAt).to.not.equal(null);
@@ -32,10 +32,10 @@ describe('db: Generatortemplate: delete: ', () => {
     .catch(done);
   });
 
-  it('ok, should not be able to find a template once deleted', (done) => {
-    GeneratorTemplate.create(gt)
+  it('ok, should not be able to find a generator once deleted', (done) => {
+    Generator.create(generator)
     .then((o) => o.destroy())
-    .then((o) => GeneratorTemplate.findById(o.id))
+    .then((o) => Generator.findById(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();
@@ -43,11 +43,11 @@ describe('db: Generatortemplate: delete: ', () => {
     .catch(done);
   });
 
-  it('ok, should be able to create template with the same name and version ' +
+  it('ok, should be able to create generator with the same name ' +
     'as the one deleted', (done) => {
-    GeneratorTemplate.create(gt)
+    Generator.create(generator)
     .then((o) => o.destroy())
-    .then(() => GeneratorTemplate.create(gt))
+    .then(() => Generator.create(generator))
     .then((o) => {
       expect(o.isDeleted).to.equal('0');
       done();

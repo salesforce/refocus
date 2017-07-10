@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 
 const tu = require('../../../testUtils');
-const seq = require('../../../../db/utils').seq;
 
 const testStartTime = new Date();
 const cname = `${tu.namePrefix}Collector`;
