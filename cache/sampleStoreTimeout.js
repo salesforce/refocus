@@ -12,7 +12,6 @@
  * Timeout samples
  */
 'use strict'; // eslint-disable-line strict
-const logger = require('winston');
 const sampleStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
 const isTimedOut = require('../db/helpers/sampleUtils').isTimedOut;
