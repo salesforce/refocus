@@ -13,6 +13,7 @@
 
 const helper = require('../../api/v1/helpers/nouns/samples');
 const u = require('../../api/v1/helpers/verbs/utils');
+const modelUtils = require('./utils');
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
@@ -54,114 +55,6 @@ const TWO = 2;
 const MINUS_ONE = -1;
 
 /**
- * Checks if the user has the permission to perform the write operation on the
- * sample or not
- * @param  {String}  aspect - Aspect object
- * @param  {String}  sample - Sample object
- * @param  {String}  userName -  User performing the operation
- * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
- * operation or not
- * @returns {Promise} - which resolves to true if the user has write permission
- */
-function checkWritePermission(aspect, sample, userName, isBulk) {
-  let isWritable = true;
-  if (aspect.writers && aspect.writers.length) {
-    isWritable = featureToggles
-                        .isFeatureEnabled('enforceWritePermission') ?
-                        aspect.writers.includes(userName) : true;
-  }
-
-  if (!isWritable) {
-    const err = new redisErrors.UpdateDeleteForbidden({
-      explanation: `The user: ${userName}, does not have write permission` +
-        ` on the sample: ${sample.name}`,
-    });
-    if (isBulk) {
-      return Promise.reject({ isFailed: true, explanation: err });
-    }
-
-    return Promise.reject(err);
-  }
-
-  return Promise.resolve(true);
-} // checkWritePermission
-
-/**
- * Sort by appending all fields value in a string and then comparing them.
- * If first fields starts with -, sort order is descending.
- * @param  {Array} sampArr - Sample objs array
- * @param  {Array} propArr - Fields array
- * @returns {Array} - Sorted array
- */
-function sortByOrder(sampArr, propArr) {
-  const isDescending = propArr[ZERO].startsWith('-');
-  return sampArr.sort((a, b) => {
-    let strA = '';
-    let strB = '';
-    propArr.forEach((field) => {
-      strA += a[field];
-      strB += b[field];
-    });
-
-    if (strA < strB) {
-      return isDescending ? ONE : MINUS_ONE;
-    }
-
-    if (strA > strB) {
-      return isDescending ? MINUS_ONE : ONE;
-    }
-
-    return ZERO;
-  });
-}
-
-/**
- * Get option fields from requesr parameters. An example:
- * { attributes: [ 'name', 'status', 'value', 'id' ],
-    order: [ '-value', 'status' ],
-    limit: 5,
-    offset: 1,
-    filter: { name: '___Subject1.___Subject2*' } }
- * @param  {Object} params - Request query parameters
- * @returns {Object} - Filter object
- */
-function getOptionsFromReq(params) {
-  // eg. ?fields=x,y,z. Adds as opts.attributes = [array of fields]
-  // id is always included
-  const opts = u.buildFieldList(params);
-
-  // Specify the sort order. If defaultOrder is defined in props or sort value
-  // then update sort order otherwise take value from model defination
-  if ((params.sort && params.sort.value) || helper.defaultOrder) {
-    opts.order = params.sort.value || helper.defaultOrder;
-  }
-
-  // handle limit
-  if (params.limit && params.limit.value) {
-    opts.limit = parseInt(params.limit.value, defaults.limit);
-  }
-
-  // handle offset
-  if (params.offset && params.offset.value) {
-    opts.offset = parseInt(params.offset.value, defaults.offset);
-  }
-
-  const filter = {};
-  const keys = Object.keys(params);
-
-  for (let i = ZERO; i < keys.length; i++) {
-    const key = keys[i];
-    const isFilterField = apiConstants.NOT_FILTER_FIELDS.indexOf(key) < ZERO;
-    if (isFilterField && params[key].value !== undefined) {
-      filter[key] = params[key].value;
-    }
-  }
-
-  opts.filter = filter;
-  return opts;
-}
-
-/**
  * Convert array strings to Json for sample and aspect, then attach aspect to
  * sample. Then add add api links and return complete sample object.
  * @param  {Object} sampleObj - Sample object from redis
@@ -178,27 +71,6 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
   );
   sampleRes.aspect = aspect;
   return sampleRes;
-}
-
-/**
- * Apply limit and offset filter to sample array
- * @param  {Object} opts - Filter options
- * @param  {Array} sampArr - Array of sample keys or objects
- * @returns {Array} - Sliced array
- */
-function applyLimitAndOffset(opts, sampArr) {
-  let startIndex = 0;
-  let endIndex = sampArr.length;
-  if (opts.offset) {
-    startIndex = opts.offset;
-  }
-
-  if (opts.limit) {
-    endIndex = startIndex + opts.limit;
-  }
-
-  // apply limit and offset, default 0 to length
-  return sampArr.slice(startIndex, endIndex);
 }
 
 /**
@@ -240,7 +112,7 @@ function applyFiltersOnSampKeys(sampKeysArr, opts) {
 
   // apply limit and offset if no sort order defined
   if (!opts.order) {
-    resArr = applyLimitAndOffset(opts, sampKeysArr);
+    resArr = modelUtils.applyLimitAndOffset(opts, sampKeysArr);
   }
 
   // apply wildcard expr on name, if specified
@@ -293,10 +165,10 @@ function applyFiltersOnSampObjs(sampObjArray, opts) {
 
   // sort and apply limits to samples
   if (opts.order) {
-    const sortedSamples = sortByOrder(filteredSamples, opts.order);
+    const sortedSamples = modelUtils.sortByOrder(filteredSamples, opts.order);
     filteredSamples = sortedSamples;
 
-    const slicedSampObjs = applyLimitAndOffset(opts, filteredSamples);
+    const slicedSampObjs = modelUtils.applyLimitAndOffset(opts, filteredSamples);
     filteredSamples = slicedSampObjs;
   }
 
@@ -427,7 +299,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   let subject;
   let aspect;
   let sample;
-  return checkWritePermission(aspectName, sampleName, userName, isBulk)
+  return modelUtils.checkWritePermission(aspectName, sampleName, userName, isBulk)
 
   /*
    * if any of the promise errors, the subsequent promise does not process and
@@ -457,7 +329,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       aspect, constants.fieldsToStringify.aspect
     );
 
-    return checkWritePermission(aspectObj, sampleQueryBodyObj,
+    return modelUtils.checkWritePermission(aspectObj, sampleQueryBodyObj,
       userName, isBulk);
   })
   .then(() => {
@@ -556,7 +428,7 @@ module.exports = {
       }
 
       aspect = aspObj;
-      return checkWritePermission(aspect, sampObjToReturn, userName);
+      return modelUtils.checkWritePermission(aspect, sampObjToReturn, userName);
     })
     .then(() => {
 
@@ -616,7 +488,7 @@ module.exports = {
       }
 
       aspectObj = aspObj;
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       let updatedRlinks = [];
@@ -673,7 +545,7 @@ module.exports = {
     const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-    return checkWritePermission(aspectName, sampleName, userName)
+    return modelUtils.checkWritePermission(aspectName, sampleName, userName)
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
@@ -698,7 +570,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       if (reqBody.value) {
@@ -879,7 +751,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       cleanQueryBodyObj(reqBody);
@@ -970,7 +842,7 @@ module.exports = {
         });
       }
 
-      const opts = getOptionsFromReq(params);
+      const opts = modelUtils.getOptionsFromReq(params, helper);
 
       // apply fields list filter
       if (opts.attributes) {
@@ -998,7 +870,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a list of all samples objects
    */
   findSamples(req, res, logObject) {
-    const opts = getOptionsFromReq(req.swagger.params);
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const response = [];
 
     if (opts.limit || opts.offset) {
