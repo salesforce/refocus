@@ -90,7 +90,6 @@ function toWhereClause(val, props) {
   const clause = {};
   clause[constants.SEQ_LIKE] =
     toSequelizeWildcards(escapePercentLiterals(val));
-
   return clause;
 } // toWhereClause
 
@@ -133,7 +132,6 @@ function toSequelizeWhere(filter, props) {
 
         // to use $in instead of $contains in toWhereClause
         props.isEnum = true;
-
         values.push(toWhereClause(enumArr, props));
         where[key] = values[ZERO];
       }
