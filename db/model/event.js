@@ -68,7 +68,7 @@ module.exports = function event(seq, dataTypes) {
       {
         name: 'SpecificEvent',
         unique: true,
-        fields: ['roomId', 'botId', 'name'],
+        fields: ['roomId', 'botId'],
       },
     ],
   });

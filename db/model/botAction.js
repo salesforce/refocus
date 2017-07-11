@@ -124,9 +124,9 @@ module.exports = function botAction(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'BotActionNameisPending',
+        name: 'BotActionUniqueNameisPending',
         unique: true,
-        fields: ['isPending', 'name'],
+        fields: [seq.fn('lower', seq.col('name')), 'isPending'],
       },
     ],
   });

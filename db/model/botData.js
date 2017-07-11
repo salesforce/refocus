@@ -90,9 +90,9 @@ module.exports = function botData(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'BotDataRoomBotandName',
+        name: 'BotDataRoomBotandUniqueName',
         unique: true,
-        fields: ['roomId', 'botId', 'name'],
+        fields: [seq.fn('lower', seq.col('name')), 'roomId', 'botId'],
       },
     ],
   });
