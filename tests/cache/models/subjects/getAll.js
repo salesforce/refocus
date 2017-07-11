@@ -19,9 +19,11 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api::redisEnabled::GET ${path}`, () => {
+describe.only(`api::redisEnabled::GET ${path}`, () => {
   let token;
-  const name = '___Subject1';
+  const subject1 = '___Subject1';
+  const subject2 = '___Subject1.___Subject2';
+  const subject3 = '___Subject1.___Subject3';
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
@@ -41,13 +43,13 @@ describe(`api::redisEnabled::GET ${path}`, () => {
   it.only('updatedAt and createdAt fields have the expected format', (done) => {
     api.get(path)
     .set('Authorization', token)
-    // .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      console.log(res.error)
       if (err) {
         done(err);
       }
 
+      expect(res.body.length).to.be.equal(3);
       for (let i = res.body.length - 1; i >= 0; i--) {
         const { updatedAt, createdAt } = res.body[i];
         expect(createdAt).to.equal(new Date(createdAt).toISOString());
@@ -58,7 +60,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
   });
 
   // need create more subjects
-  it.skip('basic get all, sorted lexicographically by default', (done) => {
+  it('basic get all, sorted lexicographically by default', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -68,6 +70,9 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].name).to.be.equal(subject1);
+      expect(res.body[1].name).to.be.equal(subject2);
+      expect(res.body[2].name).to.be.equal(subject3);
       done();
     });
   });

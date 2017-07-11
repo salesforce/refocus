@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../../api/v1/helpers/nouns/subjects');
+const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
 const redisClient = require('../redisCache').client.sampleStore;
@@ -232,10 +233,13 @@ module.exports = {
 
       return redisClient.batch(commands).execAsync();
     })
-    .then((redisResponses) => { // subjects and aspects
+    .then((subjects) => {
+        console.log(subjects)
+
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      const subjects = [];
       const filteredSubjects = modelUtils.applyFiltersOnSampObjs(subjects, opts);
+        console.log(filteredSubjects)
+
       filteredSubjects.forEach((subject) => {
 
         const sampName = subject.name;
@@ -244,7 +248,7 @@ module.exports = {
         }
 
         // add api links
-        subject.apiLinks = u.getApiLinks(
+        subject.apiLinks = utils.getApiLinks(
           subject.name, helper, req.method
         );
         response.push(subject); // add sample to response
