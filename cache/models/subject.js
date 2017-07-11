@@ -247,6 +247,10 @@ module.exports = {
           modelUtils.applyFieldListFilter(subject, opts.attributes);
         }
 
+        // convert the time fields to appropriate format
+        subject.createdAt = new Date(subject.createdAt).toISOString();
+        subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
         // add api links
         subject.apiLinks = utils.getApiLinks(
           subject.name, helper, req.method

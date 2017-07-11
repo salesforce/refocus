@@ -40,7 +40,7 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it.only('updatedAt and createdAt fields have the expected format', (done) => {
+  it('updatedAt and createdAt fields have the expected format', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -59,7 +59,6 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  // need create more subjects
   it('basic get all, sorted lexicographically by default', (done) => {
     api.get(path)
     .set('Authorization', token)
@@ -70,14 +69,14 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
-      expect(res.body[0].name).to.be.equal(subject1);
-      expect(res.body[1].name).to.be.equal(subject2);
-      expect(res.body[2].name).to.be.equal(subject3);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject3);
       done();
     });
   });
 
-  it.skip('get all, with sort option, default asc', (done) => {
+  it('get all, with sort option, default asc', (done) => {
     api.get(`${path}?sort=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -87,11 +86,14 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject3);
       done();
     });
   });
 
-  it.skip('get all, with sort option, default desc', (done) => {
+  it('get all, with sort option, default desc', (done) => {
     api.get(`${path}?sort=-name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -101,6 +103,9 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].absolutePath).to.be.equal(subject3);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject1);
     });
   });
 
