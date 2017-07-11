@@ -41,6 +41,9 @@ module.exports = {
     aspect: Aspect,
     subject: Subject,
   },
+  fieldsToCamelCase: [
+    'status', 'previousStatus',
+  ],
   readOnlyFields: [
     'id', 'isDeleted', 'status', 'previousStatus',
     'statusChangedAt', 'createdAt', 'updatedAt', 'name',
