@@ -59,7 +59,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('basic get all, sorted lexicographically by default', (done) => {
+  it('sorted lexicographically by default', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -76,7 +76,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with sort option, default asc', (done) => {
+  it('sort option asc', (done) => {
     api.get(`${path}?sort=absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -93,7 +93,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with sort option, default desc', (done) => {
+  it('sort option desc', (done) => {
     api.get(`${path}?sort=-absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -110,7 +110,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all with fields filter returns in the asc order', (done) => {
+  it('fields filter returns in the asc order', (done) => {
     api.get(`${path}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -129,7 +129,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all with fields filter returns expected number of keys', (done) => {
+  it('fields filter returns expected number of keys', (done) => {
     api.get(`${path}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -145,7 +145,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all with fields filter returns apiLinks', (done) => {
+  it('fields filter returns apiLinks', (done) => {
     api.get(`${path}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -162,7 +162,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with limit filter', (done) => {
+  it('limit filter', (done) => {
     api.get(`${path}?limit=1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -177,7 +177,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with offset filter', (done) => {
+  it('offset filter', (done) => {
     api.get(`${path}?offset=1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -193,7 +193,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with name filter', (done) => {
+  it('name filter', (done) => {
     api.get(`${path}?name=___Subject1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -209,7 +209,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with combined filters', (done) => {
+  it('combined filters', (done) => {
     const filterstr = 'limit=2&offset=1&name=___*&' +
     'sort=-name&fields=name,absolutePath';
     api.get(`${path}?${filterstr}`)
