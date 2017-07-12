@@ -21,23 +21,23 @@ const ZERO = 0;
 
 /**
  * Apply field list filter.
- * @param  {Object} sample - Sample object
+ * @param  {Object} resource - The resource object
  * @param  {Array} attributes - Sample fields array
  */
-function applyFieldListFilter(sample, attributes) {
+function applyFieldListFilter(resource, attributes) {
   // apply field list filter
-  Object.keys(sample).forEach((sampField) => {
-    if (!attributes.includes(sampField)) {
-      delete sample[sampField];
+  Object.keys(resource).forEach((field) => {
+    if (!attributes.includes(field)) {
+      delete resource[field];
     }
   });
 }
 
 /**
- * Apply filters on sample array list
+ * Apply filters on resource array list
  * @param  {Array} resourceObjArray - Sample objects array
  * @param  {Object} opts - Filter options
- * @returns {Array} - Filtered sample objects array
+ * @returns {Array} - Filtered resource objects array
  */
 function applyFiltersOnSampObjs(resourceObjArray, opts) {
   let filteredResources = resourceObjArray;
@@ -56,7 +56,7 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
     });
   }
 
-  // sort and apply limits to samples
+  // sort and apply limits to resources
   if (opts.order) {
     const sortedSamples = sortByOrder(filteredResources, opts.order);
     filteredResources = sortedSamples;
@@ -157,39 +157,6 @@ function filterByFieldWildCardExpr(arr, prop, propExpr) {
 }
 
 /**
- * Checks if the user has the permission to perform the write operation on the
- * sample or not
- * @param  {String}  aspect - Aspect object
- * @param  {String}  sample - Sample object
- * @param  {String}  userName -  User performing the operation
- * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
- * operation or not
- * @returns {Promise} - which resolves to true if the user has write permission
- */
-function checkWritePermission(aspect, sample, userName, isBulk) {
-  let isWritable = true;
-  if (aspect.writers && aspect.writers.length) {
-    isWritable = featureToggles
-                        .isFeatureEnabled('enforceWritePermission') ?
-                        aspect.writers.includes(userName) : true;
-  }
-
-  if (!isWritable) {
-    const err = new redisErrors.UpdateDeleteForbidden({
-      explanation: `The user: ${userName}, does not have write permission` +
-        ` on the sample: ${sample.name}`,
-    });
-    if (isBulk) {
-      return Promise.reject({ isFailed: true, explanation: err });
-    }
-
-    return Promise.reject(err);
-  }
-
-  return Promise.resolve(true);
-} // checkWritePermission
-
-/**
  * Sort by appending all fields value in a string and then comparing them.
  * If first fields starts with -, sort order is descending.
  * @param  {Array} arr - Resource objs array
@@ -275,7 +242,6 @@ module.exports = {
   applyFieldListFilter,
   applyFiltersOnSampKeys,
   applyLimitAndOffset,
-  checkWritePermission,
   getOptionsFromReq,
   sortByOrder,
 }

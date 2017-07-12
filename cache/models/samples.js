@@ -55,6 +55,39 @@ const TWO = 2;
 const MINUS_ONE = -1;
 
 /**
+ * Checks if the user has the permission to perform the write operation on the
+ * sample or not
+ * @param  {String}  aspect - Aspect object
+ * @param  {String}  sample - Sample object
+ * @param  {String}  userName -  User performing the operation
+ * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
+ * operation or not
+ * @returns {Promise} - which resolves to true if the user has write permission
+ */
+function checkWritePermission(aspect, sample, userName, isBulk) {
+  let isWritable = true;
+  if (aspect.writers && aspect.writers.length) {
+    isWritable = featureToggles
+                        .isFeatureEnabled('enforceWritePermission') ?
+                        aspect.writers.includes(userName) : true;
+  }
+
+  if (!isWritable) {
+    const err = new redisErrors.UpdateDeleteForbidden({
+      explanation: `The user: ${userName}, does not have write permission` +
+        ` on the sample: ${sample.name}`,
+    });
+    if (isBulk) {
+      return Promise.reject({ isFailed: true, explanation: err });
+    }
+
+    return Promise.reject(err);
+  }
+
+  return Promise.resolve(true);
+} // checkWritePermission
+
+/**
  * Convert array strings to Json for sample and aspect, then attach aspect to
  * sample. Then add add api links and return complete sample object.
  * @param  {Object} sampleObj - Sample object from redis
@@ -185,7 +218,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   let subject;
   let aspect;
   let sample;
-  return modelUtils.checkWritePermission(aspectName, sampleName, userName, isBulk)
+  return checkWritePermission(aspectName, sampleName, userName, isBulk)
 
   /*
    * if any of the promise errors, the subsequent promise does not process and
@@ -215,7 +248,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       aspect, constants.fieldsToStringify.aspect
     );
 
-    return modelUtils.checkWritePermission(aspectObj, sampleQueryBodyObj,
+    return checkWritePermission(aspectObj, sampleQueryBodyObj,
       userName, isBulk);
   })
   .then(() => {
@@ -314,7 +347,7 @@ module.exports = {
       }
 
       aspect = aspObj;
-      return modelUtils.checkWritePermission(aspect, sampObjToReturn, userName);
+      return checkWritePermission(aspect, sampObjToReturn, userName);
     })
     .then(() => {
 
@@ -374,7 +407,7 @@ module.exports = {
       }
 
       aspectObj = aspObj;
-      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       let updatedRlinks = [];
@@ -431,7 +464,7 @@ module.exports = {
     const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-    return modelUtils.checkWritePermission(aspectName, sampleName, userName)
+    return checkWritePermission(aspectName, sampleName, userName)
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
@@ -456,7 +489,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       if (reqBody.value) {
@@ -637,7 +670,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return modelUtils.checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
       modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
