@@ -215,8 +215,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSubjects(req, res, next) {
+    console.log('about to go in cache', featureToggles.isFeatureEnabled('getSubjectFromCache'))
     validateTags(null, req.swagger.params);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+      featureToggles.isFeatureEnabled('getSubjectFromCache')) {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {

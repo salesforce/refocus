@@ -23,6 +23,7 @@ describe('api::redisEnabled::GET specific subject', () => {
   const name = '___Subject1';
 
   before((done) => {
+    tu.toggleOverride('getSubjectFromCache', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -36,6 +37,7 @@ describe('api::redisEnabled::GET specific subject', () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+  after(() => tu.toggleOverride('getSubjectFromCache', false));
 
   it('createdAt and updatedAt fields have the expected format', (done) => {
     api.get(`${path}/${name}`)
@@ -107,6 +109,7 @@ describe('api::redisEnabled::GET specific subject', () => {
 
       expect(res.body.name).to.be.equal(name);
       expect(res.body.absolutePath).to.equal(name);
+      expect(Object.keys(res.body)).to.contain('name', 'absolutePath', 'id', 'apiLinks');
       done();
     });
   });
