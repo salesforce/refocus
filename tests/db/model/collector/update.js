@@ -59,7 +59,7 @@ describe('tests/db/model/collector/update.js >', () => {
       done('Expecting error');
     })
     .catch((err) => {
-      console.log(err);
+      expect(err.name).to.be.equal('ValidationError');
       done();
     });
   });
