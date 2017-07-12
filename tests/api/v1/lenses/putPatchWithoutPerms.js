@@ -24,7 +24,6 @@ describe('api: patch lens without permission', () => {
   let otherValidToken;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => done())
     .catch(done);

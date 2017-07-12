@@ -27,7 +27,6 @@ describe(`api: PATCH ${path} without permission`, () => {
   let aspect;
   let otherValidToken;
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
@@ -63,7 +62,6 @@ describe(`api: PATCH ${path} without permission`, () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
 
   it('patching without permission should return 403 status', (done) => {

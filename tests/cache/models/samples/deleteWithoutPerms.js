@@ -30,7 +30,6 @@ describe('api: DELETE Sample without permission', () => {
   let user;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
@@ -66,7 +65,6 @@ describe('api: DELETE Sample without permission', () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
 
   it('deleting sample without permission should return 403', (done) => {

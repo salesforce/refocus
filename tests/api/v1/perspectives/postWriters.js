@@ -36,7 +36,6 @@ describe('api: perspectives: post writers', () => {
   });
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
