@@ -159,6 +159,36 @@ describe('sample api: FILTER' + path, () => {
     .end((err /* , res */) => done(err));
   });
 
+  it('filter by status: should be case-insensitive', (done) => {
+    api.get(path + '?status=critical')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].status).to.equal('Critical');
+      done();
+    });
+  });
+
+  it('filter by previousStatus: should be case-insensitive', (done) => {
+    api.get(path + '?previousStatus=critical')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res ) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].previousStatus).to.equal('Critical');
+      done();
+    });
+  });
+
   it('filter by previousStatus', (done) => {
     api.get(path + '?previousStatus=Critical')
     .set('Authorization', token)

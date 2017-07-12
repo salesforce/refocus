@@ -47,6 +47,18 @@ function toSequelizeWildcards(val) {
 } // toSequelizeWildcards
 
 /**
+ * Use when the field is in the list of props.fieldsToCamelCase.
+ *
+ * @param {Array} Array of words.
+ * @returns {Array} Converted array where for each word, the first letter
+ * is capitalized and the remaining letters are in lowerCase.
+ */
+function convertArrayElementsToCamelCase(arr) {
+  return arr.map((word) => word.substr(0, 1).toUpperCase() +
+    word.substr(1).toLowerCase());
+}
+
+/**
  * Transforms the value into a Sequelize where clause using "$ilike" for
  *  case-insensitive string matching
  *
@@ -114,7 +126,11 @@ function toSequelizeWhere(filter, props) {
        */
       if (Array.isArray(props.fieldsWithEnum) &&
         props.fieldsWithEnum.indexOf(key) > -ONE) {
-        const enumArr = filter[key];
+
+        // if specified in props, convert the array in query to camelcase.
+        const enumArr = (props.fieldsToCamelCase &&
+          props.fieldsToCamelCase.indexOf(key) > -ONE) ?
+          convertArrayElementsToCamelCase(filter[key]) : filter[key];
 
         // to use $in instead of $contains in toWhereClause
         props.isEnum = true;
@@ -213,7 +229,6 @@ function options(params, props) {
     const key = keys[i];
 
     const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < ZERO;
-
     if (isFilterField && params[key].value !== undefined) {
       filter[key] = params[key].value;
     }
