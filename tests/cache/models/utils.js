@@ -15,7 +15,7 @@ const supertest = require('supertest');
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
-describe.only('cache utils test', () => {
+describe('cache utils test', () => {
   describe('given asc input', () => {
     let ascArr;
 

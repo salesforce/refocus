@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../../api/v1/helpers/nouns/subjects');
+const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
@@ -236,14 +237,13 @@ module.exports = {
       const filteredSubjects = modelUtils.applyFiltersOnSampObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
 
-        const sampName = subject.name;
-        if (opts.attributes) { // delete subject fields, hence no return obj
-          modelUtils.applyFieldListFilter(subject, opts.attributes);
-        }
-
         // convert the time fields to appropriate format
         subject.createdAt = new Date(subject.createdAt).toISOString();
         subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
+        if (opts.attributes) { // delete subject fields, hence no return obj
+          modelUtils.applyFieldListFilter(subject, opts.attributes);
+        }
 
         // add api links
         subject.apiLinks = utils.getApiLinks(

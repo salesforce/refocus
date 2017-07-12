@@ -58,9 +58,7 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
 
   // sort and apply limits to samples
   if (opts.order) {
-    console.log(opts.order)
     const sortedSamples = sortByOrder(filteredResources, opts.order);
-    console.log('output', sortedSamples)
     filteredResources = sortedSamples;
 
     const slicedSampObjs = applyLimitAndOffset(opts, filteredResources);
@@ -92,17 +90,17 @@ function applyLimitAndOffset(opts, arr) {
 }
 
 /**
- * Apply filters on sample keys list
- * @param  {Array} sampKeysArr - Sample key names array
+ * Apply filters on resource keys list
+ * @param  {Array} keysArr - Resource key names array
  * @param  {Object} opts - Filter options
- * @returns {Array} - Filtered sample keys array
+ * @returns {Array} - Filtered resource keys array
  */
-function applyFiltersOnSampKeys(sampKeysArr, opts) {
-  let resArr = sampKeysArr;
+function applyFiltersOnSampKeys(keysArr, opts) {
+  let resArr = keysArr;
 
   // apply limit and offset if no sort order defined
   if (!opts.order) {
-    resArr = applyLimitAndOffset(opts, sampKeysArr);
+    resArr = applyLimitAndOffset(opts, keysArr);
   }
 
   // apply wildcard expr on name, if specified
@@ -131,27 +129,27 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
 }
 
 /**
- * Apply wildcard filter on sample array of keys or objects. For each entry,
- * if given property exists for sample, apply regex to the property value,
+ * Apply wildcard filter on resource array of keys or objects. For each entry,
+ * if given property exists for resource, apply regex to the property value,
  * else if, the property is 'name', then the function was called before getting
- * obj, hence apply regex filter on sample name.
- * @param  {Array}  sampArr - Array of sample keys or sample objects
+ * obj, hence apply regex filter on resource name.
+ * @param  {Array}  arr - Array of resource keys or resource objects
  * @param  {String}  prop  - Property name
  * @param  {String} propExpr - Wildcard expression
  * @returns {Array} - Filtered array
  */
-function filterByFieldWildCardExpr(sampArr, prop, propExpr) {
+function filterByFieldWildCardExpr(arr, prop, propExpr) {
   // regex to match wildcard expr, i option means case insensitive
   const escapedExp = propExpr.split('_').join('\\_')
                       .split('|').join('\\|').split('.').join('\\.');
 
   const re = new RegExp('^' + escapedExp.split('*').join('.*') + '$', 'i');
-  return sampArr.filter((sampEntry) => {
-    if (sampEntry[prop]) { // sample object
-      return re.test(sampEntry[prop]);
-    } else if (prop === 'name') { // sample key
-      const sampName = sampleStore.getNameFromKey(sampEntry);
-      return re.test(sampName);
+  return arr.filter((entry) => {
+    if (entry[prop]) { // resource object
+      return re.test(entry[prop]);
+    } else if (prop === 'name') { // resource key
+      const name = sampleStore.getNameFromKey(entry);
+      return re.test(name);
     }
 
     return false;

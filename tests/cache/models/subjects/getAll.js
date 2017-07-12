@@ -19,7 +19,7 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api::redisEnabled::GET ${path}`, () => {
+describe.only(`api::redisEnabled::GET ${path}`, () => {
   let token;
   const subject1 = '___Subject1';
   const subject2 = '___Subject1.___Subject2';
@@ -93,7 +93,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it.skip('get all, with sort option, default desc', (done) => {
+  it('get all, with sort option, default desc', (done) => {
     api.get(`${path}?sort=-absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -106,10 +106,11 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body[0].absolutePath).to.be.equal(subject3);
       expect(res.body[1].absolutePath).to.be.equal(subject2);
       expect(res.body[2].absolutePath).to.be.equal(subject1);
+      done();
     });
   });
 
-  it.skip('get all with fields filter', (done) => {
+  it('get all with fields filter returns in the asc order', (done) => {
     api.get(`${path}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -119,11 +120,49 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].name).to.be.equal(subject1);
+
+      // name is in absolutePath
+      expect(res.body[1].name).to.be.equal(subject2.substr(subject1.length + 1));
+      expect(res.body[2].name).to.be.equal(subject3.substr(subject1.length + 1));
       done();
     });
   });
 
-  it.skip('get all, with limit filter', (done) => {
+  it('get all with fields filter returns expected number of keys', (done) => {
+    api.get(`${path}?fields=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.be.equal(3);
+      expect(Object.keys(res.body[0]).length).to.equal(3);
+      expect(Object.keys(res.body[1])).to.contain('id', 'name', 'apiLinks');
+      done();
+    });
+  });
+
+  it('get all with fields filter returns apiLinks', (done) => {
+    api.get(`${path}?fields=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.be.equal(3);
+      expect(Array.isArray(res.body[0].apiLinks)).to.be.true;
+      expect(Array.isArray(res.body[1].apiLinks)).to.be.true;
+      expect(Array.isArray(res.body[2].apiLinks)).to.be.true;
+      done();
+    });
+  });
+
+  it('get all, with limit filter', (done) => {
     api.get(`${path}?limit=1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -133,11 +172,12 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(1);
+      expect(res.body[0].name).to.be.equal(subject1);
       done();
     });
   });
 
-  it.skip('get all, with offset filter', (done) => {
+  it('get all, with offset filter', (done) => {
     api.get(`${path}?offset=1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -147,11 +187,13 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(2);
+      expect(res.body[0].absolutePath).to.be.equal(subject2);
+      expect(res.body[1].absolutePath).to.be.equal(subject3);
       done();
     });
   });
 
-  it.skip('get all, with name filter', (done) => {
+  it('get all, with name filter', (done) => {
     api.get(`${path}?name=___Subject1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -161,13 +203,15 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(1);
+      expect(res.body[0].name).to.be.equal(subject1);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
       done();
     });
   });
 
   it.skip('get all, with combined filters', (done) => {
     const filterstr = 'limit=5&offset=1&name=___Subject1.___Subject2*&' +
-    'sort=-value,status&fields=name,status,value';
+    'sort=-value,status&fields=name,absolutePath';
     api.get(`${path}?${filterstr}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
