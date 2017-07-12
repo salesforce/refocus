@@ -16,17 +16,18 @@ const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
 describe.only('cache utils test', () => {
-  const ascArr = [
-    { name: '___Subject1', absolutePath: '___Subject1' },
-    { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
-    { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
-  ];
-
-  // deep copy before reverse. Otherwise will also reverse original array
-  const descArr = JSON.parse(JSON.stringify(ascArr)).reverse();
-  console.log(ascArr[0], descArr[0])
-
   describe('given asc input', () => {
+    let ascArr;
+
+    // sort is in-place. Hence need reset array for test independence.
+    beforeEach(() => {
+      ascArr = [
+        { name: '___Subject1', absolutePath: '___Subject1' },
+        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
+      ];
+    });
+
     it('asc name', () => {
       const result = utils.sortByOrder(ascArr, ['name']);
       expect(result).to.deep.equal(ascArr);
@@ -34,7 +35,7 @@ describe.only('cache utils test', () => {
 
     it('desc name', () => {
       const result = utils.sortByOrder(ascArr, ['-name']);
-      expect(result).to.deep.equal(descArr);
+      expect(result).to.deep.equal(ascArr.reverse());
     });
 
     it('asc absolutePath', () => {
@@ -44,14 +45,25 @@ describe.only('cache utils test', () => {
 
     it('desc absolutePath', () => {
       const result = utils.sortByOrder(ascArr, ['-absolutePath']);
-      expect(result).to.deep.equal(descArr);
+      expect(result).to.deep.equal(ascArr.reverse());
     });
   });
 
   describe('given desc input', () => {
+    let descArr;
+
+    // sort is in-place. Hence need reset array for test independence.
+    beforeEach(() => {
+      descArr = [
+        { name: '___Subject1', absolutePath: '___Subject1' },
+        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
+      ];
+    });
+
     it('asc name', () => {
       const result = utils.sortByOrder(descArr, ['name']);
-      expect(result).to.deep.equal(ascArr);
+      expect(result).to.deep.equal(descArr.reverse());
     });
 
     it('desc name', () => {
@@ -61,7 +73,7 @@ describe.only('cache utils test', () => {
 
     it('asc absolutePath', () => {
       const result = utils.sortByOrder(descArr, ['absolutePath']);
-      expect(result).to.deep.equal(ascArr);
+      expect(result).to.deep.equal(descArr.reverse());
     });
 
     it('desc absolutePath', () => {

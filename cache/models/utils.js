@@ -200,30 +200,24 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
  */
 function sortByOrder(arr, propArr) {
   const isDescending = propArr[ZERO].startsWith('-');
-  console.log('is descending', isDescending, propArr)
-
   return arr.sort((a, b) => {
-    // console.log('a is', a)
-    // console.log('b is', b)
     let strA = '';
     let strB = '';
     propArr.forEach((field) => {
-      strA += a[field];
-      strB += b[field];
+
+      // remove leading minus sign
+      const _field = isDescending ? field.substr(1): field;
+      strA += a[_field];
+      strB += b[_field];
     });
-    // console.log('A is', strA)
-    // console.log('B is', strB)
 
     if (strA < strB) {
-      console.log('returning one?', isDescending ? ONE : MINUS_ONE)
       return isDescending ? ONE : MINUS_ONE;
     }
 
     if (strA > strB) {
-      console.log('returning - one?', isDescending ? MINUS_ONE : ONE)
       return isDescending ? MINUS_ONE : ONE;
     }
-      console.log('returning 0')
 
     return ZERO;
   });
