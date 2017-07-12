@@ -190,11 +190,16 @@ module.exports = {
      * Call the appropriate upsert and return a response.
      *
      * @param {Object} user object. Optional.
-     * @returns {Object} The response object.
+     * @returns {Promise} A Promise that resolves to the response object or a
+     * ValidationError
      */
     function doUpsert(user) {
       if (sampleQueryBody.relatedLinks) {
-        u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+        try {
+          u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+        } catch (err) {
+          return Promise.reject(err);
+        }
       }
 
       const upsertSamplePromise =
@@ -226,16 +231,17 @@ module.exports = {
     }
 
     return authUtils.getUser(req)
-    .then(doUpsert)
-    .catch((err) => {
-
-      // proceed to do upsert iff user is found and do NOT need permission
-      if (err.status === httpStatus.FORBIDDEN &&
-        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
-        return doUpsert(false);
-      }
-
-      u.handleError(next, err, helper.modelName);
+    .then((user) => { // upsert with found user
+      doUpsert(user)
+      .catch((err) => { // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      });
+    })
+    .catch(() => { // user is not found. upsert anyway with no user
+      doUpsert(false)
+      .catch((err) => { // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      });
     });
   },
 
@@ -311,19 +317,18 @@ module.exports = {
       }
     }
 
-    // if authUtils throws error, it is because user is not found
-    // perform bulk upsert anyway.
-    authUtils.getUser(req)
-    .then(bulkUpsert)
-    .catch((err) => {
-
-      // proceed to do upsert iff user is found and do NOT need permission
-      if (err.status === httpStatus.FORBIDDEN &&
-        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
-        return bulkUpsert(false);
-      }
-
-      u.handleError(next, err, helper.modelName);
+    return authUtils.getUser(req)
+    .then((user) => { // upsert with found user
+      bulkUpsert(user)
+      .catch((err) => { // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      });
+    })
+    .catch(() => { // user is not found. upsert anyway with no user
+      bulkUpsert(false)
+      .catch((err) => { // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      });
     });
   },
 
@@ -344,13 +349,11 @@ module.exports = {
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
      helper.modelName === 'Sample') {
-      delRlinksPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      delRlinksPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
       delRlinksPromise = u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o,
-            featureToggles.isFeatureEnabled('enforceWritePermission')))
+        .then((o) => u.isWritable(req, o))
         .then((o) => {
           let jsonData = [];
           if (params.relName) {
