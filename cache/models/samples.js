@@ -28,6 +28,9 @@ const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
+const subHelper = require('../../api/v1/helpers/nouns/subjects');
+const publisher = u.publisher;
+
 const sampFields = {
   PROVIDER: 'provider',
   USER: 'user',
@@ -498,7 +501,16 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     ]).execAsync();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
+
   .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj))
+  .then((samp) => {
+    /*
+     * Send the upserted sample to the client by publishing it to the redis
+     * channel
+     */
+    publisher.publishSample(samp, subHelper.model);
+    return samp;
+  })
   .catch((err) => {
     if (isBulk) {
       return err;
