@@ -127,7 +127,8 @@ module.exports = {
       const samples = [];
       for (let num = 0; num < samplesCount; num++) {
         const samp = redisResponses[num];
-        if (samp.status !== constants.statuses.Timeout) {
+        if (samp && samp.status &&
+        samp.status !== constants.statuses.Timeout) {
           samples.push(samp);
         }
       }
