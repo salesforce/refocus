@@ -93,7 +93,7 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('get all, with sort option, default desc', (done) => {
+  it.skip('get all, with sort option, default desc', (done) => {
     api.get(`${path}?sort=-name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

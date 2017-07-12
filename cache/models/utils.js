@@ -35,12 +35,12 @@ function applyFieldListFilter(sample, attributes) {
 
 /**
  * Apply filters on sample array list
- * @param  {Array} sampObjArray - Sample objects array
+ * @param  {Array} resourceObjArray - Sample objects array
  * @param  {Object} opts - Filter options
  * @returns {Array} - Filtered sample objects array
  */
-function applyFiltersOnSampObjs(sampObjArray, opts) {
-  let filteredSamples = sampObjArray;
+function applyFiltersOnSampObjs(resourceObjArray, opts) {
+  let filteredResources = resourceObjArray;
 
   // apply wildcard expr if other than name because
   // name filter was applied before redis call
@@ -49,23 +49,23 @@ function applyFiltersOnSampObjs(sampObjArray, opts) {
     Object.keys(filterOptions).forEach((field) => {
       if (field !== 'name') {
         const filteredKeys = filterByFieldWildCardExpr(
-          sampObjArray, field, filterOptions[field]
+          resourceObjArray, field, filterOptions[field]
         );
-        filteredSamples = filteredKeys;
+        filteredResources = filteredKeys;
       }
     });
   }
 
   // sort and apply limits to samples
   if (opts.order) {
-    const sortedSamples = sortByOrder(filteredSamples, opts.order);
-    filteredSamples = sortedSamples;
+    const sortedSamples = sortByOrder(filteredResources, opts.order);
+    filteredResources = sortedSamples;
 
-    const slicedSampObjs = applyLimitAndOffset(opts, filteredSamples);
-    filteredSamples = slicedSampObjs;
+    const slicedSampObjs = applyLimitAndOffset(opts, filteredResources);
+    filteredResources = slicedSampObjs;
   }
 
-  return filteredSamples;
+  return filteredResources;
 }
 
 /**
@@ -198,21 +198,30 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
  */
 function sortByOrder(arr, propArr) {
   const isDescending = propArr[ZERO].startsWith('-');
+  console.log('is descending', isDescending, propArr)
+
   return arr.sort((a, b) => {
+    console.log('a is', a)
+    console.log('b is', b)
     let strA = '';
     let strB = '';
     propArr.forEach((field) => {
       strA += a[field];
       strB += b[field];
     });
+    console.log('A is', strA)
+    console.log('B is', strB)
 
     if (strA < strB) {
+      console.log('returning one?', isDescending ? ONE : MINUS_ONE)
       return isDescending ? ONE : MINUS_ONE;
     }
 
     if (strA > strB) {
+      console.log('returning - one?', isDescending ? MINUS_ONE : ONE)
       return isDescending ? MINUS_ONE : ONE;
     }
+      console.log('returning 0')
 
     return ZERO;
   });

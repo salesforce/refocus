@@ -222,8 +222,6 @@ module.exports = {
 
       // add to commands
       filteredSubjectKeys.forEach((subjectKey) => {
-        console.log(subjectKey)
-        // not sure if the keys are already in key format
         commands.push(['hgetall', subjectKey]); // get subject
         // commands.push(
         //   ['hgetall',
@@ -234,12 +232,8 @@ module.exports = {
       return redisClient.batch(commands).execAsync();
     })
     .then((subjects) => {
-        console.log(subjects)
-
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const filteredSubjects = modelUtils.applyFiltersOnSampObjs(subjects, opts);
-        console.log(filteredSubjects)
-
       filteredSubjects.forEach((subject) => {
 
         const sampName = subject.name;
