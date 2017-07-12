@@ -19,7 +19,7 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe.only(`api::redisEnabled::GET ${path}`, () => {
+describe(`api::redisEnabled::GET ${path}`, () => {
   let token;
   const subject1 = '___Subject1';
   const subject2 = '___Subject1.___Subject2';
@@ -77,7 +77,7 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
   });
 
   it('get all, with sort option, default asc', (done) => {
-    api.get(`${path}?sort=name`)
+    api.get(`${path}?sort=absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -94,7 +94,7 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
   });
 
   it.skip('get all, with sort option, default desc', (done) => {
-    api.get(`${path}?sort=-name`)
+    api.get(`${path}?sort=-absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

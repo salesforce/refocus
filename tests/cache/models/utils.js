@@ -15,9 +15,58 @@ const supertest = require('supertest');
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
-describe('cache utils test', () => {
-  it('asc');
-  it('desc');
-  // const result = utils.sortByOrder(arr, propArr);
-  // expect()
+describe.only('cache utils test', () => {
+  const ascArr = [
+    { name: '___Subject1', absolutePath: '___Subject1' },
+    { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+    { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
+  ];
+
+  // deep copy before reverse. Otherwise will also reverse original array
+  const descArr = JSON.parse(JSON.stringify(ascArr)).reverse();
+  console.log(ascArr[0], descArr[0])
+
+  describe('given asc input', () => {
+    it('asc name', () => {
+      const result = utils.sortByOrder(ascArr, ['name']);
+      expect(result).to.deep.equal(ascArr);
+    });
+
+    it('desc name', () => {
+      const result = utils.sortByOrder(ascArr, ['-name']);
+      expect(result).to.deep.equal(descArr);
+    });
+
+    it('asc absolutePath', () => {
+      const result = utils.sortByOrder(ascArr, ['absolutePath']);
+      expect(result).to.deep.equal(ascArr);
+    });
+
+    it('desc absolutePath', () => {
+      const result = utils.sortByOrder(ascArr, ['-absolutePath']);
+      expect(result).to.deep.equal(descArr);
+    });
+  });
+
+  describe('given desc input', () => {
+    it('asc name', () => {
+      const result = utils.sortByOrder(descArr, ['name']);
+      expect(result).to.deep.equal(ascArr);
+    });
+
+    it('desc name', () => {
+      const result = utils.sortByOrder(descArr, ['-name']);
+      expect(result).to.deep.equal(descArr);
+    });
+
+    it('asc absolutePath', () => {
+      const result = utils.sortByOrder(descArr, ['absolutePath']);
+      expect(result).to.deep.equal(ascArr);
+    });
+
+    it('desc absolutePath', () => {
+      const result = utils.sortByOrder(descArr, ['-absolutePath']);
+      expect(result).to.deep.equal(descArr);
+    });
+  });
 });

@@ -47,7 +47,7 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
   if (opts.filter) {
     const filterOptions = opts.filter;
     Object.keys(filterOptions).forEach((field) => {
-      if (field !== 'name') {
+      if (field !== 'name' || field !== 'absolutePath') {
         const filteredKeys = filterByFieldWildCardExpr(
           resourceObjArray, field, filterOptions[field]
         );
@@ -58,7 +58,9 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
 
   // sort and apply limits to samples
   if (opts.order) {
+    console.log(opts.order)
     const sortedSamples = sortByOrder(filteredResources, opts.order);
+    console.log('output', sortedSamples)
     filteredResources = sortedSamples;
 
     const slicedSampObjs = applyLimitAndOffset(opts, filteredResources);
@@ -201,16 +203,16 @@ function sortByOrder(arr, propArr) {
   console.log('is descending', isDescending, propArr)
 
   return arr.sort((a, b) => {
-    console.log('a is', a)
-    console.log('b is', b)
+    // console.log('a is', a)
+    // console.log('b is', b)
     let strA = '';
     let strB = '';
     propArr.forEach((field) => {
       strA += a[field];
       strB += b[field];
     });
-    console.log('A is', strA)
-    console.log('B is', strB)
+    // console.log('A is', strA)
+    // console.log('B is', strB)
 
     if (strA < strB) {
       console.log('returning one?', isDescending ? ONE : MINUS_ONE)
