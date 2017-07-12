@@ -18,7 +18,7 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api::redisEnabled::GET specific subject`, () => {
+describe('api::redisEnabled::GET specific subject', () => {
   let token;
   const name = '___Subject1';
 
@@ -38,8 +38,7 @@ describe(`api::redisEnabled::GET specific subject`, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('createdAt and updatedAt fields have the expected format', (done) => {
-    const sampleName = s1s3a1;
-    api.get(`${path}/${sampleName}`)
+    api.get(`${path}/${name}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -54,26 +53,8 @@ describe(`api::redisEnabled::GET specific subject`, () => {
     });
   });
 
-  it('on the attached aspect, time fields have the expected format', (done) => {
-    const sampleName = s1s3a1;
-    api.get(`${path}/${sampleName}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      const { aspect } = res.body;
-      expect(aspect.updatedAt).to.equal(new Date(aspect.updatedAt).toISOString());
-      expect(aspect.createdAt).to.equal(new Date(aspect.createdAt).toISOString());
-      done();
-    });
-  });
-
   it('basic get by name, OK', (done) => {
-    const sampleName = s1s3a1;
-    api.get(`${path}/${sampleName}`)
+    api.get(`${path}/${name}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -81,47 +62,18 @@ describe(`api::redisEnabled::GET specific subject`, () => {
         done(err);
       }
 
-      expect(res.body.name).to.be.equal(s1s3a1);
-      expect(res.body.status).to.be.equal('Invalid');
-      expect(res.body.value).to.be.equal('5');
-      expect(res.body.relatedLinks).to.be.eql([
-        { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]);
-      expect(res.body.apiLinks).to.be.eql([
-        { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
-          method: 'DELETE',
-          rel: 'Delete this sample',
-        },
-        { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
-          method: 'GET',
-          rel: 'Retrieve this sample',
-        },
-        { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
-          method: 'PATCH',
-          rel: 'Update selected attributes of this sample',
-        },
-        { href: '/v1/samples',
-          method: 'POST',
-          rel: 'Create a new sample',
-        },
-        { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
-          method: 'PUT',
-          rel: 'Overwrite all attributes of this sample',
-        },
-      ]);
-      expect(res.body.aspect.name).to.be.equal('___Aspect1');
-      expect(res.body.aspect.relatedLinks).to.be.eql([
-        { name: 'Google', value: 'http://www.google.com' },
-        { name: 'Yahoo', value: 'http://www.yahoo.com' },
-      ]);
-      expect(res.body.aspect.criticalRange).to.be.eql([0, 1]);
+      expect(res.body.name).to.be.equal(name);
+      expect(res.body.childCount).to.be.above(0);
+      expect(res.body.hierarchyLevel).to.be.above(0);
+      expect(res.body.apiLinks.length).to.be.above(0);
+      expect(Array.isArray(res.body.tags)).to.be.true;
+      expect(Array.isArray(res.body.relatedLinks)).to.be.true;
       done();
     });
   });
 
   it('get by name is case in-sensitive', (done) => {
-    const sampleName = '___subject1.___SUBJECT3|___AspECT1';
-    api.get(`${path}/${sampleName}`)
+    api.get(`${path}/${name.toLowerCase()}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -129,44 +81,23 @@ describe(`api::redisEnabled::GET specific subject`, () => {
         done(err);
       }
 
-      expect(res.body.name).to.equal(s1s3a1);
+      expect(res.body.name).to.equal(name);
       done();
     });
   });
 
   it('get by name, wrong name', (done) => {
-    const sampleName = 'abc';
-    api.get(`${path}/${sampleName}`)
+    api.get(path + '/abc')
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description).to.be.equal('Incorrect sample name.');
-      return done();
-    });
-  });
-
-  it('get by name, sample not found', (done) => {
-    const sampleName = 'abc|xyz';
-    api.get(`${path}/${sampleName}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      expect(res.body.errors[0].description).to.be.equal('Sample/Aspect not found.');
-      return done();
+      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+      done();
     });
   });
 
   it('get by name, with fields filter', (done) => {
-    const sampleName = s1s3a1;
-    api.get(`${path}/${sampleName}?fields=name,value`)
+    api.get(`${path}/${name}?fields=name,absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -174,32 +105,19 @@ describe(`api::redisEnabled::GET specific subject`, () => {
         done(err);
       }
 
-      expect(res.body.name).to.be.equal(s1s3a1);
-      expect(res.body.status).to.be.undefined;
-      expect(res.body.value).to.be.equal('5');
-      expect(res.body.relatedLinks).to.be.undefined;
-      expect(res.body).to.have.property('apiLinks').that.is.an('array');
-      expect(res.body.aspect.name).to.be.equal('___Aspect1');
-      expect(res.body.aspect.relatedLinks).to.be.eql([
-        { name: 'Google', value: 'http://www.google.com' },
-        { name: 'Yahoo', value: 'http://www.yahoo.com' },
-      ]);
-      expect(res.body.aspect.criticalRange).to.be.eql([0, 1]);
+      expect(res.body.name).to.be.equal(name);
+      expect(res.body.absolutePath).to.equal(name);
       done();
     });
   });
 
   it('get by name with incorrect fields filter gives error', (done) => {
-    const sampleName = s1s3a1;
-    api.get(`${path}/${sampleName}?fields=name,y`)
+    api.get(`${path}/${name}?fields=name,y`)
     .set('Authorization', token)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
+      expect(res.body.errors[0].message).to.contain('Request validation failed');
+      done();
     });
   });
 });
