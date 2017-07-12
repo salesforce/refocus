@@ -231,18 +231,18 @@ module.exports = {
     }
 
     return authUtils.getUser(req)
-    .then((user) => { // upsert with found user
-      return doUpsert(user)
-      .catch((err) => { // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName);
-      });
-    })
-    .catch(() => { // user is not found. upsert anyway with no user
-      return doUpsert(false)
-      .catch((err) => { // the sample is write protected
-        u.handleError(next, err, helper.modelName);
-      });
-    });
+    .then((user) => // upsert with found user
+      doUpsert(user)
+      .catch((err) => // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      )
+    )
+    .catch(() => // user is not found. upsert anyway with no user
+      doUpsert(false)
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      )
+    );
   },
 
   /**
@@ -319,18 +319,18 @@ module.exports = {
     }
 
     return authUtils.getUser(req)
-    .then((user) => { // upsert with found user
-      return bulkUpsert(user)
-      .catch((err) => { // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName);
-      });
-    })
-    .catch(() => { // user is not found. upsert anyway with no user
-      return bulkUpsert(false)
-      .catch((err) => { // the sample is write protected
-        u.handleError(next, err, helper.modelName);
-      });
-    });
+    .then((user) => // upsert with found user
+      bulkUpsert(user)
+      .catch((err) => // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      )
+    )
+    .catch(() => // user is not found. upsert anyway with no user
+      bulkUpsert(false)
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      )
+    );
   },
 
   /**
