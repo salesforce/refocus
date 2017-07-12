@@ -19,7 +19,7 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe.only(`api::redisEnabled::GET ${path}`, () => {
+describe(`api::redisEnabled::GET ${path}`, () => {
   let token;
   const subject1 = '___Subject1';
   const subject2 = '___Subject1.___Subject2';
@@ -209,9 +209,9 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it.skip('get all, with combined filters', (done) => {
-    const filterstr = 'limit=5&offset=1&name=___Subject1.___Subject2*&' +
-    'sort=-value,status&fields=name,absolutePath';
+  it('get all, with combined filters', (done) => {
+    const filterstr = 'limit=2&offset=1&name=___*&' +
+    'sort=-name&fields=name,absolutePath';
     api.get(`${path}?${filterstr}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -220,51 +220,58 @@ describe.only(`api::redisEnabled::GET ${path}`, () => {
         done(err);
       }
 
-      expect(res.body.length).to.be.equal(1);
-      expect(res.body[0].name).to.be.equal(s1s2a1);
-      expect(res.body[0].status).to.be.equal('Critical');
-      expect(res.body[0].aspect.name).to.be.equal('___Aspect1');
-      expect(res.body[0].relatedLinks).to.be.undefined;
-      expect(res.body[0].value).to.be.equal('0');
+      expect(res.body.length).to.be.equal(2);
+      expect(res.body[0].absolutePath).to.be.equal(subject2);
+      expect(res.body[1].absolutePath).to.be.equal(subject1);
+      expect(Object.keys(res.body[1])).to.contain('name', 'absolutePath');
       done();
     });
   });
 
-  it.skip('trailing asterisk is treated as "starts with"', (done) => {
+  it('trailing asterisk is treated as "starts with"', (done) => {
     api.get(path + '?name=' + tu.namePrefix + '*')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
       expect(res.body.length).to.equal(3);
-      res.body.map((sample) => {
-        expect(sample.name.slice(0, 3)).to.equal(tu.namePrefix);
-      });
-    })
-    .end((err /* , res */) => done(err));
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject3);
+      done();
+    });
   });
 
-  it.skip('leading asterisk is treated as "ends with"', (done) => {
-    api.get(path + '?name=*___Aspect1')
+  it('leading asterisk is treated as "ends with"', (done) => {
+    api.get(path + '?name=*___Subject1')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.length).to.equal(2);
-      res.body.map((sample) => {
-        expect(sample.name.slice(-10)).to.equal('___Aspect1');
-      });
-    })
-    .end((err /* , res */) => done(err));
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      done();
+    });
   });
 
-  it.skip('leading and trailing asterisks are treated as "contains"', (done) => {
-    api.get(path + '?name=*Subject2*')
+  it('leading and trailing asterisks are treated as "contains"', (done) => {
+    api.get(path + '?name=*2*')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      res.body.map((sample) => {
-        expect(sample.name).to.contain('Subject2');
-      });
-    })
-    .end((err /* , res */) => done(err));
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].absolutePath).to.be.equal(subject2);
+      done();
+    });
   });
 });
