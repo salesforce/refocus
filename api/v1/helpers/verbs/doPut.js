@@ -44,8 +44,7 @@ function doPut(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    putPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    putPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.putSample(req.swagger.params, user));
   } else {
     const puttableFields =
@@ -53,8 +52,7 @@ function doPut(req, res, next, props) {
     putPromise = u.findByKey(
         props, req.swagger.params
       )
-      .then((o) => u.isWritable(req, o,
-          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
       .then((o) => {
         const keys = Object.keys(puttableFields);
         for (let i = 0; i < keys.length; i++) {
