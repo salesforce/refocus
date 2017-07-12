@@ -601,6 +601,7 @@ function findByKey(props, params, extraAttributes) {
   keyClause[constants.SEQ_LIKE] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
+
   const attrArr = [];
   if (opts.attributes && Array.isArray(opts.attributes)) {
     for (let i = 0; i < opts.attributes.length; i++) {
@@ -616,6 +617,8 @@ function findByKey(props, params, extraAttributes) {
 
   const scopedModel = getScopedModel(props, attrArr);
   if (looksLikeId(key)) {
+    return findByIdThenName(scopedModel, key, opts);
+  } else if ((typeof key === 'number') && (key % 1 === 0)) {
     return findByIdThenName(scopedModel, key, opts);
   }
 

@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/rooms/patch.js
+ * tests/api/v1/roomTypes/patch.js
  */
 
 'use strict';
@@ -15,13 +15,13 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
 
 describe(`api: PATCH ${path}`, () => {
-  let testRoom;
+  let testRoomType;
   let token;
 
   before((done) => {
@@ -35,8 +35,8 @@ describe(`api: PATCH ${path}`, () => {
 
   beforeEach((done) => {
     u.createStandard()
-    .then((newRoom) => {
-      testRoom = newRoom;
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
       done();
     })
     .catch(done);
@@ -45,10 +45,10 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('PATCH room', () => {
-    it('Pass, patch room name', (done) => {
+  describe('PATCH roomType', () => {
+    it('Pass, patch roomType name', (done) => {
       const newName = 'newName';
-      api.patch(`${path}/${testRoom.id}`)
+      api.patch(`${path}/${testRoomType.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.OK)
@@ -62,9 +62,9 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('Fail, patch room invalid name', (done) => {
+    it('Fail, patch roomType invalid name', (done) => {
       const newName = '~!invalidName';
-      api.patch(`${path}/${testRoom.id}`)
+      api.patch(`${path}/${testRoomType.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -79,8 +79,8 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('Fail, patch room invalid attribute', (done) => {
-      api.patch(`${path}/${testRoom.id}`)
+    it('Fail, patch roomType invalid attribute', (done) => {
+      api.patch(`${path}/${testRoomType.id}`)
       .set('Authorization', token)
       .send({ invalid: true })
       .expect(constants.httpStatus.OK)

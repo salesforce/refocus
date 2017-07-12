@@ -7,18 +7,18 @@
  */
 
 /**
- * tests/db/api/bot/utils.js
+ * tests/db/api/room/utils.js
  */
 'use strict';
 
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
-const n = `${tu.namePrefix}TestBot`;
+const n = `${tu.namePrefix}TestRoom`;
 const n2 = n+'NonActive';
 
-const standard = {
-  name: n,
+const roomTypeSchema = {
+  name: 'roomTypeTest',
   url: 'http://www.bar.com',
   active: true,
   actions: [
@@ -89,76 +89,18 @@ const standard = {
   ],
 };
 
+const roomType = tu.db.RoomType.create(roomTypeSchema);
+
+const standard = {
+  name: n,
+  active: true,
+  type: roomType.id,
+};
+
 const nonActive = {
   name: n2,
-  url: 'http://www.bar.com',
-  active: false,
-  actions: [
-    {
-      name: 'Action1',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    },
-    {
-      name: 'Action2',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    }
-  ],
-  data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
-    },
-    {
-      name: 'Data2',
-      type: 'INTEGER',
-    },
-    {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
-    },
-  ],
+  active: true,
+  type: roomType.id,
 };
 
 module.exports = {
@@ -171,15 +113,16 @@ module.exports = {
   },
 
   createNonActive() {
-    return tu.db.Bot.create(nonActive);
+    return tu.db.Room.create(nonActive);
   },
 
   createStandard() {
-    return tu.db.Bot.create(standard);
+    return tu.db.Room.create(standard);
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Bot, testStartTime)
+    tu.forceDelete(tu.db.Room, testStartTime)
+    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
   },

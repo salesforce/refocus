@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/bots/post.js
+ * tests/api/v1/rooms/post.js
  */
 
 'use strict';
@@ -15,7 +15,7 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/bots';
+const path = '/v1/rooms';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
@@ -35,8 +35,8 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('POST bot', () => {
-    it('Pass, post bot', (done) => {
+  describe('POST room', () => {
+    it('Pass, post room', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
@@ -51,7 +51,7 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('Fail, duplicate bot', (done) => {
+    it('Fail, duplicate room', (done) => {
       u.createStandard()
       .then(() => done());
 
@@ -68,13 +68,13 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('Fail, bot validation incorrect', (done) => {
-      let testBot = u.getStandard();
-      testBot.actions = 'INVALID_VALUE';
+    it('Fail, room validation incorrect', (done) => {
+      let testRoom = u.getStandard();
+      testRoom.actions = 'INVALID_VALUE';
 
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(testBot)
+      .send(testRoom)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {

@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/rooms/patch.js
+ * tests/api/v1/roomTypes/post.js
  */
 
 'use strict';
@@ -15,13 +15,12 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
 
-describe(`api: PATCH ${path}`, () => {
-  let testRoom;
+describe(`api: POST ${path}`, () => {
   let token;
 
   before((done) => {
@@ -33,63 +32,56 @@ describe(`api: PATCH ${path}`, () => {
     .catch(done);
   });
 
-  beforeEach((done) => {
-    u.createStandard()
-    .then((newRoom) => {
-      testRoom = newRoom;
-      done();
-    })
-    .catch(done);
-  });
-
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('PATCH room', () => {
-    it('Pass, patch room name', (done) => {
-      const newName = 'newName';
-      api.patch(`${path}/${testRoom.id}`)
+  describe('POST roomType', () => {
+    it('Pass, post roomType', (done) => {
+      api.post(`${path}`)
       .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.OK)
+      .send(u.getStandard())
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
         }
 
-        expect(res.body.name).to.equal(newName);
+        expect(res.body.name).to.equal(u.name);
         done();
       });
     });
 
-    it('Fail, patch room invalid name', (done) => {
-      const newName = '~!invalidName';
-      api.patch(`${path}/${testRoom.id}`)
+    it('Fail, duplicate roomType', (done) => {
+      u.createStandard()
+      .then(() => done());
+
+      api.post(`${path}`)
       .set('Authorization', token)
-      .send({ name: newName })
+      .send(u.getStandard())
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to
+        .contain('SequelizeUniqueConstraintError');
+      });
+    });
+
+    it('Fail, roomType validation incorrect', (done) => {
+      let testRoomType = u.getStandard();
+      testRoomType.settings = 'INVALID_VALUE';
+
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(testRoomType)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           done(err);
         }
-
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
-        done();
-      });
-    });
-
-    it('Fail, patch room invalid attribute', (done) => {
-      api.patch(`${path}/${testRoom.id}`)
-      .set('Authorization', token)
-      .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body).not.to.have.property('invalid');
+        .contain('SCHEMA_VALIDATION_FAILED');
         done();
       });
     });

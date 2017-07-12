@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/rooms/delete.js
+ * tests/api/v1/roomTypes/delete.js
  */
 
 'use strict';
@@ -15,12 +15,12 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 
 describe(`api: DELETE ${path}`, () => {
-  let testRoom;
+  let testRoomType;
   let token;
 
   before((done) => {
@@ -34,8 +34,8 @@ describe(`api: DELETE ${path}`, () => {
 
   beforeEach((done) => {
     u.createStandard()
-    .then((newRoom) => {
-      testRoom = newRoom;
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
       done();
     })
     .catch(done);
@@ -44,9 +44,9 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('DELETE room', () => {
-    it('Pass, delete room', (done) => {
-      api.delete(`${path}/${testRoom.id}`)
+  describe('DELETE roomType', () => {
+    it('Pass, delete roomType', (done) => {
+      api.delete(`${path}/${testRoomType.id}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -59,7 +59,7 @@ describe(`api: DELETE ${path}`, () => {
       });
     });
 
-    it('Fail, room not found', (done) => {
+    it('Fail, roomType not found', (done) => {
       api.delete(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)

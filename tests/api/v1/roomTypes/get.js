@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/rooms/get.js
+ * tests/api/v1/roomTypes/get.js
  */
 
 'use strict';
@@ -15,7 +15,7 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
@@ -23,7 +23,7 @@ const TWO = 2;
 const tu = require('../../../testUtils');
 
 describe(`api: GET ${path}`, () => {
-  let testRoom;
+  let testRoomType;
   let token;
 
   before((done) => {
@@ -37,8 +37,8 @@ describe(`api: GET ${path}`, () => {
 
   beforeEach((done) => {
     u.createStandard()
-    .then((newRoom) => {
-      testRoom = newRoom;
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
       done();
     })
     .catch(done);
@@ -47,7 +47,7 @@ describe(`api: GET ${path}`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('GET room', () => {
+  describe('GET roomType', () => {
     it('Pass, get array of one', (done) => {
       api.get(`${path}`)
       .set('Authorization', token)
@@ -80,7 +80,7 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get active', (done) => {
-      api.get(`${path}?active=true`)
+      api.get(`${path}?isEnabled=true`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -94,7 +94,7 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get inactive', (done) => {
-      api.get(`${path}?active=false`)
+      api.get(`${path}?isEnabled=false`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -126,7 +126,7 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by id', (done) => {
-      api.get(`${path}/${testRoom.id}`)
+      api.get(`${path}/${testRoomType.id}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
