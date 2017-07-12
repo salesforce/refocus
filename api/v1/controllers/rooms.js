@@ -63,7 +63,7 @@ module.exports = {
   /**
    * PATCH /rooms/{key}
    *
-   * Update the specificed room
+   * Update the specified room
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
