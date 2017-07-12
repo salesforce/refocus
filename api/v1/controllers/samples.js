@@ -234,13 +234,13 @@ module.exports = {
     .then((user) => { // upsert with found user
       doUpsert(user)
       .catch((err) => { // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
+        u.handleError(next, err, helper.modelName);
       });
     })
     .catch(() => { // user is not found. upsert anyway with no user
       doUpsert(false)
       .catch((err) => { // the sample is write protected
-        u.handleError(next, err, helper.modelName)
+        u.handleError(next, err, helper.modelName);
       });
     });
   },
@@ -321,13 +321,13 @@ module.exports = {
     .then((user) => { // upsert with found user
       bulkUpsert(user)
       .catch((err) => { // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
+        u.handleError(next, err, helper.modelName);
       });
     })
     .catch(() => { // user is not found. upsert anyway with no user
       bulkUpsert(false)
       .catch((err) => { // the sample is write protected
-        u.handleError(next, err, helper.modelName)
+        u.handleError(next, err, helper.modelName);
       });
     });
   },
