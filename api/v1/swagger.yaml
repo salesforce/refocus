@@ -1226,6 +1226,7 @@ paths:
       description: >-
         Find a collector or collectors. You may query using field filters with asterisk (*) wildcards.
         You may also optionally specify sort, limit, offset, and a list of fields to include in the response.
+      operationId: findCollectors
       parameters:
         -
           $ref: "#/parameters/CollectorFieldsParam"
@@ -1306,7 +1307,7 @@ paths:
       description: >-
         Update the specified collector's config data. If a field is not included
         in the querybody, that field will not be updated.
-      operationId: updateCollector
+      operationId: patchCollector
       parameters:
         -
           name: key
@@ -1351,7 +1352,7 @@ paths:
       description: >-
         Update the specified collector's config data. If a field is not included
         in the querybody, that field will be set to null.
-      operationId: updateCollector
+      operationId: putCollector
       parameters:
         -
           name: key
@@ -1485,20 +1486,52 @@ paths:
 
   # ---------------------------------------------------------------------------
 
-  /collectors/{key}/stop:
+  /collectors/{key}/start:
     post:
       security:
         - jwt: []
-      summary: Change collector status to STOPPED.
+      summary: Change collector status to Running.
       tags: [ collectors ]
       description: >-
-        Change collector status to STOPPED. Invalid if the collector's status is STOPPED.
-      operationId: deregisterCollector
+        Change collector status from Stopped to Running. Invalid if the
+        collector's status is not Stopped.
+      operationId: startCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to retrieve.
+          description: The id or name of the collector to start.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/stop:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to Stopped.
+      tags: [ collectors ]
+      description: >-
+        Change collector status from Running to Stopped. Invalid if the
+        collector's status is already stopped.
+      operationId: stopCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to stop.
           required: true
           type: string
       responses:
@@ -1519,16 +1552,17 @@ paths:
     post:
       security:
         - jwt: []
-      summary: Change collector status to PAUSED.
+      summary: Change collector status from Running to Paused.
       tags: [ collectors ]
       description: >-
-        Change collector status to PAUSED. Invalid if the collector's status is not RUNNING.
-      operationId: deregisterCollector
+        Change collector status from Running to Paused. Invalid if the
+        collector's status is not Running.
+      operationId: pauseCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to retrieve.
+          description: The id or name of the collector to pause.
           required: true
           type: string
       responses:
@@ -1542,22 +1576,24 @@ paths:
           $ref: "#/responses/403"
         404:
             $ref: "#/responses/404"
+
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/resume:
     post:
       security:
         - jwt: []
-      summary: Change collector status to RUNNING.
+      summary: Change collector status from Paused to Running.
       tags: [ collectors ]
       description: >-
-        Change collector status to RUNNING. Invalid if the collector's status is not PAUSED.
-      operationId: deregisterCollector
+        Change collector status from Paused to Running. Invalid if the
+        collector's status is not Paused.
+      operationId: resumeCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to retrieve.
+          description: The id or name of the collector to resume.
           required: true
           type: string
       responses:
@@ -1581,21 +1617,23 @@ paths:
       summary: Returns a list of users permitted to modify this collector.
       tags: [ collectors, writers ]
       description: >-
-        Returns a list of users permitted to modify this collector. DOES NOT use wildcards.
+        Returns a list of users permitted to modify this collector. DOES NOT
+        use wildcards.
       operationId: getCollectorWriters
       parameters:
         -
           name: key
           in: path
           description: >-
-            The id or name of the collector for which the authorized list of users
-            are to be obtained.
+            The id or name of the collector for which the authorized list of
+            users are to be obtained.
           required: true
           type: string
       responses:
         200:
           description: >-
-            Success, returns The users having write permission to the collector metadata..
+            Success, returns The users having write permission to the collector
+            metadata.
           schema:
             type: array
             items:
@@ -1619,8 +1657,8 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the collector for which the authorized list of users
-            are to be obtained.
+            The id or name of the collector for which the authorized list of
+            users are to be obtained.
           required: true
           type: string
         -
@@ -1637,7 +1675,8 @@ paths:
       responses:
         201:
           description: >-
-            One or more of the valid users were added to the list of authorized writers.
+            One or more of the valid users were added to the list of authorized
+            writers.
           schema:
             type: array
             items:
@@ -1663,7 +1702,8 @@ paths:
       summary: "Get the writer of collector by user name or id."
       description: >-
         Determine whether a user is an authorized writer for a Collector.
-        If user is unauthorized, there is no writer by this name for this collector.
+        If user is unauthorized, there is no writer by this name for this
+        collector.
       operationId: getCollectorWriter
       parameters:
       - name: key
@@ -1692,7 +1732,7 @@ paths:
       tags: [ collectors, writers ]
       description: >-
         Remove a user from a collector’s list of authorized writers.
-      operationId: deletecollectorWriter
+      operationId: deleteCollectorWriter
       parameters:
         -
           name: key
@@ -8620,9 +8660,9 @@ definitions:
         type: "string"
         description: "The collector status."
         enum:
-        - "STOPPED"
-        - "RUNNING"
-        - "PAUSED"
+        - "Stopped"
+        - "Running"
+        - "Paused"
       lastHeartbeat:
         readOnly: true
         type: string
