@@ -67,6 +67,10 @@ describe(`api: GET ${path}`, () => {
     .then(() => {
       return Event.create(testEvent2);
     })
+
+    .then(() => {
+      return Event.create(testEvent3);
+    })
     .then(() => {
       done();
     })
@@ -77,25 +81,7 @@ describe(`api: GET ${path}`, () => {
   afterEach(tu.forceDeleteUser);
 
   describe('GET event', () => {
-    it('Pass, get array', (done) => {
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-        done(err);
-      });
-    });
-
     it('Pass, get array of multiple', (done) => {
-      Event.create(testEvent3)
-      .then(() => done())
-      .catch(done);
-
       api.get(`${path}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -105,15 +91,11 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(THREE);
+        done();
       });
     });
 
     it('Pass, get by botId', (done) => {
-      Event.create(testEvent3)
-      .then(() => done())
-      .catch(done);
-
-
       api.get(`${path}?botId=`+testEvent.botId)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -123,14 +105,11 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(TWO);
+        done();
       });
     });
 
     it('Pass, get by roomId', (done) => {
-      Event.create(testEvent3)
-      .then(() => done())
-      .catch(done);
-
       api.get(`${path}?roomId=`+testEvent.roomId)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -140,14 +119,11 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(TWO);
+        done();
       });
     });
 
     it('Pass, get by roomId and botId', (done) => {
-      Event.create(testEvent3)
-      .then(() => done())
-      .catch(done);
-
       api.get(`${path}?roomId=`+testEvent.roomId+'&botId='+testEvent.botId)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -157,6 +133,7 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
+        done();
       });
     });
 
