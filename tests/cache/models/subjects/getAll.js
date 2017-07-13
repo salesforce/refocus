@@ -61,7 +61,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('sorted lexicographically by default', (done) => {
+  it('sorted lexicographically by absolutePath by default', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
