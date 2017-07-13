@@ -40,6 +40,14 @@ module.exports = function collector(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
     },
+    host: {
+      allowNull: true,
+      type: dataTypes.STRING(constants.fieldlen.longish),
+    },
+    ipAddress: {
+      allowNull: true,
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+    },
     registered: {
       type: dataTypes.BOOLEAN,
       allowNull: false,
