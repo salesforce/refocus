@@ -1175,6 +1175,7 @@ paths:
 
   # ---------------------------------------------------------------------------
   /collectors:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1283,6 +1284,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}:
+    x-swagger-router-controller: collectors
     get:
       security:
         - jwt: []
@@ -1421,6 +1423,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/deregister:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1451,6 +1454,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/heartbeat:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1515,25 +1519,25 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/start:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
-      summary: Change collector status to Running.
+      summary: Access restricted to Refocus Collector only.
       tags: [ collectors ]
       description: >-
-        Change collector status from Stopped to Running. Invalid if the
-        collector's status is not Stopped.
+        Access restricted to Refocus Collector only.
       operationId: startCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to start.
+          description: Access restricted to Refocus Collector only.
           required: true
           type: string
       responses:
         200:
-          description: Success, returns the specified collector's metadata.
+          description: Access restricted to Refocus Collector only.
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
@@ -1546,6 +1550,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/stop:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1577,6 +1582,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/pause:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1608,6 +1614,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/resume:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1639,6 +1646,37 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/writers:
+    x-swagger-router-controller: collectors
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a collector's list of authorized writers
+      tags: [ collectors ]
+      description: >-
+        Remove all users from a collector’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the collector.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The collector is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -1723,6 +1761,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: collectors
     get:
       security:
         - jwt: []
