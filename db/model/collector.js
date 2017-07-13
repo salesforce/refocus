@@ -12,6 +12,7 @@
 
 const common = require('../helpers/common');
 const constants = require('../constants');
+const ValidationError = require('../dbErrors').ValidationError;
 const assoc = {};
 
 module.exports = function collector(seq, dataTypes) {
@@ -92,6 +93,16 @@ module.exports = function collector(seq, dataTypes) {
 
         return inst;
       }, // hooks.beforeCreate
+
+      beforeUpdate(inst /* , opts */) {
+        // Invalid status transition: [Stopped --> Paused]
+        if (inst.changed('status') && inst.status === 'Paused' &&
+        inst.previous('status') === 'Stopped') {
+          const msg =
+            'This collector cannot be paused because it is not running.';
+          throw new ValidationError(msg);
+        }
+      }, // hooks.beforeUpdate
     }, // hooks
     indexes: [
       {
