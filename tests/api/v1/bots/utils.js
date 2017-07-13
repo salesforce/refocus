@@ -11,15 +11,20 @@
  */
 'use strict';
 
+const path = require('path');
+const fs = require('fs');
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBot`;
 const n2 = n+'NonActive';
+const mt = path.join(__dirname, './uiBlob');
+const uiBlob = fs.readFileSync(mt);
 
 const standard = {
   name: n,
   url: 'http://www.bar.com',
+  ui: uiBlob,
   active: true,
   actions: [
     {
@@ -92,6 +97,7 @@ const standard = {
 const nonActive = {
   name: n2,
   url: 'http://www.bar.com',
+  ui: uiBlob,
   active: false,
   actions: [
     {

@@ -50,6 +50,11 @@ module.exports = function bot(seq, dataTypes) {
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
+    ui: {
+      type: dataTypes.BLOB,
+      allowNull: true,
+      comment: 'The packaged UI of the bot',
+    },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
