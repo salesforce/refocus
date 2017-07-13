@@ -46,31 +46,31 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.name).to.equal(u.name);
+        expect(res.body.name).to.equal(u.logLine);
         done();
       });
     });
 
-    it('Fail, duplicate event', (done) => {
+    it('Pass, duplicate event', (done) => {
       u.createStandard()
       .then(() => done());
 
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
+
+        expect(res.body.name).to.equal(u.logLine);
       });
     });
 
     it('Fail, event validation incorrect', (done) => {
       let testEvent = u.getStandard();
-      testEvent.actions = 'INVALID_VALUE';
+      testEvent.context = 'INVALID_VALUE';
 
       api.post(`${path}`)
       .set('Authorization', token)
