@@ -33,7 +33,7 @@ describe(`api: POST ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('POST event', () => {
     it('Pass, post event', (done) => {

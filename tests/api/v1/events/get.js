@@ -78,7 +78,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('GET event', () => {
     it('Pass, get array of multiple', (done) => {
