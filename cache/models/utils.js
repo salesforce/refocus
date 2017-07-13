@@ -22,7 +22,7 @@ const ZERO = 0;
 /**
  * Apply field list filter.
  * @param  {Object} resource - The resource object
- * @param  {Array} attributes - Sample fields array
+ * @param  {Array} attributes - Resource fields array
  */
 function applyFieldListFilter(resource, attributes) {
   // apply field list filter
@@ -35,11 +35,11 @@ function applyFieldListFilter(resource, attributes) {
 
 /**
  * Apply filters on resource array list
- * @param  {Array} resourceObjArray - Sample objects array
+ * @param  {Array} resourceObjArray - Resource objects array
  * @param  {Object} opts - Filter options
  * @returns {Array} - Filtered resource objects array
  */
-function applyFiltersOnSampObjs(resourceObjArray, opts) {
+function applyFiltersOnResourceObjs(resourceObjArray, opts) {
   let filteredResources = resourceObjArray;
 
   // apply wildcard expr if other than name because
@@ -47,7 +47,7 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
   if (opts.filter) {
     const filterOptions = opts.filter;
     Object.keys(filterOptions).forEach((field) => {
-      if (field !== 'name' || field !== 'absolutePath') {
+      if (field !== 'name') {
         const filteredKeys = filterByFieldWildCardExpr(
           resourceObjArray, field, filterOptions[field]
         );
@@ -58,11 +58,11 @@ function applyFiltersOnSampObjs(resourceObjArray, opts) {
 
   // sort and apply limits to resources
   if (opts.order) {
-    const sortedSamples = sortByOrder(filteredResources, opts.order);
-    filteredResources = sortedSamples;
+    const sortedResources = sortByOrder(filteredResources, opts.order);
+    filteredResources = sortedResources;
 
-    const slicedSampObjs = applyLimitAndOffset(opts, filteredResources);
-    filteredResources = slicedSampObjs;
+    const slicedResourceObjs = applyLimitAndOffset(opts, filteredResources);
+    filteredResources = slicedResourceObjs;
   }
 
   return filteredResources;
@@ -93,9 +93,11 @@ function applyLimitAndOffset(opts, arr) {
  * Apply filters on resource keys list
  * @param  {Array} keysArr - Resource key names array
  * @param  {Object} opts - Filter options
+ * @param  {Function} getNameFunc - For filter on name, any processing
+ *  on keys to get the resource name.
  * @returns {Array} - Filtered resource keys array
  */
-function applyFiltersOnSampKeys(keysArr, opts) {
+function applyFiltersOnResourceKeys(keysArr, opts, getNameFunc) {
   let resArr = keysArr;
 
   // apply limit and offset if no sort order defined
@@ -106,7 +108,7 @@ function applyFiltersOnSampKeys(keysArr, opts) {
   // apply wildcard expr on name, if specified
   if (opts.filter && opts.filter.name) {
     const filteredKeys = filterByFieldWildCardExpr(
-      resArr, 'name', opts.filter.name
+      resArr, 'name', opts.filter.name, getNameFunc
     );
     resArr = filteredKeys;
   }
@@ -136,9 +138,12 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
  * @param  {Array}  arr - Array of resource keys or resource objects
  * @param  {String}  prop  - Property name
  * @param  {String} propExpr - Wildcard expression
+ * @param  {Function} getNameFunc - For filter on name, any processing
+ *  on keys to get the resource name.
  * @returns {Array} - Filtered array
  */
-function filterByFieldWildCardExpr(arr, prop, propExpr) {
+function filterByFieldWildCardExpr(arr, prop, propExpr, getNameFunc) {
+
   // regex to match wildcard expr, i option means case insensitive
   const escapedExp = propExpr.split('_').join('\\_')
                       .split('|').join('\\|').split('.').join('\\.');
@@ -148,7 +153,10 @@ function filterByFieldWildCardExpr(arr, prop, propExpr) {
     if (entry[prop]) { // resource object
       return re.test(entry[prop]);
     } else if (prop === 'name') { // resource key
-      const name = sampleStore.getNameFromKey(entry);
+      const _name = sampleStore.getNameFromKey(entry);
+
+      // keys may need processing to become names
+      const name = getNameFunc ? getNameFunc(_name): name;
       return re.test(name);
     }
 
@@ -236,11 +244,11 @@ function getOptionsFromReq(params, helper) {
 }
 
 module.exports = {
-  applyFiltersOnSampObjs,
+  applyFiltersOnResourceObjs,
   cleanQueryBodyObj,
   filterByFieldWildCardExpr,
   applyFieldListFilter,
-  applyFiltersOnSampKeys,
+  applyFiltersOnResourceKeys,
   applyLimitAndOffset,
   getOptionsFromReq,
   sortByOrder,

@@ -167,6 +167,16 @@ function traverseHierarchy(res) {
 } // traverseHierarchy
 
 /**
+ * Given a string, get the substring after the last period.
+ *
+ * @param {String} absolutePath: Subject absolutePath.
+ * @returns {String} name The subject name.
+ */
+function getNameFromAbsolutePath(absolutePath) {
+  return absolutePath.split('.').pop();
+}
+
+/**
  *  When passed a partial subject hierarchy without samples, the subject
  *  hierarchy is completed by attaching samples to it.
  *
@@ -219,7 +229,7 @@ module.exports = {
     .then((allSubjectKeys) => {
       const commands = [];
       const filteredSubjectKeys = modelUtils
-        .applyFiltersOnSampKeys(allSubjectKeys, opts);
+        .applyFiltersOnResourceKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
 
       filteredSubjectKeys.forEach((subjectKey) => {
         commands.push(['hgetall', subjectKey]);
@@ -229,7 +239,7 @@ module.exports = {
     })
     .then((subjects) => {
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      const filteredSubjects = modelUtils.applyFiltersOnSampObjs(subjects, opts);
+      const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
 
         // convert the time fields to appropriate format
@@ -244,7 +254,7 @@ module.exports = {
         subject.apiLinks = utils.getApiLinks(
           subject.name, helper, req.method
         );
-        response.push(subject); // add sample to response
+        response.push(subject); // add subject to response
       });
 
       return response;
