@@ -43,7 +43,7 @@
     "test-disablehttp": "REQUIRE_HTTPS=true mocha -R dot --recursive tests/disableHttp",
     "test-enforced": "REQUIRE_ACCESS_TOKEN=true mocha -R dot --recursive tests/enforceToken",
     "test-rooms-enabled": "ENABLE_ROOMS=true mocha -R dot --recursive tests/roomFlag/roomFlagEnabled",
-    "test-rooms-disabled": "ENABLE_ROOMS=false mocha -R dot --recursive tests/roomFlag/roomFlagDisabled",
+    "test-rooms-disabled": "ENABLE_ROOMS=false HIDDEN_ROUTES=/rooms mocha -R dot --recursive tests/roomFlag/roomFlagDisabled",
     "test-db": "npm run checkdb && mocha -R dot --recursive tests/db",
     "test-cache": "mocha -R dot --recursive tests/cache",
     "test-view": "NODE_ENV=build mocha -R dot --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
