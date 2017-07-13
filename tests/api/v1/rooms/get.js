@@ -45,7 +45,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('GET room', () => {
     it('Pass, get array of one', (done) => {

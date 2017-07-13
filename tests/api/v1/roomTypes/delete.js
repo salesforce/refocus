@@ -42,7 +42,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('DELETE roomType', () => {
     it('Pass, delete roomType', (done) => {

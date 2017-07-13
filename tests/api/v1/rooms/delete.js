@@ -42,7 +42,7 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('DELETE room', () => {
     it('Pass, delete room', (done) => {
@@ -60,7 +60,7 @@ describe(`api: DELETE ${path}`, () => {
     });
 
     it('Fail, room not found', (done) => {
-      api.delete(`${path}/INVALID_ID`)
+      api.delete(`${path}/-1`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err) => {

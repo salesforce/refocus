@@ -22,6 +22,7 @@ const tu = require('../../../testUtils');
 
 describe(`api: POST ${path}`, () => {
   let token;
+  let testRoomType;
 
   before((done) => {
     tu.createToken()
@@ -32,14 +33,26 @@ describe(`api: POST ${path}`, () => {
     .catch(done);
   });
 
+  beforeEach((done) => {
+    tu.db.RoomType.create(u.rtSchema)
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
+      done();
+    })
+    .catch(done);
+  });
+
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('POST room', () => {
     it('Pass, post room', (done) => {
+      let room = u.getStandard();
+      room.type = testRoomType.id;
+
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(u.getStandard())
+      .send(room)
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -52,12 +65,15 @@ describe(`api: POST ${path}`, () => {
     });
 
     it('Fail, duplicate room', (done) => {
-      u.createStandard()
+      let room = u.getStandard();
+      room.type = testRoomType.id;
+
+      tu.db.Room.create(room)
       .then(() => done());
 
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(u.getStandard())
+      .send(room)
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
@@ -69,12 +85,13 @@ describe(`api: POST ${path}`, () => {
     });
 
     it('Fail, room validation incorrect', (done) => {
-      let testRoom = u.getStandard();
-      testRoom.actions = 'INVALID_VALUE';
+      let room = u.getStandard();
+      room.type = testRoomType.id;
+      room.active = 'INVALID_VALUE';
 
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(testRoom)
+      .send(room)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {

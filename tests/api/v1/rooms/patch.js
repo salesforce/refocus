@@ -43,7 +43,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('PATCH room', () => {
     it('Pass, patch room name', (done) => {

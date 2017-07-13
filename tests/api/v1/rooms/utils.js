@@ -94,19 +94,19 @@ const roomType = tu.db.RoomType.create(roomTypeSchema);
 const standard = {
   name: n,
   active: true,
-  type: roomType.id,
 };
 
 const nonActive = {
   name: n2,
   active: true,
-  type: roomType.id,
 };
 
 module.exports = {
   name: n,
 
   nameNonActive: n2,
+
+  rtSchema: roomTypeSchema,
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
