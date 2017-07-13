@@ -116,7 +116,6 @@ function applyFiltersOnResourceKeys(keysArr, opts, getNameFunc) {
   return resArr;
 }
 
-
 /**
  * Remove extra fields from query body object.
  * @param  {Object} qbObj - Query body object
@@ -156,7 +155,7 @@ function filterByFieldWildCardExpr(arr, prop, propExpr, getNameFunc) {
       const _name = sampleStore.getNameFromKey(entry);
 
       // keys may need processing to become names
-      const name = getNameFunc ? getNameFunc(_name): name;
+      const name = getNameFunc ? getNameFunc(_name) : name;
       return re.test(name);
     }
 
@@ -179,7 +178,7 @@ function sortByOrder(arr, propArr) {
     propArr.forEach((field) => {
 
       // remove leading minus sign
-      const _field = isDescending ? field.substr(1): field;
+      const _field = isDescending ? field.substr(1) : field;
       strA += a[_field];
       strB += b[_field];
     });
@@ -252,4 +251,4 @@ module.exports = {
   applyLimitAndOffset,
   getOptionsFromReq,
   sortByOrder,
-}
+};
