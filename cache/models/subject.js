@@ -221,13 +221,8 @@ module.exports = {
       const filteredSubjectKeys = modelUtils
         .applyFiltersOnSampKeys(allSubjectKeys, opts);
 
-      // add to commands
       filteredSubjectKeys.forEach((subjectKey) => {
-        commands.push(['hgetall', subjectKey]); // get subject
-        // commands.push(
-        //   ['hgetall',
-        //    sampleStore.toKey(constants.objectType.aspect, aspectName),
-        //   ]);
+        commands.push(['hgetall', subjectKey]);
       });
 
       return redisClient.batch(commands).execAsync();
