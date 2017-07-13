@@ -816,7 +816,7 @@ module.exports = {
     .then((allSampKeys) => {
       const commands = [];
       const filteredSampKeys = modelUtils
-        .applyFiltersOnSampKeys(allSampKeys, opts);
+        .applyFiltersOnResourceKeys(allSampKeys, opts);
 
       // add to commands
       filteredSampKeys.forEach((sampKey) => {
@@ -841,7 +841,7 @@ module.exports = {
         sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
       }
 
-      const filteredSamples = modelUtils.applyFiltersOnSampObjs(samples, opts);
+      const filteredSamples = modelUtils.applyFiltersOnResourceObjs(samples, opts);
       filteredSamples.forEach((sample) => {
 
         const sampName = sample.name;

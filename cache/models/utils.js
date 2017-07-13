@@ -155,7 +155,7 @@ function filterByFieldWildCardExpr(arr, prop, propExpr, getNameFunc) {
       const _name = sampleStore.getNameFromKey(entry);
 
       // keys may need processing to become names
-      const name = getNameFunc ? getNameFunc(_name) : name;
+      const name = getNameFunc ? getNameFunc(_name) : _name;
       return re.test(name);
     }
 
