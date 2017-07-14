@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const supertest = require('supertest');
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
@@ -30,22 +29,34 @@ describe('cache utils test', () => {
 
     it('asc name', () => {
       const result = utils.sortByOrder(ascArr, ['name']);
-      expect(result).to.deep.equal(ascArr);
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(1)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(3)).to.be.true;
     });
 
     it('desc name', () => {
       const result = utils.sortByOrder(ascArr, ['-name']);
-      expect(result).to.deep.equal(ascArr.reverse());
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(3)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(1)).to.be.true;
     });
 
     it('asc absolutePath', () => {
       const result = utils.sortByOrder(ascArr, ['absolutePath']);
-      expect(result).to.deep.equal(ascArr);
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(1)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(3)).to.be.true;
     });
 
     it('desc absolutePath', () => {
       const result = utils.sortByOrder(ascArr, ['-absolutePath']);
-      expect(result).to.deep.equal(ascArr.reverse());
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(3)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(1)).to.be.true;
     });
   });
 
@@ -63,22 +74,34 @@ describe('cache utils test', () => {
 
     it('asc name', () => {
       const result = utils.sortByOrder(descArr, ['name']);
-      expect(result).to.deep.equal(descArr.reverse());
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(1)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(3)).to.be.true;
     });
 
     it('desc name', () => {
       const result = utils.sortByOrder(descArr, ['-name']);
-      expect(result).to.deep.equal(descArr);
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(3)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(1)).to.be.true;
     });
 
     it('asc absolutePath', () => {
       const result = utils.sortByOrder(descArr, ['absolutePath']);
-      expect(result).to.deep.equal(descArr.reverse());
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(1)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(3)).to.be.true;
     });
 
     it('desc absolutePath', () => {
       const result = utils.sortByOrder(descArr, ['-absolutePath']);
-      expect(result).to.deep.equal(descArr);
+      expect(result.length).to.equal(3);
+      expect(result[0].name.endsWith(3)).to.be.true;
+      expect(result[1].name.endsWith(2)).to.be.true;
+      expect(result[2].name.endsWith(1)).to.be.true;
     });
   });
 });
