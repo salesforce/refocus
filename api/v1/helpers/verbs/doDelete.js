@@ -37,15 +37,13 @@ function doDelete(req, res, next, props) {
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
    props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
-    delPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    delPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSample(sampleName, user));
   } else {
     delPromise = u.findByKey(
         props, req.swagger.params
       )
-      .then((o) => u.isWritable(req, o,
-          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
       .then((o) => {
         /*
          * An empty array is returned when destroy is called on an instance

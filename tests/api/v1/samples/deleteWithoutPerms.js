@@ -28,7 +28,6 @@ describe('api: DELETE Sample without permission', () => {
   let user;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => {
       return tu.createUser('myUniqueUser');
@@ -61,7 +60,6 @@ describe('api: DELETE Sample without permission', () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
   it('deleting sample without permission should return 403', (done) => {
     api.delete(`${path}/${sampleName}`)

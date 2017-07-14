@@ -85,10 +85,6 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
-  // Enforce write permission on records
-  enforceWritePermission:
-    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
-
   // Enforce that all API requests have valid API token
   requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 

@@ -35,8 +35,7 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
   const resultObj = { reqStartTime: new Date() };
   const params = req.swagger.params;
   u.findByKey(props, params)
-  .then((o) => u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission')))
+  .then((o) => u.isWritable(req, o))
   .then((o) => {
     const addAssocfuncName = `add${u.capitalizeFirstLetter(assocName)}`;
     return o[addAssocfuncName](assocArray);

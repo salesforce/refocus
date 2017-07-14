@@ -183,8 +183,7 @@ module.exports = function sample(seq, dataTypes) {
             subjasp = sa;
             toUpsert.subjectId = sa.subject.id;
             toUpsert.aspectId = sa.aspect.id;
-            return featureToggles.isFeatureEnabled('enforceWritePermission') ?
-                 sa.aspect.isWritableBy(userName) : true;
+            return sa.aspect.isWritableBy(userName);
           })
           .then((ok) => {
             if (!ok) {
