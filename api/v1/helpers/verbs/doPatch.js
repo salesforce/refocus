@@ -45,15 +45,13 @@ function doPatch(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    patchPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    patchPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.patchSample(req.swagger.params, user));
   } else {
     patchPromise = u.findByKey(
         props, req.swagger.params
       )
-      .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
       .then((o) => {
         // To avoid timeouts when patching samples; force the update, even if
         // the value has not changed. Adding this to the "before update hook"

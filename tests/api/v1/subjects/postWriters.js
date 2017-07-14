@@ -33,7 +33,6 @@ describe('api: aspects: post writers', () => {
   };
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;

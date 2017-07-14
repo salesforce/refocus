@@ -485,8 +485,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
@@ -520,8 +519,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

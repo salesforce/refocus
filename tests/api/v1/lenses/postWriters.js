@@ -27,7 +27,6 @@ describe('api: lenses: post writers', () => {
   const userNameArray = [];
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
