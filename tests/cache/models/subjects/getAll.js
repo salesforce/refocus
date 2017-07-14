@@ -95,8 +95,8 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('sort option asc with absolutePath', (done) => {
-    api.get(`${path}?sort=absolutePath`)
+  it('sort option asc with parentAbsolutePath', (done) => {
+    api.get(`${path}?sort=parentAbsolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -105,9 +105,9 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
-      expect(res.body[0].absolutePath).to.be.equal(subject1);
-      expect(res.body[1].absolutePath).to.be.equal(subject2);
-      expect(res.body[2].absolutePath).to.be.equal(subject3);
+      expect(res.body[0].parentAbsolutePath).to.be.equal(subject1);
+      expect(res.body[1].parentAbsolutePath).to.be.equal(subject1);
+      expect(res.body[2].parentAbsolutePath).to.be.undefined;
       done();
     });
   });
@@ -129,8 +129,8 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('sort option desc with absolutePath', (done) => {
-    api.get(`${path}?sort=-name`)
+  it('sort option desc with parentAbsolutePath', (done) => {
+    api.get(`${path}?sort=-parentAbsolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -139,9 +139,9 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
-      expect(res.body[0].absolutePath).to.be.contain(subject3);
-      expect(res.body[1].absolutePath).to.be.equal(subject2);
-      expect(res.body[2].absolutePath).to.be.equal(subject1);
+      expect(res.body[0].parentAbsolutePath).to.be.undefined;
+      expect(res.body[1].parentAbsolutePath).to.be.equal(subject1);
+      expect(res.body[2].parentAbsolutePath).to.be.equal(subject1);
       done();
     });
   });
