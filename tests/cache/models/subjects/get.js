@@ -140,7 +140,7 @@ describe('api::redisEnabled::GET specific subject', () => {
   });
 
   it('get by name with fields filter: one field', (done) => {
-    api.get(`${path}/${name}?fields=name`)
+    api.get(`${path}/${name}?fields=parentAbsolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -148,9 +148,9 @@ describe('api::redisEnabled::GET specific subject', () => {
         done(err);
       }
 
-      expect(res.body.name).to.be.equal(name);
+      expect(res.body.parentAbsolutePath).to.equal('');
       expect((Object.keys(res.body)).length).to.equal(3);
-      expect(Object.keys(res.body)).to.contain('name', 'id', 'apiLinks');
+      expect(Object.keys(res.body)).to.contain('parentAbsolutePath', 'id', 'apiLinks');
       done();
     });
   });
