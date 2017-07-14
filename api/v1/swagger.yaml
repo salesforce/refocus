@@ -1207,6 +1207,14 @@ paths:
                 type: string
                 maxLength: 2082
                 description: Access restricted to Refocus Collector only.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
             required:
               - name
       responses:
@@ -1251,6 +1259,8 @@ paths:
               - lastUpdatedBy
               - helpEmail
               - helpUrl
+              - host
+              - ipAddress
               - -name
               - -status
               - -isRegistered
@@ -1260,6 +1270,8 @@ paths:
               - -lastUpdatedBy
               - -helpEmail
               - -helpUrl
+              - -host
+              - -ipAddress
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectors.
@@ -1339,6 +1351,14 @@ paths:
                 maxLength: 2082
                 description: >
                   The url where a user can go to get more help about the collector.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
       responses:
         403:
           $ref: "#/responses/403"
@@ -1384,6 +1404,14 @@ paths:
                 maxLength: 2082
                 description: >
                   The url where a user can go to get more help about the collector.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
       responses:
         403:
           $ref: "#/responses/403"
@@ -8698,6 +8726,16 @@ definitions:
         maxLength: 2082
         description: >
           The url where a user can go to get more help about the collector.
+      host:
+        type: string
+        description: >
+          The host where the collector is installed.
+        maxLength: 4096
+      ipAddress:
+        type: string
+        description: >
+          The ipAddress where the collector is installed.
+        maxLength: 60
 
   CollectorWriterResponse:
     type: object
@@ -8889,6 +8927,8 @@ parameters:
         - description
         - helpEmail
         - helpUrl
+        - host
+        - ipAddress
 
   limitParam:
     name: limit

@@ -150,6 +150,26 @@ describe('tests/db/model/collector/update.js >', () => {
     .catch(done);
   });
 
+  it('Update host', (done) => {
+    expect(collectorDb.host).to.be.equal('xxx-yyy-zzz.aaa.bbb.ccc.com');
+    collectorDb.update({ host: 'changed' })
+    .then((obj) => {
+      expect(obj.host).to.be.equal('changed'); // after
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update ipAddress', (done) => {
+    expect(collectorDb.ipAddress).to.be.equal('123.456.789.012');
+    collectorDb.update({ ipAddress: '127.0.0.1' })
+    .then((obj) => {
+      expect(obj.ipAddress).to.be.equal('127.0.0.1'); // after
+      done();
+    })
+    .catch(done);
+  });
+
   it('Update description', (done) => {
     expect(collectorDb.description).to.be.equal(
       'This is a mock collector object for testing.'
