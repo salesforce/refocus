@@ -55,6 +55,28 @@ describe('api::redisEnabled::GET specific subject', () => {
     });
   });
 
+  it('get by name: limit, offset and sort does not affect result', (done) => {
+    api.get(`${path}/${name}?limit=1&offset=2&sort=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.be.equal(name);
+      expect(res.body.childCount).to.be.above(0);
+      expect(res.body.hierarchyLevel).to.be.above(0);
+
+      // 5 for [DELETE, GET, PATH, POST, PUT]
+      expect(res.body.apiLinks.length).to.equal(5);
+      expect(Array.isArray(res.body.tags)).to.be.true;
+      expect(Array.isArray(res.body.relatedLinks)).to.be.true;
+      expect(Array.isArray(res.body.relatedLinks)).to.be.true;
+      done();
+    });
+  });
+
   it('basic get by name, OK', (done) => {
     api.get(`${path}/${name}`)
     .set('Authorization', token)
@@ -67,7 +89,9 @@ describe('api::redisEnabled::GET specific subject', () => {
       expect(res.body.name).to.be.equal(name);
       expect(res.body.childCount).to.be.above(0);
       expect(res.body.hierarchyLevel).to.be.above(0);
-      expect(res.body.apiLinks.length).to.be.above(0);
+
+      // 5 for [DELETE, GET, PATH, POST, PUT]
+      expect(res.body.apiLinks.length).to.equal(5);
       expect(Array.isArray(res.body.tags)).to.be.true;
       expect(Array.isArray(res.body.relatedLinks)).to.be.true;
       done();
@@ -98,7 +122,7 @@ describe('api::redisEnabled::GET specific subject', () => {
     });
   });
 
-  it('get by name, with fields filter', (done) => {
+  it('get by name with fields filter: two fields', (done) => {
     api.get(`${path}/${name}?fields=name,absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -109,7 +133,24 @@ describe('api::redisEnabled::GET specific subject', () => {
 
       expect(res.body.name).to.be.equal(name);
       expect(res.body.absolutePath).to.equal(name);
+      expect((Object.keys(res.body)).length).to.equal(4);
       expect(Object.keys(res.body)).to.contain('name', 'absolutePath', 'id', 'apiLinks');
+      done();
+    });
+  });
+
+  it('get by name with fields filter: one field', (done) => {
+    api.get(`${path}/${name}?fields=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.name).to.be.equal(name);
+      expect((Object.keys(res.body)).length).to.equal(3);
+      expect(Object.keys(res.body)).to.contain('name', 'id', 'apiLinks');
       done();
     });
   });
