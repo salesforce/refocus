@@ -55,9 +55,9 @@ describe('cache utils test', () => {
     // sort is in-place. Hence need reset array for test independence.
     beforeEach(() => {
       descArr = [
-        { name: '___Subject1', absolutePath: '___Subject1' },
-        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
         { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
+        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject1', absolutePath: '___Subject1' },
       ];
     });
 
