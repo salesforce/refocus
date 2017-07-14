@@ -21,6 +21,12 @@ const standard = {
   name: n,
   url: 'http://www.bar.com',
   active: true,
+  settings: [
+    {
+      key: 'key1',
+      helpText: 'helpText1'
+    }
+  ],
   actions: [
     {
       name: 'Action1',

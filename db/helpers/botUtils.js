@@ -13,6 +13,7 @@
  */
 
 const Joi = require('joi');
+const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING'];
 const dataTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
@@ -98,8 +99,40 @@ function validateDataArray(arr) {
   }
 } // validateDataArray
 
+/**
+ * Custom validation rule that checks the settings array to have
+ * all valid entries. Meaning each element contains key and a value.
+ *
+ * @param {Array} arr - The array to test
+ * @returns {undefined} - OK
+ * @throws {validationError} - Invalid settings array
+ */
+function validateSettingsArray(arr) {
+  if (Array.isArray(arr)) {
+    for (let i = 0; i < arr.length; i++) {
+      if ((arr[i].hasOwnProperty('key')) &&
+        (arr[i].hasOwnProperty('helpText'))) {
+        if (!constants.nameRegex.test(arr[i].key)) {
+          throw new ValidationError({
+            message: 'Missing a valid key',
+          });
+        }
+      } else {
+        throw new ValidationError({
+          message: 'Missing a key or help text attribute',
+        });
+      }
+    }
+  } else {
+    throw new ValidationError({
+      message: 'Objects not contained in an array',
+    });
+  }
+} // validateSettings
+
 module.exports = {
   arrayHasValidParameters,
   validateActionArray,
   validateDataArray,
+  validateSettingsArray,
 }; // exports
