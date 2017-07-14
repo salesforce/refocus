@@ -24,12 +24,24 @@ const unzipAsync = Promise.promisify(zlib.gunzip);
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
-    const mStr = Buffer.from(mssgStr, 'hex');
-    unzipAsync(mStr)
-    .then((_mssgStr) => {
+    try {
+      const mStr = Buffer.from(mssgStr, 'hex');
+      unzipAsync(mStr)
+      .then((_mssgStr) => {
 
+        // message object to be sent to the clients
+        const mssgObj = JSON.parse(_mssgStr);
+        const key = Object.keys(mssgObj)[0];
+
+        /*
+         * pass on the message received through the redis subscriber to the socket
+         * io emitter to send data to the browser clients.
+         */
+        emitter(io, key, mssgObj);
+      });
+    } catch (err) {
       // message object to be sent to the clients
-      const mssgObj = JSON.parse(_mssgStr);
+      const mssgObj = JSON.parse(mssgStr);
       const key = Object.keys(mssgObj)[0];
 
       /*
@@ -37,6 +49,6 @@ module.exports = (io) => {
        * io emitter to send data to the browser clients.
        */
       emitter(io, key, mssgObj);
-    });
+    }
   });
 };
