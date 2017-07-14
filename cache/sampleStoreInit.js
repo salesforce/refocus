@@ -179,7 +179,6 @@ function populateSamples() {
   .then((samples) => {
     const msg = `Starting to load ${samples.length} samples to cache :|`;
     log.info(msg);
-    const subjectIdx = new Set();
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
@@ -195,7 +194,6 @@ function populateSamples() {
 
       // Track each of these in the master indexes for each object type.
       sampleIdx.add(samKey);
-      subjectIdx.add(subAspMapKey);
 
       /*
        * For creating each individual subject set, which is a mapping of
