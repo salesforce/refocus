@@ -95,6 +95,23 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
+  it('sort option asc with absolutePath', (done) => {
+    api.get(`${path}?sort=absolutePath`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject3);
+      done();
+    });
+  });
+
   it('sort option desc', (done) => {
     api.get(`${path}?sort=-absolutePath`)
     .set('Authorization', token)
@@ -106,6 +123,23 @@ describe(`api::redisEnabled::GET ${path}`, () => {
 
       expect(res.body.length).to.be.equal(3);
       expect(res.body[0].absolutePath).to.be.equal(subject3);
+      expect(res.body[1].absolutePath).to.be.equal(subject2);
+      expect(res.body[2].absolutePath).to.be.equal(subject1);
+      done();
+    });
+  });
+
+  it('sort option desc with absolutePath', (done) => {
+    api.get(`${path}?sort=-name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.be.equal(3);
+      expect(res.body[0].absolutePath).to.be.contain(subject3);
       expect(res.body[1].absolutePath).to.be.equal(subject2);
       expect(res.body[2].absolutePath).to.be.equal(subject1);
       done();
@@ -247,8 +281,23 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('leading asterisk is treated as "ends with"', (done) => {
+  it('leading asterisk is treated as "ends with" for name', (done) => {
     api.get(path + '?name=*___Subject1')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].absolutePath).to.be.equal(subject1);
+      done();
+    });
+  });
+
+  it('leading asterisk is treated as "ends with" for absolutePath', (done) => {
+    api.get(path + '?absolutePath=*___Subject1')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
