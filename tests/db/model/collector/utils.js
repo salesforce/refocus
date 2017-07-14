@@ -22,6 +22,8 @@ module.exports = {
     description: 'This is a mock collector object for testing.',
     helpEmail: 'test@test.com',
     helpUrl: 'http://test.com',
+    host: 'xxx-yyy-zzz.aaa.bbb.ccc.com',
+    ipAddress: '123.456.789.012',
   },
 
   forceDelete(done) {

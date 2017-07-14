@@ -21,6 +21,7 @@ describe('tests/db/model/collector/update.js >', () => {
   let userId;
   let anotherUserId;
   let collectorDb;
+
   beforeEach((done) => {
     tu.createUser('testUser')
     .then((user) => {
@@ -41,11 +42,69 @@ describe('tests/db/model/collector/update.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('Update status', (done) => {
-    expect(collectorDb.status).to.be.equal('Stopped'); // before
+  it('Update status [Stopped --> Running] OK', (done) => {
+    expect(collectorDb.status).to.be.equal('Stopped');
     collectorDb.update({ status: 'Running' })
     .then((obj) => {
-      expect(obj.status).to.be.equal('Running'); // after
+      expect(obj.status).to.be.equal('Running');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update status [Stopped --> Paused] invalid', (done) => {
+    expect(collectorDb.status).to.be.equal('Stopped');
+    collectorDb.update({ status: 'Paused' })
+    .then((obj) => {
+      done('Expecting error');
+    })
+    .catch((err) => {
+      expect(err.name).to.be.equal('ValidationError');
+      done();
+    });
+  });
+
+  it('Update status [Running --> Stopped] OK', (done) => {
+    expect(collectorDb.status).to.be.equal('Stopped');
+    collectorDb.update({ status: 'Running' })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Running');
+      return collectorDb.update({ status: 'Stopped' });
+    })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Stopped');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update status [Running --> Paused] OK', (done) => {
+    expect(collectorDb.status).to.be.equal('Stopped');
+    collectorDb.update({ status: 'Running' })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Running');
+      return collectorDb.update({ status: 'Paused' });
+    })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Paused');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update status [Paused --> Running] OK', (done) => {
+    expect(collectorDb.status).to.be.equal('Stopped');
+    collectorDb.update({ status: 'Running' })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Running');
+      return collectorDb.update({ status: 'Paused' });
+    })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Paused');
+      return collectorDb.update({ status: 'Running' });
+    })
+    .then((obj) => {
+      expect(obj.status).to.be.equal('Running');
       done();
     })
     .catch(done);
@@ -86,6 +145,26 @@ describe('tests/db/model/collector/update.js >', () => {
     collectorDb.update({ helpEmail: 'test@testChanged.com' })
     .then((obj) => {
       expect(obj.helpEmail).to.be.equal('test@testChanged.com'); // after
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update host', (done) => {
+    expect(collectorDb.host).to.be.equal('xxx-yyy-zzz.aaa.bbb.ccc.com');
+    collectorDb.update({ host: 'changed' })
+    .then((obj) => {
+      expect(obj.host).to.be.equal('changed'); // after
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update ipAddress', (done) => {
+    expect(collectorDb.ipAddress).to.be.equal('123.456.789.012');
+    collectorDb.update({ ipAddress: '127.0.0.1' })
+    .then((obj) => {
+      expect(obj.ipAddress).to.be.equal('127.0.0.1'); // after
       done();
     })
     .catch(done);
