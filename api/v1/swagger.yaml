@@ -7015,6 +7015,8 @@ paths:
       summary: Retrieve all events
       tags: [ events ]
       operationId: findEvents
+      description: >-
+        All events are retrieved using this route and using the paramaters as filters you can focus on rooms, bots, or users.
       parameters:
         -
           name: roomId
@@ -7072,7 +7074,9 @@ paths:
         - jwt: []
       summary: Create a new event
       tags: [ events ]
-      description: Create a new event with a name
+      description: >-
+        Create a new event that can describe any action or information needed to be specifically logged,
+        typically used to activity in rooms.
       operationId: postEvents
       parameters:
         -
@@ -7085,18 +7089,25 @@ paths:
             properties:
               log:
                 type: string
+                description: Human readable log line to describe the context.
               context:
                 type: object
+                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
               roomId:
                 type: integer
+                description: Room that this event relates to.
               botId:
                 type: string
+                description: Bot that this event relates to.
               botDataId:
                 type: string
+                description: Bot Data that this event relates to.
               botActionId:
                 type: string
+                description: Bot Action that this event relates to.
               userId:
                 type: string
+                description: User that this event relates to.
             required:
               - log
       responses:
@@ -7118,8 +7129,10 @@ paths:
   /events/{key}:
     x-swagger-router-controller: events
     get:
-      summary: Retrieve a event
+      summary: Retrieve an event
       tags: [ events ]
+      description: >-
+        This route is used to retrieve a single event.
       operationId: getEvent
       parameters:
         -
