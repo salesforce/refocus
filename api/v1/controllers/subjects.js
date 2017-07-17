@@ -241,7 +241,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-   if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
     featureToggles.isFeatureEnabled('getSubjectFromCache')) {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
