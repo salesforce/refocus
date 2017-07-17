@@ -221,12 +221,6 @@ module.exports = {
       const resultObj = { reqStartTime: new Date() }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          for (let i = response.length - 1; i >= 0; i--) {
-            u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
-          }
-        }
 
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
@@ -247,7 +241,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    doGet(req, res, next, helper);
+   if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+    featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisSubjectModel.getSubject(req, res, resultObj)
+      .then((response) => {
+
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doGet(req, res, next, helper);
+    }
   },
 
   /**

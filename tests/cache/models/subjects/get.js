@@ -21,6 +21,7 @@ const expect = require('chai').expect;
 describe('api::redisEnabled::GET specific subject', () => {
   let token;
   const name = '___Subject1';
+  const childAbsolutePath = '___Subject1.___Subject3';
 
   before((done) => {
     tu.toggleOverride('getSubjectFromCache', true);
@@ -87,8 +88,8 @@ describe('api::redisEnabled::GET specific subject', () => {
       }
 
       expect(res.body.name).to.be.equal(name);
-      expect(res.body.childCount).to.be.above(0);
-      expect(res.body.hierarchyLevel).to.be.above(0);
+      expect(res.body.childCount).to.be.an('number');
+      expect(res.body.hierarchyLevel).to.be.an('number');
 
       // 5 for [DELETE, GET, PATH, POST, PUT]
       expect(res.body.apiLinks.length).to.equal(5);
@@ -122,8 +123,8 @@ describe('api::redisEnabled::GET specific subject', () => {
     });
   });
 
-  it('get by name with fields filter: two fields', (done) => {
-    api.get(`${path}/${name}?fields=name,absolutePath`)
+  it('get child by name with fields filter: two fields', (done) => {
+    api.get(`${path}/${childAbsolutePath}?fields=name,absolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -131,13 +132,29 @@ describe('api::redisEnabled::GET specific subject', () => {
         done(err);
       }
 
-      expect(res.body.name).to.be.equal(name);
-      expect(res.body.absolutePath).to.equal(name);
+      expect(res.body.absolutePath).to.be.equal(childAbsolutePath);
       expect((Object.keys(res.body)).length).to.equal(4);
       expect(Object.keys(res.body)).to.contain('name', 'absolutePath', 'id', 'apiLinks');
       done();
     });
   });
+
+  it('get child by name returns defined childCount, hierarchyLevel', (done) => {
+    api.get(`${path}/${childAbsolutePath}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.absolutePath).to.be.equal(childAbsolutePath);
+      expect(res.body.childCount).to.be.an('number');
+      expect(res.body.hierarchyLevel).to.be.an('number');
+      done();
+    });
+  });
+
 
   it('get by name with fields filter: one field', (done) => {
     api.get(`${path}/${name}?fields=parentAbsolutePath`)

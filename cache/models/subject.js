@@ -19,6 +19,7 @@ const constants = sampleStore.constants;
 const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
+const redisErrors = require('../redisErrors');
 const ONE = 1;
 const TWO = 2;
 
@@ -200,6 +201,56 @@ function completeSubjectHierarchy(res, params) {
 
 module.exports = {
   completeSubjectHierarchy,
+
+  /**
+   * Returns subject with filter options if provided.
+   * @param  {Object} req - Request object
+   * @param  {Object} res - Result object
+   * @param  {Object} logObject - Log object
+   * @returns {Promise} - Resolves to a subject objects
+   */
+  getSubject(req, res, logObject) {
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
+    return redisClient.hgetallAsync(key)
+    .then((subject) => {
+      if (!subject) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      // add parentAbsolutePath
+      if (subject.parentAbsolutePath === undefined) {
+        subject.parentAbsolutePath = '';
+      }
+
+      // convert the strings into numbers
+      subject.childCount = parseInt(subject.childCount, 10) || 0;
+      subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+
+      // convert the time fields to appropriate format
+      subject.createdAt = new Date(subject.createdAt).toISOString();
+      subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
+      if (opts.attributes) { // delete subject fields
+        modelUtils.applyFieldListFilter(subject, opts.attributes);
+      }
+
+      // add api links
+      subject.apiLinks = utils.getApiLinks(
+        subject.name, helper, req.method
+      );
+
+      const result = sampleStore.arrayStringsToJson(
+        subject, constants.fieldsToStringify.subject
+      );
+
+      return result;
+    });
+  },
 
   /**
    * Finds subjects with filter options if provided. We get subject keys from
