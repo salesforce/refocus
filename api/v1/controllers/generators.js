@@ -23,7 +23,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findGenerators(req, res, next) {
-    res.send({status: 200, text: 'Get all generators'});
+    res.send({ status: 200, text: 'Get all generators' });
   },
 
   /**
@@ -36,7 +36,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGenerator(req, res, next) {
-    res.send({status: 200, text: 'Get a generator'});
+    res.send({ status: 200, text: 'Get a generator' });
   },
 
   /**
@@ -49,7 +49,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGenerator(req, res, next) {
-    res.send({status: 200, text: 'PATCH a generator'});
+    res.send({ status: 200, text: 'PATCH a generator' });
   },
 
   /**
@@ -62,7 +62,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGenerator(req, res, next) {
-    res.send({status: 201, text: 'POST a generator'});
+    res.send({ status: 201, text: 'POST a generator' });
   },
 
   /**
@@ -75,6 +75,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putGenerator(req, res, next) {
-    res.send({status: 200, text: 'PUT a generator'});
+    res.send({ status: 200, text: 'PUT a generator' });
   },
 }; // exports
