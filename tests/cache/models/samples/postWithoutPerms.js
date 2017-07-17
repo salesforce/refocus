@@ -41,7 +41,6 @@ describe('api: post samples without perms', () => {
   let otherValidToken;
   let user;
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
@@ -82,7 +81,6 @@ describe('api: post samples without perms', () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
   after(tu.forceDeleteUser);
 

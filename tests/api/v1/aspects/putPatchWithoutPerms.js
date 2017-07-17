@@ -33,7 +33,6 @@ describe('api: aspects:', () => {
   };
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => {
       done();
