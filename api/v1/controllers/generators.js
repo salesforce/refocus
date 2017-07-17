@@ -14,19 +14,6 @@
 module.exports = {
 
   /**
-   * DELETE /generators/{key}
-   *
-   * Deletes the generator and sends it back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  deleteGenerator(req, res, next) {
-    res.send({status: 200, text: 'Deleted generator'});
-  },
-
-  /**
    * GET /generators
    *
    * Finds zero or more generators and sends them back in the response.
