@@ -1790,6 +1790,149 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+
+  /generators:
+    get:
+      security:
+        - jwt: []
+      summary: Get all generators
+      tags: [ generators ]
+      description: >-
+        Get a generator or all generators. Find a lens or lenses. You may query using field filters with asterisk
+        (*) wildcards. You may also optionally specify sort, limit, offset, and
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      externalDocs:
+        description: >-
+          GET /generators
+        url: http://focus.salesforce.com/docs/api/generators
+      operationId: findGenerators
+      parameters:
+        -
+          $ref: "#/parameters/GeneratorFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - isActive
+              - keywords
+              - aspects
+              - subjects
+              - subjectQuery
+              - createdAt
+              - description
+              - helpEmail
+              - helpUrl
+              - id
+              - name
+              - updatedAt
+              - - isActive
+              - - keywords
+              - - aspects
+              - - subjects
+              - - subjectQuery
+              - - createdAt
+              - - description
+              - - helpEmail
+              - - helpUrl
+              - - id
+              - - name
+              - - updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: description
+          in: query
+          type: string
+          maxLength: 4096
+          description: >
+            A description of the generator.
+        -
+          name: helpEmail
+          in: query
+          type: string
+          description: >
+            The email address where a user can go to get more help about the generator.
+          maxLength: 254
+        -
+          name: helpUrl
+          in: query
+          type: string
+          maxLength: 2082
+          description: >
+            The url where a user can go to get more help about the generator.
+        -
+          name: createdBy
+          in: query
+          type: string
+          description: >
+            Id of the User who created this Generator.
+        -
+          name: id
+          in: query
+          type: string
+          description: >
+            The collector id.
+        -
+          name: isActive
+          in: query
+          type: boolean
+          description: Whether or not the generator is running on a collector.
+        -
+          name: name
+          in: query
+          type: string
+          description: The generator's name.
+        -
+          name: subjectQuery
+          in: query
+          type: string
+          description: The query to append to GET subjects.
+        -
+          name: subjects
+          in: query
+          description: AbsolutePaths of the subjects.
+          type: array
+          items:
+            type: string
+        -
+          name: aspects
+          in: query
+          description: Names of the aspects.
+          type: array
+          items:
+            type: string
+        -
+          name: keywords
+          in: query
+          description: Describes this generator.
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: >-
+            Success, returns a list of generators
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
   /globalconfig:
     x-swagger-router-controller: globalconfig
     get:
@@ -8429,6 +8572,68 @@ definitions:
     description: >-
       The designation of which subjects and aspects to collect, plus any additional context data
     properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the generator.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the generator.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the generator.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Generator.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      isDeleted:
+        type: string
+        readOnly: true
+        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
+      isActive:
+        type: boolean
+        description: Whether or not the generator is running on a collector.
+      name:
+        type: string
+        readOnly: true
+        description: The generator's name.
+      subjectQuery:
+        type: string
+        readOnly: true
+        description: The query to append to GET subjects.
+      subjects:
+        description: AbsolutePaths of the subjects.
+        type: array
+        items:
+          type: string
+      aspects:
+        description: Names of the aspects.
+        type: array
+        items:
+          type: string
+      keywords:
+        description: Describes this generator.
+        type: array
+        items:
+          type: string
+      connection:
+        type: object
+        description: Information about the connection.
+      context:
+        type: object
+        description: >
+          Variables accessible inside the transform function.
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -8529,6 +8734,30 @@ parameters:
         - valueLabel
         - valueType
         - warningRange
+
+  GeneratorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - isActive
+        - keywords
+        - aspects
+        - subjects
+        - subjectQuery
+        - createdAt
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - name
+        - updatedAt
 
   LensesFieldsParam:
     name: fields
@@ -8696,24 +8925,6 @@ parameters:
         - createdBy
         - createdAt
         - sso
-        - updatedAt
-
-  SSOConfigFieldsParam:
-    name: fields
-    in: query
-    description: >
-      Comma-delimited list of field names to include in the response.
-    required: false
-    type: array
-    collectionFormat: csv
-    items:
-      type: string
-      enum:
-        - id
-        - samlEntryPoint
-        - samlIssuer
-        - createdBy
-        - createdAt
         - updatedAt
 
 # =============================================================================
