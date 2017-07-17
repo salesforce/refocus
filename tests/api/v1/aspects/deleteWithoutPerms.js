@@ -40,7 +40,6 @@ describe('api: aspects: delete without permission', () => {
   };
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => {
       done();
