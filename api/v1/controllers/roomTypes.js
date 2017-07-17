@@ -86,17 +86,4 @@ module.exports = {
     doPost(req, res, next, helper);
   },
 
-  /**
-   * PUT /roomTypes/{key}
-   *
-   * Overrides the roomType with that ID
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  putRoomTypes(req, res, next) {
-    doPut(req, res, next, helper);
-  },
-
 }; // exports

@@ -608,6 +608,10 @@ function findByKey(props, params, extraAttributes) {
   }
 
   const scopedModel = getScopedModel(props, attrArr);
+
+  // If the key is a UUID then find the records by ID or name.
+  // If the models key auto-increments then the key will be an
+  // integer and still should find records by ID.
   if (looksLikeId(key)) {
     return findByIdThenName(scopedModel, key, opts);
   } else if ((typeof key === 'number') && (key % 1 === 0)) {
