@@ -69,9 +69,7 @@ const MINUS_ONE = -1;
 function checkWritePermission(aspect, sample, userName, isBulk) {
   let isWritable = true;
   if (aspect.writers && aspect.writers.length) {
-    isWritable = featureToggles
-                        .isFeatureEnabled('enforceWritePermission') ?
-                        aspect.writers.includes(userName) : true;
+    isWritable = aspect.writers.includes(userName);
   }
 
   if (!isWritable) {
@@ -567,7 +565,10 @@ module.exports = {
         });
       }
 
-      aspect = aspObj;
+      aspect = sampleStore.arrayStringsToJson(
+        aspObj, constants.fieldsToStringify.aspect
+      );
+
       return checkWritePermission(aspect, sampObjToReturn, userName);
     })
     .then(() => {
@@ -627,7 +628,10 @@ module.exports = {
         });
       }
 
-      aspectObj = aspObj;
+      aspectObj = sampleStore.arrayStringsToJson(
+        aspObj, constants.fieldsToStringify.aspect
+      );
+
       return checkWritePermission(aspectObj, currSampObj, userName);
     })
     .then(() => {
@@ -779,8 +783,7 @@ module.exports = {
     })
     .then((isWritable) => {
       sampleName = subject.absolutePath + '|' + aspectObj.name;
-      if (featureToggles.isFeatureEnabled('enforceWritePermission') &&
-        !isWritable) {
+      if (!isWritable) {
         const err = new redisErrors.UpdateDeleteForbidden({
           explanation: `The user: ${userName}, does not have write permission` +
             ` on the sample: ${sampleName}`,

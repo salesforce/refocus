@@ -182,8 +182,7 @@ module.exports = {
       users = usrs;
       if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
         return u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o,
-            featureToggles.isFeatureEnabled('enforceWritePermission')))
+        .then((o) => u.isWritable(req, o))
           .then((o) => redisOps.getValue('aspect', o.name))
           .then((cachedAspect) => {
             if (cachedAspect) {
@@ -272,8 +271,7 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
       const params = req.swagger.params;
       u.findByKey(helper, params)
-      .then((o) => u.isWritable(req, o,
-          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
         .then((o) => redisOps.getValue('aspect', o.name))
         .then((cachedAspect) => {
           if (cachedAspect) {
@@ -310,8 +308,7 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
       const params = req.swagger.params;
       u.findByKey(helper, params)
-      .then((o) => u.isWritable(req, o,
-          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
       .then((o) => {
         aspectName = o.name;
         const options = {};
@@ -362,8 +359,7 @@ module.exports = {
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>
-      u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+      u.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
@@ -398,8 +394,7 @@ module.exports = {
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>
-      u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+      u.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

@@ -39,7 +39,6 @@ describe('api: aspects: post writers', () => {
   };
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -84,7 +83,6 @@ describe('api: aspects: post writers', () => {
 
   after(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
   after(tu.forceDeleteUser);
 
   it('add writers to the record and make sure the writers are ' +
