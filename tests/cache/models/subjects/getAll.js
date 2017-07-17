@@ -42,7 +42,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
 
-  it('updatedAt and createdAt fields have the expected format', (done) => {
+  it('date and numeric fields have the expected format', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -53,7 +53,10 @@ describe(`api::redisEnabled::GET ${path}`, () => {
 
       expect(res.body.length).to.be.equal(3);
       for (let i = res.body.length - 1; i >= 0; i--) {
-        const { updatedAt, createdAt } = res.body[i];
+        const { updatedAt, createdAt, childCount, hierarchyLevel } = res.body[i];
+
+        expect(childCount).to.be.an('number');
+        expect(hierarchyLevel).to.be.an('number');
         expect(createdAt).to.equal(new Date(createdAt).toISOString());
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
       }
@@ -107,7 +110,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.be.equal(3);
       expect(res.body[0].parentAbsolutePath).to.be.equal(subject1);
       expect(res.body[1].parentAbsolutePath).to.be.equal(subject1);
-      expect(res.body[2].parentAbsolutePath).to.be.undefined;
+      expect(res.body[2].parentAbsolutePath).to.equal('');
       done();
     });
   });
@@ -139,7 +142,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       }
 
       expect(res.body.length).to.be.equal(3);
-      expect(res.body[0].parentAbsolutePath).to.be.undefined;
+      expect(res.body[0].parentAbsolutePath).to.equal('');
       expect(res.body[1].parentAbsolutePath).to.be.equal(subject1);
       expect(res.body[2].parentAbsolutePath).to.be.equal(subject1);
       done();

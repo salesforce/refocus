@@ -199,6 +199,25 @@ function completeSubjectHierarchy(res, params) {
   });
 } // completeSubjectHierarchy
 
+/**
+ * Turns fields numeric fields turned into ints.
+ *
+ * Also adds a parentAbsolutePath field, if it was not there previously.
+ * @param {Object} subject
+ * @returns {Object} Object with parentAbsolutePath field and numeric fields.
+ */
+function convertStringsToNumbersAndAddParentAbsolutePath(subject) {
+  // add parentAbsolutePath
+  if (subject.parentAbsolutePath === undefined) {
+    subject.parentAbsolutePath = '';
+  }
+
+  // convert the strings into numbers
+  subject.childCount = parseInt(subject.childCount, 10) || 0;
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+  return subject;
+}
+
 module.exports = {
   completeSubjectHierarchy,
 
@@ -220,14 +239,7 @@ module.exports = {
         });
       }
 
-      // add parentAbsolutePath
-      if (subject.parentAbsolutePath === undefined) {
-        subject.parentAbsolutePath = '';
-      }
-
-      // convert the strings into numbers
-      subject.childCount = parseInt(subject.childCount, 10) || 0;
-      subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+      subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
 
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
 
@@ -292,6 +304,7 @@ module.exports = {
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
+        subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
 
         // convert the time fields to appropriate format
         subject.createdAt = new Date(subject.createdAt).toISOString();
