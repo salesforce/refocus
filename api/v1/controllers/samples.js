@@ -222,11 +222,7 @@ module.exports = {
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        if (!featureToggles.isFeatureEnabled(sampleStoreConstants
-          .featureName)) {
-          publisher.publishSample(samp, subHelper.model);
-        }
-
+        publisher.publishSample(samp, subHelper.model);
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
           .json(u.responsify(samp, helper, req.method));
@@ -312,10 +308,7 @@ module.exports = {
         .then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {
-              if (!featureToggles
-                .isFeatureEnabled(sampleStoreConstants.featureName)) {
-                publisher.publishSample(sample, subHelper.model);
-              }
+              publisher.publishSample(sample, subHelper.model);
             }
           });
         });
