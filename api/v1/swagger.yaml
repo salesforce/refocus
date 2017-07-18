@@ -1800,7 +1800,7 @@ paths:
       summary: Get a generator or all generators.
       tags: [ generators ]
       description: >-
-        Get a generator or all generators. Find a lens or lenses. You may query using field filters with asterisk
+        Get a generator or all generators. You may query using field filters with asterisk
         (*) wildcards. You may also optionally specify sort, limit, offset, and
         a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
