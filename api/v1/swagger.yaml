@@ -2282,7 +2282,9 @@ paths:
       summary: Determine whether a user is an authorized writer for an generator
       tags: [ generators, writers ]
       description: >-
-        Determine whether a user is an authorized writer for an generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Determine whether a user is an authorized writer for an generator. Returns the user if authorized, else
+        throws 404 if either the writer or generator is not found.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: getGeneratorWriter
       parameters:
         -
@@ -2303,13 +2305,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the users having write permission to the generator.
+            Success, returns requested user.
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the generator
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         404:
