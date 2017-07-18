@@ -50,7 +50,8 @@ module.exports = (job, done) => {
       let errorCount = 0;
 
       /*
-       * count failed promises and add the errors to a list.
+       * count failed promises and send the good samples to the client by
+       * publishing it to the redis channel
        */
       for (let i = 0; i < results.length; i++) {
         if (results[i].isFailed) {
@@ -58,6 +59,8 @@ module.exports = (job, done) => {
 
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
+        } else {
+          publisher.publishSample(results[i], subHelper.model);
         }
       }
 
