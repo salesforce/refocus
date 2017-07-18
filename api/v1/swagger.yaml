@@ -1734,13 +1734,15 @@ paths:
         collector.
       operationId: getCollectorWriter
       parameters:
-      - name: key
+      -
+        name: key
         in: path
         description: "ID of collector to return"
         required: true
         type: "integer"
         format: "int64"
-      - name: "userNameOrId"
+      -
+        name: "userNameOrId"
         in: "path"
         description: "ID of collector to return"
         required: true
@@ -1809,9 +1811,10 @@ paths:
       parameters:
         -
           $ref: "#/parameters/GeneratorFieldsParam"
-        - name: sort
+        -
+          name: sort
           in: query
-          description: >
+          description: >-
             Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
             field name with a minus sign to specify descending order, e.g.
             '...?sort=-name'.
@@ -1828,23 +1831,17 @@ paths:
               - subjectQuery
               - createdAt
               - description
-              - helpEmail
-              - helpUrl
-              - id
               - name
               - updatedAt
-              - - isActive
-              - - keywords
-              - - aspects
-              - - subjects
-              - - subjectQuery
-              - - createdAt
-              - - description
-              - - helpEmail
-              - - helpUrl
-              - - id
-              - - name
-              - - updatedAt
+              - -isActive
+              - -keywords
+              - -aspects
+              - -subjects
+              - -subjectQuery
+              - -createdAt
+              - -description
+              - -name
+              - -updatedAt
         -
           $ref: "#/parameters/limitParam"
         -
@@ -1854,67 +1851,53 @@ paths:
           in: query
           type: string
           maxLength: 4096
-          description: >
-            A description of the generator.
-        -
-          name: helpEmail
-          in: query
-          type: string
-          description: >
-            The email address where a user can go to get more help about the generator.
-          maxLength: 254
-        -
-          name: helpUrl
-          in: query
-          type: string
-          maxLength: 2082
-          description: >
-            The url where a user can go to get more help about the generator.
+          description: >-
+            Filter by the generator description; asterisk (*) wildcards ok.
         -
           name: createdBy
           in: query
           type: string
-          description: >
-            Id of the User who created this Generator.
-        -
-          name: id
-          in: query
-          type: string
-          description: >
-            The collector id.
+          description: >-
+            Filter by the generator id; asterisk (*) wildcards ok.
         -
           name: isActive
           in: query
           type: boolean
-          description: Whether or not the generator is running on a collector.
+          description: >-
+            Filter by whether or not the generator is running on a collector.
         -
           name: name
           in: query
           type: string
-          description: The generator's name.
+          description: >-
+            Filter by the generator name; asterisk (*) wildcards ok.
         -
           name: subjectQuery
           in: query
           type: string
-          description: The query to append to GET subjects.
+          description: >-
+            Filter by the query to append to GET subjects; asterisk (*) wildcards ok.
         -
           name: subjects
           in: query
-          description: AbsolutePaths of the subjects.
+          description: >-
+            Filter by the absolutePaths of the subjects.
           type: array
           items:
             type: string
         -
           name: aspects
           in: query
-          description: Names of the aspects.
+          description: >-
+            Filter by the names of the aspects.
           type: array
           items:
             type: string
         -
           name: keywords
           in: query
-          description: Describes this generator.
+          description: >-
+            Filter by the keywords; asterisk (*) wildcards ok.
           type: array
           items:
             type: string
@@ -1952,17 +1935,17 @@ paths:
               description:
                 type: string
                 maxLength: 4096
-                description: >
+                description: >-
                   A description of the generator.
               helpEmail:
                 type: string
-                description: >
+                description: >-
                   The email address where a user can go to get more help about the generator.
                 maxLength: 254
               helpUrl:
                 type: string
                 maxLength: 2082
-                description: >
+                description: >-
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
@@ -1992,7 +1975,7 @@ paths:
                 description: Information about the connection.
               context:
                 type: object
-                description: >
+                description: >-
                   Variables accessible inside the transform function.
             required:
               - name, subjectQuery, subjects, aspects
@@ -2031,7 +2014,7 @@ paths:
         200:
           description: Success, returns the specified generator.
           schema:
-            $ref: "#/definitions/GlobalConfigResponse"
+            $ref: "#/definitions/GeneratorResponse"
         400:
           $ref: "#/responses/400"
         404:
@@ -2065,17 +2048,17 @@ paths:
               description:
                 type: string
                 maxLength: 4096
-                description: >
+                description: >-
                   A description of the generator.
               helpEmail:
                 type: string
-                description: >
+                description: >-
                   The email address where a user can go to get more help about the generator.
                 maxLength: 254
               helpUrl:
                 type: string
                 maxLength: 2082
-                description: >
+                description: >-
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
@@ -2105,13 +2088,13 @@ paths:
                 description: Information about the connection.
               context:
                 type: object
-                description: >
+                description: >-
                   Variables accessible inside the transform function.
       responses:
         200:
           description: Success, returns the updated generator.
           schema:
-            $ref: "#/definitions/GlobalConfigResponse"
+            $ref: "#/definitions/GeneratorResponse"
         400:
           $ref: "#/responses/400"
         403:
@@ -2126,7 +2109,9 @@ paths:
       summary: Update the specified generator
       tags: [ generators ]
       description: >-
-        Update the specified generator. Requires user to have write permision. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Update the specified generator. Requires user to have write permision.
+        If a field is not included in the query body, that field will be set to null or its default value.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       operationId: putGenerator
       parameters:
         -
@@ -2147,17 +2132,17 @@ paths:
               description:
                 type: string
                 maxLength: 4096
-                description: >
+                description: >-
                   A description of the generator.
               helpEmail:
                 type: string
-                description: >
+                description: >-
                   The email address where a user can go to get more help about the generator.
                 maxLength: 254
               helpUrl:
                 type: string
                 maxLength: 2082
-                description: >
+                description: >-
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
@@ -2187,7 +2172,7 @@ paths:
                 description: Information about the connection.
               context:
                 type: object
-                description: >
+                description: >-
                   Variables accessible inside the transform function.
             required:
               - name, subjectQuery, subjects, aspects
@@ -2267,7 +2252,7 @@ paths:
             type: array
             items:
               type: string
-            description: >
+            description: >-
               User name or id
       responses:
         201:
@@ -2524,7 +2509,7 @@ paths:
           required: true
           schema:
             type: object
-            description: >
+            description: >-
                   A global config item.
             properties:
               value:
