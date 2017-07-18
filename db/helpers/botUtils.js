@@ -39,6 +39,13 @@ const parameterArraySchema = Joi.alternatives().try(
   )
 );
 
+const settingsArraySchema = Joi.array().items(
+    Joi.object().keys({
+      key: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
+      helpText: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
+    })
+  );
+
 const actionArraySchema = Joi.array().items(
   Joi.object().keys({
     name: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
@@ -108,24 +115,11 @@ function validateDataArray(arr) {
  * @throws {validationError} - Invalid settings array
  */
 function validateSettingsArray(arr) {
-  if (Array.isArray(arr)) {
-    for (let i = 0; i < arr.length; i++) {
-      if ((arr[i].hasOwnProperty('key')) &&
-        (arr[i].hasOwnProperty('helpText'))) {
-        if (!constants.nameRegex.test(arr[i].key)) {
-          throw new ValidationError({
-            message: 'Missing a valid key',
-          });
-        }
-      } else {
-        throw new ValidationError({
-          message: 'Missing a key or help text attribute',
-        });
-      }
-    }
-  } else {
+  const result = Joi.validate(arr, settingsArraySchema);
+
+  if (result.error !== null) {
     throw new ValidationError({
-      message: 'Objects not contained in an array',
+      message: result.error.details,
     });
   }
 } // validateSettings
