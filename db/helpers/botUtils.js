@@ -13,7 +13,6 @@
  */
 
 const Joi = require('joi');
-const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING'];
 const dataTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
