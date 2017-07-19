@@ -41,7 +41,7 @@ const parameterArraySchema = Joi.alternatives().try(
 const settingsArraySchema = Joi.array().items(
     Joi.object().keys({
       key: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
-      helpText: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
+      helpText: Joi.string().regex(/^\w+(\s\w+)*$/i).required(),
     })
   );
 

@@ -24,7 +24,7 @@ const standard = {
   settings: [
     {
       key: 'key1',
-      helpText: 'helpText1'
+      helpText: 'help Text 1'
     }
   ],
   actions: [
