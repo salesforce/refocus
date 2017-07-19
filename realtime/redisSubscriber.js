@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
 const sub = require('../cache/redisCache').client.sub;
-const featureToggles = require('feature-toggles');
 
 /**
  * Redis subscriber uses socket.io to broadcast.

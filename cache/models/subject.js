@@ -11,10 +11,15 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const helper = require('../../api/v1/helpers/nouns/subjects');
+const fu = require('../../api/v1/helpers/verbs/findUtils.js');
+const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
 const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
+const modelUtils = require('./utils');
+const redisErrors = require('../redisErrors');
 const ONE = 1;
 const TWO = 2;
 
@@ -163,6 +168,16 @@ function traverseHierarchy(res) {
 } // traverseHierarchy
 
 /**
+ * Given a string, get the substring after the last period.
+ *
+ * @param {String} absolutePath: Subject absolutePath.
+ * @returns {String} name The subject name.
+ */
+function getNameFromAbsolutePath(absolutePath) {
+  return absolutePath.split('.').pop();
+}
+
+/**
  *  When passed a partial subject hierarchy without samples, the subject
  *  hierarchy is completed by attaching samples to it.
  *
@@ -184,6 +199,129 @@ function completeSubjectHierarchy(res, params) {
   });
 } // completeSubjectHierarchy
 
+/**
+ * Turns fields numeric fields turned into ints.
+ *
+ * Also adds a parentAbsolutePath field, if it was not there previously.
+ * @param {Object} subject
+ * @returns {Object} Object with parentAbsolutePath field and numeric fields.
+ */
+function convertStringsToNumbersAndAddParentAbsolutePath(subject) {
+  // add parentAbsolutePath
+  if (subject.parentAbsolutePath === undefined) {
+    subject.parentAbsolutePath = '';
+  }
+
+  // convert the strings into numbers
+  subject.childCount = parseInt(subject.childCount, 10) || 0;
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+  return subject;
+}
+
 module.exports = {
   completeSubjectHierarchy,
+
+  /**
+   * Returns subject with filter options if provided.
+   * @param  {Object} req - Request object
+   * @param  {Object} res - Result object
+   * @param  {Object} logObject - Log object
+   * @returns {Promise} - Resolves to a subject objects
+   */
+  getSubject(req, res, logObject) {
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
+    return redisClient.hgetallAsync(key)
+    .then((subject) => {
+      if (!subject) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Sample not found.',
+        });
+      }
+
+      subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
+
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+
+      // convert the time fields to appropriate format
+      subject.createdAt = new Date(subject.createdAt).toISOString();
+      subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
+      if (opts.attributes) { // delete subject fields
+        modelUtils.applyFieldListFilter(subject, opts.attributes);
+      }
+
+      // add api links
+      subject.apiLinks = utils.getApiLinks(
+        subject.name, helper, req.method
+      );
+
+      const result = sampleStore.arrayStringsToJson(
+        subject, constants.fieldsToStringify.subject
+      );
+
+      return result;
+    });
+  },
+
+  /**
+   * Finds subjects with filter options if provided. We get subject keys from
+   * redis using default alphabetical order. Then we apply limit/offset and
+   * wildcard expr on subject names. Using filtered keys we get subjects
+   * from redis in an array. Then, we apply wildcard
+   * expr (other than name) to subjects array, then we sort, then apply
+   * limit/offset and finally field list filters.
+   * @param  {Object} req - Request object
+   * @param  {Object} res - Result object
+   * @param  {Object} logObject - Log object
+   * @returns {Promise} - Resolves to a list of all subjects objects
+   */
+  findSubjects(req, res, logObject) {
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const response = [];
+
+    if (opts.limit || opts.offset) {
+      res.links({
+        prev: req.originalUrl,
+        next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
+      });
+    }
+
+    // get all Subjects sorted lexicographically
+    return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
+    .then((allSubjectKeys) => {
+      const commands = [];
+      const filteredSubjectKeys = modelUtils
+        .applyFiltersOnResourceKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
+
+      filteredSubjectKeys.forEach((subjectKey) => {
+        commands.push(['hgetall', subjectKey]);
+      });
+
+      return redisClient.batch(commands).execAsync();
+    })
+    .then((subjects) => {
+      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+      const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
+      filteredSubjects.forEach((subject) => {
+        subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
+
+        // convert the time fields to appropriate format
+        subject.createdAt = new Date(subject.createdAt).toISOString();
+        subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
+        if (opts.attributes) { // delete subject fields, hence no return obj
+          modelUtils.applyFieldListFilter(subject, opts.attributes);
+        }
+
+        // add api links
+        subject.apiLinks = utils.getApiLinks(
+          subject.name, helper, req.method
+        );
+        response.push(subject); // add subject to response
+      });
+
+      return response;
+    });
+  },
 }; // exports
