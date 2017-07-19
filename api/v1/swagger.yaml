@@ -1734,13 +1734,15 @@ paths:
         collector.
       operationId: getCollectorWriter
       parameters:
-      - name: key
+      -
+        name: key
         in: path
         description: "ID of collector to return"
         required: true
         type: "integer"
         format: "int64"
-      - name: "userNameOrId"
+      -
+        name: "userNameOrId"
         in: "path"
         description: "ID of collector to return"
         required: true
@@ -1790,6 +1792,567 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+
+  /generators:
+    get:
+      security:
+        - jwt: []
+      summary: Get a generator or all generators.
+      tags: [ generators ]
+      description: >-
+        Get a generator or all generators. You may query using field filters with asterisk
+        (*) wildcards. You may also optionally specify sort, limit, offset, and
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      externalDocs:
+        description: >-
+          GET /generators
+        url: http://focus.salesforce.com/docs/api/generators
+      operationId: findGenerators
+      parameters:
+        -
+          $ref: "#/parameters/GeneratorFieldsParam"
+        -
+          name: sort
+          in: query
+          description: >-
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - isActive
+              - keywords
+              - aspects
+              - subjects
+              - subjectQuery
+              - createdAt
+              - description
+              - name
+              - updatedAt
+              - -isActive
+              - -keywords
+              - -aspects
+              - -subjects
+              - -subjectQuery
+              - -createdAt
+              - -description
+              - -name
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: description
+          in: query
+          type: string
+          maxLength: 4096
+          description: >-
+            Filter by the generator description; asterisk (*) wildcards ok.
+        -
+          name: createdBy
+          in: query
+          type: string
+          description: >-
+            Filter by the generator id; asterisk (*) wildcards ok.
+        -
+          name: isActive
+          in: query
+          type: boolean
+          description: >-
+            Filter by whether or not the generator is running on a collector.
+        -
+          name: name
+          in: query
+          type: string
+          description: >-
+            Filter by the generator name; asterisk (*) wildcards ok.
+        -
+          name: subjectQuery
+          in: query
+          type: string
+          description: >-
+            Filter by the query to append to GET subjects; asterisk (*) wildcards ok.
+        -
+          name: subjects
+          in: query
+          description: >-
+            Filter by the absolutePaths of the subjects.
+          type: array
+          items:
+            type: string
+        -
+          name: aspects
+          in: query
+          description: >-
+            Filter by the names of the aspects.
+          type: array
+          items:
+            type: string
+        -
+          name: keywords
+          in: query
+          description: >-
+            Filter by the keywords; asterisk (*) wildcards ok.
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: >-
+            Success, returns a list of generators
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new generator.
+      tags: [ generators ]
+      description: >-
+        Create a new generator and makes the creator the writer of the generator. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: postGenerator
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                readOnly: true
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                readOnly: true
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              keywords:
+                description: Describes this generator.
+                type: array
+                items:
+                  type: string
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+            required:
+              - name, subjectQuery, subjects, aspects
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}:
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified generator
+      tags: [ generators ]
+      description: >-
+        Retrieve the specified generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified generator
+      tags: [ generators ]
+      description: >-
+        Update the specified generator. Requires user to have write permision. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: patchGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                readOnly: true
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                readOnly: true
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              keywords:
+                description: Describes this generator.
+                type: array
+                items:
+                  type: string
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+      responses:
+        200:
+          description: Success, returns the updated generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified generator
+      tags: [ generators ]
+      description: >-
+        Update the specified generator. Requires user to have write permision.
+        If a field is not included in the query body, that field will be set to null or its default value.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: putGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                readOnly: true
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                readOnly: true
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              keywords:
+                description: Describes this generator.
+                type: array
+                items:
+                  type: string
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+            required:
+              - name, subjectQuery, subjects, aspects
+      responses:
+        200:
+          description: Success, returns the updated generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}/writers:
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for an generator
+      tags: [ generators, writers ]
+      description: >-
+        Get the list of all authorized writers for an generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the generator.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generator
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to an generator’s list of authorized writers
+      tags: [ generators, writers ]
+      description: >-
+        Add one or more users to an generator’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postGeneratorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorWriterResponse"
+              description: >-
+                The users having write permission to the generator
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}/writers/{userNameOrId}:
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for an generator
+      tags: [ generators, writers ]
+      description: >-
+        Determine whether a user is an authorized writer for an generator. Returns the user if authorized, else
+        throws 404 if either the writer or generator is not found.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns requested user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from an generator’s list of authorized writers
+      tags: [ generators, writers ]
+      description: >-
+        Remove a user from an generator’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: deleteGeneratorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the generator.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
   /globalconfig:
     x-swagger-router-controller: globalconfig
     get:
@@ -1944,7 +2507,7 @@ paths:
           required: true
           schema:
             type: object
-            description: >
+            description: >-
                   A global config item.
             properties:
               value:
@@ -8144,6 +8707,32 @@ definitions:
         description: >
           Timestamp at which the the write permission was modified
 
+  GeneratorWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the generator
+    properties:
+      generatorId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected generator
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the generator
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
   LensWriterResponse:
     type: object
     description: >
@@ -8429,6 +9018,68 @@ definitions:
     description: >-
       The designation of which subjects and aspects to collect, plus any additional context data
     properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the generator.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the generator.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the generator.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Generator.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      isDeleted:
+        type: string
+        readOnly: true
+        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
+      isActive:
+        type: boolean
+        description: Whether or not the generator is running on a collector.
+      name:
+        type: string
+        readOnly: true
+        description: The generator's name.
+      subjectQuery:
+        type: string
+        readOnly: true
+        description: The query to append to GET subjects.
+      subjects:
+        description: AbsolutePaths of the subjects.
+        type: array
+        items:
+          type: string
+      aspects:
+        description: Names of the aspects.
+        type: array
+        items:
+          type: string
+      keywords:
+        description: Describes this generator.
+        type: array
+        items:
+          type: string
+      connection:
+        type: object
+        description: Information about the connection.
+      context:
+        type: object
+        description: >
+          Variables accessible inside the transform function.
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -8529,6 +9180,30 @@ parameters:
         - valueLabel
         - valueType
         - warningRange
+
+  GeneratorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - isActive
+        - keywords
+        - aspects
+        - subjects
+        - subjectQuery
+        - createdAt
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - name
+        - updatedAt
 
   LensesFieldsParam:
     name: fields
@@ -8696,24 +9371,6 @@ parameters:
         - createdBy
         - createdAt
         - sso
-        - updatedAt
-
-  SSOConfigFieldsParam:
-    name: fields
-    in: query
-    description: >
-      Comma-delimited list of field names to include in the response.
-    required: false
-    type: array
-    collectionFormat: csv
-    items:
-      type: string
-      enum:
-        - id
-        - samlEntryPoint
-        - samlIssuer
-        - createdBy
-        - createdAt
         - updatedAt
 
 # =============================================================================
