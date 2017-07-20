@@ -37,7 +37,7 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   idle: 10000,
 };
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
-  pe.HIDDEN_ROUTES.split[','] : ['/rooms']; // Routes to hide
+  pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 

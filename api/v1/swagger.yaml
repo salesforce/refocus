@@ -7319,22 +7319,438 @@ paths:
     get:
       tags: [ rooms ]
       operationId: findRooms
+      parameters:
+        -
+          name: name
+          description: Filter rooms by name
+          in: query
+          required: false
+          type: string
+        -
+          name: active
+          description: Filter rooms by active flag
+          in: query
+          required: false
+          type: boolean
+        -
+          name: type
+          description: Filter room by roomType
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
       responses:
         200:
           description: >-
-            Success
+            Success, returns all rooms
           schema:
-            type: object
-            properties:
-              Success:
-                type: boolean
-                readOnly: true
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
         404:
           $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new room
+      tags: [ rooms ]
+      description: Create a new room with a name
+      operationId: postRooms
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create room properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the room
+              active:
+                type: boolean
+                description: If the room is active
+              type:
+                type: string
+                maxLength: 254
+                description: Name of the room
+            required:
+              - name
+              - type
+      responses:
+        201:
+          description: >-
+            Created room
+          schema:
+            $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{key}:
+    x-swagger-router-controller: rooms
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified room
+      tags: [ rooms ]
+      description: >-
+        Delete a specific room
+      operationId: deleteRooms
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success, Deleted RoomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a room
+      tags: [ rooms ]
+      operationId: getRoom
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+        -
+          name: active
+          description: Get rooms depending on its active tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified room
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in room
+      tags: [ rooms ]
+      description: Update room fields
+      operationId: patchRoom
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified room fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the room
+              active:
+                type: boolean
+                description: If the room is active
+              type:
+                type: string
+                maxLength: 254
+                description: Id of roomType
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /roomTypes:
+    x-swagger-router-controller: roomTypes
+    get:
+      tags: [ roomTypes ]
+      operationId: findRoomTypes
+      parameters:
+        -
+          name: name
+          description: Filter roomTypes by name
+          in: query
+          required: false
+          type: string
+        -
+          name: isEnabled
+          description: Filter roomTypes by active flag
+          in: query
+          required: false
+          type: boolean
+        -
+          name: type
+          description: Filter roomType by roomTypeType
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all roomTypes
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new roomType
+      tags: [ roomTypes ]
+      description: Create a new roomType with a name
+      operationId: postRoomTypes
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create roomType properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the roomType
+              isEnabled:
+                type: boolean
+                description: If the roomType is active
+              settings:
+                type: array
+                description: Default settings for roomType
+                items:
+                  type: object
+              rules:
+                type: array
+                description: Default rules for roomType
+                items:
+                  type: object
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created roomType
+          schema:
+            $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /roomTypes/{key}:
+    x-swagger-router-controller: roomTypes
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified roomType
+      tags: [ roomTypes ]
+      description: >-
+        Delete a specific roomType
+      operationId: deleteRoomTypes
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted RoomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a roomType
+      tags: [ roomTypes ]
+      operationId: getRoomType
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to retrieve
+          required: true
+          type: string
+        -
+          name: active
+          description: Get roomTypes depending on its active tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified roomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in roomType
+      tags: [ roomTypes ]
+      description: Update roomType fields
+      operationId: patchRoomType
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified roomType fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the roomType
+              isEnabled:
+                type: boolean
+                description: If the roomType is active
+              settings:
+                type: array
+                description: Default settings for roomType
+                items:
+                  type: object
+              rules:
+                type: array
+                description: Default rules for roomType
+                items:
+                  type: object
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
 
@@ -7477,7 +7893,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the bot to retrieve
+            The id or name of the bot to retrieve
           required: true
           type: string
         -
@@ -7525,7 +7941,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the bot to retrieve
+            The id or name of the bot to retrieve
           required: true
           type: string
         -
@@ -9287,6 +9703,38 @@ definitions:
         type: array
         items:
           type: string
+
+  RoomResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      active:
+        type: boolean
+      type:
+        type: string
+
+  RoomTypeResponse:
+    type: object
+    description: A response for information about a bot
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      isEnabled:
+        type: boolean
+      settings:
+        type: array
+        items:
+          type: object
+      rules:
+        type: array
+        items:
+          type: object
 
 # =============================================================================
 parameters:
