@@ -32,8 +32,9 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
-const sampleStoreFeature =
-                  require('../../../cache/sampleStore').constants.featureName;
+const sampleStore = require('../../../cache/sampleStore');
+const sampleStoreConstants = sampleStore.constants;
+const sampleStoreFeature = sampleStoreConstants.featureName;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
@@ -215,7 +216,19 @@ module.exports = {
    */
   findSubjects(req, res, next) {
     validateTags(null, req.swagger.params);
-    doFind(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+      featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisSubjectModel.findSubjects(req, res, resultObj)
+      .then((response) => {
+
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
@@ -228,7 +241,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    doGet(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+    featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisSubjectModel.getSubject(req, res, resultObj)
+      .then((response) => {
+
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doGet(req, res, next, helper);
+    }
   },
 
   /**
@@ -485,8 +510,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
@@ -520,8 +544,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

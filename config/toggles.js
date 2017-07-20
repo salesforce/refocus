@@ -85,10 +85,6 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
-  // Enforce write permission on records
-  enforceWritePermission:
-    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
-
   // Enforce that all API requests have valid API token
   requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 
@@ -109,6 +105,10 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+
+  // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
+  getSubjectFromCache: environmentVariableTrue(pe,
+    'GET_SUBJECT_FROM_CACHE'),
 
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,

@@ -28,7 +28,6 @@ describe('api: upsert samples without perms', () => {
   let otherValidToken;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => {
       done();
@@ -62,7 +61,6 @@ describe('api: upsert samples without perms', () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
 
   it('upsert should fail when upserting a sample ' +

@@ -29,7 +29,6 @@ describe('api: perspective: permissions', () => {
   let user;
 
   beforeEach((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;

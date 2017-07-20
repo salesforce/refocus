@@ -38,7 +38,6 @@ describe('api: aspects: permissions', () => {
   };
 
   beforeEach((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -79,7 +78,6 @@ describe('api: aspects: permissions', () => {
   afterEach(tu.forceDeleteUser);
 
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
   describe('delete resource without permission', () => {
     it('return 403 when deleting aspect without permission', (done) => {
