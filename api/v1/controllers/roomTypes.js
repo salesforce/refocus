@@ -7,11 +7,11 @@
  */
 
 /**
- * api/v1/controllers/rooms.js
+ * api/v1/controllers/roomTypes.js
  */
 'use strict';
 
-const helper = require('../helpers/nouns/rooms');
+const helper = require('../helpers/nouns/roomTypes');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -22,67 +22,67 @@ const doPut = require('../helpers/verbs/doPut');
 module.exports = {
 
   /**
-   * DELETE /rooms/{key}
+   * DELETE /roomTypes/{key}
    *
-   * Deletes the room and sends it back in the response.
+   * Deletes the roomType and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteRooms(req, res, next) {
+  deleteRoomTypes(req, res, next) {
     doDelete(req, res, next, helper);
   },
 
   /**
-   * GET /rooms
+   * GET /roomTypes
    *
-   * Finds zero or more rooms and sends them back in the response.
+   * Finds zero or more roomTypes and sends them back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  findRooms(req, res, next) {
+  findRoomTypes(req, res, next) {
     doFind(req, res, next, helper);
   },
 
   /**
-   * GET /rooms/{key}
+   * GET /roomTypes/{key}
    *
-   * Retrieves the room and sends it back in the response.
+   * Retrieves the roomType and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  getRoom(req, res, next) {
+  getRoomType(req, res, next) {
     doGet(req, res, next, helper);
   },
 
   /**
-   * PATCH /rooms/{key}
+   * PATCH /roomTypes/{key}
    *
-   * Update the specified room
+   * Update the specified roomType
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  patchRoom(req, res, next) {
+  patchRoomType(req, res, next) {
     doPatch(req, res, next, helper);
   },
 
   /**
-   * POST /rooms
+   * POST /roomTypes
    *
-   * Creates a new room and sends it back in the response.
+   * Creates a new roomType and sends it back in the response.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  postRooms(req, res, next) {
+  postRoomTypes(req, res, next) {
     doPost(req, res, next, helper);
   },
 

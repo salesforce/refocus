@@ -593,6 +593,7 @@ function findByKey(props, params, extraAttributes) {
   keyClause[constants.SEQ_LIKE] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
+
   const attrArr = [];
   if (opts.attributes && Array.isArray(opts.attributes)) {
     for (let i = 0; i < opts.attributes.length; i++) {
@@ -607,7 +608,13 @@ function findByKey(props, params, extraAttributes) {
   }
 
   const scopedModel = getScopedModel(props, attrArr);
+
+  // If the key is a UUID then find the records by ID or name.
+  // If the models key auto-increments then the key will be an
+  // integer and still should find records by ID.
   if (looksLikeId(key)) {
+    return findByIdThenName(scopedModel, key, opts);
+  } else if ((typeof key === 'number') && (key % 1 === 0)) {
     return findByIdThenName(scopedModel, key, opts);
   }
 
