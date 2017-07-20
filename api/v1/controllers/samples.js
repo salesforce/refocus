@@ -175,8 +175,8 @@ module.exports = {
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
-   * @returns {ServerResponse} - The response object indicating that the sample
-   * has been either created or updated.
+   * @returns {Promise} - A promise that resolves to the response object
+   * indicating that the sample has been either created or updated.
    */
   upsertSample(req, res, next) {
     // make the name post-able
@@ -190,11 +190,16 @@ module.exports = {
      * Call the appropriate upsert and return a response.
      *
      * @param {Object} user object. Optional.
-     * @returns {Object} The response object.
+     * @returns {Promise} A Promise that resolves to the response object or a
+     * ValidationError
      */
     function doUpsert(user) {
       if (sampleQueryBody.relatedLinks) {
-        u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+        try {
+          u.checkDuplicateRLinks(sampleQueryBody.relatedLinks);
+        } catch (err) {
+          return Promise.reject(err);
+        }
       }
 
       const upsertSamplePromise =
@@ -217,11 +222,7 @@ module.exports = {
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        if (!featureToggles.isFeatureEnabled(sampleStoreConstants
-          .featureName)) {
-          publisher.publishSample(samp, subHelper.model);
-        }
-
+        publisher.publishSample(samp, subHelper.model);
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
           .json(u.responsify(samp, helper, req.method));
@@ -229,17 +230,18 @@ module.exports = {
     }
 
     return authUtils.getUser(req)
-    .then(doUpsert)
-    .catch((err) => {
-
-      // proceed to do upsert iff user is found and do NOT need permission
-      if (err.status === httpStatus.FORBIDDEN &&
-        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
-        return doUpsert(false);
-      }
-
-      u.handleError(next, err, helper.modelName);
-    });
+    .then((user) => // upsert with found user
+      doUpsert(user)
+      .catch((err) => // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      )
+    )
+    .catch(() => // user is not found. upsert anyway with no user
+      doUpsert(false)
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      )
+    );
   },
 
   /**
@@ -252,8 +254,8 @@ module.exports = {
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
-   * @returns {ServerResponse} - The response object indicating merely that the
-   *  bulk upsert request has been received.
+   * @returns {Promise} - A promise that resolves to the response object,
+   * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
@@ -268,7 +270,8 @@ module.exports = {
      * Works regardless of whether user if provided or not.
      *
      * @param {Object} user Sequelize result. Optional
-     * @returns {Object} response object with status and body
+     * @returns {Promise} a promise that resolves to the response object
+     * with status and body
      */
     function bulkUpsert(user) {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
@@ -285,7 +288,7 @@ module.exports = {
         const jobPromise = jobWrapper
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
-        jobPromise.then((job) => {
+        return jobPromise.then((job) => {
           // set the job id in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
@@ -305,32 +308,28 @@ module.exports = {
         .then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {
-              if (!featureToggles
-                .isFeatureEnabled(sampleStoreConstants.featureName)) {
-                publisher.publishSample(sample, subHelper.model);
-              }
+              publisher.publishSample(sample, subHelper.model);
             }
           });
         });
         u.logAPI(req, resultObj, body, value.length);
-        return res.status(httpStatus.OK).json(body);
+        return Promise.resolve(res.status(httpStatus.OK).json(body));
       }
     }
 
-    // if authUtils throws error, it is because user is not found
-    // perform bulk upsert anyway.
-    authUtils.getUser(req)
-    .then(bulkUpsert)
-    .catch((err) => {
-
-      // proceed to do upsert iff user is found and do NOT need permission
-      if (err.status === httpStatus.FORBIDDEN &&
-        !featureToggles.isFeatureEnabled('enforceWritePermission')) {
-        return bulkUpsert(false);
-      }
-
-      u.handleError(next, err, helper.modelName);
-    });
+    return authUtils.getUser(req)
+    .then((user) => // upsert with found user
+      bulkUpsert(user)
+      .catch((err) => // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      )
+    )
+    .catch(() => // user is not found. upsert anyway with no user
+      bulkUpsert(false)
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      )
+    );
   },
 
   /**
@@ -350,13 +349,11 @@ module.exports = {
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
      helper.modelName === 'Sample') {
-      delRlinksPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+      delRlinksPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
       delRlinksPromise = u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o,
-            featureToggles.isFeatureEnabled('enforceWritePermission')))
+        .then((o) => u.isWritable(req, o))
         .then((o) => {
           let jsonData = [];
           if (params.relName) {

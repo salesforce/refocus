@@ -35,7 +35,6 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
-    tu.toggleOverride('enforceWritePermission', false);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;

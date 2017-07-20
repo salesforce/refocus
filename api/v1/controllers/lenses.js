@@ -361,8 +361,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const requestBody = req.swagger.params.queryBody.value;
     u.findByKey(helper, req.swagger.params)
-    .then((o) => u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       if (requestBody.name === '') {
         if (o.sourceName) {
@@ -486,9 +485,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
     u.findByKey(helper, req.swagger.params)
-    .then((o) =>
-      u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value === undefined) {

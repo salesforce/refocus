@@ -39,8 +39,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
   u.findByKey(props, params)
   .then((o) => {
     modelInst = o;
-    return u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission'));
+    return u.isWritable(req, o);
   })
   .then((o) => {
 

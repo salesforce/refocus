@@ -166,19 +166,15 @@ function buildFieldList(params) {
 /**
  * Checks if the model instance is writable by a user. The username is extracted
  * from the header if present, if not the user name of the logged in user is
- * used. This always resolves to the model instance if isEnabled is set to
- * false.
+ * used.
  * @param {Object} req  - The request object
  * @param {Object}  modelInst - DB Model instance
- * @param {isEnabled} isEnabled - A flag, when set, lets the caller of this
- * function check if model instance is writable or not. A feature flag is
- * passed by the function caller in its place.
  * @returns {Promise} - A promise which resolves to the modle instance when
  * the model instance is writable or rejects with a forbidden error
  */
-function isWritable(req, modelInst, isEnabled) {
+function isWritable(req, modelInst) {
   return new Promise((resolve, reject) => {
-    if (!isEnabled || typeof modelInst.isWritableBy !== 'function') {
+    if (typeof modelInst.isWritableBy !== 'function') {
       resolve(modelInst);
     }
 
@@ -210,12 +206,8 @@ function isWritable(req, modelInst, isEnabled) {
  * @returns {Promise} - A promise object which resolves to a username if the
  * doDecode flag is set
  */
-function getUserNameFromToken(req, doDecode) {
+function getUserNameFromToken(req) {
   return new Promise((resolve, reject) => {
-    if (!doDecode) {
-      resolve(true);
-    }
-
     if (req.headers && req.headers.authorization) {
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
