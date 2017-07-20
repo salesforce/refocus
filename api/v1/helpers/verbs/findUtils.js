@@ -152,6 +152,10 @@ function toSequelizeWhere(filter, props) {
           const v = filter[key][j];
           if (typeof v === 'boolean') {
             values.push(v);
+          } else if (typeof v === 'number') {
+            values.push(v);
+          } else if (u.looksLikeId(v)) {
+            values.push(v);
           } else if (typeof v === 'string') {
             const arr = v.split(constants.COMMA);
             for (let k = ZERO; k < arr.length; k++) {
