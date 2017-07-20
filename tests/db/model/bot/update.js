@@ -17,8 +17,8 @@ const u = require('./utils');
 const Bot = tu.db.Bot;
 const fs = require('fs');
 const path = require('path');
-const mt = path.join(__dirname, './uiBlob2');
-const uiBlob2 = fs.readFileSync(mt);
+const uiBlob = fs.readFileSync(path.join(__dirname, './uiBlob'));
+const uiBlob2 = fs.readFileSync(path.join(__dirname, './uiBlob2'));
 
 describe('db: bot: update: ', () => {
   beforeEach((done) => {
@@ -54,10 +54,13 @@ describe('db: bot: update: ', () => {
 
     it('ok, bot ui updated', (done) => {
       Bot.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ url: 'http://www.test.com' }))
-      .then(() => Bot.findOne({ where: { ui: uiBlob2 } }))
       .then((o) => {
-        expect(o).to.have.property('url').to.equal('http://www.test.com');
+        expect(o.ui.length).to.equal(uiBlob.length);
+        return o.update({ ui: uiBlob2 });
+      })
+      .then(() => Bot.findOne({ where: { name: u.name } }))
+      .then((o) => {
+        expect(o.ui.length).to.equal(uiBlob2.length);
         done();
       })
       .catch(done);
