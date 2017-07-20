@@ -7572,6 +7572,161 @@ paths:
           $ref: "#/responses/genericError"
 
 # =============================================================================
+  /events:
+    x-swagger-router-controller: events
+    get:
+      summary: Retrieve all events
+      tags: [ events ]
+      operationId: findEvents
+      description: >-
+        All events are retrieved using this route and using the paramaters as filters you can focus on rooms, bots, or users.
+      parameters:
+        -
+          name: roomId
+          description: Get events from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get events from specific bot
+          in: query
+          required: false
+          type: string
+        -
+          name: botDataId
+          description: Get events from specific botData
+          in: query
+          required: false
+          type: string
+        -
+          name: botActionId
+          description: Get events from specific botAction
+          in: query
+          required: false
+          type: string
+        -
+          name: userId
+          description: Get events from specific user
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all Events
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new event
+      tags: [ events ]
+      description: >-
+        Create a new event that can describe any action or information needed to be specifically logged,
+        typically used to activity in rooms.
+      operationId: postEvents
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create event properties
+            properties:
+              log:
+                type: string
+                description: Human readable log line to describe the context.
+              context:
+                type: object
+                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+              roomId:
+                type: integer
+                description: Room that this event relates to.
+              botId:
+                type: string
+                description: Bot that this event relates to.
+              botDataId:
+                type: string
+                description: Bot Data that this event relates to.
+              botActionId:
+                type: string
+                description: Bot Action that this event relates to.
+              userId:
+                type: string
+                description: User that this event relates to.
+            required:
+              - log
+      responses:
+        201:
+          description: >-
+            Created event
+          schema:
+            $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /events/{key}:
+    x-swagger-router-controller: events
+    get:
+      summary: Retrieve an event
+      tags: [ events ]
+      description: >-
+        This route is used to retrieve a single event.
+      operationId: getEvent
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the event to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified event
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
 definitions:
 
   AuthenticationError:
@@ -8831,6 +8986,35 @@ definitions:
         type: array
         items:
           type: object
+
+  EventResponse:
+    type: object
+    description: A response for information about a event
+    properties:
+      id:
+        type: string
+        description: The UUID of the specified event
+      log:
+        type: string
+        description: Human readable log line describing the event and its context it stores
+      context:
+        type: object
+        description: A object, typically JSON, that contains the information to describe an event
+      roomId:
+        type: integer
+        description: The room ID in which the event deals with
+      botId:
+        type: string
+        description: The bot ID in which the event deals with
+      botDataId:
+        type: string
+        description: The bot data ID in which the event deals with
+      botActionId:
+        type: string
+        description: The bot action ID in which the event deals with
+      userId:
+        type: string
+        description: The user ID in which the event deals with
 
   CollectorResponse:
     type: "object"
