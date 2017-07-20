@@ -15,6 +15,10 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
+const fs = require('fs');
+const path = require('path');
+const mt = path.join(__dirname, './uiBlob2');
+const uiBlob2 = fs.readFileSync(mt);
 
 describe('db: bot: update: ', () => {
   beforeEach((done) => {
@@ -41,6 +45,17 @@ describe('db: bot: update: ', () => {
       Bot.findOne({ where: { name: u.name } })
       .then((o) => o.update({ url: 'http://www.test.com' }))
       .then(() => Bot.findOne({ where: { name: u.name } }))
+      .then((o) => {
+        expect(o).to.have.property('url').to.equal('http://www.test.com');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('ok, bot ui updated', (done) => {
+      Bot.findOne({ where: { name: u.name } })
+      .then((o) => o.update({ url: 'http://www.test.com' }))
+      .then(() => Bot.findOne({ where: { ui: uiBlob2 } }))
       .then((o) => {
         expect(o).to.have.property('url').to.equal('http://www.test.com');
         done();
