@@ -8993,20 +8993,28 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID of the specified event
       log:
         type: string
+        description: Human readable log line describing the event and its context it stores
       context:
         type: object
+        description: A object, typically JSON, that contains the information to describe an event
       roomId:
         type: integer
+        description: The room ID in which the event deals with
       botId:
         type: string
+        description: The bot ID in which the event deals with
       botDataId:
         type: string
+        description: The bot data ID in which the event deals with
       botActionId:
         type: string
+        description: The bot action ID in which the event deals with
       userId:
         type: string
+        description: The user ID in which the event deals with
 
   CollectorResponse:
     type: "object"
