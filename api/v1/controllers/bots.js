@@ -63,7 +63,7 @@ module.exports = {
   /**
    * PATCH /bots/{key}
    *
-   * Update the specificed bot
+   * Update the specified bot
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
