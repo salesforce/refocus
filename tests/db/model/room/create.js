@@ -86,5 +86,21 @@ describe('db: room: create: ', () => {
       })
     .catch(done);
     });
+
+    it('fail, room type null', (done) => {
+      RoomType.create(v.getStandard())
+      .then((roomType) => {
+        const room = u.getStandard();
+        room.type = null;
+        return Room.create(room);
+      })
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.message.toLowerCase()).to.contain('notnull violation');
+        done();
+      })
+    .catch(done);
+    });
+
   });
 });
