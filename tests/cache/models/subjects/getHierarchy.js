@@ -205,4 +205,30 @@ describe(`api: GET ${path}`, () => {
       done();
     });
   });
+
+  describe('fields param', () => {
+    it('by id', (done) => {
+      api.get(path.replace('{key}', ipar) + '?fields=name')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) done(err);
+        expect(res.body).to.have.all
+          .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+        done();
+      });
+    });
+
+    it('by abs path', (done) => {
+      api.get(path.replace('{key}', par.name) + '?fields=name')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) done(err);
+        expect(res.body).to.have.all
+          .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+        done();
+      });
+    });
+  });
 });
