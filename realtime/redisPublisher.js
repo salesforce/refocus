@@ -17,7 +17,9 @@ const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
-
+const zlib = require('zlib');
+const Promise = require('bluebird');
+const gzipAsync = Promise.promisify(zlib.gzip);
 /**
  * When passed an sample object, either a sequelize sample object or
  * a plain sample object, it returns either an sample add event or an sample
@@ -85,7 +87,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 
   if (obj[event]) {
     const objectAsString = JSON.stringify(obj);
-    return pub.publish(channelName, objectAsString);
+    gzipAsync(objectAsString).then((compString) => {
+      pub.publish(channelName, compString.toString('hex'));
+    });
   }
 
   return obj;
