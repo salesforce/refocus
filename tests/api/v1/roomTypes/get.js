@@ -57,7 +57,7 @@ describe(`api: GET ${path}`, () => {
           done(err);
         }
 
-        expect(res.body.length).to.equal(ONE);
+        expect(res.body.length).to.equal(TWO);
         done(err);
       });
     });
