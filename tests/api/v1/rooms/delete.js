@@ -20,6 +20,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 
 describe(`api: DELETE ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
@@ -33,7 +34,13 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    tu.db.RoomType.create(u.rtSchema)
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
+      const room = u.getStandard();
+      room.type = newRoomType.id;
+      return tu.db.Room.create(room);
+    })
     .then((newRoom) => {
       testRoom = newRoom;
       done();

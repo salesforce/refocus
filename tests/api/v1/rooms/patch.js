@@ -21,6 +21,7 @@ const ZERO = 0;
 const tu = require('../../../testUtils');
 
 describe(`api: PATCH ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
@@ -34,7 +35,13 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    tu.db.RoomType.create(u.rtSchema)
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
+      const room = u.getStandard();
+      room.type = newRoomType.id;
+      return tu.db.Room.create(room);
+    })
     .then((newRoom) => {
       testRoom = newRoom;
       done();

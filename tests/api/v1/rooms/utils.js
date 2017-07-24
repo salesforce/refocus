@@ -89,8 +89,6 @@ const roomTypeSchema = {
   ],
 };
 
-const roomType = tu.db.RoomType.create(roomTypeSchema);
-
 const standard = {
   name: n,
   active: true,
@@ -112,12 +110,8 @@ module.exports = {
     return JSON.parse(JSON.stringify(standard));
   },
 
-  createNonActive() {
-    return tu.db.Room.create(nonActive);
-  },
-
-  createStandard() {
-    return tu.db.Room.create(standard);
+  getNonActive() {
+    return JSON.parse(JSON.stringify(nonActive));
   },
 
   forceDelete(done) {

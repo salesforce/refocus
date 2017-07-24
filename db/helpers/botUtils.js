@@ -38,6 +38,13 @@ const parameterArraySchema = Joi.alternatives().try(
   )
 );
 
+const settingsArraySchema = Joi.array().items(
+    Joi.object().keys({
+      key: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
+      helpText: Joi.string().regex(/^\w+(\s\w+)*$/i).required(),
+    })
+  );
+
 const actionArraySchema = Joi.array().items(
   Joi.object().keys({
     name: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
@@ -98,8 +105,27 @@ function validateDataArray(arr) {
   }
 } // validateDataArray
 
+/**
+ * Custom validation rule that checks the settings array to have
+ * all valid entries. Meaning each element contains key and a value.
+ *
+ * @param {Array} arr - The array to test
+ * @returns {undefined} - OK
+ * @throws {validationError} - Invalid settings array
+ */
+function validateSettingsArray(arr) {
+  const result = Joi.validate(arr, settingsArraySchema);
+
+  if (result.error !== null) {
+    throw new ValidationError({
+      message: result.error.details,
+    });
+  }
+} // validateSettings
+
 module.exports = {
   arrayHasValidParameters,
   validateActionArray,
   validateDataArray,
+  validateSettingsArray,
 }; // exports

@@ -23,6 +23,7 @@ const TWO = 2;
 const tu = require('../../../testUtils');
 
 describe(`api: GET ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
@@ -36,7 +37,13 @@ describe(`api: GET ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    tu.db.RoomType.create(u.rtSchema)
+    .then((newRoomType) => {
+      testRoomType = newRoomType;
+      const room = u.getStandard();
+      room.type = newRoomType.id;
+      return tu.db.Room.create(room);
+    })
     .then((newRoom) => {
       testRoom = newRoom;
       done();
@@ -63,7 +70,9 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get array of multiple', (done) => {
-      u.createNonActive()
+      const nonActive = u.getNonActive();
+      nonActive.type = testRoomType.id;
+      tu.db.Room.create(nonActive)
       .then(() => done())
       .catch(done);
 
@@ -108,9 +117,12 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by name', (done) => {
-      u.createNonActive()
+      const nonActive = u.getNonActive();
+      nonActive.type = testRoomType.id;
+      tu.db.Room.create(nonActive)
       .then(() => done())
       .catch(done);
+
 
       api.get(`${path}?name=`+u.name)
       .set('Authorization', token)

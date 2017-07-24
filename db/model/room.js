@@ -14,6 +14,7 @@
  */
 
 const constants = require('../constants');
+const u = require('../helpers/roomTypeUtils');
 
 const assoc = {};
 
@@ -33,6 +34,14 @@ module.exports = function room(seq, dataTypes) {
       },
       comment: 'Create a named room ',
     },
+    settings: {
+      type: dataTypes.ARRAY(dataTypes.JSONB),
+      allowNull: true,
+      validate: {
+        contains: u.validateSettingsArray,
+      },
+      comment: 'Key/Value pairs for user specific settings',
+    },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
@@ -46,13 +55,25 @@ module.exports = function room(seq, dataTypes) {
 
       postImport(models) {
         assoc.type = Room.belongsTo(models.RoomType, {
-          foreignKey: 'type',
-          allowNull: false,
+          foreignKey: {
+            name: 'type',
+            allowNull: false,
+          },
+          onDelete: 'CASCADE',
         });
         assoc.writers = Room.belongsToMany(models.User, {
           as: 'writers',
           through: 'RoomWriters',
           foreignKey: 'roomId',
+        });
+      },
+    },
+    hooks: {
+      afterCreate: (instance) => {
+        const RoomType = seq.models.RoomType;
+        return RoomType.findById(instance.type)
+        .then((roomType) => {
+          instance.settings = roomType.settings;
         });
       },
     },
