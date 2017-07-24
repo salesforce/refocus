@@ -14,12 +14,12 @@
 
 const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
-const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING'];
+const parameterTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
 const dataTypes = ['BOOLEAN', 'INTEGER', 'DECIMAL', 'STRING', 'ARRAY'];
 const dataArraySchema = Joi.array().items(
   Joi.object().keys({
     name: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
-    type: Joi.string().valid(dataTypes).required(),
+    type: Joi.string().valid(dataTypes).insensitive().required(),
   })
 );
 
@@ -27,7 +27,7 @@ const parameterArraySchema = Joi.alternatives().try(
   Joi.array().items(
     Joi.object().keys({
       name: Joi.string().regex(/^[0-9a-z_-]+$/i).required(),
-      type: Joi.string().valid(parameterTypes).required(),
+      type: Joi.string().valid(parameterTypes).insensitive().required(),
     })
   ),
   Joi.array().items(

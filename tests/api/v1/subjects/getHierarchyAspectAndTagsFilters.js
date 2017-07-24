@@ -275,6 +275,39 @@ describe(`api: GET ${path}:`, () => {
         done();
       });
     });
+
+    it('subjectTags field not included', (done) => {
+      const endpoint = path.replace('{key}', gp.id)
+        + '?subjectTags=cold&fields=name';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.not.equal(null);
+
+        // north america. Check to make sure it does not return the parOther
+        expect(res.body.children).to.have.length(1);
+        expect(res.body).to.not.have.property('tags');
+        expect(res.body).to.have.all
+        .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+
+        // canada
+        expect(res.body.children[0].children).to.have.length(1);
+
+        // quebec
+        const quebecSubj = res.body.children[0].children[0].children[0];
+        expect(quebecSubj.tags).to.include.members(['cold']);
+
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          console.log(err);
+          done(err);
+        }
+
+        done();
+      });
+    });
   });
 
   describe('Aspect Filter on Hierarchy', () => {

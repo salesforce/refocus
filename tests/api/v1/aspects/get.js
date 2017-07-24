@@ -142,6 +142,24 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => done(err));
     });
+
+    it('filter with tags - tag field not included', (done) => {
+      api.get(`${path}?tags=foo&fields=name,description`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].name).to.equal(`${tu.namePrefix}a0`);
+        expect(res.body[0]).to.not.have.property('tags');
+        expect(res.body[0]).to.have.all
+          .keys(['apiLinks', 'id', 'name', 'description']);
+        done();
+      });
+    });
   });
 
   describe('filter with duplicate tags fail', () => {
