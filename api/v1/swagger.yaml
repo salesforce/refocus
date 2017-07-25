@@ -1995,6 +1995,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2193,6 +2194,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
