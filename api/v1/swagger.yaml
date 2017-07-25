@@ -28,7 +28,7 @@ info:
   #   url: http://focus.salesforce.com/license
 
 # =============================================================================
-host: localhost:10010
+host: localhost:3000
 
 # =============================================================================
 basePath: /v1
@@ -41,7 +41,6 @@ basePath: /v1
 
 # =============================================================================
 schemes:
-  - https
   - http
 
 # =============================================================================
@@ -7318,7 +7317,7 @@ paths:
     x-swagger-router-controller: rooms
     get:
       tags: [ rooms ]
-      operationId: findRooms
+      operationId: findBotData
       parameters:
         -
           name: name
@@ -7365,7 +7364,7 @@ paths:
       summary: Create a new room
       tags: [ rooms ]
       description: Create a new room with a name
-      operationId: postRooms
+      operationId: postBotData
       parameters:
         -
           name: queryBody
@@ -7414,7 +7413,7 @@ paths:
       tags: [ rooms ]
       description: >-
         Delete a specific room
-      operationId: deleteRooms
+      operationId: deleteBotData
       parameters:
         -
           name: key
@@ -7519,6 +7518,133 @@ paths:
             Updated field
           schema:
             $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+# =============================================================================
+  /room/{roomId}/bot/{botId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve a room
+        tags: [ rooms ]
+        operationId: findRoomBotBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id the room to retrieve
+            required: true
+            type: integer
+          -
+            name: botId
+            in: path
+            description: >-
+              The id the room to retrieve
+            required: true
+            type: string
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified room
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+# ---------------------------------------------------------------------------
+  /botData:
+    x-swagger-router-controller: botData
+    get:
+      tags: [ botData ]
+      operationId: findBotData
+      parameters:
+        -
+          name: name
+          description: Filter botData by name
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botData
+      tags: [ botData ]
+      description: Create a new botData with a name
+      operationId: postBotData
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botData
+              value:
+                type: string
+                maxLength: 254
+                description: Name of the botData
+              botId:
+                type: string
+                maxLength: 254
+                description: Name of the botData
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Name of the botData
+            required:
+              - name
+              - value
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -9735,6 +9861,21 @@ definitions:
         type: array
         items:
           type: object
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      roomId:
+        type: integer
+      botId:
+        type: string
 
 # =============================================================================
 parameters:
