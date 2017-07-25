@@ -29,6 +29,32 @@ function doGetHierarchy(resultObj) {
   const params = resultObj.params;
   const depth = Number(params.depth.value);
   resultObj.dbStartTime = Date.now();
+
+  const fields = params.fields.value;
+  const filterFields = fields && fields.length;
+  const subjectTags = params.subjectTags.value;
+  const filterByTags = subjectTags && subjectTags.length;
+  const excludedFields = [];
+
+  if (filterFields) {
+    //if createdBy field is excluded, need to add it for the SQL query to work
+    if (!fields.includes('createdBy')) {
+      excludedFields.push('createdBy');
+    }
+
+    //if absolutePath field is excluded, need to add it for the SQL query to work
+    if (!fields.includes('absolutePath')) {
+      excludedFields.push('absolutePath');
+    }
+
+    //if tags field is excluded, need to add it so we can filter by tags later
+    if (filterByTags && !fields.includes('tags')) {
+      excludedFields.push('tags');
+    }
+
+    excludedFields.forEach(f => fields.push(f));
+  }
+
   const findByKeyPromise =
     featureToggles.isFeatureEnabled(sampleStoreFeature) ?
       u.findByKey(helper, params, ['subjectHierarchy']) :
@@ -48,10 +74,12 @@ function doGetHierarchy(resultObj) {
         return redisSubjectModel.completeSubjectHierarchy(retval, params)
         .then((_retval) => {
           resultObj.retval = _retval;
+          excludedFields.forEach(f => delete retval[f]);
           return resultObj;
         });
       } else {
         resultObj.retval = helper.modifyAPIResponse(retval, params);
+        excludedFields.forEach(f => delete retval[f]);
         return resultObj;
       }
     });
