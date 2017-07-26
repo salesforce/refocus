@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -16,10 +16,7 @@ const m = 'BotData';
 
 module.exports = {
   apiLinks: {
-    DELETE: `Delete ${m}`,
     GET: `Retrieve ${m}`,
-    PATCH: `Update selected attributes of ${m}`,
-    POST: `Create a new ${m}`,
   },
   baseUrl: '/v1/botData',
   model: BotData,
