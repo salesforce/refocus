@@ -60,4 +60,3 @@ describe(`api: DELETE ${path}`, () => {
     });
   });
 });
-
