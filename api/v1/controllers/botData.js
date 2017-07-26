@@ -82,7 +82,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  getRoom(req, res, next) {
+  getBotData(req, res, next) {
     doGet(req, res, next, helper);
   },
 
@@ -95,7 +95,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  patchRoom(req, res, next) {
+  patchBotData(req, res, next) {
     doPatch(req, res, next, helper);
   },
 
