@@ -7318,7 +7318,7 @@ paths:
     x-swagger-router-controller: rooms
     get:
       tags: [ rooms ]
-      operationId: findBotData
+      operationId: findRooms
       parameters:
         -
           name: name
@@ -7365,7 +7365,7 @@ paths:
       summary: Create a new room
       tags: [ rooms ]
       description: Create a new room with a name
-      operationId: postBotData
+      operationId: postRooms
       parameters:
         -
           name: queryBody
@@ -7414,7 +7414,7 @@ paths:
       tags: [ rooms ]
       description: >-
         Delete a specific room
-      operationId: deleteBotData
+      operationId: deleteRooms
       parameters:
         -
           name: key
