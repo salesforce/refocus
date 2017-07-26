@@ -30,7 +30,7 @@ module.exports = {
     doFind(req, res, next, helper);
   },
 
-   /**
+  /**
    * GET /room/{roomID}/data
    *
    * Finds zero or more botData and sends them back in the response.
@@ -43,7 +43,7 @@ module.exports = {
     doFind(req, res, next, helper);
   },
 
-   /**
+  /**
    * GET /botData/
    *
    * Finds zero or more botData and sends them back in the response.
