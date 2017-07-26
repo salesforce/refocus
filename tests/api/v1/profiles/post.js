@@ -14,41 +14,24 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const ZERO = 0;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Profile = tu.db.Profile;
 const path = '/v1/profiles';
 const expect = require('chai').expect;
-const ZERO = 0;
-
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
-
 describe(`api: POST ${path}`, () => {
-
-  let token;
-  
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
-
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
+  const p0 = { name: `${tu.namePrefix}1` };
 
   afterEach(u.forceDelete);
-  after(tu.forceDeleteToken);
 
   describe('POST profile', () => {
-    it('Pass, post profile', (done) => {
-      const p0 = { name: `${tu.namePrefix}TestProfile` };
-
+    it('Ok, post profile successful', (done) => {
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
       .send(p0)
@@ -57,11 +40,43 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           done(err);
         }
-
         expect(res.body.name).to.equal(p0.name);
         done();
       });
     });
-  });
 
+    it('Fail, duplicate profile', (done) => {
+      // Create profile ___1
+      tu.db.Profile.create(p0)
+      .then(() => done());
+
+      // Create identical profile
+      api.post(`${path}`)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(p0)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to
+        .contain('SequelizeUniqueConstraintError');
+      });
+    });
+
+    it('Fail, invalid profile name', (done) => {
+      api.post(`${path}`)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({ name: ''})
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to
+        .contain('SCHEMA_VALIDATION_FAILED');
+        done();
+      });
+    });
+  });
 });
