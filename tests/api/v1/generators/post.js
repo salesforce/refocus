@@ -69,7 +69,7 @@ describe(`api: POST ${path}`, () => {
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(2);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
-      return done() ;
+      return done();
     });
   });
 
