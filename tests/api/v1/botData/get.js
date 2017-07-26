@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/bots/get.js
+ * tests/api/v1/botData/get.js
  */
 
 'use strict';
@@ -32,6 +32,7 @@ const TWO = 2;
 describe(`api: GET ${path}`, () => {
   const testBotData = u.getStandard();
   let saveBotData;
+  let saveRoomType;
   let token;
 
   before((done) => {
@@ -46,6 +47,7 @@ describe(`api: GET ${path}`, () => {
   beforeEach((done) => {
     RoomType.create(rt.getStandard())
     .then((roomType) => {
+      saveRoomType = roomType;
       const room = r.getStandard();
       room.type = roomType.id;
       return Room.create(room);
@@ -128,6 +130,63 @@ describe(`api: GET ${path}`, () => {
       .catch(done);
     });
 
+    it('Pass, get data by room', (done) => {
+      const testBotData2 = u.getStandard();
+      const room = r.getStandard();
+      room.name = 'NewRoom';
+      room.type = saveRoomType.id;
+      Room.create(room)
+      .then((newRoom) => {
+        testBotData2.name = 'TestData2';
+        testBotData2.botId = testBotData.botId;
+        testBotData2.roomId = newRoom.id;
+        return BotData.create(testBotData2);
+      })
+      .then(() => {
+        api.get(`/v1/rooms/${testBotData.roomId}/data`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(ONE);
+          done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('Pass, get data by room and bot', (done) => {
+      const testBotData2 = u.getStandard();
+      const bot = b.getStandard();
+      bot.name = 'NewBot';
+      Bot.create(bot)
+      .then((newBot) => {
+        testBotData2.name = 'TestData2';
+        testBotData2.botId = newBot.botId;
+        testBotData2.roomId = testBotData.id;
+        return BotData.create(testBotData2);
+      })
+      .then(() => {
+        api.get(
+          `/v1/rooms/${testBotData.roomId}/bots/${testBotData.botId}/data`
+        )
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(ONE);
+          done();
+        });
+      })
+      .catch(done);
+    });
+
     it('Pass, get by id', (done) => {
       api.get(`${path}/${saveBotData.id}`)
       .set('Authorization', token)
@@ -149,6 +208,28 @@ describe(`api: GET ${path}`, () => {
       .end(() => {
         done();
       });
+    });
+
+    it('Fail, get data by room and bot not found', (done) => {
+      const testBotData2 = u.getStandard();
+      const bot = b.getStandard();
+      bot.name = 'NewBot';
+      Bot.create(bot)
+      .then((newBot) => {
+        testBotData2.name = 'TestData2';
+        testBotData2.botId = newBot.botId;
+        testBotData2.roomId = testBotData.id;
+        return BotData.create(testBotData2);
+      })
+      .then(() => {
+        api.get('/v1/rooms/NOT_FOUND/bots/NOT_FOUND/data')
+        .set('Authorization', token)
+        .expect(constants.httpStatus.NOT_FOUND)
+        .end(() => {
+          done();
+        });
+      })
+      .catch(done);
     });
   });
 });

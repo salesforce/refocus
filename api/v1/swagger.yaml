@@ -7736,7 +7736,7 @@ paths:
           $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
-  /room/{roomId}/data:
+  /rooms/{roomId}/data:
       x-swagger-router-controller: botData
       get:
         summary: Retrieve bot data from a room
@@ -7772,7 +7772,7 @@ paths:
             $ref: "#/responses/genericError"
 
 # ---------------------------------------------------------------------------
-  /room/{roomId}/bot/{botId}/data:
+  /rooms/{roomId}/bots/{botId}/data:
       x-swagger-router-controller: botData
       get:
         summary: Retrieve bot data from a room from a specific bot
