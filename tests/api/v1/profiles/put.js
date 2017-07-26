@@ -61,6 +61,24 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
+    it('Fail, Admin update forbidden', (done) => {
+      api.put(path + '/' + adminProfile.name)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({
+        name: adminProfile.name,
+        aspectAccess: 'r',
+      })
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to
+        .equal('AdminUpdateDeleteForbidden');
+        done();
+      });
+    });
+
     it('Fail, name is a required field of PUT Profile', (done) => {
       api.put(path + '/' + pname)
       .set('Authorization', predefinedAdminUserToken)
