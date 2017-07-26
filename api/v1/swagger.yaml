@@ -2176,7 +2176,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         200:
           description: Success, returns the updated generator.

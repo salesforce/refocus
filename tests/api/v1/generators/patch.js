@@ -47,10 +47,26 @@ describe(`api: PATCH ${path}`, () => {
   after(tu.forceDeleteUser);
 
   it('simple patching: ok', (done) => {
-    const newName =  {
+    const newName = {
       name: 'New_Name',
     };
     api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send(newName)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.name).to.equal(newName.name);
+    })
+    .end((err /* , res */) => {
+      return err ? done(err) : done();
+    });
+  });
+
+  it('simple patching using name in the url: ok', (done) => {
+    const newName = {
+      name: 'New_Name',
+    };
+    api.patch(`${path}/${generatorToCreate.name}`)
     .set('Authorization', token)
     .send(newName)
     .expect(constants.httpStatus.OK)
