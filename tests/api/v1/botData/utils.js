@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/api/bot/utils.js
+ * tests/db/api/botData/utils.js
  */
 'use strict';
 
