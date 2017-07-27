@@ -1996,6 +1996,38 @@ paths:
 
   /generators/{key}:
     x-swagger-router-controller: generators
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified generator
+      tags: [ generators ]
+      description: >-
+        Delete the specified generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: deleteGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the deleted generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -2279,6 +2311,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2310,7 +2343,11 @@ paths:
           description: >-
             Success, returns requested user.
           schema:
-            $ref: "#/definitions/UsersResponse"
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
         400:
           $ref: "#/responses/400"
         404:
@@ -9646,10 +9683,6 @@ definitions:
         readOnly: true
         description: >
           The collector id.
-      isDeleted:
-        type: string
-        readOnly: true
-        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.

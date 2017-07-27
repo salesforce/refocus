@@ -21,6 +21,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
+const doDelete = require('../helpers/verbs/doDelete');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -90,6 +91,19 @@ module.exports = {
    */
   putGenerator(req, res, next) {
     doPut(req, res, next, helper);
+  },
+
+  /**
+   * DELETE /generators/{key}
+   *
+   * Delete the generator and sends it back in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteGenerator(req, res, next) {
+    doDelete(req, res, next, helper);
   },
 
   /**
