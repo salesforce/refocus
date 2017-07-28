@@ -39,7 +39,8 @@ describe(`api: POST ${path}`, () => {
     it('Pass, post bot', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(u.getStandard())
+      .field('name', u.name)
+      .attach('ui', 'tests/api/v1/bots/uiBlob')
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -81,7 +82,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
         expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
+        .contain(tu.valErrorName);
         done();
       });
     });

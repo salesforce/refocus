@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/bots/patch.js
+ * tests/api/v1/bots/put.js
  */
 
 'use strict';
@@ -18,9 +18,12 @@ const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
+const fs = require('fs');
+const paths = require('path');
 const tu = require('../../../testUtils');
+const uiBlob2 = fs.readFileSync(paths.join(__dirname, './uiBlob2'));
 
-describe(`api: PATCH ${path}`, () => {
+describe(`api: PUT ${path}`, () => {
   let testBot;
   let token;
 
@@ -45,26 +48,30 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('PATCH bot', () => {
-    it('Pass, patch bot name', (done) => {
-      const newName = 'newName';
-      api.patch(`${path}/${testBot.id}`)
+  describe('PUT bot', () => {
+    it('Pass, put bot UI', (done) => {
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.OK)
+      .field('name', u.name)
+      .attach('ui', 'tests/api/v1/bots/uiBlob2')
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
         }
 
-        expect(res.body.name).to.equal(newName);
-        done();
+        tu.db.Bot.findAll()
+        .then((o) => {
+          expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
+          done();
+        })
+        .catch(done);
       });
     });
 
-    it('Fail, patch bot invalid name', (done) => {
+   /* it('Fail, put bot invalid name', (done) => {
       const newName = '~!invalidName';
-      api.patch(`${path}/${testBot.id}`)
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -79,8 +86,8 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('Fail, patch bot invalid attribute', (done) => {
-      api.patch(`${path}/${testBot.id}`)
+    it('Fail, put bot invalid attribute', (done) => {
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({ invalid: true })
       .expect(constants.httpStatus.OK)
@@ -92,7 +99,7 @@ describe(`api: PATCH ${path}`, () => {
         expect(res.body).not.to.have.property('invalid');
         done();
       });
-    });
+    });*/
   });
 });
 
