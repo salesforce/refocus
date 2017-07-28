@@ -134,7 +134,7 @@ describe(`api: GET ${path}`, () => {
     it('Pass, get data by room', (done) => {
       const testBotData2 = u.getStandard();
       const room = r.getStandard();
-      room.name = 'NewRoom';
+      room.name = 'NewRoomName';
       room.type = saveRoomType.id;
       Room.create(room)
       .then((newRoom) => {
