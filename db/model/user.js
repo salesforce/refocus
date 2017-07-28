@@ -77,6 +77,12 @@ module.exports = function user(seq, dataTypes) {
             through: 'GeneratorTemplateWriters',
             foreignKey: 'userId',
           });
+        assoc.writableGenerators =
+          User.belongsToMany(models.Generator, {
+            as: 'writableGenerators',
+            through: 'GeneratorWriters',
+            foreignKey: 'userId',
+          });
         assoc.writableAspects = User.belongsToMany(models.Aspect, {
           as: 'writableAspects',
           through: 'AspectWriters',
