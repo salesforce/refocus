@@ -89,8 +89,10 @@ function doPost(req, res, next, props) {
     postPromise = u.createSample(req, props);
   } else {
 
-    // cache is off and returnUser is false.
-    // not a sample
+    /**
+     * cache is off and returnUser is false.
+     * not a sample
+     */
     postPromise = props.model.create(toPost);
   }
 
@@ -111,8 +113,7 @@ function doPost(req, res, next, props) {
       .then(() => res.status(httpStatus.CREATED).json(
           u.responsify(o, props, req.method)));
     } else {
-      return res.status(httpStatus.CREATED)
-      .json(u.responsify(o, props, req.method));
+      return res.status(httpStatus.CREATED).json(u.responsify(o, props, req.method));
     }
   })
   .catch((err) => u.handleError(next, err, props.modelName));
