@@ -68,21 +68,6 @@ describe('api: generatorss: permissions', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
-    it('return 403 when deleting generator without permission', (done) => {
-      api.delete(generatorPath.replace('{key}', generator.id))
-      .set('Authorization', otherValidToken)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
-    });
-  });
-
   describe('delete writer(s)', () => {
     it('remove write permission using username', (done) => {
       api.delete(writerPath.replace('{key}', generator.id)
