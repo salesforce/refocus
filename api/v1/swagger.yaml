@@ -1794,6 +1794,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -1949,11 +1950,9 @@ paths:
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
-                readOnly: true
                 description: The generator's name.
               subjectQuery:
                 type: string
-                readOnly: true
                 description: The query to append to GET subjects.
               subjects:
                 description: AbsolutePaths of the subjects.
@@ -1978,7 +1977,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         201:
           description: >-
@@ -1995,6 +1995,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2175,7 +2176,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         200:
           description: Success, returns the updated generator.
@@ -2193,6 +2195,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2276,6 +2279,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2307,7 +2311,11 @@ paths:
           description: >-
             Success, returns requested user.
           schema:
-            $ref: "#/definitions/UsersResponse"
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
         400:
           $ref: "#/responses/400"
         404:
@@ -9698,10 +9706,6 @@ definitions:
         readOnly: true
         description: >
           The collector id.
-      isDeleted:
-        type: string
-        readOnly: true
-        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
