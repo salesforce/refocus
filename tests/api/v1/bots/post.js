@@ -40,6 +40,7 @@ describe(`api: POST ${path}`, () => {
       api.post(`${path}`)
       .set('Authorization', token)
       .field('name', u.name)
+      .field('url', 'https://www.foo.com')
       .attach('ui', 'tests/api/v1/bots/uiBlob')
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
