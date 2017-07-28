@@ -151,9 +151,13 @@ module.exports = {
     adminProfile: {
       name: 'Admin',
       aspectAccess: 'rw',
+      botAccess: 'rw',
+      eventAccess: 'rw',
       lensAccess: 'rw',
       perspectiveAccess: 'rw',
       profileAccess: 'rw',
+      roomAccess: 'rw',
+      roomTypeAccess: 'rw',
       sampleAccess: 'rw',
       subjectAccess: 'rw',
       userAccess: 'rw',
