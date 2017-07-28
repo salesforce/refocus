@@ -7,21 +7,28 @@
  */
 
 /**
- * tests/api/v1/bots/patch.js
+ * tests/api/v1/botActions/patch.js
  */
 
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/bots';
+const r = require('../rooms/utils');
+const rt = require('../roomTypes/utils');
+const b = require('../bots/utils');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const Bot = tu.db.Bot;
+const BotAction = tu.db.BotAction;
+const path = '/v1/botActions';
 const expect = require('chai').expect;
 const ZERO = 0;
-const tu = require('../../../testUtils');
 
 describe(`api: PATCH ${path}`, () => {
-  let testBot;
+  let testBotAction;
   let token;
 
   before((done) => {
@@ -34,21 +41,35 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
-    .then((newBot) => {
-      testBot = newBot;
+    testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((botAction) => {
+      testBotAction = botAction;
       done();
     })
     .catch(done);
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
-  describe('PATCH bot', () => {
-    it('Pass, patch bot name', (done) => {
+  describe('PATCH botAction', () => {
+    it('Pass, patch botAction name', (done) => {
       const newName = 'newName';
-      api.patch(`${path}/${testBot.id}`)
+      api.patch(`${path}/${testBotAction.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.OK)
@@ -62,9 +83,9 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('Fail, patch bot invalid name', (done) => {
+    it('Fail, patch botAction invalid name', (done) => {
       const newName = '~!invalidName';
-      api.patch(`${path}/${testBot.id}`)
+      api.patch(`${path}/${testBotAction.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -79,8 +100,8 @@ describe(`api: PATCH ${path}`, () => {
       });
     });
 
-    it('Fail, patch bot invalid attribute', (done) => {
-      api.patch(`${path}/${testBot.id}`)
+    it('Fail, patch botAction invalid attribute', (done) => {
+      api.patch(`${path}/${testBotAction.id}`)
       .set('Authorization', token)
       .send({ invalid: true })
       .expect(constants.httpStatus.OK)

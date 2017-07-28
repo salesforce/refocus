@@ -7,20 +7,27 @@
  */
 
 /**
- * tests/api/v1/bots/delete.js
+ * tests/api/v1/botActions/delete.js
  */
 
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const u = require('./utils');
-const path = '/v1/bots';
-const expect = require('chai').expect;
 const tu = require('../../../testUtils');
+const u = require('./utils');
+const r = require('../rooms/utils');
+const rt = require('../roomTypes/utils');
+const b = require('../bots/utils');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const Bot = tu.db.Bot;
+const BotAction = tu.db.BotAction;
+const path = '/v1/botActions';
+const expect = require('chai').expect;
 
 describe(`api: DELETE ${path}`, () => {
-  let testBot;
+  let testBotAction;
   let token;
 
   before((done) => {
@@ -33,20 +40,34 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
-    .then((newBot) => {
-      testBot = newBot;
+    testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((botAction) => {
+      testBotAction = botAction;
       done();
     })
     .catch(done);
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
-  describe('DELETE bot', () => {
-    it('Pass, delete bot', (done) => {
-      api.delete(`${path}/${testBot.id}`)
+  describe('DELETE botAction', () => {
+    it('Pass, delete botAction', (done) => {
+      api.delete(`${path}/${testBotAction.id}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -59,7 +80,7 @@ describe(`api: DELETE ${path}`, () => {
       });
     });
 
-    it('Fail, bot not found', (done) => {
+    it('Fail, botAction not found', (done) => {
       api.delete(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)

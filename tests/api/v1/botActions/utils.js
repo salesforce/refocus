@@ -7,185 +7,88 @@
  */
 
 /**
- * tests/db/api/bot/utils.js
+ * tests/db/api/botActions/utils.js
  */
 'use strict';
 
-const path = require('path');
-const fs = require('fs');
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
-const n = `${tu.namePrefix}TestBot`;
-const n2 = n+'NonActive';
-const mt = path.join(__dirname, './uiBlob');
-const uiBlob = fs.readFileSync(mt);
+const Action1 = 'Action1';
 
 const standard = {
-  name: n,
-  url: 'http://www.bar.com',
-  ui: uiBlob,
-  active: true,
-  actions: [
+  isPending: true,
+  name: Action1,
+  parameters: [
     {
-      name: 'Action1',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
+      name: 'Param1',
+      value: true,
     },
     {
-      name: 'Action2',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    }
-  ],
-  data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
+      name: 'Param2',
+      value: 4,
     },
     {
-      name: 'Data2',
-      type: 'INTEGER',
+      name: 'Param3',
+      value: 62.2,
     },
     {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
+      name: 'Param4',
+      value: 'TestValue',
     },
   ],
 };
 
-const nonActive = {
-  name: n2,
-  url: 'http://www.bar.com',
-  ui: uiBlob,
-  active: false,
-  actions: [
+const res = {
+  isPending: true,
+  name: 'Action2',
+  parameters: [
     {
-      name: 'Action1',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
+      name: 'Param1',
+      value: true,
     },
     {
-      name: 'Action2',
-      parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
-      ],
-    }
-  ],
-  data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
+      name: 'Param2',
+      value: 4,
     },
     {
-      name: 'Data2',
-      type: 'INTEGER',
+      name: 'Param3',
+      value: 62.2,
     },
     {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
+      name: 'Param4',
+      value: 'TestValue',
     },
   ],
+  response: {
+    message: 'Action Completed',
+  },
 };
 
 module.exports = {
-  name: n,
-
-  nameNonActive: n2,
+  name: Action1,
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
   },
 
-  createNonActive() {
-    return tu.db.Bot.create(nonActive);
+  getResponse() {
+    return JSON.parse(JSON.stringify(res));
   },
 
   createStandard() {
-    return tu.db.Bot.create(standard);
+    return tu.db.BotData.create(standard);
+  },
+
+  createResponse() {
+    return tu.db.BotData.create(res);
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Bot, testStartTime)
+    tu.forceDelete(tu.db.BotAction, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Room, testStartTime))
+    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
   },

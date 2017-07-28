@@ -7,23 +7,30 @@
  */
 
 /**
- * tests/api/v1/bots/get.js
+ * tests/api/v1/botActions/get.js
  */
 
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/bots';
+const r = require('../rooms/utils');
+const rt = require('../roomTypes/utils');
+const b = require('../bots/utils');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const Bot = tu.db.Bot;
+const BotAction = tu.db.BotAction;
+const path = '/v1/botActions';
 const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
-const tu = require('../../../testUtils');
 
 describe(`api: GET ${path}`, () => {
-  let testBot;
+  let testBotAction;
   let token;
 
   before((done) => {
@@ -36,18 +43,32 @@ describe(`api: GET ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
-    .then((newBot) => {
-      testBot = newBot;
+    testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((botAction) => {
+      testBotAction = botAction;
       done();
     })
     .catch(done);
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
-  describe('GET bot', () => {
+  describe('GET botAction', () => {
     it('Pass, get array of one', (done) => {
       api.get(`${path}`)
       .set('Authorization', token)
@@ -63,24 +84,28 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get array of multiple', (done) => {
-      u.createNonActive()
-      .then(() => done())
+      const respondedAction = u.getResponse();
+      respondedAction.botId = testBotAction.botId;
+      respondedAction.roomId = testBotAction.roomId;
+      BotAction.create(respondedAction)
+      .then(() => {
+        api.get(`${path}`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(TWO);
+          done();
+        });
+      })
       .catch(done);
-
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-      });
     });
 
     it('Pass, get active', (done) => {
-      api.get(`${path}?active=true`)
+      api.get(`${path}?isPending=true`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -94,7 +119,7 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get inactive', (done) => {
-      api.get(`${path}?active=false`)
+      api.get(`${path}?isPending=false`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -108,10 +133,6 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by name', (done) => {
-      u.createNonActive()
-      .then(() => done())
-      .catch(done);
-
       api.get(`${path}?name=`+u.name)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -122,11 +143,12 @@ describe(`api: GET ${path}`, () => {
 
         expect(res.body.length).to.equal(ONE);
         expect(res.body[ZERO].name).to.equal(u.name);
+        done();
       });
     });
 
     it('Pass, get by id', (done) => {
-      api.get(`${path}/${testBot.id}`)
+      api.get(`${path}/${testBotAction.id}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {

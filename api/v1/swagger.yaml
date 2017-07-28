@@ -9687,10 +9687,8 @@ definitions:
         items:
           type: object
       response:
-        type: array
+        type: object
         description: The output of an bot action
-        items:
-          type: object
       roomId:
         type: integer
         description: The room ID in which the bot action deals with
