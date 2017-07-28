@@ -7808,30 +7808,29 @@ paths:
         -
           name: name
           in: formData
-          description: name
+          description: The unique readable name for the bot
           type: string
         -
           name: active
           in: formData
-          description: active
+          description: Flag for if a bot is active with communication
           type: boolean
           default: false
         -
           name: url
           in: formData
-          description: url
+          description: The URL of the bot server
           type: string
-          default: 'http://www.google.com'
         -
           name: ui
-          description: file
+          description: The zipped HTML and Javascript needed to run the UI of the bot
           in: formData
           type: file
           format: binary
         -
           name: actions
           in: formData
-          description: actions
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
           type: array
           items:
             type: string
@@ -7839,7 +7838,7 @@ paths:
         -
           name: data
           in: formData
-          description: data
+          description: Array of objects that contain the name of data on a bot
           type: array
           items:
             type: string
@@ -8018,30 +8017,29 @@ paths:
         -
           name: name
           in: formData
-          description: name
+          description: The unique readable name for the bot
           type: string
         -
           name: active
           in: formData
-          description: active
+          description: Flag for if a bot is active with communication
           type: boolean
           default: false
         -
           name: url
           in: formData
-          description: url
+          description: The URL of the bot server
           type: string
-          default: 'http://www.google.com'
         -
           name: ui
-          description: file
+          description: The zipped HTML and Javascript needed to run the UI of the bot
           in: formData
           type: file
           format: binary
         -
           name: actions
           in: formData
-          description: actions
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
           type: array
           items:
             type: string
@@ -8049,7 +8047,7 @@ paths:
         -
           name: data
           in: formData
-          description: data
+          description: Array of objects that contain the name of data on a bot
           type: array
           items:
             type: string
@@ -9470,18 +9468,24 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID for the bot
       name:
         type: string
+        description: The unique readable name for the bot
       url:
         type: string
+        description: The URL of the bot server
       active:
         type: boolean
+        description: Flag for if a bot is active with communication
       actions:
         type: array
+        description: A list of actions that a bot can perform
         items:
           type: object
       data:
         type: array
+        description: A list of data that a bot can provide
         items:
           type: object
 
