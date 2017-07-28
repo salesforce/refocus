@@ -41,6 +41,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
         expect(res.body.name).to.equal(p0.name);
+        expect(res.body.botAccess).to.equal('r');
         done();
       });
     });
