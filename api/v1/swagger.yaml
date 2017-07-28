@@ -2279,6 +2279,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2310,7 +2311,11 @@ paths:
           description: >-
             Success, returns requested user.
           schema:
-            $ref: "#/definitions/UsersResponse"
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
         400:
           $ref: "#/responses/400"
         404:
@@ -9682,10 +9687,6 @@ definitions:
         readOnly: true
         description: >
           The collector id.
-      isDeleted:
-        type: string
-        readOnly: true
-        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
