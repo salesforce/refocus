@@ -80,22 +80,21 @@ describe(`api: POST ${path}`, () => {
     it('Fail, duplicate botData', (done) => {
       BotData.create(testBotData)
       .then(() => {
-        done();
+        api.post(`${path}`)
+        .set('Authorization', token)
+        .send(testBotData)
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.errors[ZERO].type).to
+          .contain('ValidationError');
+          done();
+        });
       })
       .catch(done);
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testBotData)
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
     });
   });
 });
