@@ -11,6 +11,20 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const helper = require('../helpers/nouns/generators');
+const userProps = require('../helpers/nouns/users');
+const doDeleteOneAssoc =
+                    require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostAssoc =
+                    require('../helpers/verbs/doPostBToMAssoc');
+const doFind = require('../helpers/verbs/doFind');
+const doGet = require('../helpers/verbs/doGet');
+const doPatch = require('../helpers/verbs/doPatch');
+const doPost = require('../helpers/verbs/doPost');
+const doPut = require('../helpers/verbs/doPut');
+const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
+
 module.exports = {
 
   /**
@@ -23,7 +37,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findGenerators(req, res, next) {
-    res.send({ status: 200, text: 'Get all generators' });
+    doFind(req, res, next, helper);
   },
 
   /**
@@ -36,7 +50,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGenerator(req, res, next) {
-    res.send({ status: 200, text: 'Get a generator' });
+    doGet(req, res, next, helper);
   },
 
   /**
@@ -49,7 +63,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGenerator(req, res, next) {
-    res.send({ status: 200, text: 'PATCH a generator' });
+    doPatch(req, res, next, helper);
   },
 
   /**
@@ -62,7 +76,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGenerator(req, res, next) {
-    res.send({ status: 201, text: 'POST a generator' });
+    doPost(req, res, next, helper);
   },
 
   /**
@@ -75,7 +89,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putGenerator(req, res, next) {
-    res.send({ status: 200, text: 'PUT a generator' });
+    doPut(req, res, next, helper);
   },
 
   /**
@@ -88,7 +102,18 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorWriters(req, res, next) {
-    res.send({ status: 200, text: 'Get writers for generator Y' });
+    const resultObj = { reqStartTime: new Date() };
+    const params = req.swagger.params;
+    const options = {};
+    u.findAssociatedInstances(helper,
+      params, helper.belongsToManyAssoc.users, options)
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
+      res.status(httpStatus.OK).json(retval);
+    }).catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -102,7 +127,23 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorWriter(req, res, next) {
-    res.send({ status: 200, text: 'Get writer X for generator Y' });
+    const resultObj = { reqStartTime: new Date() };
+    const params = req.swagger.params;
+    const options = {};
+    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
+    u.findAssociatedInstances(helper,
+      params, helper.belongsToManyAssoc.users, options)
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      // throw ResourceNotFound error if resolved object is empty array
+      u.throwErrorForEmptyArray(o,
+        params.userNameOrId.value, userProps.modelName);
+      const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -117,7 +158,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGeneratorWriters(req, res, next) {
-    res.send({ status: 201, text: 'Post generator writer' });
+    const params = req.swagger.params;
+    const toPost = params.queryBody.value;
+    const options = {};
+    options.where = u.whereClauseForNameInArr(toPost);
+    userProps.model.findAll(options)
+    .then((usrs) => {
+      doPostAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, usrs);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -132,6 +182,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteGeneratorWriter(req, res, next) {
-    res.send({ status: 204, text: 'Delete generator writer' });
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
   },
 }; // exports
