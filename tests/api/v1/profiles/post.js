@@ -26,7 +26,17 @@ describe(`api: POST ${path}`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  let token;
   const p0 = { name: `${tu.namePrefix}1` };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   afterEach(u.forceDelete);
 
@@ -45,11 +55,23 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
+    it('fail, not an admin profile', (done) => {
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(p0)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
     it('Fail, duplicate profile', (done) => {
       // Create profile ___1
-      tu.db.Profile.create(p0)
-      .then(() => done());
-
+      tu.db.Profile.create(p0);
       // Create identical profile
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
@@ -61,6 +83,7 @@ describe(`api: POST ${path}`, () => {
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SequelizeUniqueConstraintError');
+        done();
       });
     });
 
