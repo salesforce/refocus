@@ -58,7 +58,7 @@ describe(`api: POST ${path}`, () => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
           done(err);
