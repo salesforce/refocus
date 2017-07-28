@@ -18,33 +18,7 @@ const doGet = require('../helpers/verbs/doGet');
 module.exports = {
 
   /**
-   * GET /room/{roomID}/bot/{botID}/data
-   *
-   * Finds zero or more botData and sends them back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  findRoomBotBotData(req, res, next) {
-    doFind(req, res, next, helper);
-  },
-
-  /**
-   * GET /room/{roomID}/data
-   *
-   * Finds zero or more botData and sends them back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  findRoomBotData(req, res, next) {
-    doFind(req, res, next, helper);
-  },
-
-  /**
-   * GET /botData/
+   * GET /botData/, /room/{roomID}/bot/{botID}/data, /room/{roomID}/data
    *
    * Finds zero or more botData and sends them back in the response.
    *

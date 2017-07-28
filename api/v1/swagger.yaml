@@ -7603,7 +7603,7 @@ paths:
       get:
         summary: Retrieve bot data from a room
         tags: [ rooms ]
-        operationId: findRoomBotData
+        operationId: findBotData
         parameters:
           -
             name: roomId
@@ -7639,7 +7639,7 @@ paths:
       get:
         summary: Retrieve bot data from a room from a specific bot
         tags: [ rooms ]
-        operationId: findRoomBotBotData
+        operationId: findBotData
         parameters:
           -
             name: roomId

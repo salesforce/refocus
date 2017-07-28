@@ -81,6 +81,7 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].name).to.equal(u.name);
         done(err);
       });
     });
@@ -152,6 +153,7 @@ describe(`api: GET ${path}`, () => {
           }
 
           expect(res.body.length).to.equal(ONE);
+          expect(res.body[ZERO].name).to.equal(u.name);
           done();
         });
       })
@@ -181,6 +183,7 @@ describe(`api: GET ${path}`, () => {
           }
 
           expect(res.body.length).to.equal(ONE);
+          expect(res.body[ZERO].name).to.equal(u.name);
           done();
         });
       })
