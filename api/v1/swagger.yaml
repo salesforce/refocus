@@ -8001,8 +8001,8 @@ paths:
           required: false
           type: string
         -
-          name: active
-          description: Get active botActions
+          name: isPending
+          description: Get pending botActions
           in: query
           required: false
           type: boolean
@@ -8032,7 +8032,7 @@ paths:
         - jwt: []
       summary: Create a new botAction
       tags: [ botActions ]
-      description: Create a new botAction with a name
+      description: Create a new botAction with a name, room id and bot id
       operationId: postBotActions
       parameters:
         -
@@ -8047,24 +8047,30 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the botAction
-              url:
-                type: string
-                description: BotAction url
-              active:
+              isPending:
                 type: boolean
                 description: If the botAction is active
-              actions:
+              parameters:
                 type: array
                 description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
                 items:
                   type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a botAction
-                items:
-                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
             required:
               - name
+              - roomId
+              - botId
       responses:
         201:
           description: >-
@@ -8129,14 +8135,8 @@ paths:
           required: true
           type: string
         -
-          name: name
-          description: Get botAction by name
-          in: query
-          required: false
-          type: string
-        -
-          name: active
-          description: Get botActions depending on its active tag
+          name: isPending
+          description: Get botActions depending on its pending tag
           in: query
           required: false
           type: boolean
@@ -8188,22 +8188,26 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the botAction
-              url:
-                type: string
-                description: BotAction url
-              active:
+              isPending:
                 type: boolean
                 description: If the botAction is active
-              actions:
+              parameters:
                 type: array
                 description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
                 items:
                   type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a botAction
-                items:
-                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
       responses:
         200:
           description: >-

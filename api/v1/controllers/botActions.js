@@ -30,7 +30,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteBotActionActions(req, res, next) {
+  deleteBotActions(req, res, next) {
     doDelete(req, res, next, helper);
   },
 
@@ -43,7 +43,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  findBotActionActions(req, res, next) {
+  findBotActions(req, res, next) {
     doFind(req, res, next, helper);
   },
 
@@ -82,7 +82,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  postBotActionActions(req, res, next) {
+  postBotActions(req, res, next) {
     doPost(req, res, next, helper);
   },
 
@@ -95,7 +95,7 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  putBotActionActions(req, res, next) {
+  putBotActions(req, res, next) {
     doPut(req, res, next, helper);
   },
 
