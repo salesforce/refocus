@@ -113,7 +113,7 @@ module.exports = {
   },
 
   getNonActive() {
-    return JSON.parse(JSON.stringify(standard));
+    return JSON.parse(JSON.stringify(nonActive));
   },
 
   createNonActive() {
