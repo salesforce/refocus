@@ -112,6 +112,10 @@ module.exports = {
     return JSON.parse(JSON.stringify(standard));
   },
 
+  getNonActive() {
+    return JSON.parse(JSON.stringify(standard));
+  },
+
   createNonActive() {
     return tu.db.Room.create(nonActive);
   },
