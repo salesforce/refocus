@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/collectors/put.js
+ * tests/api/v1/collectors/start.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
@@ -15,14 +15,14 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/collectors';
+const path = '/v1/collectors/{key}/start';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
-const ZERO = 0;
 
-describe(`api: PUT ${path}`, () => {
+describe.only(`api: ${path} >`, () => {
+  let i = 0;
+  const asp = u.toCreate;
   let token;
-  let cid = 0;
 
   before((done) => {
     tu.createToken()
@@ -36,32 +36,22 @@ describe(`api: PUT ${path}`, () => {
   beforeEach((done) => {
     Collector.create(u.toCreate)
     .then((c) => {
-      cid = c.id;
+      i = c.id;
       done();
     })
-    .catch((err) => {
-      done(err);
-    });
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('update description', (done) => {
-    const toPut = u.toCreate;
-    toPut.description = 'New Description';
-    api.put(`${path}/${cid}`)
+  it('ok', (done) => {
+    api.post(path.replace('{key}', i))
     .set('Authorization', token)
-    .send(toPut)
+    .send({})
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      if (tu.gotExpectedLength(res.body, ZERO)) {
-        throw new Error('expecting collector');
-      }
-
-      if (res.body.description !== toPut.description) {
-        throw new Error('Incorrect description');
-      }
+      expect(res.body.status).to.be.equal('Running');
     })
     .end((err /* , res */) => {
       if (err) {
@@ -72,13 +62,5 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  it('error - resource not found', (done) => {
-    api.put(`${path}/doesNotExist`)
-    .set('Authorization', token)
-    .send(u.toCreate)
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      done();
-    });
-  });
+  it('test invalid state changes');
 });

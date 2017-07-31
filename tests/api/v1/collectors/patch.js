@@ -20,4 +20,60 @@ const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
 describe(`api: PATCH ${path}`, () => {
+  let i = 0;
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  beforeEach((done) => {
+    Collector.create(u.toCreate)
+    .then((c) => {
+      i = c.id;
+      done();
+    })
+    .catch(done);
+  });
+
+  afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('update description', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ description: 'abcdefg' })
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      if (tu.gotExpectedLength(res.body, 0)) {
+        throw new Error('expecting collector');
+      }
+
+      if (res.body.description !== 'abcdefg') {
+        throw new Error('Incorrect description');
+      }
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('error - resource not found', (done) => {
+    api.put(`${path}/doesNotExist`)
+    .set('Authorization', token)
+    .send({ description: 'abcdefg' })
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err /* , res */) => {
+      done();
+    });
+  });
 });

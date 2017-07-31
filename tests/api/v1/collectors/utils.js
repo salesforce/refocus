@@ -12,3 +12,20 @@
 'use strict';
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
+
+module.exports = {
+  forceDelete(done) {
+    tu.forceDelete(tu.db.Collector, testStartTime)
+    .then(() => done())
+    .catch(done);
+  },
+
+  toCreate: {
+    name: tu.namePrefix + 'Coll',
+    description: 'This is my collector description.',
+    helpEmail: 'a@bcd.com',
+    helpUrl: 'a.bcd.com',
+    host: 'a.bcd',
+    ipAddress: '127.0.0.1',
+  },
+};

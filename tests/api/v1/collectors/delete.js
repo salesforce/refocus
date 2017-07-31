@@ -18,6 +18,39 @@ const u = require('./utils');
 const path = '/v1/collectors';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
+const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe(`api: DELETE ${path}`, () => {
+  let cid;
+  let token;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  beforeEach((done) => {
+    Collector.create(u.toCreate)
+    .then((c) => {
+      cid = c.id;
+      done();
+    })
+    .catch(done);
+  });
+
+  afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('delete not allowed', (done) => {
+    api.delete(`${path}/${cid}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_ALLOWED)
+    .end((err /* , res */) => {
+      done();
+    });
+  });
 });

@@ -19,6 +19,71 @@ const expect = require('chai').expect;
 const Collector = tu.db.Collector;
 const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
+const writerPath = '/v1/collectors/{key}/writers/{userNameOrId}';
 
 describe(`api: GET ${path} >`, () => {
+  let token;
+  let coll;
+  let user;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before((done) => {
+    Collector.create(u.toCreate)
+    .then((c) => {
+      coll = c;
+    }).then(() => User.findOne())
+    .then((usr) => coll.addWriter(usr))
+    .then(() => tu.createSecondUser())
+    .then((secUsr) => {
+      coll.addWriter(secUsr);
+      user = secUsr;
+    })
+    .then(() => tu.createThirdUser())
+    .then((tUsr) => coll.addWriter(tUsr))
+    .then(() => done())
+    .catch(done);
+  });
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('find writers', (done) => {
+    api.get(path.replace('{key}', coll.id))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body).to.have.length(3);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('find writer by username', (done) => {
+    api.get(writerPath.replace('{key}', coll.name)
+      .replace('{userNameOrId}', user.name))
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.name).to.contain('User');
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        return done(err);
+      }
+
+      done();
+    });
+  });
 });

@@ -27,6 +27,7 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const authUtils = require('../helpers/authUtils');
+const ZERO = 0;
 
 /**
  * Register a collector. Access restricted to Refocus Collector only.
@@ -110,59 +111,7 @@ function deregisterCollector(req, res, next) {
  */
 function heartbeat(req, res, next) {
   // TODO reject if caller's token is not a collector token
-
-  // parameters:
-  //   -
-  //     name: key
-  //     in: path
-  //     description: Access restricted to Refocus Collector only.
-  //     required: true
-  //     type: string
-  //   -
-  //     name: queryBody
-  //     in: body
-  //     description: Access restricted to Refocus Collector only.
-  //     required: true
-  //     schema:
-  //       type: array
-  //       items:
-  //         type: object
-  //         description: Access restricted to Refocus Collector only.
-  //         properties:
-  //           logLines:
-  //             type: array
-  //             items:
-  //               type: object
-  //               description: Access restricted to Refocus Collector only.
-  //               properties:
-  //                 timeStamp:
-  //                   type: string
-  //                   description: Access restricted to Refocus Collector only.
-  //                 sampleCount:
-  //                   type: integer
-  //                   description: Access restricted to Refocus Collector only.
-  //                 sourceUrls:
-  //                   type: array
-  //                   items:
-  //                     type: string
-  //                   description: Access restricted to Refocus Collector only.
-  //                 username:
-  //                   type: string
-  //                   description: Access restricted to Refocus Collector only.
-  //                 workTime:
-  //                   type: integer
-  //                   description: Access restricted to Refocus Collector only.
-  // responses:
-  //   200:
-  //     description: Success.
-  //     schema:
-  //       $ref: "#/definitions/HeartbeatResponse"
-  //   400:
-  //     $ref: "#/responses/400"
-  //   403:
-  //     $ref: "#/responses/403"
-  //   404:
-  //       $ref: "#/responses/404"
+  // TODO implement me!
 } // heartbeat
 
 /**
@@ -175,7 +124,9 @@ function heartbeat(req, res, next) {
  */
 function startCollector(req, res, next) {
   // TODO reject if caller's token is not a collector token
-  // TODO set { status: Running } in the request
+  req.swagger.params.queryBody = {
+    value: { status: 'Running' },
+  };
   doPatch(req, res, next, helper);
 } // stopCollector
 
@@ -188,7 +139,9 @@ function startCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function stopCollector(req, res, next) {
-  // TODO set { status: Stopped } in the request
+  req.swagger.params.queryBody = {
+    value: { status: 'Stopped' },
+  };
   doPatch(req, res, next, helper);
 } // stopCollector
 
@@ -201,7 +154,9 @@ function stopCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function pauseCollector(req, res, next) {
-  // TODO set { status: Paused } in the request
+  req.swagger.params.queryBody = {
+    value: { status: 'Paused' },
+  };
   doPatch(req, res, next, helper);
 } // pauseCollector
 
@@ -214,7 +169,9 @@ function pauseCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function resumeCollector(req, res, next) {
-  // TODO set { status: Running } in the request
+  req.swagger.params.queryBody = {
+    value: { status: 'Running' },
+  };
   doPatch(req, res, next, helper);
 } // resumeCollector
 
@@ -280,9 +237,11 @@ function getCollectorWriter(req, res, next) {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
     // throw a ResourceNotFound error if resolved object is empty array
-    u.throwErrorForEmptyArray(o,
-      params.userNameOrId.value, userProps.modelName);
-    const retval = u.responsify(o, helper, req.method);
+    u.throwErrorForEmptyArray(o, params.userNameOrId.value,
+      userProps.modelName);
+
+    // otherwise return the first element of the array
+    const retval = u.responsify(o[ZERO], helper, req.method);
     u.logAPI(req, resultObj, retval);
     res.status(httpStatus.OK).json(retval);
   })

@@ -21,4 +21,101 @@ const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 
 describe(`api: POST ${path} >`, () => {
+  let token;
+  let coll;
+  let firstUser;
+  let secondUser;
+  let otherValidToken;
+  const userNameArray = [];
+
+  before((done) => {
+    tu.toggleOverride('enforceWritePermission', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before((done) => {
+    Collector.create(u.toCreate)
+    .then((c) => {
+      coll = c;
+    })
+    .then(() =>
+      User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => {
+      firstUser = usr;
+      userNameArray.push(firstUser.name);
+      return tu.createSecondUser();
+    })
+    .then((secUsr) => {
+      secondUser = secUsr;
+      userNameArray.push(secondUser.name);
+      return tu.createThirdUser();
+    })
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
+    })
+    .then(() => done())
+    .catch(done);
+  });
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('add writers to the record and make sure the writers are ' +
+  'associated with the right object', (done) => {
+    api.post(path.replace('{key}', coll.id))
+    .set('Authorization', token)
+    .send(userNameArray)
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.body).to.have.length(2);
+      const userOne = res.body[0];
+      const userTwo = res.body[1];
+      expect(userOne.collectorId).to.not.equal(undefined);
+      expect(userOne.userId).to.not.equal(undefined);
+      expect(userTwo.collectorId).to.not.equal(undefined);
+      expect(userTwo.userId).to.not.equal(undefined);
+    })
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('return 403 for adding writers using an user that is not ' +
+  'already a writer of that resource', (done) => {
+    api.post(path.replace('{key}', coll.id))
+    .set('Authorization', otherValidToken)
+    .send(userNameArray)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
+
+  it('a request body that is not an array should not be accepted', (done) => {
+    const firstUserName = firstUser.name;
+    api.post(path.replace('{key}', coll.id))
+    .set('Authorization', token)
+    .send({ firstUserName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err /* , res */) => {
+      if (err) {
+        done(err);
+      }
+
+      done();
+    });
+  });
 });

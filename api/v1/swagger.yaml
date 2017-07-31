@@ -1766,7 +1766,7 @@ paths:
       security:
         - jwt: []
       tags: [ collectors, writers ]
-      summary: "Get the writer of collector by user name or id."
+      summary: Determine whether a user is an authorized writer for a collector
       description: >-
         Determine whether a user is an authorized writer for a Collector.
         If user is unauthorized, there is no writer by this name for this
@@ -1775,23 +1775,21 @@ paths:
       parameters:
       - name: key
         in: path
-        description: "ID of collector to return"
+        description: The id or name of the collector
         required: true
-        type: "integer"
-        format: "int64"
-      - name: "userNameOrId"
+        type: string
+      - name: userNameOrId
         in: "path"
-        description: "ID of collector to return"
+        description: The id or name of the user
         required: true
-        type: "integer"
-        format: "int64"
+        type: string
       responses:
         200:
-          description: "Return authorized user"
+          description: Success, return authorized user
           schema:
             $ref: "#/definitions/CollectorResponse"
         404:
-          description: "userNameOrId does not identify a User"
+          description: userNameOrId does not identify a User
     delete:
       security:
         - jwt: []

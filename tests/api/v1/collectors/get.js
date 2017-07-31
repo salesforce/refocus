@@ -20,4 +20,47 @@ const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
 describe(`api: GET ${path}`, () => {
+  let token;
+  let cid;
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  beforeEach((done) => {
+    Collector.create(u.toCreate)
+    .then((c) => {
+      cid = c.id;
+      done();
+    })
+    .catch(done);
+  });
+
+  afterEach(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('get by name ok', (done) => {
+    api.get(path + '/' + u.toCreate.name)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.id).to.equal(cid);
+    })
+    .end((err /* , res */) => done(err));
+  });
+
+  it('get by id ok', (done) => {
+    api.get(path + '/' + cid)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.id).to.equal(cid);
+    })
+    .end((err /* , res */) => done(err));
+  });
 });
