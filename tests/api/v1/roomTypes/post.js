@@ -65,7 +65,6 @@ describe(`api: POST ${path}`, () => {
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SequelizeUniqueConstraintError');
-        done();
       });
     });
 

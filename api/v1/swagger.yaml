@@ -7598,10 +7598,8 @@ paths:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -7730,10 +7728,8 @@ paths:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -9728,9 +9724,7 @@ definitions:
       isEnabled:
         type: boolean
       settings:
-        type: array
-        items:
-          type: object
+        type: object
       rules:
         type: array
         items:
