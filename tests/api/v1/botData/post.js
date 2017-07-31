@@ -96,6 +96,23 @@ describe(`api: POST ${path}`, () => {
       })
       .catch(done);
     });
+
+    it('Fail, botData with invalid name', (done) => {
+      testBotData.name = '~!invalidName';
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(testBotData)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.errors[ZERO].type).to
+        .contain(tu.schemaValidationErrorName);
+        done();
+      });
+    });
   });
 });
 
