@@ -7,23 +7,28 @@
  */
 
 /**
- * tests/api/v1/rooms/delete.js
+ * tests/api/v1/botData/delete.js
  */
 
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/botData';
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
+const u = require('./utils');
+const r = require('../rooms/utils');
+const rt = require('../roomTypes/utils');
+const b = require('../bots/utils');
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
-const v = require('../roomTypes/utils');
+const Bot = tu.db.Bot;
+const BotData = tu.db.BotData;
 
 describe(`api: DELETE ${path}`, () => {
-  let testRoom;
+  const testBotData = u.getStandard();
+  let saveBotData;
   let token;
 
   before((done) => {
@@ -36,25 +41,33 @@ describe(`api: DELETE ${path}`, () => {
   });
 
   beforeEach((done) => {
-    RoomType.create(v.getStandard())
+    RoomType.create(rt.getStandard())
     .then((roomType) => {
-      const room = u.getStandard();
+      const room = r.getStandard();
       room.type = roomType.id;
       return Room.create(room);
     })
-    .then((newRoom) => {
-      testRoom = newRoom;
+    .then((room) => {
+      testBotData.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then((botData) => {
+      saveBotData = botData;
       done();
     })
     .catch(done);
   });
 
   afterEach(u.forceDelete);
-  after(tu.forceDeleteToken);
+  after(tu.forceDeleteUser);
 
-  describe('DELETE room', () => {
-    it('Pass, delete room', (done) => {
-      api.delete(`${path}/${testRoom.id}`)
+  describe('DELETE botData', () => {
+    it('Pass, delete botData', (done) => {
+      api.delete(`${path}/${saveBotData.id}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -67,8 +80,22 @@ describe(`api: DELETE ${path}`, () => {
       });
     });
 
-    it('Fail, room not found', (done) => {
-      api.delete(`${path}/-1`)
+    it('Pass, delete botData by name', (done) => {
+      api.delete(`${path}/${saveBotData.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(u.name);
+        done(err);
+      });
+    });
+
+    it('Fail, botData not found', (done) => {
+      api.delete(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err) => {

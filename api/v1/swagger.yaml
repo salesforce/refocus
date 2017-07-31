@@ -1795,6 +1795,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -1950,11 +1951,9 @@ paths:
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
-                readOnly: true
                 description: The generator's name.
               subjectQuery:
                 type: string
-                readOnly: true
                 description: The query to append to GET subjects.
               subjects:
                 description: AbsolutePaths of the subjects.
@@ -1979,7 +1978,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         201:
           description: >-
@@ -1996,6 +1996,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2176,7 +2177,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         200:
           description: Success, returns the updated generator.
@@ -2194,6 +2196,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2277,6 +2280,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2308,7 +2312,11 @@ paths:
           description: >-
             Success, returns requested user.
           schema:
-            $ref: "#/definitions/UsersResponse"
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
         400:
           $ref: "#/responses/400"
         404:
@@ -7528,6 +7536,93 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+# =============================================================================
+  /botData/{key}:
+    x-swagger-router-controller: botData
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botData
+      tags: [ botData ]
+      description: Update botData fields
+      operationId: patchBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the coresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the coresponding room
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botData
+      tags: [ botData ]
+      description: >-
+        Delete a specific botData
+      operationId: deleteBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
 
 # =============================================================================
   /roomTypes:
@@ -9644,10 +9739,6 @@ definitions:
         readOnly: true
         description: >
           The collector id.
-      isDeleted:
-        type: string
-        readOnly: true
-        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -9736,6 +9827,26 @@ definitions:
         type: array
         items:
           type: object
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+        description: UUID of the specified bot data
+      name:
+        type: string
+        description: Name of the bot data
+      value:
+        type: string
+        description: Current value of the bot data
+      roomId:
+        type: integer
+        description: The room number of the room of the bot data
+      botId:
+        type: string
+        description: UUID of the specified bot in that room
 
 # =============================================================================
 parameters:
