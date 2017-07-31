@@ -80,6 +80,20 @@ describe(`api: DELETE ${path}`, () => {
       });
     });
 
+    it('Pass, delete botAction by name', (done) => {
+      api.delete(`${path}/${testBotAction.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body.name).to.equal(u.name);
+        done(err);
+      });
+    });
+
     it('Fail, botAction not found', (done) => {
       api.delete(`${path}/INVALID_ID`)
       .set('Authorization', token)

@@ -8110,9 +8110,7 @@ paths:
           description: >-
             Success, Deleted BotAction
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotActionResponse"
+            $ref: "#/definitions/BotActionResponse"
         400:
           $ref: "#/responses/400"
         401:

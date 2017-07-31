@@ -7,20 +7,29 @@
  */
 
 /**
- * tests/api/v1/bots/post.js
+ * tests/api/v1/botActions/post.js
  */
 
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/bots';
+const r = require('../rooms/utils');
+const rt = require('../roomTypes/utils');
+const b = require('../bots/utils');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const Bot = tu.db.Bot;
+const BotAction = tu.db.BotAction;
+const path = '/v1/botActions';
 const expect = require('chai').expect;
 const ZERO = 0;
-const tu = require('../../../testUtils');
+
 
 describe(`api: POST ${path}`, () => {
+  let testBotAction;
   let token;
 
   before((done) => {
@@ -32,14 +41,33 @@ describe(`api: POST ${path}`, () => {
     .catch(done);
   });
 
+  beforeEach((done) => {
+    testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      done();
+    })
+    .catch(done);
+  });
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('POST bot', () => {
-    it('Pass, post bot', (done) => {
+  describe('POST botAction', () => {
+    it('Pass, post botAction', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(u.getStandard())
+      .send(testBotAction)
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -51,30 +79,33 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    it('Fail, duplicate bot', (done) => {
-      u.createStandard()
-      .then(() => done());
+    it('Fail, duplicate botAction', (done) => {
+      BotAction.create(testBotAction)
+      .then(() => {
+        api.post(`${path}`)
+        .set('Authorization', token)
+        .send(testBotAction)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
 
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
+          expect(res.body.errors[ZERO].type).to
+          .contain('SequelizeUniqueConstraintError');
+          done();
+        });
+      })
+      .catch(done);
     });
 
-    it('Fail, bot validation incorrect', (done) => {
-      let testBot = u.getStandard();
-      testBot.actions = 'INVALID_VALUE';
+    it('Fail, botAction validation incorrect', (done) => {
+      testBotAction = u.getStandard();
+      testBotAction.actions = 'INVALID_VALUE';
 
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(testBot)
+      .send(testBotAction)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
