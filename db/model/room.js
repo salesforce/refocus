@@ -35,11 +35,8 @@ module.exports = function room(seq, dataTypes) {
       comment: 'Create a named room ',
     },
     settings: {
-      type: dataTypes.ARRAY(dataTypes.JSONB),
+      type: dataTypes.JSON,
       allowNull: true,
-      validate: {
-        contains: u.validateSettingsArray,
-      },
       comment: 'Key/Value pairs for user specific settings',
     },
     active: {

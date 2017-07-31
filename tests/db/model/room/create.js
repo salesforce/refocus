@@ -47,8 +47,7 @@ describe('db: room: create: ', () => {
       })
       .then((o) => {
         expect(o).to.have.property('settings');
-        expect(o.settings[o.settings.length-1]).to.deep.equal({ key: 'Key2', value: 'Value2' });
-        expect(o.settings.length).to.equal(2);
+        expect(o.settings.Key1).to.equal('Value1');
         done();
       })
     .catch(done);
