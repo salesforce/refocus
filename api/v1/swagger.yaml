@@ -7537,6 +7537,40 @@ paths:
           $ref: "#/responses/genericError"
 
 # =============================================================================
+  /botData/{key}:
+    x-swagger-router-controller: botData
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botData
+      tags: [ botData ]
+      description: >-
+        Delete a specific botData
+      operationId: deleteBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
   /roomTypes:
     x-swagger-router-controller: roomTypes
     get:
@@ -9739,6 +9773,26 @@ definitions:
         type: array
         items:
           type: object
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+        description: UUID of the specified bot data
+      name:
+        type: string
+        description: Name of the bot data
+      value:
+        type: string
+        description: Current value of the bot data
+      roomId:
+        type: integer
+        description: The room number of the room of the bot data
+      botId:
+        type: string
+        description: UUID of the specified bot in that room
 
 # =============================================================================
 parameters:
