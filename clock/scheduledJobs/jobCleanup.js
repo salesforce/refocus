@@ -23,11 +23,11 @@ kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 /**
  * Execute the call to clean up jobs
  *
- * @param {Number} window - the number of jobs to delete in each batch
+ * @param {Number} batchSize - the number of jobs to delete in each batch
  * @param {Number} delay - the delay, in ms, before completed jobs should be deleted
  * @returns {Promise}
  */
-function execute(window, delay) {
+function execute(batchSize, delay) {
   const now = Date.now();
   let removedJobCount = 0;
   let skippedJobCount = 0;
@@ -36,7 +36,7 @@ function execute(window, delay) {
     console.log('[KJI] Ready to remove completed jobs');
   }
 
-  return deleteNextNJobs(window)
+  return deleteNextNJobs(batchSize)
   .then(() => {
     if (featureToggles.isFeatureEnabled('instrumentKue')) {
       console.log(`[KJI] Removed ${removedJobCount} jobs`);
@@ -103,7 +103,7 @@ function enqueue() {
     return Promise.resolve(job);
   } else {
     // If not using worker process, execute directly;
-    return execute(conf.JOB_REMOVAL_WINDOW, conf.JOB_REMOVAL_DELAY);
+    return execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY);
   }
 } // enqueue
 

@@ -19,7 +19,7 @@ module.exports = (job, done) => {
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();
 
-  scheduledJob.execute(conf.JOB_REMOVAL_WINDOW, conf.JOB_REMOVAL_DELAY)
+  scheduledJob.execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY)
   .then(() => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
