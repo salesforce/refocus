@@ -32,7 +32,7 @@ const constants = {
       'writers',
     ],
     sample: ['relatedLinks', 'user'],
-    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation']
+    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
@@ -40,7 +40,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
-    subAspMap: 'subaspmap' },
+    subAspMap: 'subaspmap', },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
@@ -181,7 +181,6 @@ function cleanSample(s) {
 
   return retval;
 } // cleanSample
-
 
 module.exports = {
   cleanAspect,
