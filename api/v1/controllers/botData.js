@@ -14,6 +14,7 @@
 const helper = require('../helpers/nouns/botData');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
+const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
 
 module.exports = {
@@ -29,6 +30,19 @@ module.exports = {
    */
   deleteBotData(req, res, next) {
     doDelete(req, res, next, helper);
+  },
+
+  /**
+   * PATCH /botData/{key}
+   *
+   * Update the specified botData
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  patchBotData(req, res, next) {
+    doPatch(req, res, next, helper);
   },
 
   /**

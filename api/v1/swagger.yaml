@@ -7605,6 +7605,61 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botData
+      tags: [ botData ]
+      description: Update botData fields
+      operationId: patchBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the coresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the coresponding room
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
     delete:
       security:
         - jwt: []
