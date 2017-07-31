@@ -7566,11 +7566,11 @@ paths:
               botId:
                 type: string
                 maxLength: 254
-                description: UUID for the coresponding bot
+                description: UUID for the corresponding bot
               roomId:
                 type: integer
                 maxLength: 254
-                description: Number for the coresponding room
+                description: Number for the corresponding room
             required:
               - name
               - value
