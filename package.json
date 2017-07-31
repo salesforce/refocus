@@ -40,6 +40,7 @@
     "start-worker": "node worker/jobProcessor.js",
     "test-api": "mocha -R dot --recursive tests/api",
     "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true mocha -R dot --recursive tests/api",
+    "test-api-profiles": "REQUIRE_ACCESS_TOKEN=true mocha -R dot --recursive tests/api/v1/profiles",
     "test-disablehttp": "REQUIRE_HTTPS=true mocha -R dot --recursive tests/disableHttp",
     "test-enforced": "REQUIRE_ACCESS_TOKEN=true mocha -R dot --recursive tests/enforceToken",
     "test-rooms-enabled": "ENABLE_ROOMS=true mocha -R dot --recursive tests/roomFlag/roomFlagEnabled",

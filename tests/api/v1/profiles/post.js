@@ -41,7 +41,7 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
 
   describe('POST profile', () => {
-    it('Ok, post profile successful', (done) => {
+    it('Ok, user is admin', (done) => {
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
       .send(p0)
@@ -58,6 +58,19 @@ describe(`api: POST ${path}`, () => {
     it('fail, not an admin profile', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
+      .send(p0)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
+    it('fail, no token provided', (done) => {
+      api.post(`${path}`)
       .send(p0)
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
