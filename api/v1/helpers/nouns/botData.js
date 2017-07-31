@@ -17,6 +17,7 @@ const m = 'BotData';
 module.exports = {
   apiLinks: {
     POST: `Create a new ${m}`,
+    DELETE: `Delete ${m}`,
   },
   baseUrl: '/v1/botData',
   model: BotData,

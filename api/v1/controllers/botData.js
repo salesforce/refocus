@@ -13,8 +13,22 @@
 
 const helper = require('../helpers/nouns/botData');
 const doPost = require('../helpers/verbs/doPost');
+const doDelete = require('../helpers/verbs/doDelete');
 
 module.exports = {
+
+  /**
+   * DELETE /botData/{key}
+   *
+   * Deletes the botData and sends it back in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteBotData(req, res, next) {
+    doDelete(req, res, next, helper);
+  },
 
   /**
    * POST /botData
