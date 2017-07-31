@@ -14,8 +14,6 @@
  */
 
 const constants = require('../constants');
-const u = require('../helpers/roomTypeUtils');
-
 const assoc = {};
 
 module.exports = function room(seq, dataTypes) {
