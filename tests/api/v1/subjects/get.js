@@ -351,6 +351,24 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('GET with tag filter :: tag field not included', (done) => {
+    api.get(`${path}?tags=NE&fields=isPublished,name,sortBy`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].name).to.eql(vt.name);
+      expect(res.body[ZERO]).to.not.have.property('tags');
+      expect(res.body[ZERO]).to.have.all
+        .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
+      done();
+    });
+  });
+
   it('returns expected fields when passing ?fields=...', (done) => {
     api.get(`${path}?fields=isPublished,name,sortBy`)
     .set('Authorization', token)

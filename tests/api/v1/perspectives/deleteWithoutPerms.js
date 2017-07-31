@@ -24,7 +24,6 @@ describe(`api: DELETE ${path} without permission`, () => {
   let perspective;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => done())
     .catch(done);
