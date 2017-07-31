@@ -99,6 +99,9 @@ function putCollector(req, res, next) {
  */
 function deregisterCollector(req, res, next) {
   // TODO reject if caller's token is not a collector token
+  req.swagger.params.queryBody = {
+    value: { registered: false },
+  };
   doPatch(req, res, next, helper);
 } // deregisterCollector
 
@@ -128,7 +131,7 @@ function startCollector(req, res, next) {
     value: { status: 'Running' },
   };
   doPatch(req, res, next, helper);
-} // stopCollector
+} // startCollector
 
 /**
  * Change collector status to Stopped. Invalid if the collector's status is
