@@ -114,6 +114,14 @@ module.exports = {
     return JSON.parse(JSON.stringify(nonActive));
   },
 
+  createNonActive() {
+    return tu.db.Room.create(nonActive);
+  },
+
+  createStandard() {
+    return tu.db.Room.create(standard);
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Room, testStartTime)
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
