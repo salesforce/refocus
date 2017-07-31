@@ -16,6 +16,7 @@ const m = 'BotData';
 
 module.exports = {
   apiLinks: {
+    PATCH: `Update selected attributes of ${m}`,
     DELETE: `Delete ${m}`,
   },
   baseUrl: '/v1/botData',
