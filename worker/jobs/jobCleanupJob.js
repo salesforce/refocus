@@ -12,7 +12,6 @@
 const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
-const errors = require('errors');
 const conf = require('../../config');
 
 module.exports = (job, done) => {

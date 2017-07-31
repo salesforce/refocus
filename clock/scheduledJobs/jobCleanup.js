@@ -14,8 +14,8 @@
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
 const kue = require('kue');
-const jobSetup = require('../../jobQueue/setup');
-const jobQueue = jobSetup.jobQueue;
+const jobType = require('../../jobQueue/setup').jobType;
+const jobWrapper = require('../../jobQueue/jobWrapper');
 const conf = require('../../config');
 const rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
@@ -97,8 +97,6 @@ function execute(window, delay) {
  */
 function enqueue() {
   if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-    const jobWrapper = require('../../jobQueue/jobWrapper');
-    const jobType = require('../../jobQueue/setup').jobType;
     const job = jobWrapper.createJob(
       jobType.JOB_CLEANUP, { reqStartTime: Date.now() }
     );

@@ -11,7 +11,6 @@
  */
 const tu = require('../testUtils');
 const expect = require('chai').expect;
-const getHierarchyJob = require('../../worker/jobs/getHierarchyJob');
 const jobCleanup = require('../../clock/scheduledJobs/jobCleanup');
 const jobWrapper = require('../../jobQueue/jobWrapper');
 const jobSetup = require('../../jobQueue/setup');
@@ -231,9 +230,9 @@ describe('jobCleanup', () => {
     const durationType = 'non-contiguous';
     const window = 5;
 
-    it('jobs: 20, delay: 50ms', (done) => {
+    it('jobs: 20, delay: 80ms', (done) => {
       const jobCount = 20;
-      const delay = 50;
+      const delay = 80;
       const expectedCount = 10;
 
       runJobs(jobCount, duration, durationType)
@@ -242,10 +241,10 @@ describe('jobCleanup', () => {
       .then(done).catch(done);
     });
 
-    it('jobs: 100, delay: 50ms', (done) => {
+    it('jobs: 100, delay: 90ms', (done) => {
       const duration = [10, 100, 200, 300];
       const jobCount = 100;
-      const delay = 50;
+      const delay = 90;
       const expectedCount = 25;
 
       runJobs(jobCount, duration, durationType)
