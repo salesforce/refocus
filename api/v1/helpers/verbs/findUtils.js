@@ -56,10 +56,8 @@ function escapeUnderscoreLiterals(val) {
  * @returns {String} the transformed value
  */
 function toSequelizeWildcards(val) {
-  const chars = val.split(constants.EMPTY_STRING);
-  const arr = chars.map((ch) =>
-    (ch === constants.QUERY_PARAM_WILDCARD ? constants.SEQ_WILDCARD : ch));
-  return arr.join(constants.EMPTY_STRING);
+  return val.replace(constants.QUERY_PARAM_REPLACE_ALL_REGEX,
+    constants.SEQ_WILDCARD);
 } // toSequelizeWildcards
 
 /**
@@ -353,4 +351,5 @@ module.exports = {
   getNextUrl,
   options,
   filterArrFromArr, // for testing
+  toSequelizeWildcards, // for testing
 }; // exports
