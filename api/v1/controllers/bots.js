@@ -31,7 +31,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBots(req, res, next) {
-    doDelete(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName)
+    .then((ok) => {
+      if(ok){
+        validateRequest(req);
+        doDelete(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -70,7 +79,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    doPatch(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName)
+    .then((ok) => {
+      if(ok){
+        validateRequest(req);
+        doPatch(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -83,7 +101,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    doPost(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName)
+    .then((ok) => {
+      if(ok){
+        validateRequest(req);
+        doPost(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -96,7 +123,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putBots(req, res, next) {
-    doPut(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName)
+    .then((ok) => {
+      if(ok){
+        validateRequest(req);
+        doPut(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
-
 }; // exports
