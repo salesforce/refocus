@@ -34,7 +34,7 @@ const generatorTemplateSchema = {
   },
 };
 
-module.exports = function user(seq, dataTypes) {
+module.exports = function generator(seq, dataTypes) {
   const Generator = seq.define('Generator', {
     description: {
       type: dataTypes.TEXT,
@@ -103,13 +103,14 @@ module.exports = function user(seq, dataTypes) {
     },
   }, {
     classMethods: {
-      getGeneratortemplateAssociations() {
+      getGeneratorAssociations() {
         return assoc;
       },
 
       postImport(models) {
-        assoc.createdBy = Generator.belongsTo(models.User, {
+        assoc.user = Generator.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
 
         assoc.collectors = Generator.belongsToMany(models.Collector, {
@@ -122,6 +123,18 @@ module.exports = function user(seq, dataTypes) {
           as: 'writers',
           through: 'GeneratorWriters',
           foreignKey: 'generatorId',
+        });
+
+        Generator.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
+          order: ['name'],
+        }, {
+          override: true,
         });
       },
     },
