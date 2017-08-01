@@ -13,6 +13,7 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const jwtUtil = require('../../../../utils/jwtUtil');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/collectors';
@@ -33,17 +34,20 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('OK', (done) => {
+  it('OK: a collector token should also be returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-
-      done();
+      const collectortoken = jwtUtil
+        .createToken(u.toCreate.name, u.toCreate.name);
+      expect(res.body.registered).to.equal(true);
+      expect(res.body.token).to.equal(collectortoken);
+      return done();
     });
   });
 
