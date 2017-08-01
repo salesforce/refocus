@@ -7535,6 +7535,240 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+# =============================================================================
+  /botData:
+    x-swagger-router-controller: botData
+    get:
+      tags: [ botData ]
+      operationId: findBotData
+      parameters:
+        -
+          name: name
+          description: Filter botData by name
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botData/{key}:
+    x-swagger-router-controller: botData
+    get:
+      summary: Retrieve a botData
+      tags: [ botData ]
+      operationId: getBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botData
+      tags: [ botData ]
+      description: Update botData fields
+      operationId: patchBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the coresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the coresponding room
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botData
+      tags: [ botData ]
+      description: >-
+        Delete a specific botData
+      operationId: deleteBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/bots/{botId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room from a specific bot
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            name: botId
+            in: path
+            description: >-
+              The id of the bot which people want to reference
+            required: true
+            type: string
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
 
 # =============================================================================
   /roomTypes:
@@ -9733,6 +9967,26 @@ definitions:
         type: array
         items:
           type: object
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+        description: UUID of the specified bot data
+      name:
+        type: string
+        description: Name of the bot data
+      value:
+        type: string
+        description: Current value of the bot data
+      roomId:
+        type: integer
+        description: The room number of the room of the bot data
+      botId:
+        type: string
+        description: UUID of the specified bot in that room
 
 # =============================================================================
 parameters:
