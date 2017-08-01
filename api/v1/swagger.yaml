@@ -8404,6 +8404,240 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+# =============================================================================
+  /botActions:
+    x-swagger-router-controller: botActions
+    get:
+      summary: Retrieve all botActions
+      tags: [ botActions ]
+      operationId: findBotActions
+      parameters:
+        -
+          name: name
+          description: Get botActions by name
+          in: query
+          required: false
+          type: string
+        -
+          name: isPending
+          description: Get pending botActions
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all BotActions
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botAction
+      tags: [ botActions ]
+      description: Create a new botAction with a name, room id and bot id
+      operationId: postBotActions
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botAction properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+            required:
+              - name
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botActions/{key}:
+    x-swagger-router-controller: botActions
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botAction
+      tags: [ botActions ]
+      description: >-
+        Delete a specific botAction
+      operationId: deleteBotActions
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a botAction
+      tags: [ botActions ]
+      operationId: getBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: isPending
+          description: Get botActions depending on its pending tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botAction
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botAction
+      tags: [ botActions ]
+      description: Update botAction fields
+      operationId: patchBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified botAction fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
 
 # =============================================================================
   /events:
@@ -9889,6 +10123,37 @@ definitions:
       userId:
         type: string
         description: The user ID in which the event deals with
+
+  BotActionResponse:
+    type: object
+    description: A response for information about bot actions
+    properties:
+      id:
+        type: string
+        description: The UUID of the specified bot action
+      name:
+        type: string
+        description: The name of the bot action requested
+      isPending:
+        type: boolean
+        description: If the action is still pending completion
+      parameters:
+        type: array
+        description: The values required to run a bot action
+        items:
+          type: object
+      response:
+        type: object
+        description: The output of an bot action
+      roomId:
+        type: integer
+        description: The room ID in which the bot action deals with
+      botId:
+        type: string
+        description: The bot ID in which the bot action deals with
+      userId:
+        type: string
+        description: The user ID in which the bot action deals with
 
   CollectorResponse:
     type: "object"
