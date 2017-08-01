@@ -52,7 +52,7 @@ function hasWriteAccess(req, modelName) {
     getUser(req)
     .then((user) => {
       if (user) {
-        resolve(Profile.hasWriteAccess(user.profileId, modelName.toLowerCase()));
+        resolve(Profile.hasWriteAccess(user.profileId, modelName));
       } else {
         resolve(false);
       }

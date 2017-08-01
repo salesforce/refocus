@@ -33,7 +33,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBots(req, res, next) {
-    authUtils.hasWriteAccess(req, helper.modelName)
+    authUtils.hasWriteAccess(req, 'bot')
     .then((ok) => {
       if(ok){
         doDelete(req, res, next, helper);
@@ -80,7 +80,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    authUtils.hasWriteAccess(req, helper.modelName)
+    authUtils.hasWriteAccess(req, 'bot')
     .then((ok) => {
       if(ok){
         doPatch(req, res, next, helper);
@@ -101,7 +101,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    authUtils.hasWriteAccess(req, helper.modelName)
+    authUtils.hasWriteAccess(req, 'bot') // Won't hardcode bot!
     .then((ok) => {
       if(ok){
         doPost(req, res, next, helper);
@@ -122,7 +122,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putBots(req, res, next) {
-    authUtils.hasWriteAccess(req, helper.modelName)
+    authUtils.hasWriteAccess(req, 'bot')
     .then((ok) => {
       if(ok){
         doPut(req, res, next, helper);
