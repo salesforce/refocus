@@ -7536,8 +7536,76 @@ paths:
         default:
           $ref: "#/responses/genericError"
 # =============================================================================
+  /botData:
+    x-swagger-router-controller: botData
+    get:
+      tags: [ botData ]
+      operationId: findBotData
+      parameters:
+        -
+          name: name
+          description: Filter botData by name
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
   /botData/{key}:
     x-swagger-router-controller: botData
+    get:
+      summary: Retrieve a botData
+      tags: [ botData ]
+      operationId: getBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+
     patch:
       security:
         - jwt: []
@@ -7622,6 +7690,85 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/bots/{botId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room from a specific bot
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            name: botId
+            in: path
+            description: >-
+              The id of the bot which people want to reference
+            required: true
+            type: string
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
 
 # =============================================================================
   /roomTypes:
