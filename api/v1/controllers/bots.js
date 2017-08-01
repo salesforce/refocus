@@ -12,6 +12,8 @@
 'use strict';
 
 const helper = require('../helpers/nouns/bots');
+const utils = require('./utils');
+const authUtils = require('../helpers/authUtils');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
