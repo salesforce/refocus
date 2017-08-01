@@ -36,7 +36,6 @@ module.exports = {
     authUtils.hasWriteAccess(req, helper.modelName)
     .then((ok) => {
       if(ok){
-        validateRequest(req);
         doDelete(req, res, next, helper);
       } else {
         u.forbidden(next);
@@ -84,7 +83,6 @@ module.exports = {
     authUtils.hasWriteAccess(req, helper.modelName)
     .then((ok) => {
       if(ok){
-        validateRequest(req);
         doPatch(req, res, next, helper);
       } else {
         u.forbidden(next);
@@ -106,7 +104,6 @@ module.exports = {
     authUtils.hasWriteAccess(req, helper.modelName)
     .then((ok) => {
       if(ok){
-        validateRequest(req);
         doPost(req, res, next, helper);
       } else {
         u.forbidden(next);
@@ -128,7 +125,6 @@ module.exports = {
     authUtils.hasWriteAccess(req, helper.modelName)
     .then((ok) => {
       if(ok){
-        validateRequest(req);
         doPut(req, res, next, helper);
       } else {
         u.forbidden(next);
