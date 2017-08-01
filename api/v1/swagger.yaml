@@ -7571,6 +7571,7 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+
 # =============================================================================
   /botData:
     x-swagger-router-controller: botData
@@ -7600,6 +7601,63 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botData
+      tags: [ botData ]
+      description: Create new bot data for a rooms specific bots
+      operationId: postBotData
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the corresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the corresponding room
+            required:
+              - name
+              - value
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -7722,6 +7780,8 @@ paths:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
