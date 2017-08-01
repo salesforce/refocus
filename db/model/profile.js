@@ -130,14 +130,11 @@ module.exports = function profile(seq, dataTypes) {
         return new Promise((resolve, reject) => {
           Profile.findById(profileId)
           .then((p) => resolve(p &&
-            p[accessModel] === "rw".toLowerCase()))
-           
+            p[accessModel] === 'rw'.toLowerCase()))
           .catch((err) => reject(err));
-
-          console.log(p[accessModel]);
         });
       }
-    },
+    }, // hasWriteAccess
     
     defaultScope: {
       order: ['Profile.name'],
