@@ -17,6 +17,7 @@ const m = 'BotData';
 module.exports = {
   apiLinks: {
     POST: `Create a new ${m}`,
+    GET: `Retrieve ${m}`,
     PATCH: `Update selected attributes of ${m}`,
     DELETE: `Delete ${m}`,
   },
