@@ -73,113 +73,95 @@ describe('jobCleanup', () => {
   }
 
   describe('no delay - ', () => {
-    const duration = 0;
     const durationType = 'parallel';
+    const duration = 0;
     const delay = 0;
+    const expectedCount = 0;
 
-    it('jobs: 0, window: 10', (done) => {
+    it('jobs: 0, batchSize: 10', (done) => {
       const jobCount = 0;
-      const window = 10;
-      const expectedCount = 0;
+      const batchSize = 10;
 
       expectNJobs(jobCount)
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 1, window: 10', (done) => {
+    it('jobs: 1, batchSize: 10', (done) => {
       const jobCount = 1;
-      const window = 10;
-      const expectedCount = 0;
+      const batchSize = 10;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 5, window: 10', (done) => {
+    it('jobs: 5, batchSize: 10', (done) => {
       const jobCount = 5;
-      const window = 10;
-      const expectedCount = 0;
+      const batchSize = 10;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 22, window: 5', (done) => {
+    it('jobs: 22, batchSize: 5', (done) => {
       const jobCount = 22;
-      const window = 5;
-      const expectedCount = 0;
+      const batchSize = 5;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 19, window: 5', (done) => {
+    it('jobs: 19, batchSize: 5', (done) => {
       const jobCount = 19;
-      const window = 5;
-      const expectedCount = 0;
+      const batchSize = 5;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 100, window: 5', (done) => {
+    it('jobs: 100, batchSize: 5', (done) => {
       const jobCount = 100;
-      const window = 5;
-      const expectedCount = 0;
+      const batchSize = 5;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 100, window: 1', (done) => {
+    it('jobs: 100, batchSize: 1', (done) => {
       const jobCount = 100;
-      const window = 1;
-      const expectedCount = 0;
+      const batchSize = 1;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 5, window: 0', (done) => {
+    it('batchSize: 0 (none removed)', (done) => {
       const jobCount = 5;
-      const window = 0;
+      const batchSize = 0;
       const expectedCount = 5;
 
       runJobs(jobCount, duration, durationType)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
-    });
-
-    it('jobs: 10, window: 1', (done) => {
-      const jobCount = 10;
-      const window = 1;
-      const expectedCount = 0;
-
-      runJobs(jobCount, duration, durationType)
-      .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
@@ -187,68 +169,56 @@ describe('jobCleanup', () => {
   });
 
   describe('delay - staggered - ', () => {
-    const duration = 10;
     const durationType = 'staggered';
-    const window = 5;
+    const duration = 50;
+    const jobCount = 20;
+    const batchSize = 5;
 
-    it('jobs: 20, delay: 39ms', (done) => {
-      const jobCount = 20;
-      const delay = 39;
+    it('skip 3', (done) => {
+      const delay = 199;
       const expectedCount = 3;
 
       runJobs(jobCount, duration, durationType)
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 20, delay: 159ms', (done) => {
-      const jobCount = 20;
-      const delay = 159;
+    it('skip 15', (done) => {
+      const delay = 799;
       const expectedCount = 15;
 
       runJobs(jobCount, duration, durationType)
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 52, delay: 159ms', (done) => {
-      const jobCount = 52;
-      const delay = 159;
-      const expectedCount = 15;
-
-      runJobs(jobCount, duration, durationType)
-      .then(() => jobCleanup.execute(window, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
-    });
   });
 
   describe('delay - non-contiguous - ', () => {
-    const duration = [10, 100];
     const durationType = 'non-contiguous';
-    const window = 5;
+    const jobCount = 20;
+    const batchSize = 5;
 
-    it('jobs: 20, delay: 80ms', (done) => {
-      const jobCount = 20;
-      const delay = 80;
+    it('skip 1/2', (done) => {
+      const duration = [0, 100];
+      const delay = 99;
       const expectedCount = 10;
 
       runJobs(jobCount, duration, durationType)
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
-    it('jobs: 100, delay: 90ms', (done) => {
-      const duration = [10, 100, 200, 300];
-      const jobCount = 100;
-      const delay = 90;
-      const expectedCount = 25;
+    it('skip 1/4', (done) => {
+      const duration = [0, 100, 200, 300];
+      const delay = 99;
+      const expectedCount = 5;
 
       runJobs(jobCount, duration, durationType)
-      .then(() => jobCleanup.execute(window, delay))
+      .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
@@ -297,11 +267,11 @@ describe('jobCleanup', () => {
     const jobCount = 10;
     const duration = 0;
     const durationType = 'parallel';
-    const window = 5;
+    const batchSize = 5;
     const delay = 0;
 
     runJobs(jobCount, duration, durationType)
-    .then(() => jobCleanup.execute(window, delay))
+    .then(() => jobCleanup.execute(batchSize, delay))
     .then(() => runJobs(jobCount, duration, durationType))
     .then(() => jobQueue.completeAsync())
     .then((ids) => { expect(ids[0]).to.be.greaterThan(jobCount); })
