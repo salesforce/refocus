@@ -56,4 +56,7 @@ if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
 }
 
 // Clean up completed jobs
-setInterval(jobCleanup.execute, conf.JOB_REMOVAL_INTERVAL_SECONDS * 1000);
+setInterval(jobCleanup.enqueue, conf.JOB_REMOVAL_INTERVAL);
+
+// Reset the job id counter
+setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
