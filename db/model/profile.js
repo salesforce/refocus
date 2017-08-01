@@ -124,7 +124,21 @@ module.exports = function profile(seq, dataTypes) {
           .catch((err) => reject(err));
         });
       }, // isAdmin
+
+      hasWriteAccess(profileId, modelName) {
+        const accessModel = modelName.toLowerCase() + "Access";
+        return new Promise((resolve, reject) => {
+          Profile.findById(profileId)
+          .then((p) => resolve(p &&
+            p[accessModel] === "rw".toLowerCase()))
+           
+          .catch((err) => reject(err));
+
+          console.log(p[accessModel]);
+        });
+      }
     },
+    
     defaultScope: {
       order: ['Profile.name'],
     },
