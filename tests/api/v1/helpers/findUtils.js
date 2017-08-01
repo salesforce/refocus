@@ -132,4 +132,14 @@ describe('build options object: ', () => {
     opts.where.name.$iLike = '%n\\%am\\_e%';
     expect(options(params, props)).to.deep.equal(opts);
   });
+
+  it.only('toSequelizeWildcards', (done) => {
+    expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
+    expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
+    expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
+    expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
+    expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
+    done();
+  });
 });
+
