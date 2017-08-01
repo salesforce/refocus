@@ -133,7 +133,7 @@ describe('build options object: ', () => {
     expect(options(params, props)).to.deep.equal(opts);
   });
 
-  it.only('toSequelizeWildcards', (done) => {
+  it('toSequelizeWildcards', (done) => {
     expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
     expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
     expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
