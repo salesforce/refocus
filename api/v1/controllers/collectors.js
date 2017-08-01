@@ -114,7 +114,37 @@ function deregisterCollector(req, res, next) {
  */
 function heartbeat(req, res, next) {
   // TODO reject if caller's token is not a collector token
-  // TODO implement me!
+  const retval = {
+    collectorConfig: {},
+    generatorsAdded: [],
+    generatorsDeleted: [],
+    generatorsUpdated: [],
+  };
+
+  /*
+   * TODO Populate collectorConfig
+   * - look up any changes made to this collector since the last heartbeat
+   */
+
+  /*
+   * TODO populate generatorsAdded
+   * - look up any new generators assigned to this collector since the last
+   *   heartbeat
+   */
+
+  /*
+   * TODO populate generatorsDeleted
+   * - look up any generators UNassigned from this collector since the last
+   *   heartbeat
+   */
+
+  /*
+   * TODO populate generatorsUpdated
+   * - for generators which were already assigned to this collector, look up
+   *   any changes made to the generator since the last heartbeat
+   */
+
+  res.status(httpStatus.OK).json(retval);
 } // heartbeat
 
 /**
