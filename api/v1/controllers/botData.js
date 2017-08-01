@@ -12,6 +12,7 @@
 'use strict';
 
 const helper = require('../helpers/nouns/botData');
+const doPost = require('../helpers/verbs/doPost');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
@@ -56,6 +57,19 @@ module.exports = {
    */
   findBotData(req, res, next) {
     doFind(req, res, next, helper);
+  },
+
+  /**
+   * POST /botData
+   *
+   * Creates a new botData and sends it back in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postBotData(req, res, next) {
+    doPost(req, res, next, helper);
   },
 
   /**
