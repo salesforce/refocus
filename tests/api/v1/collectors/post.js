@@ -59,15 +59,23 @@ describe(`api: POST ${path}`, () => {
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
     .end((err /* , res */) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send(c2)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        expect(res.body.errors[ZERO].type)
-        .to.equal(tu.uniErrorName);
-        done();
-      });
+      if (err) {
+        return done(err);
+      }
+
+      return api.post(path)
+        .set('Authorization', token)
+        .send(c2)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((_err, res) => {
+          if (_err) {
+            return done(_err);
+          }
+
+          expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+          return done();
+        });
     });
   });
 });
