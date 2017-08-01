@@ -41,6 +41,7 @@ module.exports = {
   jobConcurrency: {
     BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
     GET_HIERARCHY: conf.getHierarchyJobConcurrency,
+    JOB_CLEANUP: 1,
     PERSIST_SAMPLE_STORE: 1,
     SAMPLE_TIMEOUT: 1,
   },
@@ -48,6 +49,7 @@ module.exports = {
   jobType: {
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
     GET_HIERARCHY: 'GET_HIERARCHY',
+    JOB_CLEANUP: 'JOB_CLEANUP',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
   },
