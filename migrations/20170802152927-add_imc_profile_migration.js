@@ -10,7 +10,7 @@ module.exports = {
     }))
     .then(() => qi.addColumn('Profiles', 'roomAccess', {
       type: Sequelize.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     }))
     .then(() => qi.addColumn('Profiles', 'roomTypeAccess', {
       type: Sequelize.ENUM('r', 'rw'),
