@@ -47,11 +47,8 @@ module.exports = function roomType(seq, dataTypes) {
       comment: 'Determines if room type is still enabled for use',
     },
     settings: {
-      type: dataTypes.ARRAY(dataTypes.JSONB),
+      type: dataTypes.JSON,
       allowNull: true,
-      validate: {
-        contains: u.validateSettingsArray,
-      },
       comment: 'Key/Value pairs for user specific settings',
     },
     rules: {
