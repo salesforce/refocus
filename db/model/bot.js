@@ -74,7 +74,7 @@ module.exports = function bot(seq, dataTypes) {
       validate: {
         contains: u.validateSettingsArray,
       },
-      comment: 'Array[ {key: name of key, helpText: describe the value its looking for},]',
+      comment: 'Array[ {key: name of key, helpText: describe the value it is looking for},]',
     },
     data: {
       type: dataTypes.ARRAY(dataTypes.JSON),
