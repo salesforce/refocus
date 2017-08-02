@@ -23,5 +23,5 @@ module.exports = {
     .then(() => qi.removeColumn('Profiles', 'eventAccess'))
     .then(() => qi.removeColumn('Profiles', 'roomAccess'))
     .then(() => qi.removeColumn('Profiles', 'roomTypeAccess'));
-  }
+  },
 };
