@@ -20,16 +20,10 @@ const n2 = n+'NonActive';
 const standard = {
   name: n,
   isEnabled: true,
-  settings: [
-    {
-      key: 'Key1',
-      value: 'Value1',
-    },
-    {
-      key: 'Key2',
-      value: 'Value2',
-    },
-  ],
+  settings: {
+    Key1: 'Value1',
+    Key2: 'Value2',
+  },
   rules: [
     {
       rule: {
@@ -92,16 +86,10 @@ const standard = {
 const nonActive = {
   name: n2,
   isEnabled: false,
-  settings: [
-    {
-      key: 'Key1',
-      value: 'Value1',
-    },
-    {
-      key: 'Key2',
-      value: 'Value2',
-    },
-  ],
+  settings: {
+    Key1: 'Value1',
+    Key2: 'Value2',
+  },
   rules: [
     {
       rule: {

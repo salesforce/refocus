@@ -38,6 +38,21 @@ describe('db: room: create: ', () => {
     .catch(done);
     });
 
+    it('ok, room created settings default', (done) => {
+      RoomType.create(v.getStandard())
+      .then((roomType) => {
+        const room = u.getStandard();
+        room.type = roomType.id;
+        return Room.create(room);
+      })
+      .then((o) => {
+        expect(o).to.have.property('settings');
+        expect(o.settings.Key1).to.equal('Value1');
+        done();
+      })
+    .catch(done);
+    });
+
     it('ok, room created active false', (done) => {
       RoomType.create(v.getStandard())
       .then((roomType) => {
@@ -70,5 +85,21 @@ describe('db: room: create: ', () => {
       })
     .catch(done);
     });
+
+    it('fail, room type null', (done) => {
+      RoomType.create(v.getStandard())
+      .then((roomType) => {
+        const room = u.getStandard();
+        room.type = null;
+        return Room.create(room);
+      })
+      .then(() => done(tu.valError))
+      .catch((err) => {
+        expect(err.message.toLowerCase()).to.contain('notnull violation');
+        done();
+      })
+    .catch(done);
+    });
+
   });
 });

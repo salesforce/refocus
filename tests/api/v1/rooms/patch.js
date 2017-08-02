@@ -24,6 +24,7 @@ const RoomType = tu.db.RoomType;
 const v = require('../roomTypes/utils');
 
 describe(`api: PATCH ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
