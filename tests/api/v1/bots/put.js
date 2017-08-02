@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/bots/post.js
+ * tests/api/v1/bots/put.js
  */
 
 'use strict';
@@ -18,9 +18,13 @@ const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
+const fs = require('fs');
+const paths = require('path');
 const tu = require('../../../testUtils');
+const uiBlob2 = fs.readFileSync(paths.join(__dirname, './uiBlob2'));
 
-describe(`api: POST ${path}`, () => {
+describe(`api: PUT ${path}`, () => {
+  let testBot;
   let token;
 
   before((done) => {
@@ -32,58 +36,67 @@ describe(`api: POST ${path}`, () => {
     .catch(done);
   });
 
+  beforeEach((done) => {
+    u.createStandard()
+    .then((newBot) => {
+      testBot = newBot;
+      done();
+    })
+    .catch(done);
+  });
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('POST bot', () => {
-    it('Pass, post bot', (done) => {
-      api.post(`${path}`)
+  describe('PUT bot', () => {
+    it('Pass, put bot UI', (done) => {
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .field('name', u.name)
-      .field('url', 'https://www.foo.com')
-      .attach('ui', 'tests/api/v1/bots/uiBlob')
+      .attach('ui', 'tests/api/v1/bots/uiBlob2')
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
         }
 
-        expect(res.body.name).to.equal(u.name);
-        done();
+        tu.db.Bot.findAll()
+        .then((o) => {
+          expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
+          done();
+        })
+        .catch(done);
       });
     });
 
-    it('Fail, duplicate bot', (done) => {
-      u.createStandard()
-      .then(() => done());
-
-      api.post(`${path}`)
+   it('Fail, put bot invalid name', (done) => {
+      const newName = '~!invalidName';
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
-    });
-
-    it('Fail, bot validation incorrect', (done) => {
-      let testBot = u.getStandard();
-      testBot.actions = 'INVALID_VALUE';
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testBot)
+      .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           done(err);
         }
+
         expect(res.body.errors[ZERO].type).to
-        .contain(tu.valErrorName);
+        .contain('SequelizeValidationError');
+        done();
+      });
+    });
+
+    it('Fail, put bot invalid attribute', (done) => {
+      api.put(`${path}/${testBot.id}`)
+      .set('Authorization', token)
+      .send({ invalid: true })
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          done(err);
+        }
+
+        expect(res.body).not.to.have.property('invalid');
         done();
       });
     });
