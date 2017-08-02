@@ -8140,37 +8140,47 @@ paths:
       tags: [ bots ]
       description: Create a new bot with a name
       operationId: postBots
+      consumes:
+        - multipart/form-data
       parameters:
         -
-          name: queryBody
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Create bot properties
-            properties:
-              name:
-                type: string
-                maxLength: 254
-                description: Name of the bot
-              url:
-                type: string
-                description: Bot url
-              active:
-                type: boolean
-                description: If the bot is active
-              actions:
-                type: array
-                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
-                items:
-                  type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a bot
-                items:
-                  type: object
-            required:
-              - name
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
       responses:
         201:
           description: >-
@@ -8324,6 +8334,77 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+
+    put:
+      security:
+        - jwt: []
+      summary: Upgrade current bot
+      tags: [ bots ]
+      description: This route is used to update all the fields in a bot and to load in a new UI
+      operationId: putBots
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
+      responses:
+        201:
+          description: >-
+            Created bot
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
   /botActions:
     x-swagger-router-controller: botActions
@@ -9960,18 +10041,24 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID for the bot
       name:
         type: string
+        description: The unique readable name for the bot
       url:
         type: string
+        description: The URL of the bot server
       active:
         type: boolean
+        description: Flag for if a bot is active with communication
       actions:
         type: array
+        description: A list of actions that a bot can perform
         items:
           type: object
       data:
         type: array
+        description: A list of data that a bot can provide
         items:
           type: object
 

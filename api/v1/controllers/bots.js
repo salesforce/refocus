@@ -11,13 +11,13 @@
  */
 'use strict';
 
+const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
-const doPut = require('../helpers/verbs/doPut');
 
 module.exports = {
 
@@ -83,7 +83,37 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    doPost(req, res, next, helper);
+    const resultObj = { reqStartTime: new Date() };
+    const reqObj = req.swagger.params;
+    const seqObj = {};
+    try {
+      for (const param in reqObj) {
+        if (reqObj[param].value) {
+          if (typeof (reqObj[param].value) === 'object' &&
+            param === 'ui') {
+            seqObj[param] = reqObj[param].value.buffer;
+          } else {
+            seqObj[param] = reqObj[param].value;
+          }
+        }
+      }
+
+      helper.model.create(seqObj)
+        .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          delete o.dataValues.ui;
+          u.logAPI(req, resultObj, o.dataValues);
+          res.status(httpStatus.CREATED).json(
+            u.responsify(o, helper, req.method)
+          );
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
+    } catch (err) {
+      err.description = 'Invalid UI uploaded.';
+      u.handleError(next, err, helper.modelName);
+    }
   },
 
   /**
@@ -96,7 +126,31 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putBots(req, res, next) {
-    doPut(req, res, next, helper);
+    const resultObj = { reqStartTime: new Date() };
+    const reqObj = req.swagger.params;
+    u.findByKey(helper, req.swagger.params)
+    .then((o) => {
+      for (const param in reqObj) {
+        if (reqObj[param].value) {
+          if (param === 'ui') {
+            o.set(param, reqObj[param].value.buffer);
+          } else {
+            o.set(param, reqObj[param].value);
+          }
+        }
+      }
+
+      return o.save();
+    })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      delete o.dataValues.ui;
+      u.logAPI(req, resultObj, o.dataValues);
+      res.status(httpStatus.CREATED).json(
+        u.responsify(o, helper, req.method)
+      );
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
 }; // exports
