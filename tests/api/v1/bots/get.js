@@ -20,7 +20,10 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const fs = require('fs');
+const paths = require('path');
 const tu = require('../../../testUtils');
+const uiBlob = fs.readFileSync(paths.join(__dirname, './uiBlob'));
 
 describe(`api: GET ${path}`, () => {
   let testBot;
@@ -45,7 +48,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('GET bot', () => {
     it('Pass, get array of one', (done) => {
@@ -58,6 +61,7 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].ui.data.length).to.equal(uiBlob.length);
         done(err);
       });
     });
