@@ -89,8 +89,6 @@ const roomTypeSchema = {
   ],
 };
 
-const roomType = tu.db.RoomType.create(roomTypeSchema);
-
 const standard = {
   name: n,
   active: true,

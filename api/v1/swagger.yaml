@@ -7940,10 +7940,8 @@ paths:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -8073,10 +8071,8 @@ paths:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -10431,9 +10427,7 @@ definitions:
         type: boolean
         description: Flag indicating whether a roomType is enabled to use on rooms
       settings:
-        type: array
-        items:
-          type: object
+        type: object
         description: Key-value pairs used to configure bots and rooms intial state
       rules:
         type: array

@@ -23,6 +23,7 @@ const RoomType = tu.db.RoomType;
 const v = require('../roomTypes/utils');
 
 describe(`api: DELETE ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
