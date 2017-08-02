@@ -69,7 +69,7 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-   /* it('Fail, put bot invalid name', (done) => {
+   it('Fail, put bot invalid name', (done) => {
       const newName = '~!invalidName';
       api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
@@ -90,7 +90,7 @@ describe(`api: PUT ${path}`, () => {
       api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
@@ -99,7 +99,7 @@ describe(`api: PUT ${path}`, () => {
         expect(res.body).not.to.have.property('invalid');
         done();
       });
-    });*/
+    });
   });
 });
 

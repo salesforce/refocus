@@ -8334,6 +8334,77 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+
+    put:
+      security:
+        - jwt: []
+      summary: Upgrade current bot
+      tags: [ bots ]
+      description: This route is used to update all the fields in a bot and to load in a new UI
+      operationId: putBots
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
+      responses:
+        201:
+          description: >-
+            Created bot
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
   /botActions:
     x-swagger-router-controller: botActions
@@ -8560,76 +8631,6 @@ paths:
             Updated field
           schema:
             $ref: "#/definitions/BotActionResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        default:
-          $ref: "#/responses/genericError"
-
-    put:
-      security:
-        - jwt: []
-      summary: Upgrade current bot
-      tags: [ bots ]
-      description: This route is used to update all the fields in a bot and to load in a new UI
-      operationId: putBots
-      consumes:
-        - multipart/form-data
-      parameters:
-        -
-          name: key
-          in: path
-          description: >-
-            The id or name of the bot to retrieve
-          required: true
-          type: string
-        -
-          name: name
-          in: formData
-          description: The unique readable name for the bot
-          type: string
-        -
-          name: active
-          in: formData
-          description: Flag for if a bot is active with communication
-          type: boolean
-          default: false
-        -
-          name: url
-          in: formData
-          description: The URL of the bot server
-          type: string
-        -
-          name: ui
-          description: The zipped HTML and Javascript needed to run the UI of the bot
-          in: formData
-          type: file
-          format: binary
-        -
-          name: actions
-          in: formData
-          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
-          type: array
-          items:
-            type: string
-          default: []
-        -
-          name: data
-          in: formData
-          description: Array of objects that contain the name of data on a bot
-          type: array
-          items:
-            type: string
-          default: []
-      responses:
-        201:
-          description: >-
-            Created bot
-          schema:
-            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
