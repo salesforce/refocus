@@ -54,7 +54,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -74,7 +74,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -94,7 +94,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();

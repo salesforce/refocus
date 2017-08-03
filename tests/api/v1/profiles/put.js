@@ -54,7 +54,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.name).to.equal(newName);
         done();
@@ -71,7 +71,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .equal('AdminUpdateDeleteForbidden');
@@ -88,7 +88,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SCHEMA_VALIDATION_FAILED');

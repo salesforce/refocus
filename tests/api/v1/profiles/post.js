@@ -48,7 +48,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.name).to.equal(p0.name);
         done();
@@ -62,7 +62,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
@@ -75,7 +75,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
@@ -92,7 +92,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SequelizeUniqueConstraintError');
@@ -107,7 +107,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SCHEMA_VALIDATION_FAILED');

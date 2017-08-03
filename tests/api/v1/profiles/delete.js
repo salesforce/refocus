@@ -54,10 +54,10 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.name).to.equal(p0.name);
-        done(err);
+        done();
       });
     });
 
@@ -67,7 +67,7 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
@@ -78,8 +78,11 @@ describe(`api: DELETE ${path}`, () => {
       api.delete(`${path}/INVALID_PROFILE`)
       .set('Authorization', predefinedAdminUserToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err) => {
-        done(err);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
       });
     });
   });
