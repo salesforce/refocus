@@ -111,7 +111,7 @@ describe(`api: PATCH ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
+        .contain(tu.schemaValidationErrorName);
         done();
       });
     });

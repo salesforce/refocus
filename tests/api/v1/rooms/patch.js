@@ -24,6 +24,7 @@ const RoomType = tu.db.RoomType;
 const v = require('../roomTypes/utils');
 
 describe(`api: PATCH ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
@@ -82,7 +83,7 @@ describe(`api: PATCH ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
+        .contain(tu.schemaValidationErrorName);
         done();
       });
     });

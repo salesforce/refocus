@@ -81,7 +81,7 @@ describe(`api: PUT ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
+        .contain('Error');
         done();
       });
     });
