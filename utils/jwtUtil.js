@@ -62,7 +62,7 @@ function checkTokenRecord(t) {
 
   if (!t) {
     const err = new apiErrors.ForbiddenError({
-      explanation: 'Missing user for the specified token. ' +
+      explanation: 'Missing token for the specified user. ' +
         'Please contact your Refocus administrator.',
     });
     throw err;
@@ -86,7 +86,8 @@ function checkTokenRecord(t) {
  * Function to verify if a collector token is valid or not.
   * @param  {object}   req - request object
  * @param  {Function} cb - callback function
- * @throws {Forbidden} If a collector record matching the username is not found
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
  */
 function verifyCollectorToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
@@ -112,7 +113,8 @@ function verifyCollectorToken(req, cb) {
  * (Skip the token record check if the token is the default UI token.)
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
- * @throws {Forbidden} If a collector record matching the username is not found
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
  */
 function verifyUserToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
@@ -146,13 +148,7 @@ function verifyUserToken(req, cb) {
       },
     })
     .then(checkTokenRecord)
-    .then((ok) => {
-      if (ok) {
-        return cb();
-      }
-
-      return handleInvalidToken(cb);
-    });
+    .then(() => cb());
   });
 } // verifyUserToken
 
@@ -172,9 +168,16 @@ function verifyToken(req, cb) {
   if (token) {
     verifyUserToken(req, cb)
     .then((ret) => ret)
-    .catch(() => verifyCollectorToken(req, cb)
+    .catch((err) => {
+      if (err.explanation &&
+          err.explanation.endsWith('Refocus administrator.')) {
+        return handleError(cb, err, 'ApiToken');
+      }
+
+      return verifyCollectorToken(req, cb)
       .then((_ret) => _ret)
-      .catch(() => handleInvalidToken(cb)));
+      .catch(() => handleInvalidToken(cb));
+    });
   } else {
     const err = new apiErrors.ForbiddenError({
       explanation: 'No authorization token was found.',
