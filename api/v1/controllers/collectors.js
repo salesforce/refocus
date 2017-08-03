@@ -317,7 +317,6 @@ module.exports = {
   findCollectors,
   getCollector,
   patchCollector,
-  putCollector,
   deregisterCollector,
   heartbeat,
   startCollector,
