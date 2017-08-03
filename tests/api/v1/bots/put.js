@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/rooms/patch.js
+ * tests/api/v1/bots/put.js
  */
 
 'use strict';
@@ -15,17 +15,16 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
-const path = '/v1/rooms';
+const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
+const fs = require('fs');
+const paths = require('path');
 const tu = require('../../../testUtils');
-const Room = tu.db.Room;
-const RoomType = tu.db.RoomType;
-const v = require('../roomTypes/utils');
+const uiBlob2 = fs.readFileSync(paths.join(__dirname, './uiBlob2'));
 
-describe(`api: PATCH ${path}`, () => {
-  let testRoomType;
-  let testRoom;
+describe(`api: PUT ${path}`, () => {
+  let testBot;
   let token;
 
   before((done) => {
@@ -38,14 +37,9 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   beforeEach((done) => {
-    RoomType.create(v.getStandard())
-    .then((roomType) => {
-      const room = u.getStandard();
-      room.type = roomType.id;
-      return Room.create(room);
-    })
-    .then((newRoom) => {
-      testRoom = newRoom;
+    u.createStandard()
+    .then((newBot) => {
+      testBot = newBot;
       done();
     })
     .catch(done);
@@ -54,26 +48,30 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('PATCH room', () => {
-    it('Pass, patch room name', (done) => {
-      const newName = 'newName';
-      api.patch(`${path}/${testRoom.id}`)
+  describe('PUT bot', () => {
+    it('Pass, put bot UI', (done) => {
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.OK)
+      .field('name', u.name)
+      .attach('ui', 'tests/api/v1/bots/uiBlob2')
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);
         }
 
-        expect(res.body.name).to.equal(newName);
-        done();
+        tu.db.Bot.findAll()
+        .then((o) => {
+          expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
+          done();
+        })
+        .catch(done);
       });
     });
 
-    it('Fail, patch room invalid name', (done) => {
+   it('Fail, put bot invalid name', (done) => {
       const newName = '~!invalidName';
-      api.patch(`${path}/${testRoom.id}`)
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({ name: newName })
       .expect(constants.httpStatus.BAD_REQUEST)
@@ -83,16 +81,16 @@ describe(`api: PATCH ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
+        .contain('Error');
         done();
       });
     });
 
-    it('Fail, patch room invalid attribute', (done) => {
-      api.patch(`${path}/${testRoom.id}`)
+    it('Fail, put bot invalid attribute', (done) => {
+      api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           done(err);

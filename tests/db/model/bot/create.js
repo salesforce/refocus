@@ -32,6 +32,8 @@ describe('db: bot: create: ', () => {
         expect(o.actions[0].parameters.length).to.equal(4);
         expect(o).to.have.property('data');
         expect(o.data.length).to.equal(5);
+        expect(o).to.have.property('settings');
+        expect(o.settings.length).to.equal(1);
         done();
       })
     .catch(done);
