@@ -7539,6 +7539,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               active:
                 type: boolean
                 description: If the room is active
@@ -7666,6 +7667,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               active:
                 type: boolean
                 description: If the room is active
@@ -7843,6 +7845,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               value:
                 type: string
                 maxLength: 254
@@ -8048,6 +8051,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isEnabled:
                 type: boolean
                 description: If the roomType is active
@@ -8178,6 +8182,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isEnabled:
                 type: boolean
                 description: If the roomType is active
@@ -8260,6 +8265,7 @@ paths:
           in: formData
           description: The unique readable name for the bot
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: active
           in: formData
@@ -8416,6 +8422,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the bot
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               url:
                 type: string
                 description: Bot url
@@ -8469,6 +8476,7 @@ paths:
           in: formData
           description: The unique readable name for the bot
           type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: active
           in: formData
@@ -8578,6 +8586,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isPending:
                 type: boolean
                 description: If the botAction is active
@@ -8717,6 +8726,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isPending:
                 type: boolean
                 description: If the botAction is active
@@ -10548,12 +10558,16 @@ definitions:
     properties:
       id:
         type: integer
+        description: The room number of the specified room
       name:
         type: string
+        description: The unique readable name for the room
       active:
         type: boolean
+        description: Flag for whether the room is still active or closed
       type:
         type: string
+        description: The roomType being used in the specified room
 
   RoomTypeResponse:
     type: object
@@ -10561,16 +10575,21 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID of the roomType specified
       name:
         type: string
+        description: The roomType being used in the specified room
       isEnabled:
         type: boolean
+        description: Flag indicating whether a roomType is enabled to use on rooms
       settings:
         type: object
+        description: Key-value pairs used to configure bots and rooms intial state
       rules:
         type: array
         items:
           type: object
+        description: Array containing the rules that trigger automations for rooms of this type
 
   BotDataResponse:
     type: object

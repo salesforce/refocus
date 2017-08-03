@@ -81,7 +81,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
         expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
+        .contain(tu.schemaValidationErrorName);
         done();
       });
     });
