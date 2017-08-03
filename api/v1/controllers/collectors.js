@@ -12,21 +12,19 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const utils = require('./utils');
+const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
 const userProps = require('../helpers/nouns/users');
-const doDelete = require('../helpers/verbs/doDelete');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const authUtils = require('../helpers/authUtils');
 const ZERO = 0;
 
 /**
@@ -37,8 +35,23 @@ const ZERO = 0;
  * @param {Function} next - The next middleware function in the stack
  */
 function postCollector(req, res, next) {
-  // TODO reject if caller is not a collector
-  doPost(req, res, next, helper);
+  const collectorToPost = req.swagger.params.queryBody.value;
+  const resultObj = { reqStartTime: new Date() };
+  const tokenToReturn = jwtUtil.createToken(collectorToPost.name,
+    collectorToPost.name);
+  const toPost = req.swagger.params.queryBody.value;
+  helper.model.create(toPost)
+  .then((o) => {
+    if (helper.loggingEnabled) {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      utils.logAPI(req, resultObj, o);
+    }
+
+    o.dataValues.token = tokenToReturn;
+    return res.status(httpStatus.CREATED)
+      .json(u.responsify(o, helper, req.method));
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // postCollector
 
 /**
