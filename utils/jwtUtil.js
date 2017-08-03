@@ -22,7 +22,7 @@ const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
 
 /**
- * Attaches the resource tyƒpe to the error and passes it on to the next
+ * Attaches the resource type to the error and passes it on to the next
  * handler.
  *
  * @param {Function} next - The next middleware function in the stack
@@ -84,7 +84,7 @@ function checkTokenRecord(t) {
 
 /**
  * Function to verify if a collector token is valid or not.
-  * @param  {object}   req - request object
+  * @param  {object} req - request object
  * @param  {Function} cb - callback function
  * @throws {ForbiddenError} If a collector record matching the username is
  *   not found
@@ -194,11 +194,12 @@ function verifyToken(req, cb) {
  *  "tokenname" attributes.
  */
 function getTokenDetailsFromTokenString(s) {
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'No authorization token was found',
+  });
 
   if (!s) {
-    return Promise.reject(new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found',
-    }));
+    return Promise.reject(err);
   }
 
   return jwtVerifyAsync(s, secret, {})
@@ -207,8 +208,7 @@ function getTokenDetailsFromTokenString(s) {
       const tokenname = decodedData.tokenname;
       return { username, tokenname };
     })
-    .catch(() => Promise.reject(new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found', })));
+    .catch(() => Promise.reject(err));
 } // getTokenDetailsFromTokenString
 
 /**
@@ -228,9 +228,7 @@ function getTokenDetailsFromRequest(req) {
   if (!t && req.session && req.session.token) {
     const username = req.session.passport.user.name;
     const tokenname = '__UI';
-    return new Promise((resolve) =>
-      resolve({ username, tokenname })
-    );
+    return Promise.resolve({ username, tokenname });
   }
 
   return getTokenDetailsFromTokenString(t);
