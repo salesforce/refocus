@@ -90,7 +90,7 @@ module.exports = function bot(seq, dataTypes) {
         });
         assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
           as: 'roomTypes',
-          through: 'BotRoomTypes',
+          through: 'RoomTypesBots',
           foreignKey: 'botId',
         });
       },
