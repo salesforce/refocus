@@ -37,8 +37,6 @@ const ZERO = 0;
 function postCollector(req, res, next) {
   const collectorToPost = req.swagger.params.queryBody.value;
   const resultObj = { reqStartTime: new Date() };
-  const tokenToReturn = jwtUtil.createToken(collectorToPost.name,
-    collectorToPost.name);
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
@@ -47,7 +45,12 @@ function postCollector(req, res, next) {
       utils.logAPI(req, resultObj, o);
     }
 
-    o.dataValues.token = tokenToReturn;
+    /*
+     * When a collector registers itself with Refocus, Refocus sends back a
+     * special token for that collector to use for all further communication
+     */
+    o.dataValues.token = jwtUtil
+      .createToken(collectorToPost.name, collectorToPost.name);
     return res.status(httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
   })
@@ -92,18 +95,6 @@ function patchCollector(req, res, next) {
 } // patchCollector
 
 /**
- * Update the specified collector's config data. If a field is not included in
- * the querybody, that field will be set to null.
- *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function putCollector(req, res, next) {
-  doPut(req, res, next, helper);
-} // putCollector
-
-/**
  * Deregister a collector. Access restricted to Refocus Collector only.
  *
  * @param {IncomingMessage} req - The request object
@@ -115,6 +106,7 @@ function deregisterCollector(req, res, next) {
   req.swagger.params.queryBody = {
     value: { registered: false },
   };
+
   doPatch(req, res, next, helper);
 } // deregisterCollector
 
