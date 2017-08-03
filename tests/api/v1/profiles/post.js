@@ -26,19 +26,29 @@ describe(`api: POST ${path}`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  let token;
   const p0 = { name: `${tu.namePrefix}1` };
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   afterEach(u.forceDelete);
 
   describe('POST profile', () => {
-    it('Ok, post profile successful', (done) => {
+    it('Ok, user is admin', (done) => {
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
       .send(p0)
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.name).to.equal(p0.name);
         expect(res.body.botAccess).to.equal('r');
@@ -46,11 +56,36 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
+    it('fail, not an admin profile', (done) => {
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(p0)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
+    it('fail, no token provided', (done) => {
+      api.post(`${path}`)
+      .send(p0)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
     it('Fail, duplicate profile', (done) => {
       // Create profile ___1
-      tu.db.Profile.create(p0)
-      .then(() => done());
-
+      tu.db.Profile.create(p0);
       // Create identical profile
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
@@ -58,10 +93,11 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SequelizeUniqueConstraintError');
+        done();
       });
     });
 
@@ -72,7 +108,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.errors[ZERO].type).to
         .contain('SCHEMA_VALIDATION_FAILED');

@@ -50,7 +50,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
       expect(res.body).to.have.property('name', pname);
       expect(res.body).to.have.property('aspectAccess', 'r');
@@ -74,30 +74,20 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
       expect(res.body).to.have.property('name', adminProfile.name);
-      expect(res.body).to.have.property('aspectAccess', 'rw');
-      expect(res.body).to.have.property('botAccess', 'rw');
-      expect(res.body).to.have.property('eventAccess', 'rw');
-      expect(res.body).to.have.property('lensAccess', 'rw');
-      expect(res.body).to.have.property('perspectiveAccess', 'rw');
-      expect(res.body).to.have.property('profileAccess', 'rw'); 
-      expect(res.body).to.have.property('roomAccess', 'rw');
-      expect(res.body).to.have.property('roomTypeAccess', 'rw');  
-      expect(res.body).to.have.property('sampleAccess', 'rw'); 
-      expect(res.body).to.have.property('subjectAccess', 'rw');
-      expect(res.body).to.have.property('userAccess', 'rw');
       done();
     });
   });
 
   it('profiles array returned', (done) => {
     api.get(`${path}`)
+    .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
       expect(res.body).to.be.instanceof(Array);
       done();
