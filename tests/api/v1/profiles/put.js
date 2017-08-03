@@ -50,6 +50,7 @@ describe(`api: PUT ${path}`, () => {
       .send({
         name: newName,
         subjectAccess: 'rw',
+        roomTypeAccess: 'rw'
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -57,6 +58,7 @@ describe(`api: PUT ${path}`, () => {
           done(err);
         }
         expect(res.body.name).to.equal(newName);
+        expect(res.body.roomTypeAccess).to.equal('rw');
         done();
       });
     });

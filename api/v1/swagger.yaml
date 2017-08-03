@@ -3911,9 +3911,13 @@ paths:
               - id
               - name
               - aspectAccess
+              - botAccess
+              - eventAccess
               - lensAccess
               - perspectiveAccess
               - profileAccess
+              - roomAccess
+              - roomTypeAccess
               - sampleAccess
               - subjectAccess
               - userAccess
@@ -3923,9 +3927,13 @@ paths:
               - -id
               - -name
               - -aspectAccess
+              - -botAccess
+              - -eventAccess
               - -lensAccess
               - -perspectiveAccess
               - -profileAccess
+              - -roomAccess
+              - -roomTypeAccess
               - -sampleAccess
               - -subjectAccess
               - -userAccess
@@ -3982,6 +3990,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -4009,6 +4035,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -4161,6 +4205,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -4188,6 +4250,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -4272,6 +4352,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -4299,6 +4397,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -9367,6 +9483,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write aspects.
+      botAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write bots.
+      eventAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write events.
       lensAccess:
         type: string
         readOnly: true
@@ -9397,6 +9533,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write profiles.
+      roomAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: rw
+        description: >
+          The permission to read and/or write rooms.
+      roomTypeAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write roomTypes.
       sampleAccess:
         type: string
         readOnly: true
@@ -10624,9 +10780,13 @@ parameters:
         - id
         - name
         - aspectAccess
+        - botAccess
+        - eventAccess
         - lensAccess
         - perspectiveAccess
         - profileAccess
+        - roomAccess
+        - roomTypeAccess
         - sampleAccess
         - subjectAccess
         - userAccess
