@@ -194,25 +194,21 @@ function verifyToken(req, cb) {
  *  "tokenname" attributes.
  */
 function getTokenDetailsFromTokenString(s) {
-  return new Promise((resolve, reject) => {
-    if (s) {
-      jwt.verify(s, secret, {}, (err, decodedData) => {
-        if (err !== null || !decodedData) {
-          return reject(new apiErrors.ForbiddenError({
-            explanation: 'No authorization token was found',
-          }));
-        }
 
-        const username = decodedData.username;
-        const tokenname = decodedData.tokenname;
-        return resolve({ username, tokenname });
-      });
-    } else {
-      reject(new apiErrors.ForbiddenError({
-        explanation: 'No authorization token was found',
-      }));
-    }
-  });
+  if (!s) {
+    return Promise.reject(new apiErrors.ForbiddenError({
+      explanation: 'No authorization token was found',
+    }));
+  }
+
+  return jwtVerifyAsync(s, secret, {})
+    .then((decodedData) => {
+      const username = decodedData.username;
+      const tokenname = decodedData.tokenname;
+      return { username, tokenname };
+    })
+    .catch(() => Promise.reject(new apiErrors.ForbiddenError({
+      explanation: 'No authorization token was found', })));
 } // getTokenDetailsFromTokenString
 
 /**
