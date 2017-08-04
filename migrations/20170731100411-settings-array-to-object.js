@@ -19,9 +19,10 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     return qi.sequelize.transaction(() =>
-      qi.sequelize.query('ALTER TABLE "RoomTypes" ALTER COLUMN "settings" DROP NOT NULL;'+
-        'ALTER TABLE "RoomTypes" ALTER COLUMN "settings" DROP DEFAULT;'+
-        'ALTER TABLE "RoomTypes" ALTER COLUMN "settings" TYPE JSON USING json_build_object("settings");'));
+      qi.sequelize.query('ALTER TABLE "RoomTypes" ALTER COLUMN "settings" DROP NOT NULL;' +
+        'ALTER TABLE "RoomTypes" ALTER COLUMN "settings" DROP DEFAULT;' +
+        'ALTER TABLE "RoomTypes" ALTER COLUMN "settings"' +
+        'TYPE JSON USING json_build_object("settings");'));
   },
 
   down: function (qi, Sequelize) {
