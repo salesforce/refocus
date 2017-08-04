@@ -89,7 +89,6 @@ module.exports = function bot(seq, dataTypes) {
           foreignKey: 'botId',
         });
         assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
-          as: 'roomTypes',
           through: 'RoomTypeBots',
           foreignKey: 'botId',
         });

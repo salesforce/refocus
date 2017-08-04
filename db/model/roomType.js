@@ -73,7 +73,7 @@ module.exports = function roomType(seq, dataTypes) {
           foreignKey: 'type',
         });
         assoc.bots = RoomType.hasMany(models.Bot, {
-          foreignKey: 'bots',
+          foreignKey: 'roomTypeId',
         });
         assoc.writers = RoomType.belongsToMany(models.User, {
           as: 'writers',
