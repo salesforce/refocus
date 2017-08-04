@@ -7,6 +7,7 @@
  */
 'use strict';
 const u = require('../db/helpers/roomTypeUtils');
+const TBL = 'RoomTypes';
 
 module.exports = {
   up: function (qi, Sequelize) {
@@ -17,7 +18,7 @@ module.exports = {
       Example:
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
-    return qi.changeColumn('RoomType', 'settings', {
+    return qi.changeColumn(TBL, 'settings', {
       type: Sequelize.JSON,
       allowNull: true,
     });
@@ -32,7 +33,7 @@ module.exports = {
       return queryInterface.dropTable('users');
     */
 
-    return qi.changeColumn('RoomType', 'settings', {
+    return qi.changeColumn(TBL, 'settings', {
       type: Sequelize.ARRAY(Sequelize.JSONB),
       allowNull: true,
       validate: {
