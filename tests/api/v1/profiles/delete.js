@@ -14,6 +14,7 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const ZERO = 0;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/profiles';
@@ -26,9 +27,19 @@ describe(`api: DELETE ${path}`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+  let token;
   const p0 = { name: `${tu.namePrefix}1` };
 
   before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  beforeEach((done) => {
     Profile.create(p0)
     .then(() => done())
     .catch((err) => done(err));
@@ -43,10 +54,23 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         expect(res.body.name).to.equal(p0.name);
-        done(err);
+        done();
+      });
+    });
+
+    it('fail, not an admin profile', (done) => {
+      api.delete(`${path}/${p0.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+        done();
       });
     });
 
@@ -54,8 +78,11 @@ describe(`api: DELETE ${path}`, () => {
       api.delete(`${path}/INVALID_PROFILE`)
       .set('Authorization', predefinedAdminUserToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err) => {
-        done(err);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        done();
       });
     });
   });

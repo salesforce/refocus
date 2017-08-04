@@ -43,7 +43,7 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('PATCH bot', () => {
     it('Pass, patch bot name', (done) => {
@@ -74,7 +74,7 @@ describe(`api: PATCH ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
+        .contain(tu.schemaValidationErrorName);
         done();
       });
     });

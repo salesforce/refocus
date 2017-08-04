@@ -25,6 +25,12 @@ const standard = {
   url: 'http://www.bar.com',
   ui: uiBlob,
   active: true,
+  settings: [
+    {
+      key: 'key1',
+      helpText: 'help Text 1'
+    }
+  ],
   actions: [
     {
       name: 'Action1',

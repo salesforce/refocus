@@ -68,6 +68,14 @@ module.exports = function bot(seq, dataTypes) {
       },
       comment: 'List of actions a Bot can take',
     },
+    settings: {
+      type: dataTypes.ARRAY(dataTypes.JSONB),
+      allowNull: true,
+      validate: {
+        contains: u.validateSettingsArray,
+      },
+      comment: 'Array[ {key: name of key, helpText: describe the value it is looking for},]',
+    },
     data: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
