@@ -17,7 +17,6 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/collectors';
-const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 const ZERO = 0;
 
@@ -43,6 +42,7 @@ describe(`api: POST ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       const collectortoken = jwtUtil
         .createToken(u.toCreate.name, u.toCreate.name);
       expect(res.body.registered).to.equal(true);

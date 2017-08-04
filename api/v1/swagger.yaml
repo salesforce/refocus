@@ -1366,59 +1366,6 @@ paths:
           $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
-    put:
-      security:
-        - jwt: []
-      tags: [ collectors ]
-      summary: Update the specified collector.
-      description: >-
-        Update the specified collector's config data. If a field is not included
-        in the querybody, that field will be set to null.
-      operationId: putCollector
-      parameters:
-        -
-          name: key
-          in: path
-          description: The id or name of the collector to update.
-          required: true
-          type: string
-        -
-          name: queryBody
-          in: body
-          description: Request body.
-          required: true
-          schema:
-            type: object
-            description: Fields permitted for putting.
-            properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >
-                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
-              helpEmail:
-                type: string
-                description: >
-                  The email address where a user can go to get more help about the collector.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: >
-                  The url where a user can go to get more help about the collector.
-              host:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 4096
-              ipAddress:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 60
-      responses:
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
