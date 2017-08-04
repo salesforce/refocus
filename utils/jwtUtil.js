@@ -84,7 +84,7 @@ function checkTokenRecord(t) {
 
 /**
  * Function to verify if a collector token is valid or not.
-  * @param  {object} req - request object
+ * @param  {object} req - request object
  * @param  {Function} cb - callback function
  * @throws {ForbiddenError} If a collector record matching the username is
  *   not found
