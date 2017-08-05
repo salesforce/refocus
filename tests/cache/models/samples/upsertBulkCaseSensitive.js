@@ -108,7 +108,6 @@ describe('api: POST ' + path, () => {
             done(err);
           }
 
-          console.log('in res body')
           expect(res.body).to.have.length(1);
           expect(res.body[0].name).to.equal(sampleName);
           done();

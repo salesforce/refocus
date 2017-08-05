@@ -301,7 +301,6 @@ describe(`api: GET ${path}:`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          console.log(err);
           done(err);
         }
 
