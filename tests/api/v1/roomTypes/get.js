@@ -54,7 +54,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -72,10 +72,11 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(TWO);
+        done();
       });
     });
 
@@ -85,7 +86,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -99,7 +100,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ZERO);
@@ -117,11 +118,12 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
         expect(res.body[ZERO].name).to.equal(u.name);
+        done();
       });
     });
 
@@ -131,7 +133,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
