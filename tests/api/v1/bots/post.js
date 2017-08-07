@@ -55,19 +55,21 @@ describe(`api: POST ${path}`, () => {
 
     it('Fail, duplicate bot', (done) => {
       u.createStandard()
-      .then(() => done());
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
+      .then(() => {
+        api.post(`${path}`)
+        .set('Authorization', token)
+        .send(u.getStandard())
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+          expect(res.body.errors[ZERO].type).to
+          .contain('SequelizeUniqueConstraintError');
+          done();
+        });
+      })
+      .catch(done);
     });
 
     it('Fail, bot validation incorrect', (done) => {
