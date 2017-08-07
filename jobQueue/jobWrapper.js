@@ -29,6 +29,7 @@ const TIME_TO_LIVE =
 
 /**
  * Set log object params from job results.
+ *
  * @param  {Object} jobResultObj - Job result object
  * @param  {Object} logObject - Log object
  */
@@ -117,9 +118,13 @@ function logJobOnComplete(req, job) {
 
     /*
      * If req object is defined; extract the user name, token and ipaddress and
-     * update the log object
+     * update the log object. Add "request_id" if header is set by heroku.
      */
     if (req) {
+      if (req.headers && req.headers['x-request-id']) {
+        logObject.request_id = req.headers['x-request-id'];
+      }
+
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
