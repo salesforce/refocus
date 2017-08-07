@@ -10,16 +10,25 @@
  * tests/api/v1/ssoconfig/post.js
  */
 'use strict'; // eslint-disable-line strict
-
+const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const adminUser = require('../../../../config').db.adminUser;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
+const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: POST ${path}`, () => {
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  let testUserToken = '';
 
   before((done) => {
     tu.createToken()
@@ -27,15 +36,46 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
+  });
+
+  before((done) => {
+    u.newGenericUser(token, (err, t) => {
+      if (err) {
+        done(err);
+      }
+
+      testUserToken = t;
+      done();
+    });
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('forbidden if not admin user', (done) => {
+    api.post(path)
+    .set('Authorization', testUserToken)
+    .send({
+      samlEntryPoint: 'http://someOtherUrl.com',
+      samlIssuer: u.samlParams.samlIssuer,
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body.errors).to.have.length(ONE);
+        expect(res.body.errors).to.have.deep.property('[0].type',
+          'ForbiddenError');
+        done();
+      }
+    });
+  });
+
   it('sucessful creation', (done) => {
     api.post(path)
-    .set('Authorization', token)
+    .set('Authorization', predefinedAdminUserToken)
     .send(u.samlParams)
     .expect(constants.httpStatus.CREATED)
     .end((err) => {
@@ -49,7 +89,7 @@ describe(`api: POST ${path}`, () => {
 
   it('Cannot post if there is already a config row in database', (done) => {
     api.post(path)
-    .set('Authorization', token)
+    .set('Authorization', predefinedAdminUserToken)
     .send(u.samlParams)
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/SSOConfigCreateConstraintError/)
