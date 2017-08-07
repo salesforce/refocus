@@ -48,6 +48,10 @@ module.exports = function collector(seq, dataTypes) {
       allowNull: true,
       type: dataTypes.STRING(constants.fieldlen.normalName),
     },
+    lastHeartbeat: {
+      type: dataTypes.DATE,
+      allowNull: true,
+    },
     registered: {
       type: dataTypes.BOOLEAN,
       allowNull: false,

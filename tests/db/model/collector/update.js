@@ -191,4 +191,15 @@ describe('tests/db/model/collector/update.js >', () => {
     })
     .catch(done);
   });
+
+  it('Update lastHeartbeat', (done) => {
+    const d = new Date(Date.UTC(2017, 5, 21, 13, 55, 10));
+    collectorDb.update({ lastHeartbeat: d })
+    .then((obj) => {
+      expect(obj.lastHeartbeat.valueOf()).to.be.equal(1498053310000);
+      expect(obj.lastHeartbeat.getMinutes()).to.be.equal(55);
+      done();
+    })
+    .catch(done);
+  });
 });
