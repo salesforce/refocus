@@ -10,20 +10,17 @@
  * api/v1/controllers/perspectives.js
  */
 'use strict';
-
 const helper = require('../helpers/nouns/perspectives');
 const userProps = require('../helpers/nouns/users');
-const doDeleteAllAssoc =
-                    require('../helpers/verbs/doDeleteAllBToMAssoc');
-const doDeleteOneAssoc =
-                    require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc =
-                    require('../helpers/verbs/doPostBToMAssoc');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
@@ -112,18 +109,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriters(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    }).catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriters(req, res, next, helper);
   }, // getPerspectiveWriters
 
   /**
@@ -137,23 +123,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriter(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      // throw ResourceNotFound error if resolved object is empty array
-      u.throwErrorForEmptyArray(o,
-        params.userNameOrId.value, userProps.modelName);
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriter(req, res, next, helper);
   }, // getPerspectivesWriter
 
   /**

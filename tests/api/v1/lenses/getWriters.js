@@ -21,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/lenses/{key}/writers';
 const getWriterPath = '/v1/lenses/{key}/writers/{userNameOrId}';
 
-describe('api: lenses: get writers}', () => {
+describe('api: lenses: get writers >', () => {
   let lens;
   let token;
   let user;
@@ -38,17 +38,14 @@ describe('api: lenses: get writers}', () => {
     u.doSetup()
     .then((lensInst) => {
       lens = lensInst;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne())
-    .then((usr) =>
-      lens.addWriter(usr))
-    .then(() =>
-      tu.createSecondUser())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created,
+     * so use one of these.
+     */
+    .then(() => User.findOne())
+    .then((usr) => lens.addWriter(usr))
+    .then(() => tu.createSecondUser())
     .then((secUsr) => {
       lens.addWriter(secUsr);
       user = secUsr;
@@ -60,8 +57,7 @@ describe('api: lenses: get writers}', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('find Writers that have write permission' +
-      'associated with the model', (done) => {
+  it('find Writers with write permission', (done) => {
     api.get(getWritersPath.replace('{key}', lens.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -70,7 +66,7 @@ describe('api: lenses: get writers}', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -86,20 +82,19 @@ describe('api: lenses: get writers}', () => {
     });
   });
 
-  it('find Writers and make sure the passwords are not returned', (done) => {
+  it('find Writers, make sure passwords not returned', (done) => {
     api.get(getWritersPath.replace('{key}', lens.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       const firstUser = res.body[0];
       const secondUser = res.body[1];
-
       expect(firstUser.password).to.equal(undefined);
       expect(secondUser.password).to.equal(undefined);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -112,12 +107,11 @@ describe('api: lenses: get writers}', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('name', user.name);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -130,12 +124,11 @@ describe('api: lenses: get writers}', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('id', user.id);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -149,7 +142,7 @@ describe('api: lenses: get writers}', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -163,7 +156,7 @@ describe('api: lenses: get writers}', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();

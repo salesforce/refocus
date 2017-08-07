@@ -44,13 +44,12 @@ describe('api: aspects: get writer(s)', () => {
     Aspect.create(aspectToCreate)
     .then((asp) => {
       aspect = asp;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created,
+     * so use one of these.
+     */
+    .then(() => User.findOne())
     .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -62,6 +61,7 @@ describe('api: aspects: get writer(s)', () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -114,12 +114,11 @@ describe('api: aspects: get writer(s)', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('name', user.name);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -132,12 +131,11 @@ describe('api: aspects: get writer(s)', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('id', user.id);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -151,7 +149,7 @@ describe('api: aspects: get writer(s)', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -165,7 +163,7 @@ describe('api: aspects: get writer(s)', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
