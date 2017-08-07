@@ -76,10 +76,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
-        const resultObj = { reqStartTime: new Date() };
         helper.model.findOne()
         .then((o) => {
           if (o) {
@@ -148,10 +148,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
-        const resultObj = { reqStartTime: new Date() };
         helper.model.findOne()
         .then((o) => {
           if (o) {
@@ -198,10 +198,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
-        const resultObj = { reqStartTime: new Date() };
         const toPost = req.swagger.params.queryBody.value;
         const assocToCreate = u.includeAssocToCreate(toPost, helper);
         helper.model.create(toPost, assocToCreate)
@@ -232,10 +232,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
-        const resultObj = { reqStartTime: new Date() };
         const toPut = req.swagger.params.queryBody.value;
         const puttableFields =
           req.swagger.params.queryBody.schema.schema.properties;
