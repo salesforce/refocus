@@ -64,19 +64,20 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get array of multiple', (done) => {
       u.createNonActive()
-      .then(() => done())
+      .then(() => {
+        api.get(`${path}`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(TWO);
+          done();
+        });
+      })
       .catch(done);
-
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-      });
     });
 
     it('Pass, get active', (done) => {
@@ -109,20 +110,21 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get by name', (done) => {
       u.createNonActive()
-      .then(() => done())
+      .then(() => {
+        api.get(`${path}?name=`+u.name)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(ONE);
+          expect(res.body[ZERO].name).to.equal(u.name);
+          done();
+        });
+      })
       .catch(done);
-
-      api.get(`${path}?name=`+u.name)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(ONE);
-        expect(res.body[ZERO].name).to.equal(u.name);
-      });
     });
 
     it('Pass, get by id', (done) => {
