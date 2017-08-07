@@ -127,6 +127,10 @@ function heartbeat(req, res, next) {
   };
 
   /*
+   * TODO update the lastHeartbeat column for this collector
+   */
+
+  /*
    * TODO Populate collectorConfig
    * - look up any changes made to this collector since the last heartbeat
    */
