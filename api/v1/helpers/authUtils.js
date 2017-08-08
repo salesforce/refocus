@@ -14,7 +14,6 @@ const Profile = require('./nouns/profiles').model;
 const User = require('./nouns/users').model;
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
-const u = require('./verbs/utils');
 
 /**
  * Retrieves the user record from the token (from the request header) or
