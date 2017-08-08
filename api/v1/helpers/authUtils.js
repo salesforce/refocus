@@ -40,50 +40,46 @@ function getUser(req) {
   });
 } // getUser
 
+/**
+ * Retrieves the model name from the request object
+ *
+ * @param {Request} req - The request object
+ * @returns {String} - The name of the model
+ */
 function getModel(req) {
-  let operationId = req.swagger.operation.operationId;
-  while(operationId[0] != operationId[0].toUpperCase()){
-    operationId = operationId.slice(1, operationId.length);
+  let modelName = req.swagger.operation.operationId;
+  while(modelName[0] != modelName[0].toUpperCase()){
+    modelName = modelName.slice(1, modelName.length);
   }
-  return(operationId);
+  return(modelName);
 } // getModel
 
 /**
  * Determines whether the user has write access to a model
  *
  * @param {Request} req - The request object
- * @param {Function} cb - The function to be called next
+ * @param {Function} cb - The function to be called next in middleware
  * @returns {Promise} - A promise which resolves to true if the user has
- *  write access to the resource
+ *  write access to the model
  */
-function hasWriteAccess(req, cb) {
+function hasWriteAccess(req) {
   const modelName = getModel(req);
-  if(modelName === 'User'){
-    return cb();
-  } else {
-    getUser(req)
-    .then((user) => {
-      if (user) {
-        Profile.hasWriteAccess(user.profileId, modelName)
-        .then((ok) => {
-          if (ok) {
-            return cb();
-          } else {
-            u.Forbidden(cb);
-          }
-        })
-        .catch((err) => {
-          u.forbidden(cb);
-        });
-      } else {
-        return cb();
-      }
-    })
-    .catch((err) => {
-      u.forbidden(cb);
-    });
-  }
-} // hasWriteAccess
+  return new Promise((resolve, reject) => {
+    if(modelName === 'User' || null){
+      resolve(true);
+    } else {
+      getUser(req)
+      .then((user) => {
+        if (user) {
+          resolve(Profile.hasWriteAccess(user.profileId, modelName));
+        } else {
+          resolve(false);
+        }
+      })
+      .catch(reject);
+    }
+  });
+}
 
 /**
  * Determines whether the user is an admin user, i.e. has a profile which is
