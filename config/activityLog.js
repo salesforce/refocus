@@ -20,6 +20,7 @@ module.exports = {
       method: 'None', // one of HTTP verbs
       recordCount: 0,
       requestBytes: 0,
+      request_id: 'None',
       responseBytes: 0,
       token: 'None',
       totalTime: '0ms',
@@ -61,6 +62,7 @@ module.exports = {
       queueTime: 'None',
       queueResponseTime: 'None',
       recordCount: 0,
+      request_id: 'None',
       token: 'None',
       totalTime: 'None',
       user: 'None',
