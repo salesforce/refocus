@@ -105,7 +105,6 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
     };
 
     // Add "request_id" if header is set by heroku.
-    console.log(req.headers);
     if (req.headers && req.headers['x-request-id']) {
       logObject.request_id = req.headers['x-request-id'];
     }
