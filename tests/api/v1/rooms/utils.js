@@ -89,8 +89,6 @@ const roomTypeSchema = {
   ],
 };
 
-const roomType = tu.db.RoomType.create(roomTypeSchema);
-
 const standard = {
   name: n,
   active: true,
@@ -110,6 +108,10 @@ module.exports = {
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
+  },
+
+  getNonActive() {
+    return JSON.parse(JSON.stringify(nonActive));
   },
 
   createNonActive() {

@@ -19,8 +19,12 @@ const path = '/v1/rooms';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+const v = require('../roomTypes/utils');
 
 describe(`api: PATCH ${path}`, () => {
+  let testRoomType;
   let testRoom;
   let token;
 
@@ -34,7 +38,12 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
     .then((newRoom) => {
       testRoom = newRoom;
       done();
@@ -74,7 +83,7 @@ describe(`api: PATCH ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
+        .contain(tu.schemaValidationErrorName);
         done();
       });
     });

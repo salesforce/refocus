@@ -39,7 +39,9 @@ describe(`api: POST ${path}`, () => {
     it('Pass, post bot', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
-      .send(u.getStandard())
+      .field('name', u.name)
+      .field('url', 'https://www.foo.com')
+      .attach('ui', 'tests/api/v1/bots/uiBlob')
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
@@ -53,19 +55,21 @@ describe(`api: POST ${path}`, () => {
 
     it('Fail, duplicate bot', (done) => {
       u.createStandard()
-      .then(() => done());
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
+      .then(() => {
+        api.post(`${path}`)
+        .set('Authorization', token)
+        .send(u.getStandard())
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+          expect(res.body.errors[ZERO].type).to
+          .contain('SequelizeUniqueConstraintError');
+          done();
+        });
+      })
+      .catch(done);
     });
 
     it('Fail, bot validation incorrect', (done) => {
@@ -81,7 +85,7 @@ describe(`api: POST ${path}`, () => {
           done(err);
         }
         expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
+        .contain(tu.valErrorName);
         done();
       });
     });

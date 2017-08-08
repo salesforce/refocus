@@ -20,7 +20,10 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const fs = require('fs');
+const paths = require('path');
 const tu = require('../../../testUtils');
+const uiBlob = fs.readFileSync(paths.join(__dirname, './uiBlob'));
 
 describe(`api: GET ${path}`, () => {
   let testBot;
@@ -45,7 +48,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
   describe('GET bot', () => {
     it('Pass, get array of one', (done) => {
@@ -58,25 +61,27 @@ describe(`api: GET ${path}`, () => {
         }
 
         expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].ui.data.length).to.equal(uiBlob.length);
         done(err);
       });
     });
 
     it('Pass, get array of multiple', (done) => {
       u.createNonActive()
-      .then(() => done())
+      .then(() => {
+        api.get(`${path}`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(TWO);
+          done();
+        });
+      })
       .catch(done);
-
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-      });
     });
 
     it('Pass, get active', (done) => {
@@ -109,20 +114,21 @@ describe(`api: GET ${path}`, () => {
 
     it('Pass, get by name', (done) => {
       u.createNonActive()
-      .then(() => done())
+      .then(() => {
+        api.get(`${path}?name=`+u.name)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
+
+          expect(res.body.length).to.equal(ONE);
+          expect(res.body[ZERO].name).to.equal(u.name);
+          done();
+        });
+      })
       .catch(done);
-
-      api.get(`${path}?name=`+u.name)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.length).to.equal(ONE);
-        expect(res.body[ZERO].name).to.equal(u.name);
-      });
     });
 
     it('Pass, get by id', (done) => {

@@ -10,7 +10,9 @@
  * tests/api/v1/helpers/findUtils.js
  */
 'use strict';
-const filterArrFromArr = require('../../../../api/v1/helpers/verbs/findUtils.js').filterArrFromArr;
+const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
+const filterArrFromArr = fu.filterArrFromArr;
+const options = fu.options;
 const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
@@ -53,3 +55,91 @@ describe('filter subject array with tags array', () => {
     expect(result).to.deep.equal([sArr[ONE]]);
   });
 });
+
+describe('build options object: ', () => {
+  let props;
+  let params;
+
+  beforeEach((done) => {
+    props = {};
+    params = {
+      fields: {},
+      sort: {},
+      limit: {},
+      offset: {},
+      name: {},
+      description: {}
+    };
+    done();
+  });
+
+  it('no values', () => {
+    const opts = {
+      where: {},
+    };
+
+    expect(options(params, props)).to.deep.equal(opts);
+  });
+
+  it('basic values', () => {
+    params.fields.value = ['name', 'description'];
+    params.sort.value = 'name';
+    params.limit.value = '10';
+    params.offset.value = '10';
+    params.name.value = 'name1';
+    params.description.value = 'desc1';
+
+    const opts = {
+      attributes: ['name', 'description', 'id'],
+      order: ['name'],
+      limit: 10,
+      offset: 10,
+      where: {
+        name: {
+          $iLike: 'name1',
+        },
+        description: {
+          $iLike: 'desc1',
+        },
+      },
+    };
+
+    expect(options(params, props)).to.deep.equal(opts);
+  });
+
+  it('replace/escape like clause', () => {
+    const opts = {
+      where: {
+        name: {
+          $iLike: '%name%',
+        },
+      },
+    };
+
+    params.name.value = '*name*';
+    opts.where.name.$iLike = '%name%';
+    expect(options(params, props)).to.deep.equal(opts);
+
+    params.name.value = 'na%me';
+    opts.where.name.$iLike = 'na\\%me';
+    expect(options(params, props)).to.deep.equal(opts);
+
+    params.name.value = 'na_me';
+    opts.where.name.$iLike = 'na\\_me';
+    expect(options(params, props)).to.deep.equal(opts);
+
+    params.name.value = '*n%am_e*';
+    opts.where.name.$iLike = '%n\\%am\\_e%';
+    expect(options(params, props)).to.deep.equal(opts);
+  });
+
+  it('toSequelizeWildcards', (done) => {
+    expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
+    expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
+    expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
+    expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
+    expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
+    done();
+  });
+});
+

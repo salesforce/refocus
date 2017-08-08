@@ -104,8 +104,12 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       method: req.method,
     };
 
-    // if API token enabled,
-    // extract user, token to update log object
+    // Add "request_id" if header is set by heroku.
+    if (req.headers && req.headers['x-request-id']) {
+      logObject.request_id = req.headers['x-request-id'];
+    }
+
+    // If API token enabled, extract user, token to update log object
     jwtUtil.getTokenDetailsFromRequest(req)
     .then((resObj) => {
       logObject.user = resObj.username;

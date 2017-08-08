@@ -11,15 +11,13 @@
  */
 'use strict';
 
-const helper = require('../helpers/nouns/bots');
 const u = require('../helpers/verbs/utils');
-const authUtils = require('../helpers/authUtils');
+const httpStatus = require('../constants').httpStatus;
+const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
-const doPut = require('../helpers/verbs/doPut');
 
 module.exports = {
 
@@ -33,15 +31,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBots(req, res, next) {
-    authUtils.hasWriteAccess(req, 'bot')
-    .then((ok) => {
-      if(ok){
-        doDelete(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doDelete(req, res, next, helper);
   },
 
   /**
@@ -80,15 +70,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    authUtils.hasWriteAccess(req, 'bot')
-    .then((ok) => {
-      if(ok){
-        doPatch(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doPatch(req, res, next, helper);
   },
 
   /**
@@ -101,15 +83,37 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    authUtils.hasWriteAccess(req, 'bot') // Won't hardcode bot!
-    .then((ok) => {
-      if(ok){
-        doPost(req, res, next, helper);
-      } else {
-        u.forbidden(next);
+    const resultObj = { reqStartTime: new Date() };
+    const reqObj = req.swagger.params;
+    const seqObj = {};
+    try {
+      for (const param in reqObj) {
+        if (reqObj[param].value) {
+          if (typeof (reqObj[param].value) === 'object' &&
+            param === 'ui') {
+            seqObj[param] = reqObj[param].value.buffer;
+          } else {
+            seqObj[param] = reqObj[param].value;
+          }
+        }
       }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+
+      helper.model.create(seqObj)
+        .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          delete o.dataValues.ui;
+          u.logAPI(req, resultObj, o.dataValues);
+          res.status(httpStatus.CREATED).json(
+            u.responsify(o, helper, req.method)
+          );
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
+    } catch (err) {
+      err.description = 'Invalid UI uploaded.';
+      u.handleError(next, err, helper.modelName);
+    }
   },
 
   /**
@@ -122,14 +126,31 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putBots(req, res, next) {
-    authUtils.hasWriteAccess(req, 'bot')
-    .then((ok) => {
-      if(ok){
-        doPut(req, res, next, helper);
-      } else {
-        u.forbidden(next);
+    const resultObj = { reqStartTime: new Date() };
+    const reqObj = req.swagger.params;
+    u.findByKey(helper, req.swagger.params)
+    .then((o) => {
+      for (const param in reqObj) {
+        if (reqObj[param].value) {
+          if (param === 'ui') {
+            o.set(param, reqObj[param].value.buffer);
+          } else {
+            o.set(param, reqObj[param].value);
+          }
+        }
       }
+
+      return o.save();
+    })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      delete o.dataValues.ui;
+      u.logAPI(req, resultObj, o.dataValues);
+      res.status(httpStatus.CREATED).json(
+        u.responsify(o, helper, req.method)
+      );
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
+
 }; // exports

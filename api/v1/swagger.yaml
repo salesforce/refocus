@@ -1175,6 +1175,7 @@ paths:
 
   # ---------------------------------------------------------------------------
   /collectors:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1283,6 +1284,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}:
+    x-swagger-router-controller: collectors
     get:
       security:
         - jwt: []
@@ -1364,63 +1366,11 @@ paths:
           $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
-    put:
-      security:
-        - jwt: []
-      tags: [ collectors ]
-      summary: Update the specified collector.
-      description: >-
-        Update the specified collector's config data. If a field is not included
-        in the querybody, that field will be set to null.
-      operationId: putCollector
-      parameters:
-        -
-          name: key
-          in: path
-          description: The id or name of the collector to update.
-          required: true
-          type: string
-        -
-          name: queryBody
-          in: body
-          description: Request body.
-          required: true
-          schema:
-            type: object
-            description: Fields permitted for putting.
-            properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >
-                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
-              helpEmail:
-                type: string
-                description: >
-                  The email address where a user can go to get more help about the collector.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: >
-                  The url where a user can go to get more help about the collector.
-              host:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 4096
-              ipAddress:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 60
-      responses:
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
 
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/deregister:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1451,6 +1401,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/heartbeat:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1515,25 +1466,25 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/start:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
-      summary: Change collector status to Running.
+      summary: Access restricted to Refocus Collector only.
       tags: [ collectors ]
       description: >-
-        Change collector status from Stopped to Running. Invalid if the
-        collector's status is not Stopped.
+        Access restricted to Refocus Collector only.
       operationId: startCollector
       parameters:
         -
           name: key
           in: path
-          description: The id or name of the collector to start.
+          description: Access restricted to Refocus Collector only.
           required: true
           type: string
       responses:
         200:
-          description: Success, returns the specified collector's metadata.
+          description: Access restricted to Refocus Collector only.
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
@@ -1546,6 +1497,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/stop:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1577,6 +1529,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/pause:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1608,6 +1561,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/resume:
+    x-swagger-router-controller: collectors
     post:
       security:
         - jwt: []
@@ -1639,6 +1593,37 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/writers:
+    x-swagger-router-controller: collectors
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a collector's list of authorized writers
+      tags: [ collectors ]
+      description: >-
+        Remove all users from a collector’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the collector.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The collector is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
     get:
       security:
         - jwt: []
@@ -1723,11 +1708,12 @@ paths:
   # ---------------------------------------------------------------------------
 
   /collectors/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: collectors
     get:
       security:
         - jwt: []
       tags: [ collectors, writers ]
-      summary: "Get the writer of collector by user name or id."
+      summary: Determine whether a user is an authorized writer for a collector
       description: >-
         Determine whether a user is an authorized writer for a Collector.
         If user is unauthorized, there is no writer by this name for this
@@ -1737,24 +1723,21 @@ paths:
       -
         name: key
         in: path
-        description: "ID of collector to return"
+        description: The id or name of the collector
         required: true
-        type: "integer"
-        format: "int64"
-      -
-        name: "userNameOrId"
+        type: string
+      - name: userNameOrId
         in: "path"
-        description: "ID of collector to return"
+        description: The id or name of the user
         required: true
-        type: "integer"
-        format: "int64"
+        type: string
       responses:
         200:
-          description: "Return authorized user"
+          description: Success, return authorized user
           schema:
             $ref: "#/definitions/CollectorResponse"
         404:
-          description: "userNameOrId does not identify a User"
+          description: userNameOrId does not identify a User
     delete:
       security:
         - jwt: []
@@ -1794,6 +1777,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -1949,11 +1933,9 @@ paths:
                   The url where a user can go to get more help about the generator.
               name:
                 type: string
-                readOnly: true
                 description: The generator's name.
               subjectQuery:
                 type: string
-                readOnly: true
                 description: The query to append to GET subjects.
               subjects:
                 description: AbsolutePaths of the subjects.
@@ -1978,7 +1960,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         201:
           description: >-
@@ -1995,6 +1978,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2175,7 +2159,8 @@ paths:
                 description: >-
                   Variables accessible inside the transform function.
             required:
-              - name, subjectQuery, subjects, aspects
+              - name
+              - aspects
       responses:
         200:
           description: Success, returns the updated generator.
@@ -2193,6 +2178,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2276,6 +2262,7 @@ paths:
   # ---------------------------------------------------------------------------
 
   /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
     get:
       security:
         - jwt: []
@@ -2307,7 +2294,11 @@ paths:
           description: >-
             Success, returns requested user.
           schema:
-            $ref: "#/definitions/UsersResponse"
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the aspect
         400:
           $ref: "#/responses/400"
         404:
@@ -3867,9 +3858,13 @@ paths:
               - id
               - name
               - aspectAccess
+              - botAccess
+              - eventAccess
               - lensAccess
               - perspectiveAccess
               - profileAccess
+              - roomAccess
+              - roomTypeAccess
               - sampleAccess
               - subjectAccess
               - userAccess
@@ -3879,9 +3874,13 @@ paths:
               - -id
               - -name
               - -aspectAccess
+              - -botAccess
+              - -eventAccess
               - -lensAccess
               - -perspectiveAccess
               - -profileAccess
+              - -roomAccess
+              - -roomTypeAccess
               - -sampleAccess
               - -subjectAccess
               - -userAccess
@@ -3938,6 +3937,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -3965,6 +3982,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -4117,6 +4152,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -4144,6 +4197,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -4228,6 +4299,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -4255,6 +4344,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -7379,6 +7486,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               active:
                 type: boolean
                 description: If the room is active
@@ -7506,6 +7614,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               active:
                 type: boolean
                 description: If the room is active
@@ -7527,6 +7636,301 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
+
+# =============================================================================
+  /botData:
+    x-swagger-router-controller: botData
+    get:
+      tags: [ botData ]
+      operationId: findBotData
+      parameters:
+        -
+          name: name
+          description: Filter botData by name
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botData
+      tags: [ botData ]
+      description: Create new bot data for a rooms specific bots
+      operationId: postBotData
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the corresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the corresponding room
+            required:
+              - name
+              - value
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botData/{key}:
+    x-swagger-router-controller: botData
+    get:
+      summary: Retrieve a botData
+      tags: [ botData ]
+      operationId: getBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botData
+      tags: [ botData ]
+      description: Update botData fields
+      operationId: patchBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the coresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the coresponding room
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botData
+      tags: [ botData ]
+      description: >-
+        Delete a specific botData
+      operationId: deleteBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/bots/{botId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room from a specific bot
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            name: botId
+            in: path
+            description: >-
+              The id of the bot which people want to reference
+            required: true
+            type: string
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
 
 # =============================================================================
   /roomTypes:
@@ -7594,14 +7998,13 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isEnabled:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -7726,14 +8129,13 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               isEnabled:
                 type: boolean
                 description: If the roomType is active
               settings:
-                type: array
+                type: object
                 description: Default settings for roomType
-                items:
-                  type: object
               rules:
                 type: array
                 description: Default rules for roomType
@@ -7802,37 +8204,48 @@ paths:
       tags: [ bots ]
       description: Create a new bot with a name
       operationId: postBots
+      consumes:
+        - multipart/form-data
       parameters:
         -
-          name: queryBody
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Create bot properties
-            properties:
-              name:
-                type: string
-                maxLength: 254
-                description: Name of the bot
-              url:
-                type: string
-                description: Bot url
-              active:
-                type: boolean
-                description: If the bot is active
-              actions:
-                type: array
-                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
-                items:
-                  type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a bot
-                items:
-                  type: object
-            required:
-              - name
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
       responses:
         201:
           description: >-
@@ -7956,6 +8369,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the bot
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               url:
                 type: string
                 description: Bot url
@@ -7978,6 +8392,314 @@ paths:
             Updated field
           schema:
             $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    put:
+      security:
+        - jwt: []
+      summary: Upgrade current bot
+      tags: [ bots ]
+      description: This route is used to update all the fields in a bot and to load in a new UI
+      operationId: putBots
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
+      responses:
+        201:
+          description: >-
+            Created bot
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /botActions:
+    x-swagger-router-controller: botActions
+    get:
+      summary: Retrieve all botActions
+      tags: [ botActions ]
+      operationId: findBotActions
+      parameters:
+        -
+          name: name
+          description: Get botActions by name
+          in: query
+          required: false
+          type: string
+        -
+          name: isPending
+          description: Get pending botActions
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all BotActions
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botAction
+      tags: [ botActions ]
+      description: Create a new botAction with a name, room id and bot id
+      operationId: postBotActions
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botAction properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+            required:
+              - name
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botActions/{key}:
+    x-swagger-router-controller: botActions
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botAction
+      tags: [ botActions ]
+      description: >-
+        Delete a specific botAction
+      operationId: deleteBotActions
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a botAction
+      tags: [ botActions ]
+      operationId: getBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: isPending
+          description: Get botActions depending on its pending tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botAction
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botAction
+      tags: [ botActions ]
+      description: Update botAction fields
+      operationId: patchBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified botAction fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotActionResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -8708,6 +9430,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write aspects.
+      botAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write bots.
+      eventAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write events.
       lensAccess:
         type: string
         readOnly: true
@@ -8738,6 +9480,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write profiles.
+      roomAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: rw
+        description: >
+          The permission to read and/or write rooms.
+      roomTypeAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write roomTypes.
       sampleAccess:
         type: string
         readOnly: true
@@ -9388,18 +10150,24 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID for the bot
       name:
         type: string
+        description: The unique readable name for the bot
       url:
         type: string
+        description: The URL of the bot server
       active:
         type: boolean
+        description: Flag for if a bot is active with communication
       actions:
         type: array
+        description: A list of actions that a bot can perform
         items:
           type: object
       data:
         type: array
+        description: A list of data that a bot can provide
         items:
           type: object
 
@@ -9431,6 +10199,37 @@ definitions:
       userId:
         type: string
         description: The user ID in which the event deals with
+
+  BotActionResponse:
+    type: object
+    description: A response for information about bot actions
+    properties:
+      id:
+        type: string
+        description: The UUID of the specified bot action
+      name:
+        type: string
+        description: The name of the bot action requested
+      isPending:
+        type: boolean
+        description: If the action is still pending completion
+      parameters:
+        type: array
+        description: The values required to run a bot action
+        items:
+          type: object
+      response:
+        type: object
+        description: The output of an bot action
+      roomId:
+        type: integer
+        description: The room ID in which the bot action deals with
+      botId:
+        type: string
+        description: The bot ID in which the bot action deals with
+      userId:
+        type: string
+        description: The user ID in which the bot action deals with
 
   CollectorResponse:
     type: "object"
@@ -9643,10 +10442,6 @@ definitions:
         readOnly: true
         description: >
           The collector id.
-      isDeleted:
-        type: string
-        readOnly: true
-        description: 0 if this generator is NOT deleted. Timestamp of the deletion otherwise.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -9710,12 +10505,16 @@ definitions:
     properties:
       id:
         type: integer
+        description: The room number of the specified room
       name:
         type: string
+        description: The unique readable name for the room
       active:
         type: boolean
+        description: Flag for whether the room is still active or closed
       type:
         type: string
+        description: The roomType being used in the specified room
 
   RoomTypeResponse:
     type: object
@@ -9723,18 +10522,41 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID of the roomType specified
       name:
         type: string
+        description: The roomType being used in the specified room
       isEnabled:
         type: boolean
+        description: Flag indicating whether a roomType is enabled to use on rooms
       settings:
-        type: array
-        items:
-          type: object
+        type: object
+        description: Key-value pairs used to configure bots and rooms intial state
       rules:
         type: array
         items:
           type: object
+        description: Array containing the rules that trigger automations for rooms of this type
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+        description: UUID of the specified bot data
+      name:
+        type: string
+        description: Name of the bot data
+      value:
+        type: string
+        description: Current value of the bot data
+      roomId:
+        type: integer
+        description: The room number of the room of the bot data
+      botId:
+        type: string
+        description: UUID of the specified bot in that room
 
 # =============================================================================
 parameters:
@@ -9905,9 +10727,13 @@ parameters:
         - id
         - name
         - aspectAccess
+        - botAccess
+        - eventAccess
         - lensAccess
         - perspectiveAccess
         - profileAccess
+        - roomAccess
+        - roomTypeAccess
         - sampleAccess
         - subjectAccess
         - userAccess

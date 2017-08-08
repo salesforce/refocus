@@ -33,6 +33,22 @@ function escapePercentLiterals(val) {
 } // escapePercentLiterals
 
 /**
+ * Escapes all underscore literals so they're not treated as single-character matches.
+ *
+ * @param {String} val - The value to transform
+ * @returns {String} the transformed value
+ */
+function escapeUnderscoreLiterals(val) {
+  if (typeof val === 'string' || val instanceof String) {
+    if (val.indexOf(constants.SEQ_MATCH) > -ONE) {
+      return val.replace(constants.ALL_UNDERSCORES_RE, constants.ESCAPED_UNDERSCORE);
+    }
+  }
+
+  return val;
+} // escapeUnderscoreLiterals
+
+/**
  * Replaces all the asterisks from the query parameter value with the
  * sequelize wildcard char.
  *
@@ -40,10 +56,8 @@ function escapePercentLiterals(val) {
  * @returns {String} the transformed value
  */
 function toSequelizeWildcards(val) {
-  const chars = val.split(constants.EMPTY_STRING);
-  const arr = chars.map((ch) =>
-    (ch === constants.QUERY_PARAM_WILDCARD ? constants.SEQ_WILDCARD : ch));
-  return arr.join(constants.EMPTY_STRING);
+  return val.replace(constants.QUERY_PARAM_REPLACE_ALL_REGEX,
+    constants.SEQ_WILDCARD);
 } // toSequelizeWildcards
 
 /**
@@ -88,8 +102,10 @@ function toWhereClause(val, props) {
   }
 
   const clause = {};
-  clause[constants.SEQ_LIKE] =
-    toSequelizeWildcards(escapePercentLiterals(val));
+  val = escapePercentLiterals(val);
+  val = escapeUnderscoreLiterals(val);
+  val = toSequelizeWildcards(val);
+  clause[constants.SEQ_LIKE] = val;
   return clause;
 } // toWhereClause
 
@@ -335,4 +351,5 @@ module.exports = {
   getNextUrl,
   options,
   filterArrFromArr, // for testing
+  toSequelizeWildcards, // for testing
 }; // exports

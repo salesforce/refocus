@@ -20,6 +20,7 @@ const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
+const delayInMilliSeconds = 100;
 
 describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
   let token;
@@ -100,20 +101,22 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         value: '4',
       },
     ]).then(() => {
-      api.get('/v1/samples')
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+      setTimeout(() => {
+        api.get('/v1/samples')
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          }
 
-        expect(res.body).to.have.length(4);
-        expect(res.body[0].name).to.contain(`${tu.namePrefix}Subject|`);
-        expect(res.body[1].name).to.contain(`${tu.namePrefix}Subject|`);
-        expect(res.body[2].name).to.contain(`${tu.namePrefix}Subject|`);
-        expect(res.body[3].name).to.contain(`${tu.namePrefix}Subject|`);
+          expect(res.body).to.have.length(4);
+          expect(res.body[0].name).to.contain(`${tu.namePrefix}Subject|`);
+          expect(res.body[1].name).to.contain(`${tu.namePrefix}Subject|`);
+          expect(res.body[2].name).to.contain(`${tu.namePrefix}Subject|`);
+          expect(res.body[3].name).to.contain(`${tu.namePrefix}Subject|`);
 
-        done();
-      });
+          done();
+        });
+      }, delayInMilliSeconds);
     });
   });
 });
