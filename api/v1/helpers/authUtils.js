@@ -14,6 +14,7 @@ const Profile = require('./nouns/profiles').model;
 const User = require('./nouns/users').model;
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
+const u = require('./verbs/utils');
 
 /**
  * Retrieves the user record from the token (from the request header) or
@@ -39,6 +40,14 @@ function getUser(req) {
   });
 } // getUser
 
+function getModel(req) {
+  let operationId = req.swagger.operation.operationId;
+  while(operationId[0] != operationId[0].toUpperCase()){
+    operationId = operationId.slice(1, operationId.length);
+  }
+  return(operationId);
+} // getModel
+
 /**
  * Determines whether the user has write access to a model
  *
@@ -47,18 +56,34 @@ function getUser(req) {
  * @returns {Promise} - A promise which resolves to true if the user has
  *  write access to the resource
  */
-function hasWriteAccess(req, modelName) {
-  return new Promise((resolve, reject) => {
+function hasWriteAccess(req, cb) {
+    const modelName = getModel(req);
+
+    if(modelName === 'User'){
+      return cb();
+    }
+
     getUser(req)
     .then((user) => {
       if (user) {
-        resolve(Profile.hasWriteAccess(user.profileId, modelName));
+        Profile.hasWriteAccess(user.profileId, modelName)
+        .then((ok) => {
+          if (ok) {
+            return cb();
+          } else {
+            u.Forbidden(cb);
+          }
+        })
+        .catch((err) => {
+          u.forbidden(cb);
+        });
       } else {
-        resolve(false);
+        return cb();
       }
     })
-    .catch(reject);
-  });
+    .catch((err) => {
+      u.forbidden(cb);
+    });
 } // hasWriteAccess
 
 /**
@@ -85,6 +110,7 @@ function isAdmin(req) {
 
 module.exports = {
   getUser,
+  getModel,
   hasWriteAccess,
   isAdmin,
 };

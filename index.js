@@ -203,6 +203,17 @@ function start() { // eslint-disable-line max-statements
     // Validate Swagger requests
     app.use(mw.swaggerValidator(conf.api.swagger.validator));
 
+    // Check if user has write access to resource
+    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
+      app.use(function (req, res, cb) {
+        if (req.method === 'POST' || req.method === 'PATCH' || req.method === 'PUT'){
+          authUtils.hasWriteAccess(req, cb);
+        } else {
+          cb();
+        }
+      });
+    }
+
     /*
      * Route validated requests to appropriate controller. Since Swagger Router
      * will actually return a response, it should be as close to the end of your
