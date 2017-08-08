@@ -75,12 +75,18 @@ describe(`api: GET ${path}`, () => {
   });
 
   it('get with limit ok', (done) => {
-    api.get(path + '?limit=1')
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.length).to.equal(1);
+    const c2 = u.toCreate;
+    c2.name = c2.name + '2';
+    Collector.create(c2)
+    .then(() => {
+      api.get(path + '?limit=1')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(1);
+      })
+      .end(done);
     })
-    .end(done);
+    .catch(done);
   });
 });
