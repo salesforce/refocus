@@ -10,7 +10,6 @@
  * api/v1/controllers/lenses.js
  */
 'use strict'; // eslint-disable-line strict
-
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
 const authUtils = require('../helpers/authUtils');
@@ -20,13 +19,13 @@ const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
-
 const ZERO = 0;
 const ONE = 1;
 
@@ -225,18 +224,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriters(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriters(req, res, next, helper);
   }, // getLensWriters
 
   /**
@@ -250,23 +238,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriter(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      // throw a ResourceNotFound error if resolved object is empty array
-      u.throwErrorForEmptyArray(o,
-        params.userNameOrId.value, userProps.modelName);
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriter(req, res, next, helper);
   }, // getLensWriter
 
   /**

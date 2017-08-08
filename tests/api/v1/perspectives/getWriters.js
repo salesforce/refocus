@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/getWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -48,13 +47,12 @@ describe('api: perspective: get writers', () => {
     }))
     .then((createdPersp) => {
       perspective = createdPersp;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created,
+     * so use one of these.
+     */
+    .then(() => User.findOne())
     .then((usr) => perspective.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -68,8 +66,7 @@ describe('api: perspective: get writers', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('find Writers that have write permission' +
-      'associated with the model', (done) => {
+  it('find Writers with write permission', (done) => {
     api.get(getWritersPath.replace('{key}', perspective.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -78,29 +75,27 @@ describe('api: perspective: get writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
     });
   });
 
-  it('find Writers and make sure the passwords are not returned', (done) => {
+  it('find Writers, make sure passwords not returned', (done) => {
     api.get(getWritersPath.replace('{key}', perspective.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(2);
-
       const firstUser = res.body[0];
       const secondUser = res.body[1];
-
+      expect(res.body).to.have.length(2);
       expect(firstUser.password).to.equal(undefined);
       expect(secondUser.password).to.equal(undefined);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -113,12 +108,11 @@ describe('api: perspective: get writers', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('name', user.name);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -131,12 +125,11 @@ describe('api: perspective: get writers', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('id', user.id);
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -150,7 +143,7 @@ describe('api: perspective: get writers', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -164,7 +157,7 @@ describe('api: perspective: get writers', () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
