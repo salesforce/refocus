@@ -52,17 +52,15 @@ function getModel(req) {
  * Determines whether the user has write access to a model
  *
  * @param {Request} req - The request object
- * @param {String} modelName - The name of the model to write to
+ * @param {Function} cb - The function to be called next
  * @returns {Promise} - A promise which resolves to true if the user has
  *  write access to the resource
  */
 function hasWriteAccess(req, cb) {
-    const modelName = getModel(req);
-
-    if(modelName === 'User'){
-      return cb();
-    }
-
+  const modelName = getModel(req);
+  if(modelName === 'User'){
+    return cb();
+  } else {
     getUser(req)
     .then((user) => {
       if (user) {
@@ -84,6 +82,7 @@ function hasWriteAccess(req, cb) {
     .catch((err) => {
       u.forbidden(cb);
     });
+  }
 } // hasWriteAccess
 
 /**
