@@ -87,7 +87,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+       return done(err);
       }
 
       expect(res.body).to.have.property('name',
@@ -109,7 +109,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -122,7 +122,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.property('name',

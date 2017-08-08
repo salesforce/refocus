@@ -333,6 +333,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       setTimeout(() => {
         api.get('/v1/samples?name=' +
         `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             done(err);
@@ -342,7 +343,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
           expect(res.body[1].value).to.equal('10');
           done();
         });
-      }, 500);
+      }, 100);
     });
   });
 
@@ -359,6 +360,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       .then(() => {
         api.get('/v1/samples?name=' +
           `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             done(err);

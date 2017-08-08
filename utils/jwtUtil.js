@@ -231,7 +231,9 @@ function getTokenDetailsFromRequest(req) {
     return Promise.resolve({ username, tokenname });
   }
 
-  return getTokenDetailsFromTokenString(t);
+  return getTokenDetailsFromTokenString(t)
+    .then((ret) => Promise.resolve(ret))
+    .catch((err) => Promise.reject(err));
 } // getTokenDetailsFromRequest
 
 /**

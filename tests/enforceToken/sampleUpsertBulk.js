@@ -102,7 +102,7 @@ describe('api: POST ' + path, () => {
         value: '4',
       },
     ])
-    .expect(200)
+    .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
         done(err);
