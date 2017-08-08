@@ -1273,6 +1273,52 @@ paths:
               - -helpUrl
               - -host
               - -ipAddress
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+            Filter by status; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isRegistered
+          in: query
+          description: >-
+            Filter by isRegistered (true|false).
+          required: false
+          type: boolean
+        -
+          name: helpEmail
+          in: query
+          description: >-
+            Filter by helpEmail; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: helpUrl
+          in: query
+          description: >-
+            Filter by helpUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: host
+          in: query
+          description: >-
+            Filter by host; asterisk (*) wildcards ok.
+          required: false
+          type: string
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectors.

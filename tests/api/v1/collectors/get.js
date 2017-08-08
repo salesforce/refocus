@@ -51,7 +51,7 @@ describe(`api: GET ${path}`, () => {
     .expect((res) => {
       expect(res.body.id).to.equal(cid);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('get by id ok', (done) => {
@@ -61,6 +61,26 @@ describe(`api: GET ${path}`, () => {
     .expect((res) => {
       expect(res.body.id).to.equal(cid);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
+  });
+
+  it('find ok', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+    })
+    .end(done);
+  });
+
+  it('get with limit ok', (done) => {
+    api.get(path + '?limit=1')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+    })
+    .end(done);
   });
 });
