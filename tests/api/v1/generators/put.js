@@ -52,7 +52,7 @@ describe(`api: PUT ${path}`, () => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS'
       ],
@@ -88,7 +88,7 @@ describe(`api: PUT ${path}`, () => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS'
       ],
@@ -123,7 +123,7 @@ describe(`api: PUT ${path}`, () => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS'
       ],

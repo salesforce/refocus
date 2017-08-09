@@ -18,7 +18,7 @@ const testStartTime = new Date();
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
     'STATUS'
   ],

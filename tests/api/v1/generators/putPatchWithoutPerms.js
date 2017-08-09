@@ -65,7 +65,7 @@ describe('api: generators:', () => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS'
       ],
