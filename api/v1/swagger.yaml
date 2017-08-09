@@ -3963,7 +3963,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write aspects.
               botAccess:
@@ -3990,7 +3990,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write lenses.
               perspectiveAccess:
@@ -3999,7 +3999,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write perspectives.
               profileAccess:
@@ -4026,7 +4026,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write roomTypes.
               sampleAccess:
@@ -4035,7 +4035,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write samples.
               subjectAccess:
@@ -4044,7 +4044,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write subjects.
               userAccess:
@@ -4053,7 +4053,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write users.
             required:
@@ -4178,7 +4178,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write aspects.
               botAccess:
@@ -4205,7 +4205,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write lenses.
               perspectiveAccess:
@@ -4214,7 +4214,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write perspectives.
               profileAccess:
@@ -4250,7 +4250,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write samples.
               subjectAccess:
@@ -4259,7 +4259,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write subjects.
               userAccess:
@@ -4268,7 +4268,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write users.
       responses:
@@ -4325,7 +4325,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write aspects.
               botAccess:
@@ -4352,7 +4352,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write lenses.
               perspectiveAccess:
@@ -4361,7 +4361,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write perspectives.
               profileAccess:
@@ -4397,7 +4397,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write samples.
               subjectAccess:
@@ -4406,7 +4406,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write subjects.
               userAccess:
@@ -4415,7 +4415,7 @@ paths:
                 enum:
                   - r
                   - rw
-                default: r
+                default: rw
                 description: >
                   The permission to read and/or write users.
             required:
