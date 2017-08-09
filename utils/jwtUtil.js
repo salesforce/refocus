@@ -17,6 +17,9 @@ const conf = require('../config');
 const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
 const Token = require('../db/index').Token;
+const Collector = require('../db/index').Collector;
+const Promise = require('bluebird');
+const jwtVerifyAsync = Promise.promisify(jwt.verify);
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -59,7 +62,7 @@ function checkTokenRecord(t) {
 
   if (!t) {
     const err = new apiErrors.ForbiddenError({
-      explanation: 'Missing user for the specified token. ' +
+      explanation: 'Missing token for the specified user. ' +
         'Please contact your Refocus administrator.',
     });
     throw err;
@@ -80,10 +83,81 @@ function checkTokenRecord(t) {
 } // checkTokenRecord
 
 /**
- * Verify jwt token. If verify successful, also check the token record in the
- * db (exists AND is not revoked) and load the user record from the db and add
- * to the request. (Skip the token record check if the token is the default UI
- * token.)
+ * Function to verify if a collector token is valid or not.
+ * @param  {object} req - request object
+ * @param  {Function} cb - callback function
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
+ */
+function verifyCollectorToken(req, cb) {
+  const token = req.session.token || req.headers.authorization;
+  return jwtVerifyAsync(token, secret, {})
+  .then((decodedData) => Collector.findOne({
+    where: { name: decodedData.username },
+  }))
+  .then((collector) => {
+    if (!collector) {
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Invalid Token.',
+      });
+    }
+
+    return cb();
+  });
+} // verifyCollectorToken
+
+/**
+ * Function to verify if an user token is valid or not. If verification is
+ * successful, also check the token record in the db (exists AND is not revoked)
+ * and load the user record from the db and add to the request.
+ * (Skip the token record check if the token is the default UI token.)
+ * @param  {object}   req - request object
+ * @param  {Function} cb - callback function
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
+ */
+function verifyUserToken(req, cb) {
+  const token = req.session.token || req.headers.authorization;
+  let decodedData;
+  return jwtVerifyAsync(token, secret, {})
+  .then((payLoad) => {
+    decodedData = payLoad;
+    return User.findOne({ where: { name: decodedData.username } });
+  })
+  .then((user) => {
+    if (!user) {
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Invalid Token.',
+      });
+    }
+
+    req.user = user;
+
+    /*
+     * No need to check the token record if this is the default UI
+     * token.
+     */
+    if (decodedData.username === decodedData.tokenname) {
+      return cb();
+    }
+
+    return Token.findOne({
+      where: {
+        name: decodedData.tokenname,
+        createdBy: user.id,
+      },
+    })
+    .then(checkTokenRecord)
+    .then(() => cb());
+  });
+} // verifyUserToken
+
+/**
+ * Verify jwt token. The token is verified against an user record first; if
+ * the verification fails, verify the token against a collector record.
+ *
+ * TODO: look at the req object and call either verifyUser or verifyCollector
+ * based on the api path.
  *
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
@@ -92,43 +166,17 @@ function verifyToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
 
   if (token) {
-    jwt.verify(token, secret, {}, (err, decodedData) => {
-      if (err) {
-        return handleInvalidToken(cb);
-      } else { // eslint-disable-line no-else-return
-        return User.findOne({ where: { name: decodedData.username } })
-        .then((user) => {
-          if (user) {
-            req.user = user; // set user in request
-
-            /*
-             * No need to check the token record if this is the default UI
-             * token.
-             */
-            if (decodedData.username === decodedData.tokenname) {
-              return cb();
-            }
-
-            return Token.findOne({
-              where: {
-                name: decodedData.tokenname,
-                createdBy: user.id,
-              },
-            })
-            .then(checkTokenRecord)
-            .then((ok) => {
-              if (ok) {
-                return cb();
-              } else { // eslint-disable-line no-else-return
-                return handleInvalidToken(cb);
-              }
-            })
-            .catch((tokenError) => handleError(cb, tokenError, 'ApiToken'));
-          } else { // eslint-disable-line no-else-return
-            return handleInvalidToken(cb);
-          }
-        });
+    verifyUserToken(req, cb)
+    .then((ret) => ret)
+    .catch((err) => {
+      if (err.explanation &&
+          err.explanation.endsWith('Refocus administrator.')) {
+        return handleError(cb, err, 'ApiToken');
       }
+
+      return verifyCollectorToken(req, cb)
+      .then((_ret) => _ret)
+      .catch(() => handleInvalidToken(cb));
     });
   } else {
     const err = new apiErrors.ForbiddenError({
@@ -136,7 +184,7 @@ function verifyToken(req, cb) {
     });
     handleError(cb, err, 'ApiToken');
   }
-}
+} // verifyToken
 
 /**
  * Get token details: username, token name from the token string.
@@ -146,25 +194,21 @@ function verifyToken(req, cb) {
  *  "tokenname" attributes.
  */
 function getTokenDetailsFromTokenString(s) {
-  return new Promise((resolve, reject) => {
-    if (s) {
-      jwt.verify(s, secret, {}, (err, decodedData) => {
-        if (err !== null || !decodedData) {
-          return reject(new apiErrors.ForbiddenError({
-            explanation: 'No authorization token was found',
-          }));
-        }
-
-        const username = decodedData.username;
-        const tokenname = decodedData.tokenname;
-        return resolve({ username, tokenname });
-      });
-    } else {
-      reject(new apiErrors.ForbiddenError({
-        explanation: 'No authorization token was found',
-      }));
-    }
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'No authorization token was found',
   });
+
+  if (!s) {
+    return Promise.reject(err);
+  }
+
+  return jwtVerifyAsync(s, secret, {})
+    .then((decodedData) => {
+      const username = decodedData.username;
+      const tokenname = decodedData.tokenname;
+      return { username, tokenname };
+    })
+    .catch(() => Promise.reject(err));
 } // getTokenDetailsFromTokenString
 
 /**
@@ -184,9 +228,7 @@ function getTokenDetailsFromRequest(req) {
   if (!t && req.session && req.session.token) {
     const username = req.session.passport.user.name;
     const tokenname = '__UI';
-    return new Promise((resolve) =>
-      resolve({ username, tokenname })
-    );
+    return Promise.resolve({ username, tokenname });
   }
 
   return getTokenDetailsFromTokenString(t);

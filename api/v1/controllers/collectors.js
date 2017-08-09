@@ -18,7 +18,8 @@ const helper = require('../helpers/nouns/collectors');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
@@ -37,8 +38,6 @@ const ZERO = 0;
 function postCollector(req, res, next) {
   const collectorToPost = req.swagger.params.queryBody.value;
   const resultObj = { reqStartTime: new Date() };
-  const tokenToReturn = jwtUtil.createToken(collectorToPost.name,
-    collectorToPost.name);
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
@@ -47,7 +46,12 @@ function postCollector(req, res, next) {
       utils.logAPI(req, resultObj, o);
     }
 
-    o.dataValues.token = tokenToReturn;
+    /*
+     * When a collector registers itself with Refocus, Refocus sends back a
+     * special token for that collector to use for all further communication
+     */
+    o.dataValues.token = jwtUtil
+      .createToken(collectorToPost.name, collectorToPost.name);
     return res.status(httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
   })
@@ -92,18 +96,6 @@ function patchCollector(req, res, next) {
 } // patchCollector
 
 /**
- * Update the specified collector's config data. If a field is not included in
- * the querybody, that field will be set to null.
- *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function putCollector(req, res, next) {
-  doPut(req, res, next, helper);
-} // putCollector
-
-/**
  * Deregister a collector. Access restricted to Refocus Collector only.
  *
  * @param {IncomingMessage} req - The request object
@@ -115,6 +107,7 @@ function deregisterCollector(req, res, next) {
   req.swagger.params.queryBody = {
     value: { registered: false },
   };
+
   doPatch(req, res, next, helper);
 } // deregisterCollector
 
@@ -133,6 +126,10 @@ function heartbeat(req, res, next) {
     generatorsDeleted: [],
     generatorsUpdated: [],
   };
+
+  /*
+   * TODO update the lastHeartbeat column for this collector
+   */
 
   /*
    * TODO Populate collectorConfig
@@ -230,18 +227,7 @@ function resumeCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriters(req, res, next) {
-  const resultObj = { reqStartTime: new Date() };
-  const params = req.swagger.params;
-  const options = {};
-  u.findAssociatedInstances(helper,
-    params, helper.belongsToManyAssoc.users, options)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    const retval = u.responsify(o, helper, req.method);
-    u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  doGetWriters.getWriters(req, res, next, helper);
 } // getCollectorWriters
 
 /**
@@ -252,16 +238,7 @@ function getCollectorWriters(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function postCollectorWriters(req, res, next) {
-  const params = req.swagger.params;
-  const toPost = params.queryBody.value;
-  const options = {};
-  options.where = u.whereClauseForNameInArr(toPost);
-  userProps.model.findAll(options)
-  .then((usrs) => {
-    doPostAssoc(req, res, next, helper,
-      helper.belongsToManyAssoc.users, usrs);
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  doPostWriters(req, res, next, helper);
 } // postCollectorWriters
 
 /**
@@ -273,25 +250,7 @@ function postCollectorWriters(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriter(req, res, next) {
-  const resultObj = { reqStartTime: new Date() };
-  const params = req.swagger.params;
-  const options = {};
-  options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-  u.findAssociatedInstances(helper, params, helper.belongsToManyAssoc.users,
-    options)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // throw a ResourceNotFound error if resolved object is empty array
-    u.throwErrorForEmptyArray(o, params.userNameOrId.value,
-      userProps.modelName);
-
-    // otherwise return the first element of the array
-    const retval = u.responsify(o[ZERO], helper, req.method);
-    u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  doGetWriters.getWriter(req, res, next, helper);
 }
 
 /**
@@ -325,7 +284,6 @@ module.exports = {
   findCollectors,
   getCollector,
   patchCollector,
-  putCollector,
   deregisterCollector,
   heartbeat,
   startCollector,

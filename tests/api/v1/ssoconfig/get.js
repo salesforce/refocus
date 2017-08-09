@@ -32,7 +32,7 @@ describe(`api: GET ${path}`, () => {
   });
 
   before((done) => {
-    u.creatSSOConfig()
+    u.createSSOConfig()
     .then(() => done())
     .catch((err) => done(err));
   });

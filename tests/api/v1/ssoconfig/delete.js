@@ -9,19 +9,26 @@
 /**
  * tests/api/v1/ssoconfig/delete.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const adminUser = require('../../../../config').db.adminUser;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
+const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
+const ONE = 1;
 
 describe(`api: DELETE ${path}`, () => {
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  let testUserToken = '';
 
   before((done) => {
     tu.createToken()
@@ -29,21 +36,48 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
-    u.creatSSOConfig()
+    u.createSSOConfig()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
+  });
+
+  before((done) => {
+    u.newGenericUser(token, (err, t) => {
+      if (err) {
+        done(err);
+      }
+
+      testUserToken = t;
+      done();
+    });
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('delete ok', (done) => {
+  it('forbidden if not admin user', (done) => {
     api.delete(path)
-    .set('Authorization', token)
+    .set('Authorization', testUserToken)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      } else {
+        expect(res.body.errors).to.have.length(ONE);
+        expect(res.body.errors).to.have.deep.property('[0].type',
+          'ForbiddenError');
+        done();
+      }
+    });
+  });
+
+  it('delete ok by admin user', (done) => {
+    api.delete(path)
+    .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.equal(u.samlParams.samlEntryPoint);

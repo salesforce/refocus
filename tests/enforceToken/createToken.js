@@ -42,7 +42,7 @@ describe('api: createToken', () => {
     .expect(/No authorization token was found/)
     .end((err) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -57,7 +57,7 @@ describe('api: createToken', () => {
     .expect(/Invalid Token/)
     .end((err) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -71,7 +71,7 @@ describe('api: createToken', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal('newToken');
