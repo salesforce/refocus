@@ -53,17 +53,17 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
       expect(res.body).to.have.property('name', pname);
-      expect(res.body).to.have.property('aspectAccess', 'r');
+      expect(res.body).to.have.property('aspectAccess', 'rw');
       expect(res.body).to.have.property('botAccess', 'r');
       expect(res.body).to.have.property('eventAccess', 'r');
-      expect(res.body).to.have.property('lensAccess', 'r');
-      expect(res.body).to.have.property('perspectiveAccess', 'r');
+      expect(res.body).to.have.property('lensAccess', 'rw');
+      expect(res.body).to.have.property('perspectiveAccess', 'rw');
       expect(res.body).to.have.property('profileAccess', 'r'); 
       expect(res.body).to.have.property('roomAccess', 'rw');
       expect(res.body).to.have.property('roomTypeAccess', 'r');  
-      expect(res.body).to.have.property('sampleAccess', 'r'); 
-      expect(res.body).to.have.property('subjectAccess', 'r');
-      expect(res.body).to.have.property('userAccess', 'r');
+      expect(res.body).to.have.property('sampleAccess', 'rw'); 
+      expect(res.body).to.have.property('subjectAccess', 'rw');
+      expect(res.body).to.have.property('userAccess', 'rw');
       done();
     });
   });
