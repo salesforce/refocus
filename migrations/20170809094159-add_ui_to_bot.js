@@ -13,7 +13,7 @@ module.exports = {
     return qi.addColumn('Bots', 'ui', {
       type: Sequelize.BLOB,
       defaultValue: null,
-    })
+    });
   },
 
   down: function (qi, Sequelize) {
