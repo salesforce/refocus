@@ -64,7 +64,7 @@ function getModel(req) {
 function hasWriteAccess(req) {
   const modelName = getModel(req);
   return new Promise((resolve, reject) => {
-    if(modelName === 'User' || null){
+    if(modelName === 'Collector' || 'User' || null){
       resolve(true);
     } else {
       getUser(req)
