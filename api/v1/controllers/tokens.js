@@ -52,6 +52,9 @@ module.exports = {
           } else {
             u.forbidden(next);
           }
+        })
+        .catch(() => {
+          u.forbidden(next);
         });
       }
     })

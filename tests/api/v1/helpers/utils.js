@@ -16,7 +16,7 @@ const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 const apiUtils = require('../../../../api/v1/helpers/verbs/utils.js');
 
-describe('util function tests', () => {
+describe('api/v1/helpers/utils.j function tests', () => {
   let token;
   let subject;
   const na = {
