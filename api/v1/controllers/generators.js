@@ -13,10 +13,8 @@
 
 const helper = require('../helpers/nouns/generators');
 const userProps = require('../helpers/nouns/users');
-const doDeleteOneAssoc =
-                    require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc =
-                    require('../helpers/verbs/doPostBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
@@ -132,16 +130,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGeneratorWriters(req, res, next) {
-    const params = req.swagger.params;
-    const toPost = params.queryBody.value;
-    const options = {};
-    options.where = u.whereClauseForNameInArr(toPost);
-    userProps.model.findAll(options)
-    .then((usrs) => {
-      doPostAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, usrs);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doPostWriters(req, res, next, helper);
   },
 
   /**
