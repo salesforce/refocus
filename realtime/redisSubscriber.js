@@ -22,20 +22,18 @@ const zlib = require('zlib');
  */
 module.exports = (io) => {
   sub.on('message', (channel, compressedBuffer) => {
-    zlib.inflate(new Buffer(compressedBuffer, 'base64'), function (_error, original) {
-       if (_error) throw _error;
-        console.log('original buffer size', original.byteLength); // 1141
-        console.log('original string', original.toString()); // 1141
+    zlib.inflate(Buffer.from(compressedBuffer, 'base64'), (_error, original) => {
+     if (_error) throw _error;
 
-        // message object to be sent to the clients
-        const mssgObj = JSON.parse(original.toString());
-        const key = Object.keys(mssgObj)[0];
+      // message object to be sent to the clients
+      const mssgObj = JSON.parse(original.toString());
+      const key = Object.keys(mssgObj)[0];
 
-        /*
-         * pass on the message received through the redis subscriber to the socket
-         * io emitter to send data to the browser clients.
-         */
-        emitter(io, key, mssgObj);
+      /*
+       * pass on the message received through the redis subscriber to the socket
+       * io emitter to send data to the browser clients.
+       */
+      emitter(io, key, mssgObj);
     });
   });
 };

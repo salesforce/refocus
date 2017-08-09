@@ -57,13 +57,6 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 
   return null;
 } // prepareToPublish
-function getBinarySize(string, enconding) {
-    return Buffer.byteLength(string, enconding || 'utf8');
-}
-
-function byteCount(s) {
-    return encodeURI(s).split(/%..|./).length - 1;
-}
 
 /**
  * This function publishes an created, updated or a deleted model instance to
@@ -92,14 +85,11 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    const str = JSON.stringify(obj); // 68
-    const notCompressedBuffer = new Buffer.from(str);
-
-    zlib.deflate(notCompressedBuffer, function (error, result) {
-       if (error) throw error;
-       const compressedStr = result.toString('base64');
-        console.log('Compressed buffer size', result.byteLength, getBinarySize(compressedStr, 'base64'), byteCount(compressedStr)); // 1141
-        pub.publish(channelName, compressedStr);
+    const notCompressedBuffer = Buffer.from(JSON.stringify(obj));
+    zlib.deflate(notCompressedBuffer, (error, result) => {
+      if (error) throw error;
+      const compressedStr = result.toString('base64');
+      pub.publish(channelName, compressedStr);
     });
   }
 
