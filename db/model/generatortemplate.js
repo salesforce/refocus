@@ -124,7 +124,7 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
     },
-    keywords: {
+    tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
@@ -199,7 +199,7 @@ module.exports = function user(seq, dataTypes) {
               attributes: ['name', 'email'],
             },
           ],
-          order: ['name'],
+          order: ['GeneratorTemplate.name'],
         }, {
           override: true,
         });

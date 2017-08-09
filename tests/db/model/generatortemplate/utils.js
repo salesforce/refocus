@@ -18,7 +18,7 @@ const testStartTime = new Date();
 const GT_SIMPLE = {
   name: 'refocus-ok-template',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
     'STATUS'
   ],
