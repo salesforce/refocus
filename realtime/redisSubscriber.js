@@ -23,7 +23,7 @@ const zlib = require('zlib');
 module.exports = (io) => {
   sub.on('message', (channel, compressedBuffer) => {
     zlib.inflate(Buffer.from(compressedBuffer, 'base64'), (_error, original) => {
-     if (_error) throw _error;
+      if (_error) throw _error;
 
       // message object to be sent to the clients
       const mssgObj = JSON.parse(original.toString());
