@@ -83,6 +83,7 @@ describe('api: POST ' + path, () => {
       .then(() => {
         setTimeout(() => {
           api.get('/v1/samples?name=' + sampleName)
+          .set('Authorization', token)
           .end((err, res) => {
             if (err) {
               done(err);
@@ -116,6 +117,7 @@ describe('api: POST ' + path, () => {
          */
         setTimeout(() => {
           api.get('/v1/samples?name=' + sampleName)
+          .set('Authorization', token)
           .end((err, res) => {
             if (err) {
               done(err);

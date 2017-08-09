@@ -241,6 +241,7 @@ describe('api: POST ' + path, () => {
       setTimeout(() => {
         api.get('/v1/samples?name=' +
         `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             done(err);
@@ -267,6 +268,7 @@ describe('api: POST ' + path, () => {
       .then(() => {
         api.get('/v1/samples?name=' +
           `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             done(err);
@@ -294,6 +296,7 @@ describe('api: POST ' + path, () => {
       .then(() => {
         api.get('/v1/samples?name=' +
           `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             done(err);
