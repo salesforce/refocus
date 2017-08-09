@@ -14,7 +14,7 @@ const helper = require('../helpers/nouns/perspectives');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -136,16 +136,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postPerspectiveWriters(req, res, next) {
-    const params = req.swagger.params;
-    const toPost = params.queryBody.value;
-    const options = {};
-    options.where = u.whereClauseForNameInArr(toPost);
-    userProps.model.findAll(options)
-    .then((usrs) => {
-      doPostAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, usrs);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doPostWriters(req, res, next, helper);
   }, // postPerspectiveWriters
 
   /**

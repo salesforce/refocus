@@ -11,6 +11,7 @@
  */
 'use strict';
 const u = require('./utils');
+const get = require('just-safe-get');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
 const ZERO = 0;
@@ -235,11 +236,11 @@ function options(params, props) {
   }
 
   // Specify the limit
-  if (params.limit.value) {
+  if (get(params, 'limit.value')) {
     opts.limit = parseInt(params.limit.value, defaults.limit);
   }
 
-  if (params.offset.value) {
+  if (get(params, 'offset.value')) {
     opts.offset = parseInt(params.offset.value, defaults.offset);
   }
 
