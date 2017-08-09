@@ -18,6 +18,7 @@ const helper = require('../helpers/nouns/collectors');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -226,18 +227,7 @@ function resumeCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriters(req, res, next) {
-  const resultObj = { reqStartTime: new Date() };
-  const params = req.swagger.params;
-  const options = {};
-  u.findAssociatedInstances(helper,
-    params, helper.belongsToManyAssoc.users, options)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    const retval = u.responsify(o, helper, req.method);
-    u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  doGetWriters.getWriters(req, res, next, helper);
 } // getCollectorWriters
 
 /**
@@ -269,25 +259,7 @@ function postCollectorWriters(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriter(req, res, next) {
-  const resultObj = { reqStartTime: new Date() };
-  const params = req.swagger.params;
-  const options = {};
-  options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-  u.findAssociatedInstances(helper, params, helper.belongsToManyAssoc.users,
-    options)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // throw a ResourceNotFound error if resolved object is empty array
-    u.throwErrorForEmptyArray(o, params.userNameOrId.value,
-      userProps.modelName);
-
-    // otherwise return the first element of the array
-    const retval = u.responsify(o[ZERO], helper, req.method);
-    u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  doGetWriters.getWriter(req, res, next, helper);
 }
 
 /**

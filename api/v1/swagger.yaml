@@ -1129,7 +1129,6 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-
     get:
       security:
         - jwt: []
@@ -1157,13 +1156,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the users having write permission to the aspect.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -1273,6 +1268,52 @@ paths:
               - -helpUrl
               - -host
               - -ipAddress
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+            Filter by status; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isRegistered
+          in: query
+          description: >-
+            Filter by isRegistered (true|false).
+          required: false
+          type: boolean
+        -
+          name: helpEmail
+          in: query
+          description: >-
+            Filter by helpEmail; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: helpUrl
+          in: query
+          description: >-
+            Filter by helpUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: host
+          in: query
+          description: >-
+            Filter by host; asterisk (*) wildcards ok.
+          required: false
+          type: string
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectors.
@@ -1735,7 +1776,7 @@ paths:
         200:
           description: Success, return authorized user
           schema:
-            $ref: "#/definitions/CollectorResponse"
+            $ref: "#/definitions/UsersResponse"
         404:
           description: userNameOrId does not identify a User
     delete:
@@ -2292,13 +2333,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns requested user.
+            Success, return authorized user.
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         404:
@@ -3121,13 +3158,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -3807,13 +3840,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6194,13 +6223,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:

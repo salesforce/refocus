@@ -51,7 +51,7 @@ describe(`api: GET ${path}`, () => {
     .expect((res) => {
       expect(res.body.id).to.equal(cid);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('get by id ok', (done) => {
@@ -61,6 +61,32 @@ describe(`api: GET ${path}`, () => {
     .expect((res) => {
       expect(res.body.id).to.equal(cid);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
+  });
+
+  it('find ok', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.length).to.equal(1);
+    })
+    .end(done);
+  });
+
+  it('get with limit ok', (done) => {
+    const c2 = u.toCreate;
+    c2.name = c2.name + '2';
+    Collector.create(c2)
+    .then(() => {
+      api.get(path + '?limit=1')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(1);
+      })
+      .end(done);
+    })
+    .catch(done);
   });
 });
