@@ -67,9 +67,9 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;
