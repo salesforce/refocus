@@ -17,6 +17,7 @@ const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
+const zlib = require('zlib');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -85,7 +86,17 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 
   if (obj[event]) {
     const objectAsString = JSON.stringify(obj);
-    return pub.publish(channelName, objectAsString);
+    zlib.deflate(objectAsString, (err, zippedValue) => {
+      if (err) {
+        console.log('Error deflating!');
+        return;
+      }
+
+      // encode the binary zip-data to base64 to
+      // be able to read it
+      const str = zippedValue.toString('base64');
+      return pub.publish(channelName, str);
+    });
   }
 
   return obj;
