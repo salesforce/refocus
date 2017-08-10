@@ -58,7 +58,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body).to.have.property('eventAccess', 'r');
       expect(res.body).to.have.property('lensAccess', 'rw');
       expect(res.body).to.have.property('perspectiveAccess', 'rw');
-      expect(res.body).to.have.property('profileAccess', 'r'); 
+      expect(res.body).to.have.property('profileAccess', 'rw'); 
       expect(res.body).to.have.property('roomAccess', 'rw');
       expect(res.body).to.have.property('roomTypeAccess', 'r');  
       expect(res.body).to.have.property('sampleAccess', 'rw'); 
