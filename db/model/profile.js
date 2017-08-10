@@ -126,7 +126,7 @@ module.exports = function profile(seq, dataTypes) {
       }, // isAdmin
 
       hasWriteAccess(profileId, modelName) {
-        const accessModel = modelName.charAt(0).toLowerCase() + modelName.slice(1) + "Access";
+        const accessModel = modelName.charAt(0).toLowerCase() + modelName.slice(1) + 'Access';
           return new Promise((resolve, reject) => {
             Profile.findById(profileId)
             .then((p) => resolve(p &&
