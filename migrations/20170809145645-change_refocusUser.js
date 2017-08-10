@@ -6,8 +6,6 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 'use strict';
-const u = require('../db/helpers/roomTypeUtils');
-const TBL = 'RoomTypes';
 
 module.exports = {
   up: function (qi, Sequelize) {
