@@ -47,10 +47,11 @@ function getUser(req) {
  */
 function getModel(req) {
   let modelName = req.swagger.operation.operationId;
-  while(modelName[0] != modelName[0].toUpperCase()){
+  while (modelName[0] != modelName[0].toUpperCase()) {
     modelName = modelName.slice(1, modelName.length);
   }
-  return(modelName);
+
+  return (modelName);
 } // getModel
 
 /**
@@ -64,7 +65,7 @@ function getModel(req) {
 function hasWriteAccess(req) {
   const modelName = getModel(req);
   return new Promise((resolve, reject) => {
-    if(modelName === 'Collector' || 'User' || null){
+    if (modelName === 'Collector' || 'User' || null) {
       resolve(true);
     } else {
       getUser(req)

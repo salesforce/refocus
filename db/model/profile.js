@@ -133,9 +133,9 @@ module.exports = function profile(seq, dataTypes) {
             p[accessModel] === 'rw'.toLowerCase()) || (p[accessModel] == null)))
           .catch((err) => reject(err));
         });
-      }
+      },
     }, // hasWriteAccess
-    
+
     defaultScope: {
       order: ['Profile.name'],
     },

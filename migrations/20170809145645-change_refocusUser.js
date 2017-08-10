@@ -19,7 +19,7 @@ module.exports = {
       return queryInterface.createTable('users', { id: Sequelize.INTEGER });
     */
     return qi.sequelize.transaction(() =>
-      qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'rw\'' + 
+      qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'rw\'' +
         ', "lensAccess" = \'rw\'' +
         ', "perspectiveAccess" = \'rw\'' +
         ', "sampleAccess" = \'rw\'' +
@@ -39,7 +39,7 @@ module.exports = {
       return queryInterface.dropTable('users');
     */
     return qi.sequelize.transaction(() =>
-      qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'r\'' + 
+      qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'r\'' +
         ', "lensAccess" = \'r\'' +
         ', "perspectiveAccess" = \'r\'' +
         ', "sampleAccess" = \'r\'' +
