@@ -40,6 +40,28 @@ function getUser(req) {
 } // getUser
 
 /**
+ * Determines whether the user has write access to a model
+ + *
+ + * @param {Request} req - The request object
+ + * @param {String} modelName - The name of the model to write to
+ + * @returns {Promise} - A promise which resolves to true if the user has
+ + *  write access to the resource
+ + */
+function hasWriteAccess(req, modelName) {
+  return new Promise((resolve, reject) => {
+    getUser(req)
+    .then((user) => {
+      if (user) {
+        resolve(Profile.hasWriteAccess(user.profileId, modelName));
+      } else {
+        resolve(false);
+      }
+    })
+    .catch(reject);
+  });
+} // hasWriteAccess
+
+/**
  * Determines whether the user is an admin user, i.e. has a profile which is
  * designated as an admin profile.
  *
