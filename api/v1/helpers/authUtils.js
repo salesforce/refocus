@@ -41,12 +41,12 @@ function getUser(req) {
 
 /**
  * Determines whether the user has write access to a model
- + *
- + * @param {Request} req - The request object
- + * @param {String} modelName - The name of the model to write to
- + * @returns {Promise} - A promise which resolves to true if the user has
- + *  write access to the resource
- + */
+ *
+ * @param {Request} req - The request object
+ * @param {String} modelName - The name of the model to write to
+ * @returns {Promise} - A promise which resolves to true if the user has
+ *  write access to the resource
+ */
 function hasWriteAccess(req, modelName) {
   return new Promise((resolve, reject) => {
     getUser(req)
