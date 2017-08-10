@@ -57,7 +57,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     profileAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     roomAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -134,7 +134,18 @@ module.exports = function profile(seq, dataTypes) {
           .catch((err) => reject(err));
         });
       },
-    }, // hasWriteAccess
+
+      requiresWriteAccess(modelName) {
+
+        Profile.findByName('Admin')
+        .then((p) => {
+          if (p[accessModel] === null) {
+            return false;
+          }
+          return true;
+        });
+      },
+    },
 
     defaultScope: {
       order: ['Profile.name'],
