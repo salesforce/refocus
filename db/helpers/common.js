@@ -18,6 +18,7 @@ const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
 const revalidator = require('revalidator');
 const ValidationError = require('../dbErrors').ValidationError;
+const zlib = require('zlib');
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {
@@ -188,7 +189,18 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    pub.publish(channelName, JSON.stringify(obj));
+    const objectAsString = JSON.stringify(obj);
+    zlib.deflate(objectAsString, (err, zippedValue) => {
+      if (err) {
+        console.log('Error deflating!', err);
+        return;
+      }
+
+      // encode the binary zip-data to base64 to
+      // be able to read it
+      const str = zippedValue.toString('base64');
+      return pub.publish(channelName, str);
+    });
   }
 
   return obj;
