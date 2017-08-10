@@ -10,6 +10,7 @@ module.exports = {
           defaultValue: 'r',
         });
       }
+
       return profile;
     })
     .then((profile) => {
@@ -19,6 +20,7 @@ module.exports = {
           defaultValue: 'r',
         });
       }
+
       return profile;
     })
     .then((profile) => {
@@ -28,6 +30,7 @@ module.exports = {
           defaultValue: 'rw',
         });
       }
+
       return profile;
     })
     .then((profile) => {
@@ -48,18 +51,21 @@ module.exports = {
       if (profile.hasOwnProperty('botAccess')) {
         qi.removeColumn('Profiles', 'botAccess');
       }
+
       return profile;
     })
     .then((profile) => {
       if (profile.hasOwnProperty('eventAccess')) {
         qi.removeColumn('Profiles', 'eventAccess');
       }
+
       return profile;
     })
     .then((profile) => {
       if (profile.hasOwnProperty('roomAccess')) {
         qi.removeColumn('Profiles', 'roomAccess');
       }
+
       return profile;
     })
     .then((profile) => {
