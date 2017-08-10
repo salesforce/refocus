@@ -29,17 +29,17 @@ describe('db: Profile: create', () => {
       })
       .then((o) => { 
         expect(o).to.have.property('name').to.equal(pname);
-        expect(o).to.have.property('aspectAccess').to.equal('r');
+        expect(o).to.have.property('aspectAccess').to.equal('rw');
         expect(o).to.have.property('botAccess').to.equal('r');
         expect(o).to.have.property('eventAccess').to.equal('r');
-        expect(o).to.have.property('lensAccess').to.equal('r');
-        expect(o).to.have.property('perspectiveAccess').to.equal('r');
-        expect(o).to.have.property('profileAccess').to.equal('r');
+        expect(o).to.have.property('lensAccess').to.equal('rw');
+        expect(o).to.have.property('perspectiveAccess').to.equal('rw');
+        expect(o).to.have.property('profileAccess').to.equal('rw');
         expect(o).to.have.property('roomAccess').to.equal('rw');
         expect(o).to.have.property('roomTypeAccess').to.equal('r');
-        expect(o).to.have.property('sampleAccess').to.equal('r');
-        expect(o).to.have.property('subjectAccess').to.equal('r');
-        expect(o).to.have.property('userAccess').to.equal('r');
+        expect(o).to.have.property('sampleAccess').to.equal('rw');
+        expect(o).to.have.property('subjectAccess').to.equal('rw');
+        expect(o).to.have.property('userAccess').to.equal('rw');
         done();
       })
       .catch(done);

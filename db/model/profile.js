@@ -32,7 +32,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     aspectAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     botAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -49,15 +49,15 @@ module.exports = function profile(seq, dataTypes) {
     },
     lensAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     perspectiveAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     profileAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     roomAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -69,15 +69,15 @@ module.exports = function profile(seq, dataTypes) {
     },
     sampleAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     subjectAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     userAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     userCount: {
       type: dataTypes.INTEGER,
@@ -124,7 +124,18 @@ module.exports = function profile(seq, dataTypes) {
           .catch((err) => reject(err));
         });
       }, // isAdmin
+
+      hasWriteAccess(profileId, modelName) {
+        const accessModel = modelName.charAt(0).toLowerCase() + modelName.slice(1) + 'Access';
+        return new Promise((resolve, reject) => {
+          Profile.findById(profileId)
+          .then((p) => resolve((p &&
+            p[accessModel] === 'rw'.toLowerCase()) || (p[accessModel] == null)))
+          .catch((err) => reject(err));
+        });
+      }, // hasWriteAccess
     },
+
     defaultScope: {
       order: ['Profile.name'],
     },

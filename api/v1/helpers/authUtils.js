@@ -40,6 +40,48 @@ function getUser(req) {
 } // getUser
 
 /**
+ * Retrieves the model name from the request object
+ *
+ * @param {Request} req - The request object
+ * @returns {String} - The name of the model
+ */
+function getModel(req) {
+  let modelName = req.swagger.operation.operationId;
+  while (modelName[0] != modelName[0].toUpperCase()) {
+    modelName = modelName.slice(1, modelName.length);
+  }
+
+  return (modelName);
+} // getModel
+
+/**
+ * Determines whether the user has write access to a model
+ *
+ * @param {Request} req - The request object
+ * @param {Function} cb - The function to be called next in middleware
+ * @returns {Promise} - A promise which resolves to true if the user has
+ *  write access to the model
+ */
+function hasWriteAccess(req) {
+  const modelName = getModel(req);
+  return new Promise((resolve, reject) => {
+    if (modelName === 'Collector' || 'User' || null) {
+      resolve(true);
+    } else {
+      getUser(req)
+      .then((user) => {
+        if (user) {
+          resolve(Profile.hasWriteAccess(user.profileId, modelName));
+        } else {
+          resolve(false);
+        }
+      })
+      .catch(reject);
+    }
+  });
+}
+
+/**
  * Determines whether the user is an admin user, i.e. has a profile which is
  * designated as an admin profile.
  *
@@ -63,5 +105,7 @@ function isAdmin(req) {
 
 module.exports = {
   getUser,
+  getModel,
+  hasWriteAccess,
   isAdmin,
 };
