@@ -22,15 +22,15 @@ const zlib = require('zlib');
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
-    // console.log('mssgStr is', mssgStr);
-    zlib.inflate(new Buffer.from(mssgStr, 'base64'), (err, redisValue) => {
+    zlib.inflate(new Buffer.from(mssgStr, 'base64'),
+      (err, uncompressedBuffer) => {
       if (err) {
         console.log('Error inflating!', err);
         return;
       }
 
       // message object to be sent to the clients
-      const mssgObj = JSON.parse(redisValue);
+      const mssgObj = JSON.parse(uncompressedBuffer);
       const key = Object.keys(mssgObj)[0];
 
       /*

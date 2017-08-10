@@ -88,7 +88,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
     const objectAsString = JSON.stringify(obj);
     zlib.deflate(objectAsString, (err, zippedValue) => {
       if (err) {
-        console.log('Error deflating!');
+        console.log('Error deflating!', err);
         return;
       }
 
