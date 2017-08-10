@@ -11,73 +11,81 @@ const TBL = 'Profiles';
 
 module.exports = {
   up: function (qi, Sequelize) {
+    let attr;
     return qi.describeTable(TBL)
-    .then((profile) => {
-      if (!profile.hasOwnProperty('botAccess')) {
-        qi.addColumn(TBL, 'botAccess', {
+    .then((attributes) => {
+      attr = attributes;
+      if (!attr.hasOwnProperty('botAccess')) {
+        return qi.addColumn(TBL, 'botAccess', {
           type: Sequelize.ENUM('r', 'rw'),
           defaultValue: 'r',
         });
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (!profile.hasOwnProperty('eventAccess')) {
-        qi.addColumn(TBL, 'eventAccess', {
+    .then(() => {
+      if (!attr.hasOwnProperty('eventAccess')) {
+        return qi.addColumn(TBL, 'eventAccess', {
           type: Sequelize.ENUM('r', 'rw'),
           defaultValue: 'r',
         });
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (!profile.hasOwnProperty('roomAccess')) {
-        qi.addColumn(TBL, 'roomAccess', {
+    .then(() => {
+      if (!attr.hasOwnProperty('roomAccess')) {
+        return qi.addColumn(TBL, 'roomAccess', {
           type: Sequelize.ENUM('r', 'rw'),
           defaultValue: 'rw',
         });
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (!profile.hasOwnProperty('roomTypeAccess')) {
-        qi.addColumn(TBL, 'roomTypeAccess', {
+    .then(() => {
+      if (!attr.hasOwnProperty('roomTypeAccess')) {
+        return qi.addColumn(TBL, 'roomTypeAccess', {
           type: Sequelize.ENUM('r', 'rw'),
           defaultValue: 'r',
         });
+      } else {
+        return true;
       }
     });
   },
 
   down: function (qi, Sequelize) {
+    let attr;
     return qi.describeTable(TBL)
-    .then((profile) => {
-      if (profile.hasOwnProperty('botAccess')) {
-        qi.removeColumn(TBL, 'botAccess');
+    .then((attributes) => {
+      attr = attributes;
+      if (attr.hasOwnProperty('botAccess')) {
+        return qi.removeColumn(TBL, 'botAccess');
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (profile.hasOwnProperty('eventAccess')) {
-        qi.removeColumn(TBL, 'eventAccess');
+    .then(() => {
+      if (attr.hasOwnProperty('eventAccess')) {
+        return qi.removeColumn(TBL, 'eventAccess');
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (profile.hasOwnProperty('roomAccess')) {
-        qi.removeColumn(TBL, 'roomAccess');
+    .then(() => {
+      if (attr.hasOwnProperty('roomAccess')) {
+        return qi.removeColumn(TBL, 'roomAccess');
+      } else {
+        return true;
       }
-
-      return profile;
     })
-    .then((profile) => {
-      if (profile.hasOwnProperty('roomTypeAccess')) {
-        qi.removeColumn(TBL, 'roomTypeAccess');
+    .then(() => {
+      if (attr.hasOwnProperty('roomTypeAccess')) {
+        return qi.removeColumn(TBL, 'roomTypeAccess');
+      } else {
+        return true;
       }
     });
   },
