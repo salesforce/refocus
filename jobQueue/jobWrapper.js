@@ -130,7 +130,7 @@ function logJobOnComplete(req, job) {
       .then((resObj) => {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;
-      });
+      }).catch(() => {}); // no-op
     }
 
     // continue to update and print logObject on job completion.

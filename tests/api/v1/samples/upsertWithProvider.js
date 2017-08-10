@@ -22,7 +22,8 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const adminUser = require('../../../../config').db.adminUser;
-const predefinedAdminUserToken = tu.createTokenFromUserName(adminUser.name, adminUser.name);
+const predefinedAdminUserToken =
+  tu.createTokenFromUserName(adminUser.name, adminUser.name);
 
 describe(`api: upsert without cache`, () => {
   const path = '/v1/samples/upsert';
@@ -145,6 +146,7 @@ describe(`api: upsert without cache`, () => {
     it('upsert succeeds WITH token of another user, and the result returns ' +
       ' the original provider and user fields', (done) => {
       api.get('/v1/samples/' + `${subject.absolutePath}|${aspect.name}`)
+      .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
