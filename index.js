@@ -90,7 +90,7 @@ function start() { // eslint-disable-line max-statements
 
   // middleware for checking api token
   const jwtUtil = require('./utils/jwtUtil');
-  
+
   //middleware for checking read/write access to models
   const authUtils = require('./api/v1/helpers/authUtils');
   const u = require('./api/v1/helpers/verbs/utils');
