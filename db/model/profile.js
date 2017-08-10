@@ -133,18 +133,7 @@ module.exports = function profile(seq, dataTypes) {
             p[accessModel] === 'rw'.toLowerCase()) || (p[accessModel] == null)))
           .catch((err) => reject(err));
         });
-      },
-
-      requiresWriteAccess(modelName) {
-
-        Profile.findByName('Admin')
-        .then((p) => {
-          if (p[accessModel] === null) {
-            return false;
-          }
-          return true;
-        });
-      },
+      }, // hasWriteAccess
     },
 
     defaultScope: {
