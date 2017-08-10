@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -149,7 +148,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -157,7 +156,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body[0]).to.not.have.property('tags');
         expect(res.body[0]).to.have.all
           .keys(['apiLinks', 'id', 'name', 'description']);
-        done();
+        return done();
       });
     });
   });
@@ -169,11 +168,11 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
-        done();
+        return done();
       });
     });
 
@@ -183,11 +182,11 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
-        done();
+        return done();
       });
     });
 
@@ -197,11 +196,11 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
-        done();
+        return done();
       });
     });
 
@@ -211,11 +210,11 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
-        done();
+        return done();
       });
     });
   });
@@ -238,10 +237,10 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -257,10 +256,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -271,12 +270,12 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
         expect(res.body[ZERO].name).to.equal(name);
-        done();
+        return done();
       });
     });
 
@@ -305,10 +304,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -323,10 +322,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -341,10 +340,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -359,10 +358,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -377,10 +376,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
   }); // Single Values
@@ -397,10 +396,10 @@ describe(`api: GET ${path}`, () => {
       })
       .end((err /* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        done();
+        return done();
       });
     });
 
@@ -425,7 +424,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(THREE);
@@ -433,7 +432,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body[ONE].rank).to.equal(TWO);
         expect(res.body[TWO].rank).to.equal(THREE);
 
-        done();
+        return done();
       });
     });
 
@@ -443,7 +442,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(THREE);
@@ -451,7 +450,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body[ONE].rank).to.equal(TWO);
         expect(res.body[TWO].rank).to.equal(ONE);
 
-        done();
+        return done();
       });
     });
   }); // aspect rank
