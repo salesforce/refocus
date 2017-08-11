@@ -40,7 +40,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     eventAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'rw',
+      defaultValue: 'r',
     },
     isDeleted: {
       type: dataTypes.BIGINT,
@@ -65,7 +65,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     roomTypeAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'rw',
+      defaultValue: 'r',
     },
     sampleAccess: {
       type: dataTypes.ENUM('r', 'rw'),
