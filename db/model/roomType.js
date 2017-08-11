@@ -63,7 +63,7 @@ module.exports = function roomType(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.STRING),
       allowNull: true,
       comment: 'Bots to be used in roomType',
-    }
+    },
   }, {
     classMethods: {
       getRoomTypeAssociations() {
@@ -100,7 +100,7 @@ module.exports = function roomType(seq, dataTypes) {
           });
         });
       }, // hooks.afterCreate
-    }
+    },
   });
   return RoomType;
 };
