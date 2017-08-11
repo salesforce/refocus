@@ -24,6 +24,8 @@
 const constants = require('../constants');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
+const utils = ('../../api/v1/helpers/verbs/utils');
+const Bots = require('./subject');
 
 module.exports = function roomType(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
@@ -59,6 +61,11 @@ module.exports = function roomType(seq, dataTypes) {
       },
       comment: 'Logic and resulting actions for rooms',
     },
+    bots: {
+      type: dataTypes.ARRAY(dataTypes.STRING),
+      allowNull: true,
+      comment: 'Bots to be used in roomType',
+    }
   }, {
     classMethods: {
       getRoomTypeAssociations() {
@@ -69,8 +76,9 @@ module.exports = function roomType(seq, dataTypes) {
         assoc.type = RoomType.hasMany(models.Room, {
           foreignKey: 'type',
         });
-        assoc.bots = RoomType.hasMany(models.Bot, {
+        assoc.bots = RoomType.belongsToMany(models.Bot, {
           foreignKey: 'roomTypeId',
+          through: 'RoomTypeBots',
         });
         assoc.writers = RoomType.belongsToMany(models.User, {
           as: 'writers',
@@ -79,6 +87,22 @@ module.exports = function roomType(seq, dataTypes) {
         });
       },
     },
+    hooks: {
+
+      /**
+       * Creates relationship between roomType & bots
+       *
+       * @param {RoomType} inst - The newly-created instance
+       */
+      afterCreate(inst /* , opts */) {
+        inst.dataValues.bots.map((botName) => {
+          seq.models.Bot.findOne({ where: { name: botName } })
+          .then((o) => {
+            inst.addBots(o);
+          });
+        });
+      }, // hooks.afterCreate
+    }
   });
   return RoomType;
 };
