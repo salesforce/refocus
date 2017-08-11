@@ -17,7 +17,6 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
 const bulkUpsert = require('../../../../cache/models/samples.js')
                         .bulkUpsertByName;
 const expect = require('chai').expect;
@@ -89,14 +88,14 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const error = res.body.errors[0];
       expect(error.message).to.contain('name');
       expect(error.type)
         .to.equal(tu.schemaValidationErrorName);
-      done();
+      return done();
     });
   });
 
@@ -117,7 +116,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -164,10 +163,10 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      done();
+      return done();
     });
   });
 
@@ -207,10 +206,10 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      done();
+      return done();
     });
   });
 
@@ -248,10 +247,10 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      done();
+      return done();
     });
   });
 
@@ -278,10 +277,10 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      done();
+      return done();
     });
   });
 
@@ -336,12 +335,12 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
           expect(res.body).to.have.length(2);
           expect(res.body[0].value).to.not.equal('10');
           expect(res.body[1].value).to.equal('10');
-          done();
+          return done();
         });
       }, 100);
     });
@@ -358,20 +357,26 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         },
       ])
       .then(() => {
-        api.get('/v1/samples?name=' +
-          `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
-        .set('Authorization', token)
-        .end((err, res) => {
-          if (err) {
-            done(err);
-          }
+        /*
+         * the bulk api is asynchronous. The delay is used to give sometime for
+         * the upsert operation to complete
+         */
+        setTimeout(() => {
+          api.get('/v1/samples?name=' +
+            `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+          .set('Authorization', token)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
 
-          expect(res.body).to.have.length(1);
-          expect(res.body[0].name)
-          .to.equal(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
-          expect(res.body[0].value).to.be.equal('6');
-          done();
-        });
+            expect(res.body).to.have.length(1);
+            expect(res.body[0].name)
+            .to.equal(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+            expect(res.body[0].value).to.be.equal('6');
+            return done();
+          });
+        }, 100);
       });
     });
   });
