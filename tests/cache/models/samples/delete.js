@@ -44,16 +44,15 @@ describe(`api: redisStore: DELETE ${path}`, () => {
 
   beforeEach(rtu.populateRedis);
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('basic delete', (done) => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       if (tu.gotExpectedLength(res.body, ZERO)) {
@@ -82,7 +81,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspect).to.be.an('object');
@@ -99,7 +98,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -113,7 +112,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.isDeleted).to.equal(undefined);
@@ -127,7 +126,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res ) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { updatedAt, createdAt } = res.body;
@@ -193,7 +192,6 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('delete all related links', (done) => {
@@ -202,7 +200,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(ZERO);
@@ -223,7 +221,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -241,7 +239,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
