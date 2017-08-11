@@ -4263,24 +4263,6 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
-              roomAccess:
-                type: string
-                maxLength: 2
-                enum:
-                  - r
-                  - rw
-                default: rw
-                description: >
-                  The permission to read and/or write rooms.
-              roomTypeAccess:
-                type: string
-                maxLength: 2
-                enum:
-                  - r
-                  - rw
-                default: r
-                description: >
-                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2

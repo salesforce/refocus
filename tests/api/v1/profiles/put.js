@@ -49,8 +49,7 @@ describe(`api: PUT ${path}`, () => {
       .set('Authorization', predefinedAdminUserToken)
       .send({
         name: newName,
-        subjectAccess: 'rw',
-        roomTypeAccess: 'rw'
+        subjectAccess: 'rw'
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -58,7 +57,7 @@ describe(`api: PUT ${path}`, () => {
           return done(err);
         }
         expect(res.body.name).to.equal(newName);
-        expect(res.body.roomTypeAccess).to.equal('rw');
+        expect(res.body.subjectAccess).to.equal('rw');
         done();
       });
     });
