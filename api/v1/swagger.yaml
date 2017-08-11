@@ -2494,12 +2494,6 @@ paths:
           type: string
           required: false
         -
-          name: bulk
-          in: query
-          type: boolean
-          description: >-
-            Filter by generatorTemplate bulk (true|false).
-        -
           name: isPublished
           in: query
           type: boolean
@@ -2566,14 +2560,6 @@ paths:
                 type: string
                 description: >-
                   The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-              bulk:
-                type: boolean
-                description: >-
-                  Set to false if you want to send one request for each of the
-                  designated subjects. Set to true if you want to collect data for
-                  all of the designated subjects in a single request. When set to
-                  true, the url string or url function may only reference context
-                  attributes with defaults.
               tags:
                 type: array
                 items:
@@ -2599,7 +2585,8 @@ paths:
               contextDefinition:
                 type: object
                 description: >-
-                  Variables accessible inside the transform function.
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
               transform:
                 type: string
                 description: >-
@@ -2722,14 +2709,6 @@ paths:
                 type: string
                 description: >-
                   The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-              bulk:
-                type: boolean
-                description: >-
-                  Set to false if you want to send one request for each of the
-                  designated subjects. Set to true if you want to collect data for
-                  all of the designated subjects in a single request. When set to
-                  true, the url string or url function may only reference context
-                  attributes with defaults.
               tags:
                 type: array
                 items:
@@ -2755,7 +2734,8 @@ paths:
               contextDefinition:
                 type: object
                 description: >-
-                  Variables accessible inside the transform function.
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
               transform:
                 type: string
                 description: >-
@@ -2836,14 +2816,6 @@ paths:
                 type: string
                 description: >-
                   The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-              bulk:
-                type: boolean
-                description: >-
-                  Set to false if you want to send one request for each of the
-                  designated subjects. Set to true if you want to collect data for
-                  all of the designated subjects in a single request. When set to
-                  true, the url string or url function may only reference context
-                  attributes with defaults.
               tags:
                 type: array
                 items:
@@ -2869,7 +2841,8 @@ paths:
               contextDefinition:
                 type: object
                 description: >-
-                  Variables accessible inside the transform function.
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
               transform:
                 type: string
                 description: >-
@@ -11271,13 +11244,6 @@ definitions:
         type: string
         description: >-
           The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-      bulk:
-        type: boolean
-        description: >-
-          Set to false if you want to send one request for each of the designated
-          subjects. Set to true if you want to collect data for all of the designated
-          subjects in a single request. When set to true, the url string or url
-          function may only reference context attributes with defaults.
       tags:
         type: array
         items:
@@ -11303,7 +11269,8 @@ definitions:
       contextDefinition:
         type: object
         description: >-
-          Variables accessible inside the transform function.
+          Variables available to connection.url, connection.toUrl, and
+          the transform function.
       transform:
         type: string
         description: >-
@@ -11504,7 +11471,6 @@ parameters:
         - id
         - name
         - version
-        - bulk
         - tags
         - author
         - repository
