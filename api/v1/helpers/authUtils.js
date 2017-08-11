@@ -85,5 +85,6 @@ function isAdmin(req) {
 
 module.exports = {
   getUser,
+  hasWriteAccess,
   isAdmin,
 };
