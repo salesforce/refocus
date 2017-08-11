@@ -100,26 +100,13 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('unpublished subject should not be found but should be found ' +
-                  ' after it is published', (done) => {
+  it('unpublished subject should be found', (done) => {
     let subj;
     let key;
     Subject.findById(iparUnPub)
     .then((sub) => {
       subj = sub;
       key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-      return redisOps.executeBatchCmds(cmds);
-    })
-    .then((res) => {
-      expect(res[0]).to.equal(0);
-      expect(res[1]).to.equal(null);
-      return subj.update({ isPublished: true });
-    })
-    .then(() => {
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subj.absolutePath));
