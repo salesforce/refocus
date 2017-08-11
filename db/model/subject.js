@@ -367,7 +367,12 @@ module.exports = function subject(seq, dataTypes) {
               redisOps.addKey(subjectType, inst.absolutePath);
               redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
             } else {
-              subjectUtils.removeFromRedis(inst.absolutePath);
+
+              /*
+               * Delete multiple possible entries in the sample master list of
+               * index
+               */
+              redisOps.deleteKeys(sampleType, subjectType, inst.absolutePath);
               redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
             }
           }
@@ -464,7 +469,6 @@ module.exports = function subject(seq, dataTypes) {
 
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
             subjectUtils.removeFromRedis(inst.absolutePath);
-            redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
           }
         }
 
