@@ -14,7 +14,6 @@
 
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/index').User.scope('withSensitiveInfo');
-const Token = require('../db/index').Token;
 const Profile = require('../db/index').Profile;
 const bcrypt = require('bcrypt-nodejs');
 
