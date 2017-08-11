@@ -88,7 +88,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-       return done(err);
+        return done(err);
       }
 
       const error = res.body.errors[0];
@@ -332,6 +332,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       setTimeout(() => {
         api.get('/v1/samples?name=' +
         `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -363,6 +364,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         setTimeout(() => {
           api.get('/v1/samples?name=' +
             `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+          .set('Authorization', token)
           .end((err, res) => {
             if (err) {
               return done(err);
