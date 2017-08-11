@@ -51,7 +51,7 @@ describe(`api: POST ${path}`, () => {
           return done(err);
         }
         expect(res.body.name).to.equal(p0.name);
-        expect(res.body.profileAccess).to.equal('rw');
+        expect(res.body.subjectAccess).to.equal('rw');
         done();
       });
     });
