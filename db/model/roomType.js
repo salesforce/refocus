@@ -96,6 +96,7 @@ module.exports = function roomType(seq, dataTypes) {
         if(inst.dataValues.bots === null){
           return;
         }
+        
         inst.dataValues.bots.map((botName) => {
           seq.models.Bot.findOne({ where: { name: botName } })
           .then((o) => {
