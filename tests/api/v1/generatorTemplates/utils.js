@@ -19,7 +19,6 @@ const GENERATOR_TEMPLATE_SIMPLE = {
   description: 'this is a generator template...',
   name: 'template0',
   version: '1.0.0',
-  bulk: false,
   tags: [
     'tag1',
   ],
@@ -31,6 +30,7 @@ const GENERATOR_TEMPLATE_SIMPLE = {
   connection: {
     method: 'GET',
     url: 'http://www.bbb.com',
+    bulk: false
   },
   transform: 'function...',
   isPublished: true,

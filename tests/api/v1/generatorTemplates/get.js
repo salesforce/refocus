@@ -261,7 +261,7 @@ describe(`api: GET ${path}`, () => {
     }
 
     const fields = ['description', 'helpEmail', 'helpUrl', 'id', 'name',
-      'version', 'bulk', 'tags', 'author', 'repository', 'connection',
+      'version', 'tags', 'author', 'repository', 'connection',
       'contextDefinition', 'transform', 'isPublished'];
 
     fields.forEach((field) => {
@@ -325,11 +325,6 @@ describe(`api: GET ${path}`, () => {
       o3.version = '1.4.1';
       o4.version = '2.0.0';
 
-      o1.bulk = 'true';
-      o2.bulk = 'true';
-      o3.bulk = 'false';
-      o4.bulk = 'true';
-
       o1.isPublished = 'true';
       o2.isPublished = 'true';
       o3.isPublished = 'false';
@@ -365,18 +360,6 @@ describe(`api: GET ${path}`, () => {
 
     it('find by version wildcard', (done) => {
       findByField(done, 'version', '1.*.*', 3);
-    });
-
-    it('find by bulk', (done) => {
-      findByField(done, 'bulk', 'true', 3);
-    });
-
-    it('find by bulk non-boolean (error)', (done) => {
-      findByField(done, 'bulk', 'aaa', 'err');
-    });
-
-    it('find by bulk wildcard (error)', (done) => {
-      findByField(done, 'bulk', 'f*lse', 'err');
     });
 
     it('find by isPublished', (done) => {
