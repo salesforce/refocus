@@ -83,7 +83,7 @@ describe('api: POST ' + path, () => {
     .expect(/ForbiddenError/)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -102,10 +102,10 @@ describe('api: POST ' + path, () => {
         value: '4',
       },
     ])
-    .expect(200)
+    .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
