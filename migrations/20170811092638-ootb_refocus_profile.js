@@ -18,7 +18,7 @@ module.exports = {
     */
     return qi.sequelize.transaction(() =>
       qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'rw\'' +
-        ', "botAccess" = \'rw\', "eventAccess" = \'r\'' +
+        ', "botAccess" = \'rw\', "eventAccess" = \'rw\'' +
         ', "lensAccess" = \'rw\', "perspectiveAccess" = \'rw\'' +
         ', "roomTypeAccess" = \'r\', "sampleAccess" = \'rw\'' +
         ', "subjectAccess" = \'rw\', "userAccess" = \'rw\'' +
