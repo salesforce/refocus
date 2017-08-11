@@ -24,8 +24,6 @@
 const constants = require('../constants');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
-const utils = ('../../api/v1/helpers/verbs/utils');
-const Bots = require('./subject');
 
 module.exports = function roomType(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
