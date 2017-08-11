@@ -106,9 +106,7 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
  * @param {String} absolutePath - The absolutePath of the subject
  */
 function removeFromRedis(absolutePath) {
-  redisOps.deleteKey(subjectType, absolutePath);
   redisOps.deleteKeys(sampleType, subjectType, absolutePath);
-  redisOps.deleteKey(subAspMapType, absolutePath);
 } // removeFromRedis
 
 module.exports = {
