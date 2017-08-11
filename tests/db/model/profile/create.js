@@ -31,7 +31,7 @@ describe('db: Profile: create', () => {
         expect(o).to.have.property('name').to.equal(pname);
         expect(o).to.have.property('aspectAccess').to.equal('rw');
         expect(o).to.have.property('botAccess').to.equal('rw');
-        expect(o).to.have.property('eventAccess').to.equal('r');
+        expect(o).to.have.property('eventAccess').to.equal('rw');
         expect(o).to.have.property('lensAccess').to.equal('rw');
         expect(o).to.have.property('perspectiveAccess').to.equal('rw');
         expect(o).to.have.property('profileAccess').to.equal('r');

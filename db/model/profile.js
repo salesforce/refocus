@@ -40,7 +40,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     eventAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     isDeleted: {
       type: dataTypes.BIGINT,
