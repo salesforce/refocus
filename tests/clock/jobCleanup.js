@@ -175,7 +175,7 @@ describe('jobCleanup', () => {
     const batchSize = 5;
 
     it('skip 3', (done) => {
-      const delay = 199;
+      const delay = 190;
       const expectedCount = 3;
 
       runJobs(jobCount, duration, durationType)
@@ -185,7 +185,7 @@ describe('jobCleanup', () => {
     });
 
     it('skip 15', (done) => {
-      const delay = 799;
+      const delay = 790;
       const expectedCount = 15;
 
       runJobs(jobCount, duration, durationType)
@@ -203,7 +203,7 @@ describe('jobCleanup', () => {
 
     it('skip 1/2', (done) => {
       const duration = [0, 100];
-      const delay = 99;
+      const delay = 90;
       const expectedCount = 10;
 
       runJobs(jobCount, duration, durationType)
@@ -214,7 +214,7 @@ describe('jobCleanup', () => {
 
     it('skip 1/4', (done) => {
       const duration = [0, 100, 200, 300];
-      const delay = 99;
+      const delay = 90;
       const expectedCount = 5;
 
       runJobs(jobCount, duration, durationType)
