@@ -54,14 +54,10 @@ describe(`api: GET ${path}`, () => {
       }
       expect(res.body).to.have.property('name', pname);
       expect(res.body).to.have.property('aspectAccess', 'r');
-      expect(res.body).to.have.property('botAccess', 'r');
-      expect(res.body).to.have.property('eventAccess', 'r');
       expect(res.body).to.have.property('lensAccess', 'r');
       expect(res.body).to.have.property('perspectiveAccess', 'r');
-      expect(res.body).to.have.property('profileAccess', 'r'); 
-      expect(res.body).to.have.property('roomAccess', 'rw');
-      expect(res.body).to.have.property('roomTypeAccess', 'r');  
-      expect(res.body).to.have.property('sampleAccess', 'r'); 
+      expect(res.body).to.have.property('profileAccess', 'r');
+      expect(res.body).to.have.property('sampleAccess', 'r');
       expect(res.body).to.have.property('subjectAccess', 'r');
       expect(res.body).to.have.property('userAccess', 'r');
       done();
