@@ -2456,13 +2456,6 @@ paths:
         -
           $ref: "#/parameters/offsetParam"
         -
-          name: description
-          in: query
-          type: string
-          maxLength: 4096
-          description: >-
-            Filter by the generatorTemplate description; asterisk (*) wildcards ok.
-        -
           name: name
           in: query
           type: string
