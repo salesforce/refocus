@@ -368,6 +368,7 @@ module.exports = function subject(seq, dataTypes) {
               redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
             } else {
               subjectUtils.removeFromRedis(inst.absolutePath);
+              redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
             }
           }
         }
@@ -463,6 +464,7 @@ module.exports = function subject(seq, dataTypes) {
 
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
             subjectUtils.removeFromRedis(inst.absolutePath);
+            redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
           }
         }
 
