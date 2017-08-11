@@ -12,6 +12,7 @@
 'use strict';
 
 const u = require('../helpers/verbs/utils');
+const authUtils = require('../helpers/authUtils');
 const httpStatus = require('../constants').httpStatus;
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -24,14 +25,25 @@ module.exports = {
   /**
    * DELETE /bots/{key}
    *
-   * Deletes the bot and sends it back in the response.
+   * Deletes the bot and sends it back in the response. Only
+   * available to users with Profile with r/w access to Bots.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBots(req, res, next) {
-    doDelete(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName.slice(0, -1))
+    .then((ok) => {
+      if (ok) {
+        doDelete(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -63,42 +75,111 @@ module.exports = {
   /**
    * PATCH /bots/{key}
    *
-   * Update the specified bot
+   * Update the specified bot. Only available to users 
+   * with Profile with r/w access to Bots.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    doPatch(req, res, next, helper);
+    authUtils.hasWriteAccess(req, helper.modelName.slice(0, -1))
+    .then((ok) => {
+      if (ok) {
+        doPatch(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * POST /bots
    *
-   * Creates a new bot and sends it back in the response.
+   * Creates a new bot and sends it back in the response. Only
+   * available to users with Profile with r/w access to Bots.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const reqObj = req.swagger.params;
-    const seqObj = {};
-    try {
-      for (const param in reqObj) {
-        if (reqObj[param].value) {
-          if (typeof (reqObj[param].value) === 'object' &&
-            param === 'ui') {
-            seqObj[param] = reqObj[param].value.buffer;
-          } else {
-            seqObj[param] = reqObj[param].value;
+    authUtils.hasWriteAccess(req, helper.modelName.slice(0, -1))
+    .then((ok) => {
+      if (ok) {
+        const resultObj = { reqStartTime: new Date() };
+        const reqObj = req.swagger.params;
+        const seqObj = {};
+        try {
+          for (const param in reqObj) {
+            if (reqObj[param].value) {
+              if (typeof (reqObj[param].value) === 'object' &&
+                param === 'ui') {
+                seqObj[param] = reqObj[param].value.buffer;
+              } else {
+                seqObj[param] = reqObj[param].value;
+              }
+            }
           }
-        }
-      }
 
-      helper.model.create(seqObj)
+          helper.model.create(seqObj)
+            .then((o) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              delete o.dataValues.ui;
+              u.logAPI(req, resultObj, o.dataValues);
+              res.status(httpStatus.CREATED).json(
+                u.responsify(o, helper, req.method)
+              );
+            })
+            .catch((err) => {
+              u.handleError(next, err, helper.modelName);
+            });
+        } catch (err) {
+          err.description = 'Invalid UI uploaded.';
+          u.handleError(next, err, helper.modelName);
+        }
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
+  },
+
+  /**
+   * PUT /bots/{key}
+   *
+   * Overrides the bot with that ID. Only available to users
+   * with Profile with r/w access to Bots.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  putBots(req, res, next) {
+    authUtils.hasWriteAccess(req, helper.modelName.slice(0, -1))
+    .then((ok) => {
+      if (ok) {
+        const resultObj = { reqStartTime: new Date() };
+        const reqObj = req.swagger.params;
+        u.findByKey(helper, req.swagger.params)
+        .then((o) => {
+          for (const param in reqObj) {
+            if (reqObj[param].value) {
+              if (param === 'ui') {
+                o.set(param, reqObj[param].value.buffer);
+              } else {
+                o.set(param, reqObj[param].value);
+              }
+            }
+          }
+
+          return o.save();
+        })
         .then((o) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           delete o.dataValues.ui;
@@ -107,50 +188,14 @@ module.exports = {
             u.responsify(o, helper, req.method)
           );
         })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
-    } catch (err) {
-      err.description = 'Invalid UI uploaded.';
-      u.handleError(next, err, helper.modelName);
-    }
-  },
-
-  /**
-   * PUT /bots/{key}
-   *
-   * Overrides the bot with that ID
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  putBots(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const reqObj = req.swagger.params;
-    u.findByKey(helper, req.swagger.params)
-    .then((o) => {
-      for (const param in reqObj) {
-        if (reqObj[param].value) {
-          if (param === 'ui') {
-            o.set(param, reqObj[param].value.buffer);
-          } else {
-            o.set(param, reqObj[param].value);
-          }
-        }
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
       }
-
-      return o.save();
     })
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      delete o.dataValues.ui;
-      u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.CREATED).json(
-        u.responsify(o, helper, req.method)
-      );
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
 }; // exports
