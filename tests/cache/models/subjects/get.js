@@ -17,7 +17,6 @@ const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
-const subjectIndexName = rtu.sampleStore.constants.indexKey.subject;
 
 describe('api::redisEnabled::GET specific subject', () => {
   let token;
@@ -40,34 +39,6 @@ describe('api::redisEnabled::GET specific subject', () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
-
-  it('on unpublish, a subject should still be found', (done) => {
-    const subjectName = `${tu.namePrefix}PublishedSubject`;
-    let _subject;
-    let subjectKey;
-    tu.db.Subject.create({ name: subjectName, isPublished: true })
-    .then((subject) => {
-      _subject = subject;
-      subjectKey = rtu.sampleStore.toKey('subject', subject.name);
-      return rtu.redisClient.sismemberAsync(subjectIndexName, subjectKey);
-    })
-    .then((ok) => {
-      expect(ok).to.equal(1);
-      return _subject.update({ isPublished: false });
-    })
-    .then(() => rtu.redisClient.sismemberAsync(subjectIndexName, subjectKey))
-    .then((ok) => {
-      expect(ok).to.equal(1);
-      return rtu.redisClient.hgetallAsync(subjectKey);
-    })
-    .then((subject) => {
-      expect(subject).to.not.equal(null);
-      expect(subject.name).to.equal(subjectName);
-      expect(subject.isPublished).to.equal('false');
-      done();
-    })
-    .catch(done);
-  });
 
   it('createdAt and updatedAt fields have the expected format', (done) => {
     api.get(`${path}/${name}`)
