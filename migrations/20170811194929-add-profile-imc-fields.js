@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const TBL = 'Profiles';
 
 module.exports = {
-  up(qi, Sequelize) {
+  up(qi /* , Sequelize */) {
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
@@ -37,7 +37,7 @@ module.exports = {
     );
   },
 
-  down(qi, Sequelize) {
+  down(qi /* , Sequelize*/) {
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.
