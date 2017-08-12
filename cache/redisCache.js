@@ -23,16 +23,46 @@ const bluebird = require('bluebird');
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-const sub = redis.createClient(rconf.instanceUrl.pubsub);
+const opts = {
+  /**
+   * Redis Client Retry Strategy:
+   * - Stop retrying if we're getting an ECONNREFUSED error. Flush all
+   *   commands with a custom error message.
+   * - Stop retrying if it's been over an hour since the last successful
+   *   connection. Flush all commands with a custom error message.
+   * - Stop retrying if we've already tried 10 times. Flush all commands with
+   *   the standard built-in error.
+   * - Try to reconnect with a simple back-off strategy: the lower of either 3
+   *   seconds OR (the number of previous attempts * 100ms).
+   */
+  retry_strategy: (options) => {
+    if (options.error && options.error.code === 'ECONNREFUSED') {
+      return new Error('The server refused the connection');
+    }
+
+    if (options.total_retry_time > 1000 * 60 * 60) {
+      return new Error('Retry time exhausted');
+    }
+
+    if (options.attempt > 10) {
+      return undefined;
+    }
+
+    return Math.min(options.attempt * 100, 3000);
+  }, // retryStrategy
+};
+
+const sub = redis.createClient(rconf.instanceUrl.pubsub, opts);
 sub.subscribe(rconf.channelName);
 
 module.exports = {
   client: {
-    cache: redis.createClient(rconf.instanceUrl.cache),
-    limiter: redis.createClient(rconf.instanceUrl.limiter),
-    pub: redis.createClient(rconf.instanceUrl.pubsub),
-    realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging),
-    sampleStore: redis.createClient(rconf.instanceUrl.sampleStore),
+    cache: redis.createClient(rconf.instanceUrl.cache, opts),
+    limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
+    pub: redis.createClient(rconf.instanceUrl.pubsub, opts),
+    realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
+      opts),
+    sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
     sub,
   },
 };
