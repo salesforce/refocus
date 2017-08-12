@@ -55,14 +55,27 @@ const opts = {
 const sub = redis.createClient(rconf.instanceUrl.pubsub, opts);
 sub.subscribe(rconf.channelName);
 
+const client = {
+  cache: redis.createClient(rconf.instanceUrl.cache, opts),
+  limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
+  pub: redis.createClient(rconf.instanceUrl.pubsub, opts),
+  realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
+    opts),
+  sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
+  sub,
+};
+
+Object.keys(client).forEach((key) => {
+  client[key].on('error', (err) => {
+    console.log(`redis client connection [${key}]`, err);
+    return new Error(err);
+  });
+
+  client[key].on('reconnecting', () => {
+    console.log(`redis client connection [${key}] trying to reconnect`);
+  });
+});
+
 module.exports = {
-  client: {
-    cache: redis.createClient(rconf.instanceUrl.cache, opts),
-    limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
-    pub: redis.createClient(rconf.instanceUrl.pubsub, opts),
-    realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
-      opts),
-    sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
-    sub,
-  },
+  client,
 };
