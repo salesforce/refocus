@@ -126,6 +126,8 @@ const shortTermToggles = {
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
+  checkCacheOnPost: environmentVariableTrue(pe, 'CHECK_CACHE_ON_POST'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

@@ -39,6 +39,20 @@ const filters = {
 };
 
 /**
+ * Given absolutePath, return whether the subject is in cache
+ *
+ * @param {String} absolutePath
+ * @returns {Promise} resolves to true for found, false for not
+ */
+function isSubjectInCache(absolutePath) {
+  const subjectKey = sampleStore.toKey('subject', absolutePath);
+
+  // get from cache
+  return redisClient.sismemberAsync(sampleStore.constants.indexKey.subject, subjectKey)
+  .then((exist) => exist);
+}
+
+/**
  * Given a subject with its samples, aspect, aspectTags and sampleStatus filters
  * are applied to the samples and the filtered samples are attached back to the
  * subject
@@ -220,6 +234,8 @@ function convertStringsToNumbersAndAddParentAbsolutePath(subject) {
 
 module.exports = {
   completeSubjectHierarchy,
+
+  isSubjectInCache,
 
   /**
    * Returns subject with filter options if provided.

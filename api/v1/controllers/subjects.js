@@ -405,7 +405,34 @@ module.exports = {
    */
   postSubject(req, res, next) {
     validateRequest(req);
-    doPost(req, res, next, helper);
+    const { name, parentId, parentAbsolutePath } =
+      req.swagger.params.queryBody.value;
+
+    // if cache on and parentId is NOT provided
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+      featureToggles.isFeatureEnabled('checkCacheOnPost') &&
+      !u.looksLikeId(parentId)) {
+
+      const absolutePath = parentAbsolutePath ?
+        (parentAbsolutePath + '.' + name) : name;
+
+      redisSubjectModel.isSubjectInCache(absolutePath)
+      .then((found) => {
+        if (found) {
+          throw new apiErrors.DuplicateResourceError(
+            'The subject lower case absolutePath must be unique');
+        } else {
+          doPost(req, res, next, helper);
+        }
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
+    } else {
+
+      // cache is off OR parentId is provided
+      doPost(req, res, next, helper);
+    }
   },
 
   /**
