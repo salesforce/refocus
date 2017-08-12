@@ -6,10 +6,8 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 'use strict';
-const TBL = 'Profiles';
-
 module.exports = {
-  up(qi, Sequelize) {
+  up(qi, /* , Sequelize */) {
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
@@ -18,26 +16,30 @@ module.exports = {
       return qi.createTable('users', { id: Sequelize.INTEGER });
     */
     return qi.sequelize.transaction(() =>
-    qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "botAccess" "enum_Profiles_botAccess"', {
+     qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ALTER COLUMN "botAccess" SET DEFAULT ? ', {
+        replacements: ['r'],
         type: qi.sequelize.QueryTypes.ALTER,
       })
     .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "eventAccess" "enum_Profiles_eventAccess"', {
+      'ALTER COLUMN "eventAccess" SET DEFAULT ? ', {
+        replacements: ['r'],
         type: qi.sequelize.QueryTypes.ALTER,
       }))
     .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "roomAccess" "enum_Profiles_roomAccess"', {
+      'ALTER COLUMN "roomAccess" SET DEFAULT ? ', {
+        replacements: ['rw'],
         type: qi.sequelize.QueryTypes.ALTER,
       }))
     .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "roomTypeAccess" "enum_Profiles_roomTypeAccess"', {
+      'ALTER COLUMN "roomTypeAccess" SET DEFAULT ? ', {
+        replacements: ['r'],
         type: qi.sequelize.QueryTypes.ALTER,
       }))
     );
   },
 
-  down(qi, Sequelize) {
+  down(/* qi, Sequelize */) { // NO-OP
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.
@@ -45,10 +47,5 @@ module.exports = {
       Example:
       return qi.dropTable('users');
     */
-    return qi.sequelize.transaction(() =>
-    qi.removeColumn(TBL, 'botAccess'))
-    .then(() => qi.removeColumn(TBL, 'eventAccess'))
-    .then(() => qi.removeColumn(TBL, 'roomAccess'))
-    .then(() => qi.removeColumn(TBL, 'roomTypeAccess'));
   },
 };
