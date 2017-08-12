@@ -37,7 +37,7 @@ module.exports = {
     authUtils.isAdmin(req)
     .then((ok) => {
       if (!ok) {
-        u.forbidden(next);
+        return u.forbidden(next);
       }
 
       const enabled = featureToggles
@@ -51,8 +51,8 @@ module.exports = {
       }
 
       return sampleStoreInit.eradicate()
-          .then(() => sampleStoreInit.populate())
-          .then(() => res.status(httpStatus.NO_CONTENT).json());
+        .then(() => sampleStoreInit.populate())
+        .then(() => res.status(httpStatus.NO_CONTENT).json());
     })
     .catch(() => u.forbidden(next));
   },
