@@ -15,7 +15,6 @@
 require('./config/toggles'); // Loads the feature toggles
 const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
-const redisConfig = require('./config/redisConfig');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
@@ -31,6 +30,7 @@ const pghost = pe.PGHOST || 'localhost';
 const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
+const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
 const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   max: 5,
   min: 0,
@@ -109,6 +109,27 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
 
+/*
+ * Assigns each of the different redis uses cases to a particular redis
+ * instance, if configured, or falls back to the primary redis instance.
+ */
+const redisUrls = {
+  cache: pe.REDIS_CACHE && pe[pe.REDIS_CACHE] ?
+    pe[pe.REDIS_CACHE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  limiter: pe.REDIS_LIMITER && pe[pe.REDIS_LIMITER] ?
+    pe[pe.REDIS_LIMITER] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  pubsub: pe.REDIS_PUBSUB && pe[pe.REDIS_PUBSUB] ?
+    pe[pe.REDIS_PUBSUB] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  queue: pe.REDIS_QUEUE && pe[pe.REDIS_QUEUE] ?
+    pe[pe.REDIS_QUEUE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  realtimeLogging: pe.REDIS_REALTIME_LOGGING && pe[pe.REDIS_REALTIME_LOGGING] ?
+    pe[pe.REDIS_REALTIME_LOGGING] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  sampleStore: pe.REDIS_SAMPLE_STORE && pe[pe.REDIS_SAMPLE_STORE] ?
+    pe[pe.REDIS_SAMPLE_STORE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+  session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?
+    pe[pe.REDIS_SESSION] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
+};
+
 module.exports = {
   api: {
     defaults: {
@@ -154,7 +175,18 @@ module.exports = {
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,
   },
-  redis: redisConfig,
+  redis: {
+    channelName: 'focus',
+    instanceUrl: {
+      cache: redisUrls.cache,
+      limiter: redisUrls.limiter,
+      pubsub: redisUrls.pubsub,
+      queue: redisUrls.queue,
+      realtimeLogging: redisUrls.realtimeLogging,
+      sampleStore: redisUrls.sampleStore,
+      session: redisUrls.session,
+    },
+  },
 
   // When adding new environment, consider adding it to /config/migrationConfig
   // as well to enable database migraton in the environment.
