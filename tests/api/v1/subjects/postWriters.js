@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -99,13 +98,7 @@ describe('api: aspects: post writers', () => {
       expect(userTwo.subjectId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('return 403 for adding writers using an user that is not ' +
@@ -114,13 +107,7 @@ describe('api: aspects: post writers', () => {
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('a request body that is not an array should not be accepted', (done) => {
@@ -129,12 +116,6 @@ describe('api: aspects: post writers', () => {
     .set('Authorization', token)
     .send({ userName })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 });

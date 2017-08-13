@@ -10,7 +10,6 @@
  * tests/api/v1/samples/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -34,7 +33,7 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -44,7 +43,7 @@ describe(`api: DELETE ${path}`, () => {
       sampleName = samp.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -60,13 +59,7 @@ describe(`api: DELETE ${path}`, () => {
       expect(apiLinks[0].method).to.equal('POST');
       expect(apiLinks[0].href).to.equal(path);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('basic delete', (done) => {
@@ -78,13 +71,7 @@ describe(`api: DELETE ${path}`, () => {
         throw new Error('expecting sample');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('does not return id', (done) => {
@@ -93,7 +80,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -107,7 +94,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -126,7 +113,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -150,7 +137,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
       sampleName = samp.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -160,9 +147,9 @@ describe('api: samples: DELETE RelatedLinks', () => {
     api.delete(allDeletePath.replace('{key}', sampleName))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(ZERO);
@@ -181,13 +168,7 @@ describe('api: samples: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks)
         .to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete related link by name', (done) => {
@@ -199,12 +180,6 @@ describe('api: samples: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

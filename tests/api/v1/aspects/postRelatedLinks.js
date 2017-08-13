@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postRelatedLinks.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -49,13 +48,7 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('posting aspect with duplicate relatedLinks should fail', (done) => {
@@ -77,13 +70,7 @@ describe(`api: POST ${path}`, () => {
         .to.contain('Name of the relatedlinks should be unique');
       expect(res.body.errors[0].source).to.contain('relatedLinks');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post aspect with relatedLinks of size zero', (done) => {
@@ -100,12 +87,6 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/samples/upsertBulkCaseSensitive.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -68,7 +67,7 @@ describe('api: POST ' + path, () => {
         aspectId: aspectId,
       })
       .then(() => done())
-      .catch(done)
+      .catch(done);
     });
 
     it('different case name should NOT modify sample name', (done) => {
@@ -86,12 +85,11 @@ describe('api: POST ' + path, () => {
           .set('Authorization', token)
           .end((err, res) => {
             if (err) {
-              done(err);
+              return done(err);
             }
 
             expect(res.body).to.have.length(1);
-            expect(res.body[0].name)
-            .to.equal(sampleName);
+            expect(res.body[0].name).to.equal(sampleName);
             done();
           });
         }, 100);
@@ -120,12 +118,11 @@ describe('api: POST ' + path, () => {
           .set('Authorization', token)
           .end((err, res) => {
             if (err) {
-              done(err);
+              return done(err);
             }
 
             expect(res.body).to.have.length(1);
-            expect(res.body[0].name)
-            .to.equal(sampleName);
+            expect(res.body[0].name).to.equal(sampleName);
             done();
           });
         }, 100);

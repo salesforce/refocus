@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -65,7 +64,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -81,11 +80,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal(tu.uniErrorName);
         done();
       });
     });
@@ -96,13 +94,7 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', token)
     .send(basicParams)
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('OK, with filters', (done) => {
@@ -118,13 +110,7 @@ describe(`api: POST ${path}`, () => {
       statusFilter: ['Critical', '-OK'],
     })
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('perspective with fitertype INCLUDE and filter not specified ' +
@@ -140,8 +126,9 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.errors[0].type).to.equal('InvalidPerspectiveError');
       done();
     });
@@ -163,10 +150,11 @@ describe(`api: POST ${path}`, () => {
       statusFilter: ['Critical', '-OK'],
     })
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.aspectFilterType).to.equal('INCLUDE');
       expect(res.body.aspectTagFilterType).to.equal('EXCLUDE');
       expect(res.body.subjectTagFilterType).to.equal('EXCLUDE');
@@ -189,8 +177,9 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.aspectFilterType).to.equal('EXCLUDE');
       expect(res.body.aspectTagFilterType).to.equal('EXCLUDE');
       expect(res.body.subjectTagFilterType).to.equal('EXCLUDE');
@@ -212,13 +201,7 @@ describe(`api: POST ${path}`, () => {
       lensId: createdLensId,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates aspectFilter', (done) => {
@@ -231,13 +214,7 @@ describe(`api: POST ${path}`, () => {
       aspectFilter: ['temperature#'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates aspectTagFilter', (done) => {
@@ -250,13 +227,7 @@ describe(`api: POST ${path}`, () => {
       aspectTagFilter: ['temp#', 'hum'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates subjectTagFilter', (done) => {
@@ -269,13 +240,7 @@ describe(`api: POST ${path}`, () => {
       subjectTagFilter: ['ea#', 'na'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates statusFilter', (done) => {
@@ -288,12 +253,6 @@ describe(`api: POST ${path}`, () => {
       statusFilter: ['Critical', '-OKAY'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/bots/post.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -45,7 +44,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -62,10 +61,11 @@ describe(`api: POST ${path}`, () => {
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
-          expect(res.body.errors[ZERO].type).to
-          .contain('SequelizeUniqueConstraintError');
+
+          expect(res.body.errors[ZERO].type)
+          .to.contain('SequelizeUniqueConstraintError');
           done();
         });
       })
@@ -82,10 +82,11 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.valErrorName);
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain(tu.valErrorName);
         done();
       });
     });

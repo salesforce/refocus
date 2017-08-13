@@ -10,7 +10,6 @@
  * tests/api/v1/samples/upsertWithProvider.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -73,7 +72,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.provider).to.be.an('string');
@@ -94,7 +93,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.value).to.equal(expectedValue);
@@ -115,7 +114,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.value).to.equal(expectedValue);
@@ -150,7 +149,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.provider).to.equal(user.id);
@@ -167,7 +166,7 @@ describe(`api: upsert without cache`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.value).to.equal(expectedValue);
@@ -190,7 +189,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.value).to.equal(expectedValue);
@@ -213,7 +212,7 @@ describe(`api: upsert without cache`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.value).to.equal(expectedValue);

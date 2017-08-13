@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -40,13 +39,7 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', token)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('posting with readOnly field id should fail', (done) => {
@@ -64,8 +57,8 @@ describe(`api: POST ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: id');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: id');
       return done();
     });
   });
@@ -85,8 +78,8 @@ describe(`api: POST ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: isDeleted');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: isDeleted');
       return done();
     });
   });
@@ -109,7 +102,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -129,7 +122,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -154,13 +147,7 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('cannot post aspect with tags names starting with -', (done) => {
@@ -179,13 +166,7 @@ describe(`api: POST ${path}`, () => {
         expect(res.body.errors[ZERO].type)
           .to.equal(tu.schemaValidationErrorName);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('posting aspect with duplicate tags', (done) => {
@@ -201,7 +182,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
@@ -223,13 +204,7 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/tokens/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -28,17 +27,13 @@ describe(`api: GET ${path}`, () => {
   const username = `${tu.namePrefix}test@refocus.com`;
 
   before((done) => {
-    Profile.create({
-      name: `${tu.namePrefix}testProfile`,
-    })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: username,
-        email: username,
-        password: 'user123password',
-      })
-    )
+    Profile.create({ name: `${tu.namePrefix}testProfile` })
+    .then((profile) => User.create({
+      profileId: profile.id,
+      name: username,
+      email: username,
+      password: 'user123password',
+    }))
     .then((user) => {
       usr = user;
       return Token.create({
@@ -61,7 +56,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.User.name).to.equal(username);
@@ -76,7 +71,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}Voldemort`);
@@ -89,6 +84,6 @@ describe(`api: GET ${path}`, () => {
     api.get(`${path}/123-abc`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/users/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -28,17 +27,13 @@ describe(`api: GET ${path}`, () => {
   let userId = '';
 
   before((done) => {
-    Profile.create({
-      name: `${tu.namePrefix}testProfile`,
-    })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: uname,
-        email: uname,
-        password: 'user123password',
-      })
-    )
+    Profile.create({ name: `${tu.namePrefix}testProfile` })
+    .then((profile) => User.create({
+      profileId: profile.id,
+      name: uname,
+      email: uname,
+      password: 'user123password',
+    }))
     .then((user) => {
       userId = user.id;
       done();
@@ -53,18 +48,18 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       Token.findOne({ where: { name: uname, createdBy: userId } })
       .then((tobj) => {
         if (tobj) {
-          done(new Error('Default token should not be returned'));
+          return done(new Error('Default token should not be returned'));
         }
 
         done();
       })
-      .catch((err1) => done(err1));
+      .catch(done);
     });
   });
 
@@ -73,7 +68,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.property('name', uname);
@@ -88,7 +83,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.be.instanceof(Array);
@@ -101,6 +96,6 @@ describe(`api: GET ${path}`, () => {
     api.get(`${path}/who@what.com`)
     .set('Authorization', '???')
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end(done);
   });
 });
