@@ -31,12 +31,12 @@ describe('jobCleanup', () => {
   });
 
   beforeEach((done) => {
-    jobCleanup.execute(100, 0).then(done).catch(done);
+    jobCleanup.execute(100, 0).then(() => done()).catch(done);
   });
 
   after((done) => {
     tu.toggleOverride('enableWorkerProcess', false);
-    jobCleanup.execute(100, 0).then(done).catch(done);
+    jobCleanup.execute(100, 0).then(() => done()).catch(done);
   });
 
   function testJob(job, done) {
@@ -85,7 +85,7 @@ describe('jobCleanup', () => {
       expectNJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 1, batchSize: 10', (done) => {
@@ -96,7 +96,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 5, batchSize: 10', (done) => {
@@ -107,7 +107,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 22, batchSize: 5', (done) => {
@@ -118,7 +118,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 19, batchSize: 5', (done) => {
@@ -129,7 +129,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 100, batchSize: 5', (done) => {
@@ -140,7 +140,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('jobs: 100, batchSize: 1', (done) => {
@@ -151,7 +151,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('batchSize: 0 (none removed)', (done) => {
@@ -163,7 +163,7 @@ describe('jobCleanup', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
   });
@@ -181,7 +181,7 @@ describe('jobCleanup', () => {
       runJobs(jobCount, duration, durationType)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('skip 15', (done) => {
@@ -191,7 +191,7 @@ describe('jobCleanup', () => {
       runJobs(jobCount, duration, durationType)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
   });
@@ -209,7 +209,7 @@ describe('jobCleanup', () => {
       runJobs(jobCount, duration, durationType)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('skip 1/4', (done) => {
@@ -220,7 +220,7 @@ describe('jobCleanup', () => {
       runJobs(jobCount, duration, durationType)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
   });
 
@@ -241,7 +241,7 @@ describe('jobCleanup', () => {
         return jobCleanup.enqueue();
       })
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => done()).catch(done);
     });
 
     it('worker enabled', (done) => {
@@ -255,7 +255,7 @@ describe('jobCleanup', () => {
       .then((job) => {
         job.on('complete', () => {
           expectNJobs(expectedCount)
-          .then(done).catch(done);
+          .then(() => done()).catch(done);
         });
       })
       .catch(done);
@@ -279,7 +279,7 @@ describe('jobCleanup', () => {
     .then(() => runJobs(jobCount, duration, durationType))
     .then(() => jobQueue.completeAsync())
     .then((ids) => { expect(ids[0]).to.equal(1); })
-    .then(done).catch(done);
+    .then(() => done()).catch(done);
   });
 
 });

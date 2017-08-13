@@ -10,7 +10,6 @@
  * tests/jobQueue/v1/jobWrapper.js
  */
 'use strict'; // eslint-disable-line strict
-
 const jobQueue = require('../../../jobQueue/jobWrapper').jobQueue;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const expect = require('chai').expect;
@@ -61,7 +60,7 @@ describe('api: POST ' + path, () => {
       expect(job.id).to.be.at.least(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });
 

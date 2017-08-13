@@ -36,13 +36,8 @@ describe(`api: GET using worker process ${path}`, () => {
     jobQueue.testMode.clear();
   });
 
-  afterEach(() => {
-    jobQueue.testMode.clear();
-  });
-
-  after(() => {
-    jobQueue.testMode.exit()
-  });
+  afterEach(() => jobQueue.testMode.clear());
+  after(() => jobQueue.testMode.exit());
 
   //run normal getHierarchy tests with worker enabled
   require('../../api/v1/subjects/getHierarchy');
@@ -112,7 +107,7 @@ describe(`api: GET using worker process ${path}`, () => {
         token = returnedToken;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     //get non-worker response
@@ -123,7 +118,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .set('Authorization', token)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         nonWorkerResponse = res.body;
@@ -200,7 +195,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.deep.equal(nonWorkerResponse);
@@ -294,7 +289,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.exist;
@@ -315,7 +310,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.exist;
@@ -331,12 +326,10 @@ describe(`api: GET using worker process ${path}`, () => {
         done();
       });
     });
-
   });
 
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enqueueHierarchy', false);
   });
-
 });
