@@ -10,7 +10,6 @@
  * tests/cache/models/subjects/subjectCRUD.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
@@ -26,9 +25,10 @@ const redisOps = rtu.redisOps;
 
 describe('redis: subject: CRUD: ', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
-  const parUnPub =
-        { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
-
+  const parUnPub = {
+    name: `${tu.namePrefix}SouthAmerica`,
+    isPublished: false,
+  };
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
@@ -101,7 +101,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('unpublished subject should not be found but should be found ' +
-                  ' after it is published', (done) => {
+  'after it is published', (done) => {
     let subj;
     let key;
     Subject.findById(iparUnPub)
@@ -135,9 +135,9 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('when absolutePath changes, the subjectStore should reflect' +
-   ' this change', (done) => {
-    const newName = par.name + '_newName'
+  it('when absolutePath changes, the subjectStore should reflect ' +
+  'this change', (done) => {
+    const newName = par.name + '_newName';
     let oldAbsPath;
     let newAbsPath;
     Subject.findById(ipar)
@@ -217,7 +217,6 @@ describe('redis: subject: CRUD: ', () => {
       expect(res[3].id).to.equal(ipar);
       expect(res[3].tags).to.deep.equal(JSON.stringify(ARRAY));
       expect(res[3].absolutePath).to.equal(newAbsPath);
-
       return redisClient.smembersAsync(sampleIndexName);
     })
     .then((members) => {
@@ -225,7 +224,7 @@ describe('redis: subject: CRUD: ', () => {
       const newAbsPathWithPrefix = redisStore.toKey('sample', newAbsPath);
       const samplesWithOldName = [];
       const samplesWithNewName = [];
-      // sample with old subject name should not be found
+      /* sample with old subject name should not be found */
       members.forEach((member) => {
         const nameParts = member.split('|');
         if (nameParts[0] === oldAbsPathWithPrefix) {
@@ -244,7 +243,6 @@ describe('redis: subject: CRUD: ', () => {
       return redisClient.keysAsync(subAspMapKey);
     })
     .then((values) => {
-
       // the subject to aspect mapping for the subject with the old absolutepath
       // should also be deleted
       expect(values.length).to.equal(0);
@@ -254,7 +252,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('once a subject is destroyed no entry should be found in the master ' +
-      ' subject index', (done) => {
+  'subject index', (done) => {
     Subject.findById(ipar)
     .then((s) => s.destroy())
     .then((subj) => {
@@ -274,8 +272,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('once a subject is destroyed all the related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
     Subject.findById(ipar)
@@ -285,13 +282,11 @@ describe('redis: subject: CRUD: ', () => {
       return Aspect.findById(aspTempId);
     })
     .then((a) => a.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => redisClient.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
-        // all the samples related to the subject should be deleted
+        /* all the samples related to the subject should be deleted */
         expect(nameParts[0]).not.equal(subjectWithPrefix);
       });
       done();
@@ -311,9 +306,7 @@ describe('redis: subject: CRUD: ', () => {
       return Aspect.findById(aspTempId);
     })
     .then((a) => a.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => redisClient.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');

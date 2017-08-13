@@ -10,7 +10,6 @@
  * tests/cache/models/subjects/getHierarchyStatusAndCombinedFilters.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -149,8 +148,7 @@ describe(`api: GET ${path}:`, () => {
 
   describe('Sample Status filter', () => {
     it('filter :: status=critical', (done) => {
-      const endpoint = path.replace('{key}', gp.id) +
-              '?status=Critical';
+      const endpoint = path.replace('{key}', gp.id) + '?status=Critical';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -158,18 +156,11 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
-          .to.equal('temperature');
-        expect(res.body.children[0].samples[0].status)
-          .to.equal('Critical');
+        .to.equal('temperature');
+        expect(res.body.children[0].samples[0].status).to.equal('Critical');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('multiple query params :: filter :: status=Critical,Info', (done) => {
@@ -195,13 +186,7 @@ describe(`api: GET ${path}:`, () => {
           .to.equal('Info');
         expect(res.body.children[0].children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('negation :: filter :: status=-Critical', (done) => {
@@ -222,13 +207,7 @@ describe(`api: GET ${path}:`, () => {
         const quebecSubj = res.body.children[0].children[0].children[0];
         expect(quebecSubj.samples[0].status).to.equal('Invalid');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -248,19 +227,13 @@ describe(`api: GET ${path}:`, () => {
         const quebecSubj = res.body.children[0].children[0].children[0];
         expect(quebecSubj.samples[0].status).to.equal('Invalid');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('negation:: filter:: aspect=-wind-speed and status=-Invalid',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?aspect=-wind-speed&status=-Invalid';
+        '?aspect=-wind-speed&status=-Invalid';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -280,22 +253,16 @@ describe(`api: GET ${path}:`, () => {
 
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
-          .to.equal('Info');
+        .to.equal('Info');
         expect(res.body.children[0].children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('negation:: filter:: aspect=-wind-speed and status=-Invalid,-Critical',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?aspect=-wind-speed&status=-Invalid,-Critical';
+        '?aspect=-wind-speed&status=-Invalid,-Critical';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -307,16 +274,10 @@ describe(`api: GET ${path}:`, () => {
         expect(samples[0].status).equal('Info');
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
-          .to.equal('Info');
+        .to.equal('Info');
         expect(res.body.children[0].children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -338,7 +299,7 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         // north america. Check to make sure it does not return the parOther
         expect(res.body.children).to.have.length(1);
-        // canada
+        /* canada */
         expect(res.body.children[0].children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(0);
 
@@ -348,19 +309,13 @@ describe(`api: GET ${path}:`, () => {
         expect(quebecSubj.tags[0]).to.contain('cold');
         expect(quebecSubj.samples[0].aspect.name).to.equal('wind-speed');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter:: subjectTags=cold,na&aspect=temperature,wind-speed',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?subjectTags=cold,na&aspect=temperature,wind-speed';
+        '?subjectTags=cold,na&aspect=temperature,wind-speed';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -378,13 +333,7 @@ describe(`api: GET ${path}:`, () => {
         expect(quebecSubj.tags[0]).to.contain('cold');
         expect(quebecSubj.samples[0].aspect.name).to.equal('wind-speed');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter :: subjectTags=-cold  and aspect=temperature', (done) => {
@@ -397,17 +346,11 @@ describe(`api: GET ${path}:`, () => {
         // north america. Check to make sure it does not return the parOther
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
-        expect(res.body.children[0].samples[0]
-          .aspect.name).to.equal('temperature');
+        expect(res.body.children[0].samples[0].aspect.name)
+        .to.equal('temperature');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -415,7 +358,7 @@ describe(`api: GET ${path}:`, () => {
     it('filter :: subjectTags=na and aspect=humidity,wind-speed&,' +
     'aspectTags=hum', (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?subjectTags=na,ea&aspect=temperature&aspectTags=temp,hum';
+        '?subjectTags=na,ea&aspect=temperature&aspectTags=temp,hum';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -424,38 +367,26 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
-          .to.equal('temperature');
+        .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
-          .to.equal('temp');
+        .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter :: subjectTags=na, -ea and aspect=humidity,wind-speed&,' +
     'aspectTags=hum gives error because of mismatch of filter', (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?subjectTags=na,-ea&aspect=temperature&aspectTags=temp,hum';
+        '?subjectTags=na,-ea&aspect=temperature&aspectTags=temp,hum';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect((res) => {
-        expect(res.body.errors[0].type).to
-        .equal('InvalidFilterParameterError');
+        expect(res.body.errors[0].type)
+        .to.equal('InvalidFilterParameterError');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter :: subjectTags=na and aspect=humidity,wind-speed and ' +
@@ -471,18 +402,12 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
-          .to.equal('temperature');
+        .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
-          .to.equal('temp');
+        .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter :: subjectTags=na,ea and aspect=temperature and ' +
@@ -497,13 +422,7 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         expect(res.body.children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -511,13 +430,13 @@ describe(`api: GET ${path}:`, () => {
     it('Filter with all upper case:: filter :: status=Critical,Info',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?status=CRITICAL,INFO';
+        '?status=CRITICAL,INFO';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.children).to.have.length(1);
@@ -534,7 +453,7 @@ describe(`api: GET ${path}:`, () => {
 
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
-          .to.equal('Info');
+        .to.equal('Info');
         expect(res.body.children[0].children[0].children).to.have.length(0);
         done();
       });
@@ -543,7 +462,7 @@ describe(`api: GET ${path}:`, () => {
     it('filter:: mixed cases:: aspect=wind-speed and status=Invalid',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?aspect=Wind-Speed&status=InvaLid';
+        '?aspect=Wind-Speed&status=InvaLid';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -556,20 +475,14 @@ describe(`api: GET ${path}:`, () => {
         const quebecSubj = res.body.children[0].children[0].children[0];
         expect(quebecSubj.samples[0].status).to.equal('Invalid');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('All filters Mixed case :: subjectTags=Na,ea and aspect=tempeRature' +
       'and aspectTags=temp,HUM',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
-              '?subjectTags=Na,ea&aspect=tempeRature&aspectTags=temp,HUM';
+        '?subjectTags=Na,ea&aspect=tempeRature&aspectTags=temp,HUM';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -578,18 +491,12 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].tags[0]).to.equal('na');
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
-          .to.equal('temperature');
+        .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
-          .to.equal('temp');
+        .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

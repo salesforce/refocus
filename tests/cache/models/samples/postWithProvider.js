@@ -10,7 +10,6 @@
  * tests/cache/models/samples/postWithProvider.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const adminUser = require('../../../../config').db.adminUser;
 const api = supertest(require('../../../../index').app);
@@ -85,7 +84,7 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.an('string');
@@ -97,7 +96,6 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
       return redisClient.hgetallAsync(sampleKey)
       .then((sample) => {
         expect(sample.provider).to.be.an('string');
-
         const user = JSON.parse(sample.user);
         expect(user.name).to.be.an('string');
         expect(user.email).to.be.an('string');
@@ -107,14 +105,14 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
     });
   });
 
-   it('if token is NOT provided, provider and user fields are NOT' +
-    ' returned', (done) => {
+  it('if token is NOT provided, provider and user fields are NOT ' +
+  'returned', (done) => {
     api.post(path)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;
@@ -129,9 +127,9 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
     .set('Authorization', 'iDoNotExist')
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;
@@ -164,15 +162,15 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
         .set('Authorization', newToken)
         .send(sampleToPost)
         .expect(constants.httpStatus.CREATED)
-        .end((err, res ) => {
-          if (err) {
-            done(err);
+        .end((err3, res3) => {
+          if (err3) {
+            return done(err3);
           }
 
-          expect(res.body.provider).to.be.an('string');
-          expect(res.body.user).to.be.an('object');
-          expect(res.body.user.name).to.be.an('string');
-          expect(res.body.user.email).to.be.an('string');
+          expect(res3.body.provider).to.be.an('string');
+          expect(res3.body.user).to.be.an('object');
+          expect(res3.body.user.name).to.be.an('string');
+          expect(res3.body.user.email).to.be.an('string');
           done();
         });
       });

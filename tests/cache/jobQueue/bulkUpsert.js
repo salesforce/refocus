@@ -38,7 +38,7 @@ describe('redisStore: POST using worker process' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -63,7 +63,7 @@ describe('redisStore: POST using worker process' + path, () => {
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(rtu.forceDelete);
@@ -89,7 +89,7 @@ describe('redisStore: POST using worker process' + path, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
     })
     .end((err) => {

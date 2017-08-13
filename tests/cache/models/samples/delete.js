@@ -10,7 +10,6 @@
  * tests/cache/models/samples/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const path = '/v1/samples';
 const rtu = require('../redisTestUtil');
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const expect = require('chai').expect;
 const u = require('./utils');
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
@@ -39,7 +38,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach(rtu.populateRedis);
@@ -58,13 +57,12 @@ describe(`api: redisStore: DELETE ${path}`, () => {
       if (tu.gotExpectedLength(res.body, ZERO)) {
         throw new Error('expecting sample');
       }
-      const subjAspArr = sampleName.toLowerCase().split('|');
 
+      const subjAspArr = sampleName.toLowerCase().split('|');
       const cmds = [];
       cmds.push(redisOps.getHashCmd(objectType.sample, sampleName));
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.sample, sampleName));
       cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
-
       redisOps.executeBatchCmds(cmds)
       .then((response) => {
         expect(response[0]).to.be.equal(null);
@@ -87,7 +85,6 @@ describe(`api: redisStore: DELETE ${path}`, () => {
       expect(res.body.aspect).to.be.an('object');
       expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
       expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
-
       done();
     });
   });
@@ -124,7 +121,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
         return done(err);
       }
@@ -142,7 +139,7 @@ describe(`api: redisStore: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -162,7 +159,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -188,7 +185,7 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
     })
     .then(() => samstoinit.init())
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(rtu.forceDelete);
@@ -217,15 +214,9 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(1);
       expect(res.body.relatedLinks)
-        .to.have.deep.property('[0].name', 'rlink1');
+      .to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete related link by name', (done) => {
@@ -237,13 +228,6 @@ describe('api: redisStore: samples: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(1);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
-

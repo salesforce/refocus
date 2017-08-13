@@ -107,7 +107,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '0',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s2.id,
@@ -115,7 +115,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '50',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s3.id,
@@ -123,7 +123,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '5',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => done())
     .catch(done);
@@ -198,7 +198,8 @@ describe('sampleStore flag flip flop:', () => {
       expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
     })
-    .then(() => redisClient.hgetallAsync('samsto:subject:___subject1.___subject3'))
+    .then(() =>
+      redisClient.hgetallAsync('samsto:subject:___subject1.___subject3'))
     .then((res) => {
       expect(res).to.not.be.null;
       subjectIdToTest = res.id;

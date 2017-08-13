@@ -10,7 +10,6 @@
  * tests/cache/models/samples/postWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -43,9 +42,7 @@ describe('api: post samples without perms', () => {
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -65,9 +62,7 @@ describe('api: post samples without perms', () => {
       return aspect.addWriter(usr);
     })
     .then(() => Aspect.create(aspUPPERCASE))
-    .then((_asp) => {
-      return _asp.addWriter(user);
-    })
+    .then((_asp) => _asp.addWriter(user))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -81,9 +76,7 @@ describe('api: post samples without perms', () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-
   after(tu.forceDeleteUser);
-
 
   it('sample write permission should be ' +
     'tied to permission on aspect', (done) => {
@@ -91,8 +84,6 @@ describe('api: post samples without perms', () => {
     .set('Authorization', otherValidToken)
     .send(sampleToPost)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res*/) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/cache/models/aspects/aspectCRUD.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
@@ -25,7 +24,11 @@ const sampleIndexName = redisStore.constants.indexKey.sample;
 const aspectIndexName = redisStore.constants.indexKey.aspect;
 
 describe('redis: aspect: create: ', () => {
-  const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
+  const par = {
+    name: `${tu.namePrefix}NorthAmerica`,
+    isPublished: true,
+  };
+
   // const parUnPub =
   //       { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
 
@@ -101,8 +104,8 @@ describe('redis: aspect: create: ', () => {
     .catch(done);
   });
 
-  it('published aspects created should have an entry in aspectStore' +
-          ' and the aspect hash should also be created', (done) => {
+  it('published aspects created should have an entry in aspectStore and ' +
+  'the aspect hash should also be created', (done) => {
     let aspKey;
     Aspect.findById(aspHumdId)
     .then((asp) => {
@@ -123,8 +126,8 @@ describe('redis: aspect: create: ', () => {
     .catch(done);
   });
 
-  it('unpublished aspect should not be found but should be found ' +
-                  ' after it is published', (done) => {
+  it('unpublished aspect should not be found but should be found after it ' +
+  'is published', (done) => {
     let aspect;
     let aspectKey;
     Aspect.findById(aspWCId)
@@ -153,17 +156,13 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('when aspect is updated, the aspect hash should refelct this', (done) => {
-
     Aspect.findById(aspTempId)
-    .then((asp) => {
-      return asp.update(
-        { tags: ['cold', 'verycold'],
-          rank: 10,
-          criticalRange: [0, 0],
-          warningRange: [1, 1],
-        }
-      );
-    })
+    .then((asp) => asp.update({
+      tags: ['cold', 'verycold'],
+      rank: 10,
+      criticalRange: [0, 0],
+      warningRange: [1, 1],
+    }))
     .then((asp) => {
       const aspectKey = redisStore.toKey('aspect', asp.name);
       return redisClient.hgetallAsync(aspectKey);
@@ -273,10 +272,9 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('once an aspect is destroyed no entry should be found in the ' +
-    ' aspectStore and the corresponding hash set should not be found',
-   (done) => {
-     let aspectKey;
-     Aspect.findById(aspHumdId)
+  'aspectStore and the corresponding hash set should not be found', (done) => {
+    let aspectKey;
+    Aspect.findById(aspHumdId)
     .then((a) => a.destroy())
     .then((asp) => {
       aspectKey = redisStore.toKey('aspect', asp.name);
@@ -291,11 +289,10 @@ describe('redis: aspect: create: ', () => {
       done();
     })
     .catch(done);
-   });
+  });
 
   it('once an aspect is destroyed all the related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
@@ -306,9 +303,7 @@ describe('redis: aspect: create: ', () => {
       return Subject.findById(ipar);
     })
     .then((s) => s.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => redisClient.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -322,8 +317,7 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('when an aspect is unpublished all its related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
@@ -334,9 +328,7 @@ describe('redis: aspect: create: ', () => {
       return Subject.findById(ipar);
     })
     .then((s) => s.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => redisClient.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');

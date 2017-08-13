@@ -10,7 +10,6 @@
  * tests/cache/models/aspects/deleteWriters.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -44,7 +43,7 @@ describe('api: aspects: permissions', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -71,7 +70,7 @@ describe('api: aspects: permissions', () => {
       return samstoinit.populate();
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(rtu.forceDelete);
@@ -84,13 +83,7 @@ describe('api: aspects: permissions', () => {
       api.delete(aspectPath.replace('{key}', aspect.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -105,52 +98,34 @@ describe('api: aspects: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', aspect.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(0);
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(0);
 
-        // make sure the writers are added to the aspect in redis too
-        redisClient.hgetallAsync('samsto:aspect:___aspectname')
-        .then((asp) => {
-          sampleStore.arrayStringsToJson(asp,
-            sampleStore.constants.fieldsToStringify.aspect);
-          expect(asp.writers.length).to.equal(0);
-        });
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
+          // make sure the writers are added to the aspect in redis too
+          redisClient.hgetallAsync('samsto:aspect:___aspectname')
+          .then((asp) => {
+            sampleStore.arrayStringsToJson(asp,
+              sampleStore.constants.fieldsToStringify.aspect);
+            expect(asp.writers.length).to.equal(0);
+          });
+        })
+        .end(done);
       });
     });
 
     it('return 403 when a token is not passed to the header', (done) => {
       api.delete(writersPath.replace('{key}', aspect.id))
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 deleting writers for an aspect not in ' +
         ' the system', (done) => {
       api.delete(writersPath.replace('{key}', 'InvalidAspect'))
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 403 when deleteting writers using a token generated for ' +
@@ -158,13 +133,7 @@ describe('api: aspects: permissions', () => {
       api.delete(writersPath.replace('{key}', aspect.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when deleteting writers for an aspect not ' +
@@ -174,13 +143,7 @@ describe('api: aspects: permissions', () => {
         api.delete(writersPath.replace('{key}', aspect.id))
         .set('Authorization', token)
         .expect(constants.httpStatus.NOT_FOUND)
-        .end((err /* , res */) => {
-          if (err) {
-            done(err);
-          }
-
-          done();
-        });
+        .end(done);
       });
     });
 
@@ -195,19 +158,12 @@ describe('api: aspects: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', aspect.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -222,27 +178,20 @@ describe('api: aspects: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', aspect.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          console.log('\n\n\n>>>>>>>>>>\n', res.body);
+          expect(res.body).to.have.length(1);
 
-        // make sure the
-        redisClient.hgetallAsync('samsto:aspect:___aspectname')
-        .then((asp) => {
-          sampleStore.arrayStringsToJson(asp,
-            sampleStore.constants.fieldsToStringify.aspect);
-          expect(asp.writers.length).to.equal(1);
-        });
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+          redisClient.hgetallAsync('samsto:aspect:___aspectname')
+          .then((asp) => {
+            sampleStore.arrayStringsToJson(asp,
+              sampleStore.constants.fieldsToStringify.aspect);
+            expect(asp.writers.length).to.equal(1);
+          });
+        })
+        .end(done);
       });
     });
 
@@ -257,19 +206,12 @@ describe('api: aspects: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', aspect.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(2);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(2);
+        })
+        .end(done);
       });
     });
 
@@ -279,26 +221,14 @@ describe('api: aspects: permissions', () => {
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when trying to delete an invalidResource', (done) => {
       api.delete(writerPath.replace('{key}', 'invalidResource'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when deleteting writer for an aspect not ' +
@@ -308,13 +238,7 @@ describe('api: aspects: permissions', () => {
         api.delete(writerPath.replace('{key}', aspect.id))
         .set('Authorization', token)
         .expect(constants.httpStatus.NOT_FOUND)
-        .end((err /* , res */) => {
-          if (err) {
-            done(err);
-          }
-
-          done();
-        });
+        .end(done);
       });
     });
   });
