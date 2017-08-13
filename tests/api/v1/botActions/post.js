@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/botActions/post.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -26,7 +25,6 @@ const BotAction = tu.db.BotAction;
 const path = '/v1/botActions';
 const expect = require('chai').expect;
 const ZERO = 0;
-
 
 describe(`api: POST ${path}`, () => {
   let testBotAction;
@@ -71,7 +69,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -88,11 +86,11 @@ describe(`api: POST ${path}`, () => {
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to
-          .contain('SequelizeUniqueConstraintError');
+          expect(res.body.errors[ZERO].type)
+          .to.contain('SequelizeUniqueConstraintError');
           done();
         });
       })
@@ -109,10 +107,11 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain(tu.schemaValidationErrorName);
         done();
       });
     });

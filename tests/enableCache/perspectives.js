@@ -10,7 +10,6 @@
  * tests/enableCache/perspectives.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -54,9 +53,7 @@ describe(`api: GET ${path}`, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => {
-    tu.toggleOverride('enableCachePerspective', false);
-  });
+  after(() => tu.toggleOverride('enableCachePerspective', false));
 
   it('basic get', (done) => {
     api.get(path)
@@ -64,13 +61,12 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-
       done();
     });
   });
@@ -82,11 +78,10 @@ describe(`api: GET ${path}`, () => {
         expect(jsonReply).to.have.length(ONE);
         expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
         expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
-
-        done();
-      } else {
-        throw new Error('Expected response value in cache');
+        return done();
       }
+
+      done('Expected response value in cache');
     });
   });
 
@@ -96,23 +91,21 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-
       done();
     });
   });
 
-  it('get with limit and sort, response not present in cache', (done) => {
-    redisCache.get('{"order":["name"],"limit":10,"where":{}}',
-      (cacheErr, reply) => {
-        expect(reply).to.not.exist;
-        done();
-      });
+  it('get with limit and sort, response not present in cache', () => {
+    const toGet = '{"order":["name"],"limit":10,"where":{}}';
+    redisCache.get(toGet, (cacheErr, reply) => {
+      expect(reply).to.not.exist;
+    });
   });
 
   it('basic get by id', (done) => {
@@ -121,30 +114,27 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
       expect(res.body.lensId).to.equal(lensId);
-
       done();
     });
   });
 
   it('basic get by id, response present in cache', (done) => {
-    redisCache.get(perspectiveId,
-      (cacheErr, reply) => {
-        if (reply) {
-          const jsonReply = JSON.parse(reply);
-          expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);
-          expect(jsonReply.rootSubject).to.equal('myMainSubject');
-          expect(jsonReply.lensId).to.equal(lensId);
+    redisCache.get(perspectiveId, (cacheErr, reply) => {
+      if (reply) {
+        const jsonReply = JSON.parse(reply);
+        expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);
+        expect(jsonReply.rootSubject).to.equal('myMainSubject');
+        expect(jsonReply.lensId).to.equal(lensId);
+        return done();
+      }
 
-          done();
-        } else {
-          throw new Error('Expected response value in cache');
-        }
-      });
+      done('Expected response value in cache');
+    });
   });
 });

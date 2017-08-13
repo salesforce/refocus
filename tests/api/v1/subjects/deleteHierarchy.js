@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/deleteHierarchy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,13 +19,12 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 
 describe(`api: DELETE ${path}`, () => {
-  let token;
-
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
   let ipar = 0;
   let ichi = 0;
+  let token;
 
   before((done) => {
     tu.createToken()
@@ -60,13 +58,7 @@ describe(`api: DELETE ${path}`, () => {
     api.delete(path.replace('{key}', ipar))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('by abs path', (done) => {
@@ -74,25 +66,13 @@ describe(`api: DELETE ${path}`, () => {
     api.delete(pth)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('by abs path, not found', (done) => {
     api.delete(path.replace('{key}', 'x'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

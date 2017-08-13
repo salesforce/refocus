@@ -9,9 +9,7 @@
 /**
  * tests/api/v1/samples/filter.js
  */
-
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -73,7 +71,7 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].value).to.equal(String(ONE));
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('no asterisk is treated as "equals" for name', (done) => {
@@ -85,7 +83,7 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].name).to.equal(NAME);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('trailing asterisk is treated as "starts with"', (done) => {
@@ -98,7 +96,7 @@ describe('sample api: FILTER' + path, () => {
         expect(sample.name.slice(ZERO, THREE)).to.equal(tu.namePrefix);
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('leading asterisk is treated as "ends with"', (done) => {
@@ -111,7 +109,7 @@ describe('sample api: FILTER' + path, () => {
         expect(sample.name.slice(-TWO)).to.equal('TO');
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('leading and trailing asterisks are treated as "contains"', (done) => {
@@ -123,7 +121,7 @@ describe('sample api: FILTER' + path, () => {
         expect(sample.name).to.contain('ATO');
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by value', (done) => {
@@ -134,7 +132,7 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].value).to.equal(String(ONE));
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by messageCode.', (done) => {
@@ -145,7 +143,7 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].messageCode).to.equal(MESSAGE_CODE_1);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by status', (done) => {
@@ -156,16 +154,16 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].status).to.equal('Critical');
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by status: should be case-insensitive', (done) => {
     api.get(path + '?status=critical')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
@@ -178,9 +176,9 @@ describe('sample api: FILTER' + path, () => {
     api.get(path + '?previousStatus=critical')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
@@ -198,6 +196,6 @@ describe('sample api: FILTER' + path, () => {
       expect(res.body[ZERO].previousStatus).to.equal('Critical');
       expect(res.body[ZERO].status).to.equal('Invalid');
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 });

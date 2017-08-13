@@ -10,7 +10,6 @@
  * tests/api/v1/samples/upsert.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -73,7 +72,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const error = res.body.errors[0];
@@ -93,9 +92,9 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         done();
@@ -110,13 +109,7 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -144,9 +137,9 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         done();
@@ -178,13 +171,7 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -199,7 +186,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.be.an('object');
@@ -220,7 +207,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(sampleName);
@@ -237,7 +224,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.id).to.be.undefined;
@@ -255,7 +242,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const { apiLinks } = res.body;
@@ -263,7 +250,7 @@ describe(`api: POST ${path}`, () => {
         let href = '';
         for (let j = apiLinks.length - 1; j >= 0; j--) {
           href = apiLinks[j].href;
-          if (apiLinks[j].method!= 'POST') {
+          if (apiLinks[j].method != 'POST') {
             expect(href.split('/').pop()).to.equal(u.sampleName);
           } else {
             expect(href).to.equal(POST_PATH);
@@ -283,7 +270,7 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(2);
@@ -303,12 +290,12 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const { source, description } = res.body.errors[0];
-        expect(description).to
-          .contain('Name of the relatedlinks should be unique');
+        expect(description)
+          .to.contain('Name of the relatedlinks should be unique');
         expect(source).to.equal('Sample');
         done();
       });
@@ -322,13 +309,7 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('aspect not found yields NOT FOUND', (done) => {
@@ -339,13 +320,7 @@ describe(`api: POST ${path}`, () => {
         value: '2',
       })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -373,7 +348,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(sampleName);
@@ -390,7 +365,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.id).to.be.undefined;
@@ -408,7 +383,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const { apiLinks } = res.body;
@@ -416,7 +391,7 @@ describe(`api: POST ${path}`, () => {
         let href = '';
         for (let j = apiLinks.length - 1; j >= 0; j--) {
           href = apiLinks[j].href;
-          if (apiLinks[j].method!= 'POST') {
+          if (apiLinks[j].method != 'POST') {
             expect(href.split('/').pop()).to.equal(u.sampleName);
           } else {
             expect(href).to.equal(POST_PATH);
@@ -437,7 +412,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.status).to.equal(constants.statuses.Warning);
@@ -455,7 +430,7 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(2);
@@ -475,12 +450,12 @@ describe(`api: POST ${path}`, () => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
           expect(res.body[0].name)
-            .to.equal(`${subject.absolutePath}|${aspect.name}`);
+          .to.equal(`${subject.absolutePath}|${aspect.name}`);
           done();
         });
       });
@@ -500,8 +475,8 @@ describe(`api: POST ${path}`, () => {
             return done(err);
           }
 
-          expect(res.body.errors[0].description).to
-          .contain('You cannot modify the read-only field: status');
+          expect(res.body.errors[0].description)
+          .to.contain('You cannot modify the read-only field: status');
           return done();
         });
       });
@@ -519,8 +494,8 @@ describe(`api: POST ${path}`, () => {
             return done(err);
           }
 
-          expect(res.body.errors[0].description).to
-          .contain('You cannot modify the read-only field: isDeleted');
+          expect(res.body.errors[0].description)
+          .to.contain('You cannot modify the read-only field: isDeleted');
           return done();
         });
       });
@@ -538,8 +513,8 @@ describe(`api: POST ${path}`, () => {
             return done(err);
           }
 
-          expect(res.body.errors[0].description).to
-          .contain('You cannot modify the read-only field: createdAt');
+          expect(res.body.errors[0].description)
+          .to.contain('You cannot modify the read-only field: createdAt');
           return done();
         });
       });

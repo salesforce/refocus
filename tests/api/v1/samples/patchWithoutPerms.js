@@ -10,7 +10,6 @@
  * tests/api/v1/samples/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -26,9 +25,7 @@ describe(`api: PATCH ${path} without permission`, () => {
   let otherValidToken;
   before((done) => {
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -43,9 +40,7 @@ describe(`api: PATCH ${path} without permission`, () => {
       aspect = asp;
       return User.findOne({ where: { name: tu.userName } });
     })
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -69,9 +64,7 @@ describe(`api: PATCH ${path} without permission`, () => {
         ],
       })
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        return err ? done(err) : done();
-      });
+      .end(done);
     });
   });
 });

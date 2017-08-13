@@ -10,27 +10,23 @@
  * tests/enableCache/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../testUtils');
 const path = require('path');
 const fs = require('fs');
-
 const testStartTime = new Date();
 
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const willSendthis = fs.readFileSync(
-        path.join(__dirname,
-        '../api/v1/apiTestsUtils/lens.zip')
-      );
+      const p = path.join(__dirname, '../api/v1/apiTestsUtils/lens.zip');
+      const lib = fs.readFileSync(p);
       const lens = {
         name: `${tu.namePrefix}testLensName`,
         sourceName: 'testSourceLensName',
         description: 'test Description',
         sourceDescription: 'test Source Description',
         isPublished: true,
-        library: willSendthis,
+        library: lib,
       };
       tu.db.Lens.create(lens)
       .then(resolve)

@@ -10,11 +10,9 @@
  * tests/config/configUtil.js
  *
  * Tests config utilities
-*/
-
+ */
 const expect = require('chai').expect;
 const configUtil = require('../../config/configUtil');
-
 const NOT_ALLOWED = 'Your IP address is not allowed. Verify your ' +
   'network address and your Refocus IP settings';
 
@@ -27,7 +25,8 @@ describe('IP List', () => {
   });
 
   it('parse IP list with space around opening bracket', (done) => {
-    const iplist = configUtil.parseIPlist('[ [1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9]]');
+    const iplist =
+      configUtil.parseIPlist('[ [1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9]]');
     expect(iplist).to.have.length(2);
     expect(iplist).to.be.eql([
       ['1.2.3.4', '1.2.3.8'],
@@ -80,26 +79,22 @@ describe('IP List', () => {
 
 describe('csvToArray', () => {
   it('undefined string', (done) => {
-    expect(configUtil.csvToArray(undefined))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray(undefined)).to.be.eql([]);
     done();
   });
 
   it('null string', (done) => {
-    expect(configUtil.csvToArray(null))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray(null)).to.be.eql([]);
     done();
   });
 
   it('zero-length string', (done) => {
-    expect(configUtil.csvToArray(''))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray('')).to.be.eql([]);
     done();
   });
 
   it('single element', (done) => {
-    expect(configUtil.csvToArray('abc'))
-    .to.be.eql(['abc']);
+    expect(configUtil.csvToArray('abc')).to.be.eql(['abc']);
     done();
   });
 
@@ -112,26 +107,22 @@ describe('csvToArray', () => {
 
 describe('csvToArray', () => {
   it('undefined string', (done) => {
-    expect(configUtil.csvToArray(undefined))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray(undefined)).to.be.eql([]);
     done();
   });
 
   it('null string', (done) => {
-    expect(configUtil.csvToArray(null))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray(null)).to.be.eql([]);
     done();
   });
 
   it('zero-length string', (done) => {
-    expect(configUtil.csvToArray(''))
-    .to.be.eql([]);
+    expect(configUtil.csvToArray('')).to.be.eql([]);
     done();
   });
 
   it('single element', (done) => {
-    expect(configUtil.csvToArray('abc'))
-    .to.be.eql(['abc']);
+    expect(configUtil.csvToArray('abc')).to.be.eql(['abc']);
     done();
   });
 
@@ -144,7 +135,7 @@ describe('csvToArray', () => {
 
 describe('getReadReplicas', () => {
   it('only bad entry will return undefined', (done) => {
-    const pe = { 'REPLICAS': 'test' };
+    const pe = { REPLICAS: 'test' };
     expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
     .to.be.eql(undefined);
     done();
@@ -158,14 +149,14 @@ describe('getReadReplicas', () => {
   });
 
   it('Replicas env variable with correct env variables', (done) => {
-    const pe = { 'REPLICAS': 'test', 'test': 'testURL' };
+    const pe = { REPLICAS: 'test', test: 'testURL' };
     expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
     .to.be.eql(['testURL']);
     done();
   });
 
   it('Replicas env variable with bad env variables', (done) => {
-    const pe = { 'REPLICAS': 'test, test1', 'test': 'testURL' };
+    const pe = { REPLICAS: 'test, test1', test: 'testURL' };
     expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
     .to.be.eql(['testURL']);
     done();

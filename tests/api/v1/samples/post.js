@@ -10,7 +10,6 @@
  * tests/api/v1/samples/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -59,7 +58,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -75,7 +74,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -96,20 +95,14 @@ describe(`api: POST ${path}`, () => {
       let href = '';
       for (let j = apiLinks.length - 1; j >= 0; j--) {
         href = apiLinks[j].href;
-        if (apiLinks[j].method!= 'POST') {
+        if (apiLinks[j].method != 'POST') {
           expect(href.split('/').pop()).to.equal(u.sampleName);
         } else {
           expect(href).to.equal(path);
         }
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('reject if name field in request', (done) => {
@@ -118,9 +111,9 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.contain('ValidationError');
@@ -142,13 +135,7 @@ describe(`api: POST ${path}`, () => {
         throw new Error('Incorrect Status Value');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('does not return id', (done) => {
@@ -156,9 +143,9 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.id).to.be.undefined;
@@ -179,13 +166,7 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('posting samples with duplicate relatedLinks should fail', (done) => {
@@ -204,13 +185,7 @@ describe(`api: POST ${path}`, () => {
       expect(res.body.errors[ZERO].source)
         .to.contain('relatedLinks');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post samples with relatedLinks of size zero', (done) => {
@@ -223,13 +198,7 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('posting with readOnly field previousStatus should fail', (done) => {
@@ -243,8 +212,8 @@ describe(`api: POST ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: previousStatus');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: previousStatus');
       return done();
     });
   });
@@ -260,8 +229,8 @@ describe(`api: POST ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: id');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: id');
       return done();
     });
   });
@@ -277,8 +246,8 @@ describe(`api: POST ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: updatedAt');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: updatedAt');
       return done();
     });
   });
@@ -314,12 +283,6 @@ describe(`api: POST ${path} aspect isPublished false`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

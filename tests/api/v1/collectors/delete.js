@@ -49,8 +49,6 @@ describe(`api: DELETE ${path}`, () => {
     api.delete(`${path}/${cid}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_ALLOWED)
-    .end((err /* , res */) => {
-      done();
-    });
+    .end(done);
   });
 });

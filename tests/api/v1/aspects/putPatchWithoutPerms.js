@@ -9,9 +9,7 @@
 /**
  * tests/api/v1/aspects/putPatchWithoutPerms.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -25,6 +23,7 @@ describe('api: aspects:', () => {
   // let token;
   let aspect;
   let otherValidToken;
+
   // let user;
 
   const n = {
@@ -34,9 +33,7 @@ describe('api: aspects:', () => {
 
   before((done) => {
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -52,9 +49,7 @@ describe('api: aspects:', () => {
        * so one use of these.
        */
       User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -67,30 +62,25 @@ describe('api: aspects:', () => {
   after(tu.forceDeleteUser);
 
   it('PUT without permission: should return 403', (done) => {
-    const toPut = {
-      name: `${tu.namePrefix}newName`,
-      timeout: '220s',
-    };
     api.put(`${path}/${aspect.id}`)
     .set('Authorization', otherValidToken)
-     .send(toPut)
+    .send({
+      name: `${tu.namePrefix}newName`,
+      timeout: '220s',
+    })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('PATCH without permission: should return 403', (done) => {
     const toPatch = {
-      tags: ['tags']
+      tags: ['tags'],
     };
     api.patch(`${path}/${aspect.id}`)
     .set('Authorization', otherValidToken)
     .send(toPatch)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });
 

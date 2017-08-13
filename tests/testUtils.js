@@ -9,9 +9,7 @@
 /**
  * tests/testUtils.js
  */
-
 'use strict';
-
 const pfx = '___';
 const jwtUtil = require('../utils/jwtUtil');
 const constants = require('../api/v1/constants');
