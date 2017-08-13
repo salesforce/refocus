@@ -225,7 +225,7 @@ describe(`api: GET ${path}`, () => {
         api.get('/v1/rooms/NOT_FOUND/bots/NOT_FOUND/data')
         .set('Authorization', token)
         .expect(constants.httpStatus.NOT_FOUND)
-        .end(done);
+        .end(() => done());
       })
       .catch(done);
     });
