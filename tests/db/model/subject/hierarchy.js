@@ -10,7 +10,6 @@
  * tests/db/model/subject/hierarchy.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -259,7 +258,6 @@ describe('db: subject: get hierarchy: ', () => {
       .catch(done);
     });
   });
+
+  it('test out lots of different { includes: ... } options');
 });
-
-it('test out lots of different { includes: ... } options');
-
