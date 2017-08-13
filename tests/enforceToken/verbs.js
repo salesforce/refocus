@@ -26,13 +26,7 @@ describe('API verb token enforced tests', () => {
   it('GET docs without token should succeed', (done) => {
     api.get('/v1/docs/')
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   describe('CRUD should require tokens', () => {
@@ -45,7 +39,7 @@ describe('API verb token enforced tests', () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.token).to.be.defined;
@@ -64,7 +58,7 @@ describe('API verb token enforced tests', () => {
         .expect(constants.httpStatus.CREATED)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.name).to.equal(NEW_SUBJECT);
@@ -114,13 +108,7 @@ describe('API verb token enforced tests', () => {
           .set('Authorization', `${defaultToken}xyz`)
           .expect(FORBIDDEN)
           .expect(/Invalid Token/)
-          .end((err) => {
-            if (err) {
-              done(err);
-            }
-
-            done();
-          });
+          .end(done);
         });
 
         it(`${VERB} ${path} appropriate token returns OK`, (done) => {
@@ -133,13 +121,7 @@ describe('API verb token enforced tests', () => {
           call
           .set('Authorization', defaultToken)
           .expect(expectedStatus)
-          .end((err) => {
-            if (err) {
-              done(err);
-            }
-
-            done();
-          });
+          .end(done);
         });
       }
 
