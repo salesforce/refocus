@@ -188,7 +188,7 @@ module.exports = function roomType(seq, dataTypes) {
           });
           resolve(inst);
         });
-      }, // hooks.afterCreate
+      }, // hooks.afterUpdate
 
       /**
        * Deletes relationships between this roomtype and bots
@@ -212,7 +212,7 @@ module.exports = function roomType(seq, dataTypes) {
           });
           resolve(inst);
         });
-      }, // hooks.afterCreate
+      }, // hooks.beforeDelete
 
       /**
        * Creates relationship between roomType & bots
