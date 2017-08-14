@@ -131,12 +131,15 @@ module.exports = {
   putBots(req, res, next) {
     const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
+    const uiObj = {};
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value) {
           if (param === 'ui') {
             o.set(param, reqObj[param].value.buffer);
+            uiObj.name = reqObj[param].value.originalname;
+            uiObj.size = reqObj[param].value.size;
           } else {
             o.set(param, reqObj[param].value);
           }
@@ -147,7 +150,7 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      delete o.dataValues.ui;
+      o.dataValues.ui = uiObj;
       u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.CREATED).json(
         u.responsify(o, helper, req.method)
