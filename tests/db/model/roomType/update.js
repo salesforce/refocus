@@ -10,7 +10,6 @@
  * tests/db/model/roomType/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');

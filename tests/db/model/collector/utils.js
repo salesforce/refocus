@@ -10,9 +10,7 @@
  * tests/db/model/collector/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const cname = `${tu.namePrefix}Collector`;
 

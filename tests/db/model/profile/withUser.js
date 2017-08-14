@@ -10,7 +10,6 @@
  * /tests/db/model/profile/withUser.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -66,11 +65,12 @@ describe('Profile model with users', () => {
       done(new Error(msg));
     })
     .catch((err) => {
-      done();
       expect(err.name).to.equal('SequelizeValidationError');
       expect(err.errors[0].type).to.equal('Validation error');
       expect(err.errors[0].path).to.equal('profileExists');
-    });
+      done();
+    })
+    .catch(done);
   });
 
   it('Expect update profile to null, to throw SequelizeValidationError ' +
@@ -78,11 +78,12 @@ describe('Profile model with users', () => {
     user.update({ profileId: null })
     .then(() => done(new Error('Unexpected successful update')))
     .catch((err) => {
-      done();
       expect(err.name).to.equal('SequelizeValidationError');
       expect(err.errors[0].type).to.equal('Validation error');
       expect(err.errors[0].path).to.equal('profileExists');
-    });
+      done();
+    })
+    .catch(done);
   });
 
   it('Profile should have userCount of 1, after attaching a user to it',
