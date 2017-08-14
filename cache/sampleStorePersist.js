@@ -18,6 +18,8 @@ const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
 const log = require('winston');
+const infoLoggingEnabled =
+  featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 
 /**
  * Truncate the sample table in the DB and persist all the samples from redis
@@ -26,18 +28,27 @@ const log = require('winston');
  * @returns {Promise} - which resolves to number of samples persisted to db
  */
 function storeSampleToDb() {
-  log.info('Persist to db started :|. This will start by truncating the ' +
-    'sample table followed by persisting the sample to db');
+  if (infoLoggingEnabled) {
+    log.info('Persist to db started :|. This will start by truncating the ' +
+      'sample table followed by persisting the sample to db');
+  }
+
   return Sample.destroy({ truncate: true, force: true })
   .then(() => {
-    log.info('truncated the sample table :|');
+    if (infoLoggingEnabled) {
+      log.info('truncated the sample table :|');
+    }
+
     return redisClient.smembersAsync(constants.indexKey.sample);
   })
   .then((keys) => keys.map((key) => ['hgetall', key]))
   .then((cmds) => redisClient.batch(cmds).execAsync())
   .then((res) => {
-    log.info('Preparing list of samples to persist...');
-    log.info(`Checking ${res.length} samples...`);
+    if (infoLoggingEnabled) {
+      log.info('Preparing list of samples to persist...');
+      log.info(`Checking ${res.length} samples...`);
+    }
+
     const samplesToCreate = res.map((sample) => {
       sample.relatedLinks = JSON.parse(sample.relatedLinks);
       return sample;
@@ -51,11 +62,17 @@ function storeSampleToDb() {
 
       return true;
     });
-    log.info(`Bulk creating ${samplesToCreate.length} samples...`);
+    if (infoLoggingEnabled) {
+      log.info(`Bulk creating ${samplesToCreate.length} samples...`);
+    }
+
     return Sample.bulkCreate(samplesToCreate);
   })
   .then((retval) => {
-    log.info('persisted redis sample store to db :D');
+    if (infoLoggingEnabled) {
+      log.info('persisted redis sample store to db :D');
+    }
+
     return retval.length;
   });
 } // storeSampleToDb
