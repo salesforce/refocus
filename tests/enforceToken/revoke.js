@@ -30,7 +30,7 @@ describe('enforceToken: revoke:', () => {
     .send(u.fakeUserCredentials)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       defaultToken = res.body.token;
