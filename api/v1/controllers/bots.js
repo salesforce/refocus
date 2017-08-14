@@ -86,12 +86,15 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
     const seqObj = {};
+    const uiObj = {};
     try {
       for (const param in reqObj) {
         if (reqObj[param].value) {
           if (typeof (reqObj[param].value) === 'object' &&
             param === 'ui') {
             seqObj[param] = reqObj[param].value.buffer;
+            uiObj.name = reqObj[param].value.originalname;
+            uiObj.size = reqObj[param].value.size;
           } else {
             seqObj[param] = reqObj[param].value;
           }
@@ -101,7 +104,7 @@ module.exports = {
       helper.model.create(seqObj)
         .then((o) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          delete o.dataValues.ui;
+          o.dataValues.ui = uiObj;
           u.logAPI(req, resultObj, o.dataValues);
           res.status(httpStatus.CREATED).json(
             u.responsify(o, helper, req.method)
