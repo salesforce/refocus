@@ -75,6 +75,10 @@ const longTermToggles = {
   // Enable Rooms functionality
   enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
 
+  // Enable sample store info logging
+  enableSampleStoreInfoLogging: environmentVariableTrue(pe,
+    'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
+
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),

@@ -10,7 +10,6 @@
  * tests/realtime/redisPublisher.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const u = require('./utils');
@@ -66,8 +65,8 @@ describe('publishSample with redis cache on', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('certain fields in aspect should be array, and others' +
-    ' should be undefined', (done) => {
+  it('certain fields in aspect should be array, and others ' +
+  'should be undefined', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
     .then((pubObj) => {
@@ -81,8 +80,8 @@ describe('publishSample with redis cache on', () => {
     .catch(done);
   });
 
-  it('certain fields in subject should be array, and others' +
-    ' should be undefined', (done) => {
+  it('certain fields in subject should be array, and others ' +
+  'should be undefined', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
     .then((pubObj) => {
@@ -95,8 +94,8 @@ describe('publishSample with redis cache on', () => {
     .catch(done);
   });
 
-  it('when tried to publish sample without aspect,'+
-    ' aspect should be attached, along with subject', (done) => {
+  it('when tried to publish sample without aspect, ' +
+    'aspect should be attached, along with subject', (done) => {
     Sample.findOne({ where: { name: sampleName } })
     .then((sam) => {
       const sampInst = sam.get();
@@ -154,8 +153,8 @@ describe('redis Publisher', () => {
   after(u.forceDelete);
 
   describe('publishSample function tests: ', () => {
-    it('with EventType argument: sample should be published with subject  ' +
-      ' object and asbolutePath field', (done) => {
+    it('with EventType argument: sample should be published with subject ' +
+    'object and asbolutePath field', (done) => {
       Sample.findById(sampId)
       .then((sam) => publisher.publishSample(sam, Subject, sampleEvent.upd))
       .then((pubObj) => {
@@ -188,8 +187,8 @@ describe('redis Publisher', () => {
       .catch(done);
     });
 
-    it('when tried to publish sample without aspect,'+
-      ' aspect should be attached', (done) => {
+    it('when tried to publish sample without aspect, ' +
+    'aspect should be attached', (done) => {
       Sample.findById(sampId)
       .then((sam) => {
         const sampInst = sam.get();
@@ -217,11 +216,12 @@ describe('redis Publisher', () => {
   describe('getSampleEventType function tests: ', () => {
     it('update Event', (done) => {
       Sample.findById(sampId)
-      .then((sam) => sam.update({ value: 10}))
+      .then((sam) => sam.update({ value: 10 }))
       .then((updSample) => {
         // pass sequelize object
         let eventType = publisher.getSampleEventType(updSample);
         expect(eventType).to.equal(sampleEvent.upd);
+
         // pass plain object
         eventType = publisher.getSampleEventType(updSample.get());
         expect(eventType).to.equal(sampleEvent.upd);
@@ -229,6 +229,7 @@ describe('redis Publisher', () => {
       })
       .catch(done);
     });
+
     it('add Event', (done) => {
       Sample.upsertByName({
         name: subjectSA.name + '|' + humidity.name,
@@ -238,6 +239,7 @@ describe('redis Publisher', () => {
         // pass sequelize object
         let eventType = publisher.getSampleEventType(sam);
         expect(eventType).to.equal(sampleEvent.add);
+
         // pass plain object
         eventType = publisher.getSampleEventType(sam.get());
         expect(eventType).to.equal(sampleEvent.add);
