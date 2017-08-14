@@ -10,7 +10,6 @@
  * tests/view/perspectives/app.js
  */
 'use strict';
-
 const chai = require('chai');
 const expect = chai.expect;
 import { getFilterQuery,
