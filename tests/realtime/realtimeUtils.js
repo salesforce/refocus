@@ -10,7 +10,6 @@
  * tests/realtime/realtimeUtils.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const realtimeUtils = require('../../realtime/utils');
 const tu = require('../testUtils');
@@ -91,7 +90,7 @@ describe('realtime utils Tests:', () => {
         subjectTagFilter: ['ea', 'na'],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
-        statusFilterType: 'INCLUDE'
+        statusFilterType: 'INCLUDE',
       });
     })
     .then((pers2) => {
