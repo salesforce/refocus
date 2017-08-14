@@ -10,7 +10,6 @@
  * tests/db/model/roomType/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -62,9 +61,9 @@ describe('db: roomType: create: ', () => {
       const roomtype = u.getStandard();
       roomtype.rules = {
         rule: {
-          'and': [
-            { '>': [1,0] },
-            { '<': [1,2] },
+          and: [
+            { '>': [1, 0] },
+            { '<': [1, 2] },
           ],
         },
         action: {
@@ -92,7 +91,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules missing rule', (done) => {
@@ -125,7 +124,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules missing action', (done) => {
@@ -133,9 +132,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
         },
@@ -147,16 +146,16 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules criteria not array', (done) => {
       const roomtype = u.getStandard();
       roomtype.rules = {
         rule: {
-          'and': [
-            { '>': [1,0] },
-            { '<': '[1,2]' },
+          and: [
+            { '>': [1, 0] },
+            { '<': '[1, 2]' },
           ],
         },
         action: {
@@ -184,7 +183,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules criteria too many arguments', (done) => {
@@ -192,9 +191,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,3] },
-              { '<': [1,2,3] },
+            and: [
+              { '>': [1, 3] },
+              { '<': [1, 2, 3] },
             ],
           },
           action: {
@@ -214,7 +213,7 @@ describe('db: roomType: create: ', () => {
               },
             ],
           },
-        }
+        },
       ];
       RoomType.create(roomtype)
       .then(() => done(tu.valError))
@@ -223,7 +222,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules action missing name', (done) => {
@@ -231,9 +230,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -261,7 +260,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules action missing parameters', (done) => {
@@ -269,9 +268,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -286,7 +285,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules action parameter missing name', (done) => {
@@ -294,9 +293,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -324,7 +323,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type rules action parameter missing value', (done) => {
@@ -332,9 +331,9 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -362,17 +361,17 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
-     it('fail, room type rules action name invalid', (done) => {
+    it('fail, room type rules action name invalid', (done) => {
       const roomtype = u.getStandard();
       roomtype.rules = [
         {
           rule: {
-            'and': [
-              { '>': [1,0] },
-              { '<': [1,2] },
+            and: [
+              { '>': [1, 0] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -401,7 +400,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type nest rule fails', (done) => {
@@ -409,14 +408,14 @@ describe('db: roomType: create: ', () => {
       roomtype.rules = [
         {
           rule: {
-            'and': [
+            and: [
               {
-                'and': [
-                  { '>': [7,8] },
-                  { '<': '[9,10]' },
+                and: [
+                  { '>': [7, 8] },
+                  { '<': '[9, 10]' },
                 ],
               },
-              { '<': [1,2] },
+              { '<': [1, 2] },
             ],
           },
           action: {
@@ -445,7 +444,7 @@ describe('db: roomType: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
   });
 });

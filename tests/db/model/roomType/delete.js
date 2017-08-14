@@ -10,7 +10,6 @@
  * tests/db/model/roomType/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');

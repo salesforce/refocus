@@ -10,7 +10,6 @@
  * tests/db/model/subject/hierarchyPublish.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -64,9 +63,7 @@ describe('db: subject: get hierarchy: ', () => {
       samp.aspectId = asp.id;
       return Sample.create(samp);
     })
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 

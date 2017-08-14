@@ -10,7 +10,6 @@
  * tests/db/model/sample/statusDuration.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -79,8 +78,8 @@ describe('db: sample: statusCalculation: ', () => {
     .then(() => Sample.findOne({
       where: {
         name: {
-          $iLike: sample.name
-        }
+          $iLike: sample.name,
+        },
       },
     }))
     .then((found) => {
