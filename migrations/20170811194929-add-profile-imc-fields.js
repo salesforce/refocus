@@ -64,24 +64,28 @@ module.exports = {
       if (attr.hasOwnProperty('botAccess')) {
         return qi.removeColumn(TBL, 'botAccess');
       }
+
       return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('eventAccess')) {
         return qi.removeColumn(TBL, 'eventAccess');
       }
+
       return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('roomAccess')) {
         return qi.removeColumn(TBL, 'roomAccess');
       }
+
       return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('roomTypeAccess')) {
         return qi.removeColumn(TBL, 'roomTypeAccess');
       }
+
       return true;
     }));
   },
