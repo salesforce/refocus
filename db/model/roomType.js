@@ -107,18 +107,18 @@ module.exports = function roomType(seq, dataTypes) {
           }
 
           bots.map((botName, index) => {
-              seq.models.Bot.findOne({ where: { name: botName } })
-              .then((o) => {
-                if (o === null) {
-                  reject(new Error(`Bot ${botName} not found`));
-                }
-                if (index === bots.length - 1) {
-                  resolve(inst);
-                }
-              });
+            seq.models.Bot.findOne({ where: { name: botName } })
+            .then((o) => {
+              if (o === null) {
+                reject(new Error(`Bot ${botName} not found`));
+              }
+
+              if (index === bots.length - 1) {
+                resolve(inst);
+              }
             });
-          } 
-        );
+          });
+        });
       }, // hooks.beforeCreate
 
       /**
