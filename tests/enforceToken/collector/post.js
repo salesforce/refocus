@@ -47,7 +47,7 @@ describe(`api: POST ${path}`, () => {
       const deRegisterPath = `/v1/collectors/${res.body.id}/deregister`;
       return Collector.destroy({
         where: {},
-        truncate: true
+        truncate: true,
       })
       .then(() => {
         api.post(deRegisterPath)

@@ -10,11 +10,9 @@
  * tests/realtime/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../testUtils');
 const path = require('path');
 const fs = require('fs');
-
 const testStartTime = new Date();
 
 module.exports = {
@@ -45,6 +43,6 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };
