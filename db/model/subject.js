@@ -342,9 +342,9 @@ module.exports = function subject(seq, dataTypes) {
          * When the sample store feature is enabled do the following
          * 1. if subject is changed from unpublished to published -> update subject
          * 2. if subject is changed from published to unpublished -> update subject,
-         *   delete aspect map, remove its samples
-         * 3. if the asbsolutepath of the subject changes: rename the keys,
-         *   update subject, delete aspect map, and remove its samples
+         *   delete subject aspect map, remove its samples
+         * 3. if the asbsolutepath of the subject changes: rename the subject key,
+         *   update subject, delete subject aspect map, and remove its samples
         */
         if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
           if (inst.changed('absolutePath') ||
