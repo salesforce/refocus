@@ -23,7 +23,7 @@ const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 
 /**
- * Entry point for each newly clustered process
+ * Entry point for each clustered process.
  */
 function start() { // eslint-disable-line max-statements
   const featureToggles = require('feature-toggles');
@@ -65,11 +65,9 @@ function start() { // eslint-disable-line max-statements
   });
 
   /*
-   * Compress(gzip) all the api responses and all the static files.
-   * Since this is called before the static pages and the API routes, this will
-   * ensure that both the static pages and the API response are compressed.
+   * Call this *before* the static pages and the API routes so that both the
+   * static pages *and* the API responses are compressed (gzip).
    */
-
   app.use(compress());
 
   const httpServer = require('http').Server(app);
@@ -177,13 +175,15 @@ function start() { // eslint-disable-line max-statements
     // Keep browsers from sniffing mimetypes
     app.use(helmet.noSniff());
 
-    // Redirect '/' to '/v1'.
+    /*
+     * Redirect '/' to the application landing page, which right now is the
+     * default perspective (or the first perspective in alphabetical order if
+     * no perspective is defined as the default).
+     */
     app.get('/', (req, res) => res.redirect('/perspectives'));
 
-    // set json payload limit
-    app.use(bodyParser.json(
-      { limit: conf.payloadLimit }
-    ));
+    // Set the JSON payload limit.
+    app.use(bodyParser.json({ limit: conf.payloadLimit }));
 
     /*
      * Interpret Swagger resources and attach metadata to request - must be
@@ -236,6 +236,7 @@ function start() { // eslint-disable-line max-statements
 
   // create app routes
   require('./view/loadView')(app, passportModule, '/v1');
+
   module.exports = { app, passportModule };
 }
 
