@@ -10,7 +10,6 @@
  * tests/api/v1/roomFlag/roomFlagDisabled.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -21,13 +20,6 @@ describe('Rooms path is found', () => {
   it('GET is found', (done) => {
     api.get(path)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
-
