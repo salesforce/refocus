@@ -153,7 +153,6 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('when aspect is updated, the aspect hash should refelct this', (done) => {
-
     Aspect.findById(aspTempId)
     .then((asp) => {
       return asp.update(
