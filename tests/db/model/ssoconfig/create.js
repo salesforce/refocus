@@ -9,9 +9,7 @@
 /**
  * tests/db/model/ssoconfig/create.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');

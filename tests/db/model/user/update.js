@@ -9,9 +9,7 @@
 /**
  * tests/db/model/user/update.js
  */
-
 'use strict';  // eslint-disable-line strict
-
 const bcrypt = require('bcrypt-nodejs');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -58,8 +56,9 @@ describe('db: user: update: ', () => {
 
         expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
       });
+
+      done();
     })
     .catch(done);
-    done();
   });
 });

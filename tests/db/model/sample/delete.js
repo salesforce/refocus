@@ -10,7 +10,6 @@
  * tests/db/model/sample/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);

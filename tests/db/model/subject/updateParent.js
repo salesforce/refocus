@@ -10,7 +10,6 @@
  * tests/db/model/subject/updateParent.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -20,7 +19,6 @@ const User = tu.db.User;
 const constants = require('../../../../db/constants');
 
 describe('db: subject: update parent: ', () => {
-
   let subjId1;
   let childId1;
   let child1AbsolutePath;
@@ -35,7 +33,7 @@ describe('db: subject: update parent: ', () => {
     .then(() => {
       const myParent1 = u
       .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
-      return Subject.create(myParent1)
+      return Subject.create(myParent1);
     })
     .then((created1) => {
       subjId1 = created1.id;
@@ -70,7 +68,7 @@ describe('db: subject: update parent: ', () => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('on un-publishing subject and updating its name to same name, ' +
@@ -82,7 +80,7 @@ describe('db: subject: update parent: ', () => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('on un-publishing subject and changing its name, ' +
@@ -94,14 +92,15 @@ describe('db: subject: update parent: ', () => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.equal(child1AbsolutePath);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('on update parentId to itself, ' +
     'the update fails', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentId: childId2 }))
-    .then((updatedChild) => done('Expected IllegalSelfParenting error' + '. But received' + JSON.stringify(updatedChild)))
+    .then((updatedChild) => done('Expected IllegalSelfParenting error. But ' +
+      'received' + JSON.stringify(updatedChild)))
     .catch((err) => {
       expect(err.status).to.equal(400);
       expect(err.name).to.equal('IllegalSelfParenting');
@@ -113,7 +112,8 @@ describe('db: subject: update parent: ', () => {
     'the update fails', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: child.absolutePath }))
-    .then((updatedChild) => done('Expected IllegalSelfParenting error' + '. But received' + JSON.stringify(updatedChild)))
+    .then((updatedChild) => done('Expected IllegalSelfParenting error. But ' +
+      'received' + JSON.stringify(updatedChild)))
     .catch((err) => {
       expect(err.status).to.equal(400);
       expect(err.name).to.equal('IllegalSelfParenting');
@@ -292,8 +292,7 @@ describe('db: subject: update parent: ', () => {
     .catch(done);
   });
 
-  it('update parent helpEmail, should not change child subject',
-  (done) => {
+  it('update parent helpEmail, should not change child subject', (done) => {
     Subject.findById(subjId1)
     .then((parent) => {
       expect(parent.get('helpEmail')).to.equal('foo@bar.com');
@@ -308,8 +307,7 @@ describe('db: subject: update parent: ', () => {
     .catch(done);
   });
 
-  it('update parent helpUrl, should not change child subject',
-  (done) => {
+  it('update parent helpUrl, should not change child subject', (done) => {
     Subject.findById(subjId1)
     .then((parent) => {
       expect(parent.get('helpUrl')).to.equal('http://www.bar.com');
@@ -324,8 +322,7 @@ describe('db: subject: update parent: ', () => {
     .catch(done);
   });
 
-  it('update parent imageUrl, should not change child subject',
-  (done) => {
+  it('update parent imageUrl, should not change child subject', (done) => {
     Subject.findById(subjId1)
     .then((parent) => {
       expect(parent.get('imageUrl'))

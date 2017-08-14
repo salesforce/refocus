@@ -10,7 +10,6 @@
  * tests/db/model/botAction/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -25,7 +24,7 @@ const v = require('../roomType/utils');
 
 describe('db: bot action: update: ', () => {
   beforeEach((done) => {
-   const testBotAction = u.getStandard();
+    const testBotAction = u.getStandard();
     RoomType.create(rt.getStandard())
     .then((roomType) => {
       const room = r.getStandard();
