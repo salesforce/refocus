@@ -99,6 +99,7 @@ module.exports = function roomType(seq, dataTypes) {
 
         return new seq.Promise((resolve, reject) => {
           if (bots == null) {
+            inst.dataValues.bots = [];
             return resolve(inst);
           }
 
