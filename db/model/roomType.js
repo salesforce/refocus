@@ -116,7 +116,7 @@ module.exports = function roomType(seq, dataTypes) {
               if (index === bots.length - 1) {
                 resolve(inst);
               }
-              
+
             });
           });
         });
