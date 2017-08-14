@@ -88,6 +88,40 @@ module.exports = function roomType(seq, dataTypes) {
     hooks: {
 
       /**
+       * Ensures that all bots in request actually exist
+       *
+       * @param {Instance} inst - The instance being created
+       * @returns {Promise} which resolves to the instance, or rejects if
+       *  a bot is not found or duplicate bots are requested
+       */
+      beforeCreate(inst /* , opts */) {
+        const bots = inst.dataValues.bots;
+
+        return new seq.Promise((resolve, reject) => {
+          if (bots == null) {
+            return resolve(inst);
+          }
+
+          if (bots.length > new Set(bots).size) {
+            reject(new Error(`Cannot have duplicate bots`));
+          }
+
+          bots.map((botName, index) => {
+              seq.models.Bot.findOne({ where: { name: botName } })
+              .then((o) => {
+                if (o === null) {
+                  reject(new Error(`Bot ${botName} not found`));
+                }
+                if (index === bots.length - 1) {
+                  resolve(inst);
+                }
+              });
+            });
+          } 
+        );
+      }, // hooks.beforeCreate
+
+      /**
        * Creates relationship between roomType & bots
        *
        * @param {RoomType} inst - The newly-created instance
