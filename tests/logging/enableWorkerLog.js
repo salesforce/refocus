@@ -10,7 +10,6 @@
  * tests/logging/enableWorkerLog.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -23,9 +22,11 @@ const jobQueue = require('../../jobQueue/setup').jobQueue;
 const Sample = tu.db.Sample;
 const Subject = tu.db.Subject;
 
-/* replicated api bulk upsert basic tests with enableWorkerActivityLogs enabled
- to execute worker activity logging and test that it does not interfere with
- the existing code. */
+/*
+ * replicated api bulk upsert basic tests with enableWorkerActivityLogs
+ * enabled to execute worker activity logging and test that it does not
+ * interfere with the existing code.
+ */
 describe('enableWorkerLog: api: POST ' + path, () => {
   let token;
 
@@ -72,13 +73,7 @@ describe('enableWorkerLog: api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('some succeed, some fail returns ok', (done) => {
@@ -94,13 +89,7 @@ describe('enableWorkerLog: api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('all fail returns ok', (done) => {
@@ -116,13 +105,7 @@ describe('enableWorkerLog: api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 

@@ -10,7 +10,6 @@
  * tests/realtime/setupSocketIO.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const socketIOSetup = require('../../realtime/setupSocketIO');
@@ -46,7 +45,7 @@ describe('socket.io setup', () => {
         subjectTagFilter: ['ea', 'na'],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
-        statusFilterType: 'INCLUDE'
+        statusFilterType: 'INCLUDE',
       }))
       .then(() => done())
       .catch(done);
@@ -118,7 +117,7 @@ describe('socket.io setup', () => {
         subjectTagFilter: ['ea', 'na'],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
-        statusFilterType: 'INCLUDE'
+        statusFilterType: 'INCLUDE',
       }))
       .then(() => done())
       .catch(done);

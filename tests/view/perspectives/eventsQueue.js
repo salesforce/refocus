@@ -10,7 +10,6 @@
  * tests/view/perspectives/eventsQueue.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const eventsQueue = require(
   '../../../view/perspective/eventsQueue'

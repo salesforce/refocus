@@ -10,7 +10,6 @@
  * tests/tokenReq/subjectGetHierarchy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -46,7 +45,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -82,7 +81,7 @@ describe(`api: GET ${path}`, () => {
       password: 'abcd',
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -93,13 +92,7 @@ describe(`api: GET ${path}`, () => {
       api.get(path.replace('{key}', ipar))
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/ForbiddenError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
     it('should be an empty object at the parent level (with token)', (done) => {
       api.get(path.replace('{key}', ipar))
@@ -109,13 +102,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });
