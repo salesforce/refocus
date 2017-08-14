@@ -12,9 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/generatorTemplates');
-const doDeleteOneAssoc =
-  require('../helpers/verbs/doDeleteOneBToMAssoc');
-  require('../helpers/verbs/doPostBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
