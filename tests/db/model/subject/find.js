@@ -40,7 +40,7 @@ describe('db: subject: find: ', () => {
     })
     .then((created3) => {
       idDel = created3.id;
-      created3.destroy();
+      return created3.destroy();
     })
     .then(() => Subject.findAll()) // Buffer added because test is too fast
     .then(() => done()) // created3.destroy() doesnt run without buffer
