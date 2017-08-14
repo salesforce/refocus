@@ -19,21 +19,12 @@ module.exports = {
     */
     return qi.sequelize.transaction(() =>
     qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "botAccess" "enum_Profiles_botAccess"', {
-        type: qi.sequelize.QueryTypes.ALTER,
-      })
-    .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "eventAccess" "enum_Profiles_eventAccess"', {
-        type: qi.sequelize.QueryTypes.ALTER,
-      }))
-    .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
-      'ADD COLUMN "roomAccess" "enum_Profiles_roomAccess"', {
-        type: qi.sequelize.QueryTypes.ALTER,
-      }))
-    .then(() => qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ADD COLUMN "botAccess" "enum_Profiles_botAccess", ' +
+      'ADD COLUMN "eventAccess" "enum_Profiles_eventAccess", ' +
+      'ADD COLUMN "roomAccess" "enum_Profiles_roomAccess", ' +
       'ADD COLUMN "roomTypeAccess" "enum_Profiles_roomTypeAccess"', {
         type: qi.sequelize.QueryTypes.ALTER,
-      }))
+      })
     );
   },
 
