@@ -99,8 +99,7 @@ module.exports = function roomType(seq, dataTypes) {
 
         return new seq.Promise((resolve, reject) => {
           if (bots == null) {
-            inst.dataValues.bots = [];
-            return resolve(inst);
+            resolve(inst);
           }
 
           if (bots.length > new Set(bots).size) {
@@ -132,6 +131,10 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
+          if (bots == null) {
+            resolve(inst);
+          }
+
           inst.dataValues.bots.map((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {

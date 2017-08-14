@@ -34,7 +34,7 @@ describe('db: roomType: create: ', () => {
         expect(o).to.have.property('settings');
         expect(o).to.have.property('rules');
         expect(o).to.have.property('bots');
-        expect(o).to.have.property('bots').to.have.lengthOf(0);
+        expect(o).to.have.property('bots').to.equal(null);
         done();
       })
     .catch(done);
