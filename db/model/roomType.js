@@ -122,7 +122,7 @@ module.exports = function roomType(seq, dataTypes) {
         });
       }, // hooks.beforeCreate
 
-     /**
+      /**
        * Ensures that all bots in request actually exist
        *
        * @param {Instance} inst - The instance being created
