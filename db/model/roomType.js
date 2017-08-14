@@ -117,6 +117,7 @@ module.exports = function roomType(seq, dataTypes) {
               if (index === bots.length - 1) {
                 resolve(inst);
               }
+              
             });
           });
         });
@@ -128,15 +129,17 @@ module.exports = function roomType(seq, dataTypes) {
        * @param {RoomType} inst - The newly-created instance
        */
       afterCreate(inst /* , opts */) {
-        if (inst.dataValues.bots === null) {
-          return;
-        }
+        const bots = inst.dataValues.bots;
 
-        inst.dataValues.bots.map((botName) => {
-          seq.models.Bot.findOne({ where: { name: botName } })
-          .then((o) => {
-            inst.addBots(o);
+        return new seq.Promise((resolve, reject) => {
+          inst.dataValues.bots.map((botName, index) => {
+            seq.models.Bot.findOne({ where: { name: botName } })
+            .then((o) => {
+              inst.addBots(o)
+              .catch((err) => reject(err));
+            });
           });
+          resolve(inst);
         });
       }, // hooks.afterCreate
     },
