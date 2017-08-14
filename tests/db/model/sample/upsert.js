@@ -10,7 +10,6 @@
  * tests/db/model/sample/upsert.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -81,9 +80,9 @@ describe('db: sample: upsert: ', () => {
         Sample.findOne({
           where: {
             name: {
-              $iLike: updatedSubjectName + '|' + aspectName
-            }
-          }
+              $iLike: updatedSubjectName + '|' + aspectName,
+            },
+          },
         })
         .then((sample) => {
           expect(sample).to.equal(null);

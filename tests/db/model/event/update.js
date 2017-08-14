@@ -10,7 +10,6 @@
  * tests/db/model/event/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -58,12 +57,8 @@ describe('db: event: update: ', () => {
   describe('Update event', () => {
     it('ok, event log', (done) => {
       Room.findAll()
-      .then((rooms) => {
-        return Event.findOne({ where: { roomId: rooms[ZERO].id } });
-      })
-      .then((events) => {
-        return events.update({ log: 'New Log' });
-      })
+      .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
+      .then((events) => events.update({ log: 'New Log' }))
       .then((o) => {
         expect(o).to.have.property('log').to.equal('New Log');
         done();

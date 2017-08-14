@@ -9,7 +9,6 @@
 /**
  * /tests/db/model/user/create.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const bcrypt = require('bcrypt-nodejs');

@@ -10,7 +10,6 @@
  * tests/db/model/botData/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -113,9 +112,7 @@ describe('db: bot data: create: ', () => {
         testBotData2.botId = bot.id;
         return BotData.create(testBotData);
       })
-      .then(() => {
-        return BotData.create(testBotData2);
-      })
+      .then(() => BotData.create(testBotData2))
       .then(() => BotData.findAll())
       .then((o) => {
         expect(o[ZERO].name).to.equal(o[ONE].name);
@@ -142,9 +139,7 @@ describe('db: bot data: create: ', () => {
         testBotData.botId = bot.id;
         return BotData.create(testBotData);
       })
-      .then(() => {
-        return BotData.create(testBotData);
-      })
+      .then(() => BotData.create(testBotData))
       .then(() => done(tu.valError))
       .catch((err) => {
         expect(err.message).to.contain('is in use');
