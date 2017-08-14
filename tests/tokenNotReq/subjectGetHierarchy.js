@@ -10,7 +10,6 @@
  * tests/tokenNotReq/subjectGetHierarchy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -60,7 +59,7 @@ describe(`token not required api: GET ${path}`, () => {
       sample1.id = samp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -73,13 +72,7 @@ describe(`token not required api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

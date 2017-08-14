@@ -10,7 +10,6 @@
  * tests/db/model/botData/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -25,7 +24,7 @@ const v = require('../roomType/utils');
 
 describe('db: bot data: delete: ', () => {
   beforeEach((done) => {
-   const testBotData = u.getStandard();
+    const testBotData = u.getStandard();
     RoomType.create(rt.getStandard())
     .then((roomType) => {
       const room = r.getStandard();

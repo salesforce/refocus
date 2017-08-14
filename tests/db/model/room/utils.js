@@ -10,12 +10,9 @@
  * tests/db/model/room/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
-
 const standard = {
   name: n,
   active: true,

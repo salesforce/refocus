@@ -10,7 +10,6 @@
  * tests/db/model/profile/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();

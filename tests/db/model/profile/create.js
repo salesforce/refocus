@@ -10,7 +10,6 @@
  * /tests/db/model/profile/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -27,7 +26,7 @@ describe('db: Profile: create', () => {
       Profile.create({
         name: pname,
       })
-      .then((o) => { 
+      .then((o) => {
         expect(o).to.have.property('name').to.equal(pname);
         expect(o).to.have.property('aspectAccess').to.equal('r');
         expect(o).to.have.property('botAccess').to.equal('r');
@@ -50,7 +49,7 @@ describe('db: Profile: create', () => {
         name: pname,
         subjectAccess: 'rw',
       })
-      .then((o) => { 
+      .then((o) => {
         expect(o).to.have.property('name').to.equal(pname);
         expect(o).to.have.property('subjectAccess').to.equal('rw');
         done();

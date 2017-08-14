@@ -10,7 +10,6 @@
  * tests/db/model/profile/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -64,12 +63,12 @@ describe('db: profile: update: ', () => {
     });
 
     it('fail, admin profile cannot be changed', (done) => {
-      Profile.findOne({ 
-        where: { 
-          name: { 
+      Profile.findOne({
+        where: {
+          name: {
             $iLike: adminProfile.name,
-          }, 
-        }, 
+          },
+        },
       })
       .then((o) => o.update({ aspectAccess: 'r' }))
       .catch((err) => {

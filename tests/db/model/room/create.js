@@ -10,7 +10,6 @@
  * tests/db/model/room/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -35,7 +34,7 @@ describe('db: room: create: ', () => {
         expect(o).to.have.property('active').to.equal(true);
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('ok, room created settings default', (done) => {
@@ -50,7 +49,7 @@ describe('db: room: create: ', () => {
         expect(o.settings.Key1).to.equal('Value1');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('ok, room created active false', (done) => {
@@ -66,7 +65,7 @@ describe('db: room: create: ', () => {
         expect(o).to.have.property('active').to.equal(false);
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room name invalid', (done) => {
@@ -83,7 +82,7 @@ describe('db: room: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
 
     it('fail, room type null', (done) => {
@@ -98,8 +97,7 @@ describe('db: room: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('notnull violation');
         done();
       })
-    .catch(done);
+      .catch(done);
     });
-
   });
 });

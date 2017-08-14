@@ -10,7 +10,6 @@
  * tests/db/model/event/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -58,9 +57,7 @@ describe('db: event: delete: ', () => {
   describe('Delete event', () => {
     it('ok, delete events', (done) => {
       Room.findAll()
-      .then((rooms) => {
-        return Event.destroy({ where: { roomId: rooms[ZERO].id } });
-      })
+      .then((rooms) => Event.destroy({ where: { roomId: rooms[ZERO].id } }))
       .then(() => Event.findAll())
       .then((o) => {
         expect(o.length).to.equal(ZERO);

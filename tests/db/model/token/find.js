@@ -9,7 +9,6 @@
 /**
  * tests/db/model/token/find.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const expect = require('chai').expect;
