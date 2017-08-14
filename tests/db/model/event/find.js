@@ -10,7 +10,6 @@
  * tests/db/model/event/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -58,9 +57,7 @@ describe('db: event: find: ', () => {
   describe('Find event', () => {
     it('ok, event by roomId', (done) => {
       Room.findAll()
-      .then((rooms) => {
-        return Event.findOne({ where: { roomId: rooms[ZERO].id } });
-      })
+      .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
       .then((o) => {
         expect(o).to.have.property('log').to.equal(u.log);
         done();

@@ -9,7 +9,6 @@
 /**
  * tests/db/model/token/utils.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const tu = require('../../../testUtils');
