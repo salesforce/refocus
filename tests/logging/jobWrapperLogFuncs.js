@@ -10,7 +10,6 @@
  * tests/logging/jobWrapperLogFuncs.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const u = require('./utils');
@@ -80,11 +79,9 @@ describe('jobWrapper: functions ', () => {
         remoteAddress: '1.2.3.4',
       },
     };
-
     const jobType = 'myTestJob';
     const testData = { foo: 'bar' };
     const job = jobQueue.createJob(jobType, testData);
-
     jobWrapper.logJobOnComplete(reqObject, job);
     expect(jobWrapper.processJobOnComplete).to.have.been.called;
     jobWrapper.logJobOnComplete.restore();
