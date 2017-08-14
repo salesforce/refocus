@@ -10,7 +10,6 @@
  * tests/db/model/sample/sampleNameUpdate.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -246,4 +245,3 @@ describe('db: sample: update: isWritableBy: ', () => {
     .catch(done);
   });
 }); // db: aspect: update: permission:
-
