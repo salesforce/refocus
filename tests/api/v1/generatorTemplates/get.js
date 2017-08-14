@@ -338,14 +338,6 @@ describe(`api: GET ${path}`, () => {
       .catch(done);
     });
 
-    it('find by description', (done) => {
-      findByField(done, 'description', 'description1', 1);
-    });
-
-    it('find by description wildcard', (done) => {
-      findByField(done, 'description', 'description*', 4);
-    });
-
     it('find by name', (done) => {
       findByField(done, 'name', 'template2', 1);
     });
