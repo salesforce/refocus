@@ -10,11 +10,10 @@
  * tests/db/helpers/sampleUtils.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const sampleUtils = require('../../../db/helpers/sampleUtils');
 
-const testBooleanAspects = {
+const booleanAspects = {
   criticalTrueOkFalse: {
     criticalRange: [1, 1],
     okRange: [0, 0],
@@ -45,45 +44,37 @@ const testBooleanAspects = {
 describe('sampleUtils Tests:', () => {
   describe('computeStatus', () => {
     it('criticalTrueOkFalse', () => {
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalTrueOkFalse,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalTrueOkFalse,
         'true')).to.equal('Critical');
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalTrueOkFalse,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalTrueOkFalse,
         'false')).to.equal('OK');
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalTrueOkFalse,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalTrueOkFalse,
         '4')).to.equal('Invalid');
     });
 
     it('criticalFalseOkTrue', () => {
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalFalseOkTrue,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalFalseOkTrue,
         'false')).to.equal('Critical');
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalFalseOkTrue,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalFalseOkTrue,
         'true')).to.equal('OK');
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.criticalFalseOkTrue,
+      expect(sampleUtils.computeStatus(booleanAspects.criticalFalseOkTrue,
         'Warning')).to.equal('Invalid');
     });
 
     it('warningFalseInfoTrue', () => {
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.warningFalseInfoTrue,
+      expect(sampleUtils.computeStatus(booleanAspects.warningFalseInfoTrue,
         'false')).to.equal('Warning');
-      expect(sampleUtils.computeStatus(
-        testBooleanAspects.warningFalseInfoTrue,
+      expect(sampleUtils.computeStatus(booleanAspects.warningFalseInfoTrue,
         'true')).to.equal('Info');
     });
 
     it('multipleTruesCriticalOkFalse', () => {
       expect(sampleUtils.computeStatus(
-        testBooleanAspects.multipleTruesCriticalOkFalse,
-        'true')).to.equal('Critical');
+        booleanAspects.multipleTruesCriticalOkFalse, 'true'))
+      .to.equal('Critical');
       expect(sampleUtils.computeStatus(
-        testBooleanAspects.multipleTruesCriticalOkFalse,
-        'false')).to.equal('OK');
+        booleanAspects.multipleTruesCriticalOkFalse, 'false'))
+      .to.equal('OK');
     });
   });
 });
