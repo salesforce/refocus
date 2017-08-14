@@ -34,14 +34,6 @@ module.exports = function profile(seq, dataTypes) {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'r',
     },
-    botAccess: {
-      type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
-    },
-    eventAccess: {
-      type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
-    },
     isDeleted: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
@@ -56,14 +48,6 @@ module.exports = function profile(seq, dataTypes) {
       defaultValue: 'r',
     },
     profileAccess: {
-      type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
-    },
-    roomAccess: {
-      type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'rw',
-    },
-    roomTypeAccess: {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'r',
     },
