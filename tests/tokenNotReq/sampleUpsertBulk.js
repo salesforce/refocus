@@ -10,7 +10,6 @@
  * tests/tokenNotReq/sampleUpsertBulk.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -41,7 +40,7 @@ describe('token not required api: POST ' + path, () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -58,12 +57,6 @@ describe('token not required api: POST ' + path, () => {
       },
     ])
     .expect(200)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
