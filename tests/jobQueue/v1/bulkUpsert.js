@@ -10,7 +10,6 @@
  * tests/jobQueue/v1/bulkUpsert.js
  */
 'use strict'; // eslint-disable-line strict
-
 const jobQueue = require('../../../jobQueue/setup').jobQueue;
 const jobType = require('../../../jobQueue/setup').jobType;
 const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamplesJob');
@@ -84,16 +83,10 @@ describe('api: POST using worker process ' + path, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
     })
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('test logging', (done) => {
@@ -119,7 +112,7 @@ describe('api: POST using worker process ' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       //don't call done() yet, need to wait for data to be logged
@@ -189,7 +182,6 @@ describe('api: POST using worker process ' + path, () => {
           done(err);
         }
       }
-
     };
   });
 
@@ -215,7 +207,7 @@ describe('api: POST using worker process ' + path, () => {
         },
       ])
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err) => err ? done(err) : done());
+      .end(done);
     });
   });
 });
