@@ -408,29 +408,31 @@ module.exports = {
     const { name, parentId, parentAbsolutePath } =
       req.swagger.params.queryBody.value;
 
-    // if cache on and parentId is NOT provided
+    /*
+     * Fast fail: if cache is on AND parentId
+     * is not provided, check whether the subject exists in cache.
+     * Else if parentId is provided OR cache is off,
+     * do normal post.
+     */
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-      featureToggles.isFeatureEnabled('checkCacheOnPost') &&
+      featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+      featureToggles.isFeatureEnabled('fastFailDuplicateSubject') &&
       !u.looksLikeId(parentId)) {
-
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
-
-      redisSubjectModel.isSubjectInCache(absolutePath)
+      redisSubjectModel.subjectInSampleStore(absolutePath)
       .then((found) => {
         if (found) {
           throw new apiErrors.DuplicateResourceError(
             'The subject lower case absolutePath must be unique');
-        } else {
-          doPost(req, res, next, helper);
         }
+
+        doPost(req, res, next, helper);
       })
       .catch((err) => {
         u.handleError(next, err, helper.modelName);
       });
     } else {
-
-      // cache is off OR parentId is provided
       doPost(req, res, next, helper);
     }
   },

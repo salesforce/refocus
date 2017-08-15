@@ -10,7 +10,6 @@
  * tests/cache/models/subjects/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const path = '/v1/subjects';
@@ -29,22 +28,22 @@ describe('redis: subject: POST: ', () => {
   let token;
 
   before((done) => {
-    tu.toggleOverride('checkCacheOnPost', true);
-    tu.toggleOverride('enableRedisSampleStore', true);
+    tu.toggleOverride('fastFailDuplicateSubject', true);
     tu.toggleOverride('getSubjectFromCache', true);
+    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
     Subject.create(par)
     .then(() => Subject.create({
-        name: childName,
-        parentAbsolutePath: parentName,
+      name: childName,
+      parentAbsolutePath: parentName,
     }))
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.populate())
@@ -56,7 +55,7 @@ describe('redis: subject: POST: ', () => {
   afterEach(rtu.flushRedis);
   after(() => {tu.toggleOverride('enableRedisSampleStore', false)});
   after(() => {tu.toggleOverride('getSubjectFromCache', false)});
-  after(() => {tu.toggleOverride('checkCacheOnPost', false)});
+  after(() => {tu.toggleOverride('fastFailDuplicateSubject', false)});
 
   it('no parent: duplicate name should fail from the cache', (done) => {
     api.post(path)
@@ -65,16 +64,13 @@ describe('redis: subject: POST: ', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      expect(res.body.errors[0].type)
-        .to.equal('DuplicateResourceError');
+      expect(res.body.errors[0].type).to.equal('DuplicateResourceError');
       expect(res.body.errors[0].message)
         .to.equal('The subject lower case absolutePath must be unique');
-      expect(res.body.errors[0].source)
-        .to.equal('Subject');
-
+      expect(res.body.errors[0].source).to.equal('Subject');
       done();
     });
   });
@@ -87,16 +83,13 @@ describe('redis: subject: POST: ', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      expect(res.body.errors[0].type)
-        .to.equal('DuplicateResourceError');
+      expect(res.body.errors[0].type).to.equal('DuplicateResourceError');
       expect(res.body.errors[0].message)
         .to.equal('The subject lower case absolutePath must be unique');
-      expect(res.body.errors[0].source)
-        .to.equal('Subject');
-
+      expect(res.body.errors[0].source).to.equal('Subject');
       done();
     });
   });

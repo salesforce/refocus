@@ -42,15 +42,6 @@ apiErrors.create({
 });
 
 apiErrors.create({
-  code: 11102,
-  status: 400,
-  name: 'DuplicateResourceError',
-  parent: apiErrors.ValidationError,
-  fields: [],
-  defaultMessage: 'You are not allowed to create a resource that already exists.',
-});
-
-apiErrors.create({
   code: 11103,
   status: 400,
   name: 'DuplicateFieldError',
@@ -126,6 +117,15 @@ apiErrors.create({
   name: 'IllegalSelfParenting',
   parent: apiErrors.ValidationError,
   defaultMessage: 'A subject may not be its own parent.',
+});
+
+apiErrors.create({
+  code: 11110,
+  status: 400,
+  name: 'DuplicateResourceError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You are not allowed to create a resource that already exists.',
 });
 
 // ----------------------------------------------------------------------------

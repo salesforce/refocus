@@ -126,7 +126,7 @@ const shortTermToggles = {
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
-  checkCacheOnPost: environmentVariableTrue(pe, 'CHECK_CACHE_ON_POST'),
+  fastFailDuplicateSubject: environmentVariableTrue(pe, 'FAST_FAIL_DUPLICATE_SUBJECT'),
 
 }; // shortTermToggles
 

@@ -44,12 +44,12 @@ const filters = {
  * @param {String} absolutePath
  * @returns {Promise} resolves to true for found, false for not
  */
-function isSubjectInCache(absolutePath) {
+function subjectInSampleStore(absolutePath) {
   const subjectKey = sampleStore.toKey('subject', absolutePath);
 
   // get from cache
-  return redisClient.sismemberAsync(sampleStore.constants.indexKey.subject, subjectKey)
-  .then((exist) => exist);
+  return redisClient.sismemberAsync(
+    sampleStore.constants.indexKey.subject, subjectKey);
 }
 
 /**
@@ -235,7 +235,7 @@ function convertStringsToNumbersAndAddParentAbsolutePath(subject) {
 module.exports = {
   completeSubjectHierarchy,
 
-  isSubjectInCache,
+  subjectInSampleStore,
 
   /**
    * Returns subject with filter options if provided.
