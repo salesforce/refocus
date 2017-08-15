@@ -83,7 +83,7 @@ describe('sampleStore (feature on):', () => {
     }))
     .then((created) => (a3 = created))
     .then(() => Aspect.create({
-      isPublished: false,
+      isPublished: false, // unpublished subject should still be found
       name: `${tu.namePrefix}Aspect4`,
       timeout: '10m',
       valueType: 'BOOLEAN',
@@ -122,7 +122,7 @@ describe('sampleStore (feature on):', () => {
     }))
     .then((created) => (s2 = created))
     .then(() => Subject.create({
-      isPublished: true,
+      isPublished: false,
       name: `${tu.namePrefix}Subject3`,
       parentId: s1.id,
     }))
