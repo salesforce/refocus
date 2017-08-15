@@ -133,7 +133,7 @@ describe('sampleStore (feature on):', () => {
       value: '0',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s2.id,
@@ -141,7 +141,7 @@ describe('sampleStore (feature on):', () => {
       value: '50',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s3.id,
@@ -149,7 +149,7 @@ describe('sampleStore (feature on):', () => {
       value: '5',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => done())
     .catch(done);
@@ -180,9 +180,8 @@ describe('sampleStore (feature on):', () => {
     })
     .then(() => redisClient.hgetallAsync('samsto:subject:' + absolutePath))
     .then((subject) => {
-
       // the absolutePath in the key is lowercase
-      expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath)
+      expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath);
     })
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)

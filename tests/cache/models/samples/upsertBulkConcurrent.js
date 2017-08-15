@@ -10,7 +10,6 @@
  * tests/cache/models/samples/upsertBulkConcurrent.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const tu = require('../../../testUtils');
@@ -43,15 +42,13 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       valueType: 'NUMERIC',
       criticalRange: [0, 1],
     })
-    .then(() => {
-      return Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect2`,
-        timeout: '10m',
-        valueType: 'BOOLEAN',
-        okRange: [10, 100],
-      });
-    })
+    .then(() => Aspect.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Aspect2`,
+      timeout: '10m',
+      valueType: 'BOOLEAN',
+      okRange: [10, 100],
+    }))
     .then(() => Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect3`,
@@ -66,12 +63,10 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       valueType: 'BOOLEAN',
       okRange: [10, 100],
     }))
-    .then(() => {
-      return Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      });
-    })
+    .then(() => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject`,
+    }))
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
@@ -100,12 +95,13 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect4`,
         value: '4',
       },
-    ]).then(() => {
+    ])
+    .then(() => {
       setTimeout(() => {
         api.get('/v1/samples')
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(4);
@@ -113,7 +109,6 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
           expect(res.body[1].name).to.contain(`${tu.namePrefix}Subject|`);
           expect(res.body[2].name).to.contain(`${tu.namePrefix}Subject|`);
           expect(res.body[3].name).to.contain(`${tu.namePrefix}Subject|`);
-
           done();
         });
       }, delayInMilliSeconds);

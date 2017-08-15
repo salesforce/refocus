@@ -10,7 +10,6 @@
  * tests/cache/models/aspects/deleteRelatedLinks.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const allDeletePath = '/v1/aspects/{key}/relatedLinks';
 const oneDeletePath = '/v1/aspects/{key}/relatedLinks/{akey}';
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = rtu.samstoinit;
 const ZERO = 0;
 const ONE = 1;
@@ -31,7 +30,6 @@ describe('api: aspects: DELETE RelatedLinks', () => {
   let token;
   let i;
   let name;
-
   const n = {
     name: `${tu.namePrefix}ASPECTNAME`,
     timeout: '110s',
@@ -63,6 +61,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .then(() => done())
     .catch(done);
   });
+
   afterEach(rtu.forceDelete);
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
@@ -74,15 +73,15 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       redisOps.getHashPromise(objectType.aspect, n.name)
       .then((aspect) => {
         expect(aspect.createdAt)
-          .to.equal(new Date(aspect.createdAt).toISOString());
+        .to.equal(new Date(aspect.createdAt).toISOString());
         expect(aspect.updatedAt)
-          .to.equal(new Date(aspect.updatedAt).toISOString());
+        .to.equal(new Date(aspect.updatedAt).toISOString());
         done();
       });
     });
@@ -94,7 +93,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(ZERO);
@@ -112,7 +111,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(ONE);
@@ -133,7 +132,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(ONE);

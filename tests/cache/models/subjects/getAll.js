@@ -10,7 +10,6 @@
  * tests/cache/models/subjects/getAll.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -33,7 +32,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before(rtu.populateRedis);
@@ -48,18 +47,19 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
       for (let i = res.body.length - 1; i >= 0; i--) {
-        const { updatedAt, createdAt, childCount, hierarchyLevel } = res.body[i];
-
+        const { updatedAt, createdAt, childCount, hierarchyLevel } =
+          res.body[i];
         expect(childCount).to.be.an('number');
         expect(hierarchyLevel).to.be.an('number');
         expect(createdAt).to.equal(new Date(createdAt).toISOString());
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
       }
+
       done();
     });
   });
@@ -70,7 +70,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -87,7 +87,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -104,7 +104,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -121,7 +121,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -138,7 +138,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -155,7 +155,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -174,7 +174,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -190,7 +190,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -207,7 +207,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(1);
@@ -222,7 +222,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(2);
@@ -238,7 +238,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(1);
@@ -256,7 +256,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(2);
@@ -273,7 +273,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(3);
@@ -290,7 +290,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(1);
@@ -305,7 +305,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(1);
@@ -320,7 +320,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(1);

@@ -10,7 +10,6 @@
  * tests/cache/models/samples/timeout.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
@@ -114,6 +113,7 @@ describe('api::cache::timeout', () => {
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
         expect(statusChangedAt).to.equal(new Date(statusChangedAt).toISOString());
       }
+
       done();
     })
     .catch(done);
@@ -129,8 +129,7 @@ describe('api::cache::timeout', () => {
       expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => redisClient.keysAsync(
-      `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
-    )
+      `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase()))
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {

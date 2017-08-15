@@ -10,7 +10,6 @@
  * tests/cache/models/samples/upsertBulkWithprovider.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -52,21 +51,17 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       valueType: 'NUMERIC',
       criticalRange: [0, 1],
     })
-    .then((aspectOne) => {
-      return Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect2`,
-        timeout: '10m',
-        valueType: 'BOOLEAN',
-        okRange: [10, 100],
-      });
-    })
-    .then((aspectTwo) => {
-      return Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      });
-    })
+    .then((aspectOne) => Aspect.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Aspect2`,
+      timeout: '10m',
+      valueType: 'BOOLEAN',
+      okRange: [10, 100],
+    }))
+    .then((aspectTwo) => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject`,
+    }))
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
@@ -94,17 +89,17 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     ])
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
-       setTimeout(() => {
+      setTimeout(() => {
         api.get('/v1/samples/' + samp1Name)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
-          expect(res.body.provider).to.be.an('string')
-          expect(res.body.user).to.be.an('object')
-          expect(res.body.user.email).to.be.an('string')
-          expect(res.body.user.name).to.be.an('string')
+          expect(res.body.provider).to.be.an('string');
+          expect(res.body.user).to.be.an('object');
+          expect(res.body.user.email).to.be.an('string');
+          expect(res.body.user.name).to.be.an('string');
           done();
         });
       }, 100);
@@ -127,11 +122,11 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     ])
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
-       setTimeout(() => {
+      setTimeout(() => {
         api.get('/v1/samples/' + samp1Name)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.provider).to.be.undefined;
@@ -159,11 +154,11 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     ])
     .expect(constants.httpStatus.OK)
     .end((err /* , res */) => {
-       setTimeout(() => {
+      setTimeout(() => {
         api.get('/v1/samples/' + samp1Name)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.provider).to.be.undefined;

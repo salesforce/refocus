@@ -10,7 +10,6 @@
  * tests/cache/models/samples/upsertBulkCaseSensitive.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -63,7 +62,6 @@ describe('api: POST ' + path, () => {
       },
     ])
     .then(() => {
-
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
@@ -72,7 +70,7 @@ describe('api: POST ' + path, () => {
         api.get('/v1/samples?name=' + sampleName)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
@@ -96,7 +94,6 @@ describe('api: POST ' + path, () => {
       },
     ])
     .then(() => {
-
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
@@ -105,7 +102,7 @@ describe('api: POST ' + path, () => {
         api.get('/v1/samples?name=' + sampleName)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
