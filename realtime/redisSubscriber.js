@@ -22,7 +22,7 @@ const zlib = require('zlib');
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
-    zlib.unzip(mssgStr, (err, uncompressedBuffer) => {
+    zlib.unzip(Buffer.from(mssgStr, 'base64'), (err, uncompressedBuffer) => {
       if (err) {
         console.log('Error inflating!', err);
         return;
