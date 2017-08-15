@@ -126,6 +126,8 @@ const shortTermToggles = {
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
+  fastFailDuplicateSubject: environmentVariableTrue(pe, 'FAST_FAIL_DUPLICATE_SUBJECT'),
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

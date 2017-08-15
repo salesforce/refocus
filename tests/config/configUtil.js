@@ -10,55 +10,51 @@
  * tests/config/configUtil.js
  *
  * Tests config utilities
-*/
-
+ */
+'use strict';
 const expect = require('chai').expect;
 const configUtil = require('../../config/configUtil');
-
 const NOT_ALLOWED = 'Your IP address is not allowed. Verify your ' +
   'network address and your Refocus IP settings';
 
 describe('IP List', () => {
-  it('parse default IP list', (done) => {
+  it('parse default IP list', () => {
     const iplist = configUtil.parseIPlist('[[0.0.0.0,255.255.255.255]]');
     expect(iplist).to.have.length(1);
     expect(iplist).to.be.eql([['0.0.0.0', '255.255.255.255']]);
-    done();
   });
 
-  it('parse IP list with space around opening bracket', (done) => {
-    const iplist = configUtil.parseIPlist('[ [1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9]]');
+  it('parse IP list with space around opening bracket', () => {
+    const iplist =
+      configUtil.parseIPlist('[ [1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9]]');
     expect(iplist).to.have.length(2);
     expect(iplist).to.be.eql([
       ['1.2.3.4', '1.2.3.8'],
       ['7.6.5.4', '7.6.9.9'],
     ]);
-    done();
   });
 
-  it('parse IP list with space around closing bracket', (done) => {
-    const iplist = configUtil
-      .parseIPlist('[[1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9 ] ]');
+  it('parse IP list with space around closing bracket', () => {
+    const iplist =
+      configUtil.parseIPlist('[[1.2.3.4,1.2.3.8],[7.6.5.4,7.6.9.9 ] ]');
     expect(iplist).to.have.length(2);
     expect(iplist).to.be.eql([
       ['1.2.3.4', '1.2.3.8'],
       ['7.6.5.4', '7.6.9.9'],
     ]);
-    done();
   });
 
-  it('parse IP list with space around comma', (done) => {
-    const iplist = configUtil
-      .parseIPlist('[[1.2.3.4, 1.2.3.8], [7.6.5.4,7.6.9.9]]');
+  it('parse IP list with space around comma', () => {
+    const iplist =
+      configUtil.parseIPlist('[[1.2.3.4, 1.2.3.8], [7.6.5.4,7.6.9.9]]');
     expect(iplist).to.have.length(2);
     expect(iplist).to.be.eql([
       ['1.2.3.4', '1.2.3.8'],
       ['7.6.5.4', '7.6.9.9'],
     ]);
-    done();
   });
 
-  it('parse IP list with misc spaces', (done) => {
+  it('parse IP list with misc spaces', () => {
     const iplist = configUtil
       .parseIPlist('[ [ 1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9 ] ]');
     expect(iplist).to.have.length(2);
@@ -66,108 +62,80 @@ describe('IP List', () => {
       ['1.2.3.4', '1.2.3.8'],
       ['7.6.5.4', '7.6.9.9'],
     ]);
-    done();
   });
 
-  it('error parsing IP list with wrong format', (done) => {
+  it('error parsing IP list with wrong format', () => {
     expect(configUtil.parseIPlist.bind(
       configUtil.parseIPlist, '[ [ 1.2.3.4, 1.2.3.8], [7.6.5.4] ]')
     )
     .to.throw(NOT_ALLOWED);
-    done();
   });
 });
 
 describe('csvToArray', () => {
-  it('undefined string', (done) => {
-    expect(configUtil.csvToArray(undefined))
-    .to.be.eql([]);
-    done();
+  it('undefined string', () => {
+    expect(configUtil.csvToArray(undefined)).to.be.eql([]);
   });
 
-  it('null string', (done) => {
-    expect(configUtil.csvToArray(null))
-    .to.be.eql([]);
-    done();
+  it('null string', () => {
+    expect(configUtil.csvToArray(null)).to.be.eql([]);
   });
 
-  it('zero-length string', (done) => {
-    expect(configUtil.csvToArray(''))
-    .to.be.eql([]);
-    done();
+  it('zero-length string', () => {
+    expect(configUtil.csvToArray('')).to.be.eql([]);
   });
 
-  it('single element', (done) => {
-    expect(configUtil.csvToArray('abc'))
-    .to.be.eql(['abc']);
-    done();
+  it('single element', () => {
+    expect(configUtil.csvToArray('abc')).to.be.eql(['abc']);
   });
 
-  it('multiple elements with extra left and right padding', (done) => {
+  it('multiple elements with extra left and right padding', () => {
     expect(configUtil.csvToArray('abc,def , ghi'))
     .to.be.eql(['abc', 'def', 'ghi']);
-    done();
   });
 }); // csvToArray
 
 describe('csvToArray', () => {
-  it('undefined string', (done) => {
-    expect(configUtil.csvToArray(undefined))
-    .to.be.eql([]);
-    done();
+  it('undefined string', () => {
+    expect(configUtil.csvToArray(undefined)).to.be.eql([]);
   });
 
-  it('null string', (done) => {
-    expect(configUtil.csvToArray(null))
-    .to.be.eql([]);
-    done();
+  it('null string', () => {
+    expect(configUtil.csvToArray(null)).to.be.eql([]);
   });
 
-  it('zero-length string', (done) => {
-    expect(configUtil.csvToArray(''))
-    .to.be.eql([]);
-    done();
+  it('zero-length string', () => {
+    expect(configUtil.csvToArray('')).to.be.eql([]);
   });
 
-  it('single element', (done) => {
-    expect(configUtil.csvToArray('abc'))
-    .to.be.eql(['abc']);
-    done();
+  it('single element', () => {
+    expect(configUtil.csvToArray('abc')).to.be.eql(['abc']);
   });
 
-  it('multiple elements with extra left and right padding', (done) => {
+  it('multiple elements with extra left and right padding', () => {
     expect(configUtil.csvToArray('abc,def , ghi'))
     .to.be.eql(['abc', 'def', 'ghi']);
-    done();
   });
 }); // csvToArray
 
 describe('getReadReplicas', () => {
-  it('only bad entry will return undefined', (done) => {
-    const pe = { 'REPLICAS': 'test' };
-    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
-    .to.be.eql(undefined);
-    done();
+  it('only bad entry will return undefined', () => {
+    const pe = { REPLICAS: 'test' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS')).to.be.eql(undefined);
   });
 
-  it('without Replicas env variable return undefined', (done) => {
+  it('without Replicas env variable return undefined', () => {
     const pe = {};
-    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
-    .to.be.eql(undefined);
-    done();
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS')).to.be.eql(undefined);
   });
 
-  it('Replicas env variable with correct env variables', (done) => {
-    const pe = { 'REPLICAS': 'test', 'test': 'testURL' };
-    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
-    .to.be.eql(['testURL']);
-    done();
+  it('Replicas env variable with correct env variables', () => {
+    const pe = { REPLICAS: 'test', test: 'testURL' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS')).to.be.eql(['testURL']);
   });
 
-  it('Replicas env variable with bad env variables', (done) => {
-    const pe = { 'REPLICAS': 'test, test1', 'test': 'testURL' };
-    expect(configUtil.getReadReplicas(pe, 'REPLICAS'))
-    .to.be.eql(['testURL']);
-    done();
+  it('Replicas env variable with bad env variables', () => {
+    const pe = { REPLICAS: 'test, test1', test: 'testURL' };
+    expect(configUtil.getReadReplicas(pe, 'REPLICAS')).to.be.eql(['testURL']);
   });
 });
