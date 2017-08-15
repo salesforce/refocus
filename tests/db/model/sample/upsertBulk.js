@@ -10,7 +10,6 @@
  * tests/db/model/sample/upsertBulk.js
  */
 'use strict';
-
 const util = require('util');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');

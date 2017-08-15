@@ -10,7 +10,6 @@
  * /tests/db/model/profile/admin.js
  */
 'use strict';
-
 const conf = require('../../../../config');
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');

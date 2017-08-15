@@ -24,25 +24,16 @@ const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
 
 describe(`api: GET using worker process ${path}`, () => {
-
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
     jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
-  });
-
-  before(() => {
     jobQueue.testMode.enter(true);
     jobQueue.testMode.clear();
   });
 
-  afterEach(() => {
-    jobQueue.testMode.clear();
-  });
-
-  after(() => {
-    jobQueue.testMode.exit()
-  });
+  afterEach(() => jobQueue.testMode.clear());
+  after(() => jobQueue.testMode.exit());
 
   //run normal getHierarchy tests with worker enabled
   require('../../api/v1/subjects/getHierarchy');
@@ -50,28 +41,22 @@ describe(`api: GET using worker process ${path}`, () => {
   require('../../api/v1/subjects/getHierarchyStatusAndCombinedFilters');
 
   describe(`api: GET using worker process ${path}`, () => {
-    let token;
-
     const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
     const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
     const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
-
     const aspect = {
       name: 'temperature',
       timeout: '30s',
       isPublished: true,
       rank: 10,
     };
-
     const sample1 = { value: '10' };
-
+    const invalidKey = '00000';
+    const invalidFilterParams = '?status=aaa,-aaa';
+    let token;
     let ipar = 0;
     let ichi = 0;
     let igrn = 0;
-
-    const invalidKey = '00000';
-    const invalidFilterParams = '?status=aaa,-aaa';
-
     let nonWorkerResponse;
 
     // setup hierarchy
@@ -112,7 +97,7 @@ describe(`api: GET using worker process ${path}`, () => {
         token = returnedToken;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     //get non-worker response
@@ -123,7 +108,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .set('Authorization', token)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         nonWorkerResponse = res.body;
@@ -140,7 +125,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(jobQueue.testMode.jobs.length).to.equal(n);
@@ -178,7 +163,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         // make sure the job is enqueued
@@ -200,7 +185,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.deep.equal(nonWorkerResponse);
@@ -223,12 +208,11 @@ describe(`api: GET using worker process ${path}`, () => {
         tu.toggleOverride('enableWorkerActivityLogs', false);
 
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(workerLogged).to.be.true;
         expect(apiLogged).to.be.true;
-
         done();
       });
 
@@ -284,7 +268,6 @@ describe(`api: GET using worker process ${path}`, () => {
             done(err);
           }
         }
-
       };
     });
 
@@ -294,13 +277,14 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.exist;
         expect(res.body.errors[0]).to.exist;
         err = res.body.errors[0];
-        expect(err.message).to.equal('An unexpected ResourceNotFoundError occurred.');
+        expect(err.message)
+        .to.equal('An unexpected ResourceNotFoundError occurred.');
         expect(err.source).to.equal('Subject');
         expect(err.value).to.equal(invalidKey);
         expect(err.type).to.equal('ResourceNotFoundError');
@@ -315,7 +299,7 @@ describe(`api: GET using worker process ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.exist;
@@ -338,5 +322,4 @@ describe(`api: GET using worker process ${path}`, () => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enqueueHierarchy', false);
   });
-
 });

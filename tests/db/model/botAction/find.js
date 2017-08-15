@@ -10,7 +10,6 @@
  * tests/db/model/botAction/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -26,7 +25,7 @@ let testBotAction = null;
 
 describe('db: bot action: find: ', () => {
   beforeEach((done) => {
-   testBotAction = u.getStandard();
+    testBotAction = u.getStandard();
     RoomType.create(rt.getStandard())
     .then((roomType) => {
       const room = r.getStandard();

@@ -10,7 +10,6 @@
  * tests/db/model/subject/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -41,7 +40,7 @@ describe('db: subject: find: ', () => {
     })
     .then((created3) => {
       idDel = created3.id;
-      created3.destroy();
+      return created3.destroy();
     })
     .then(() => Subject.findAll()) // Buffer added because test is too fast
     .then(() => done()) // created3.destroy() doesnt run without buffer
@@ -135,7 +134,7 @@ describe('db: subject: find: ', () => {
       .then((found) => {
         expect(found).to.have.length(1);
 
-        // expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}1`);
+        // TODO expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}1`);
         done();
       })
       .catch(done);
@@ -148,7 +147,7 @@ describe('db: subject: find: ', () => {
       .then((found) => {
         expect(found).to.have.length(1);
 
-        // expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}2`);
+        // TODO expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}2`);
         done();
       })
       .catch(done);
