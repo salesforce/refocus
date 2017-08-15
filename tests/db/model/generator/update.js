@@ -10,7 +10,6 @@
  * tests/db/model/generator/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -57,8 +56,12 @@ describe('db: Generator: update: ', () => {
 
   it('ok, generator template version must accept semver format ' +
     'with ^', (done) => {
-    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
-      version: '^1.1.0' } })
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: 'newName',
+        version: '^1.1.0',
+      },
+    })
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('^1.1.0');
@@ -69,8 +72,12 @@ describe('db: Generator: update: ', () => {
 
   it('ok, generator template version must accept semver format ' +
     'with >=', (done) => {
-    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
-      version: '>=1.1.0' } })
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: 'newName',
+        version: '>=1.1.0',
+      },
+    })
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('>=1.1.0');
@@ -81,8 +88,12 @@ describe('db: Generator: update: ', () => {
 
   it('ok, generator template version must accept semver format ' +
     'with alpha beta', (done) => {
-    generatorDBInstance.update({ generatorTemplate: { name: 'newName',
-      version: '1.2.3-alpha.10.beta' } })
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: 'newName',
+        version: '1.2.3-alpha.10.beta',
+      },
+    })
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('1.2.3-alpha.10.beta');
@@ -93,9 +104,7 @@ describe('db: Generator: update: ', () => {
 
   it('ok, generators should have the associated collectors', (done) => {
     Generator.findById(generatorDBInstance.id)
-    .then((o) => {
-      return o.getCollectors();
-    })
+    .then((o) => o.getCollectors())
     .then((collectors) => {
       expect(collectors.length).to.equal(2);
       expect(collectors[0].name).to.contain('collector');
@@ -121,8 +130,10 @@ describe('db: Generator: update: ', () => {
   it('not ok, run helpEmail and name validation on update', (done) => {
     const invalidName = 'Name$$$';
     const invalidHelpEmail = 'email.com';
-    generatorDBInstance.update({ name: invalidName,
-      helpEmail: invalidHelpEmail })
+    generatorDBInstance.update({
+      name: invalidName,
+      helpEmail: invalidHelpEmail,
+    })
     .then(() => {
       done('Expecting Validation Error');
     })

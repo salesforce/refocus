@@ -25,10 +25,10 @@ const sampleIndexName = redisStore.constants.indexKey.sample;
 const redisOps = rtu.redisOps;
 
 describe('redis: subject: CRUD: ', () => {
-  const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
+  const parentName = `${tu.namePrefix}NorthAmerica`;
+  const par = { name: parentName, isPublished: true };
   const parUnPub =
         { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
-
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
@@ -80,6 +80,24 @@ describe('redis: subject: CRUD: ', () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('on unpublish, a subject should still be found', (done) => {
+    const subjectKey = redisStore.toKey('subject', parentName);
+    Subject.findById(ipar)
+    .then((pubishedSubject) => pubishedSubject.update({ isPublished: false }))
+    .then(() => redisClient.sismemberAsync(redisStore.constants.indexKey.subject, subjectKey))
+    .then((ok) => {
+      expect(ok).to.equal(1);
+      return redisClient.hgetallAsync(subjectKey);
+    })
+    .then((subject) => {
+      expect(subject).to.not.equal(null);
+      expect(subject.name).to.equal(parentName);
+      expect(subject.isPublished).to.equal('false');
+      done();
+    })
+    .catch(done);
+  });
+
   it('created subject should be found', (done) => {
     let absolutePath;
     Subject.findById(ipar)
@@ -100,26 +118,13 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('unpublished subject should not be found but should be found ' +
-                  ' after it is published', (done) => {
+  it('unpublished subject should be found', (done) => {
     let subj;
     let key;
     Subject.findById(iparUnPub)
     .then((sub) => {
       subj = sub;
       key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-      return redisOps.executeBatchCmds(cmds);
-    })
-    .then((res) => {
-      expect(res[0]).to.equal(0);
-      expect(res[1]).to.equal(null);
-      return subj.update({ isPublished: true });
-    })
-    .then(() => {
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subj.absolutePath));

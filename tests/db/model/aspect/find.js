@@ -10,7 +10,6 @@
  * tests/db/model/aspect/find.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;

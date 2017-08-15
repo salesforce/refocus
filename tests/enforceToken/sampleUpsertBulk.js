@@ -10,7 +10,6 @@
  * tests/tokenReq/sampleUpsertBulk.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -81,13 +80,7 @@ describe('api: POST ' + path, () => {
     ])
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/ForbiddenError/)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('all succeed', (done) => {
@@ -103,12 +96,6 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

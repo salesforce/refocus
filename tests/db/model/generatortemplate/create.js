@@ -10,7 +10,6 @@
  * tests/db/model/generatortemplate/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -117,7 +116,6 @@ describe('db: Generatortemplate: create: ', () => {
     })
     .catch();
   });
-
 
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
@@ -251,6 +249,7 @@ describe('db: Generatortemplate: create: ', () => {
     _gt.connection.toUrl = function () {
       return 'http://example.com';
     };
+
     GeneratorTemplate.create(_gt)
     .then(() => {
       done(' Error: Expecting validation error');
