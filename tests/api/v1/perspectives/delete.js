@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -57,7 +56,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(name);
@@ -71,7 +70,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.isDeleted).to.not.equal(ZERO);

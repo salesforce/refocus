@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -54,7 +53,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
@@ -73,7 +72,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testLensName`);
@@ -91,7 +90,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sourceName).to.equal('testSourceLensName');
@@ -105,7 +104,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sourceName).to.equal('testSourceLensName');
@@ -127,7 +126,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].description)

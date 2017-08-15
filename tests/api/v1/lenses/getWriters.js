@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/getWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -40,8 +39,8 @@ describe('api: lenses: get writers >', () => {
       lens = lensInst;
     })
     /*
-     * tu.createToken creates a user and an admin user is already created,
-     * so use one of these.
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
      */
     .then(() => User.findOne())
     .then((usr) => lens.addWriter(usr))
@@ -64,22 +63,14 @@ describe('api: lenses: get writers >', () => {
     .expect((res) => {
       expect(res.body).to.have.length(2);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writers not found for invalid lens', (done) => {
     api.get(getWritersPath.replace('{key}', 'invalidLensId'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('find Writers, make sure passwords not returned', (done) => {
@@ -92,13 +83,7 @@ describe('api: lenses: get writers >', () => {
       expect(firstUser.password).to.equal(undefined);
       expect(secondUser.password).to.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by username', (done) => {
@@ -109,13 +94,7 @@ describe('api: lenses: get writers >', () => {
     .expect((res) => {
       expect(res.body).to.have.property('name', user.name);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by userId', (done) => {
@@ -126,13 +105,7 @@ describe('api: lenses: get writers >', () => {
     .expect((res) => {
       expect(res.body).to.have.property('id', user.id);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid resource but valid writers', (done) => {
@@ -140,13 +113,7 @@ describe('api: lenses: get writers >', () => {
       .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid username', (done) => {
@@ -154,12 +121,6 @@ describe('api: lenses: get writers >', () => {
       .replace('{userNameOrId}', 'invalidUser'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

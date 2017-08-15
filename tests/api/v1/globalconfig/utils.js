@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();

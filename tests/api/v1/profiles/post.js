@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -50,6 +49,7 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.name).to.equal(p0.name);
         expect(res.body.botAccess).to.equal('r');
         done();
@@ -65,6 +65,7 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
       });
@@ -78,6 +79,7 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
       });
@@ -86,7 +88,7 @@ describe(`api: POST ${path}`, () => {
     it('Fail, duplicate profile', (done) => {
       // Create profile ___1
       tu.db.Profile.create(p0);
-      // Create identical profile
+      /* Create identical profile */
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
       .send(p0)
@@ -95,8 +97,9 @@ describe(`api: POST ${path}`, () => {
         if (err) {
           return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain('SequelizeUniqueConstraintError');
         done();
       });
     });
@@ -104,14 +107,15 @@ describe(`api: POST ${path}`, () => {
     it('Fail, invalid profile name', (done) => {
       api.post(`${path}`)
       .set('Authorization', predefinedAdminUserToken)
-      .send({ name: ''})
+      .send({ name: '' })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain('SCHEMA_VALIDATION_FAILED');
         done();
       });
     });

@@ -10,11 +10,10 @@
  * tests/api/v1/admin/rebuildSampleStore.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const featureToggles = require('feature-toggles');
 const sampleStore = require('../../../../cache/sampleStore');
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
@@ -55,7 +54,7 @@ describe(`api: POST ${path} (feature is off):`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         testUserToken = res.body.token;
@@ -75,13 +74,7 @@ describe(`api: POST ${path} (feature is off):`, () => {
     .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('user is NOT admin', (done) => {
@@ -89,13 +82,7 @@ describe(`api: POST ${path} (feature is off):`, () => {
     .set('Authorization', testUserToken)
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 });
 
@@ -131,7 +118,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         testUserToken = res.body.token;
@@ -186,7 +173,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
           value: '0',
           relatedLinks: [
             { name: 'Salesforce', value: 'http://www.salesforce.com' },
-          ]
+          ],
         }))
         .then(() => Sample.create({
           subjectId: s2.id,
@@ -194,7 +181,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
           value: '50',
           relatedLinks: [
             { name: 'Salesforce', value: 'http://www.salesforce.com' },
-          ]
+          ],
         }))
         .then(() => Sample.create({
           subjectId: s3.id,
@@ -202,7 +189,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
           value: '5',
           relatedLinks: [
             { name: 'Salesforce', value: 'http://www.salesforce.com' },
-          ]
+          ],
         }))
         .then(() => done())
         .catch(done);
@@ -213,7 +200,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
   after((done) => {
     u.forceDelete(done)
     .then(() => tu.forceDeleteUser)
-    .then(() => redisClient.flushallAsync())
+    .then(() => rcli.flushallAsync())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())
@@ -230,7 +217,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
         return done(err);
       }
 
-      return redisClient.smembersAsync(sampleStore.constants.indexKey.aspect)
+      return rcli.smembersAsync(sampleStore.constants.indexKey.aspect)
       .then((res) => {
         expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
         expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -238,8 +225,7 @@ describe(`api: POST ${path} (feature is on):`, () => {
         // Make sure aspects that don't have samples are *also* here
         expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
       })
-      .then(() => redisClient
-        .smembersAsync(sampleStore.constants.indexKey.sample))
+      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
       .then((res) => {
         expect(res
           .includes('samsto:sample:___subject1.___subject2|___aspect1'))
@@ -251,15 +237,14 @@ describe(`api: POST ${path} (feature is on):`, () => {
           .includes('samsto:sample:___subject1.___subject3|___aspect1'))
           .to.be.true;
       })
-      .then(() => redisClient
-        .smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res.includes('samsto:subject:___subject1.___subject2'))
           .to.be.true;
         expect(res.includes('samsto:subject:___subject1.___subject3'))
           .to.be.true;
       })
-      .then(() => done())
+      .then(done)
       .catch(done);
     });
   });
@@ -269,12 +254,6 @@ describe(`api: POST ${path} (feature is on):`, () => {
     .set('Authorization', testUserToken)
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 });

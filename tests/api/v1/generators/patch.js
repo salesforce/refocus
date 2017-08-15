@@ -10,7 +10,6 @@
  * tests/api/v1/generator/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -57,9 +56,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.name).to.equal(newName.name);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('simple patching using name in the url: ok', (done) => {
@@ -73,16 +70,14 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.name).to.equal(newName.name);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('patch complex json schema', (done) => {
     const toPatch = {
       generatorTemplate: {
         name: 'refocus-ok-generator-template_V1',
-        version: '^1.0.0'
+        version: '^1.0.0',
       },
       context: {
         okValue: {
@@ -105,9 +100,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.generatorTemplate).to.deep.equal(toPatch.generatorTemplate);
       expect(res.body.context).to.deep.equal(toPatch.context);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('switch isActive from false to true', (done) => {
@@ -118,8 +111,6 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.isActive).to.equal(true);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

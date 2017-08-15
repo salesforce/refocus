@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -52,7 +51,7 @@ describe(`api: GET ${path}`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       testUserToken = res.body.token;
@@ -63,7 +62,7 @@ describe(`api: GET ${path}`, () => {
         value: 'def',
       })
       .expect(constants.httpStatus.CREATED)
-      .end(() => done());
+      .end(done);
     });
   });
 
@@ -77,7 +76,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.key).to.equal(config);
@@ -91,7 +90,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.property('key',
@@ -107,7 +106,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.property('key',

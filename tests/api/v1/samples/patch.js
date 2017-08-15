@@ -10,7 +10,6 @@
  * tests/api/v1/samples/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -56,9 +55,9 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send({ name: '2' })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.contain('ValidationError');
@@ -74,7 +73,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { apiLinks } = res.body;
@@ -82,7 +81,7 @@ describe(`api: PATCH ${path}`, () => {
       let href = '';
       for (let j = apiLinks.length - 1; j >= ZERO; j--) {
         href = apiLinks[j].href;
-        if (apiLinks[j].method!= 'POST') {
+        if (apiLinks[j].method != 'POST') {
           expect(href.split('/').pop()).to.equal(u.sampleName);
         } else {
           expect(href).to.equal(path);
@@ -102,7 +101,7 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = res.body;
@@ -120,7 +119,7 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = res.body;
@@ -137,9 +136,9 @@ describe(`api: PATCH ${path}`, () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.id).to.be.undefined;
@@ -158,13 +157,7 @@ describe(`api: PATCH ${path}`, () => {
           throw new Error('Incorrect Status Value');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -185,12 +178,12 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(1);
-        expect(res.body.relatedLinks).to.have.deep.property('[0].name',
-            'link');
+        expect(res.body.relatedLinks)
+        .to.have.deep.property('[0].name', 'link');
         done();
       });
     });
@@ -202,7 +195,7 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err/* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         api.patch(`${path}/${sampleName}`)
@@ -227,7 +220,7 @@ describe(`api: PATCH ${path}`, () => {
              * at the end to get the name dynamically.
              */
             expect(res.body.relatedLinks[i])
-              .to.have.property('name', 'link' + i);
+            .to.have.property('name', 'link' + i);
           }
 
           done();
@@ -250,15 +243,9 @@ describe(`api: PATCH ${path}`, () => {
         expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
         expect(res.body.errors[ZERO].source)
-          .to.contain('relatedLinks');
+        .to.contain('relatedLinks');
       })
-      .end((err/* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('patching with readOnly field id should fail', (done) => {
@@ -274,8 +261,8 @@ describe(`api: PATCH ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: id');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: id');
         return done();
       });
     });
@@ -293,8 +280,8 @@ describe(`api: PATCH ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: status');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: status');
         return done();
       });
     });
@@ -312,8 +299,8 @@ describe(`api: PATCH ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: previousStatus');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: previousStatus');
         return done();
       });
     });
@@ -331,8 +318,8 @@ describe(`api: PATCH ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: statusChangedAt');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: statusChangedAt');
         return done();
       });
     });
@@ -377,13 +364,7 @@ describe(`api: PATCH ${path} aspect isPublished false`, () => {
     .set('Authorization', token)
     .send({ value: '3' })
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 

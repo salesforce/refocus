@@ -52,16 +52,17 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.have.property('name', pname);
       expect(res.body).to.have.property('aspectAccess', 'r');
       expect(res.body).to.have.property('botAccess', 'r');
       expect(res.body).to.have.property('eventAccess', 'r');
       expect(res.body).to.have.property('lensAccess', 'r');
       expect(res.body).to.have.property('perspectiveAccess', 'r');
-      expect(res.body).to.have.property('profileAccess', 'r'); 
+      expect(res.body).to.have.property('profileAccess', 'r');
       expect(res.body).to.have.property('roomAccess', 'rw');
-      expect(res.body).to.have.property('roomTypeAccess', 'r');  
-      expect(res.body).to.have.property('sampleAccess', 'r'); 
+      expect(res.body).to.have.property('roomTypeAccess', 'r');
+      expect(res.body).to.have.property('sampleAccess', 'r');
       expect(res.body).to.have.property('subjectAccess', 'r');
       expect(res.body).to.have.property('userAccess', 'r');
       done();
@@ -76,6 +77,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.have.property('name', adminProfile.name);
       done();
     });
@@ -89,6 +91,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.be.instanceof(Array);
       done();
     });
@@ -98,6 +101,6 @@ describe(`api: GET ${path}`, () => {
     api.get(`${path}/who@what.com`)
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end(done);
   });
 });

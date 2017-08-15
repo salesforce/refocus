@@ -69,7 +69,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.errors).to.have.length(ONE);
         expect(res.body.errors).to.have.deep.property('[0].type',
@@ -90,12 +90,6 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.not.equal(u.samlParams.samlEntryPoint);
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

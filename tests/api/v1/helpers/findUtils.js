@@ -68,7 +68,7 @@ describe('build options object: ', () => {
       limit: {},
       offset: {},
       name: {},
-      description: {}
+      description: {},
     };
     done();
   });
@@ -142,4 +142,3 @@ describe('build options object: ', () => {
     done();
   });
 });
-
