@@ -162,7 +162,7 @@ function populateAspects() {
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateSubjects() {
-  return Subject.findAll({ where: { isPublished: true } })
+  return Subject.findAll()
   .then((subjects) => {
     if (infoLoggingEnabled) {
       const msg = `Starting to load ${subjects.length} subjects to cache :|`;
