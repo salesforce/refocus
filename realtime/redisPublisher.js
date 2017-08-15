@@ -92,6 +92,19 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 } // publishChange
 
 /**
+ * [publishPartialSample description]
+ * @param  {[type]} sampleInst [description]
+ * @param  {[type]} event      [description]
+ * @return {[type]}            [description]
+ */
+function publishPartialSample(sampleInst, event) {
+  const eventType = event || getSampleEventType(sampleInst);
+  // will be over written when unwrapping json.stringified fields
+  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
+  publishObject(sample, eventType);
+} // publishPartialSample
+
+/**
  * The sample object needs to be attached its subject object and it also needs
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
@@ -117,8 +130,10 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (featureToggles.isFeatureEnabled(constants.featureName)) {
     const aspKey = redisStore.toKey('aspect', aspName);
     const subKey = redisStore.toKey('subject', subName);
+    const getAspect = sample.aspect ? Promise.resolve(sample.aspect) :
+            redisClient.hgetallAsync(aspKey);
     promisesArr = [
-      redisClient.hgetallAsync(aspKey),
+      getAspect,
       redisClient.hgetallAsync(subKey),
     ];
   } else {
@@ -146,28 +161,20 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     const aspect = asp.get ? asp.get() : asp;
     delete aspect.writers;
 
-    // if field value is stringified, will parse the value.
+    const subject = sub.get ? sub.get() : sub;
+    delete subject.writers;
+
+    // attach sample
     sample.aspect = redisStore.arrayStringsToJson(aspect,
       constants.fieldsToStringify.aspect);
 
-    if (sub) {
+    // attach subject to the sample
+    sample.subject = redisStore.arrayStringsToJson(subject,
+      constants.fieldsToStringify.subject);
 
-      /*
-       *pass the sample instance to the publishObject function only if the
-       *aspect and subject are published
-       */
-      if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
-
-        // attach subject to the sample
-        const subject = sub.get ? sub.get() : sub;
-        sample.subject = redisStore.arrayStringsToJson(subject,
-          constants.fieldsToStringify.subject);
-
-        // attach absolutePath field to the sample
-        sample.absolutePath = subName;
-        publishObject(sample, eventType);
-      }
-    }
+    // attach absolutePath field to the sample
+    sample.absolutePath = subName;
+    publishObject(sample, eventType);
 
     return sample;
   });
@@ -176,5 +183,6 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 module.exports = {
   publishObject,
   publishSample,
+  publishPartialSample,
   getSampleEventType,
 }; // exports

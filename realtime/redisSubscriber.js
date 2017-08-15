@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
 const sub = require('../cache/redisCache').client.sub;
+const featureToggles = require('feature-toggles');
+const rtUtils = require('./utils');
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -24,11 +26,25 @@ module.exports = (io) => {
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
-
-    /*
-     * pass on the message received through the redis subscriber to the socket
-     * io emitter to send data to the browser clients.
-     */
-    emitter(io, key, mssgObj);
+    console.log('-----key---', key);
+    const parsedObj = rtUtils.parseObject(mssgObj[key], key);
+    if (featureToggles.isFeatureEnabled('publishPartialSample') &&
+    rtUtils.isThisSample(parsedObj)) {
+      rtUtils.attachAspectSubject(parsedObj)
+      .then((obj) => {
+        console.log('object to be emitted this is a complete sample', obj);
+       /*
+        * pass on the message received through the redis subscriber to the
+        * socket io emitter to send data to the browser clients.
+        */
+        emitter(io, key, obj);
+      });
+    } else {
+      /*
+       * pass on the message received through the redis subscriber to the socket
+       * io emitter to send data to the browser clients.
+       */
+      emitter(io, key, parsedObj);
+    }
   });
 };

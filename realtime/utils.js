@@ -9,10 +9,12 @@
 /**
  * realTime/utils.js
  */
-const ip = require('ip');
-
 'use strict'; // eslint-disable-line strict
+const ip = require('ip');
 const constants = require('./constants');
+const redisClient = require('../cache/redisCache').client.sampleStore;
+const redisStore = require('../cache/sampleStore');
+
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -29,12 +31,22 @@ const filters = ['aspectFilter',
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has parentAbsolutePath has
- * one of its property.
+ * @returns {Boolean} - returns true if the object has the property
+ * "parentAbsolutePath"
  */
 function isThisSubject(obj) {
   return obj.hasOwnProperty('parentAbsolutePath');
 }
+
+/**
+ * A function to see if an object is a sample object or not. It returns true
+ * if an object passed has 'value' as one of its property.
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the object has the property "value"
+ */
+function isThisSample(obj) {
+  return obj.hasOwnProperty('value');
+} // isThisSample
 
 /**
  * Transforms and returns the stringified object.
@@ -62,7 +74,7 @@ function getNewObjAsString(key, obj) {
 
 /**
  * The message object received from the redis channel, contains a "new" property
- * when a database instance is updated. This function check to see if the
+ * when a database instance is updated. This function checks to see if the
  * message object contains a "new" property, if it does, it returns the new
  * object.
  * @param {Object}  messgObj - Message object received from the redis channel.
@@ -301,6 +313,40 @@ function isIpWhitelisted(addr, whitelist) {
   throw new Error(`IP address "${addr}" is not whitelisted`);
 } // isIpWhitelisted
 
+/**
+ * [attachAspectSubject description]
+ * @param  {[type]} sampInst [description]
+ * @return {[type]}          [description]
+ */
+function attachAspectSubject(sampleInst) {
+  const nameParts = sampleInst.name.split('|');
+  const subName = nameParts[0];
+  const aspName = nameParts[1];
+  const aspKey = redisStore.toKey('aspect', aspName);
+  const subKey = redisStore.toKey('subject', subName);
+  const promiseArr = [
+    redisClient.hgetallAsync(aspKey),
+    redisClient.hgetallAsync(subKey),
+  ];
+
+  return Promise.all(promiseArr)
+  .then((responses) => {
+    const asp = responses[0];
+    const sub = responses[1];
+    sampleInst.aspect = redisStore.arrayStringsToJson(asp,
+         redisStore.constants.fieldsToStringify.aspect);
+    sampleInst.subject = redisStore.arrayStringsToJson(sub,
+         redisStore.constants.fieldsToStringify.subject);
+
+    /*
+     * attach absolutePath field to the sample. This is done to simplify the
+     * filtering done on the subject absolutePath
+     */
+    sampleInst.absolutePath = subName;
+    return sampleInst;
+  });
+} // attachAspectSubject
+
 module.exports = {
   getNamespaceString,
   getNewObjAsString,
@@ -308,4 +354,6 @@ module.exports = {
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
+  isThisSample,
+  attachAspectSubject,
 }; // exports
