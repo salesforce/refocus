@@ -57,7 +57,7 @@ describe('Profile model with users', () => {
     Profile.create({ name: `${tu.namePrefix}2` })
     .then((p) => {
       newProfileId = p.id;
-      p.destroy();
+      return p.destroy();
     })
     .then(() => user.update({ profileId: newProfileId }))
     .then((returnedUser) => {
