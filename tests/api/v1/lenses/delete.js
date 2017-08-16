@@ -19,7 +19,7 @@ const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/lenses/delete.js >', () => {
   let lensId;
   let token;
 

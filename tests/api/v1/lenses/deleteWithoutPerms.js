@@ -18,7 +18,7 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/lenses';
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/lenses/deleteWithoutPerms.js >', () => {
   let lens;
   let otherValidToken;
 

@@ -19,7 +19,7 @@ const path = '/v1/perspectives';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/perspectives/delete.js >', () => {
   let perspectiveId;
   let token;
   const name = `${tu.namePrefix}testPersp`;

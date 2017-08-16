@@ -21,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/generators/{key}/writers';
 const getWriterPath = '/v1/generators/{key}/writers/{userNameOrId}';
 
-describe('api: generators: get writer(s)', () => {
+describe('tests/api/v1/generators/getWriters.js >', () => {
   let token;
   let generator;
   let user;

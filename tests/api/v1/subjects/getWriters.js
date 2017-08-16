@@ -21,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/subjects/{key}/writers';
 const getWriterPath = '/v1/subjects/{key}/writers/{userNameOrId}';
 
-describe('api: subjects: get writers: ', () => {
+describe('tests/api/v1/subjects/getWriters.js >', () => {
   let token;
   let subject;
   let user;
@@ -125,7 +125,7 @@ describe('api: subjects: get writers: ', () => {
     .end(done);
   });
 
-  describe('with api activity logs enabled', () => {
+  describe('with api activity logs enabled >', () => {
     before(() => tu.toggleOverride('enableApiActivityLogs', true));
     after(() => tu.toggleOverride('enableApiActivityLogs', false));
 

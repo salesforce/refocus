@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/events/post.js >', () => {
   let token;
 
   before((done) => {
@@ -34,57 +34,54 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('POST event', () => {
-    it('Pass, post event', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, post event', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(u.getStandard())
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.logLine);
-        done();
-      });
+      expect(res.body.name).to.equal(u.logLine);
+      done();
     });
+  });
 
-    it('Pass, duplicate event', (done) => {
-      u.createStandard()
-      .then(() => done());
+  it('Pass, duplicate event', (done) => {
+    u.createStandard()
+    .then(() => done());
 
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(u.getStandard())
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.logLine);
-      });
+      expect(res.body.name).to.equal(u.logLine);
     });
+  });
 
-    it('Fail, event validation incorrect', (done) => {
-      let testEvent = u.getStandard();
-      testEvent.context = 'INVALID_VALUE';
+  it('Fail, event validation incorrect', (done) => {
+    let testEvent = u.getStandard();
+    testEvent.context = 'INVALID_VALUE';
 
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testEvent)
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testEvent)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain(tu.schemaValidationErrorName);
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
     });
   });
 });
-

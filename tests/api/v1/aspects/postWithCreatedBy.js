@@ -24,7 +24,8 @@ const ZERO = 0;
 const ONE = 1;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe('tests/api/v1/aspects/postWithCreatedBy.js, token NOT enforced ' +
+path + ' >', () => {
   let token;
   let user;
   const predefinedAdminUserToken = jwtUtil.createToken(

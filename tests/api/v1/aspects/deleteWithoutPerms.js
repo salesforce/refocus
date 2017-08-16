@@ -21,7 +21,7 @@ const deleteOneRelLink = '/v1/aspects/{key}/relatedLinks/{akey}';
 const deleteOneTag = '/v1/aspects/{key}/tags/{akey}';
 const path = '/v1/aspects/{key}';
 
-describe('api: aspects: delete without permission', () => {
+describe('tests/api/v1/aspects/deleteWithoutPerms.js >', () => {
   // let token;
   let i;
   let aspect;

@@ -20,7 +20,7 @@ const path = '/v1/collectors';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/collectors/post.js >', () => {
   let token;
   before((done) => {
     tu.createToken()

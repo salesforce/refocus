@@ -20,7 +20,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const path = '/v1/profiles';
 
-describe(`api: GET ${path} (with users)`, () => {
+describe('tests/api/v1/profiles/getWithUsers.js (with users) >', () => {
   let pid;
   let token;
 

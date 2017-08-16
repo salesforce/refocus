@@ -20,7 +20,8 @@ const expect = require('chai').expect;
 const regPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe(`api: GET ${path}/U/tokens`, () => {
+describe('tests/api/v1/userTokens/get.js, ' +
+`GET ${path}/U/tokens >`, () => {
   /* user uname has 2 tokens: Voldemort and Tom
    user with unameOther has 1 token: Dumbledore */
   const uname = `${tu.namePrefix}test@refocus.com`;

@@ -20,7 +20,8 @@ const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe('tests/api/v1/samples/upsertBulkCaseSensitive.js, ' +
+`POST ${path} >`, () => {
   const sampleName = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
   let token;
   let subjectId = '';
@@ -60,7 +61,7 @@ describe('api: POST ' + path, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('when sample EXISTS', () => {
+  describe('when sample EXISTS >', () => {
     beforeEach((done) => {
       Sample.create({
         subjectId,
@@ -97,7 +98,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  describe('when sample DOES NOT exist', () => {
+  describe('when sample DOES NOT exist >', () => {
     it('different case name should NOT modify sample name', (done) => {
       api.post(path)
       .set('Authorization', token)

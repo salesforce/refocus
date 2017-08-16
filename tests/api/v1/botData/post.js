@@ -26,7 +26,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/botData/post.js >', () => {
   const testBotData = u.getStandard();
   let token;
 
@@ -60,44 +60,24 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('POST botData', () => {
-    it('Pass, post botData', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testBotData)
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, post botData', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotData)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.name);
-        done();
-      });
+      expect(res.body.name).to.equal(u.name);
+      done();
     });
+  });
 
-    it('Fail, duplicate botData', (done) => {
-      BotData.create(testBotData)
-      .then(() => {
-        api.post(`${path}`)
-        .set('Authorization', token)
-        .send(testBotData)
-        .expect(constants.httpStatus.BAD_REQUEST)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.errors[ZERO].type)
-          .to.contain('ValidationError');
-          done();
-        });
-      })
-      .catch(done);
-    });
-
-    it('Fail, botData with invalid name', (done) => {
-      testBotData.name = '~!invalidName';
+  it('Fail, duplicate botData', (done) => {
+    BotData.create(testBotData)
+    .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotData)
@@ -108,10 +88,27 @@ describe(`api: POST ${path}`, () => {
         }
 
         expect(res.body.errors[ZERO].type)
-        .to.contain(tu.schemaValidationErrorName);
+        .to.contain('ValidationError');
         done();
       });
+    })
+    .catch(done);
+  });
+
+  it('Fail, botData with invalid name', (done) => {
+    testBotData.name = '~!invalidName';
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotData)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
     });
   });
 });
-

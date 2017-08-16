@@ -25,7 +25,7 @@ const BotAction = tu.db.BotAction;
 const path = '/v1/botActions';
 const expect = require('chai').expect;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/botActions/delete.js >', () => {
   let testBotAction;
   let token;
 
@@ -64,41 +64,38 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('DELETE botAction', () => {
-    it('Pass, delete botAction', (done) => {
-      api.delete(`${path}/${testBotAction.id}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, delete botAction', (done) => {
+    api.delete(`${path}/${testBotAction.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Pass, delete botAction by name', (done) => {
-      api.delete(`${path}/${testBotAction.name}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Fail, botAction not found', (done) => {
-      api.delete(`${path}/INVALID_ID`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end(done);
+      expect(res.body.name).to.equal(u.name);
+      done(err);
     });
   });
-});
 
+  it('Pass, delete botAction by name', (done) => {
+    api.delete(`${path}/${testBotAction.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done(err);
+    });
+  });
+
+  it('Fail, botAction not found', (done) => {
+    api.delete(`${path}/INVALID_ID`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(done);
+  });
+});

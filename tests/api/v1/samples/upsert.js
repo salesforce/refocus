@@ -19,11 +19,10 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-
 const path = '/v1/samples/upsert';
 const POST_PATH = '/v1/samples';
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
   let aspect;
   let subject;
   let token;
@@ -83,7 +82,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('not found cases', () => {
+  describe('not found cases >', () => {
     it('with non existing aspect', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -113,7 +112,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe(`un published subject`, () => {
+  describe(`unpublished subject >`, () => {
     let unPublishedSubjectAbsolutePath;
 
     // unpublish the subject
@@ -147,7 +146,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe(`un published aspect`, () => {
+  describe(`unpublished aspect >`, () => {
     let updatedAspect;
 
     // unpublish the aspects
@@ -175,7 +174,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe(`when sample does not exist`, () => {
+  describe('sample does not exist >', () => {
     it('upsert succeeds', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -324,7 +323,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('when the sample already exists', () => {
+  describe('sample already exists >', () => {
     beforeEach((done) => {
       Sample.create({
         name: `${subject.absolutePath}|${aspect.name}`,
@@ -461,7 +460,7 @@ describe(`api: POST ${path}`, () => {
       });
     });
 
-    describe('with readOnly fields should fail', () => {
+    describe('with readOnly fields should fail >', () => {
       it('status', (done) => {
         api.post(path)
         .set('Authorization', token)

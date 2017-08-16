@@ -17,7 +17,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/api-docs';
 
-describe('Ip Restriction Test', () => {
+describe('api/v1/ipfilter/whitelistLocalhost.js >', () => {
   let token;
 
   before((done) => {
