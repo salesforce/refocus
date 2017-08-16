@@ -65,7 +65,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     roomTypeAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     sampleAccess: {
       type: dataTypes.ENUM('r', 'rw'),

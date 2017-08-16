@@ -20,7 +20,7 @@ module.exports = {
       qi.sequelize.query('UPDATE "Profiles" SET "aspectAccess" = \'rw\'' +
         ', "botAccess" = \'rw\', "eventAccess" = \'rw\'' +
         ', "lensAccess" = \'rw\', "perspectiveAccess" = \'rw\'' +
-        ', "roomTypeAccess" = \'r\', "sampleAccess" = \'rw\'' +
+        ', "roomTypeAccess" = \'rw\', "sampleAccess" = \'rw\'' +
         ', "subjectAccess" = \'rw\', "userAccess" = \'rw\'' +
         ' WHERE "name"=\'RefocusUser\';'
       )

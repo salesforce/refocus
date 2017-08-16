@@ -36,7 +36,7 @@ describe('db: Profile: create', () => {
         expect(o).to.have.property('perspectiveAccess').to.equal('rw');
         expect(o).to.have.property('profileAccess').to.equal('r');
         expect(o).to.have.property('roomAccess').to.equal('rw');
-        expect(o).to.have.property('roomTypeAccess').to.equal('r');
+        expect(o).to.have.property('roomTypeAccess').to.equal('rw');
         expect(o).to.have.property('sampleAccess').to.equal('rw');
         expect(o).to.have.property('subjectAccess').to.equal('rw');
         expect(o).to.have.property('userAccess').to.equal('rw');
