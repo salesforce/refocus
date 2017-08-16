@@ -23,7 +23,8 @@ const subjectIndexName = redisStore.constants.indexKey.subject;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const aspectIndexName = redisStore.constants.indexKey.aspect;
 
-describe('redis: aspect: create: ', () => {
+describe('tests/cache/models/aspects/aspectCRUD.js, ' +
+'redis: aspect: create >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
 
   // const parUnPub =

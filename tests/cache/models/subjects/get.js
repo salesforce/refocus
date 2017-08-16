@@ -18,7 +18,8 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe('api::redisEnabled::GET specific subject', () => {
+describe('tests/cache/models/subjects/get.js, ' +
+'api::redisEnabled::GET specific subject >', () => {
   let token;
   const name = '___Subject1';
   const childAbsolutePath = '___Subject1.___Subject3';

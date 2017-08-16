@@ -17,7 +17,7 @@ const ONE = 1;
 const TWO = 2;
 const client = redis.client.realtimeLogging;
 
-describe('kueStatsActivityLogs', () => {
+describe('tests/clock/kueStatsActivityLogs.js >', () => {
   it('generateLogObject', () => {
     k.generateLogObject()
     .then((obj) => {

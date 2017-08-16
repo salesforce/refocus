@@ -23,7 +23,7 @@ const Sample = tu.db.Sample;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const redisOps = rtu.redisOps;
 
-describe('redis: subject: CRUD: ', () => {
+describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   const parentName = `${tu.namePrefix}NorthAmerica`;
   const par = { name: parentName, isPublished: true };
   const parUnPub = {

@@ -18,7 +18,7 @@ const tu = require('../../testUtils');
 const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
   });

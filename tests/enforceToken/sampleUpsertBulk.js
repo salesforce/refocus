@@ -22,7 +22,7 @@ const User = tu.db.User;
 const Profile = tu.db.Profile;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe('tests/enforceToken/sampleUpsertBulk.js, api: POST >' + path, () => {
   let token;
 
   before((done) => {

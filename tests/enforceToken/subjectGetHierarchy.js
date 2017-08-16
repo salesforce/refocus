@@ -21,7 +21,8 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/enforceToken/subjectGetHierarchy.js, api: GET ${path}`,
+() => {
   let token;
 
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -87,7 +88,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('subject hierarchy with samples', () => {
+  describe('subject hierarchy with samples >', () => {
     it('forbidden if no token', (done) => {
       api.get(path.replace('{key}', ipar))
       .expect(constants.httpStatus.FORBIDDEN)

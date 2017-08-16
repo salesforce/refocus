@@ -9,14 +9,14 @@
 /**
  * tests/view/components/createPerspective.js
  */
-
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
 import CreatePerspective from '../../../view/perspective/CreatePerspective';
 import { mount } from 'enzyme';
 
-describe('Perspective view ', () => {
+describe('tests/view/components/createPerspective.js, Perspective view >',
+() => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -105,7 +105,7 @@ describe('Perspective view ', () => {
     CreatePerspective.findCommonAncestor.restore();
   });
 
-  describe('after setting props isEditing to true', () => {
+  describe('after setting props isEditing to true >', () => {
     it('sendResource first argument is PUT', () => {
       const enzymeWrapper = setup(null, { isEditing: true });
       const instance = enzymeWrapper.instance();
@@ -129,7 +129,7 @@ describe('Perspective view ', () => {
     });
   });
 
-  describe('on create', () => {
+  describe('on create >', () => {
     it('dropdown options still contains all the lenses,' +
       ' even though state lens is empty', () => {
       // be default, not editing
@@ -162,7 +162,7 @@ describe('Perspective view ', () => {
     });
   });
 
-  describe('on initial render', () => {
+  describe('on initial render >', () => {
     it('on Create, output name is empty', () => {
       const enzymeWrapper = setup();
       const instance = enzymeWrapper.instance();
@@ -226,7 +226,7 @@ describe('Perspective view ', () => {
     expect(instance.state.perspectiveName).to.equal(DUMMY_STRING);
   });
 
-  describe('for string inputs', () => {
+  describe('for string inputs >', () => {
     it('by default, margin top of each dropdown is 0', () => {
       const enzymeWrapper = setup();
       const instance = enzymeWrapper.instance();
@@ -349,7 +349,7 @@ describe('Perspective view ', () => {
     });
   });
 
-  describe('for array inputs', () => {
+  describe('for array inputs >', () => {
     it('onclck remove pill, margin top is re-adjusted', () => {
       const RESOURCE_NAME = 'aspectTagFilter';
       const enzymeWrapper = setup({

@@ -20,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: timeout: ', () => {
+describe('tests/db/model/sample/timeout.js >', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;

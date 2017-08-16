@@ -18,9 +18,9 @@ const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const common = require('../../../db/helpers/common');
 
-describe('utility function tests:', () => {
+describe('tests/db/helpers/common.js >', () => {
   after(u.forceDelete);
-  describe('publishChange function:', () => {
+  describe('publishChange function >', () => {
     it('create a model', (done) => {
       const par = { name: `${tu.namePrefix}Alpha`, isPublished: true };
       Subject.create(par)
@@ -92,7 +92,7 @@ describe('utility function tests:', () => {
     });
   });
   describe('test sampleAspectAndSubjectArePublished and ' +
-    'augmentSampleWithSubjectAspectInfo function:', () => {
+  'augmentSampleWithSubjectAspectInfo function >', () => {
     let sub;
     before((done) => {
       Aspect.create({

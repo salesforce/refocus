@@ -18,86 +18,84 @@ const RoomType = tu.db.RoomType;
 const v = require('../roomType/utils');
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
-describe('db: room: create: ', () => {
+describe('tests/db/model/room/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('Create a new room', () => {
-    it('ok, room created', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        expect(o).to.have.property('active').to.equal(true);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room created', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      expect(o).to.have.property('active').to.equal(true);
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, room created settings default', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((o) => {
-        expect(o).to.have.property('settings');
-        expect(o.settings.Key1).to.equal('Value1');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room created settings default', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((o) => {
+      expect(o).to.have.property('settings');
+      expect(o.settings.Key1).to.equal('Value1');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, room created active false', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = roomType.id;
-        room.active = false;
-        return Room.create(room);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        expect(o).to.have.property('active').to.equal(false);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room created active false', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      room.active = false;
+      return Room.create(room);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      expect(o).to.have.property('active').to.equal(false);
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, room name invalid', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.name = invalidValue;
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.valErrorName);
-        expect(err.message.toLowerCase()).to.contain('validation error');
-        done();
-      })
-      .catch(done);
-    });
+  it('fail, room name invalid', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.name = invalidValue;
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, room type null', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = null;
-        return Room.create(room);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.message.toLowerCase()).to.contain('notnull violation');
-        done();
-      })
-      .catch(done);
-    });
+  it('fail, room type null', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = null;
+      return Room.create(room);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message.toLowerCase()).to.contain('notnull violation');
+      done();
+    })
+    .catch(done);
   });
 });
