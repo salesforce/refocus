@@ -10,7 +10,6 @@
  * tests/cache/models/samples/upsertBulk.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -18,7 +17,7 @@ const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const bulkUpsert = require('../../../../cache/models/samples.js')
-                        .bulkUpsertByName;
+  .bulkUpsertByName;
 const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
@@ -50,21 +49,17 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       valueType: 'NUMERIC',
       criticalRange: [0, 1],
     })
-    .then((aspectOne) => {
-      return Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect2`,
-        timeout: '10m',
-        valueType: 'BOOLEAN',
-        okRange: [10, 100],
-      });
-    })
-    .then((aspectTwo) => {
-      return Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      });
-    })
+    .then((aspectOne) => Aspect.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Aspect2`,
+      timeout: '10m',
+      valueType: 'BOOLEAN',
+      okRange: [10, 100],
+    }))
+    .then((aspectTwo) => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject`,
+    }))
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
@@ -93,8 +88,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
 
       const error = res.body.errors[0];
       expect(error.message).to.contain('name');
-      expect(error.type)
-        .to.equal(tu.schemaValidationErrorName);
+      expect(error.type).to.equal(tu.schemaValidationErrorName);
       return done();
     });
   });
@@ -114,13 +108,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('bulkUpsert method: all succeed', (done) => {
@@ -161,13 +149,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('bulkUpsert method: some succeed, some fail returns ok', (done) => {
@@ -204,13 +186,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('bulkUpsert method: all fail', (done) => {
@@ -245,13 +221,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('duplicate relatedLinks and sample name sends back ok', (done) => {
@@ -275,17 +245,11 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
-  it('bulk upsert should return OK even if every sample in the request ' +
-    'has readonly fields in them', (done) => {
+  it('bulk upsert should return OK even if every sample in the request has ' +
+  'readonly fields in them', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -304,12 +268,14 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.status).to.equal('OK');
       return done();
     });
   });
 
-  it('samples with read only fields in them should not be upserted', (done) => {
+  it('samples with read only fields in them should not be upserted',
+  (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -321,7 +287,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '10',
-      }
+      },
     ])
     .expect(constants.httpStatus.OK)
     .then(() => {
@@ -337,6 +303,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
           if (err) {
             return done(err);
           }
+
           expect(res.body).to.have.length(2);
           expect(res.body[0].value).to.not.equal('10');
           expect(res.body[1].value).to.equal('10');

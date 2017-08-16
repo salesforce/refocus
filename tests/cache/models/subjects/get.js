@@ -31,7 +31,7 @@ describe('api::redisEnabled::GET specific subject', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before(rtu.populateRedis);
@@ -46,7 +46,7 @@ describe('api::redisEnabled::GET specific subject', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { updatedAt, createdAt } = res.body;
@@ -62,7 +62,7 @@ describe('api::redisEnabled::GET specific subject', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal(name);
@@ -84,7 +84,7 @@ describe('api::redisEnabled::GET specific subject', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal(name);
@@ -105,7 +105,7 @@ describe('api::redisEnabled::GET specific subject', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(name);
@@ -129,23 +129,25 @@ describe('api::redisEnabled::GET specific subject', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.absolutePath).to.be.equal(childAbsolutePath);
       expect((Object.keys(res.body)).length).to.equal(4);
-      expect(Object.keys(res.body)).to.contain('name', 'absolutePath', 'id', 'apiLinks');
+      expect(Object.keys(res.body))
+      .to.contain('name', 'absolutePath', 'id', 'apiLinks');
       done();
     });
   });
 
-  it('get child by name returns defined childCount, hierarchyLevel', (done) => {
+  it('get child by name returns defined childCount, hierarchyLevel',
+  (done) => {
     api.get(`${path}/${childAbsolutePath}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.absolutePath).to.be.equal(childAbsolutePath);
@@ -155,19 +157,19 @@ describe('api::redisEnabled::GET specific subject', () => {
     });
   });
 
-
   it('get by name with fields filter: one field', (done) => {
     api.get(`${path}/${name}?fields=parentAbsolutePath`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal('');
       expect((Object.keys(res.body)).length).to.equal(3);
-      expect(Object.keys(res.body)).to.contain('parentAbsolutePath', 'id', 'apiLinks');
+      expect(Object.keys(res.body))
+      .to.contain('parentAbsolutePath', 'id', 'apiLinks');
       done();
     });
   });
@@ -177,7 +179,8 @@ describe('api::redisEnabled::GET specific subject', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      expect(res.body.errors[0].message).to.contain('Request validation failed');
+      expect(res.body.errors[0].message)
+      .to.contain('Request validation failed');
       done();
     });
   });

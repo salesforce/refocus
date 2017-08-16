@@ -10,12 +10,11 @@
  * tests/cache/models/samples/timeout.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const doTimeout = require('../../../../cache/sampleStoreTimeout').doTimeout;
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
@@ -112,8 +111,10 @@ describe('api::cache::timeout', () => {
       for (let i = timedOutSamples.length - 1; i >= 0; i--) {
         const { updatedAt, statusChangedAt } = timedOutSamples[i];
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
-        expect(statusChangedAt).to.equal(new Date(statusChangedAt).toISOString());
+        expect(statusChangedAt)
+        .to.equal(new Date(statusChangedAt).toISOString());
       }
+
       done();
     })
     .catch(done);
@@ -128,7 +129,7 @@ describe('api::cache::timeout', () => {
       expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 4 });
       expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
-    .then(() => redisClient.keysAsync(
+    .then(() => rcli.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
     )
     .then((sNames) => {
@@ -136,7 +137,7 @@ describe('api::cache::timeout', () => {
       sNames.forEach((s) => {
         commands.push(['hgetall', s]);
       });
-      return redisClient.batch(commands).execAsync();
+      return rcli.batch(commands).execAsync();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -155,7 +156,7 @@ describe('api::cache::timeout', () => {
       expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 3 });
       expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
-    .then(() => redisClient.keysAsync(
+    .then(() => rcli.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
     )
     .then((sNames) => {
@@ -163,7 +164,7 @@ describe('api::cache::timeout', () => {
       sNames.forEach((s) => {
         commands.push(['hgetall', s]);
       });
-      return redisClient.batch(commands).execAsync();
+      return rcli.batch(commands).execAsync();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -195,7 +196,7 @@ describe('api::cache::timeout', () => {
       expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 2 });
       expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
-    .then(() => redisClient.keysAsync(
+    .then(() => rcli.keysAsync(
       `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
     )
     .then((sNames) => {
@@ -203,7 +204,7 @@ describe('api::cache::timeout', () => {
       sNames.forEach((s) => {
         commands.push(['hgetall', s]);
       });
-      return redisClient.batch(commands).execAsync();
+      return rcli.batch(commands).execAsync();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -235,15 +236,14 @@ describe('api::cache::timeout', () => {
       expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 0 });
       expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
-    .then(() => redisClient.keysAsync(
-      `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase())
-    )
+    .then(() => rcli.keysAsync(
+      `samsto:sample:${tu.namePrefix}Subject|*`.toLowerCase()))
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {
         commands.push(['hgetall', s]);
       });
-      return redisClient.batch(commands).execAsync();
+      return rcli.batch(commands).execAsync();
     })
     .then((samples) => {
       samples.forEach((s) => {

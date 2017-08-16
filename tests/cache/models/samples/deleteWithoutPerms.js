@@ -10,7 +10,6 @@
  * tests/cache/models/samples/deleteWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -32,17 +31,13 @@ describe('api: DELETE Sample without permission', () => {
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
-    .then(() => {
-      return tu.createUser('myUniqueUser');
-    })
-    .then((usr) => {
-      return tu.createTokenFromUserName(usr.name);
-    })
+    .then(() => tu.createUser('myUniqueUser'))
+    .then((usr) => tu.createTokenFromUserName(usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -59,26 +54,19 @@ describe('api: DELETE Sample without permission', () => {
     .then((asp) => asp.addWriters(user))
     .then(() => samstoinit.populate())
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-
   it('deleting sample without permission should return 403', (done) => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
-
 
   it('403 for deleting relatedLinks without permission', (done) => {
     api.delete(
@@ -87,12 +75,7 @@ describe('api: DELETE Sample without permission', () => {
     )
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 
   it('403 for deleting all the relatedLinks without permission', (done) => {
@@ -101,11 +84,6 @@ describe('api: DELETE Sample without permission', () => {
     )
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 });
