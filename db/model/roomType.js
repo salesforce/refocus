@@ -98,25 +98,26 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots || !inst.changed('bots')) {
             resolve(inst);
           }
 
           if (bots.length > new Set(bots).size) {
-            reject(new Error(`Cannot have duplicate bots`));
+            reject(new Error('Cannot have duplicate bots'));
           }
 
-          bots.map((botName, index) => {
+          console.log(bots);
+
+          bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
-              if (o === null) {
-                reject(new Error(`Bot ${botName} not found`));
+              if (!o) {
+                reject(new Error('Bot ${botName} not found'));
               }
 
               if (index === bots.length - 1) {
                 resolve(inst);
               }
-
             });
           });
         });
@@ -133,25 +134,24 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null || !inst.changed('bots')) {
+          if (!bots || !inst.changed('bots')) {
             resolve(inst);
           }
 
           if (bots.length > new Set(bots).size) {
-            reject(new Error(`Cannot have duplicate bots`));
+            reject(new Error('Cannot have duplicate bots'));
           }
 
-          bots.map((botName, index) => {
+          bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
-              if (o === null) {
-                reject(new Error(`Bot ${botName} not found`));
+              if (!o) {
+                reject(new Error('Bot ${botName} not found'));
               }
 
               if (index === bots.length - 1) {
                 resolve(inst);
               }
-
             });
           });
         });
@@ -171,19 +171,19 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst._previousDataValues.bots.map((botName, index) => {
+          inst._previousDataValues.bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
-              .catch((err) => reject(err));
+              .catch(reject);
             });
           });
 
-          inst.dataValues.bots.map((botName, index) => {
+          inst.dataValues.bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)
-              .catch((err) => reject(err));
+              .catch(reject);
             });
           });
           resolve(inst);
@@ -203,11 +203,11 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.map((botName, index) => {
+          inst.dataValues.bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
-              .catch((err) => reject(err));
+              .catch(reject);
             });
           });
           resolve(inst);
@@ -227,11 +227,11 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.map((botName, index) => {
+          inst.dataValues.bots.forEach((botName, index) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)
-              .catch((err) => reject(err));
+              .catch(reject);
             });
           });
           resolve(inst);
