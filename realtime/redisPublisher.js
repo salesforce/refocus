@@ -92,7 +92,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 /**
  * Publishes the sample without attaching the related subject and the aspect to
  * the redis channel
- * @param  {Object} sampleInst - The sampel instance to be published
+ * @param  {Object} sampleInst - The sample instance to be published
  * @param  {String} event - The event type that is being published.
  * @returns {Object} - the sample object
  */
