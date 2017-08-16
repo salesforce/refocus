@@ -27,8 +27,8 @@ describe('tests/realtime/redisPublisher.js >', () => {
     const aspectName = `${tu.namePrefix}Aspect`;
     const sampleName = `${subjectName}|${aspectName}`;
 
-    before(() => tu.toggleOverride('enableRedisSampleStore', true));
-    beforeEach((done) => {
+    before((done) => {
+      tu.toggleOverride('enableRedisSampleStore', true);
       let a1;
       let s1;
       Aspect.create({
@@ -62,9 +62,10 @@ describe('tests/realtime/redisPublisher.js >', () => {
       .catch(done);
     });
 
-    afterEach(rtu.forceDelete);
-    afterEach(rtu.flushRedis);
-    after(() => tu.toggleOverride('enableRedisSampleStore', false));
+    after((done) => {
+      tu.toggleOverride('enableRedisSampleStore', false);
+      rtu.forceDelete(done);
+    });
 
     it('certain fields in aspect should be array, and others ' +
     'should be undefined', (done) => {
@@ -118,6 +119,39 @@ describe('tests/realtime/redisPublisher.js >', () => {
         done();
       })
       .catch(done);
+    });
+    describe('publishPartialSample tests', () => {
+      it('sample passed in without subject and aspect should be published ' +
+        ' without that', (done) => {
+        Sample.findOne({ where: { name: sampleName } })
+        .then((sam) => {
+          const sampInst = sam.get();
+          delete sampInst.aspect;
+          delete sampInst.subject;
+          return publisher.publishPartialSample(sampInst);
+        })
+        .then((pubObj) => {
+          expect(pubObj.subject).to.equal(undefined);
+          expect(pubObj.aspect).to.equal(undefined);
+          done();
+        })
+        .catch(done);
+      });
+
+      it('sample passed in with subject and aspect should be published ' +
+        ' without that', (done) => {
+        Sample.findOne({ where: { name: sampleName } })
+        .then((sam) => {
+          const sampInst = sam.get();
+          return publisher.publishPartialSample(sampInst);
+        })
+        .then((pubObj) => {
+          expect(pubObj.subject).to.equal(undefined);
+          expect(pubObj.aspect).to.equal(undefined);
+          done();
+        })
+        .catch(done);
+      });
     });
   });
 
@@ -244,6 +278,40 @@ describe('tests/realtime/redisPublisher.js >', () => {
           // pass plain object
           eventType = publisher.getSampleEventType(sam.get());
           expect(eventType).to.equal(sampleEvent.add);
+          done();
+        })
+        .catch(done);
+      });
+    });
+
+    describe('publishPartialSample tests', () => {
+      it('sample passed in without subject and aspect should be published ' +
+        ' without that', (done) => {
+        Sample.findById(sampId)
+        .then((sam) => {
+          const sampInst = sam.get();
+          delete sampInst.aspect;
+          delete sampInst.subject;
+          return publisher.publishPartialSample(sampInst);
+        })
+        .then((pubObj) => {
+          expect(pubObj.subject).to.equal(undefined);
+          expect(pubObj.aspect).to.equal(undefined);
+          done();
+        })
+        .catch(done);
+      });
+
+      it('sample passed in with subject and aspect should be published ' +
+        ' without that', (done) => {
+        Sample.findById(sampId)
+        .then((sam) => {
+          const sampInst = sam.get();
+          return publisher.publishPartialSample(sampInst);
+        })
+        .then((pubObj) => {
+          expect(pubObj.subject).to.equal(undefined);
+          expect(pubObj.aspect).to.equal(undefined);
           done();
         })
         .catch(done);

@@ -216,5 +216,21 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         }
       });
     });
+
+    describe('attachAspectSubject tests', () => {
+      it('useSampleStore = true', () => {
+        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, true)
+        .then((sample) => {
+          expect(sample).deep.equal(looksLikeSampleObjNA);
+        });
+      });
+
+      it('useSampleStore = false', () => {
+        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, false)
+        .then((sample) => {
+          expect(sample).deep.equal(looksLikeSampleObjNA);
+        });
+      });
+    });
   });
 });
