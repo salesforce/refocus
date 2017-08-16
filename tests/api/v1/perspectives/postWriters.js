@@ -104,7 +104,7 @@ describe('api: perspectives: post writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -119,7 +119,7 @@ describe('api: perspectives: post writers', () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -134,7 +134,7 @@ describe('api: perspectives: post writers', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();

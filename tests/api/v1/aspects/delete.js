@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -78,8 +77,9 @@ describe(`api: DELETE ${path}`, () => {
     .expect(notFound)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.name).to.equal(u.toCreate.name);
       done();
     });
@@ -91,13 +91,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect(bodyCheckIfDeleted)
     .expect(notFound)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete by name', (done) => {
@@ -106,13 +100,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect(bodyCheckIfDeleted)
     .expect(notFound)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('try doing a delete where you send a body');
@@ -167,13 +155,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(ZERO);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete one relatedLink', (done) => {
@@ -184,13 +166,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete related link by name', (done) => {
@@ -201,13 +177,7 @@ describe('api: aspects: DELETE RelatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 
@@ -272,14 +242,8 @@ describe(`api: DELETE ${path} with samples`, () => {
       .then((samp) => {
         expect(samp).to.have.length(ZERO);
       })
-      .catch((_err) => done(_err));
+      .catch(done);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

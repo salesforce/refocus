@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -53,7 +52,7 @@ describe(`api: PATCH ${path}`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       testUserToken = res.body.token;
@@ -65,13 +64,7 @@ describe(`api: PATCH ${path}`, () => {
         value: 'def',
       })
       .expect(constants.httpStatus.CREATED)
-      .end((err3 /*, res3 */ ) => {
-        if (err3) {
-          done(err3);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -81,18 +74,16 @@ describe(`api: PATCH ${path}`, () => {
   it('forbidden if not admin user', (done) => {
     api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', testUserToken)
-    .send({
-      value: 'updating',
-    })
+    .send({ value: 'updating' })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors).to.have.length(1);
-      expect(res.body.errors).to.have.deep.property('[0].type',
-        'ForbiddenError');
+      expect(res.body.errors)
+      .to.have.deep.property('[0].type', 'ForbiddenError');
       done();
     });
   });
@@ -100,13 +91,11 @@ describe(`api: PATCH ${path}`, () => {
   it('sucessful patch by predefined admin user', (done) => {
     api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', predefinedAdminUserToken)
-    .send({
-      value: 'updated!',
-    })
+    .send({ value: 'updated!' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.key).to.equal(GLOBAL_CONFIG);
@@ -115,18 +104,15 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  it('sucessful patch by predefined user with different case',
-  (done) => {
+  it('sucessful patch by predefined user with different case', (done) => {
     const updatedConfig = GLOBAL_CONFIG.toLowerCase();
     api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', predefinedAdminUserToken)
-    .send({
-      key: updatedConfig,
-    })
+    .send({ key: updatedConfig })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.key).to.equal(updatedConfig);

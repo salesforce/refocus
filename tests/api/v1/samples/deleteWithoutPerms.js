@@ -10,7 +10,6 @@
  * tests/api/v1/samples/deleteWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -29,17 +28,13 @@ describe('api: DELETE Sample without permission', () => {
 
   before((done) => {
     tu.createToken()
-    .then(() => {
-      return tu.createUser('myUniqueUser');
-    })
-    .then((usr) => {
-      return tu.createTokenFromUserName(usr.name);
-    })
+    .then(() => tu.createUser('myUniqueUser'))
+    .then((usr) => tu.createTokenFromUserName(usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -55,7 +50,7 @@ describe('api: DELETE Sample without permission', () => {
     })
     .then((asp) => asp.addWriters(user))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -65,41 +60,21 @@ describe('api: DELETE Sample without permission', () => {
     api.delete(`${path}/${sampleName}`)
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 
-
   it('403 for deleting relatedLinks without permission', (done) => {
-    api.delete(
-      deleteOneRelLinkPath.replace('{key}', sampleName)
-      .replace('{akey}', 'rlink0')
-    )
+    api.delete(deleteOneRelLinkPath.replace('{key}', sampleName)
+      .replace('{akey}', 'rlink0'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 
   it('403 for deleting all the relatedLinks without permission', (done) => {
-    api.delete(
-      deleteAllRelLinkPath.replace('{key}', sampleName)
-    )
+    api.delete(deleteAllRelLinkPath.replace('{key}', sampleName))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 });

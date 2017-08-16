@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/putWithParent.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -29,10 +28,7 @@ describe(`api: PUT ${path} with parents`, () => {
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
   const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
   const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
-  const p1 = { name:
-    `${tu.namePrefix}Quebec`,
-    isPublished: true,
-  };
+  const p1 = { name: `${tu.namePrefix}Quebec`, isPublished: true };
   const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const _root = { name: `${tu.namePrefix}_root`, isPublished: true };
 
@@ -90,9 +86,9 @@ describe(`api: PUT ${path} with parents`, () => {
         parentId: i0,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         // not a root
@@ -103,19 +99,19 @@ describe(`api: PUT ${path} with parents`, () => {
       });
     });
 
-    it('with parentAbsolutePath does NOT' +
-      ' update the hierarchyLevel', (done) => {
+    it('with parentAbsolutePath does NOT update the hierarchyLevel',
+    (done) => {
       api.put(`${path}/${i1}`)
       .set('Authorization', token)
       .send({
         name: n1.name,
         isPublished: p1.isPublished,
-        parentAbsolutePath: n0.name
+        parentAbsolutePath: n0.name,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         // not a root
@@ -126,19 +122,19 @@ describe(`api: PUT ${path} with parents`, () => {
       });
     });
 
-    it('with BOTH parentId and parentAbsolutePath does NOT' +
-      ' update the hierarchyLevel', (done) => {
+    it('with BOTH parentId and parentAbsolutePath does NOT update the ' +
+    'hierarchyLevel', (done) => {
       api.put(`${path}/${i1}`)
       .set('Authorization', token)
       .send({
         name: n1.name,
         isPublished: p1.isPublished,
-        parentAbsolutePath: n0.name
+        parentAbsolutePath: n0.name,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         // not a root
@@ -150,19 +146,29 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  /**
-  (0) PUT /v1/subjects/{key} unpublishing child subject with parentId or parentAbsolutePath field should re-parent the subject
-  (1) PUT /v1/subjects/{key} unpublishing child subject without parentId nor parentAbsolutePath field should set the subject as top level subject
-  (2) PUT /v1/subjects/{key} with parentId and parentAbsolutePath fails if parentAbsolutePath does not refer to the same subject record as specified by parentId
-  (3) PUT /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets the parent based on the parentId
-  (4) PUT /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets the parent based on the parentAbsolutePath
-  (5) PUT /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath reparents the subject as a root subject (i.e. no parent)
+  /*
+  (0) PUT /v1/subjects/{key} unpublishing child subject with parentId or
+        parentAbsolutePath field should re-parent the subject
+  (1) PUT /v1/subjects/{key} unpublishing child subject without parentId nor
+        parentAbsolutePath field should set the subject as top level subject
+  (2) PUT /v1/subjects/{key} with parentId and parentAbsolutePath fails if
+        parentAbsolutePath does not refer to the same subject record as
+        specified by parentId
+  (3) PUT /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets the
+        parent based on the parentId
+  (4) PUT /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets the
+        parent based on the parentAbsolutePath
+  (5) PUT /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath
+        reparents the subject as a root subject (i.e. no parent)
   (6) PUT /v1/subjects/{key} with parentId === id fails
   (7) PUT /v1/subjects/{key} with parentAbsolutePath === absolutePath fails
-  (8) PUT /v1/subjects/{key} with parentId unchanged, parentAbsolutePath pointing to a different parent fails
-  (9) PUT /v1/subjects/{key} with parentAbsolutePath unchanged, parentId pointing to a different parent fails
+  (8) PUT /v1/subjects/{key} with parentId unchanged, parentAbsolutePath
+        pointing to a different parent fails
+  (9) PUT /v1/subjects/{key} with parentAbsolutePath unchanged, parentId
+      pointing to a different parent fails
   */
-  it('fail when trying to update with parentId pointing to different subject than parentAbsolutePath', (done) => {
+  it('fail when trying to update with parentId pointing to different ' +
+  'subject than parentAbsolutePath', (done) => {
     api.put(`${path}/${i1}`)
     .set('Authorization', token)
     .send({
@@ -172,9 +178,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -182,7 +188,8 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  it('fail when trying to update with parentAbsolutePath pointing to different subject than parentId', (done) => {
+  it('fail when trying to update with parentAbsolutePath pointing to ' +
+  'different subject than parentId', (done) => {
     api.put(`${path}/${i1}`)
     .set('Authorization', token)
     .send({
@@ -192,9 +199,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -202,7 +209,8 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  it('fail when trying to update with parentAbsolutePath pointing to different subject than parentId', (done) => {
+  it('fail when trying to update with parentAbsolutePath pointing to ' +
+  'different subject than parentId', (done) => {
     api.put(`${path}/${i1}`)
     .set('Authorization', token)
     .send({
@@ -212,9 +220,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -231,9 +239,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('IllegalSelfParenting');
@@ -250,9 +258,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('IllegalSelfParenting');
@@ -260,7 +268,8 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  it('pass if parentAbsolutePath refers to the same subject as specified by parentId', (done) => {
+  it('pass if parentAbsolutePath refers to the same subject as specified ' +
+  'by parentId', (done) => {
     api.put(`${path}/${i0a}`)
     .set('Authorization', token)
     .send({
@@ -270,9 +279,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal(n0.name);
@@ -281,7 +290,8 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  it('fail if parentAbsolutePath refers to a different subject than specified by parentId', (done) => {
+  it('fail if parentAbsolutePath refers to a different subject than ' +
+  'specified by parentId', (done) => {
     api.put(`${path}/${i0}`)
     .set('Authorization', token)
     .send({
@@ -291,9 +301,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -311,9 +321,9 @@ describe(`api: PUT ${path} with parents`, () => {
       isPublished: true,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotFound');
@@ -330,9 +340,9 @@ describe(`api: PUT ${path} with parents`, () => {
       parentId: i0a,
     })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentId).to.equal(i0a);
@@ -351,9 +361,9 @@ describe(`api: PUT ${path} with parents`, () => {
       parentAbsolutePath: _root.name,
     })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentId).to.equal(iRoot);
@@ -369,9 +379,9 @@ describe(`api: PUT ${path} with parents`, () => {
     .set('Authorization', token)
     .send({ name: NAME, isPublished: true })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal('');
@@ -389,9 +399,9 @@ describe(`api: PUT ${path} with parents`, () => {
       .set('Authorization', token)
       .send({ name: NAME, isPublished: true })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.parentAbsolutePath).to.equal('');
@@ -413,9 +423,9 @@ describe(`api: PUT ${path} with parents`, () => {
         isPublished: false,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(NEW_NAME);
@@ -436,9 +446,9 @@ describe(`api: PUT ${path} with parents`, () => {
         parentAbsolutePath: _root.name,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.isPublished).to.be.false;
@@ -462,9 +472,9 @@ describe(`api: PUT ${path} with parents`, () => {
         parentId: iRoot,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.isPublished).to.be.false;

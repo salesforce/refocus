@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -72,13 +71,7 @@ describe(`api: PUT ${path}`, () => {
         throw new Error('Incorrect name Value');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('with same name and different case ' +
@@ -93,7 +86,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(toPut.name);
@@ -119,13 +112,7 @@ describe(`api: PUT ${path}`, () => {
         expect(res.body.relatedLinks).to.have.deep
           .property('[0].name', 'link1');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('update to add existing related link', (done) => {
@@ -145,13 +132,7 @@ describe(`api: PUT ${path}`, () => {
         expect(res.body.relatedLinks).to.have.deep
           .property('[0].name', 'link1');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('update related links with some additions and deletions', (done) => {
@@ -174,13 +155,7 @@ describe(`api: PUT ${path}`, () => {
             .to.have.property('name', 'link' + k);
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -198,8 +173,8 @@ describe(`api: PUT ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: id');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: id');
       return done();
     });
   });
@@ -218,8 +193,8 @@ describe(`api: PUT ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: isDeleted');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: isDeleted');
       return done();
     });
   });
@@ -239,13 +214,7 @@ describe(`api: PUT ${path}`, () => {
         expect(res.body.tags).to.have.length(ONE);
         expect(res.body.tags).to.have.members(['tagX']);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('cannot update aspect tags with names starting with ' +
@@ -264,13 +233,7 @@ describe(`api: PUT ${path}`, () => {
           expect(res.body.errors[ZERO].type)
             .to.equal(tu.schemaValidationErrorName);
         })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('update to add existing tag', (done) => {
@@ -287,13 +250,7 @@ describe(`api: PUT ${path}`, () => {
         expect(res.body.tags).to.have.length(ONE);
         expect(res.body.tags).to.have.members(['tagX']);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('update tags with some additions and deletions', (done) => {
@@ -338,7 +295,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[0].type).to.equal('DuplicateFieldError');

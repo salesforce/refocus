@@ -10,7 +10,6 @@
  * tests/api/v1/generators/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -44,32 +43,32 @@ describe(`api: POST ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.apiLinks).to.be.an('Array');
       expect(res.body.name).to.include(generator.name);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
-      return done() ;
+      done();
     });
   });
 
   it('simple post without requred fields', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
-
     delete _generator.name;
     delete _generator.aspects;
-
     api.post(path)
     .set('Authorization', token)
     .send(_generator)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (!err) {
-        done('Expecting "Schema Validation Failed" error');
+        return done('Expecting "Schema Validation Failed" error');
       }
+
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(2);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
-      return done();
+      done();
     });
   });
 
@@ -87,11 +86,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal(tu.uniErrorName);
         done();
       });
     });
@@ -104,11 +102,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal(tu.uniErrorName);
         done();
       });
     });

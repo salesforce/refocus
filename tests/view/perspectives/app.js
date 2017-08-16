@@ -15,63 +15,12 @@ const expect = chai.expect;
 import { getFilterQuery,
   getTagsFromArrays } from '../../../view/perspective/utils.js';
 
-describe('get filter query', () => {
-  it('given default exclude and no filter, should return ' +
-    'empty string', () => {
-    const perspectiveObject = {
-      aspectFilter: [],
-      aspectFilterType: 'EXCLUDE',
-      statusFilter: [],
-      statusFilterType: 'EXCLUDE',
-      subjectTagFilterType: 'EXCLUDE',
-      subjectTagFilter: [],
-      aspectTagFilterType: 'EXCLUDE',
-      aspectTagFilter: [],
-    };
-
-    const url = getFilterQuery(perspectiveObject);
-    expect(url).to.equal('');
-  });
-
-  describe('mix INCLUDE with EXCLUDE', () => {
-    it('one of each', () => {
+describe('tests/view/perspectives/app.js >', () => {
+  describe('get filter query >', () => {
+    it('given default exclude and no filter, should return ' +
+      'empty string', () => {
       const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: ['Critical'],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: [],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: [],
-      };
-
-      const url = getFilterQuery(perspectiveObject);
-      expect(url).to.equal('?aspect=aspect1&status=-Critical');
-    });
-
-    it('two of each', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1', 'aspect2'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: ['Critical', 'OK'],
-        statusFilterType: 'INCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: ['subjectTag1', 'subjectTag2'],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: ['aspectTag1', 'aspectTag2'],
-      };
-
-      const url = '?aspect=aspect1,aspect2&aspectTags=-' +
-        'aspectTag1,-aspectTag2&subjectTags=-subjectTag1,-subjectTag2&status=Critical,OK';
-      expect(getFilterQuery(perspectiveObject)).to.equal(url);
-    });
-  });
-
-  describe('all EXCLUDE', () => {
-    it('one filter', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1', 'aspect2'],
+        aspectFilter: [],
         aspectFilterType: 'EXCLUDE',
         statusFilter: [],
         statusFilterType: 'EXCLUDE',
@@ -82,152 +31,204 @@ describe('get filter query', () => {
       };
 
       const url = getFilterQuery(perspectiveObject);
-      expect(url).to.equal('?aspect=-aspect1,-aspect2');
+      expect(url).to.equal('');
     });
 
-    it('two filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'EXCLUDE',
-        statusFilter: [],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: [],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: ['aspectTag1'],
-      };
+    describe('mix INCLUDE with EXCLUDE >', () => {
+      it('one of each', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: ['Critical'],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: [],
+        };
 
-      const url = getFilterQuery(perspectiveObject);
-      expect(url).to.equal('?aspect=-aspect1&aspectTags=-aspectTag1');
+        const url = getFilterQuery(perspectiveObject);
+        expect(url).to.equal('?aspect=aspect1&status=-Critical');
+      });
+
+      it('two of each', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1', 'aspect2'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: ['Critical', 'OK'],
+          statusFilterType: 'INCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: ['subjectTag1', 'subjectTag2'],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: ['aspectTag1', 'aspectTag2'],
+        };
+
+        const url = '?aspect=aspect1,aspect2&aspectTags=-' +
+          'aspectTag1,-aspectTag2&subjectTags=-subjectTag1,-subjectTag2&status=Critical,OK';
+        expect(getFilterQuery(perspectiveObject)).to.equal(url);
+      });
     });
 
-    it('three filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'EXCLUDE',
-        statusFilter: [],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: ['subjectTag1'],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: ['aspectTag1'],
-      };
+    describe('all EXCLUDE >', () => {
+      it('one filter', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1', 'aspect2'],
+          aspectFilterType: 'EXCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: [],
+        };
 
-      const url = '?aspect=-aspect1&aspectTags' +
-        '=-aspectTag1&subjectTags=-subjectTag1';
-      expect(getFilterQuery(perspectiveObject)).to.equal(url);
+        const url = getFilterQuery(perspectiveObject);
+        expect(url).to.equal('?aspect=-aspect1,-aspect2');
+      });
+
+      it('two filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'EXCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: ['aspectTag1'],
+        };
+
+        const url = getFilterQuery(perspectiveObject);
+        expect(url).to.equal('?aspect=-aspect1&aspectTags=-aspectTag1');
+      });
+
+      it('three filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'EXCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: ['subjectTag1'],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: ['aspectTag1'],
+        };
+
+        const url = '?aspect=-aspect1&aspectTags' +
+          '=-aspectTag1&subjectTags=-subjectTag1';
+        expect(getFilterQuery(perspectiveObject)).to.equal(url);
+      });
+
+      it('all filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1', 'aspect2'],
+          aspectFilterType: 'EXCLUDE',
+          statusFilter: ['Critical,OK'],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: ['subjectTag1', 'subjectTag2'],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: ['aspectTag1', 'aspectTag2'],
+        };
+
+        const url = '?aspect=-aspect1,-aspect2&aspectTags=-aspectTag1,-aspectTag2' +
+          '&subjectTags=-subjectTag1,-subjectTag2&status=-Critical,-OK';
+        expect(getFilterQuery(perspectiveObject))
+          .to.equal(url);
+      });
     });
 
-    it('all filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1', 'aspect2'],
-        aspectFilterType: 'EXCLUDE',
-        statusFilter: ['Critical,OK'],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: ['subjectTag1', 'subjectTag2'],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: ['aspectTag1', 'aspectTag2'],
-      };
+    describe('all INCLUDE >', () => {
+      it('with one filter', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: [],
+          aspectTagFilterType: 'EXCLUDE',
+          aspectTagFilter: [],
+        };
 
-      const url = '?aspect=-aspect1,-aspect2&aspectTags=-aspectTag1,-aspectTag2' +
-        '&subjectTags=-subjectTag1,-subjectTag2&status=-Critical,-OK';
-      expect(getFilterQuery(perspectiveObject))
-        .to.equal(url);
+        const url = getFilterQuery(perspectiveObject);
+        expect(url).to.equal('?aspect=aspect1');
+      });
+
+      it('with two filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          subjectTagFilter: [],
+          aspectTagFilterType: 'INCLUDE',
+          aspectTagFilter: ['aspectTag1', 'aspectTag2'],
+        };
+
+        const url = getFilterQuery(perspectiveObject);
+        expect(url).to.equal('?aspect=aspect1&aspectTags=aspectTag1,aspectTag2');
+      });
+
+      it('with three filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: [],
+          statusFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'INCLUDE',
+          subjectTagFilter: ['subjectTag1', 'subjectTag2'],
+          aspectTagFilterType: 'INCLUDE',
+          aspectTagFilter: ['aspectTag1'],
+        };
+
+        const url = '?aspect=aspect1&aspectTags=aspectTag1' +
+          '&subjectTags=subjectTag1,subjectTag2';
+        expect(getFilterQuery(perspectiveObject)).to.equal(url);
+      });
+
+      it('all filters', () => {
+        const perspectiveObject = {
+          aspectFilter: ['aspect1'],
+          aspectFilterType: 'INCLUDE',
+          statusFilter: ['Critical'],
+          statusFilterType: 'INCLUDE',
+          subjectTagFilterType: 'INCLUDE',
+          subjectTagFilter: ['subjectTag1'],
+          aspectTagFilterType: 'INCLUDE',
+          aspectTagFilter: ['aspectTag1'],
+        };
+
+        const url = '?aspect=aspect1&aspectTags=aspectTag1' +
+          '&subjectTags=subjectTag1&status=Critical';
+        expect(getFilterQuery(perspectiveObject)).to.equal(url);
+      });
     });
   });
 
-  describe('all INCLUDE', () => {
-    it('with one filter', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: [],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: [],
-        aspectTagFilterType: 'EXCLUDE',
-        aspectTagFilter: [],
-      };
-
-      const url = getFilterQuery(perspectiveObject);
-      expect(url).to.equal('?aspect=aspect1');
+  describe('get array >', () => {
+    it('by default, returns nothing', () => {
+      const array = [{ absolutePath: 'COOLCOOLCOOL' },
+      { absolutePath: 'COOLCOOLCOOL' }];
+      const result = getTagsFromArrays(array);
+      expect(result).to.be.empty;
     });
 
-    it('with two filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: [],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'EXCLUDE',
-        subjectTagFilter: [],
-        aspectTagFilterType: 'INCLUDE',
-        aspectTagFilter: ['aspectTag1', 'aspectTag2'],
-      };
-
-      const url = getFilterQuery(perspectiveObject);
-      expect(url).to.equal('?aspect=aspect1&aspectTags=aspectTag1,aspectTag2');
+    it('returns unique elements', () => {
+      const tagsArr = ['a', 'b'];
+      const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr },
+      { absolutePath: 'COOLCOOLCOOL', tags: tagsArr }];
+      const result = getTagsFromArrays(array);
+      expect(result).to.deep.equal(['a', 'b']);
     });
 
-    it('with three filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: [],
-        statusFilterType: 'EXCLUDE',
-        subjectTagFilterType: 'INCLUDE',
-        subjectTagFilter: ['subjectTag1', 'subjectTag2'],
-        aspectTagFilterType: 'INCLUDE',
-        aspectTagFilter: ['aspectTag1'],
-      };
-
-      const url = '?aspect=aspect1&aspectTags=aspectTag1' +
-        '&subjectTags=subjectTag1,subjectTag2';
-      expect(getFilterQuery(perspectiveObject)).to.equal(url);
-    });
-
-    it('all filters', () => {
-      const perspectiveObject = {
-        aspectFilter: ['aspect1'],
-        aspectFilterType: 'INCLUDE',
-        statusFilter: ['Critical'],
-        statusFilterType: 'INCLUDE',
-        subjectTagFilterType: 'INCLUDE',
-        subjectTagFilter: ['subjectTag1'],
-        aspectTagFilterType: 'INCLUDE',
-        aspectTagFilter: ['aspectTag1'],
-      };
-
-      const url = '?aspect=aspect1&aspectTags=aspectTag1' +
-        '&subjectTags=subjectTag1&status=Critical';
-      expect(getFilterQuery(perspectiveObject)).to.equal(url);
+    it('returns all elements', () => {
+      const tagsArr = ['a', 'b', 'c', 'd'];
+      const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(0, 2) },
+      { absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(2) }];
+      const result = getTagsFromArrays(array);
+      expect(result).to.deep.equal(tagsArr);
     });
   });
 });
-
-describe('get array:', () => {
-  it('by default, returns nothing', () => {
-    const array = [{ absolutePath: 'COOLCOOLCOOL' },
-    { absolutePath: 'COOLCOOLCOOL' }];
-    const result = getTagsFromArrays(array);
-    expect(result).to.be.empty;
-  });
-
-  it('returns unique elements', () => {
-    const tagsArr = ['a', 'b'];
-    const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr },
-    { absolutePath: 'COOLCOOLCOOL', tags: tagsArr }];
-    const result = getTagsFromArrays(array);
-    expect(result).to.deep.equal(['a', 'b']);
-  });
-
-  it('returns all elements', () => {
-    const tagsArr = ['a', 'b', 'c', 'd'];
-    const array = [{ absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(0, 2) },
-    { absolutePath: 'COOLCOOLCOOL', tags: tagsArr.slice(2) }];
-    const result = getTagsFromArrays(array);
-    expect(result).to.deep.equal(tagsArr);
-  });
-});
-

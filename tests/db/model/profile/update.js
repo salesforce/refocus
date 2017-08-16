@@ -16,7 +16,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const adminProfile = require('../../../../config').db.adminProfile;
 
-describe('db: profile: update: ', () => {
+describe('tests/db/model/profile/update.js >', () => {
   const pname = `${tu.namePrefix}1`;
 
   beforeEach((done) => {
@@ -29,53 +29,51 @@ describe('db: profile: update: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Update profile', () => {
-    it('ok, profile subjectAccess updated', (done) => {
-      Profile.findOne({ where: { name: pname } })
-      .then((o) => o.update({ subjectAccess: 'rw' }))
-      .then(() => Profile.findOne({ where: { name: pname } }))
-      .then((o) => {
-        expect(o).to.have.property('subjectAccess').to.equal('rw');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, profile subjectAccess updated', (done) => {
+    Profile.findOne({ where: { name: pname } })
+    .then((o) => o.update({ subjectAccess: 'rw' }))
+    .then(() => Profile.findOne({ where: { name: pname } }))
+    .then((o) => {
+      expect(o).to.have.property('subjectAccess').to.equal('rw');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, profile aspectAccess bad', (done) => {
-      Profile.findOne({ where: { name: pname } })
-      .then((o) => o.update({ aspectAccess: true }))
-      .then(() => Profile.findOne({ where: { name: pname } }))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.dbErrorName);
-        done();
-      })
-      .catch(done);
-    });
+  it('fail, profile aspectAccess bad', (done) => {
+    Profile.findOne({ where: { name: pname } })
+    .then((o) => o.update({ aspectAccess: true }))
+    .then(() => Profile.findOne({ where: { name: pname } }))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.dbErrorName);
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, profile aspectAccess bad', (done) => {
-      Profile.findOne({ where: { name: pname } })
-      .then((o) => o.update({ aspectAccess: true }))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.dbErrorName);
-        done();
-      })
-      .catch(done);
-    });
+  it('fail, profile aspectAccess bad', (done) => {
+    Profile.findOne({ where: { name: pname } })
+    .then((o) => o.update({ aspectAccess: true }))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.dbErrorName);
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, admin profile cannot be changed', (done) => {
-      Profile.findOne({
-        where: {
-          name: {
-            $iLike: adminProfile.name,
-          },
+  it('fail, admin profile cannot be changed', (done) => {
+    Profile.findOne({
+      where: {
+        name: {
+          $iLike: adminProfile.name,
         },
-      })
-      .then((o) => o.update({ aspectAccess: 'r' }))
-      .catch((err) => {
-        expect(err.name).to.equal('AdminUpdateDeleteForbidden');
-        done();
-      })
-      .catch(done);
-    });
+      },
+    })
+    .then((o) => o.update({ aspectAccess: 'r' }))
+    .catch((err) => {
+      expect(err.name).to.equal('AdminUpdateDeleteForbidden');
+      done();
+    })
+    .catch(done);
   });
 });

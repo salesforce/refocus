@@ -18,7 +18,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('db: User: create', () => {
+describe('tests/db/model/user/create.js, db: User: create >', () => {
   let user = {};
 
   beforeEach((done) => {

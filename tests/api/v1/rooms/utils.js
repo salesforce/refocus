@@ -10,12 +10,11 @@
  * tests/db/api/room/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
-const n2 = n+'NonActive';
+const n2 = n + 'NonActive';
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -63,7 +62,7 @@ const roomTypeSchema = {
           type: 'STRING',
         },
       ],
-    }
+    },
   ],
   data: [
     {

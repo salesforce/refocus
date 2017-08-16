@@ -15,7 +15,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const RoomType = tu.db.RoomType;
 
-describe('db: room type: delete: ', () => {
+describe('tests/db/model/roomType/delete.js >', () => {
   beforeEach((done) => {
     RoomType.create(u.getStandard())
     .then((room) => {
@@ -29,16 +29,14 @@ describe('db: room type: delete: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Delete Room Type', () => {
-    it('ok, Room Type deleted', (done) => {
-      RoomType.destroy({ where: { name: u.name } })
-      .then(() => RoomType.findAll())
-      .then((o) => {
-        expect(o.length).to.equal(1);
-        expect(o[0].dataValues.name).to.equal('TestRoomType');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, Room Type deleted', (done) => {
+    RoomType.destroy({ where: { name: u.name } })
+    .then(() => RoomType.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(1);
+      expect(o[0].dataValues.name).to.equal('TestRoomType');
+      done();
+    })
+    .catch(done);
   });
 });

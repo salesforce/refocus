@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/deleteWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -27,6 +26,7 @@ describe('api: aspects: delete without permission', () => {
   let i;
   let aspect;
   let otherValidToken;
+
   // let user;
 
   const n = {
@@ -41,9 +41,7 @@ describe('api: aspects: delete without permission', () => {
 
   before((done) => {
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -60,9 +58,7 @@ describe('api: aspects: delete without permission', () => {
        * so one use of these.
        */
       User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -79,9 +75,7 @@ describe('api: aspects: delete without permission', () => {
     api.delete(path.replace('{key}', i))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('should return 403 when deleting relatedlinks ' +
@@ -89,18 +83,14 @@ describe('api: aspects: delete without permission', () => {
     api.delete(deleteOneRelLink.replace('{key}', i).replace('{akey}', 'rlink0'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
   it('should return 403 when deleting tags ' +
     ' without permission', (done) => {
     api.delete(deleteOneTag.replace('{key}', i).replace('{akey}', 'tag0'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });
 

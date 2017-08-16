@@ -20,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: delete: ', () => {
+describe('tests/db/model/sample/delete.js >', () => {
   let sample;
 
   const aspectToCreate = {

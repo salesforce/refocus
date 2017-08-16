@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -29,7 +28,6 @@ describe('api: aspects: post writers', () => {
   let otherValidToken;
   const userNameArray = [];
   const generatorToCreate = u.getGenerator();
-
 
   before((done) => {
     tu.createToken()
@@ -61,9 +59,7 @@ describe('api: aspects: post writers', () => {
       userNameArray.push(secondUser.name);
       return tu.createThirdUser();
     })
-    .then((tUsr) => {
-      return tu.createTokenFromUserName(tUsr.name);
-    })
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
     .then((tkn) => {
       otherValidToken = tkn;
     })
@@ -81,21 +77,17 @@ describe('api: aspects: post writers', () => {
     .expect(constants.httpStatus.CREATED)
     .expect((res) => {
       expect(res.body).to.have.length(2);
-
       const userOne = res.body[0];
       const userTwo = res.body[1];
       expect(userOne.generatorId).to.not.equal(undefined);
       expect(userOne.userId).to.not.equal(undefined);
-
       expect(userTwo.generatorId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
-  it('return 403 for adding writers using an user that is not '+
+  it('return 403 for adding writers using an user that is not ' +
     'already a writer of that resource', (done) => {
     api.post(postWritersPath.replace('{key}', aspect.id))
     .set('Authorization', otherValidToken)

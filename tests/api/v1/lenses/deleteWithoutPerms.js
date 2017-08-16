@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/deleteWithoutPerms.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -34,15 +33,9 @@ describe(`api: DELETE ${path}`, () => {
     .then((lns) => {
       lens = lns;
     })
-    .then(() =>
-
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return lens.addWriter(usr);
-    })
-    .then(() => {
-      return tu.createUser('myUNiqueUser22');
-    })
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => lens.addWriter(usr))
+    .then(() => tu.createUser('myUNiqueUser22'))
     .then((fusr) => tu.createTokenFromUserName(fusr.name))
     .then((tkn) => {
       otherValidToken = tkn;
@@ -54,13 +47,10 @@ describe(`api: DELETE ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-
   it('deleting a lens without permission is forbidden', (done) => {
     api.delete(`${path}/${lens.id}`)
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

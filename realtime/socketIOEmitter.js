@@ -15,8 +15,8 @@
 const rtUtils = require('./utils');
 const initEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
 
-module.exports = (io, key, mssgObj) => {
-  const obj = rtUtils.parseObject(mssgObj[key], key);
+module.exports = (io, key, obj) => {
+  // newObjectAsString contains { key: {new: obj }}
   const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
   // Initialize namespace when perspective initialize namespace event is sent
@@ -26,9 +26,8 @@ module.exports = (io, key, mssgObj) => {
 
   for (const nsp in io.nsps) {
     // Send events only if namespace connections > 0
-    if (nsp && (Object.keys(nsp).length > 0) &&
-     rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      // newObjectAsString contains { key: {new: obj }}
+    if (nsp && Object.keys(nsp).length &&
+         rtUtils.shouldIEmitThisObj(nsp, obj)) {
       io.of(nsp).emit(key, newObjectAsString);
     }
   }

@@ -16,7 +16,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('Profile model with users', () => {
+describe('tests/db/model/profile/withUser.js >', () => {
   let profile = {};
   let user = {};
 
@@ -57,7 +57,7 @@ describe('Profile model with users', () => {
     Profile.create({ name: `${tu.namePrefix}2` })
     .then((p) => {
       newProfileId = p.id;
-      p.destroy();
+      return p.destroy();
     })
     .then(() => user.update({ profileId: newProfileId }))
     .then((returnedUser) => {

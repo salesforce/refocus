@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/deleteWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -40,7 +39,7 @@ describe('api: subject: permissions', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -66,7 +65,7 @@ describe('api: subject: permissions', () => {
       otherValidToken = tkn;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -77,13 +76,7 @@ describe('api: subject: permissions', () => {
       api.delete(subjectPath.replace('{key}', subject.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -98,32 +91,19 @@ describe('api: subject: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', subject.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(0);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(0);
+        })
+        .end(done);
       });
     });
 
     it('return 403 when a token is not passed to the header', (done) => {
       api.delete(writersPath.replace('{key}', subject.id))
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 403 when deleteting writers using a token ' +
@@ -131,15 +111,8 @@ describe('api: subject: permissions', () => {
       api.delete(writersPath.replace('{key}', subject.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
-
 
     it('remove write permission using username', (done) => {
       api.delete(writerPath.replace('{key}', subject.id)
@@ -152,19 +125,12 @@ describe('api: subject: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', subject.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -179,19 +145,12 @@ describe('api: subject: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', subject.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -206,19 +165,12 @@ describe('api: subject: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', subject.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(2);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(2);
+        })
+        .end(done);
       });
     });
 
@@ -228,26 +180,14 @@ describe('api: subject: permissions', () => {
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when trying to delete an invalidResource', (done) => {
       api.delete(writersPath.replace('{key}', 'invalidResource'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });
