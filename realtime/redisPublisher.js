@@ -10,13 +10,10 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const redisStore = require('../cache/sampleStore');
-const constants = redisStore.constants;
-const redisClient = require('../cache/redisCache').client.sampleStore;
+const rtUtils = require('./utils');
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -102,6 +99,7 @@ function publishPartialSample(sampleInst, event) {
   // will be over written when unwrapping json.stringified fields
   const sample = sampleInst.get ? sampleInst.get() : sampleInst;
   publishObject(sample, eventType);
+  return sample;
 } // publishPartialSample
 
 /**
@@ -118,64 +116,9 @@ function publishPartialSample(sampleInst, event) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
-
-  // will be over written when unwrapping json.stringified fields
-  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
-  const nameParts = sample.name.split('|');
-  const subName = nameParts[0];
-  const aspName = nameParts[1];
-  let promisesArr = [];
-
-  // if redis cache is on, get subject and aspect from cache
-  if (featureToggles.isFeatureEnabled(constants.featureName)) {
-    const aspKey = redisStore.toKey('aspect', aspName);
-    const subKey = redisStore.toKey('subject', subName);
-    const getAspect = sample.aspect ? Promise.resolve(sample.aspect) :
-            redisClient.hgetallAsync(aspKey);
-    promisesArr = [
-      getAspect,
-      redisClient.hgetallAsync(subKey),
-    ];
-  } else {
-    const subOpts = {
-      where: {
-        absolutePath: subName,
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: aspName,
-      },
-    };
-
-    const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
-                              Promise.resolve(sample.aspect);
-    promisesArr = [getAspect, subjectModel.findOne(subOpts)];
-  }
-
-  return Promise.all(promisesArr)
-  .then((responses) => {
-    const asp = responses[0];
-    const sub = responses[1];
-
-    const aspect = asp.get ? asp.get() : asp;
-    delete aspect.writers;
-
-    const subject = sub.get ? sub.get() : sub;
-    delete subject.writers;
-
-    // attach sample
-    sample.aspect = redisStore.arrayStringsToJson(aspect,
-      constants.fieldsToStringify.aspect);
-
-    // attach subject to the sample
-    sample.subject = redisStore.arrayStringsToJson(subject,
-      constants.fieldsToStringify.subject);
-
-    // attach absolutePath field to the sample
-    sample.absolutePath = subName;
+  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  .then((sample) => {
     publishObject(sample, eventType);
-
     return sample;
   });
 } // publishSample

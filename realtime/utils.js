@@ -14,6 +14,7 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const featureToggles = require('feature-toggles');
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -318,32 +319,54 @@ function isIpWhitelisted(addr, whitelist) {
  * @param  {[type]} sampInst [description]
  * @return {[type]}          [description]
  */
-function attachAspectSubject(sampleInst) {
-  const nameParts = sampleInst.name.split('|');
+function attachAspectSubject(sample, subjectModel, aspectModel) {
+  const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
-  const aspKey = redisStore.toKey('aspect', aspName);
-  const subKey = redisStore.toKey('subject', subName);
-  const promiseArr = [
-    redisClient.hgetallAsync(aspKey),
-    redisClient.hgetallAsync(subKey),
-  ];
+  let promiseArr = [];
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    const subKey = redisStore.toKey('subject', subName);
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+      redisClient.hgetallAsync(aspKey);
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      redisClient.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  } else {
+    const subOpts = {
+      where: {
+        absolutePath: subName,
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: aspName,
+      },
+    };
+    const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
+                              Promise.resolve(sample.aspect);
+    const getSubjectPromise = subjectModel ? subjectModel.findOne(subOpts) :
+                              Promise.resolve(sample.subject);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  }
 
   return Promise.all(promiseArr)
-  .then((responses) => {
-    const asp = responses[0];
-    const sub = responses[1];
-    sampleInst.aspect = redisStore.arrayStringsToJson(asp,
+  .then((response) => {
+    let asp = response[0];
+    let sub = response[1];
+    asp = asp.get ? asp.get() : asp;
+    sub = sub.get ? sub.get() : sub;
+    sample.aspect = redisStore.arrayStringsToJson(asp,
          redisStore.constants.fieldsToStringify.aspect);
-    sampleInst.subject = redisStore.arrayStringsToJson(sub,
+    sample.subject = redisStore.arrayStringsToJson(sub,
          redisStore.constants.fieldsToStringify.subject);
 
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
      */
-    sampleInst.absolutePath = subName;
-    return sampleInst;
+    sample.absolutePath = subName;
+    return sample;
   });
 } // attachAspectSubject
 
