@@ -13,7 +13,7 @@
 const sampleStore = require('../../cache/sampleStore');
 const ssConstants = sampleStore.constants;
 const samstoinit = require('../../cache/sampleStoreInit');
-const redisClient = require('../../cache/redisCache').client.sampleStore;
+const rcli = require('../../cache/redisCache').client.sampleStore;
 const featureToggles = require('feature-toggles');
 const expect = require('chai').expect;
 const tu = require('../testUtils');
@@ -52,6 +52,7 @@ describe('sampleStore (feature on):', () => {
   let user2;
   let user3;
   let user4;
+
   before((done) => {
     tu.toggleOverride(sampleStore.constants.featureName, true);
     Aspect.create({
@@ -133,7 +134,7 @@ describe('sampleStore (feature on):', () => {
       value: '0',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s2.id,
@@ -141,7 +142,7 @@ describe('sampleStore (feature on):', () => {
       value: '50',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s3.id,
@@ -149,7 +150,7 @@ describe('sampleStore (feature on):', () => {
       value: '5',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => done())
     .catch(done);
@@ -157,7 +158,7 @@ describe('sampleStore (feature on):', () => {
 
   after((done) => {
     u.forceDelete(done)
-    .then(() => redisClient.flushallAsync())
+    .then(() => rcli.flushallAsync())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())
@@ -167,22 +168,20 @@ describe('sampleStore (feature on):', () => {
   it('subject is populated', (done) => {
     const absolutePath = '___subject1.___subject2';
     samstoinit.eradicate()
-    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
     .then((res) => expect(res.length).to.eql(0))
     .then(() => samstoinit.populate())
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
     .then((res) => {
       expect(res.includes('samsto:subject:' + absolutePath))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:subject:___subject1.___subject3'))
-        .to.be.true;
+      .to.be.true;
     })
-    .then(() => redisClient.hgetallAsync('samsto:subject:' + absolutePath))
+    .then(() => rcli.hgetallAsync('samsto:subject:' + absolutePath))
     .then((subject) => {
-
       // the absolutePath in the key is lowercase
-      expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath)
+      expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath);
     })
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)
@@ -192,11 +191,10 @@ describe('sampleStore (feature on):', () => {
 
   it('eradicate and populate', (done) => {
     samstoinit.eradicate()
-    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
     .then((res) => expect(res.length).to.eql(0))
     .then(() => samstoinit.populate())
-    .then(() =>
-      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
       expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
       expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -207,34 +205,30 @@ describe('sampleStore (feature on):', () => {
       // Make sure unpublished aspects are *not* here
       expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
     .then((res) => {
       expect(res.includes('samsto:sample:___subject1.___subject2|___aspect1'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:sample:___subject1.___subject2|___aspect2'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:sample:___subject1.___subject3|___aspect1'))
-        .to.be.true;
+      .to.be.true;
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
     .then((res) => {
       expect(res.includes('samsto:subject:___subject1.___subject2'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:subject:___subject1.___subject3'))
-        .to.be.true;
+      .to.be.true;
     })
-     .then(() => redisClient
-      .keysAsync(subAspMapType + '*'))
+    .then(() => rcli.keysAsync(subAspMapType + '*'))
     .then((res) => {
       expect(res.includes('samsto:subaspmap:___subject1.___subject2'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:subaspmap:___subject1.___subject3'))
-        .to.be.true;
+      .to.be.true;
     })
-    .then(() =>
-      redisClient.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
+    .then(() => rcli.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
     .then((res) => {
       expect(res.includes(['aspect1', 'aspect2']));
     })
@@ -244,29 +238,26 @@ describe('sampleStore (feature on):', () => {
     .catch(done);
   });
 
-  it('aspects with associated writers should have its ' +
-      'writers field populated', (done) => {
+  it('aspects with associated writers should have its  writers field ' +
+  'populated', (done) => {
     samstoinit.eradicate()
-    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
     .then((res) => expect(res.length).to.eql(0))
     .then(() => samstoinit.populate())
-    .then(() =>
-      redisClient.hgetallAsync('samsto:aspect:___aspect1'))
+    .then(() => rcli.hgetallAsync('samsto:aspect:___aspect1'))
     .then((aspect) => {
       sampleStore.arrayStringsToJson(aspect,
-          sampleStore.constants.fieldsToStringify.aspect);
+        sampleStore.constants.fieldsToStringify.aspect);
       expect(aspect.writers.length).equal(3);
-      expect(aspect.writers).to.have
-        .members([user1.name, user2.name, user3.name]);
+      expect(aspect.writers)
+      .to.have.members([user1.name, user2.name, user3.name]);
     })
-    .then(() =>
-      redisClient.hgetallAsync('samsto:aspect:___aspect2'))
+    .then(() => rcli.hgetallAsync('samsto:aspect:___aspect2'))
     .then((aspect) => {
       sampleStore.arrayStringsToJson(aspect,
         sampleStore.constants.fieldsToStringify.aspect);
       expect(aspect.writers.length).to.equal(1);
-      expect(aspect.writers).to.have
-        .members([user4.name]);
+      expect(aspect.writers).to.have.members([user4.name]);
     })
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)
@@ -274,11 +265,11 @@ describe('sampleStore (feature on):', () => {
     .catch(done);
   });
 
-  it('eradicate should delete all the objects in redis ' +
-    'having the sample store prefix', (done) => {
+  it('eradicate should delete all the objects in redis having the sample ' +
+  'store prefix', (done) => {
     samstoinit.populate()
     .then(() => samstoinit.eradicate())
-    .then(() => redisClient.keysAsync(sampleStore.constants.prefix + '*'))
+    .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
     .then((res) => {
       expect(res.length).to.eql(0);
       done();

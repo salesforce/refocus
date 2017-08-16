@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/events/get.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -64,16 +63,9 @@ describe(`api: GET ${path}`, () => {
     .then((event) => {
       testEventOutput = event;
     })
-    .then(() => {
-      return Event.create(testEvent2);
-    })
-
-    .then(() => {
-      return Event.create(testEvent3);
-    })
-    .then(() => {
-      done();
-    })
+    .then(() => Event.create(testEvent2))
+    .then(() => Event.create(testEvent3))
+    .then(() => done())
     .catch(done);
   });
 
@@ -87,7 +79,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(THREE);
@@ -96,12 +88,12 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by botId', (done) => {
-      api.get(`${path}?botId=`+testEvent.botId)
+      api.get(`${path}?botId=${testEvent.botId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(TWO);
@@ -110,12 +102,12 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by roomId', (done) => {
-      api.get(`${path}?roomId=`+testEvent.roomId)
+      api.get(`${path}?roomId=${testEvent.roomId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(TWO);
@@ -124,12 +116,12 @@ describe(`api: GET ${path}`, () => {
     });
 
     it('Pass, get by roomId and botId', (done) => {
-      api.get(`${path}?roomId=`+testEvent.roomId+'&botId='+testEvent.botId)
+      api.get(`${path}?roomId=${testEvent.roomId}&botId=${testEvent.botId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -143,7 +135,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.log).to.equal(u.log);
@@ -155,9 +147,7 @@ describe(`api: GET ${path}`, () => {
       api.get(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end(() => {
-        done();
-      });
+      .end(() => done());
     });
   });
 });

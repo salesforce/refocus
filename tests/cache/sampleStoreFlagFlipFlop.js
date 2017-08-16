@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const sampleStore = require('../../cache/sampleStore');
 const samstoinit = require('../../cache/sampleStoreInit');
-const redisClient = require('../../cache/redisCache').client.sampleStore;
+const rcli = require('../../cache/redisCache').client.sampleStore;
 const featureToggles = require('feature-toggles');
 const expect = require('chai').expect;
 const tu = require('../testUtils');
@@ -107,7 +107,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '0',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s2.id,
@@ -115,7 +115,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '50',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s3.id,
@@ -123,7 +123,7 @@ describe('sampleStore flag flip flop:', () => {
       value: '5',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => done())
     .catch(done);
@@ -131,7 +131,7 @@ describe('sampleStore flag flip flop:', () => {
 
   after((done) => {
     u.forceDelete(done)
-    .then(() => redisClient.flushallAsync())
+    .then(() => rcli.flushallAsync())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())
@@ -143,22 +143,19 @@ describe('sampleStore flag flip flop:', () => {
     .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.be.false)
-    .then(() =>
-      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
       expect(res).to.have.length(0);
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
     .then((res) => {
       expect(res).to.have.length(0);
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
     .then((res) => {
       expect(res).to.have.length(0);
+      done();
     })
-    .then(() => done())
     .catch(done);
   });
 
@@ -168,8 +165,7 @@ describe('sampleStore flag flip flop:', () => {
     .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)
-    .then(() =>
-      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
       expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
       expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -180,40 +176,38 @@ describe('sampleStore flag flip flop:', () => {
       // Make sure unpublished aspects are *not* here
       expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
     .then((res) => {
       expect(res.includes('samsto:sample:___subject1.___subject2|___aspect1'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:sample:___subject1.___subject2|___aspect2'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:sample:___subject1.___subject3|___aspect1'))
-        .to.be.true;
+      .to.be.true;
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
     .then((res) => {
       expect(res.includes('samsto:subject:___subject1.___subject2'))
-        .to.be.true;
+      .to.be.true;
       expect(res.includes('samsto:subject:___subject1.___subject3'))
-        .to.be.true;
+      .to.be.true;
     })
-    .then(() => redisClient.hgetallAsync('samsto:subject:___subject1.___subject3'))
+    .then(() => rcli.hgetallAsync('samsto:subject:___subject1.___subject3'))
     .then((res) => {
       expect(res).to.not.be.null;
       subjectIdToTest = res.id;
     })
-    .then(() => redisClient
-      .hgetallAsync('samsto:sample:___subject1.___subject3|___aspect1'))
+    .then(() =>
+      rcli.hgetallAsync('samsto:sample:___subject1.___subject3|___aspect1'))
     .then((res) => {
       expect(res).to.have.property('subjectId', subjectIdToTest);
+      done();
     })
-    .then(() => done())
     .catch(done);
   });
 
-  it('flag from true to false: cache should be eradicated ' +
-      ' and db should be populated', (done) => {
+  it('flag from true to false: cache should be eradicated and db should be ' +
+  'populated', (done) => {
     samstoinit.eradicate()
     .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
     .then(() => samstoinit.init())
@@ -221,18 +215,15 @@ describe('sampleStore flag flip flop:', () => {
     .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
     .then(() => samstoinit.init())
     .then((res) => expect(res).to.not.be.false)
-    .then(() =>
-      redisClient.smembersAsync(sampleStore.constants.indexKey.aspect))
+    .then(() =>rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
     .then((res) => {
       expect(res).to.have.length(0);
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.sample))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
     .then((res) => {
       expect(res).to.have.length(0);
     })
-    .then(() => redisClient
-      .smembersAsync(sampleStore.constants.indexKey.subject))
+    .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
     .then((res) => {
       expect(res).to.have.length(0);
     })

@@ -10,7 +10,6 @@
  * tests/api/v1/authenticate/protectedView.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -23,12 +22,6 @@ describe('api: protected views', () => {
     .expect((res) => {
       expect(res.header.location).to.contain('/login');
     })
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

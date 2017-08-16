@@ -30,7 +30,7 @@ describe('api: registerUser', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.email).to.be.equal(u.toCreate.email);
@@ -52,13 +52,7 @@ describe('api: registerUser', () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/Missing required property: username/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('should not be able to register without password', (done) => {
@@ -69,26 +63,14 @@ describe('api: registerUser', () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/Missing required property: password/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
   it('user already exists', (done) => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/User already exists/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('invalid email id', (done) => {
@@ -100,13 +82,7 @@ describe('api: registerUser', () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/ValidationError/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 
@@ -142,7 +118,7 @@ describe('api: register sso user', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal(`${tu.namePrefix}1`);

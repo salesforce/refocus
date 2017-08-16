@@ -10,7 +10,6 @@
  * tests/cache/models/samples/postWithProvider.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const adminUser = require('../../../../config').db.adminUser;
 const api = supertest(require('../../../../index').app);
@@ -18,10 +17,10 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/samples';
 const rtu = require('../redisTestUtil');
-const redisClient = rtu.redisClient;
+const rcli = rtu.rcli;
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -77,27 +76,25 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('when token is provided, provider and user object is ' +
-    'returned, and such fields are also found in cache', (done) => {
+  it('when token is provided, provider and user object is returned, and ' +
+  'such fields are also found in cache', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.an('string');
       expect(res.body.user).to.be.an('object');
       expect(res.body.user.name).to.be.an('string');
       expect(res.body.user.email).to.be.an('string');
-
       const sampleKey = 'samsto:sample:' + res.body.name.toLowerCase();
-      return redisClient.hgetallAsync(sampleKey)
+      return rcli.hgetallAsync(sampleKey)
       .then((sample) => {
         expect(sample.provider).to.be.an('string');
-
         const user = JSON.parse(sample.user);
         expect(user.name).to.be.an('string');
         expect(user.email).to.be.an('string');
@@ -107,14 +104,14 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
     });
   });
 
-   it('if token is NOT provided, provider and user fields are NOT' +
-    ' returned', (done) => {
+  it('if token is NOT provided, provider and user fields are NOT returned',
+  (done) => {
     api.post(path)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;
@@ -129,9 +126,9 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
     .set('Authorization', 'iDoNotExist')
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;
@@ -164,9 +161,9 @@ describe(`api: redisStore: POST ${path} with provider`, () => {
         .set('Authorization', newToken)
         .send(sampleToPost)
         .expect(constants.httpStatus.CREATED)
-        .end((err, res ) => {
-          if (err) {
-            done(err);
+        .end((err3, res) => {
+          if (err3) {
+            return done(err3);
           }
 
           expect(res.body.provider).to.be.an('string');

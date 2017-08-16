@@ -53,13 +53,7 @@ describe(`api: ${path} >`, () => {
     .expect((res) => {
       expect(res.body.status).to.be.equal('Running');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('test invalid state changes');

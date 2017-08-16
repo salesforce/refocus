@@ -10,7 +10,6 @@
  * tests/api/v1/generators/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -49,16 +48,16 @@ describe(`api: PUT ${path}`, () => {
   after(tu.forceDeleteUser);
 
   it('simple put: ok', (done) => {
-    const toPut =
-    { name: 'refocus-ok-generator',
+    const toPut = {
+      name: 'refocus-ok-generator',
       description: 'Collect status data',
       tags: [
         'status',
-        'STATUS'
+        'STATUS',
       ],
       generatorTemplate: {
         name: 'refocus-ok-generator-template',
-        version: '1.0.0'
+        version: '1.0.0',
       },
       context: {
         okValue: {
@@ -79,22 +78,20 @@ describe(`api: PUT ${path}`, () => {
       expect(res.body.subjectQuery).to.equal(undefined);
       expect(res.body.subjects).to.deep.equal(toPut.subjects);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('simple put with name in the url should work', (done) => {
-    const toPut =
-    { name: 'refocus-ok-generator',
+    const toPut = {
+      name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
       tags: [
         'status',
-        'STATUS'
+        'STATUS',
       ],
       generatorTemplate: {
         name: 'refocus-ok-generator-template',
-        version: '1.0.0'
+        version: '1.0.0',
       },
       context: {
         okValue: {
@@ -114,22 +111,20 @@ describe(`api: PUT ${path}`, () => {
     .expect((res) => {
       expect(res.body.description).to.equal(toPut.description);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('put without the required field: aspects', (done) => {
-    const toPut =
-    { name: 'refocus-ok-generator',
+    const toPut = {
+      name: 'refocus-ok-generator',
       description: 'Collect status data',
       tags: [
         'status',
-        'STATUS'
+        'STATUS',
       ],
       generatorTemplate: {
         name: 'refocus-ok-generator-template',
-        version: '1.0.0'
+        version: '1.0.0',
       },
       context: {
         okValue: {
@@ -147,12 +142,13 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (!err) {
-        done('Expecting "Schema Validation Failed" error');
+        return done('Expecting "Schema Validation Failed" error');
       }
+
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(1);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
-      return done();
+      done();
     });
   });
 });

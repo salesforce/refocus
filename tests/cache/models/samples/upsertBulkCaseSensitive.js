@@ -10,14 +10,13 @@
  * tests/cache/models/samples/upsertBulkCaseSensitive.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
@@ -50,29 +49,24 @@ describe('api: POST ' + path, () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('exiting sample: different case name should NOT modify sample name', (done) => {
+  it('exiting sample: different case name should NOT modify sample name',
+  (done) => {
     const path = '/v1/samples/upsert/bulk';
     const sampleName = '___Subject1.___Subject2|___Aspect1';
 
     api.post(path)
     .set('Authorization', token)
-    .send([
-      {
-        name: sampleName.toLowerCase(),
-        value: '6',
-      },
-    ])
+    .send([{ name: sampleName.toLowerCase(), value: '6' }])
     .then(() => {
-
       /*
-       * the bulk api is asynchronous. The delay is used to give sometime for
+       * the bulk api is asynchronous. The delay is used to give some time for
        * the upsert operation to complete
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
@@ -89,14 +83,8 @@ describe('api: POST ' + path, () => {
 
     api.post(path)
     .set('Authorization', token)
-    .send([
-      {
-        name: sampleName.toLowerCase(),
-        value: '6',
-      },
-    ])
+    .send([{ name: sampleName.toLowerCase(), value: '6' }])
     .then(() => {
-
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
@@ -105,7 +93,7 @@ describe('api: POST ' + path, () => {
         api.get('/v1/samples?name=' + sampleName)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);

@@ -10,7 +10,6 @@
  * tests/cache/models/samples/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,11 +19,12 @@ const rtu = require('../redisTestUtil');
 const u = require('./utils');
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const ZERO = 0;
+
 describe(`api: redisStore: PATCH ${path}`, () => {
   let sampleName;
   let sampUpdatedAt;
@@ -38,7 +38,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -55,7 +55,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       sampleValue = sampleObj.value;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(rtu.forceDelete);
@@ -70,7 +70,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const error = res.body.errors[0];
@@ -87,7 +87,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.id).to.be.undefined;
@@ -102,7 +102,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
@@ -117,9 +117,9 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const { updatedAt, createdAt } = res.body;
@@ -140,13 +140,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
           throw new Error('Incorrect Status Value');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -163,12 +157,12 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(1);
-        expect(res.body.relatedLinks).to.have.deep.property('[0].name',
-            'link');
+        expect(res.body.relatedLinks)
+        .to.have.deep.property('[0].name', 'link');
         done();
       });
     });
@@ -180,7 +174,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err/* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         api.patch(`${path}/${sampleName}`)
@@ -194,8 +188,8 @@ describe(`api: redisStore: PATCH ${path}`, () => {
         })
         .expect(constants.httpStatus.OK)
         .end((_err, res) => {
-          if (err) {
-            done(err);
+          if (_err) {
+            return done(_err);
           }
 
           expect(res.body.relatedLinks).to.have.length(2);
@@ -205,7 +199,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
              * at the end to get the name dynamically.
              */
             expect(res.body.relatedLinks[i])
-              .to.have.property('name', 'link' + i);
+            .to.have.property('name', 'link' + i);
           }
 
           done();
@@ -225,7 +219,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.have.property('errors');
@@ -245,7 +239,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = res.body;
@@ -255,8 +249,8 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       });
     });
 
-    it('patch /samples with only identical value increments ' +
-      'updatedAt', (done) => {
+    it('patch /samples with only identical value increments updatedAt',
+    (done) => {
       // preventing setTimeout by setting sampUpdatedAt 2 secs back.
       sampUpdatedAt.setSeconds(sampUpdatedAt.getSeconds() - 2);
       api.patch(`${path}/${sampleName}`)
@@ -265,7 +259,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = res.body;

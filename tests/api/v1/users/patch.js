@@ -10,7 +10,6 @@
  * tests/api/v1/users/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -35,18 +34,14 @@ describe(`api: PATCH ${path}`, () => {
   const userThree = `${tu.namePrefix}quote@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
-  const normalUserToken = jwtUtil.createToken(
-    userOne, userOne
-  );
-  // out of the box admin user token
+  const normalUserToken = jwtUtil.createToken(userOne, userOne);
+  /* out of the box admin user token */
   const OBAdminUserToken = jwtUtil.createToken(
     OBAdminUser.name, OBAdminUser.name
   );
 
   before((done) => {
-    Profile.create({
-      name: pname + ONE,
-    })
+    Profile.create({ name: pname + ONE })
     .then((profile) => {
       profileOneId = profile.id;
       return Profile.create({
@@ -61,21 +56,21 @@ describe(`api: PATCH ${path}`, () => {
         email: userOne,
         password: userOne,
       });
-    }) // another normal user
+    })
+    /* another normal user */
     .then(() => User.create({
-        profileId: profileTwoId,
-        name: userTwo,
-        email: userTwo,
-        password: userTwo,
-      })
-    ) // another normal user
+      profileId: profileTwoId,
+      name: userTwo,
+      email: userTwo,
+      password: userTwo,
+    }))
+    /* another normal user */
     .then(() => User.create({
-        profileId: profileTwoId,
-        name: userThree,
-        email: userThree,
-        password: userThree,
-      })
-    )
+      profileId: profileTwoId,
+      name: userThree,
+      email: userThree,
+      password: userThree,
+    }))
     .then(() => done())
     .catch(done);
   });
@@ -98,27 +93,22 @@ describe(`api: PATCH ${path}`, () => {
           },
         },
       })
-      .then((OBAdminUser) =>
-        adminProfileId = OBAdminUser.profileId
-      ) // create a normal user
+      .then((OBAdminUser) => adminProfileId = OBAdminUser.profileId)
+      /* create a normal user */
       .then(() => User.create({
-          profileId: profileOneId,
-          name: userZero,
-          email: userZero,
-          password: userZero,
-        })
-      ) // create a normal user
+        profileId: profileOneId,
+        name: userZero,
+        email: userZero,
+        password: userZero,
+      }))
+      /* create a normal user */
       .then(() => User.create({
-          profileId: profileOneId,
-          name: userFour,
-          email: userFour,
-          password: userFour,
-        })
-      )
-
-      .then((normalUser) =>
-        normalUser.update({ profileId: adminProfileId })
-      )
+        profileId: profileOneId,
+        name: userFour,
+        email: userFour,
+        password: userFour,
+      }))
+      .then((normalUser) => normalUser.update({ profileId: adminProfileId }))
       .then(() => done())
       .catch(done);
     });
@@ -132,12 +122,12 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'AdminUpdateDeleteForbidden');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
         done();
       });
     });
@@ -145,13 +135,11 @@ describe(`api: PATCH ${path}`, () => {
     it('can change a normal user\'s profileId', (done) => {
       api.patch(path + '/' + userZero)
       .set('Authorization', adminUserToken)
-      .send({
-        profileId: profileTwoId,
-      })
+      .send({ profileId: profileTwoId })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -162,13 +150,11 @@ describe(`api: PATCH ${path}`, () => {
     it('can change its own profileId', (done) => {
       api.patch(path + '/' + userFour)
       .set('Authorization', adminUserToken)
-      .send({
-        profileId: profileTwoId,
-      })
+      .send({ profileId: profileTwoId })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -181,18 +167,16 @@ describe(`api: PATCH ${path}`, () => {
     it('FORBIDDEN from changing their profileId', (done) => {
       api.patch(path + '/' + OBAdminUser.name)
       .set('Authorization', OBAdminUserToken)
-      .send({
-        profileId: profileOneId,
-      })
+      .send({ profileId: profileOneId })
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'AdminUpdateDeleteForbidden');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
         done();
       });
     });
@@ -200,13 +184,11 @@ describe(`api: PATCH ${path}`, () => {
     it('can change a normal user\'s profileId', (done) => {
       api.patch(path + '/' + userOne)
       .set('Authorization', OBAdminUserToken)
-      .send({
-        profileId: profileTwoId,
-      })
+      .send({ profileId: profileTwoId })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -220,13 +202,11 @@ describe(`api: PATCH ${path}`, () => {
       const newName = tname + userTwo;
       api.patch(path + '/' + userTwo)
       .set('Authorization', normalUserToken)
-      .send({
-        name: newName,
-      })
+      .send({ name: newName })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(newName);
@@ -237,18 +217,16 @@ describe(`api: PATCH ${path}`, () => {
     it('FORBIDDEN from changing their profileId', (done) => {
       api.patch(path + '/' + userThree)
       .set('Authorization', normalUserToken)
-      .send({
-        profileId: profileOneId,
-      })
+      .send({ profileId: profileOneId })
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'ForbiddenError');
         done();
       });
     });

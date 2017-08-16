@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/authenticate/authenticateUser.js
  */
-
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const supertest = require('supertest');
@@ -26,13 +25,7 @@ describe(`api: authenticateUser`, () => {
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   after(u.forceDelete);
@@ -46,13 +39,7 @@ describe(`api: authenticateUser`, () => {
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
   it('should not be able to authenticate without username', (done) => {
     api.post(authPath)
@@ -62,13 +49,7 @@ describe(`api: authenticateUser`, () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/Missing required property: username/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
   it('Wrong password', (done) => {
     api.post(authPath)
@@ -79,13 +60,7 @@ describe(`api: authenticateUser`, () => {
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('authentication with wrong username should fail', (done) => {
@@ -97,13 +72,7 @@ describe(`api: authenticateUser`, () => {
     })
     .expect(constants.httpStatus.UNAUTHORIZED)
     .expect(/LoginError/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('sucessful authentication', (done) => {
@@ -112,7 +81,7 @@ describe(`api: authenticateUser`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.success).to.be.true;
@@ -151,12 +120,6 @@ describe('api: authenticate sso user', () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/Invalid credentials/)
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

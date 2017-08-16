@@ -10,7 +10,6 @@
  * tests/cache/models/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
@@ -22,7 +21,7 @@ describe('cache utils test', () => {
     beforeEach(() => {
       ascArr = [
         { name: '___Subject1', absolutePath: '___Subject1' },
-        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject2', absolutePath: '___Subject1.___Subject2' },
         { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
       ];
     });
@@ -67,7 +66,7 @@ describe('cache utils test', () => {
     beforeEach(() => {
       descArr = [
         { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
-        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject2', absolutePath: '___Subject1.___Subject2' },
         { name: '___Subject1', absolutePath: '___Subject1' },
       ];
     });

@@ -10,7 +10,6 @@
  * tests/api/v1/generators/deleteWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -36,7 +35,7 @@ describe('api: generatorss: permissions', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -62,7 +61,7 @@ describe('api: generatorss: permissions', () => {
       otherValidToken = tkn;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -80,19 +79,12 @@ describe('api: generatorss: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', generator.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -107,19 +99,12 @@ describe('api: generatorss: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', generator.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -134,19 +119,12 @@ describe('api: generatorss: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', generator.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(2);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(2);
+        })
+        .end(done);
       });
     });
 
@@ -156,13 +134,7 @@ describe('api: generatorss: permissions', () => {
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });
