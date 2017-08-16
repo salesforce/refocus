@@ -10,13 +10,12 @@
  * tests/cache/models/subjects/subjectCRUD.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
 const redisStore = rtu.sampleStore;
 const objectType = redisStore.constants.objectType;
-const redisClient = rtu.redisClient;
+const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
@@ -27,8 +26,10 @@ const redisOps = rtu.redisOps;
 describe('redis: subject: CRUD: ', () => {
   const parentName = `${tu.namePrefix}NorthAmerica`;
   const par = { name: parentName, isPublished: true };
-  const parUnPub =
-        { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
+  const parUnPub = {
+    name: `${tu.namePrefix}SouthAmerica`,
+    isPublished: false,
+  };
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
@@ -82,12 +83,14 @@ describe('redis: subject: CRUD: ', () => {
 
   it('on unpublish, a subject should still be found', (done) => {
     const subjectKey = redisStore.toKey('subject', parentName);
+
     Subject.findById(ipar)
     .then((pubishedSubject) => pubishedSubject.update({ isPublished: false }))
-    .then(() => redisClient.sismemberAsync(redisStore.constants.indexKey.subject, subjectKey))
+    .then(() =>
+      rcli.sismemberAsync(redisStore.constants.indexKey.subject, subjectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
-      return redisClient.hgetallAsync(subjectKey);
+      return rcli.hgetallAsync(subjectKey);
     })
     .then((subject) => {
       expect(subject).to.not.equal(null);
@@ -100,6 +103,7 @@ describe('redis: subject: CRUD: ', () => {
 
   it('created subject should be found', (done) => {
     let absolutePath;
+
     Subject.findById(ipar)
     .then((subj) => {
       absolutePath = subj.absolutePath;
@@ -121,6 +125,7 @@ describe('redis: subject: CRUD: ', () => {
   it('unpublished subject should be found', (done) => {
     let subj;
     let key;
+
     Subject.findById(iparUnPub)
     .then((sub) => {
       subj = sub;
@@ -140,11 +145,12 @@ describe('redis: subject: CRUD: ', () => {
     .catch(done);
   });
 
-  it('when absolutePath changes, the subjectStore should reflect' +
-   ' this change', (done) => {
-    const newName = par.name + '_newName'
+  it('when absolutePath changes, the subjectStore should reflect this change',
+  (done) => {
+    const newName = par.name + '_newName';
     let oldAbsPath;
     let newAbsPath;
+
     Subject.findById(ipar)
     .then((subj) => {
       oldAbsPath = subj.absolutePath;
@@ -174,8 +180,7 @@ describe('redis: subject: CRUD: ', () => {
       // new absolutePath key should be mapped to the id
       expect(res[3].id).to.equal(ipar);
       expect(res[3].absolutePath).to.equal(newName);
-
-      return redisClient.keysAsync(newAbsPath + '*');
+      return rcli.keysAsync(newAbsPath + '*');
     })
     .then((ret) => {
       // since sample store has not been popluated yet. rename should not create
@@ -223,14 +228,14 @@ describe('redis: subject: CRUD: ', () => {
       expect(res[3].tags).to.deep.equal(JSON.stringify(ARRAY));
       expect(res[3].absolutePath).to.equal(newAbsPath);
 
-      return redisClient.smembersAsync(sampleIndexName);
+      return rcli.smembersAsync(sampleIndexName);
     })
     .then((members) => {
       const oldAbsPathWithPrefix = redisStore.toKey('sample', oldAbsPath);
       const newAbsPathWithPrefix = redisStore.toKey('sample', newAbsPath);
       const samplesWithOldName = [];
       const samplesWithNewName = [];
-      // sample with old subject name should not be found
+      /* sample with old subject name should not be found */
       members.forEach((member) => {
         const nameParts = member.split('|');
         if (nameParts[0] === oldAbsPathWithPrefix) {
@@ -246,12 +251,11 @@ describe('redis: subject: CRUD: ', () => {
       // all the samples related to the subject should be deleted
       expect(samplesWithOldName.length).to.equal(0);
       const subAspMapKey = redisStore.toKey('subaspmap', oldAbsPath);
-      return redisClient.keysAsync(subAspMapKey);
+      return rcli.keysAsync(subAspMapKey);
     })
     .then((values) => {
-
-      // the subject to aspect mapping for the subject with the old absolutepath
-      // should also be deleted
+      // the subject to aspect mapping for the subject with the old
+      // absolutepath should also be deleted
       expect(values.length).to.equal(0);
       done();
     })
@@ -259,7 +263,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('once a subject is destroyed no entry should be found in the master ' +
-      ' subject index', (done) => {
+  'subject index', (done) => {
     Subject.findById(ipar)
     .then((s) => s.destroy())
     .then((subj) => {
@@ -279,8 +283,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('once a subject is destroyed all the related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
     Subject.findById(ipar)
@@ -290,13 +293,11 @@ describe('redis: subject: CRUD: ', () => {
       return Aspect.findById(aspTempId);
     })
     .then((a) => a.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
-        // all the samples related to the subject should be deleted
+        /* all the samples related to the subject should be deleted */
         expect(nameParts[0]).not.equal(subjectWithPrefix);
       });
       done();
@@ -305,8 +306,7 @@ describe('redis: subject: CRUD: ', () => {
   });
 
   it('when a subject is unpublished all its related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
     Subject.findById(ipar)
@@ -316,14 +316,11 @@ describe('redis: subject: CRUD: ', () => {
       return Aspect.findById(aspTempId);
     })
     .then((a) => a.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
-
-        // all the samples related to the subject should be deleted
+        /* all the samples related to the subject should be deleted */
         expect(nameParts[0]).not.equal(subjectWithPrefix);
       });
       done();

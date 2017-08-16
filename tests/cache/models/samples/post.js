@@ -10,7 +10,6 @@
  * tests/cache/models/samples/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const path = '/v1/samples';
 const rtu = require('../redisTestUtil');
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -89,7 +88,7 @@ describe(`api: redisStore: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
@@ -106,7 +105,7 @@ describe(`api: redisStore: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
@@ -123,16 +122,16 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.BAD_REQUEST)
-     .end((err, res) => {
-       if (err) {
-         done(err);
-       }
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-       const error = res.body.errors[0];
-       expect(error.type).to.equal('ValidationError');
-       expect(error.description).to.contain('name');
-       done();
-     });
+      const error = res.body.errors[0];
+      expect(error.type).to.equal('ValidationError');
+      expect(error.description).to.contain('name');
+      done();
+    });
   });
 
   it('aspect is added', (done) => {
@@ -142,8 +141,9 @@ describe(`api: redisStore: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       const cmds = [];
       const subjAspArr = sampleName.toLowerCase().split('|');
       cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
@@ -163,7 +163,7 @@ describe(`api: redisStore: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspect).to.be.undefined;
@@ -180,7 +180,7 @@ describe(`api: redisStore: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       if (!res.body) {
@@ -201,9 +201,9 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { updatedAt, createdAt } = res.body;
@@ -218,9 +218,9 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.id).to.be.undefined;
@@ -238,9 +238,9 @@ describe(`api: redisStore: POST ${path}`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
@@ -260,15 +260,9 @@ describe(`api: redisStore: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body).to.have.property('errors');
       expect(res.body.errors[ZERO].description)
-        .to.contain('Name of the relatedlinks should be unique.');
+      .to.contain('Name of the relatedlinks should be unique.');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post samples with relatedLinks of size zero', (done) => {
@@ -281,13 +275,7 @@ describe(`api: redisStore: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 
@@ -325,12 +313,6 @@ describe(`api: redisStore: POST ${path} aspect isPublished false`, () => {
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

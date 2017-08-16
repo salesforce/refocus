@@ -10,7 +10,6 @@
  * tests/cache/models/samples/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -32,7 +31,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before(rtu.populateRedis);
@@ -46,7 +45,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       for (let i = res.body.length - 1; i >= 0; i--) {
@@ -54,6 +53,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         expect(createdAt).to.equal(new Date(createdAt).toISOString());
         expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
       }
+
       done();
     });
   });
@@ -64,7 +64,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       for (let i = res.body.length - 1; i >= 0; i--) {
@@ -82,7 +82,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -105,7 +105,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -126,7 +126,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -147,7 +147,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(3);
@@ -168,7 +168,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(1);
@@ -185,7 +185,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(2);
@@ -201,7 +201,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(1);
@@ -220,7 +220,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.equal(1);
@@ -241,7 +241,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.equal(1);
       expect(res.body[0].value).to.equal(String(50));
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('no asterisk is treated as "equals" for name', (done) => {
@@ -253,7 +253,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.equal(1);
       expect(res.body[0].name).to.equal(NAME);
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('trailing asterisk is treated as "starts with"', (done) => {
@@ -266,7 +266,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         expect(sample.name.slice(0, 3)).to.equal(tu.namePrefix);
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('leading asterisk is treated as "ends with"', (done) => {
@@ -279,7 +279,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         expect(sample.name.slice(-10)).to.equal('___Aspect1');
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('leading and trailing asterisks are treated as "contains"', (done) => {
@@ -291,7 +291,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         expect(sample.name).to.contain('Subject2');
       });
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by value', (done) => {
@@ -302,7 +302,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.equal(1);
       expect(res.body[0].value).to.equal(String(5));
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by messageCode.', (done) => {
@@ -313,7 +313,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.equal(1);
       expect(res.body[0].messageCode).to.equal(String(10));
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by status', (done) => {
@@ -324,7 +324,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body.length).to.equal(1);
       expect(res.body[0].status).to.equal('Critical');
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('filter by previousStatus', (done) => {
@@ -336,7 +336,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
       expect(res.body[0].previousStatus).to.equal('Critical');
       expect(res.body[0].status).to.equal('Invalid');
     })
-    .end((err /* , res */) => done(err));
+    .end(done);
   });
 
   it('createdAt and updatedAt fields have the expected format', (done) => {
@@ -346,7 +346,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { updatedAt, createdAt } = res.body;
@@ -356,19 +356,22 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     });
   });
 
-  it('on the attached aspect, time fields have the expected format', (done) => {
+  it('on the attached aspect, time fields have the expected format',
+  (done) => {
     const sampleName = s1s3a1;
     api.get(`${path}/${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { aspect } = res.body;
-      expect(aspect.updatedAt).to.equal(new Date(aspect.updatedAt).toISOString());
-      expect(aspect.createdAt).to.equal(new Date(aspect.createdAt).toISOString());
+      expect(aspect.updatedAt)
+      .to.equal(new Date(aspect.updatedAt).toISOString());
+      expect(aspect.createdAt)
+      .to.equal(new Date(aspect.createdAt).toISOString());
       done();
     });
   });
@@ -380,7 +383,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal(s1s3a1);
@@ -428,7 +431,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(s1s3a1);
@@ -446,7 +449,8 @@ describe(`api::redisEnabled::GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to.be.equal('Incorrect sample name.');
+      expect(res.body.errors[0].description)
+      .to.be.equal('Incorrect sample name.');
       return done();
     });
   });
@@ -458,10 +462,11 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      expect(res.body.errors[0].description).to.be.equal('Sample/Aspect not found.');
+      expect(res.body.errors[0].description)
+      .to.be.equal('Sample/Aspect not found.');
       return done();
     });
   });
@@ -473,7 +478,7 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.be.equal(s1s3a1);
@@ -496,12 +501,6 @@ describe(`api::redisEnabled::GET ${path}`, () => {
     api.get(`${path}/${sampleName}?fields=name,y`)
     .set('Authorization', token)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 });

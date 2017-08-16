@@ -17,7 +17,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
-const redisClient = rtu.redisClient;
+const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 
@@ -53,9 +53,9 @@ describe('tests/cache/models/subjects/post.js tests: ', () => {
 
   afterEach(rtu.forceDelete);
   afterEach(rtu.flushRedis);
-  after(() => {tu.toggleOverride('enableRedisSampleStore', false)});
-  after(() => {tu.toggleOverride('getSubjectFromCache', false)});
-  after(() => {tu.toggleOverride('fastFailDuplicateSubject', false)});
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+  after(() => tu.toggleOverride('getSubjectFromCache', false));
+  after(() => tu.toggleOverride('fastFailDuplicateSubject', false));
 
   it('no parent: duplicate name should fail from the cache', (done) => {
     api.post(path)
@@ -69,7 +69,7 @@ describe('tests/cache/models/subjects/post.js tests: ', () => {
 
       expect(res.body.errors[0].type).to.equal('DuplicateResourceError');
       expect(res.body.errors[0].message)
-        .to.equal('The subject lower case absolutePath must be unique');
+      .to.equal('The subject lower case absolutePath must be unique');
       expect(res.body.errors[0].source).to.equal('Subject');
       done();
     });
@@ -88,7 +88,7 @@ describe('tests/cache/models/subjects/post.js tests: ', () => {
 
       expect(res.body.errors[0].type).to.equal('DuplicateResourceError');
       expect(res.body.errors[0].message)
-        .to.equal('The subject lower case absolutePath must be unique');
+      .to.equal('The subject lower case absolutePath must be unique');
       expect(res.body.errors[0].source).to.equal('Subject');
       done();
     });
