@@ -95,32 +95,7 @@ module.exports = function roomType(seq, dataTypes) {
        *  a bot is not found or duplicate bots are requested
        */
       beforeCreate(inst /* , opts */) {
-        const bots = inst.dataValues.bots;
-
-        return new seq.Promise((resolve, reject) => {
-          if (!bots || !inst.changed('bots')) {
-            resolve(inst);
-          }
-
-          if (bots.length > new Set(bots).size) {
-            reject(new Error('Cannot have duplicate bots'));
-          }
-
-          console.log(bots);
-
-          bots.forEach((botName, index) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
-            .then((o) => {
-              if (!o) {
-                reject(new Error('Bot ${botName} not found'));
-              }
-
-              if (index === bots.length - 1) {
-                resolve(inst);
-              }
-            });
-          });
-        });
+        return u.validateBotsArray(inst, seq);
       }, // hooks.beforeCreate
 
       /**
@@ -131,30 +106,7 @@ module.exports = function roomType(seq, dataTypes) {
        *  a bot is not found or duplicate bots are requested
        */
       beforeUpdate(inst /* , opts */) {
-        const bots = inst.dataValues.bots;
-
-        return new seq.Promise((resolve, reject) => {
-          if (!bots || !inst.changed('bots')) {
-            resolve(inst);
-          }
-
-          if (bots.length > new Set(bots).size) {
-            reject(new Error('Cannot have duplicate bots'));
-          }
-
-          bots.forEach((botName, index) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
-            .then((o) => {
-              if (!o) {
-                reject(new Error('Bot ${botName} not found'));
-              }
-
-              if (index === bots.length - 1) {
-                resolve(inst);
-              }
-            });
-          });
-        });
+        return u.validateBotsArray(inst, seq);
       }, // hooks.beforeUpdate
 
       /**

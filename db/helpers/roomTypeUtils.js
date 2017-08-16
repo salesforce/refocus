@@ -147,7 +147,34 @@ function validateRulesArray(arr) {
   }
 } // validateDataArray
 
+function validateBotsArray(inst, seq) {
+  const bots = inst.dataValues.bots;
+  return new seq.Promise((resolve, reject) => {
+    if (!bots || !inst.changed('bots')) {
+      resolve(inst);
+    }
+
+    if (bots.length > new Set(bots).size) {
+      reject(new Error('Cannot have duplicate bots'));
+    }
+
+    bots.forEach((botName, index) => {
+      seq.models.Bot.findOne({ where: { name: botName } })
+      .then((o) => {
+        if (!o) {
+          reject(new Error('Bot ${botName} not found'));
+        }
+
+        if (index === bots.length - 1) {
+          resolve(inst);
+        }
+      });
+    });
+  });
+} // validateBotsArray
+
 module.exports = {
   validateSettingsArray,
   validateRulesArray,
+  validateBotsArray,
 }; // exports
