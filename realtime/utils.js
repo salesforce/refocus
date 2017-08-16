@@ -14,7 +14,6 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
-const featureToggles = require('feature-toggles');
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -315,16 +314,24 @@ function isIpWhitelisted(addr, whitelist) {
 } // isIpWhitelisted
 
 /**
- * [attachAspectSubject description]
- * @param  {[type]} sampInst [description]
- * @return {[type]}          [description]
+ * When passed in a sample, its related subject and aspect is attached to the
+ * sample. If useSampleStore is set to true, the subject ans aspect is fetched
+ * for the cache instead of the database.
+ * @param {Object} sample - The sample instance.
+ * @param {Boolen} useSampleStore - The sample store flag, the subject and the
+ *   aspect is fetched from the cache if this is set.
+ * @param {Model} subjectModel - The database subject model.
+ * @param {Model} aspectModel - The database aspect model.
+ * @returns {Promise} - which resolves to a complete sample with its subject and
+ *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample, useSampleStore, subjectModel,
+  aspectModel) {
   const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
-  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+  if (useSampleStore) {
     const subKey = redisStore.toKey('subject', subName);
     const aspKey = redisStore.toKey('aspect', aspName);
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :

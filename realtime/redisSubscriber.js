@@ -30,14 +30,16 @@ module.exports = (io) => {
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
     if (featureToggles.isFeatureEnabled('publishPartialSample') &&
     rtUtils.isThisSample(parsedObj)) {
+      const useSampleStore =
+        featureToggles.isFeatureEnabled('enableRedisSampleStore');
       /*
        * assign the subjectModel to the database model if sampleStore is
        * not enabled
        */
       const subjectModel =
-        featureToggles.isFeatureEnabled('enableRedisSampleStore') ? undefined :
+        useSampleStore ? undefined :
           require('../db/index').Subject; // eslint-disable-line global-require
-      rtUtils.attachAspectSubject(parsedObj, subjectModel)
+      rtUtils.attachAspectSubject(parsedObj, useSampleStore, subjectModel)
       .then((obj) => {
         console.log('object to be emitted this is a complete sample', obj);
        /*

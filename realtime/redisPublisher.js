@@ -14,6 +14,7 @@ const rtUtils = require('./utils');
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
+const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -89,10 +90,11 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 } // publishChange
 
 /**
- * [publishPartialSample description]
- * @param  {[type]} sampleInst [description]
- * @param  {[type]} event      [description]
- * @return {[type]}            [description]
+ * Publishes the sample without attaching the related subject and the aspect to
+ * the redis channel
+ * @param  {Object} sampleInst - The sampel instance to be published
+ * @param  {String} event - The event type that is being published.
+ * @returns {Object} - the sample object
  */
 function publishPartialSample(sampleInst, event) {
   const eventType = event || getSampleEventType(sampleInst);
@@ -116,7 +118,10 @@ function publishPartialSample(sampleInst, event) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  const useSampleStore =
+    featureToggles.isFeatureEnabled('enableRedisSampleStore');
+  return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
+    aspectModel)
   .then((sample) => {
     publishObject(sample, eventType);
     return sample;
