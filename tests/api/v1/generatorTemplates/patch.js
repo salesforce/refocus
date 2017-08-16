@@ -20,6 +20,7 @@ const path = '/v1/generatorTemplates';
 const expect = require('chai').expect;
 
 describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
+  let i = 0;
   const generatorTemplateToCreate = u.getGeneratorTemplate();
   let token;
 
