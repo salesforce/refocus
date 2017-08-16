@@ -10,7 +10,6 @@
  * tests/api/v1/generatorTemplates/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
 const postWritersPath = '/v1/generatorTemplates/{key}/writers';
 
-describe('api: generatorTemplates: post writers', () => {
+describe('tests/api/v1/generatorTemplates/postWriters.js > ', () => {
   let token;
   let generatorTemplate;
   let firstUser;
@@ -43,13 +42,12 @@ describe('api: generatorTemplates: post writers', () => {
     GeneratorTemplate.create(generatorTemplateToCreate)
     .then((gen) => {
       generatorTemplate = gen;
-    }).then(() =>
-
+    })
     /**
      * tu.createToken creates an user and an admin user is already created,
      * so one use of these.
      */
-      User.findOne({ where: { name: tu.userName } }))
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       firstUser = usr;
       userNameArray.push(firstUser.name);
@@ -89,9 +87,7 @@ describe('api: generatorTemplates: post writers', () => {
       expect(userTwo.generatorTemplateId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('return 403 for adding writers using an user that is not '+

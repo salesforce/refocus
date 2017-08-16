@@ -7,10 +7,9 @@
  */
 
 /**
- * tests/api/v1/generators/get.js
+ * tests/api/v1/generatorTemplates/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -24,7 +23,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
   let o1, o2, o3, o4;
   const template1 = u.getGeneratorTemplate();
@@ -81,7 +80,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.lengthOf(4);
@@ -100,7 +99,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO].name).to.equal(template1.name);
@@ -118,7 +117,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[THREE].name).to.equal(template1.name);
@@ -135,7 +134,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(template1.name);
@@ -149,7 +148,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(template1.name);
@@ -163,7 +162,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(template1.name);
@@ -177,7 +176,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(THREE);
@@ -191,7 +190,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
@@ -206,7 +205,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ZERO);
@@ -215,8 +214,7 @@ describe(`api: GET ${path}`, () => {
   });
 
 
-  describe('get with fields - ', () => {
-
+  describe('get with fields > ', () => {
     function getAllWithFields(done, ...fields) {
       const extraFields = ['apiLinks'];
       if (!fields.includes('id')) extraFields.push('id');
@@ -225,10 +223,14 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) done(err);
-        if (res.body.errors) {
-          done(res.body.errors[0]);
+        if (err) {
+          return done(err);
         }
+
+        if (res.body.errors) {
+          return done(res.body.errors[0]);
+        }
+
         expect(res.body).to.have.length(4);
         const templates = [template1, template2, template3, template4];
         for (let i = 0; i < 4; i++) {
@@ -251,7 +253,10 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) done(err);
+        if (err) {
+          return done(err);
+        }
+
         fields.forEach((field) => {
           expect(res.body[field]).to.deep.equal(template1[field]);
         });
@@ -293,7 +298,7 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  describe('find by fields:', () => {
+  describe('find by fields > ', () => {
 
     function findByField(done, field, filter, expected) {
       let expectedStatus = constants.httpStatus.OK;
@@ -305,7 +310,10 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(expectedStatus)
       .end((err, res) => {
-        if (err) done(err);
+        if (err) {
+          return done(err);
+        }
+
         if (parseInt(expected)) {
           expect(res.body).to.have.length(expected);
         }
@@ -365,8 +373,6 @@ describe(`api: GET ${path}`, () => {
     it('find by isPublished wildcard (error)', (done) => {
       findByField(done, 'isPublished', 'f*lse', 'err');
     });
-
   });
-
 });
 

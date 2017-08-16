@@ -10,7 +10,6 @@
  * tests/api/v1/generatorTemplates/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/generatorTemplates/post.js > ', () => {
   let token;
   const generatorTemplate = u.getGeneratorTemplate();
   before((done) => {
@@ -67,7 +66,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (!err) {
-        done('Expecting "Schema Validation Failed" error');
+        return done('Expecting "Schema Validation Failed" error');
       }
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(5);
@@ -76,7 +75,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails > ', () => {
     beforeEach((done) => {
       GeneratorTemplate.create(generatorTemplate)
       .then(() => done())
@@ -90,7 +89,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -107,7 +106,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)

@@ -7,10 +7,9 @@
  */
 
 /**
- * tests/api/v1/generatorTemplate/patch.js
+ * tests/api/v1/generatorTemplates/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,8 +19,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generatorTemplates';
 const expect = require('chai').expect;
 
-describe(`api: PATCH ${path}`, () => {
-  let i = 0;
+describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
   const generatorTemplateToCreate = u.getGeneratorTemplate();
   let token;
 
@@ -57,9 +55,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.name).to.equal(newName.name);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('simple patching using name in the url: ok', (done) => {
@@ -73,9 +69,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.name).to.equal(newName.name);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('patch complex json schema', (done) => {
@@ -100,9 +94,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.contexDefinition).to.deep.equal(toPatch.context);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('switch isPublished from true to false', (done) => {
@@ -113,8 +105,6 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.isPublished).to.equal(false);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

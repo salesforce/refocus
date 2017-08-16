@@ -10,7 +10,6 @@
  * tests/api/v1/generatorTemplates/getWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/generatorTemplates/{key}/writers';
 const getWriterPath = '/v1/generatorTemplates/{key}/writers/{userNameOrId}';
 
-describe('api: generatorTemplates: get writer(s)', () => {
+describe('tests/api/v1/generatorTemplates/getWriters.js > ', () => {
   let token;
   let generatorTemplate;
   let user;
@@ -70,13 +69,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
     .expect((res) => {
       expect(res.body).to.have.length(3);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writers and make sure the passwords are not returned', (done) => {
@@ -92,13 +85,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
       expect(secondUser.password).to.equal(undefined);
       expect(thirdUser.password).to.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by username', (done) => {
@@ -109,13 +96,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
     .expect((res) => {
       expect(res.body).to.have.property('name', user.name);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by userId', (done) => {
@@ -126,13 +107,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
     .expect((res) => {
       expect(res.body).to.have.property('id', user.id);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid resource but valid writers', (done) => {
@@ -140,13 +115,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
     .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid username', (done) => {
@@ -154,13 +123,7 @@ describe('api: generatorTemplates: get writer(s)', () => {
     .replace('{userNameOrId}', 'invalidUser'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 

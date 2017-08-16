@@ -10,7 +10,6 @@
  * tests/api/v1/generatorTemplates/deleteWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const User = tu.db.User;
 const writersPath = '/v1/generatorTemplates/{key}/writers';
 const writerPath = '/v1/generatorTemplates/{key}/writers/{userNameOrId}';
 
-describe('api: generatorTemplatess: permissions', () => {
+describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
   let token;
   let otherValidToken;
   let generatorTemplate;
@@ -33,22 +32,21 @@ describe('api: generatorTemplatess: permissions', () => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
     GeneratorTemplate.create(generatorTemplateToCreate)
     .then((gen) => {
       generatorTemplate = gen;
-    }).then(() =>
-
+    })
     /**
      * tu.createToken creates an user and an admin user is already created,
      * so one use of these.
      */
-      User.findOne({ where: { name: tu.userName } }))
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => generatorTemplate.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -61,13 +59,13 @@ describe('api: generatorTemplatess: permissions', () => {
       otherValidToken = tkn;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) > ', () => {
     it('remove write permission using username', (done) => {
       api.delete(writerPath.replace('{key}', generatorTemplate.id)
       .replace('{userNameOrId}', user.name))
@@ -84,13 +82,7 @@ describe('api: generatorTemplatess: permissions', () => {
         .expect((res) => {
           expect(res.body).to.have.length(1);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
+        .end(done);
         return null;
       });
     });
@@ -111,13 +103,7 @@ describe('api: generatorTemplatess: permissions', () => {
         .expect((res) => {
           expect(res.body).to.have.length(1);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
+        .end(done);
         return null;
       });
     });
@@ -138,13 +124,7 @@ describe('api: generatorTemplatess: permissions', () => {
         .expect((res) => {
           expect(res.body).to.have.length(2);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
+        .end(done);
         return null;
       });
     });
@@ -155,13 +135,7 @@ describe('api: generatorTemplatess: permissions', () => {
       .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

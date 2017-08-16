@@ -11,7 +11,6 @@
  */
 
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
 const path = '/v1/generatorTemplates';
 
-describe('api: generatorTemplates:', () => {
+describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
   let generatorTemplate;
   let otherValidToken;
   const generatorTemplateToCreate = u.getGeneratorTemplate();
@@ -40,13 +39,11 @@ describe('api: generatorTemplates:', () => {
     .then((gen) => {
       generatorTemplate = gen;
     })
-    .then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
+    /**
+     * tu.createToken creates an user and an admin user is already created,
+     * so one use of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       return generatorTemplate.addWriter(usr);
     })

@@ -10,7 +10,6 @@
  * tests/api/v1/generatorTemplates/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const path = '/v1/generatorTemplates';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/generatorTemplates/put.js > ', () => {
   let token;
   let generatorTemplateId = 0;
   const generatorTemplateToCreate = u.getGeneratorTemplate();
@@ -60,9 +59,7 @@ describe(`api: PUT ${path}`, () => {
       generatorTemplateId = gen.id;
       done();
     })
-    .catch((err) => {
-      done(err);
-    });
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -77,9 +74,7 @@ describe(`api: PUT ${path}`, () => {
       expect(res.body.subjectQuery).to.equal(undefined);
       expect(res.body.subjects).to.deep.equal(toPut.subjects);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('simple put with name in the url should work', (done) => {
@@ -90,9 +85,7 @@ describe(`api: PUT ${path}`, () => {
     .expect((res) => {
       expect(res.body.description).to.equal(toPut.description);
     })
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done)
   });
 
   it('put without required fields', (done) => {
@@ -108,7 +101,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (!err) {
-        done('Expecting "Schema Validation Failed" error');
+        return done('Expecting "Schema Validation Failed" error');
       }
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(5);
