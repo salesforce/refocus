@@ -34,6 +34,7 @@ function start() { // eslint-disable-line max-statements
 
   const helmet = require('helmet');
   const swaggerTools = require('swagger-tools');
+  const cors = require('cors');
 
   const errorHandler = require('./api/v1/errorHandler');
   const path = require('path');
@@ -166,14 +167,14 @@ function start() { // eslint-disable-line max-statements
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
 
-    // Only let me be framed by people of the same origin
-    app.use(helmet.frameguard());  // Same-origin by default
-
     // Remove the X-Powered-By header (which is on by default in Express)
     app.use(helmet.hidePoweredBy());
 
     // Keep browsers from sniffing mimetypes
     app.use(helmet.noSniff());
+
+    // Allow cross-origin resource sharing
+    app.use(cors());
 
     /*
      * Redirect '/' to the application landing page, which right now is the

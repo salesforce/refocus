@@ -76,6 +76,7 @@
     "compression": "^1.6.1",
     "connect-redis": "^3.0.2",
     "cookie-parser": "^1.4.1",
+    "cors": "^2.8.4",
     "debug": "^2.2.0",
     "enzyme": "^2.6.0",
     "errors": "^0.3.0",
