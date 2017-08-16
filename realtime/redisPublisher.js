@@ -101,6 +101,10 @@ function publishPartialSample(sampleInst, event) {
 
   // will be over written when unwrapping json.stringified fields
   const sample = sampleInst.get ? sampleInst.get() : sampleInst;
+
+  delete sample.aspect;
+  delete sample.subject;
+
   publishObject(sample, eventType);
   return sample;
 } // publishPartialSample
