@@ -34,7 +34,7 @@ describe(`api: DELETE ${path} >`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -55,7 +55,7 @@ describe(`api: DELETE ${path} >`, () => {
       otherValidToken = tkn;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -66,13 +66,7 @@ describe(`api: DELETE ${path} >`, () => {
       api.delete(path.replace('{key}', coll.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -106,13 +100,7 @@ describe(`api: DELETE ${path} >`, () => {
     it('return 403 when a token is not passed to the header', (done) => {
       api.delete(path.replace('{key}', coll.id))
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 403 when deleteting writers using a token generated for ' +
@@ -120,13 +108,7 @@ describe(`api: DELETE ${path} >`, () => {
       api.delete(path.replace('{key}', coll.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('remove write permission using username', (done) => {
@@ -216,26 +198,14 @@ describe(`api: DELETE ${path} >`, () => {
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when trying to delete an invalidResource', (done) => {
       api.delete(path.replace('{key}', 'invalidResource'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/put.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -27,16 +26,14 @@ describe(`api: PUT ${path}`, () => {
   const ZERO = 0;
   const pname = `${tu.namePrefix}testProfile`;
   const newName = pname + '2';
-  // out of the box admin user token
+  /* out of the box admin user token */
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
 
   beforeEach((done) => {
     // Create profile __testProfile
-    Profile.create({
-      name: pname,
-    })
+    Profile.create({ name: pname })
     .then(() => done())
     .catch(done);
   });
@@ -50,13 +47,14 @@ describe(`api: PUT ${path}`, () => {
       .send({
         name: newName,
         subjectAccess: 'rw',
-        roomTypeAccess: 'rw'
+        roomTypeAccess: 'rw',
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.name).to.equal(newName);
         expect(res.body.roomTypeAccess).to.equal('rw');
         done();
@@ -75,8 +73,9 @@ describe(`api: PUT ${path}`, () => {
         if (err) {
           return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .equal('AdminUpdateDeleteForbidden');
+
+        expect(res.body.errors[ZERO].type)
+        .to.equal('AdminUpdateDeleteForbidden');
         done();
       });
     });
@@ -92,8 +91,9 @@ describe(`api: PUT ${path}`, () => {
         if (err) {
           return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain('SCHEMA_VALIDATION_FAILED');
         done();
       });
     });

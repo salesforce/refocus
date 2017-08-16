@@ -10,7 +10,6 @@
  * tests/api/v1/users/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -39,7 +38,7 @@ describe(`api: DELETE ${path}/:id`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       userId = res.body.id;
@@ -49,13 +48,7 @@ describe(`api: DELETE ${path}/:id`, () => {
       api.post(tokenPath)
       .set('Authorization', testUserToken)
       .send({ name: tname })
-      .end((err1, res1) => {
-        if (err1) {
-          done(err1);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -66,7 +59,7 @@ describe(`api: DELETE ${path}/:id`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.property('name', uname);
@@ -76,12 +69,12 @@ describe(`api: DELETE ${path}/:id`, () => {
       Token.findOne({ where: { name: uname, createdBy: userId } })
       .then((tobj) => {
         if (tobj) {
-          done(new Error('Default token should have been deleted'));
+          return done(new Error('Default token should have been deleted'));
         }
 
         done();
       })
-      .catch((err1) => done(err1));
+      .catch(done);
     });
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -186,7 +185,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(updatedName);
@@ -205,13 +204,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.relatedLinks).to.have.length(1);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'link1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch relatedLinks multiple', (done) => {
@@ -232,13 +225,7 @@ describe(`api: PATCH ${path}`, () => {
         expect(res.body.relatedLinks[k]).to.have.property('name', 'link' + k);
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch relatedLinks with duplicate name', (done) => {
@@ -255,13 +242,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body).to.have.property('errors');
       expect(res.body.errors[0].source).to.contain('relatedLinks');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch empty relatedLinks', (done) => {
@@ -273,13 +254,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch tags', (done) => {
@@ -294,13 +269,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.tags).to.have.members(['tag1']);
 
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('cannot patch tags with names starting with a dash (-)', (done) => {
@@ -315,13 +284,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.errors[0].type)
         .to.equal(tu.schemaValidationErrorName);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch tags multiple', (done) => {
@@ -339,13 +302,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.tags).to.have.length(tags.length);
       expect(res.body.tags).to.have.members(tags);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch tags with case sensitive names should throw an error',
@@ -360,13 +317,7 @@ describe(`api: PATCH ${path}`, () => {
     .send(p1)
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/DuplicateFieldError/)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch tags with duplicate names should throw an error',
@@ -382,13 +333,7 @@ describe(`api: PATCH ${path}`, () => {
     .send(p1)
     .expect(constants.httpStatus.BAD_REQUEST)
     .expect(/DuplicateFieldError/)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch empty tags', (done) => {
@@ -400,13 +345,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.tags).to.have.length(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch child name and isPublished', (done) => {
@@ -416,13 +355,7 @@ describe(`api: PATCH ${path}`, () => {
     .send(p1)
     .expect(constants.httpStatus.OK)
     .expect(childCheckIfPatched)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch child parentAbsolutePath updates ' +
@@ -436,7 +369,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
@@ -454,13 +387,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .expect(parentCheckIfPatched)
     .expect(childrenAbsPathUpdated)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('re-parent a subject, make sure its children get updated', (done) => {
@@ -469,13 +396,7 @@ describe(`api: PATCH ${path}`, () => {
     .send({ parentId: i0a })
     .expect(constants.httpStatus.OK)
     .expect(reparented)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch empty helpUrl', (done) => {
@@ -489,13 +410,7 @@ describe(`api: PATCH ${path}`, () => {
     .send(toPatch)
     .expect(constants.httpStatus.OK)
     .expect(childCheckIfPatched)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch parent with isPublished false while ' +
@@ -511,7 +426,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -535,7 +450,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -559,7 +474,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -583,7 +498,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].message).to
@@ -606,7 +521,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sortBy).to.have.length(2);
@@ -626,7 +541,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sortBy).to.have.length(2);
@@ -645,9 +560,7 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send(toPatch)
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('patching readOnly field absolutePath should fail', (done) => {

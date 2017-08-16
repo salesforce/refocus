@@ -10,7 +10,6 @@
  * tests/api/v1/helpers/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
@@ -29,11 +28,9 @@ describe('api/v1/helpers/utils.js function tests', () => {
       subject = sub;
       return tu.createUser('myUNiqueUser');
     })
-    .then((usr) => {
-      return tu.createTokenFromUserName(usr.name);
-    })
+    .then((usr) => tu.createTokenFromUserName(usr.name))
     .then((tkn) => {
-      token= tkn;
+      token = tkn;
       done();
     })
     .catch(done);
@@ -49,7 +46,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal(subject);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('with req object containing username', (done) => {
@@ -59,7 +56,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal(subject);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('must throw an error for invalid tokens', (done) => {
@@ -81,7 +78,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal('___myUNiqueUser');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('with req object containing username', (done) => {
@@ -91,7 +88,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal('myUserName');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('must throw an error for invalid tokens', (done) => {

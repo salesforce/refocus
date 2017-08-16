@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -51,7 +50,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal('changedName');
@@ -66,7 +65,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.description).to.equal('changed description');
@@ -81,7 +80,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sourceDescription).to.equal('test Source Description');
@@ -96,7 +95,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.isPublished).to.equal(false);

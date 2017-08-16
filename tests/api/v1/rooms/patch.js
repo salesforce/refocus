@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/rooms/patch.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -63,7 +62,7 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(newName);
@@ -79,11 +78,11 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
+        expect(res.body.errors[ZERO].type)
+        .to.contain(tu.schemaValidationErrorName);
         done();
       });
     });
@@ -95,7 +94,7 @@ describe(`api: PATCH ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).not.to.have.property('invalid');

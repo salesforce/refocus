@@ -26,13 +26,7 @@ describe('api: login ssoconfig', () => {
       expect(res.text).to.not.contain('SSO Login');
       expect(res.text).to.contain('Sign Up');
     })
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('contains sso login button text if ssoconfig', (done) => {

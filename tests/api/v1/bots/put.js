@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/bots/put.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -57,7 +56,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         tu.db.Bot.findAll()
@@ -69,7 +68,7 @@ describe(`api: PUT ${path}`, () => {
       });
     });
 
-   it('Fail, put bot invalid name', (done) => {
+    it('Fail, put bot invalid name', (done) => {
       const newName = '~!invalidName';
       api.put(`${path}/${testBot.id}`)
       .set('Authorization', token)
@@ -77,11 +76,11 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[ZERO].type).to
-        .contain('Error');
+        expect(res.body.errors[ZERO].type)
+        .to.contain('Error');
         done();
       });
     });
@@ -93,7 +92,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).not.to.have.property('invalid');

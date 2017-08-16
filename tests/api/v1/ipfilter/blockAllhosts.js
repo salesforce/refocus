@@ -10,9 +10,7 @@
  * tests/api/v1/ipfilter/blockAllhosts.js
  */
 'use strict';
-
 process.env.NODE_ENV = 'testBlockAllhosts';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -28,7 +26,7 @@ describe.skip('Ip Restriction Tests', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(tu.forceDeleteUser);
@@ -37,26 +35,13 @@ describe.skip('Ip Restriction Tests', () => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.UNAUTHORIZED)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('GET UNAUTHORIZED for localhost at /', (done) => {
     api.get('/')
     .set('Authorization', token)
     .expect(constants.httpStatus.UNAUTHORIZED)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
-
