@@ -13,7 +13,7 @@
 const expect = require('chai').expect;
 const activityLogUtils = require('../../utils/activityLog');
 
-describe('/utils/activityLog: functions', () => {
+describe('tests/logging/activityLogUtils.js, /utils/activityLog >', () => {
   it('updateActivityLogParams function ok', (done) => {
     const resultObj = {};
     const tempObj = {

@@ -22,14 +22,14 @@ const { OK, CREATED, FORBIDDEN } = constants.httpStatus;
 const STABLE_PATH = '/v1/subjects';
 const NEW_SUBJECT = 'NEW_SUBJECT';
 
-describe('API verb token enforced tests', () => {
+describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
   it('GET docs without token should succeed', (done) => {
     api.get('/v1/docs/')
     .expect(constants.httpStatus.OK)
     .end(done);
   });
 
-  describe('CRUD should require tokens', () => {
+  describe('CRUD should require tokens >', () => {
     let defaultToken;
 
     // before: create a resource with NO token should succeed
@@ -49,7 +49,7 @@ describe('API verb token enforced tests', () => {
     });
     after(u.forceDeleteToken);
 
-    describe('operation on existing resources', () => {
+    describe('operation on existing resources >', () => {
       beforeEach((done) => {
         // post profile with token should pass
         api.post(STABLE_PATH)

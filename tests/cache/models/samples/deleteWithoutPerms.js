@@ -23,7 +23,8 @@ const path = '/v1/samples';
 const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
 const deleteOneRelLinkPath = '/v1/samples/{key}/relatedLinks/{akey}';
 
-describe('api: DELETE Sample without permission', () => {
+describe('tests/cache/models/samples/deleteWithoutPerms.js, ' +
+'api: DELETE Sample without permission >', () => {
   let sampleName;
   let otherValidToken;
   let user;

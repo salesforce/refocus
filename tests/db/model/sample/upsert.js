@@ -20,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: upsert: ', () => {
+describe('tests/db/model/sample/upsert.js >', () => {
   const aspectName = `${tu.namePrefix}Aspect`;
   const subjectName = `${tu.namePrefix}Subject`;
 

@@ -18,7 +18,7 @@ const apiLogUtil = require('../../utils/apiLog');
 const activityLogUtil = require('../../utils/activityLog');
 const sinon = require('sinon');
 
-describe('apiLogUtil: functions ', () => {
+describe('tests/logging/apiLogFuncs.js, apiLogUtil: functions >', () => {
   let token;
   const TEN = 10;
   const currTime = Date.now();

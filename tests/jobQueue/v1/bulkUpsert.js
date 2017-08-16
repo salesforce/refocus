@@ -24,7 +24,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
 
-describe('api: POST using worker process ' + path, () => {
+describe('tests/jobQueue/v1/bulkUpsert.js, ' +
+`api: POST using worker process ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -185,7 +186,7 @@ describe('api: POST using worker process ' + path, () => {
     };
   });
 
-  describe('force create job to return error', () => {
+  describe('force create job to return error >', () => {
     before((done) => {
       jobQueue.testMode.enter();
       done();

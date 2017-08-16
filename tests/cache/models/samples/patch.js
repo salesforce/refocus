@@ -25,7 +25,8 @@ const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const ZERO = 0;
 
-describe(`api: redisStore: PATCH ${path}`, () => {
+describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
+() => {
   let sampleName;
   let sampUpdatedAt;
   let sampleValue;
@@ -62,7 +63,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('Lists: ', () => {
+  describe('Lists >', () => {
     it('reject if name is in request body', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -144,7 +145,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
     });
   });
 
-  describe('Patch Related Links ', () => {
+  describe('Patch Related Links >', () => {
     it('single related link', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -230,7 +231,7 @@ describe(`api: redisStore: PATCH ${path}`, () => {
     });
   });
 
-  describe('UpdatedAt tests: ', () => {
+  describe('UpdatedAt tests >', () => {
     it('patch /samples without value does not increment ' +
       'updatedAt', (done) => {
       api.patch(`${path}/${sampleName}`)
@@ -270,4 +271,3 @@ describe(`api: redisStore: PATCH ${path}`, () => {
     });
   });
 });
-

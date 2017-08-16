@@ -22,7 +22,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const v = require('../roomType/utils');
 
-describe('db: bot data: update: ', () => {
+describe('tests/db/model/botData/update.js >', () => {
   beforeEach((done) => {
     const testBotData = u.getStandard();
     RoomType.create(rt.getStandard())
@@ -45,15 +45,13 @@ describe('db: bot data: update: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Update bot data', () => {
-    it('ok, update bot data value', (done) => {
-      BotData.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ value: 'NewValue' }))
-      .then((o) => {
-        expect(o).to.have.property('value').to.equal('NewValue');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, update bot data value', (done) => {
+    BotData.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ value: 'NewValue' }))
+    .then((o) => {
+      expect(o).to.have.property('value').to.equal('NewValue');
+      done();
+    })
+    .catch(done);
   });
 });

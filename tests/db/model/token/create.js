@@ -19,7 +19,7 @@ const User = tu.db.User;
 const Token = tu.db.Token;
 const pfx = '___';
 
-describe('db: Token: create', () => {
+describe('tests/db/model/token/create.js >', () => {
   let userObj = {};
   const tokenName = 'testTokenName';
 

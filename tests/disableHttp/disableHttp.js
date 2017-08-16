@@ -17,7 +17,7 @@ const constants = require('../../api/v1/constants');
 const path = '/v1/users';
 const expect = require('chai').expect;
 
-describe('http is disabled', () => {
+describe('tests/disableHttp/disableHttp.js, http is disabled >', () => {
   it('GET is redirected', (done) => {
     api.get(path)
     .expect(constants.httpStatus.REDIRECT)

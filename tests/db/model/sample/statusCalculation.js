@@ -20,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: statusCalculation: ', () => {
+describe('tests/db/model/sample/statusCalculation.js >', () => {
   let globalAspect;
   let sample;
   const defaultForValue = '';
@@ -85,8 +85,8 @@ describe('db: sample: statusCalculation: ', () => {
     });
   } // setupRanges
 
-  describe('integer ranges: ', () => {
-    describe('basic ranges (AND calculate invoked on update): ', () => {
+  describe('integer ranges >', () => {
+    describe('basic ranges (AND calculate invoked on update) >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [0, 1],
@@ -195,7 +195,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('negative int ranges with null range in the middle: ', () => {
+    describe('negative int ranges with null range in the middle >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [-10, -1],
@@ -288,7 +288,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('all null ranges: ', () => {
+    describe('all null ranges >', () => {
       before((done) => {
         setupRanges({
           criticalRange: null,
@@ -349,7 +349,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('non-contiguous ranges: ', () => {
+    describe('non-contiguous ranges >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [0, 10],
@@ -410,7 +410,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('out of order ranges: ', () => {
+    describe('out of order ranges >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [10, 20],
@@ -471,7 +471,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('overlapping ranges (lowest has precedence): ', () => {
+    describe('overlapping ranges (lowest has precedence) >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [0, 8],
@@ -532,7 +532,7 @@ describe('db: sample: statusCalculation: ', () => {
       });
     });
 
-    describe('infinite ranges: ', () => {
+    describe('infinite ranges >', () => {
       before((done) => {
         setupRanges({
           criticalRange: [-Infinity, -1],
@@ -594,7 +594,7 @@ describe('db: sample: statusCalculation: ', () => {
     });
   }); // integer ranges
 
-  describe('booleans, etc.: ', () => {
+  describe('booleans, etc. >', () => {
     before((done) => {
       setupRanges({
         criticalRange: [0, 0],
@@ -741,7 +741,7 @@ describe('db: sample: statusCalculation: ', () => {
   .then(() => sample.update({ value: '0.99' })
     .should.eventually.have.property('status', constants.statuses.OK)));
 
-  describe('sample afterCreate hook: ', () => {
+  describe('sample afterCreate hook >', () => {
     before((done) => {
       setupRanges({
         criticalRange: [0, 1],
@@ -771,7 +771,7 @@ describe('db: sample: statusCalculation: ', () => {
     });
   }); // sample afterCreate hook
 
-  describe('aspect udpate hook: ', () => {
+  describe('aspect udpate hook >', () => {
     before((done) => {
       setupRanges({
         criticalRange: [0, 5],
