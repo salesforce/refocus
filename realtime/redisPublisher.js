@@ -98,6 +98,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
  */
 function publishPartialSample(sampleInst, event) {
   const eventType = event || getSampleEventType(sampleInst);
+
   // will be over written when unwrapping json.stringified fields
   const sample = sampleInst.get ? sampleInst.get() : sampleInst;
   publishObject(sample, eventType);

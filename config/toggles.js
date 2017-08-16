@@ -132,7 +132,6 @@ const shortTermToggles = {
   // publish partial sample to the subscribers
   publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 
-
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

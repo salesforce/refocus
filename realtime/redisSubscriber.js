@@ -26,26 +26,22 @@ module.exports = (io) => {
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
-    console.log('-----key---', key);
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
     if (featureToggles.isFeatureEnabled('publishPartialSample') &&
     rtUtils.isThisSample(parsedObj)) {
       const useSampleStore =
         featureToggles.isFeatureEnabled('enableRedisSampleStore');
-      /*
-       * assign the subjectModel to the database model if sampleStore is
-       * not enabled
-       */
+
+      // assign the subject db model if sampleStore is not enabled
       const subjectModel =
         useSampleStore ? undefined :
           require('../db/index').Subject; // eslint-disable-line global-require
       rtUtils.attachAspectSubject(parsedObj, useSampleStore, subjectModel)
       .then((obj) => {
-        console.log('object to be emitted this is a complete sample', obj);
-       /*
-        * pass on the message received through the redis subscriber to the
-        * socket io emitter to send data to the browser clients.
-        */
+        /*
+         * pass on the message received through the redis subscriber to the
+         * socket io emitter to send data to the browser clients.
+         */
         emitter(io, key, obj);
       });
     } else {
