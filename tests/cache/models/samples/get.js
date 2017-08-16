@@ -37,7 +37,6 @@ describe('tests/cache/models/samples/get.js, ' +
 
   before(rtu.populateRedis);
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('updatedAt and createdAt fields have the expected format', (done) => {
