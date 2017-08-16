@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
 const sub = require('../cache/redisCache').client.sub;
+const zlib = require('zlib');
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -21,14 +22,21 @@ const sub = require('../cache/redisCache').client.sub;
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
-    // message object to be sent to the clients
-    const mssgObj = JSON.parse(mssgStr);
-    const key = Object.keys(mssgObj)[0];
+    zlib.unzip(Buffer.from(mssgStr, 'base64'), (err, uncompressedBuffer) => {
+      if (err) {
+        console.log('Error inflating!', err);
+        return;
+      }
 
-    /*
-     * pass on the message received through the redis subscriber to the socket
-     * io emitter to send data to the browser clients.
-     */
-    emitter(io, key, mssgObj);
+      // message object to be sent to the clients
+      const mssgObj = JSON.parse(uncompressedBuffer);
+      const key = Object.keys(mssgObj)[0];
+
+      /*
+       * pass on the message received through the redis subscriber to the socket
+       * io emitter to send data to the browser clients.
+       */
+      emitter(io, key, mssgObj);
+    });
   });
 };
