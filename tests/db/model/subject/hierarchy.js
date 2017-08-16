@@ -15,7 +15,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 
-describe('db: subject: get hierarchy: ', () => {
+describe('tests/db/model/subject/hierarchy.js >', () => {
   const parTag = ['___na', '___continent'];
   const grnTag = ['___qbc', '___state'];
   const parLink = [{ name: '____parlink', url: 'https://fakelink.com' }];
@@ -55,7 +55,7 @@ describe('db: subject: get hierarchy: ', () => {
 
   after(u.forceDelete);
 
-  describe('with tags and related links', () => {
+  describe('with tags and related links >', () => {
     it('at all levels of hierarchy', (done) => {
       Subject.scope('hierarchy').findById(ipar)
       .then((sub) => {
@@ -199,7 +199,7 @@ describe('db: subject: get hierarchy: ', () => {
     .catch(done);
   });
 
-  describe('db: subject: get hierarchy: with children', () => {
+  describe('with children >', () => {
     const howManyChildren = 7;
 
     afterEach(u.forceDelete);

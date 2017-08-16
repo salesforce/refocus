@@ -26,7 +26,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
 
-describe('redisStore: POST using worker process' + path, () => {
+describe('tests/cache/jobQueue/bulkUpsert.js, ' +
+'redisStore: POST using worker process' + path, () => {
   let token;
 
   before((done) => {

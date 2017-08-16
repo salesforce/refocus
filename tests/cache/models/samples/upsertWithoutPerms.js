@@ -22,7 +22,8 @@ const User = tu.db.User;
 const upsertPath = '/v1/samples/upsert';
 const bulkUpsertPath = '/v1/samples/upsert/bulk';
 
-describe('api: upsert samples without perms', () => {
+describe('tests/cache/models/samples/upsertWithoutPerms.js, ' +
+'api: upsert samples without perms', () => {
   const sub = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const asp = {
     name: 'temperature',

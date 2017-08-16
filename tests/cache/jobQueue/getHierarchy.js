@@ -24,7 +24,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
 
-describe(`api: GET using worker process ${path}`, () => {
+describe('tests/cache/jobQueue/getHierarchy.js, ' +
+`api: GET using worker process ${path} >`, () => {
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
@@ -41,7 +42,7 @@ describe(`api: GET using worker process ${path}`, () => {
   require('../models/subjects/getHierarchyAspectAndTagsFilters');
   require('../models/subjects/getHierarchyStatusAndCombinedFilters');
 
-  describe(`api: GET using worker process ${path}`, () => {
+  describe(`api: GET using worker process ${path} >`, () => {
     let token;
 
     const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };

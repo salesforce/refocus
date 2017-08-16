@@ -15,7 +15,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Generator = tu.db.Generator;
 
-describe('db: Generator: create: ', () => {
+describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   let userInst;
   beforeEach((done) => {

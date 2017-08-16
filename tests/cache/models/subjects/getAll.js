@@ -18,7 +18,8 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api::redisEnabled::GET ${path}`, () => {
+describe('tests/cache/models/subjects/getAll.js, ' +
+`api::redisEnabled::GET ${path}`, () => {
   let token;
   const subject1 = '___Subject1';
   const subject2 = '___Subject1.___Subject2';

@@ -21,7 +21,8 @@ const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 
 const postPath = '/v1/samples';
-describe('api: post samples without perms', () => {
+describe('tests/cache/models/samples/postWithoutPerms.js, ' +
+'api: post samples without perms', () => {
   const sub = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const asp = {
     name: 'temperature',

@@ -15,7 +15,7 @@ const realtimeUtils = require('../../realtime/utils');
 const tu = require('../testUtils');
 const u = require('./utils');
 
-describe('realtime utils Tests:', () => {
+describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   const newSubject = {
     absolutePath: 'NA.US.CA.SF',
     name: 'SF',
@@ -112,8 +112,8 @@ describe('realtime utils Tests:', () => {
 
   after(u.forceDelete);
 
-  describe('utility function tests', () => {
-    describe('shouldIEmitThisObject functon tests', () => {
+  describe('utility function tests >', () => {
+    describe('shouldIEmitThisObject functon tests >', () => {
       it('should return false for some randomSubjectRoot', () => {
         const nspString = '/SomRadomSubjectRoo';
         expect(realtimeUtils.shouldIEmitThisObj(nspString, rootSubjNAUS))
@@ -134,29 +134,29 @@ describe('realtime utils Tests:', () => {
       });
     });
 
-    describe('getNamespaceString tests', () => {
+    describe('getNamespaceString tests >', () => {
       it('for perspective persNAUS', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
-        expect(nspString).to
-          .equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
+        expect(nspString)
+        .to.equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
 
       it('for perspective persNA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNA);
         expect(nspString)
-          .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
-            '&INCLUDE=temp;hum&INCLUDE=OK');
+        .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
+          '&INCLUDE=temp;hum&INCLUDE=OK');
       });
 
       it('for perspective persNAUSCA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUSCA);
         expect(nspString)
-          .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
-                                  '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
+        .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
+          '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
       });
     });
 
-    describe('getNewObjAsString tests', () => {
+    describe('getNewObjAsString tests >', () => {
       it('getNewObjAsString returns the expected string', () => {
         const SAMPLE_ADD_KEY = 'refocus.internal.realtime.sample.add';
         const string = realtimeUtils.getNewObjAsString(SAMPLE_ADD_KEY,
@@ -168,7 +168,7 @@ describe('realtime utils Tests:', () => {
       });
     });
 
-    describe('parseObject tests', () => {
+    describe('parseObject tests >', () => {
       it('parse updated object', () => {
         const obj = realtimeUtils.parseObject(newSubject);
         expect(obj.hasOwnProperty('new')).to.equal(false);
@@ -180,7 +180,7 @@ describe('realtime utils Tests:', () => {
       });
     });
 
-    describe('isIpWhitelisted', () => {
+    describe('isIpWhitelisted >', () => {
       it('ok', () => {
         const addr = '5.6.7.805';
         const whitelist = [['1.2.3.4', '2.3.4.5'], ['5.6.7.0', '5.6.7.805']];
@@ -214,6 +214,22 @@ describe('realtime utils Tests:', () => {
           expect(err).to.have.property('message',
             'IP address "5.6.7.805" is not whitelisted');
         }
+      });
+    });
+
+    describe('attachAspectSubject tests', () => {
+      it('useSampleStore = true', () => {
+        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, true)
+        .then((sample) => {
+          expect(sample).deep.equal(looksLikeSampleObjNA);
+        });
+      });
+
+      it('useSampleStore = false', () => {
+        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, false)
+        .then((sample) => {
+          expect(sample).deep.equal(looksLikeSampleObjNA);
+        });
       });
     });
   });

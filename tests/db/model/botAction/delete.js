@@ -21,7 +21,7 @@ const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
 const BotAction = tu.db.BotAction;
 
-describe('db: bot action: delete: ', () => {
+describe('tests/db/model/botAction/delete.js >', () => {
   beforeEach((done) => {
     const testBotAction = u.getStandard();
     RoomType.create(rt.getStandard())
@@ -48,16 +48,14 @@ describe('db: bot action: delete: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Delete bot action', () => {
-    it('ok, bot action delete first data', (done) => {
-      BotAction.destroy({ where: { name: 'Action1' } })
-      .then(() => BotAction.findAll())
-      .then((o) => {
-        expect(o.length).to.equal(1);
-        expect(o[0]).to.have.property('name').to.equal('Action2');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot action delete first data', (done) => {
+    BotAction.destroy({ where: { name: 'Action1' } })
+    .then(() => BotAction.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(1);
+      expect(o[0]).to.have.property('name').to.equal('Action2');
+      done();
+    })
+    .catch(done);
   });
 });

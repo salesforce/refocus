@@ -12,7 +12,6 @@
 'use strict';
 const expect = require('chai').expect;
 const sampleUtils = require('../../../db/helpers/sampleUtils');
-
 const booleanAspects = {
   criticalTrueOkFalse: {
     criticalRange: [1, 1],
@@ -41,8 +40,8 @@ const booleanAspects = {
   },
 };
 
-describe('sampleUtils Tests:', () => {
-  describe('computeStatus', () => {
+describe('tests/db/helpers/sampleUtils.js >', () => {
+  describe('computeStatus >', () => {
     it('criticalTrueOkFalse', () => {
       expect(sampleUtils.computeStatus(booleanAspects.criticalTrueOkFalse,
         'true')).to.equal('Critical');

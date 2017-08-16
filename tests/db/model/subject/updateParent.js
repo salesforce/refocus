@@ -18,7 +18,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const constants = require('../../../../db/constants');
 
-describe('db: subject: update parent: ', () => {
+describe('tests/db/model/subject/updateParent.js >', () => {
   let subjId1;
   let childId1;
   let child1AbsolutePath;

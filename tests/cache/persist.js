@@ -24,7 +24,7 @@ const Subject = tu.db.Subject;
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 
-describe('persist sample store back to db', () => {
+describe('tests/cache/persist.js, persist sample store back to db >', () => {
   let a1;
   let a2;
   let a3;
