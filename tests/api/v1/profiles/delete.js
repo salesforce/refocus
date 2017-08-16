@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/profiles/delete.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -42,7 +41,7 @@ describe(`api: DELETE ${path}`, () => {
   beforeEach((done) => {
     Profile.create(p0)
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -56,6 +55,7 @@ describe(`api: DELETE ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.name).to.equal(p0.name);
         done();
       });
@@ -69,6 +69,7 @@ describe(`api: DELETE ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
         done();
       });
@@ -82,6 +83,7 @@ describe(`api: DELETE ${path}`, () => {
         if (err) {
           return done(err);
         }
+
         done();
       });
     });

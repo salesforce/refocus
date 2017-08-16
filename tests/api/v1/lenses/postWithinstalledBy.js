@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/postWithinstalledBy.js
  */
 'use strict'; // eslint-disable-line strict
-
 const featureToggles = require('feature-toggles');
 const adminUser = require('../../../../config').db.adminUser;
 const jwtUtil = require('../../../../utils/jwtUtil');
@@ -53,9 +52,9 @@ describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => 
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.installedBy).to.equal(user.id);
@@ -65,16 +64,16 @@ describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => 
     });
   });
 
-   it('if token is NOT provided, installedBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('if token is NOT provided, installedBy and user fields are NOT ' +
+  'returned', (done) => {
     api.post(path)
     .field('name', 'testLens')
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.installedBy).to.be.undefined;
@@ -91,9 +90,9 @@ describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => 
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.installedBy).to.be.undefined;
@@ -126,9 +125,9 @@ describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => 
         .field('description', 'test description')
         .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
         .expect(constants.httpStatus.CREATED)
-        .end((err, res ) => {
+        .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.installedBy).to.equal(user.id);

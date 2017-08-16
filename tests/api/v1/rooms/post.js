@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/rooms/post.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -56,7 +55,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -67,41 +66,42 @@ describe(`api: POST ${path}`, () => {
     it('Fail, duplicate room', (done) => {
       let room = u.getStandard();
       room.type = testRoomType.id;
-
       tu.db.Room.create(room)
-      .then(() => done());
+      .then(() => {
+        api.post(`${path}`)
+        .set('Authorization', token)
+        .send(room)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(room)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-      });
+          expect(res.body.errors[ZERO].type)
+          .to.contain('SequelizeUniqueConstraintError');
+          done();
+        });
+      })
+      .catch(done);
     });
 
     it('Fail, room validation incorrect', (done) => {
       let room = u.getStandard();
       room.type = testRoomType.id;
       room.active = 'INVALID_VALUE';
-
       api.post(`${path}`)
       .set('Authorization', token)
       .send(room)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
+
+        expect(res.body.errors[ZERO].type)
+        .to.contain(tu.schemaValidationErrorName);
         done();
       });
     });
   });
 });
-

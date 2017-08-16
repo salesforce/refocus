@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/botData/get.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -77,7 +76,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -98,7 +97,7 @@ describe(`api: GET ${path}`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(TWO);
@@ -115,12 +114,12 @@ describe(`api: GET ${path}`, () => {
       testBotData2.roomId = testBotData.roomId;
       BotData.create(testBotData2)
       .then(() => {
-        api.get(`${path}?name=`+u.name)
+        api.get(`${path}?name=${u.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(ONE);
@@ -149,7 +148,7 @@ describe(`api: GET ${path}`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(ONE);
@@ -179,7 +178,7 @@ describe(`api: GET ${path}`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(ONE);
@@ -196,7 +195,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -208,9 +207,7 @@ describe(`api: GET ${path}`, () => {
       api.get(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end(() => {
-        done();
-      });
+      .end(() => done());
     });
 
     it('Fail, get data by room and bot not found', (done) => {
@@ -228,12 +225,9 @@ describe(`api: GET ${path}`, () => {
         api.get('/v1/rooms/NOT_FOUND/bots/NOT_FOUND/data')
         .set('Authorization', token)
         .expect(constants.httpStatus.NOT_FOUND)
-        .end(() => {
-          done();
-        });
+        .end(() => done());
       })
       .catch(done);
     });
   });
 });
-

@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/rooms/get.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -63,7 +62,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -81,7 +80,7 @@ describe(`api: GET ${path}`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(TWO);
@@ -97,7 +96,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ONE);
@@ -111,7 +110,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.length).to.equal(ZERO);
@@ -124,12 +123,12 @@ describe(`api: GET ${path}`, () => {
       room2.type = testRoom.type;
       Room.create(room2)
       .then(() => {
-        api.get(`${path}?name=`+u.name)
+        api.get(`${path}?name=${u.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.length).to.equal(ONE);
@@ -146,7 +145,7 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -158,10 +157,7 @@ describe(`api: GET ${path}`, () => {
       api.get(`${path}/INVALID_ID`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end(() => {
-        done();
-      });
+      .end(() => done());
     });
   });
 });
-

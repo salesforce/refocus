@@ -10,7 +10,6 @@
  * tests/db/api/botData/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();

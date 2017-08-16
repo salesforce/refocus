@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -46,13 +45,12 @@ describe('api: aspects: post writers', () => {
     Aspect.create(aspectToCreate)
     .then((asp) => {
       aspect = asp;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       firstUser = usr;
       userNameArray.push(firstUser.name);
@@ -63,9 +61,7 @@ describe('api: aspects: post writers', () => {
       userNameArray.push(secondUser.name);
       return tu.createThirdUser();
     })
-    .then((tUsr) => {
-      return tu.createTokenFromUserName(tUsr.name);
-    })
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
     .then((tkn) => {
       otherValidToken = tkn;
     })
@@ -76,7 +72,7 @@ describe('api: aspects: post writers', () => {
   after(tu.forceDeleteUser);
 
   it('add writers to the record and make sure the writers are ' +
-      'associated with the right object', (done) => {
+  'associated with the right object', (done) => {
     api.post(postWritersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .send(userNameArray)
@@ -93,28 +89,16 @@ describe('api: aspects: post writers', () => {
       expect(userTwo.aspectId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
-  it('return 403 for adding writers using an user that is not '+
-    'already a writer of that resource', (done) => {
+  it('return 403 for adding writers using an user that is not ' +
+  'already a writer of that resource', (done) => {
     api.post(postWritersPath.replace('{key}', aspect.id))
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('a request body that is not an array should not be accepted', (done) => {
@@ -123,12 +107,6 @@ describe('api: aspects: post writers', () => {
     .set('Authorization', token)
     .send({ firstUserName })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

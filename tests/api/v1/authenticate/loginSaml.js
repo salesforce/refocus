@@ -9,9 +9,7 @@
 /**
  * tests/api/v1/authenticate/loginSaml.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -39,13 +37,7 @@ describe('api: passport saml', () => {
       .expect((res) =>
         expect(res.header.location).to.contain(ssoconfig.samlEntryPoint));
     })
-    .end((err) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });
 

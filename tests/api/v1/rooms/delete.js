@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/rooms/delete.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -60,7 +59,7 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(u.name);
@@ -72,9 +71,7 @@ describe(`api: DELETE ${path}`, () => {
       api.delete(`${path}/-1`)
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err) => {
-        done(err);
-      });
+      .end(done);
     });
   });
 });

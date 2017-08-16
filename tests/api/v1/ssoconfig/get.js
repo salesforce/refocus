@@ -10,7 +10,6 @@
  * tests/api/v1/ssoconfig/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -28,13 +27,13 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     u.createSSOConfig()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -47,12 +46,6 @@ describe(`api: GET ${path}`, () => {
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.equal(u.samlParams.samlEntryPoint);
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

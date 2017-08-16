@@ -10,7 +10,6 @@
  * tests/api/v1/userTokens/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -49,7 +48,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       unameToken = res.body.token;
@@ -60,7 +59,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
       .send({ name: tname1 })
       .end((err1, res1) => {
         if (err1) {
-          done(err1);
+          return done(err1);
         }
 
         // create token ___Tom
@@ -69,7 +68,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
         .send({ name: tname2 })
         .end((err2, res2) => {
           if (err2) {
-            done(err2);
+            return done(err2);
           }
 
           // create user __testOther@refocus.com
@@ -81,7 +80,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
           })
           .end((err3, res3) => {
             if (err3) {
-              done(err3);
+              return done(err3);
             }
 
             unameOtherToken = res3.body.token;
@@ -92,7 +91,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
             .send({ name: tnameOther })
             .end((err4, res4) => {
               if (err4) {
-                done(err4);
+                return done(err4);
               }
 
               done();
@@ -111,12 +110,12 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', tname1);
-        expect(res.body.isDeleted).to.not.equal(0);
-        done();
+        return done(err);
       }
+
+      expect(res.body).to.have.property('name', tname1);
+      expect(res.body.isDeleted).to.not.equal(0);
+      done();
     });
   });
 
@@ -124,13 +123,7 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     api.delete(`${path}/${uname}/tokens/${tname2}`)
     .set('Authorization', unameOtherToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
+    .end(done);
   });
 
   it('non-admin user, can delete its own token', (done) => {
@@ -139,12 +132,12 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', tname2);
-        expect(res.body.isDeleted).to.not.equal(0);
-        done();
+        return done(err);
       }
+
+      expect(res.body).to.have.property('name', tname2);
+      expect(res.body.isDeleted).to.not.equal(0);
+      done();
     });
   });
 
@@ -152,64 +145,34 @@ describe(`api: DELETE ${path}/U/tokens/T`, () => {
     api.delete(`${path}/${uname}/tokens/${uname}`)
     .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('admin user, delete default token returns not found', (done) => {
     api.delete(`${path}/${uname}/tokens/${uname}`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('admin user, user not found', (done) => {
     api.delete(`${path}/who@what.com/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
+    .end(done);
   });
 
   it('non-admin user, user found but token name not found', (done) => {
     api.delete(`${path}/${uname}/tokens/foo`)
     .set('Authorization', unameToken)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
+    .end(done);
   });
 });

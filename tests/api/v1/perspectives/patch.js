@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -70,7 +69,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspectFilterType).to.equal('INCLUDE');
@@ -96,7 +95,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
@@ -116,7 +115,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspectTagFilter).to.eql(['ctemp', 'chum']);
@@ -139,8 +138,9 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.errors[0].type).to.equal('InvalidPerspectiveError');
       done();
     });
@@ -153,13 +153,7 @@ describe(`api: PATCH ${path}`, () => {
       aspectFilter: ['temperature#'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates aspectTagFilter', (done) => {
@@ -169,13 +163,7 @@ describe(`api: PATCH ${path}`, () => {
       aspectTagFilter: ['temp#', 'hum'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates subjectTagFilter', (done) => {
@@ -185,13 +173,7 @@ describe(`api: PATCH ${path}`, () => {
       subjectTagFilter: ['ea#', 'na'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates statusFilter', (done) => {
@@ -201,12 +183,6 @@ describe(`api: PATCH ${path}`, () => {
       statusFilter: ['Critical', '-OKAY'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/generators/postWithCreatedBy.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const adminUser = require('../../../../config').db.adminUser;
 const jwtUtil = require('../../../../utils/jwtUtil');
@@ -50,7 +49,7 @@ describe(`api: POST with createdBy ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.equal(user.id);
@@ -67,8 +66,9 @@ describe(`api: POST with createdBy ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.createdBy).to.be.undefined;
       expect(res.body.user).to.be.undefined;
       done();
@@ -83,7 +83,7 @@ describe(`api: POST with createdBy ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;

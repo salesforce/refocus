@@ -192,7 +192,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.absolutePath).to.equal(updatedName);
@@ -212,7 +212,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.sortBy).to.have.length(2);
@@ -233,10 +233,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: hierarchyLevel');
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: hierarchyLevel');
       done();
     });
   });
@@ -253,10 +254,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: absolutePath');
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: absolutePath');
       done();
     });
   });
@@ -273,10 +275,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: childCount');
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: childCount');
       done();
     });
   });
@@ -293,10 +296,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: id');
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: id');
       done();
     });
   });
@@ -313,10 +317,11 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: isDeleted');
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: isDeleted');
       done();
     });
   });
@@ -332,7 +337,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.not.have.property('sortBy');
@@ -384,7 +389,7 @@ describe('api: PUT subjects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -406,7 +411,7 @@ describe('api: PUT subjects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -433,7 +438,7 @@ describe('api: PUT subjects with related links', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -483,7 +488,7 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -506,7 +511,7 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -525,7 +530,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -544,7 +549,7 @@ describe('api: PUT subjects with tags', () => {
     .expect(/DuplicateFieldError/)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -566,7 +571,7 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -591,7 +596,7 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       Subject.findOne({ where: { id: subjectId } })
@@ -618,7 +623,7 @@ describe('api: PUT subjects with tags', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       Subject.findOne({ where: { id: subjectId } })

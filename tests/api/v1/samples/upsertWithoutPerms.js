@@ -10,7 +10,6 @@
  * tests/api/v1/samples/upsert.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -29,9 +28,7 @@ describe('api: upsert samples without perms', () => {
 
   before((done) => {
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -44,12 +41,8 @@ describe('api: upsert samples without perms', () => {
     .then((s) => {
       subject = s;
     })
-    .then(() => {
-      return User.findOne({ where: { name: tu.userName } });
-    })
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -62,7 +55,6 @@ describe('api: upsert samples without perms', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-
   it('upsert should fail when upserting a sample ' +
     'for an aspect without permission', (done) => {
     api.post(upsertPath)
@@ -72,8 +64,6 @@ describe('api: upsert samples without perms', () => {
       value: '2',
     })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res*/) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });
