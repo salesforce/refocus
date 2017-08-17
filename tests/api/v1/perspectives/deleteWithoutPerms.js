@@ -18,7 +18,7 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/perspectives';
 
-describe(`api: DELETE ${path} without permission`, () => {
+describe('tests/api/v1/perspectives/deleteWithoutPerms.js >', () => {
   let otherValidToken;
   let perspective;
 

@@ -24,7 +24,7 @@ const TWO = 2;
 const THREE = 3;
 const FOUR = 4;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/generators/get.js >', () => {
   let token;
   const generatorOk = u.getGenerator();
   const generatorInfo = JSON.parse(JSON.stringify(u.getGenerator()));

@@ -22,7 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: PATCH ${path}`, () => {
+describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -77,7 +77,7 @@ describe(`api: PATCH ${path}`, () => {
 
   after(u.forceDelete);
 
-  describe('non-out of box admin:', () => {
+  describe('non-out of box admin >', () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
@@ -163,7 +163,7 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  describe('out of box admin user: ', () => {
+  describe('out of box admin user >', () => {
     it('FORBIDDEN from changing their profileId', (done) => {
       api.patch(path + '/' + OBAdminUser.name)
       .set('Authorization', OBAdminUserToken)
@@ -197,7 +197,7 @@ describe(`api: PATCH ${path}`, () => {
     });
   });
 
-  describe('normal user', () => {
+  describe('normal user >', () => {
     it('can patch its own fields, other than profileId', (done) => {
       const newName = tname + userTwo;
       api.patch(path + '/' + userTwo)

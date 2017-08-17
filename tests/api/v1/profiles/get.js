@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const adminProfile = require('../../../../config').db.adminProfile;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/profiles/get.js >', () => {
   const pname = `${tu.namePrefix}1`;
   let token;
 

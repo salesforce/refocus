@@ -20,7 +20,7 @@ const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/lenses/post.js >', () => {
   let token;
 
   before((done) => {
@@ -35,7 +35,7 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     beforeEach((done) => {
       u.doSetup()
       .then(() => done())

@@ -21,7 +21,7 @@ const path = '/v1/generators';
 const expect = require('chai').expect;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy ${path}`, () => {
+describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
   let token;
   let user;
   const predefinedAdminUserToken = jwtUtil.createToken(

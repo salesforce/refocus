@@ -20,7 +20,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/lenses/{key}/writers';
 const getWriterPath = '/v1/lenses/{key}/writers/{userNameOrId}';
 
-describe('api: lenses: get writers >', () => {
+describe('tests/api/v1/lenses/getWriters.js >', () => {
   let lens;
   let token;
   let user;

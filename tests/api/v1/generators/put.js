@@ -20,7 +20,7 @@ const path = '/v1/generators';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/generators/put.js >', () => {
   let token;
   let generatorId = 0;
   const generatorToCreate = u.getGenerator();

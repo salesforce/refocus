@@ -19,7 +19,7 @@ const path = '/v1/perspectives';
 const expect = require('chai').expect;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/perspectives/getWithCacheEnabled.js >', () => {
   let lensId;
   let perspectiveId;
   let token;

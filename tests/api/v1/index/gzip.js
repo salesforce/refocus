@@ -15,7 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const path = '/v1/api-docs';
 
-describe(`api: ${path}`, () => {
+describe('tests/api/v1/index/gzip.js >', () => {
   const gzipEncode = 'gzip';
   const deflateEncode = 'deflate';
 

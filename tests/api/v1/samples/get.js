@@ -20,7 +20,7 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
   let token;
 

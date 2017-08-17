@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/profiles/post.js >', () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
@@ -39,85 +39,83 @@ describe(`api: POST ${path}`, () => {
 
   afterEach(u.forceDelete);
 
-  describe('POST profile', () => {
-    it('Ok, user is admin', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send(p0)
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Ok, user is admin', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send(p0)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(p0.name);
-        expect(res.body.botAccess).to.equal('r');
-        done();
-      });
+      expect(res.body.name).to.equal(p0.name);
+      expect(res.body.botAccess).to.equal('r');
+      done();
     });
+  });
 
-    it('fail, not an admin profile', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('fail, not an admin profile', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
-        done();
-      });
+      expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+      done();
     });
+  });
 
-    it('fail, no token provided', (done) => {
-      api.post(`${path}`)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('fail, no token provided', (done) => {
+    api.post(`${path}`)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
-        done();
-      });
+      expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+      done();
     });
+  });
 
-    it('Fail, duplicate profile', (done) => {
-      // Create profile ___1
-      tu.db.Profile.create(p0);
-      /* Create identical profile */
-      api.post(`${path}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Fail, duplicate profile', (done) => {
+    // Create profile ___1
+    tu.db.Profile.create(p0);
+    /* Create identical profile */
+    api.post(`${path}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain('SequelizeUniqueConstraintError');
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain('SequelizeUniqueConstraintError');
+      done();
     });
+  });
 
-    it('Fail, invalid profile name', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send({ name: '' })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Fail, invalid profile name', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ name: '' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain('SCHEMA_VALIDATION_FAILED');
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain('SCHEMA_VALIDATION_FAILED');
+      done();
     });
   });
 });

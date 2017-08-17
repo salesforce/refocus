@@ -21,7 +21,7 @@ const writersPath = '/v1/perspectives/{key}/writers';
 const writerPath = '/v1/perspectives/{key}/writers/{userNameOrId}';
 const perspectivePath = '/v1/perspectives/{key}';
 
-describe('api: perspective: permissions', () => {
+describe('tests/api/v1/perspectives/deleteWriters.js >', () => {
   let perspective;
   let token;
   let otherValidToken;
@@ -73,7 +73,7 @@ describe('api: perspective: permissions', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
+  describe('delete resource without permission >', () => {
     it('return 403 when deleting aspect without permission', (done) => {
       api.delete(perspectivePath.replace('{key}', perspective.id))
       .set('Authorization', otherValidToken)
@@ -82,7 +82,7 @@ describe('api: perspective: permissions', () => {
     });
   });
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission associated with the resource', (done) => {
       api.delete(writersPath.replace('{key}', perspective.id))
       .set('Authorization', token)

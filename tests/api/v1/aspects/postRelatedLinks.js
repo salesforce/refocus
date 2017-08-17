@@ -18,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/aspects';
 const expect = require('chai').expect;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/aspects/postRelatedLinks.js >', () => {
   let token;
   before((done) => {
     tu.createToken()
