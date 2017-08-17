@@ -15,7 +15,7 @@ const options = fu.options;
 const expect = require('chai').expect;
 
 describe('tests/api/v1/helpers/findUtils.js', () => {
-  describe('build options object: ', () => {
+  describe('build options object >', () => {
     let props;
     let params;
 
@@ -64,43 +64,43 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
         },
       };
 
-        expect(options(params, props)).to.deep.equal(opts);
-      });
+      expect(options(params, props)).to.deep.equal(opts);
+    });
 
-      it('replace/escape like clause', () => {
-        const opts = {
-          where: {
-            name: {
-              $iLike: '%name%',
-            },
+    it('replace/escape like clause', () => {
+      const opts = {
+        where: {
+          name: {
+            $iLike: '%name%',
           },
-        };
+        },
+      };
 
-        params.name.value = '*name*';
-        opts.where.name.$iLike = '%name%';
-        expect(options(params, props)).to.deep.equal(opts);
+      params.name.value = '*name*';
+      opts.where.name.$iLike = '%name%';
+      expect(options(params, props)).to.deep.equal(opts);
 
-        params.name.value = 'na%me';
-        opts.where.name.$iLike = 'na\\%me';
-        expect(options(params, props)).to.deep.equal(opts);
+      params.name.value = 'na%me';
+      opts.where.name.$iLike = 'na\\%me';
+      expect(options(params, props)).to.deep.equal(opts);
 
-        params.name.value = 'na_me';
-        opts.where.name.$iLike = 'na\\_me';
-        expect(options(params, props)).to.deep.equal(opts);
+      params.name.value = 'na_me';
+      opts.where.name.$iLike = 'na\\_me';
+      expect(options(params, props)).to.deep.equal(opts);
 
-        params.name.value = '*n%am_e*';
-        opts.where.name.$iLike = '%n\\%am\\_e%';
-        expect(options(params, props)).to.deep.equal(opts);
-      });
+      params.name.value = '*n%am_e*';
+      opts.where.name.$iLike = '%n\\%am\\_e%';
+      expect(options(params, props)).to.deep.equal(opts);
+    });
 
-      it('toSequelizeWildcards', (done) => {
-        expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
-        expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
-        expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
-        expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
-        expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
-        done();
-      });
+    it('toSequelizeWildcards', (done) => {
+      expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
+      expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
+      expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
+      expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
+      expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
+      done();
+    });
 
     it('tags single include', () => {
       params.tags.value = ['a'];
