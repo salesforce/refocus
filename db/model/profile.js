@@ -135,7 +135,7 @@ module.exports = function profile(seq, dataTypes) {
           Profile.findById(profileId)
           .then((p) => resolve(p &&
             p[accessModel] === 'rw'.toLowerCase()))
-          .catch((err) => reject(err));
+          .catch(reject);
         });
       }, // hasWriteAccess
     },

@@ -43,7 +43,7 @@ function getUser(req) {
  * Determines whether the user's profile has write access to a model.
  *
  * @param {Request} req - The request object
- * @param {String} modelName - The name of the model to write to
+ * @param {model} model - The model to be written to.
  * @returns {Promise} - A promise which resolves to true if the user's
  *  profile has write access to the resource
  */
