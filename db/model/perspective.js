@@ -84,6 +84,10 @@ module.exports = function perspective(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'perspectiveAccess';
+      },
+
       postImport(models) {
         assoc.createdBy = Perspective.belongsTo(models.User, {
           foreignKey: 'createdBy',

@@ -50,6 +50,10 @@ module.exports = function room(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'roomAccess';
+      },
+
       postImport(models) {
         assoc.type = Room.belongsTo(models.RoomType, {
           foreignKey: {

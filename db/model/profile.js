@@ -90,6 +90,10 @@ module.exports = function profile(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'profileAccess';
+      },
+
       postImport(models) {
         assoc.users = Profile.hasMany(models.User, {
           foreignKey: 'profileId',
@@ -125,8 +129,8 @@ module.exports = function profile(seq, dataTypes) {
         });
       }, // isAdmin
 
-      hasWriteAccess(profileId, modelName) {
-        const accessModel = modelName.charAt(0).toLowerCase() + modelName.slice(1) + 'Access';
+      hasWriteAccess(profileId, model) {
+        const accessModel = model.getAccessField();
         return new Promise((resolve, reject) => {
           Profile.findById(profileId)
           .then((p) => resolve(p &&

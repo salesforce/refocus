@@ -135,6 +135,10 @@ module.exports = function aspect(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'aspectAccess';
+      },
+
       postImport(models) {
         assoc.user = Aspect.belongsTo(models.User, {
           foreignKey: 'createdBy',

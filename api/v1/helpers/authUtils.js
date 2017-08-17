@@ -47,12 +47,12 @@ function getUser(req) {
  * @returns {Promise} - A promise which resolves to true if the user's
  *  profile has write access to the resource
  */
-function profileHasWriteAccess(req, modelName) {
+function profileHasWriteAccess(req, model) {
   return new Promise((resolve, reject) => {
     getUser(req)
     .then((user) => {
       if (user) {
-        resolve(Profile.hasWriteAccess(user.profileId, modelName));
+        resolve(Profile.hasWriteAccess(user.profileId, model));
       } else {
         resolve(false);
       }

@@ -130,6 +130,10 @@ module.exports = function subject(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'subjectAccess';
+      },
+
       postImport(models) {
         assoc.user = Subject.belongsTo(models.User, {
           foreignKey: 'createdBy',

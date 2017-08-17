@@ -75,6 +75,10 @@ module.exports = function sample(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'sampleAccess';
+      },
+
       postImport(models) {
         assoc.user = Sample.belongsTo(models.User, {
           foreignKey: 'provider',

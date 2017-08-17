@@ -80,6 +80,10 @@ module.exports = function lens(seq, dataTypes) {
         return assoc;
       },
 
+      getAccessField() {
+        return 'lensAccess';
+      },
+
       postImport(models) {
         assoc.user = Lens.belongsTo(models.User, {
           foreignKey: 'installedBy',
