@@ -8,14 +8,14 @@
 'use strict';
 module.exports = {
   up(qi, Sequelize) {
-  /*
-   Add altering commands here.
-   Return a promise to correctly handle asynchronicity.
+    /*
+     Add altering commands here.
+     Return a promise to correctly handle asynchronicity.
 
-   Example:
-   return qi.createTable('users', { id: Sequelize.INTEGER });
-  */
-  return qi.renameColumn('Generators', 'keywords', 'tags');
+     Example:
+     return qi.createTable('users', { id: Sequelize.INTEGER });
+    */
+    return qi.renameColumn('Generators', 'keywords', 'tags');
   },
 
   down(qi, Sequelize) {
