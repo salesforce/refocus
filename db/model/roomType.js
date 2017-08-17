@@ -123,7 +123,7 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst._previousDataValues.bots.forEach((botName, index) => {
+          inst._previousDataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
@@ -131,7 +131,7 @@ module.exports = function roomType(seq, dataTypes) {
             });
           });
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)
@@ -155,7 +155,7 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
@@ -179,7 +179,7 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)
