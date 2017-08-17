@@ -345,6 +345,81 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
+  it('GET with tag EXCLUDE filter :: single tag :: limit=3', (done) => {
+    api.get(`${path}?tags=-NE&limit=3`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('GET with tag EXCLUDE filter :: multiple tags :: limit=3', (done) => {
+    api.get(`${path}?tags=-US,-NE&limit=3`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].tags).to.deep.equal([]);
+      done();
+    });
+  });
+
+  it('GET with INCLUDE tag filter :: one tag :: limit=3', (done) => {
+    api.get(`${path}?tags=US&limit=3`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      expect(res.body[ZERO].tags).to.eql(['US']);
+      expect(res.body[ONE].tags).to.eql(['US', 'NE']);
+      done();
+    });
+  });
+
+  it('GET with INCLUDE tag filter :: one tag :: limit=1', (done) => {
+    api.get(`${path}?tags=US&limit=1`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('GET with INCLUDE tag filter :: multiple tags :: limit=3', (done) => {
+    api.get(`${path}?tags=NE,US&limit=3`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].tags).to.eql(['US', 'NE']);
+      done();
+    });
+  });
+
+
   it('returns expected fields when passing ?fields=...', (done) => {
     api.get(`${path}?fields=isPublished,name,sortBy`)
     .set('Authorization', token)
