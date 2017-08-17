@@ -10,14 +10,13 @@
  * tests/db/model/generatortemplate/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
-describe('db: Generatortemplate: update: ', () => {
+describe('tests/db/model/generatortemplate/update.js >', () => {
   const gt = u.getGeneratorTemplate();
   let gtDBInstance;
   before((done) => {

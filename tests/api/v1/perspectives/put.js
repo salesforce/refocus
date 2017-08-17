@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/perspectives/put.js >', () => {
   let perspectiveId;
   let createdLensId;
   let token;
@@ -80,7 +79,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspectFilterType).to.equal('INCLUDE');
@@ -103,7 +102,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(newName);
@@ -122,7 +121,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
@@ -143,7 +142,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
@@ -165,8 +164,9 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.errors[0].type).to.equal('InvalidPerspectiveError');
       done();
     });
@@ -182,13 +182,7 @@ describe(`api: PUT ${path}`, () => {
       aspectFilter: ['temperature#'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates aspectTagFilter', (done) => {
@@ -202,13 +196,7 @@ describe(`api: PUT ${path}`, () => {
       aspectTagFilter: ['temp#', 'hum'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates subjectTagFilter', (done) => {
@@ -222,13 +210,7 @@ describe(`api: PUT ${path}`, () => {
       subjectTagFilter: ['ea#', 'na'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('validates statusFilter', (done) => {
@@ -242,12 +224,6 @@ describe(`api: PUT ${path}`, () => {
       statusFilter: ['Critical', '-OKAY'],
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

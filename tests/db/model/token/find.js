@@ -9,7 +9,6 @@
 /**
  * tests/db/model/token/find.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const expect = require('chai').expect;
@@ -17,7 +16,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Token = tu.db.Token;
 
-describe('db: Token: find', () => {
+describe('tests/db/model/token/find.js >', () => {
   let tokenObj = {};
 
   beforeEach((done) => {

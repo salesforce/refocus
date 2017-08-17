@@ -10,7 +10,6 @@
  * tests/db/model/sample/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -21,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: delete: ', () => {
+describe('tests/db/model/sample/delete.js >', () => {
   let sample;
 
   const aspectToCreate = {

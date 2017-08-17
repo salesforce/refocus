@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/bots/put.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -23,7 +22,7 @@ const paths = require('path');
 const tu = require('../../../testUtils');
 const uiBlob2 = fs.readFileSync(paths.join(__dirname, './uiBlob2'));
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/bots/put.js >', () => {
   let testBot;
   let token;
 
@@ -48,59 +47,56 @@ describe(`api: PUT ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('PUT bot', () => {
-    it('Pass, put bot UI', (done) => {
-      api.put(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .field('name', u.name)
-      .attach('ui', 'tests/api/v1/bots/uiBlob2')
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Pass, put bot UI', (done) => {
+    api.put(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .attach('ui', 'tests/api/v1/bots/uiBlob2')
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.ui.name).to.equal('uiBlob2');
-        tu.db.Bot.findAll()
-        .then((o) => {
-          expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
-          done();
-        })
-        .catch(done);
-      });
-    });
-
-   it('Fail, put bot invalid name', (done) => {
-      const newName = '~!invalidName';
-      api.put(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.errors[ZERO].type).to
-        .contain('Error');
+      expect(res.body.ui.name).to.equal('uiBlob2');
+      tu.db.Bot.findAll()
+      .then((o) => {
+        expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
         done();
-      });
+      })
+      .catch(done);
     });
+  });
 
-    it('Fail, put bot invalid attribute', (done) => {
-      api.put(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .send({ invalid: true })
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Fail, put bot invalid name', (done) => {
+    const newName = '~!invalidName';
+    api.put(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body).not.to.have.property('invalid');
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain('Error');
+      done();
+    });
+  });
+
+  it('Fail, put bot invalid attribute', (done) => {
+    api.put(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ invalid: true })
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).not.to.have.property('invalid');
+      done();
     });
   });
 });
-

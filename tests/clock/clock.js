@@ -9,7 +9,7 @@
 /**
  * tests/clock/clock.js
  */
-describe('initiate clock process', () => {
+describe('tests/clock/clock.js >', () => {
   it('initiates without error', (done) => {
     try {
       require('../../clock');

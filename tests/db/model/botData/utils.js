@@ -10,12 +10,9 @@
  * tests/db/model/botData/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBotData`;
-
 const standard = {
   name: n,
   value: 'String1',

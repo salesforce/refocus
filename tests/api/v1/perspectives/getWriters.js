@@ -20,7 +20,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/perspectives/{key}/writers';
 const getWriterPath = '/v1/perspectives/{key}/writers/{userNameOrId}';
 
-describe('api: perspective: get writers', () => {
+describe('tests/api/v1/perspectives/getWriters.js >', () => {
   let perspective;
   let token;
   let user;

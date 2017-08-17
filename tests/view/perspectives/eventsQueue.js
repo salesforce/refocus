@@ -10,13 +10,12 @@
  * tests/view/perspectives/eventsQueue.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const eventsQueue = require(
   '../../../view/perspective/eventsQueue'
 );
 
-describe('event queue', () => {
+describe('tests/view/perspectives/eventsQueue.js, event queue >', () => {
   after((done) => {
     eventsQueue.queue.splice(0, eventsQueue.queue.length);
     done();

@@ -10,7 +10,6 @@
  * tests/cache/models/samples/upsert.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,15 +18,15 @@ const redisOps = require('../../../../cache/redisOps');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const sampleStore = require('../../../../cache/sampleStore');
-const redisClient = require('../../../../cache/redisCache').client.sampleStore;
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const u = require('./utils');
 const expect = require('chai').expect;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-
 const path = '/v1/samples/upsert';
 
-describe(`api::redisEnabled::POST::upsert ${path}`, () => {
+describe('tests/cache/models/samples/upsert.js, ' +
+`api::redisEnabled::POST::upsert ${path} >`, () => {
   let aspect;
   let subject;
   let token;
@@ -49,7 +48,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -71,10 +70,10 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('when aspect not present', () => {
+  describe('when aspect not present >', () => {
     // unpublish the aspects
     beforeEach((done) => {
-      redisClient.delAsync(
+      rcli.delAsync(
         sampleStore.toKey(sampleStore.constants.objectType.aspect, aspect.name)
       )
       .then(() => done())
@@ -91,11 +90,11 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.errors[0].description).to.be
-        .equal('aspect not found');
+        expect(res.body.errors[0].description)
+        .to.be.equal('aspect not found');
         done();
       });
     });
@@ -110,13 +109,12 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const error = res.body.errors[0];
       expect(error.message).to.contain('name');
-      expect(error.type)
-        .to.equal(tu.schemaValidationErrorName);
+      expect(error.type).to.equal(tu.schemaValidationErrorName);
       done();
     });
   });
@@ -131,16 +129,17 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
-      const cmds = [];
-      cmds.push(redisOps.aspExistsInSubjSetCmd(subject.absolutePath, aspect.name));
+
+      const cmds = [
+        redisOps.aspExistsInSubjSetCmd(subject.absolutePath, aspect.name),
+      ];
       redisOps.executeBatchCmds(cmds)
       .then((response) => {
         expect(response[0]).to.be.equal(1);
-      });
-
-      done();
+      })
+      .then(() => done());
     });
   });
 
@@ -154,7 +153,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.aspect).to.be.an('object');
@@ -174,7 +173,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.be.an('object');
@@ -195,7 +194,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -210,9 +209,9 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       name: `${subject.absolutePath}|${aspect.name}`,
       relatedLinks: updatedRelatedLinks,
     })
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { updatedAt, createdAt } = res.body;
@@ -231,7 +230,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.relatedLinks).to.have.length(2);
@@ -251,12 +250,11 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      expect(res.body.errors[0].description).to.equal(
-        'Name of the relatedlinks should be unique.'
-      );
+      expect(res.body.errors[0].description)
+      .to.equal('Name of the relatedlinks should be unique.');
       done();
     });
   });
@@ -269,13 +267,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       value: '2',
     })
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('aspect not found yields NOT FOUND', (done) => {
@@ -286,13 +278,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       value: '2',
     })
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Incorrect sample name BAD_REQUEST', (done) => {
@@ -305,25 +291,26 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
-      expect(res.body.errors[0].description).to.be.equal(
-      'Incorrect sample name.');
+      expect(res.body.errors[0].description)
+      .to.be.equal('Incorrect sample name.');
       done();
     });
   });
 
-  describe('upsert when the sample already exists', () => {
+  describe('when sample already exists >', () => {
     beforeEach((done) => {
       const subjKey = sampleStore.toKey(
         sampleStore.constants.objectType.subject, subject.absolutePath
       );
       const sampleKey = sampleStore.toKey(
-        sampleStore.constants.objectType.sample, `${subject.absolutePath}|${aspect.name}`
+        sampleStore.constants.objectType.sample,
+        `${subject.absolutePath}|${aspect.name}`
       );
       const aspectName = aspect.name;
-      redisClient.batch([
+      rcli.batch([
         ['sadd', subjKey, aspectName],
         ['sadd', sampleStore.constants.indexKey.sample, sampleKey],
         ['hmset', sampleKey, {
@@ -335,10 +322,9 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
           status: 'Invalid',
         },
         ],
-      ]).execAsync()
-      .then(() => {
-        done();
-      })
+      ])
+      .execAsync()
+      .then(() => done())
       .catch(done);
     });
 
@@ -354,7 +340,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(sampleName);
@@ -366,7 +352,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.have.length(1);
@@ -380,7 +366,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
         .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.status).to.equal(constants.statuses.Warning);
@@ -399,7 +385,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(2);
@@ -414,7 +400,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
         })
         .end((err1, res1) => {
           if (err1) {
-            done(err1);
+            return done(err1);
           }
 
           expect(res1.body.relatedLinks).to.have.length(2);
@@ -435,12 +421,12 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
           expect(res.body[0].name)
-            .to.equal(`${subject.absolutePath}|${aspect.name}`);
+          .to.equal(`${subject.absolutePath}|${aspect.name}`);
           done();
         });
       });

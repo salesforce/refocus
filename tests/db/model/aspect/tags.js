@@ -10,7 +10,6 @@
  * tests/db/model/aspect/tags.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -18,7 +17,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 
-describe('db: aspect: tags: update', () => {
+describe('tests/db/model/aspect/tags.js, update >', () => {
   beforeEach((done) => {
     Aspect.create({
       isPublished: true,

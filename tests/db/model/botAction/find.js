@@ -10,7 +10,6 @@
  * tests/db/model/botAction/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -24,9 +23,9 @@ const BotAction = tu.db.BotAction;
 const v = require('../roomType/utils');
 let testBotAction = null;
 
-describe('db: bot action: find: ', () => {
+describe('tests/db/model/botAction/find.js >', () => {
   beforeEach((done) => {
-   testBotAction = u.getStandard();
+    testBotAction = u.getStandard();
     RoomType.create(rt.getStandard())
     .then((roomType) => {
       const room = r.getStandard();
@@ -47,14 +46,12 @@ describe('db: bot action: find: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Find bot action', () => {
-    it('ok, bot action by botId', (done) => {
-      BotAction.findAll({ where: { botId: testBotAction.botId } })
-      .then((o) => {
-        expect(o[0]).to.have.property('name').to.equal(u.name);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot action by botId', (done) => {
+    BotAction.findAll({ where: { botId: testBotAction.botId } })
+    .then((o) => {
+      expect(o[0]).to.have.property('name').to.equal(u.name);
+      done();
+    })
+    .catch(done);
   });
 });

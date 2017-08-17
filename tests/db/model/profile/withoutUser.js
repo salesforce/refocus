@@ -10,13 +10,12 @@
  * tests/db/model/profile/withoutUser.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Profile = tu.db.Profile;
 
-describe('Profile model without users', () => {
+describe('tests/db/model/profile/withoutUser.js >', () => {
   let p = {};
 
   beforeEach((done) => {

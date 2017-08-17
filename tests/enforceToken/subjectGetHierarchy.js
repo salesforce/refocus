@@ -10,7 +10,6 @@
  * tests/tokenReq/subjectGetHierarchy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -22,7 +21,8 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/enforceToken/subjectGetHierarchy.js, api: GET ${path}`,
+() => {
   let token;
 
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -46,7 +46,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -82,24 +82,18 @@ describe(`api: GET ${path}`, () => {
       password: 'abcd',
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('subject hierarchy with samples', () => {
+  describe('subject hierarchy with samples >', () => {
     it('forbidden if no token', (done) => {
       api.get(path.replace('{key}', ipar))
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/ForbiddenError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
     it('should be an empty object at the parent level (with token)', (done) => {
       api.get(path.replace('{key}', ipar))
@@ -109,13 +103,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });
