@@ -16,7 +16,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Token = tu.db.Token;
 
-describe('db: Token: delete', () => {
+describe('tests/db/model/token/delete.js >', () => {
   let tokenObj = {};
   beforeEach((done) => {
     u.createTokenObject()

@@ -28,7 +28,8 @@ const relatedLinks = [
   { name: 'link2', url: URL1 },
 ];
 
-describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
+describe('tests/cache/models/samples/upsertBulk.js, ' +
+`api::redisEnabled::POST::bulkUpsert ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -313,7 +314,7 @@ describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
     });
   });
 
-  describe('upsert bulk when sample already exists', () => {
+  describe('when sample already exists >', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
       .set('Authorization', token)

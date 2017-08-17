@@ -24,7 +24,8 @@ const objectType = require('../../../../cache/sampleStore')
   .constants.objectType;
 const samstoinit = rtu.samstoinit;
 
-describe(`api: redisStore: aspects: DELETE tags`, () => {
+describe('tests/cache/models/aspects/deleteTags.js, ' +
+`api: redisStore: aspects: DELETE tags >`, () => {
   let token;
   let aspId;
   let aspName;

@@ -21,7 +21,8 @@ const Sample = tu.db.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
-describe(`api: PATCH ${path} without permission`, () => {
+describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
+`api: PATCH ${path} without permission`, () => {
   let sampleName;
   let aspect;
   let otherValidToken;

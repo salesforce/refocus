@@ -25,7 +25,8 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert';
 
-describe(`api::redisEnabled::POST::upsert ${path}`, () => {
+describe('tests/cache/models/samples/upsert.js, ' +
+`api::redisEnabled::POST::upsert ${path} >`, () => {
   let aspect;
   let subject;
   let token;
@@ -69,7 +70,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('when aspect not present', () => {
+  describe('when aspect not present >', () => {
     // unpublish the aspects
     beforeEach((done) => {
       rcli.delAsync(
@@ -299,7 +300,7 @@ describe(`api::redisEnabled::POST::upsert ${path}`, () => {
     });
   });
 
-  describe('upsert when the sample already exists', () => {
+  describe('when sample already exists >', () => {
     beforeEach((done) => {
       const subjKey = sampleStore.toKey(
         sampleStore.constants.objectType.subject, subject.absolutePath

@@ -25,7 +25,8 @@ const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamplesJob');
 
-describe('api: GET ' + getStatusPath, () => {
+describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
+`api: GET ${getStatusPath} >`, () => {
   let token;
 
   before((done) => {

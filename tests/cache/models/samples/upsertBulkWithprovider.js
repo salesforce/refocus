@@ -29,7 +29,8 @@ const relatedLinks = [
   { name: 'link2', url: URL1 },
 ];
 
-describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
+describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
+`api::redisEnabled::POST::bulkUpsert ${path} >`, () => {
   let token;
 
   before((done) => {

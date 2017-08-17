@@ -22,7 +22,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: statusCalculation: ', () => {
+describe('tests/db/model/sample/statusDuration.js >', () => {
   let globalAspect;
   let sample;
   const milliSecond = 1000;
@@ -87,7 +87,7 @@ describe('db: sample: statusCalculation: ', () => {
     });
   } // setupRanges
 
-  describe('status duration calculation: ', () => {
+  describe('status duration calculation >', () => {
     beforeEach((done) => {
       setupRanges({
         criticalRange: [0, 1],

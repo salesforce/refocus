@@ -9,14 +9,13 @@
 /**
  * tests/view/components/detailViewTest.js
  */
-
 import { expect } from 'chai';
 import React from 'react';
 import sinon from 'sinon';
 import Detail from '../../../view/admin/components/pages/Detail.js';
 import { mount } from 'enzyme';
 
-describe('Detail view ', () => {
+describe('tests/view/components/detailViewTest.js, Detail view >', () => {
   const ONE = '1';
   const DUMMY_STRING = 'COOL';
   const DUMMY_FUNCTION = () => {};

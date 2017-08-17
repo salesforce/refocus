@@ -15,10 +15,10 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 
-describe('db: aspect: create: ', () => {
+describe('tests/db/model/aspect/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('field check: ', () => {
+  describe('field check >', () => {
     it('default values', (done) => {
       let asp;
       const toCreate = u.getSmall();
@@ -84,7 +84,7 @@ describe('db: aspect: create: ', () => {
       .catch(done);
     });
 
-    describe('description: ', () => {
+    describe('description >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.description = '';
@@ -202,7 +202,7 @@ describe('db: aspect: create: ', () => {
       });
     }); // description
 
-    describe('helpEmail: ', () => {
+    describe('helpEmail >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.helpEmail = '';
@@ -340,7 +340,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('helpUrl: ', () => {
+    describe('helpUrl >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.helpUrl = '';
@@ -463,7 +463,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('id: ', () => {
+    describe('id >', () => {
       it('provide a null id', (done) => {
         const toCreate = u.getSmall();
         toCreate.id = null;
@@ -535,7 +535,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('isDeleted: ', () => {
+    describe('isDeleted >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.isDeleted = '';
@@ -638,7 +638,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('imageUrl: ', () => {
+    describe('imageUrl >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.imageUrl = '';
@@ -761,7 +761,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('isPublished: ', () => {
+    describe('isPublished >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.isPublished = '';
@@ -917,7 +917,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('name: ', () => {
+    describe('name >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.name = '';
@@ -1036,7 +1036,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('criticalRange: ', () => {
+    describe('criticalRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = '';
@@ -1268,7 +1268,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('warningRange: ', () => {
+    describe('warningRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = '';
@@ -1504,7 +1504,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('infoRange: ', () => {
+    describe('infoRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = '';
@@ -1736,7 +1736,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('okRange: ', () => {
+    describe('okRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = '';
@@ -1960,7 +1960,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('timeout: ', () => {
+    describe('timeout >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.timeout = '';
@@ -2061,7 +2061,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('valueLabel: ', () => {
+    describe('valueLabel >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.valueLabel = '';
@@ -2159,7 +2159,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('valueType: ', () => {
+    describe('valueType >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.valueType = '';
@@ -2275,7 +2275,7 @@ describe('db: aspect: create: ', () => {
     });
   }); // field checks
 
-  describe('duplicate names: ', () => {
+  describe('duplicate names >', () => {
     it('provide a name already in use, other aspect is not deleted', (done) => {
       Aspect.create(u.getSmall())
       .then(() => Aspect.create(u.getSmall()))
@@ -2303,8 +2303,8 @@ describe('db: aspect: create: ', () => {
     });
   }); // duplicate names
 
-  describe('associations: ', () => {
-    describe('tags: ', () => {
+  describe('associations >', () => {
+    describe('tags >', () => {
       it('create with one tag', (done) => {
         const asp = u.getSmall();
         asp.tags = ['___foo'];
@@ -2343,7 +2343,7 @@ describe('db: aspect: create: ', () => {
         'provided all elements are new." ');
     }); // tags
 
-    describe('createdBy: ', () => {
+    describe('createdBy: >', () => {
       it('provide an existing user id');
       it('provide an aspect id');
       it('provide a null user id');
@@ -2354,7 +2354,7 @@ describe('db: aspect: create: ', () => {
       it('provide a string (e.g. XXXXX)');
     }); // createdBy
 
-    describe('relatedLinks: ', () => {
+    describe('relatedLinks >', () => {
       it('create with one relatedLink');
       it('create with two relatedLinks');
     }); // relatedLinks

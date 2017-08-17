@@ -13,8 +13,8 @@
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
-describe('cache utils test', () => {
-  describe('given asc input', () => {
+describe('tests/cache/models/utils.js >', () => {
+  describe('given asc input >', () => {
     let ascArr;
 
     // sort is in-place. Hence need reset array for test independence.
@@ -59,7 +59,7 @@ describe('cache utils test', () => {
     });
   });
 
-  describe('given desc input', () => {
+  describe('given desc input >', () => {
     let descArr;
 
     // sort is in-place. Hence need reset array for test independence.

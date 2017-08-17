@@ -25,7 +25,7 @@ const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const ZERO = 0;
 
-describe(`api: cache: PUT ${path}`, () => {
+describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
   let sampleName;
   let token;
   let aspectId;
@@ -62,7 +62,7 @@ describe(`api: cache: PUT ${path}`, () => {
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('Lists: ', () => {
+  describe('Lists >', () => {
     it('reject if name is in request body', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -149,7 +149,7 @@ describe(`api: cache: PUT ${path}`, () => {
     });
   });
 
-  describe('PUT Related Links ', () => {
+  describe('PUT Related Links >', () => {
     it('single related link', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)

@@ -17,7 +17,8 @@ import CompoundFields
   from '../../../view/admin/components/common/CompoundFields';
 
 /* eslint max-statements: ["error", 20, { "ignoreTopLevelFunctions": true }]*/
-describe('CompoundFields Test', () => {
+describe('tests/view/components/CompoundFieldTest.js, CompoundFields Test >',
+() => {
   const COOL_VALUE = 'COOL_VALUE';
   const ZERO = 0;
   const ONE = 1;
