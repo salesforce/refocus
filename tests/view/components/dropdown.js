@@ -9,13 +9,13 @@
 /**
  * tests/view/components/dropdown.js
  */
-
 import { expect } from 'chai';
 import React from 'react';
 import { mount } from 'enzyme';
 import Dropdown from '../../../view/admin/components/common/Dropdown.js';
 
-describe('Dropdown component tests', () => {
+describe('tests/view/components/dropdown.js, Dropdown component tests >',
+() => {
   const ZERO = 0;
   const ONE = 1;
   const DUMMY_STRING = 'UNITED';

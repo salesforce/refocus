@@ -10,7 +10,6 @@
  * tests/cache/models/subjects/getHierarchyWithoutSamples.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,20 +20,18 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}`, () => {
-  let token;
-
+describe('tests/cache/models/subjects/getHierarchyWithoutSamples.js, ' +
+`api: GET ${path} >`, () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
-
   const aspect = {
     name: 'temperature',
     timeout: '30s',
     isPublished: true,
     rank: 10,
   };
-
+  let token;
   let ipar = 0;
   let ichi = 0;
   let igrn = 0;
@@ -67,9 +64,7 @@ describe(`api: GET ${path}`, () => {
       igrn = sub.id;
       return tu.db.Aspect.create(aspect);
     })
-    .then(() => {
-      return samstoinit.populate();
-    })
+    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   });
@@ -78,7 +73,7 @@ describe(`api: GET ${path}`, () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('subject hierarchy without samples', () => {
+  describe('subject hierarchy without samples >', () => {
     it('hierarchy should load from the parent node', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
@@ -87,13 +82,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('hierarchy should load from grand child node', (done) => {
@@ -104,13 +93,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('hierarchy should load from child node', (done) => {
@@ -121,13 +104,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

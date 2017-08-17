@@ -16,7 +16,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const Subject = tu.db.Subject;
 
-describe('db: subject: find: ', () => {
+describe('tests/db/model/subject/find.js >', () => {
   let id1 = 0;
   let id2 = 0;
   let idDel = 0;
@@ -40,14 +40,14 @@ describe('db: subject: find: ', () => {
     })
     .then((created3) => {
       idDel = created3.id;
-      created3.destroy();
+      return created3.destroy();
     })
     .then(() => Subject.findAll()) // Buffer added because test is too fast
     .then(() => done()) // created3.destroy() doesnt run without buffer
     .catch(done);
   });
 
-  describe('findById', () => {
+  describe('findById >', () => {
     it('should be found', (done) => {
       Subject.findById(id1)
       .then((found) => {
@@ -82,7 +82,7 @@ describe('db: subject: find: ', () => {
     });
   });
 
-  describe('findOne', () => {
+  describe('findOne >', () => {
     it('ok, just returned one', (done) => {
       Subject.findOne()
       .then((found) => {
@@ -107,7 +107,7 @@ describe('db: subject: find: ', () => {
     });
   });
 
-  describe('findAll', () => {
+  describe('findAll >', () => {
     it('ok, found all, not including deleted ones', (done) => {
       Subject.findAll()
       .then((found) => {

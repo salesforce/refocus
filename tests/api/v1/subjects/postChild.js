@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postChild.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -105,13 +104,7 @@ describe(`api: POST ${path}`, () => {
         throw new Error('wrong parent?');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post child with parent name in url', (done) => {
@@ -124,13 +117,7 @@ describe(`api: POST ${path}`, () => {
         throw new Error('wrong parent?');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post child with published true while parent is unpublished',
@@ -155,15 +142,15 @@ describe(`api: POST ${path}`, () => {
   (done) => {
     api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
     .set('Authorization', token)
-    .send({ name: 'test', 'hierarchyLevel': -1 })
+    .send({ name: 'test', hierarchyLevel: -1 })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field');
       return done();
     });
   });

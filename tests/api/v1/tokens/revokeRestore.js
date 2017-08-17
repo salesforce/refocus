@@ -10,7 +10,6 @@
  * tests/api/v1/tokens/revokeRestore.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -25,24 +24,19 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
 describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken =
+    jwtUtil.createToken(adminUser.name, adminUser.name);
   let usr;
   let tid;
 
   beforeEach((done) => {
-    Profile.create({
-      name: `${tu.namePrefix}testProfile`,
-    })
-    .then((profile) =>
-      User.create({
-        profileId: profile.id,
-        name: `${tu.namePrefix}test@refocus.com`,
-        email: `${tu.namePrefix}test@refocus.com`,
-        password: 'user123password',
-      })
-    )
+    Profile.create({ name: `${tu.namePrefix}testProfile` })
+    .then((profile) => User.create({
+      profileId: profile.id,
+      name: `${tu.namePrefix}test@refocus.com`,
+      email: `${tu.namePrefix}test@refocus.com`,
+      password: 'user123password',
+    }))
     .then((user) => {
       usr = user;
       return Token.create({
@@ -66,26 +60,26 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
-        expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${tid}/restore`)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({})
-        .expect(constants.httpStatus.OK)
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            expect(res2.body).to.have.property('name',
-              `${tu.namePrefix}Voldemort`);
-            expect(res2.body).to.have.property('isRevoked', '0');
-            done();
-          }
-        });
+        return done(err);
       }
+
+      expect(res.body)
+      .to.have.property('name', `${tu.namePrefix}Voldemort`);
+      expect(res.body.isRevoked > '0').to.be.true;
+      api.post(`${path}/${tid}/restore`)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({})
+      .expect(constants.httpStatus.OK)
+      .end((err2, res2) => {
+        if (err2) {
+          return done(err2);
+        }
+
+        expect(res2.body)
+        .to.have.property('name', `${tu.namePrefix}Voldemort`);
+        expect(res2.body).to.have.property('isRevoked', '0');
+        done();
+      });
     });
   });
 
@@ -95,40 +89,26 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
     .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
+    .end(done);
   });
 
-  it('admin user, try to revoke a token if it was already revoked',
-  (done) => {
+  it('admin user, try to revoke a token if it was already revoked', (done) => {
     api.post(`${path}/${tid}/revoke`)
     .set('Authorization', predefinedAdminUserToken)
     .send({})
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name',
-          `${tu.namePrefix}Voldemort`);
-        expect(res.body.isRevoked > '0').to.be.true;
-        api.post(`${path}/${tid}/revoke`)
-        .set('Authorization', predefinedAdminUserToken)
-        .send({})
-        .expect(constants.httpStatus.BAD_REQUEST)
-        .end((err2 /* , res2 */) => {
-          if (err2) {
-            done(err2);
-          } else {
-            done();
-          }
-        });
+        return done(err);
       }
+
+      expect(res.body).to.have.property('name', `${tu.namePrefix}Voldemort`);
+      expect(res.body.isRevoked > '0').to.be.true;
+      api.post(`${path}/${tid}/revoke`)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({})
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end(done);
     });
   });
 
@@ -137,12 +117,6 @@ describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
     .set('Authorization', '???')
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      } else {
-        done();
-      }
-    });
+    .end(done);
   });
 });

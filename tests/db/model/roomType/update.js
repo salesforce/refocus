@@ -16,7 +16,7 @@ const u = require('./utils');
 const RoomType = tu.db.RoomType;
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
-describe('db: room type: update: ', () => {
+describe('tests/db/model/roomType/update.js >', () => {
   beforeEach((done) => {
     RoomType.create(u.getStandard())
     .then(() => done())
@@ -25,38 +25,36 @@ describe('db: room type: update: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Update room type', () => {
-    it('ok, room type isEnabled updated', (done) => {
-      RoomType.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ isEnabled: false }))
-      .then(() => RoomType.findOne({ where: { name: u.name } }))
-      .then((o) => {
-        expect(o).to.have.property('isEnabled').to.equal(false);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room type isEnabled updated', (done) => {
+    RoomType.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ isEnabled: false }))
+    .then(() => RoomType.findOne({ where: { name: u.name } }))
+    .then((o) => {
+      expect(o).to.have.property('isEnabled').to.equal(false);
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, room type name updated', (done) => {
-      RoomType.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ name: 'RoomTypeTest' }))
-      .then(() => RoomType.findOne({ where: { name: 'RoomTypeTest' } }))
-      .then((o) => {
-        expect(o).to.have.property('name').to.equal('RoomTypeTest');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room type name updated', (done) => {
+    RoomType.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ name: 'RoomTypeTest' }))
+    .then(() => RoomType.findOne({ where: { name: 'RoomTypeTest' } }))
+    .then((o) => {
+      expect(o).to.have.property('name').to.equal('RoomTypeTest');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, room type name bad', (done) => {
-      RoomType.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ name: invalidValue }))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.valErrorName);
-        expect(err.message.toLowerCase()).to.contain('validation error');
-        done();
-      })
-      .catch(done);
-    });
+  it('fail, room type name bad', (done) => {
+    RoomType.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ name: invalidValue }))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+    .catch(done);
   });
 });

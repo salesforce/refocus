@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -62,13 +61,7 @@ describe(`api: PATCH ${path}`, () => {
         throw new Error('Incorrect timeout Value');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch relatedLinks', (done) => {
@@ -82,13 +75,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.relatedLinks).to.have.length(1);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'link1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch relatedLinks multiple', (done) => {
@@ -105,13 +92,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('patch tags', (done) => {
@@ -125,13 +106,7 @@ describe(`api: PATCH ${path}`, () => {
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('with same tags fails', (done) => {
@@ -141,7 +116,7 @@ describe(`api: PATCH ${path}`, () => {
     .send(asp)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('DuplicateFieldError');
@@ -156,9 +131,9 @@ describe(`api: PATCH ${path}`, () => {
     .set('Authorization', token)
     .send(asp)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.tags).to.have.length(tags.length);
@@ -177,8 +152,8 @@ describe(`api: PATCH ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: isDeleted');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: isDeleted');
       return done();
     });
   });
@@ -193,8 +168,8 @@ describe(`api: PATCH ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: id');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: id');
       return done();
     });
   });
@@ -262,15 +237,9 @@ describe(`api: PATCH ${path} isPublished`, () => {
       .then((samp) => {
         expect(samp).to.have.length(0);
       })
-      .catch((_err) => done(_err));
+      .catch(done);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('updating aspect name deletes its samples', (done) => {
@@ -283,14 +252,8 @@ describe(`api: PATCH ${path} isPublished`, () => {
       .then((samp) => {
         expect(samp).to.have.length(0);
       })
-      .catch((_err) => done(_err));
+      .catch(done);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

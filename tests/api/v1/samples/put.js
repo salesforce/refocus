@@ -10,7 +10,6 @@
  * tests/api/v1/samples/put.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -33,7 +32,7 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -41,7 +40,7 @@ describe(`api: PUT ${path}`, () => {
     .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleName = samp.name;
-      return u.doCustomSetup('TEA', 'TOFFEE')
+      return u.doCustomSetup('TEA', 'TOFFEE');
     })
     .then((samp) => Sample.create(samp))
     .then((samp) => {
@@ -60,9 +59,9 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({ subjectId, aspectId, value: '2' })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const { apiLinks } = res.body;
@@ -70,7 +69,7 @@ describe(`api: PUT ${path}`, () => {
       let href = '';
       for (let j = apiLinks.length - 1; j >= 0; j--) {
         href = apiLinks[j].href;
-        if (apiLinks[j].method!= 'POST') {
+        if (apiLinks[j].method != 'POST') {
           expect(href.split('/').pop()).to.equal(sampleName);
         } else {
           expect(href).to.equal(path);
@@ -86,9 +85,9 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({ subjectId, aspectId, value: '2', name: '2' })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.contain('ValidationError');
@@ -101,9 +100,9 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({ subjectId, aspectId, value: '2' })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(sampleName);
@@ -121,8 +120,8 @@ describe(`api: PUT ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: isDeleted');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: isDeleted');
       return done();
     });
   });
@@ -137,8 +136,8 @@ describe(`api: PUT ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: createdAt');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: createdAt');
       return done();
     });
   });
@@ -153,8 +152,8 @@ describe(`api: PUT ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].description).to
-      .contain('You cannot modify the read-only field: previousStatus');
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field: previousStatus');
       return done();
     });
   });
@@ -164,9 +163,9 @@ describe(`api: PUT ${path}`, () => {
     .set('Authorization', token)
     .send({ subjectId, aspectId, value: '2' })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.id).to.be.undefined;
@@ -174,5 +173,3 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 });
-
-

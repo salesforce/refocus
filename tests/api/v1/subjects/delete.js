@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -81,13 +80,7 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .expect(bodyCheckIfDeleted)
       .expect(notFound)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('delete childless subject by absolutePath, different case',
@@ -113,13 +106,7 @@ describe(`api: DELETE ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .expect(bodyCheckIfDeleted)
       .expect(notFound)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('delete where you send a body');
@@ -270,13 +257,7 @@ describe(`api: DELETE ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/SubjectDeleteConstraintError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('cannot delete subject with child (using absolutePath)', (done) => {
@@ -284,13 +265,7 @@ describe(`api: DELETE ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/SubjectDeleteConstraintError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('can delete grandchild then child then parent (using ids)', (done) => {
@@ -400,13 +375,7 @@ describe('api: subjects: DELETE relatedLinks', () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete related link by name', (done) => {
@@ -417,12 +386,6 @@ describe('api: subjects: DELETE relatedLinks', () => {
       expect(res.body.relatedLinks).to.have.length(1);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

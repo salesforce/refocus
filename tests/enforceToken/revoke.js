@@ -19,7 +19,7 @@ const u = require('../testUtils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe('enforceToken: revoke:', () => {
+describe('tests/enforceToken/revoke.js, enforceToken: revoke >', () => {
   let defaultToken;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name

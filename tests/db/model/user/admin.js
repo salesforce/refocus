@@ -16,7 +16,7 @@ const tu = require('../../../testUtils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('Admin User Tests:', () => {
+describe('tests/db/model/user/admin.js, Admin User Tests >', () => {
   let au = null;
   let ap = null;
 

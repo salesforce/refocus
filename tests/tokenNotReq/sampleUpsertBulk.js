@@ -19,7 +19,8 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('token not required api: POST ' + path, () => {
+describe('tests/tokenNotReq/sampleUpsertBulk.js, token not required api: ' +
+'POST >' + path, () => {
   before((done) => {
     Aspect.create({
       isPublished: true,

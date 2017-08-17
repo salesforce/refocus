@@ -10,7 +10,6 @@
  * tests/db/api/botActions/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
@@ -20,22 +19,10 @@ const standard = {
   isPending: true,
   name: Action1,
   parameters: [
-    {
-      name: 'Param1',
-      value: true,
-    },
-    {
-      name: 'Param2',
-      value: 4,
-    },
-    {
-      name: 'Param3',
-      value: 62.2,
-    },
-    {
-      name: 'Param4',
-      value: 'TestValue',
-    },
+    { name: 'Param1', value: true },
+    { name: 'Param2', value: 4 },
+    { name: 'Param3', value: 62.2 },
+    { name: 'Param4', value: 'TestValue' },
   ],
 };
 
@@ -43,22 +30,10 @@ const res = {
   isPending: true,
   name: 'Action2',
   parameters: [
-    {
-      name: 'Param1',
-      value: true,
-    },
-    {
-      name: 'Param2',
-      value: 4,
-    },
-    {
-      name: 'Param3',
-      value: 62.2,
-    },
-    {
-      name: 'Param4',
-      value: 'TestValue',
-    },
+    { name: 'Param1', value: true },
+    { name: 'Param2', value: 4 },
+    { name: 'Param3', value: 62.2 },
+    { name: 'Param4', value: 'TestValue' },
   ],
   response: {
     message: 'Action Completed',
