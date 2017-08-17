@@ -13,124 +13,124 @@
 const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
 const options = fu.options;
 const expect = require('chai').expect;
-const ZERO = 0;
-const ONE = 1;
 
-describe('build options object: ', () => {
-  let props;
-  let params;
+describe('tests/api/v1/helpers/findUtils.js', () => {
+  describe('build options object: ', () => {
+    let props;
+    let params;
 
-  beforeEach((done) => {
-    props = { tagFilterName: 'tags' };
-    params = {
-      fields: {},
-      sort: {},
-      limit: {},
-      offset: {},
-      name: {},
-      description: {},
-      tags: {},
-    };
-    done();
-  });
+    beforeEach((done) => {
+      props = { tagFilterName: 'tags' };
+      params = {
+        fields: {},
+        sort: {},
+        limit: {},
+        offset: {},
+        name: {},
+        description: {},
+        tags: {},
+      };
+      done();
+    });
 
-  it('no values', () => {
-    const opts = {
-      where: {},
-    };
-
-    expect(options(params, props)).to.deep.equal(opts);
-  });
-
-  it('basic values', () => {
-    params.fields.value = ['name', 'description'];
-    params.sort.value = 'name';
-    params.limit.value = '10';
-    params.offset.value = '10';
-    params.name.value = 'name1';
-    params.description.value = 'desc1';
-
-    const opts = {
-      attributes: ['name', 'description', 'id'],
-      order: ['name'],
-      limit: 10,
-      offset: 10,
-      where: {
-        name: {
-          $iLike: 'name1',
-        },
-        description: {
-          $iLike: 'desc1',
-        },
+    it('no values', () => {
+      const opts = {
+        where: {},
       };
 
       expect(options(params, props)).to.deep.equal(opts);
     });
 
-    it('replace/escape like clause', () => {
+    it('basic values', () => {
+      params.fields.value = ['name', 'description'];
+      params.sort.value = 'name';
+      params.limit.value = '10';
+      params.offset.value = '10';
+      params.name.value = 'name1';
+      params.description.value = 'desc1';
+
       const opts = {
+        attributes: ['name', 'description', 'id'],
+        order: ['name'],
+        limit: 10,
+        offset: 10,
         where: {
           name: {
-            $iLike: '%name%',
+            $iLike: 'name1',
+          },
+          description: {
+            $iLike: 'desc1',
           },
         },
       };
 
-      params.name.value = '*name*';
-      opts.where.name.$iLike = '%name%';
-      expect(options(params, props)).to.deep.equal(opts);
+        expect(options(params, props)).to.deep.equal(opts);
+      });
 
-      params.name.value = 'na%me';
-      opts.where.name.$iLike = 'na\\%me';
-      expect(options(params, props)).to.deep.equal(opts);
+      it('replace/escape like clause', () => {
+        const opts = {
+          where: {
+            name: {
+              $iLike: '%name%',
+            },
+          },
+        };
 
-      params.name.value = 'na_me';
-      opts.where.name.$iLike = 'na\\_me';
-      expect(options(params, props)).to.deep.equal(opts);
+        params.name.value = '*name*';
+        opts.where.name.$iLike = '%name%';
+        expect(options(params, props)).to.deep.equal(opts);
 
-      params.name.value = '*n%am_e*';
-      opts.where.name.$iLike = '%n\\%am\\_e%';
+        params.name.value = 'na%me';
+        opts.where.name.$iLike = 'na\\%me';
+        expect(options(params, props)).to.deep.equal(opts);
+
+        params.name.value = 'na_me';
+        opts.where.name.$iLike = 'na\\_me';
+        expect(options(params, props)).to.deep.equal(opts);
+
+        params.name.value = '*n%am_e*';
+        opts.where.name.$iLike = '%n\\%am\\_e%';
+        expect(options(params, props)).to.deep.equal(opts);
+      });
+
+      it('toSequelizeWildcards', (done) => {
+        expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
+        expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
+        expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
+        expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
+        expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
+        done();
+      });
+
+    it('tags single include', () => {
+      params.tags.value = ['a'];
+      const opts = { where: { tags: { $contains: ['a'] } } };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
-    it('toSequelizeWildcards', (done) => {
-      expect(fu.toSequelizeWildcards('abc')).to.be.equal('abc');
-      expect(fu.toSequelizeWildcards('*abc')).to.be.equal('%abc');
-      expect(fu.toSequelizeWildcards('abc*')).to.be.equal('abc%');
-      expect(fu.toSequelizeWildcards('*a*b*c*')).to.be.equal('%a%b%c%');
-      expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
-      done();
+    it('tags multiple include', () => {
+      params.tags.value = ['a', 'b'];
+      const opts = { where: { tags: { $contains: ['a', 'b'] } } };
+      expect(options(params, props)).to.deep.equal(opts);
     });
-  });
 
-  it('tags single include', () => {
-    params.tags.value = ['a'];
-    const opts = { where: { tags: { $contains: ['a'] } } };
-    expect(options(params, props)).to.deep.equal(opts);
-  });
+    it('tags single exclude', () => {
+      params.tags.value = ['-a'];
+      const opts = { where: { $not: { tags: { $overlap: ['a'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
 
-  it('tags multiple include', () => {
-    params.tags.value = ['a', 'b'];
-    const opts = { where: { tags: { $contains: ['a', 'b'] } } };
-    expect(options(params, props)).to.deep.equal(opts);
-  });
+    it('tags multiple exclude', () => {
+      params.tags.value = ['-a', 'b'];
+      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
 
-  it('tags single exclude', () => {
-    params.tags.value = ['-a'];
-    const opts = { where: { $not: { tags: { $overlap: ['a'] } } } };
-    expect(options(params, props)).to.deep.equal(opts);
-  });
+    it('tags multiple exclude', () => {
+      params.tags.value = ['-a', '-b'];
+      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
 
-  it('tags multiple exclude', () => {
-    params.tags.value = ['-a', 'b'];
-    const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
-    expect(options(params, props)).to.deep.equal(opts);
   });
-
-  it('tags multiple exclude', () => {
-    params.tags.value = ['-a', '-b'];
-    const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
-    expect(options(params, props)).to.deep.equal(opts);
-  });
-
 });
