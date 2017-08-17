@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/deleteTags.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const Subject = tu.db.Subject;
 const allDeletePath = '/v1/subjects/{key}/tags';
 const oneDeletePath = '/v1/subjects/{key}/tags/{akey}';
 
-describe('api: subjects: DELETE tags', () => {
+describe('tests/api/v1/subjects/deleteTags.js >', () => {
   let token;
   let i;
   const tag0 = 'tag0';
@@ -58,17 +57,10 @@ describe('api: subjects: DELETE tags', () => {
     .expect((res) => {
       expect(res.body.tags).to.have.length(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete one tag', (done) => {
-
     api.delete(oneDeletePath.replace('{key}', i).replace('{akey}', tag0))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -76,13 +68,7 @@ describe('api: subjects: DELETE tags', () => {
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete tag by name', (done) => {
@@ -93,13 +79,7 @@ describe('api: subjects: DELETE tags', () => {
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('if tag not found; do not delete anything', (done) => {
@@ -110,12 +90,6 @@ describe('api: subjects: DELETE tags', () => {
       expect(res.body.tags).to.have.length(2);
       expect(res.body.tags).to.have.members(['tag1', 'tag0']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

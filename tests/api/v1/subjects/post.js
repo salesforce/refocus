@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const path = '/v1/subjects';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -35,7 +34,7 @@ describe(`api: POST ${path}`, () => {
 
   after(tu.forceDeleteUser);
 
-  describe('Simple', () => {
+  describe('Simple >', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };
     const n2b = { name: `${tu.namePrefix}Quebec` };
     let i0 = 0;
@@ -82,7 +81,7 @@ describe(`api: POST ${path}`, () => {
 
     after(u.forceDelete);
 
-    describe('post duplicate fails', () => {
+    describe('post duplicate fails >', () => {
       const DUMMY = { name: `${tu.namePrefix}DUMMY` };
 
       beforeEach((done) => {
@@ -100,7 +99,7 @@ describe(`api: POST ${path}`, () => {
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.errors[ZERO].type)
@@ -116,7 +115,7 @@ describe(`api: POST ${path}`, () => {
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.errors[ZERO].type)
@@ -134,7 +133,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = JSON.parse(res.text);
@@ -152,7 +151,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const result = JSON.parse(res.text);
@@ -205,13 +204,7 @@ describe(`api: POST ${path}`, () => {
       })
       .expect(parentBodyCheck)
       .expect(parentFound)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('posting with readOnly field hierarchyLevel should fail', (done) => {
@@ -219,12 +212,13 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send({ name: n0.name, hierarchyLevel: 100 })
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err , res ) => {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field');
+
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field');
         done();
       });
     });
@@ -239,8 +233,8 @@ describe(`api: POST ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: absolutePath');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: absolutePath');
         return done();
       });
     });
@@ -255,8 +249,8 @@ describe(`api: POST ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: childCount');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: childCount');
         return done();
       });
     });
@@ -271,8 +265,8 @@ describe(`api: POST ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: id');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: id');
         return done();
       });
     });
@@ -287,8 +281,8 @@ describe(`api: POST ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to
-        .contain('You cannot modify the read-only field: isDeleted');
+        expect(res.body.errors[0].description)
+        .to.contain('You cannot modify the read-only field: isDeleted');
         return done();
       });
     });
@@ -327,11 +321,15 @@ describe(`api: POST ${path}`, () => {
     it('invalid sortBy value', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send({ name: `${tu.namePrefix}s3`, description: 'sample description', sortBy: ' ' })
+      .send({
+        name: `${tu.namePrefix}s3`,
+        description: 'sample description',
+        sortBy: ' ',
+      })
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.text).to.contain('sortBy');
@@ -340,7 +338,7 @@ describe(`api: POST ${path}`, () => {
     });
   }); // Simple
 
-  describe('With a Parent', () => {
+  describe('With a Parent >', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };
     const n1 = { name: `${tu.namePrefix}Canada` };
     let i0 = 0;
@@ -409,17 +407,11 @@ describe(`api: POST ${path}`, () => {
       })
       .expect(childBodyCheck)
       .expect(childFound)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   }); // With a Parent
 
-  describe('Duplicates', () => {
+  describe('Duplicates >', () => {
     const n0 = { name: `${tu.namePrefix}Canada` };
     const n1 = { name: `${tu.namePrefix}Ontario` };
     let i0 = 0;
@@ -449,13 +441,7 @@ describe(`api: POST ${path}`, () => {
       })
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/UniqueConstraintError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('same name and no parent', (done) => {
@@ -464,13 +450,7 @@ describe(`api: POST ${path}`, () => {
       .send(n0)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect(/UniqueConstraintError/)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('same name but different parent', (done) => {
@@ -478,17 +458,11 @@ describe(`api: POST ${path}`, () => {
       .set('Authorization', token)
       .send({ name: n1.name })
       .expect(constants.httpStatus.CREATED)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   }); // Duplicates
 
-  describe('Misc', () => {
+  describe('Misc >', () => {
     it('unexpected field in body OK', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -499,13 +473,7 @@ describe(`api: POST ${path}`, () => {
         isPublished: false,
       })
       .expect(constants.httpStatus.CREATED)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('no name in body', (done) => {
@@ -515,7 +483,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.text).to.contain('Missing required property: name');
@@ -534,11 +502,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.text)
-        .to.contain('absolutePath');
+        expect(res.text).to.contain('absolutePath');
         done();
       });
     });
@@ -553,11 +520,10 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.text)
-        .to.contain('parentId');
+        expect(res.text).to.contain('parentId');
         done();
       });
     });
@@ -568,17 +534,11 @@ describe(`api: POST ${path}`, () => {
       .send()
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/Invalid content type/)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   }); // Misc
 
-  describe('api: subject: tags', () => {
+  describe('api: subject: tags >', () => {
     afterEach(u.forceDelete);
     it('post subject with tags', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
@@ -591,15 +551,8 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
         expect(res.body.tags).to.have.members(tags);
-
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('should not be able to post tag names starting with dash(-)', (done) => {
@@ -613,15 +566,9 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body).to.property('errors');
         expect(res.body.errors[ZERO].type)
-          .to.equal(tu.schemaValidationErrorName);
+        .to.equal(tu.schemaValidationErrorName);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('posting subject with case sensitive (duplicate) tags should fail',
@@ -634,13 +581,7 @@ describe(`api: POST ${path}`, () => {
       .send(subjectToPost)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('posting subject with duplicate tags should fail',
@@ -653,13 +594,7 @@ describe(`api: POST ${path}`, () => {
       .send(subjectToPost)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('post subject with tags of size zero', (done) => {
@@ -673,13 +608,7 @@ describe(`api: POST ${path}`, () => {
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

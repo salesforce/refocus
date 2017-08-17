@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const sampleStore = require('../../../cache/sampleStore');
 const samstoinit = require('../../../cache/sampleStoreInit');
-const redisClient = require('../../../cache/redisCache').client.sampleStore;
+const rcli = require('../../../cache/redisCache').client.sampleStore;
 const redisOps = require('../../../cache/redisOps');
 const tu = require('../../testUtils');
 const Aspect = tu.db.Aspect;
@@ -104,13 +104,13 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => redisClient.flushallAsync())
+    .then(() => rcli.flushallAsync())
     .then(() => done())
     .catch(done);
   },
 
   flushRedis(done) {
-    redisClient.flushallAsync()
+    rcli.flushallAsync()
     .then(() => done())
     .catch(done);
   },
@@ -119,7 +119,7 @@ module.exports = {
 
   samstoinit,
 
-  redisClient,
+  rcli,
 
   redisOps,
 };

@@ -11,7 +11,7 @@
  *
  * Used by the RoomType model.
  */
- 
+
 const dbErrors = require('../dbErrors');
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');

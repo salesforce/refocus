@@ -10,7 +10,6 @@
  * tests/api/v1/users/put.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -23,7 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: PUT ${path}`, () => {
+describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -36,20 +35,16 @@ describe(`api: PUT ${path}`, () => {
   const userFive = `${tu.namePrefix}bbbbb@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
-  // out of the box admin user token
+  /* out of the box admin user token */
   const OBAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
 
   before((done) => {
-    Profile.create({
-      name: pname + ONE,
-    })
+    Profile.create({ name: pname + ONE })
     .then((profile) => {
       profileOneId = profile.id;
-      return Profile.create({
-        name: pname + TWO,
-      });
+      return Profile.create({ name: pname + TWO });
     })
     .then((profile) => {
       profileTwoId = profile.id;
@@ -59,35 +54,33 @@ describe(`api: PUT ${path}`, () => {
         email: userOne,
         password: userOne,
       });
-    }) // another normal user
+    })
+    /* another normal user */
     .then(() => User.create({
-        profileId: profileTwoId,
-        name: userTwo,
-        email: userTwo,
-        password: userTwo,
-      })
-    )
+      profileId: profileTwoId,
+      name: userTwo,
+      email: userTwo,
+      password: userTwo,
+    }))
     .then(() => User.create({
-        profileId: profileTwoId,
-        name: userThree,
-        email: userThree,
-        password: userThree,
-      })
-    )
+      profileId: profileTwoId,
+      name: userThree,
+      email: userThree,
+      password: userThree,
+    }))
     .then(() => User.create({
-        profileId: profileTwoId,
-        name: userFive,
-        email: userFive,
-        password: userFive,
-      })
-    )
+      profileId: profileTwoId,
+      name: userFive,
+      email: userFive,
+      password: userFive,
+    }))
     .then(() => done())
     .catch(done);
   });
 
   after(u.forceDelete);
 
-  describe('non-out of box admin:', () => {
+  describe('non-out of box admin >', () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
@@ -103,26 +96,22 @@ describe(`api: PUT ${path}`, () => {
           },
         },
       })
-      .then((OBAdminUser) =>
-        adminProfileId = OBAdminUser.profileId
-      ) // create a normal user
+      .then((OBAdminUser) => adminProfileId = OBAdminUser.profileId)
+      /* create a normal user */
       .then(() => User.create({
-          profileId: profileOneId,
-          name: userZero,
-          email: userZero,
-          password: userZero,
-        })
-      ) // create a normal user
+        profileId: profileOneId,
+        name: userZero,
+        email: userZero,
+        password: userZero,
+      }))
+      /* create a normal user */
       .then(() => User.create({
-          profileId: profileOneId,
-          name: userFour,
-          email: userFour,
-          password: userFour,
-        })
-      )
-      .then((normalUser) =>
-        normalUser.update({ profileId: adminProfileId })
-      )
+        profileId: profileOneId,
+        name: userFour,
+        email: userFour,
+        password: userFour,
+      }))
+      .then((normalUser) => normalUser.update({ profileId: adminProfileId }))
       .then(() => done())
       .catch(done);
     });
@@ -140,12 +129,12 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'AdminUpdateDeleteForbidden');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
         done();
       });
     });
@@ -163,7 +152,7 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -172,7 +161,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('normal user:', () => {
+  describe('normal user >', () => {
     it('cannot change its profileId',
       (done) => {
       const normalUserToken = jwtUtil.createToken(
@@ -189,14 +178,13 @@ describe(`api: PUT ${path}`, () => {
       })
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
-        // console.log(err, res.body)
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'ForbiddenError');
         done();
       });
     });
@@ -217,9 +205,8 @@ describe(`api: PUT ${path}`, () => {
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        // console.log(err, res)
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -243,18 +230,18 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'ForbiddenError');
         done();
       });
     });
   });
 
-  describe('out of box admin:', () => {
+  describe('out of box admin >', () => {
     it('can PUT normal user', (done) => {
       const newName = `${tu.namePrefix}` + userOne;
       api.put(path + '/' + userOne)
@@ -267,9 +254,8 @@ describe(`api: PUT ${path}`, () => {
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        // console.log(err, res)
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
@@ -290,12 +276,12 @@ describe(`api: PUT ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'AdminUpdateDeleteForbidden');
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
         done();
       });
     });

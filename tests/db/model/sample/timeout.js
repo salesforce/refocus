@@ -10,7 +10,6 @@
  * tests/db/model/sample/timeout.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -21,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: timeout: ', () => {
+describe('tests/db/model/sample/timeout.js >', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;
@@ -242,7 +241,6 @@ describe('db: sample: timeout: ', () => {
       /*
        * the following sample fields should not be fetched in the
        * checktimeout query
-       *
        */
       expect(samp.previousStatus).to.equal(undefined);
       expect(samp.messageBody).to.equal(undefined);

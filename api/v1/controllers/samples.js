@@ -222,7 +222,12 @@ module.exports = {
          *send the upserted sample to the client by publishing it to the redis
          *channel
          */
-        publisher.publishSample(samp, subHelper.model);
+        if (featureToggles.isFeatureEnabled('publishPartialSample')) {
+          publisher.publishPartialSample(samp);
+        } else {
+          publisher.publishSample(samp, subHelper.model);
+        }
+
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
           .json(u.responsify(samp, helper, req.method));
@@ -254,6 +259,7 @@ module.exports = {
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
    * @returns {Promise} - A promise that resolves to the response object,
    * indicating merely that the bulk upsert request has been received.
    */
@@ -308,7 +314,11 @@ module.exports = {
         .then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {
-              publisher.publishSample(sample, subHelper.model);
+              if (featureToggles.isFeatureEnabled('publishPartialSample')) {
+                publisher.publishPartialSample(sample);
+              } else {
+                publisher.publishSample(sample, subHelper.model);
+              }
             }
           });
         });
@@ -323,8 +333,7 @@ module.exports = {
       .catch((err) => // user does not have write permission for the sample
         u.handleError(next, err, helper.modelName)
       )
-    )
-    .catch(() => // user is not found. upsert anyway with no user
+    ).catch(() => // user is not found. upsert anyway with no user
       bulkUpsert(false)
       .catch((err) => // the sample is write protected
         u.handleError(next, err, helper.modelName)

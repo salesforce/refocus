@@ -9,9 +9,7 @@
 /**
  * tests/api/v1/generators/putPatchWithoutPerms.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,16 +20,14 @@ const Generator = tu.db.Generator;
 const User = tu.db.User;
 const path = '/v1/generators';
 
-describe('api: generators:', () => {
+describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
   let generator;
   let otherValidToken;
   const generatorToCreate = u.getGenerator();
 
   before((done) => {
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -40,16 +36,12 @@ describe('api: generators:', () => {
     .then((gen) => {
       generator = gen;
     })
-    .then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return generator.addWriter(usr);
-    })
+    /*
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => generator.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -67,11 +59,11 @@ describe('api: generators:', () => {
       description: 'Collect status data patched with name',
       keywords: [
         'status',
-        'STATUS'
+        'STATUS',
       ],
       generatorTemplate: {
         name: 'refocus-ok-generator-template',
-        version: '1.0.0'
+        version: '1.0.0',
       },
       context: {
         okValue: {

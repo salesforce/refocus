@@ -10,13 +10,12 @@
  * tests/view/components/formTest.js
  */
 'use strict';
-
 import React from 'react';
 import TestUtils from 'react-addons-test-utils';
 import { expect } from 'chai';
 import Form from '../../../view/admin/components/common/Forms.js';
 
-describe('Forms', () => {
+describe('tests/view/components/formTest.js, Forms >', () => {
   const FIELD_NAME = 'hello_world';
 
   // TODO: troubleshoot why Inconstiant Violation: Objects are not valid as a React child

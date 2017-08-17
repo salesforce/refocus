@@ -10,11 +10,10 @@
  * tests/logging/activityLogUtils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const activityLogUtils = require('../../utils/activityLog');
 
-describe('/utils/activityLog: functions', () => {
+describe('tests/logging/activityLogUtils.js, /utils/activityLog >', () => {
   it('updateActivityLogParams function ok', (done) => {
     const resultObj = {};
     const tempObj = {
@@ -24,7 +23,6 @@ describe('/utils/activityLog: functions', () => {
       dbStartTime: 23,
       dbEndTime: 27,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
     expect(resultObj.jobEndTime).to.be.equal(29);
@@ -42,7 +40,6 @@ describe('/utils/activityLog: functions', () => {
       jobEndTime: 29,
       dbStartTime: 23,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.not.exist;
     expect(resultObj.jobEndTime).to.be.equal(29);
@@ -60,7 +57,6 @@ describe('/utils/activityLog: functions', () => {
       jobEndTime: 29,
       dbEndTime: 27,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.not.exist;
     expect(resultObj.jobEndTime).to.be.equal(29);
@@ -78,7 +74,6 @@ describe('/utils/activityLog: functions', () => {
       dbStartTime: 23,
       dbEndTime: 27,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
     expect(resultObj.jobEndTime).to.not.exist;
@@ -96,7 +91,6 @@ describe('/utils/activityLog: functions', () => {
       dbStartTime: 23,
       dbEndTime: 27,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
     expect(resultObj.jobEndTime).to.be.equal(29);
@@ -114,7 +108,6 @@ describe('/utils/activityLog: functions', () => {
       dbStartTime: 23,
       dbEndTime: 27,
     };
-
     activityLogUtils.updateActivityLogParams(resultObj, tempObj);
     expect(resultObj.dbTime).to.be.equal(4);
     expect(resultObj.jobEndTime).to.be.equal(29);

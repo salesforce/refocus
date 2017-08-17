@@ -10,13 +10,12 @@
  * tests/db/model/generator/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Generator = tu.db.Generator;
 
-describe('db: Generator: delete: ', () => {
+describe('tests/db/model/generator/delete.js >', () => {
   const generator = u.getGenerator();
 
   afterEach(u.forceDelete);

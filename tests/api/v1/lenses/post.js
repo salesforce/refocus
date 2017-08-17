@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/lenses/post.js >', () => {
   let token;
 
   before((done) => {
@@ -36,7 +35,7 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     beforeEach((done) => {
       u.doSetup()
       .then(() => done())
@@ -51,7 +50,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -68,7 +67,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -85,13 +84,7 @@ describe(`api: POST ${path}`, () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Error if required files not present in zip', (done) => {
@@ -103,7 +96,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].description).contains(
@@ -120,7 +113,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].description).contains(
@@ -139,7 +132,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].description).contains(
@@ -157,7 +150,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(res.body.sourceName);
@@ -172,7 +165,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].description).contains(
@@ -184,7 +177,7 @@ describe(`api: POST ${path}`, () => {
       .then((resp) => {
         expect(resp).to.be.null;
       })
-      .then(done);
+      .then(() => done());
     });
   });
 
@@ -196,7 +189,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].message).contains(
@@ -208,7 +201,7 @@ describe(`api: POST ${path}`, () => {
       .then((resp) => {
         expect(resp).to.be.null;
       })
-      .then(done);
+      .then(() => done());
     });
   });
 });

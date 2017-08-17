@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -23,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/globalconfig/delete.js >', () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -55,7 +54,7 @@ describe(`api: DELETE ${path}`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       testUserToken = res.body.token;
@@ -86,7 +85,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.errors).to.have.length(ONE);
         expect(res.body.errors).to.have.deep.property('[0].type',
@@ -103,7 +102,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.key).to.equal(config);
@@ -119,7 +118,7 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body).to.have.property('key',
           `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);

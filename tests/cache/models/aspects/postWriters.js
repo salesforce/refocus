@@ -10,13 +10,12 @@
  * tests/cache/models/aspects/postWriters.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
-const redisClient = rtu.redisClient;
+const rcli = rtu.rcli;
 const samstoinit = rtu.samstoinit;
 const sampleStore = rtu.sampleStore;
 const expect = require('chai').expect;
@@ -24,7 +23,8 @@ const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 const postWritersPath = '/v1/aspects/{key}/writers';
 
-describe('api: aspects: post writers', () => {
+describe('tests/cache/models/aspects/postWriters.js, ' +
+'api: aspects: post writers', () => {
   let token;
   let aspect;
   let firstUser;
@@ -48,18 +48,16 @@ describe('api: aspects: post writers', () => {
     .catch(done);
   });
 
-
   before((done) => {
     Aspect.create(aspectToCreate)
     .then((asp) => {
       aspect = asp;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       firstUser = usr;
       userNameArray.push(firstUser.name);
@@ -70,9 +68,7 @@ describe('api: aspects: post writers', () => {
       userNameArray.push(secondUser.name);
       return tu.createThirdUser();
     })
-    .then((tUsr) => {
-      return tu.createTokenFromUserName(tUsr.name);
-    })
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
     .then((tkn) => {
       otherValidToken = tkn;
       return samstoinit.populate();
@@ -85,26 +81,23 @@ describe('api: aspects: post writers', () => {
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(tu.forceDeleteUser);
 
-  it('add writers to the record and make sure the writers are ' +
-      'associated with the right object', (done) => {
+  it('add writers to the record and make sure the writers are associated ' +
+  'with the right object', (done) => {
     api.post(postWritersPath.replace('{key}', aspect.id))
     .set('Authorization', token)
     .send(userNameArray)
     .expect(constants.httpStatus.CREATED)
     .expect((res) => {
       expect(res.body).to.have.length(2);
-
       const userOne = res.body[0];
       const userTwo = res.body[1];
-
       expect(userOne.aspectId).to.not.equal(undefined);
       expect(userOne.userId).to.not.equal(undefined);
-
       expect(userTwo.aspectId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
 
       // make sure the writers are added to the aspect in redis too
-      redisClient.hgetallAsync('samsto:aspect:___aspectname')
+      rcli.hgetallAsync('samsto:aspect:___aspectname')
       .then((asp) => {
         sampleStore.arrayStringsToJson(asp,
           sampleStore.constants.fieldsToStringify.aspect);
@@ -113,28 +106,16 @@ describe('api: aspects: post writers', () => {
         .members([firstUser.name, secondUser.name]);
       });
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
-  it('return 403 for adding writers using an user that is not '+
-    'already a writer of that resource', (done) => {
+  it('return 403 for adding writers using an user that is not already a ' +
+  'writer of that resource', (done) => {
     api.post(postWritersPath.replace('{key}', aspect.id))
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('return 404 for adding writers to an invalid aspect', (done) => {
@@ -142,13 +123,7 @@ describe('api: aspects: post writers', () => {
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('a request body that is not an array should not be accepted', (done) => {
@@ -157,30 +132,18 @@ describe('api: aspects: post writers', () => {
     .set('Authorization', token)
     .send({ firstUserName })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
-  it('return 404 for adding writers to an array not found in the ' +
-    'cache', (done) => {
+  it('return 404 for adding writers to an array not found in the cache',
+  (done) => {
     samstoinit.eradicate()
     .then(() => {
       api.post(postWritersPath.replace('{key}', aspect.id))
       .set('Authorization', token)
       .send(userNameArray)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

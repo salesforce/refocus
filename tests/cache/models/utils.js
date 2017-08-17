@@ -10,19 +10,18 @@
  * tests/cache/models/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const utils = require('../../../cache/models/utils');
 
-describe('cache utils test', () => {
-  describe('given asc input', () => {
+describe('tests/cache/models/utils.js >', () => {
+  describe('given asc input >', () => {
     let ascArr;
 
     // sort is in-place. Hence need reset array for test independence.
     beforeEach(() => {
       ascArr = [
         { name: '___Subject1', absolutePath: '___Subject1' },
-        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject2', absolutePath: '___Subject1.___Subject2' },
         { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
       ];
     });
@@ -60,14 +59,14 @@ describe('cache utils test', () => {
     });
   });
 
-  describe('given desc input', () => {
+  describe('given desc input >', () => {
     let descArr;
 
     // sort is in-place. Hence need reset array for test independence.
     beforeEach(() => {
       descArr = [
         { name: '___Subject3', absolutePath: '___Subject1.___Subject3' },
-        { name: '___Subject2', 'absolutePath': '___Subject1.___Subject2' },
+        { name: '___Subject2', absolutePath: '___Subject1.___Subject2' },
         { name: '___Subject1', absolutePath: '___Subject1' },
       ];
     });

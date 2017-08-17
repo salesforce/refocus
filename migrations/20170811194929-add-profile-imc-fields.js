@@ -6,87 +6,87 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-'use strict';
+'use strict'; // eslint-disable-line strict
 const TBL = 'Profiles';
 
 module.exports = {
-  up: function (qi, Sequelize) {
+  up(qi /* , Sequelize */) {
     let attr;
-    return qi.describeTable(TBL)
+    return qi.sequelize.transaction(() => qi.describeTable(TBL)
     .then((attributes) => {
       attr = attributes;
-      if (!attr.hasOwnProperty('botAccess')) {
-        return qi.addColumn(TBL, 'botAccess', {
-          type: Sequelize.ENUM('r', 'rw'),
-          defaultValue: 'r',
-        });
-      } else {
+      if (attr.hasOwnProperty('botAccess')) {
         return true;
       }
+
+      return qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ADD COLUMN "botAccess" "enum_Profiles_botAccess"', {
+        type: qi.sequelize.QueryTypes.ALTER,
+      });
     })
     .then(() => {
-      if (!attr.hasOwnProperty('eventAccess')) {
-        return qi.addColumn(TBL, 'eventAccess', {
-          type: Sequelize.ENUM('r', 'rw'),
-          defaultValue: 'r',
-        });
-      } else {
+      if (attr.hasOwnProperty('eventAccess')) {
         return true;
       }
+
+      return qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ADD COLUMN "eventAccess" "enum_Profiles_eventAccess"', {
+        type: qi.sequelize.QueryTypes.ALTER,
+      });
     })
     .then(() => {
-      if (!attr.hasOwnProperty('roomAccess')) {
-        return qi.addColumn(TBL, 'roomAccess', {
-          type: Sequelize.ENUM('r', 'rw'),
-          defaultValue: 'rw',
-        });
-      } else {
+      if (attr.hasOwnProperty('roomAccess')) {
         return true;
       }
+
+      return qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ADD COLUMN "roomAccess" "enum_Profiles_roomAccess"', {
+        type: qi.sequelize.QueryTypes.ALTER,
+      });
     })
     .then(() => {
-      if (!attr.hasOwnProperty('roomTypeAccess')) {
-        return qi.addColumn(TBL, 'roomTypeAccess', {
-          type: Sequelize.ENUM('r', 'rw'),
-          defaultValue: 'r',
-        });
-      } else {
+      if (attr.hasOwnProperty('roomTypeAccess')) {
         return true;
       }
-    });
+
+      return qi.sequelize.query('ALTER TABLE ONLY "Profiles" ' +
+      'ADD COLUMN "roomTypeAccess" "enum_Profiles_roomTypeAccess"', {
+        type: qi.sequelize.QueryTypes.ALTER,
+      });
+    }));
   },
 
-  down: function (qi, Sequelize) {
+  down(qi/* , Sequelize */) {
     let attr;
-    return qi.describeTable(TBL)
+    return qi.sequelize.transaction(() => qi.describeTable(TBL)
     .then((attributes) => {
       attr = attributes;
       if (attr.hasOwnProperty('botAccess')) {
         return qi.removeColumn(TBL, 'botAccess');
-      } else {
-        return true;
       }
+
+      return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('eventAccess')) {
         return qi.removeColumn(TBL, 'eventAccess');
-      } else {
-        return true;
       }
+
+      return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('roomAccess')) {
         return qi.removeColumn(TBL, 'roomAccess');
-      } else {
-        return true;
       }
+
+      return true;
     })
     .then(() => {
       if (attr.hasOwnProperty('roomTypeAccess')) {
         return qi.removeColumn(TBL, 'roomTypeAccess');
-      } else {
-        return true;
       }
-    });
+
+      return true;
+    }));
   },
 };
