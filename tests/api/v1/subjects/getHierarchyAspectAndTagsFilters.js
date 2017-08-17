@@ -20,7 +20,8 @@ const Aspect = tu.db.Aspect;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}:`, () => {
+describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
+`GET ${path} >`, () => {
   let token;
 
   //
@@ -136,7 +137,7 @@ describe(`api: GET ${path}:`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('SubjectTag filter on hierarchy', () => {
+  describe('SubjectTag filter on hierarchy >', () => {
     it('Only subjects matching the tag and its hierarchy should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?subjectTags=cold';
@@ -272,7 +273,7 @@ describe(`api: GET ${path}:`, () => {
     });
   });
 
-  describe('Aspect Filter on Hierarchy', () => {
+  describe('Aspect Filter on Hierarchy >', () => {
     it('should return samples with temperature and humidity aspects',
     (done) => {
       const endpoint = path.replace('{key}', par.id) +
@@ -398,7 +399,7 @@ describe(`api: GET ${path}:`, () => {
     });
   });
 
-  describe('aspectTags filter on hierarchy', () => {
+  describe('aspectTags filter on hierarchy >', () => {
     it('Hierarchy for subject with Aspect tags matching the quuery params ' +
     'should be returned', (done) => {
       const endpoint = path.replace('{key}', chi.id) + '?aspectTags=wnd';

@@ -19,7 +19,7 @@ const path = '/v1/perspectives';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/perspectives/post.js >', () => {
   let createdLensId;
   let token;
   const name = `${tu.namePrefix}testPersp`;
@@ -50,7 +50,7 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     beforeEach((done) => {
       tu.db.Perspective.create(basicParams)
       .then(() => done())

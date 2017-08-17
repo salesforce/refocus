@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const j = require('../../clock/scheduledJobs/sampleTimeoutJob');
 
-describe('sampleTimeoutJob', () => {
+describe('tests/clock/sampleTimeoutJob.js >', () => {
   it('ok', (done) => {
     j.execute()
     .then((resp) => {

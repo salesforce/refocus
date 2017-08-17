@@ -23,7 +23,8 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with installedBy when token is NOT enforced ${path}`, () => {
+describe('tests/api/v1/lenses/postWithinstalledBy.js ' +
+'when token is NOT enforced >', () => {
   let token;
   let user;
   const predefinedAdminUserToken = jwtUtil.createToken(

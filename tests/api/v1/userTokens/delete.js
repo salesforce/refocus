@@ -23,7 +23,8 @@ const adminUser = require('../../../../config').db.adminUser;
 const regPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe(`api: DELETE ${path}/U/tokens/T`, () => {
+describe('tests/api/v1/userTokens/delete.js, ' +
+`DELETE ${path}/U/tokens/T >`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );

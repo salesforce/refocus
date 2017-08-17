@@ -20,7 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('api::cache::timeout', () => {
+describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;

@@ -21,7 +21,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/tokens/get.js, GET ${path} >`, () => {
   let usr;
   let tid;
   const username = `${tu.namePrefix}test@refocus.com`;

@@ -18,7 +18,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/get.js, GET ${path} >`, () => {
   let token;
 
   before((done) => {

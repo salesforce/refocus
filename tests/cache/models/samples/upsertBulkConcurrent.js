@@ -21,7 +21,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const delayInMilliSeconds = 100;
 
-describe('api::redisEnabled::POST::bulkUpsert ' + path, () => {
+describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
+`api::redisEnabled::POST::bulkUpsert ${path} >`, () => {
   let token;
 
   before((done) => {

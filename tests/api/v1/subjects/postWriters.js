@@ -20,7 +20,7 @@ const Subject = tu.db.Subject;
 const User = tu.db.User;
 const postWritersPath = '/v1/subjects/{key}/writers';
 
-describe('api: aspects: post writers', () => {
+describe('tests/api/v1/subjects/postWriters.js >', () => {
   let subject;
   let token;
   let otherValidToken;

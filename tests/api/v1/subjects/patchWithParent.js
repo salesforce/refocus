@@ -22,7 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: PATCH ${path} with parents`, () => {
+describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
   let token;
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
@@ -96,7 +96,7 @@ describe(`api: PATCH ${path} with parents`, () => {
         pointing to a different parent fails
   */
 
-  describe('on un-publish', () => {
+  describe('on un-publish >', () => {
     it('with NEITHER parentId NOR parentAbsolutePath,' +
       ' set the subject as a root subject', (done) => {
       const NAME = 'iAmRoot';

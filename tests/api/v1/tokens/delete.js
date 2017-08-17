@@ -23,7 +23,7 @@ const regPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 const Token = tu.db.Token;
 
-describe(`api: DELETE ${path}`, () => {
+describe(`tests/api/v1/tokens/delete.js, DELETE ${path} >`, () => {
   /* user uname has 2 tokens: Voldemort and Tom
    user with unameOther has 1 token: Dumbledore */
   const uname = `${tu.namePrefix}test@refocus.com`;

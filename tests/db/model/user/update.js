@@ -17,7 +17,7 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: user: update: ', () => {
+describe('tests/db/model/user/update.js, db: user: update >', () => {
   let user = {};
   beforeEach((done) => {
     Profile.create({

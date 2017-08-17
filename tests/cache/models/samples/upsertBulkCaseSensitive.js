@@ -24,7 +24,8 @@ const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
 const sampleName = '___Subject1.___Subject2|___Aspect1';
 
-describe('api: POST ' + path, () => {
+describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
+`api: POST ${path} >`, () => {
   let token;
 
   before((done) => {

@@ -21,7 +21,7 @@ const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 
-describe('tests/cache/models/subjects/post.js tests: ', () => {
+describe('tests/cache/models/subjects/post.js >', () => {
   const parentName = `${tu.namePrefix}NorthAmerica`;
   const childName = `${tu.namePrefix}Canada`;
   const par = { name: parentName, isPublished: true };

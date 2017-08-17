@@ -23,7 +23,8 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe('tests/api/v1/subjects/postWithCreatedBy.js, ' +
+`POST with createdBy when token is NOT enforced ${path} >`, () => {
   let token;
   let user;
   const n2b = { name: `${tu.namePrefix}Quebec` };

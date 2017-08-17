@@ -20,7 +20,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const path = '/v1/profiles';
 
-describe(`api: GET ${path} (without users)`, () => {
+describe('tests/api/v1/profiles/getWithoutUsers.js (without users) >', () => {
   const profileObj = { name: `${tu.namePrefix}1` };
   let token;
 

@@ -18,7 +18,7 @@ const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 
-describe(`api: DELETE ${path}`, () => {
+describe(`tests/api/v1/subjects/deleteHierarchy.js, DELETE ${path} >`, () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };

@@ -17,8 +17,8 @@ import thunk from 'redux-thunk';
 import TestUtils from 'react-addons-test-utils';
 import ControlledInput from '../../../view/admin/components/common/ControlledInput';
 
-describe('ControlledInput Test', () => {
-
+describe('tests/view/components/controlledInputTest.js, ControlledInput ' +
+'Test >', () => {
   var FIELD_NAME = 'cool_name_here';
   var FIELD_VALUE = 'cool_value_here';
   var NEW_FIELD_VALUE = 'happy_birthday';

@@ -20,7 +20,7 @@ const Generator = tu.db.Generator;
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/generators/post.js >', () => {
   let token;
   const generator = u.getGenerator();
   before((done) => {
@@ -72,7 +72,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     beforeEach((done) => {
       Generator.create(generator)
       .then(() => done())

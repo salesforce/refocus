@@ -22,7 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
   let token;
 
   const na = {
@@ -74,7 +74,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('duplicate tags fail', () => {
+  describe('duplicate tags fail >', () => {
     it('GET with tag EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-US,-US`)
       .set('Authorization', token)

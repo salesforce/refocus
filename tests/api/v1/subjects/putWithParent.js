@@ -22,7 +22,8 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: PUT ${path} with parents`, () => {
+describe('tests/api/v1/subjects/putWithParent.js, ' +
+`PUT ${path} with parents >`, () => {
   let token;
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
@@ -75,7 +76,7 @@ describe(`api: PUT ${path} with parents`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('with identical parent: ', () => {
+  describe('with identical parent >', () => {
     it('with parentId does NOT' +
       ' update the hierarchyLevel', (done) => {
       api.put(`${path}/${i1}`)
@@ -391,7 +392,7 @@ describe(`api: PUT ${path} with parents`, () => {
     });
   });
 
-  describe('on un-publish', () => {
+  describe('on un-publish >', () => {
     it('with NEITHER parentId NOR parentAbsolutePath,' +
       ' set the subject as a root subject', (done) => {
       const NAME = 'iAmRoot';

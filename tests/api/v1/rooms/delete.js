@@ -21,7 +21,7 @@ const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const v = require('../roomTypes/utils');
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/rooms/delete.js >', () => {
   let testRoomType;
   let testRoom;
   let token;
@@ -52,27 +52,24 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('DELETE room', () => {
-    it('Pass, delete room', (done) => {
-      api.delete(`${path}/${testRoom.id}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, delete room', (done) => {
+    api.delete(`${path}/${testRoom.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Fail, room not found', (done) => {
-      api.delete(`${path}/-1`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end(done);
+      expect(res.body.name).to.equal(u.name);
+      done(err);
     });
   });
-});
 
+  it('Fail, room not found', (done) => {
+    api.delete(`${path}/-1`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(done);
+  });
+});

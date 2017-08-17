@@ -22,7 +22,7 @@ const writersPath = '/v1/aspects/{key}/writers';
 const writerPath = '/v1/aspects/{key}/writers/{userNameOrId}';
 const aspectPath = '/v1/aspects/{key}';
 
-describe('api: aspects: permissions', () => {
+describe('tests/api/v1/aspects/deleteWriters.js >', () => {
   let token;
   let otherValidToken;
   let aspect;
@@ -70,7 +70,7 @@ describe('api: aspects: permissions', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
+  describe('delete resource without permission >', () => {
     it('return 403 when deleting aspect without permission', (done) => {
       api.delete(aspectPath.replace('{key}', aspect.id))
       .set('Authorization', otherValidToken)
@@ -79,7 +79,7 @@ describe('api: aspects: permissions', () => {
     });
   });
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission associated with the resource', (done) => {
       api.delete(writersPath.replace('{key}', aspect.id))
       .set('Authorization', token)

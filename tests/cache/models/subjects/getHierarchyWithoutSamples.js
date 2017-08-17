@@ -20,7 +20,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/cache/models/subjects/getHierarchyWithoutSamples.js, ' +
+`api: GET ${path} >`, () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
@@ -72,7 +73,7 @@ describe(`api: GET ${path}`, () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('subject hierarchy without samples', () => {
+  describe('subject hierarchy without samples >', () => {
     it('hierarchy should load from the parent node', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)

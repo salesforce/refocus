@@ -26,7 +26,8 @@ const samstoinit = rtu.samstoinit;
 const ZERO = 0;
 const ONE = 1;
 
-describe('api: aspects: DELETE RelatedLinks', () => {
+describe('tests/cache/models/aspects/deleteRelatedLinks.js, ' +
+'api: aspects: DELETE RelatedLinks >', () => {
   let token;
   let i;
   let name;

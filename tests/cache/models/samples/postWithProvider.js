@@ -26,7 +26,8 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const u = require('./utils');
 
-describe(`api: redisStore: POST ${path} with provider`, () => {
+describe('tests/cache/models/samples/postWithProvider.js, ' +
+`api: redisStore: POST ${path} with provider`, () => {
   let sampleToPost;
   let token;
   const sampleName = `${tu.namePrefix}TEST_SUBJECT` + '.' +

@@ -9,29 +9,24 @@
 /**
  * tests/view/components/ButtonRowTest.js
  */
-
 import { expect } from 'chai';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import TestUtils from 'react-addons-test-utils';
 import ButtonRowWhenRead from '../../../view/admin/components/common/ButtonRowWhenRead.js';
 
-describe('Button row ', () => {
-
+describe('tests/view/components/ButtonRowTest.js, Button row >', () => {
   const parentAbsolutePath = 'PARENT';
-
-  const dummyFunction = () => {
-    return true;
-  };
+  const dummyFunction = () => true;
 
   // If pass in null, delete will be disabled
-  function setupReadButtonRow( deleteVal ) {
+  function setupReadButtonRow(deleteVal) {
     const props = {
       deleteResource: deleteVal,
       goBack: dummyFunction,
       setFormFieldToEdit: dummyFunction,
       addChildLink: dummyFunction,
-    }
+    };
 
     const buttonRow = TestUtils.renderIntoDocument(
       <ButtonRowWhenRead {...props} />
@@ -40,7 +35,7 @@ describe('Button row ', () => {
     return {
       props: props,
       buttonRow: buttonRow,
-    }
+    };
   }
 
   it('on read, with no addChildProps, button row does not have add child button', () => {
@@ -48,14 +43,13 @@ describe('Button row ', () => {
       deleteResource: dummyFunction,
       goBack: dummyFunction,
       setFormFieldToEdit: dummyFunction,
-    }
-
+    };
     const buttonRow = TestUtils.renderIntoDocument(
       <ButtonRowWhenRead {...props} />
     );
     var addChildButtons = TestUtils.scryRenderedDOMComponentsWithClass(buttonRow, 'addChildLink');
     expect(addChildButtons).to.be.empty;
-  })
+  });
 
   it('on read, delete handler is defined through props', () => {
     const { buttonRow } = setupReadButtonRow(dummyFunction);

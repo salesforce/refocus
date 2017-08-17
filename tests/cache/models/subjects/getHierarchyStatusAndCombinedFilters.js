@@ -22,7 +22,8 @@ const Aspect = tu.db.Aspect;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}:`, () => {
+describe('tests/cache/models/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
+`api: GET ${path} >`, () => {
   let token;
 
   // The below code creates the following hierarchy.
@@ -147,7 +148,7 @@ describe(`api: GET ${path}:`, () => {
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('Sample Status filter', () => {
+  describe('Sample Status filter >', () => {
     it('filter :: status=critical', (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?status=Critical';
       api.get(endpoint)
@@ -212,7 +213,7 @@ describe(`api: GET ${path}:`, () => {
     });
   });
 
-  describe('aspect + status filters', () => {
+  describe('aspect + status filters >', () => {
     it('filter:: aspect=wind-speed and status=Invalid', (done) => {
       const endpoint = path.replace('{key}', gp.id) +
         '?aspect=wind-speed&status=Invalid';
@@ -290,7 +291,7 @@ describe(`api: GET ${path}:`, () => {
   //     temperature[tags: temp]]
   //    |chi - [sample3: humidity]
   //      |grn - subjectTags[cold,verycold],[sample4: wind-speed[tags: wnd]]
-  describe('aspect + subjectTags filters', () => {
+  describe('aspect + subjectTags filters >', () => {
     it('filter:: subjectTags=cold&aspect=wind-speed', (done) => {
       const endpoint = path.replace('{key}', gp.id) +
         '?subjectTags=cold&aspect=wind-speed';
@@ -355,7 +356,7 @@ describe(`api: GET ${path}:`, () => {
     });
   });
 
-  describe('All params combined filters', () => {
+  describe('All params combined filters >', () => {
     it('filter :: subjectTags=na and aspect=humidity,wind-speed&,' +
     'aspectTags=hum', (done) => {
       const endpoint = path.replace('{key}', gp.id) +
@@ -426,7 +427,7 @@ describe(`api: GET ${path}:`, () => {
     });
   });
 
-  describe('Filters should not be case sensitive', () => {
+  describe('Filters should not be case sensitive >', () => {
     it('Filter with all upper case:: filter :: status=Critical,Info',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?status=CRITICAL,INFO';

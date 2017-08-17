@@ -24,7 +24,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe('db: event: delete: ', () => {
+describe('tests/db/model/event/delete.js >', () => {
   beforeEach((done) => {
     const testBotData = bd.getStandard();
     const testEvent = u.getStandard();
@@ -54,16 +54,14 @@ describe('db: event: delete: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Delete event', () => {
-    it('ok, delete events', (done) => {
-      Room.findAll()
-      .then((rooms) => Event.destroy({ where: { roomId: rooms[ZERO].id } }))
-      .then(() => Event.findAll())
-      .then((o) => {
-        expect(o.length).to.equal(ZERO);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, delete events by roomId', (done) => {
+    Room.findAll()
+    .then((rooms) => Event.destroy({ where: { roomId: rooms[ZERO].id } }))
+    .then(() => Event.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(ZERO);
+      done();
+    })
+    .catch(done);
   });
 });

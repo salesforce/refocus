@@ -18,10 +18,10 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const constants = require('../../../../db/constants');
 
-describe('db: subject: update child: ', () => {
+describe('tests/db/model/subject/updateChild.js >', () => {
   after(u.forceDelete);
 
-  describe('Kids', () => {
+  describe('Kids >', () => {
     let subjId1;
     let childId1;
     let childId2;
@@ -55,7 +55,7 @@ describe('db: subject: update child: ', () => {
 
     afterEach(u.forceDelete);
 
-    describe('update sortBy', () => {
+    describe('update sortBy >', () => {
       it('update parent sort By, should not change child sort By',
       (done) => {
         Subject.findById(subjId1)
@@ -111,7 +111,7 @@ describe('db: subject: update child: ', () => {
       });
     });
 
-    describe('update child', ()=> {
+    describe('update child >', ()=> {
       it('update child helpEmail, should not change parent subject',
       (done) => {
         Subject.findById(childId1)
@@ -196,7 +196,7 @@ describe('db: subject: update child: ', () => {
       });
     });
 
-    describe('db: subject: update: isWritableBy: ', () => {
+    describe('isWritableBy >', () => {
       let prof;
       let subjUnprotected;
       let subjProtected;
@@ -272,6 +272,6 @@ describe('db: subject: update child: ', () => {
         })
         .catch(done);
       });
-    }); // db: aspect: update: permission:
+    });
   });
 });

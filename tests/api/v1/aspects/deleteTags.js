@@ -20,7 +20,7 @@ const Aspect = tu.db.Aspect;
 const allDeletePath = '/v1/aspects/{key}/tags';
 const oneDeletePath = '/v1/aspects/{key}/tags/{akey}';
 
-describe(`api: aspects: DELETE tags}`, () => {
+describe('tests/api/v1/aspects/deleteTags.js >', () => {
   let token;
   let aspId;
   const tag0 = 'tag0';

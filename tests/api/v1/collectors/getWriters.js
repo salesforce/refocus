@@ -21,7 +21,7 @@ const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 const writerPath = '/v1/collectors/{key}/writers/{userNameOrId}';
 
-describe(`api: GET ${path} >`, () => {
+describe('tests/api/v1/collectors/getWriters.js >', () => {
   let token;
   let coll;
   let user;

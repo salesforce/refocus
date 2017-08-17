@@ -25,7 +25,7 @@ const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/botData/delete.js >', () => {
   const testBotData = u.getStandard();
   let saveBotData;
   let token;
@@ -64,41 +64,38 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('DELETE botData', () => {
-    it('Pass, delete botData', (done) => {
-      api.delete(`${path}/${saveBotData.id}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, delete botData', (done) => {
+    api.delete(`${path}/${saveBotData.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Pass, delete botData by name', (done) => {
-      api.delete(`${path}/${saveBotData.name}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Fail, botData not found', (done) => {
-      api.delete(`${path}/INVALID_ID`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end(done);
+      expect(res.body.name).to.equal(u.name);
+      done(err);
     });
   });
-});
 
+  it('Pass, delete botData by name', (done) => {
+    api.delete(`${path}/${saveBotData.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done(err);
+    });
+  });
+
+  it('Fail, botData not found', (done) => {
+    api.delete(`${path}/INVALID_ID`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(done);
+  });
+});
