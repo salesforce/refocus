@@ -23,7 +23,7 @@ done\n\
 exec $cmd' > $HOME/wait-for-postgres.sh
 
 RUN chown -R refocus:refocus $HOME && chmod +x $HOME/wait-for-postgres.sh
-RUN apk update && apk add postgresql-client #need for script
+RUN apk add --no-cache postgresql-client #need for script
 
 USER refocus
 WORKDIR $HOME
