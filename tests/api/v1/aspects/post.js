@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/aspects/post.js >', () => {
   let token;
   before((done) => {
     tu.createToken()
@@ -84,7 +84,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     beforeEach((done) => {
       Aspect.create(u.toCreate)
       .then(() => done())
@@ -132,7 +132,7 @@ describe(`api: POST ${path}`, () => {
     });
   });
 
-  describe('post aspect with Tags', () => {
+  describe('post aspect with Tags >', () => {
     it('post aspect with tags', (done) => {
       const aspectToPost = {
         name: `${tu.namePrefix}HeartRate`,

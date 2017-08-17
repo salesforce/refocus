@@ -26,7 +26,7 @@ const relatedLinks = [
   { name: 'link2', url: URL1 },
 ];
 
-describe('api: POST ' + path, () => {
+describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
   let token;
   let aspectIdOne = '';
   let aspectIdTwo = '';
@@ -226,7 +226,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  describe('upsert bulk when sample already exists', () => {
+  describe('when sample already exists >', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -282,7 +282,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  describe('aspect isPublished false', () => {
+  describe('aspect isPublished false >', () => {
     // unpublish the aspects
     before((done) => {
       Aspect.findById(aspectIdOne)

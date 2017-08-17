@@ -19,7 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api: PATCH ${path}`, () => {
+describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
   let token;
 
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true, sortBy: '_1' };

@@ -19,7 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/child';
 const expect = require('chai').expect;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/postChild.js, POST ${path} >`, () => {
   let token;
   const n0 = { name: `${tu.namePrefix}NorthAmerica` };
   const n1 = { name: `${tu.namePrefix}Canada` };

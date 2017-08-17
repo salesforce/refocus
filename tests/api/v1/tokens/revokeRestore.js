@@ -23,7 +23,8 @@ const Token = tu.db.Token;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
-describe(`api: POST ${path}/:id/revoke and POST ${path}/:id/restore`, () => {
+describe('tests/api/v1/tokens/revokeRestore.js, ' +
+`api: POST ${path}/:id/revoke and POST ${path}/:id/restore >`, () => {
   const predefinedAdminUserToken =
     jwtUtil.createToken(adminUser.name, adminUser.name);
   let usr;

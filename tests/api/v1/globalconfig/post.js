@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/globalconfig/post.js >', () => {
   let token;
   const key = `${tu.namePrefix}_GLOBAL_CONFIG_ABC`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -60,7 +60,7 @@ describe(`api: POST ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     const DUMMY = {
       key: `${tu.namePrefix}_DUMMY_KEY`,
     };

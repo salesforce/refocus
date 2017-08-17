@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 
-describe('dropdown and modal data', () => {
+describe('tests/api/v1/perspectives/app.js, dropdown and modal data >', () => {
   let lensId;
   let perspectiveId;
   let perspectiveName;

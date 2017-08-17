@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const postWritersPath = '/v1/lenses/{key}/writers';
 
-describe('api: lenses: post writers', () => {
+describe('tests/api/v1/lenses/postWriters.js >', () => {
   let lens;
   let token;
   let otherValidToken;

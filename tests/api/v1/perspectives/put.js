@@ -18,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/perspectives/put.js >', () => {
   let perspectiveId;
   let createdLensId;
   let token;

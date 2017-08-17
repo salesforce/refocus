@@ -26,7 +26,7 @@ const b = require('../../../db/model/bot/utils');
 const r = require('../../../db/model/room/utils');
 const rt = require('../../../db/model/roomType/utils');
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
   let testEvent2 = u.getStandard();
@@ -72,83 +72,80 @@ describe(`api: GET ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('GET event', () => {
-    it('Pass, get array of multiple', (done) => {
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, get array of multiple', (done) => {
+    api.get(`${path}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.length).to.equal(THREE);
-        done();
-      });
-    });
-
-    it('Pass, get by botId', (done) => {
-      api.get(`${path}?botId=${testEvent.botId}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-        done();
-      });
-    });
-
-    it('Pass, get by roomId', (done) => {
-      api.get(`${path}?roomId=${testEvent.roomId}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(TWO);
-        done();
-      });
-    });
-
-    it('Pass, get by roomId and botId', (done) => {
-      api.get(`${path}?roomId=${testEvent.roomId}&botId=${testEvent.botId}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(ONE);
-        done();
-      });
-    });
-
-    it('Pass, get by id', (done) => {
-      api.get(`${path}/${testEventOutput.id}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.log).to.equal(u.log);
-        done();
-      });
-    });
-
-    it('Fail, id not found', (done) => {
-      api.get(`${path}/INVALID_ID`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end(() => done());
+      expect(res.body.length).to.equal(THREE);
+      done();
     });
   });
-});
 
+  it('Pass, get by botId', (done) => {
+    api.get(`${path}?botId=${testEvent.botId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('Pass, get by roomId', (done) => {
+    api.get(`${path}?roomId=${testEvent.roomId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('Pass, get by roomId and botId', (done) => {
+    api.get(`${path}?roomId=${testEvent.roomId}&botId=${testEvent.botId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('Pass, get by id', (done) => {
+    api.get(`${path}/${testEventOutput.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.log).to.equal(u.log);
+      done();
+    });
+  });
+
+  it('Fail, id not found', (done) => {
+    api.get(`${path}/INVALID_ID`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+});

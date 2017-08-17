@@ -20,7 +20,7 @@ const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 const postWritersPath = '/v1/aspects/{key}/writers';
 
-describe('api: aspects: post writers', () => {
+describe('tests/api/v1/aspects/postWriters.js >', () => {
   let token;
   let aspect;
   let firstUser;
