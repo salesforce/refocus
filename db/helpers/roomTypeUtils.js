@@ -11,10 +11,9 @@
  *
  * Used by the RoomType model.
  */
-
-const ValidationError = require('../dbErrors').ValidationError;
-const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
+ 
 const dbErrors = require('../dbErrors');
+const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
 const MAX_ARGUMENTS = 2;
 
@@ -151,9 +150,7 @@ function validateRulesArray(arr) {
 
 function validateBotsArray(inst, seq) {
   const bots = inst.dataValues.bots;
-  const err = new ResourceNotFoundError({
-    message: 'Bot ${botName} not found',
-  });
+
   return new seq.Promise((resolve, reject) => {
     if (!bots || !inst.changed('bots')) {
       resolve(inst);

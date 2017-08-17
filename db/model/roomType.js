@@ -119,11 +119,11 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null || !inst.changed('bots')) {
+          if (!bots || !inst.changed('bots')) {
             resolve(inst);
           }
 
-          inst._previousDataValues.bots.forEach((botName, index) => {
+          inst._previousDataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
@@ -131,7 +131,7 @@ module.exports = function roomType(seq, dataTypes) {
             });
           });
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)
@@ -151,11 +151,11 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.removeBots(o)
@@ -175,11 +175,11 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.forEach((botName, index) => {
+          inst.dataValues.bots.forEach((botName) => {
             seq.models.Bot.findOne({ where: { name: botName } })
             .then((o) => {
               inst.addBots(o)

@@ -91,7 +91,7 @@ dbErrors.create({
   status: 400,
   name: 'DuplicateBotError',
   parent: dbErrors.ValidationError,
-  defaultMessage: 'You cannot have two of the same bots in one room',
+  defaultMessage: 'You cannot have duplicate bots in a room',
 });
 
 // ----------------------------------------------------------------------------
