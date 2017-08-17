@@ -9,19 +9,25 @@
 /**
  * tests/api/v1/ssoconfig/put.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const adminUser = require('../../../../config').db.adminUser;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
+const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
+const ONE = 1;
 
-describe(`api: PUT ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/put.js, PUT ${path} >`, () => {
   let token;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  let testUserToken = '';
 
   before((done) => {
     tu.createToken()
@@ -29,21 +35,52 @@ describe(`api: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
-    u.creatSSOConfig()
+    u.createSSOConfig()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
+  });
+
+  before((done) => {
+    u.newGenericUser(token, (err, t) => {
+      if (err) {
+        return done(err);
+      }
+
+      testUserToken = t;
+      done();
+    });
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  it('forbidden if not admin user', (done) => {
+    api.put(path)
+    .set('Authorization', testUserToken)
+    .send({
+      samlEntryPoint: 'http://someOtherUrl.com',
+      samlIssuer: u.samlParams.samlIssuer,
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors).to.have.length(ONE);
+      expect(res.body.errors)
+      .to.have.deep.property('[0].type', 'ForbiddenError');
+      done();
+    });
+  });
+
   it('update samlEntryPoint and verify', (done) => {
     api.put(path)
-    .set('Authorization', token)
+    .set('Authorization', predefinedAdminUserToken)
     .send({
       samlEntryPoint: 'http://someOtherUrl.com',
       samlIssuer: u.samlParams.samlIssuer,
@@ -52,12 +89,6 @@ describe(`api: PUT ${path}`, () => {
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.not.equal(u.samlParams.samlEntryPoint);
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

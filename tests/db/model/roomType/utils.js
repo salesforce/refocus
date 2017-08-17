@@ -10,31 +10,23 @@
  * tests/db/model/roomType/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoomType`;
 
 const standard = {
   name: n,
   isEnabled: true,
-  settings: [
-    {
-      key: 'Key1',
-      value: 'Value1',
-    },
-    {
-      key: 'Key2',
-      value: 'Value2',
-    },
-  ],
+  settings: {
+    Key1: 'Value1',
+    Key2: 'Value2',
+  },
   rules: [
     {
       rule: {
-        'and': [
-          { '>': [1,2] },
-          { '<': [3,4] },
+        and: [
+          { '>': [1, 2] },
+          { '<': [3, 4] },
         ],
       },
       action: {
@@ -57,12 +49,12 @@ const standard = {
     },
     {
       rule: {
-        'or': [
-          { '>': [5,6] },
+        or: [
+          { '>': [5, 6] },
           {
-            'and': [
-              { '>': [7,8] },
-              { '<': [9,10] },
+            and: [
+              { '>': [7, 8] },
+              { '<': [9, 10] },
             ],
           },
         ],

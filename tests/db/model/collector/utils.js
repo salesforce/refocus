@@ -10,10 +10,7 @@
  * tests/db/model/collector/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
-const seq = require('../../../../db/utils').seq;
-
 const testStartTime = new Date();
 const cname = `${tu.namePrefix}Collector`;
 
@@ -23,6 +20,8 @@ module.exports = {
     description: 'This is a mock collector object for testing.',
     helpEmail: 'test@test.com',
     helpUrl: 'http://test.com',
+    host: 'xxx-yyy-zzz.aaa.bbb.ccc.com',
+    ipAddress: '123.456.789.012',
   },
 
   forceDelete(done) {

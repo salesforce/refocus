@@ -10,7 +10,6 @@
  * tests/cache/models/samples/patchWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,12 +21,12 @@ const Sample = tu.db.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
-describe(`api: PATCH ${path} without permission`, () => {
+describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
+`api: PATCH ${path} without permission`, () => {
   let sampleName;
   let aspect;
   let otherValidToken;
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
@@ -47,9 +46,7 @@ describe(`api: PATCH ${path} without permission`, () => {
       aspect = asp;
       return User.findOne({ where: { name: tu.userName } });
     })
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -63,8 +60,6 @@ describe(`api: PATCH ${path} without permission`, () => {
   after(rtu.forceDelete);
   after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('enforceWritePermission', false));
-
 
   it('patching without permission should return 403 status', (done) => {
     api.patch(`${path}/${sampleName}`)
@@ -76,8 +71,6 @@ describe(`api: PATCH ${path} without permission`, () => {
       ],
     })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

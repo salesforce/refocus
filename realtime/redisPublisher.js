@@ -10,9 +10,7 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const redisStore = require('../cache/sampleStore');
-const constants = redisStore.constants;
-const redisClient = require('../cache/redisCache').client.sampleStore;
+const rtUtils = require('./utils');
 const pub = require('../cache/redisCache').client.pub;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
@@ -92,6 +90,26 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
 } // publishChange
 
 /**
+ * Publishes the sample without attaching the related subject and the aspect to
+ * the redis channel
+ * @param  {Object} sampleInst - The sample instance to be published
+ * @param  {String} event - The event type that is being published.
+ * @returns {Object} - the sample object
+ */
+function publishPartialSample(sampleInst, event) {
+  const eventType = event || getSampleEventType(sampleInst);
+
+  // will be over written when unwrapping json.stringified fields
+  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
+
+  delete sample.aspect;
+  delete sample.subject;
+
+  publishObject(sample, eventType);
+  return sample;
+} // publishPartialSample
+
+/**
  * The sample object needs to be attached its subject object and it also needs
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
@@ -105,61 +123,12 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
-
-  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
-  const nameParts = sample.name.split('|');
-  const subName = nameParts[0];
-  const aspName = nameParts[1];
-  let promisesArr = [];
-
-  // if redis cache is on, get subject and aspect from cache
-  if (featureToggles.isFeatureEnabled(constants.featureName)) {
-    const aspKey = redisStore.toKey('aspect', aspName);
-    const subKey = redisStore.toKey('subject', subName);
-    promisesArr = [
-      redisClient.hgetallAsync(aspKey),
-      redisClient.hgetallAsync(subKey),
-    ];
-  } else {
-    const subOpts = {
-      where: {
-        absolutePath: subName,
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: aspName,
-      },
-    };
-
-    const getAspect = aspectModel ? aspectModel.findOne(aspOpts) :
-                              Promise.resolve(sample.aspect);
-    promisesArr = [getAspect, subjectModel.findOne(subOpts)];
-  }
-
-  return Promise.all(promisesArr)
-  .then((responses) => {
-    const asp = responses[0];
-    const sub = responses[1];
-
-    sample.aspect = asp.get ? asp.get() : asp;
-    if (sub) {
-
-      /*
-       *pass the sample instance to the publishObject function only if the
-       *aspect and subject are published
-       */
-      if (sample.aspect && sample.aspect.isPublished && sub.isPublished) {
-
-        // attach subject to the sample
-        sample.subject = sub.get ? sub.get() : sub;
-
-        // attach absolutePath field to the sample
-        sample.absolutePath = subName;
-        publishObject(sample, eventType);
-      }
-    }
-
+  const useSampleStore =
+    featureToggles.isFeatureEnabled('enableRedisSampleStore');
+  return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
+    aspectModel)
+  .then((sample) => {
+    publishObject(sample, eventType);
     return sample;
   });
 } // publishSample
@@ -167,5 +136,6 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 module.exports = {
   publishObject,
   publishSample,
+  publishPartialSample,
   getSampleEventType,
 }; // exports

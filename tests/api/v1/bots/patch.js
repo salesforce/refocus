@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/bots/patch.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -20,7 +19,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/bots/patch.js >', () => {
   let testBot;
   let token;
 
@@ -43,56 +42,53 @@ describe(`api: PATCH ${path}`, () => {
   });
 
   afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(tu.forceDeleteToken);
 
-  describe('PATCH bot', () => {
-    it('Pass, patch bot name', (done) => {
-      const newName = 'newName';
-      api.patch(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Pass, patch bot name', (done) => {
+    const newName = 'newName';
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(newName);
-        done();
-      });
+      expect(res.body.name).to.equal(newName);
+      done();
     });
+  });
 
-    it('Fail, patch bot invalid name', (done) => {
-      const newName = '~!invalidName';
-      api.patch(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Fail, patch bot invalid name', (done) => {
+    const newName = '~!invalidName';
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeValidationError');
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
     });
+  });
 
-    it('Fail, patch bot invalid attribute', (done) => {
-      api.patch(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Fail, patch bot invalid attribute', (done) => {
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ invalid: true })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body).not.to.have.property('invalid');
-        done();
-      });
+      expect(res.body).not.to.have.property('invalid');
+      done();
     });
   });
 });
-

@@ -181,14 +181,27 @@ module.exports = function user(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = GeneratorTemplate.belongsTo(models.User, {
+        assoc.user = GeneratorTemplate.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
 
         assoc.writers = GeneratorTemplate.belongsToMany(models.User, {
           as: 'writers',
           through: 'GeneratorTemplateWriters',
           foreignKey: 'generatorTemplateId',
+        });
+
+        GeneratorTemplate.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
+          order: ['name'],
+        }, {
+          override: true,
         });
       },
     },
@@ -220,10 +233,10 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'GTNameVersion',
+        name: 'GTUniqueLowercaseNameVersionIsDeleted',
         unique: true,
         fields: [
-          'name',
+          seq.fn('lower', seq.col('name')),
           'version',
           'isDeleted',
         ],

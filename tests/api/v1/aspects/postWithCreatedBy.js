@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/postWithCreatedBy.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const adminUser = require('../../../../config').db.adminUser;
 const jwtUtil = require('../../../../utils/jwtUtil');
@@ -25,7 +24,8 @@ const ZERO = 0;
 const ONE = 1;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe('tests/api/v1/aspects/postWithCreatedBy.js, token NOT enforced ' +
+path + ' >', () => {
   let token;
   let user;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -50,9 +50,9 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     .set('Authorization', token)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.equal(user.id);
@@ -62,14 +62,14 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     });
   });
 
-   it('if token is NOT provided, createdBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('if token is NOT provided, createdBy and user fields are NOT ' +
+  'returned', (done) => {
     api.post(path)
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;
@@ -78,15 +78,15 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     });
   });
 
-  it('on invalid token, createdBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('on invalid token, createdBy and user fields are NOT ' +
+  'returned', (done) => {
     api.post(path)
     .set('Authorization', 'iDoNotExist')
     .send(u.toCreate)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;
@@ -117,9 +117,9 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
         .set('Authorization', newToken)
         .send(u.toCreate)
         .expect(constants.httpStatus.CREATED)
-        .end((err, res ) => {
+        .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.createdBy).to.equal(user.id);

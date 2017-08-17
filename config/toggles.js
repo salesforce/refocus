@@ -75,6 +75,10 @@ const longTermToggles = {
   // Enable Rooms functionality
   enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
 
+  // Enable sample store info logging
+  enableSampleStoreInfoLogging: environmentVariableTrue(pe,
+    'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
+
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
@@ -84,10 +88,6 @@ const longTermToggles = {
    * achieve better web process throughput and response times.
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
-
-  // Enforce write permission on records
-  enforceWritePermission:
-    environmentVariableTrue(pe, 'ENFORCE_WRITE_PERMISSION'),
 
   // Enforce that all API requests have valid API token
   requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
@@ -110,6 +110,10 @@ const longTermToggles = {
  */
 const shortTermToggles = {
 
+  // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
+  getSubjectFromCache: environmentVariableTrue(pe,
+    'GET_SUBJECT_FROM_CACHE'),
+
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
@@ -121,6 +125,12 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+
+  fastFailDuplicateSubject: environmentVariableTrue(pe,
+    'FAST_FAIL_DUPLICATE_SUBJECT'),
+
+  // publish partial sample to the subscribers
+  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 
 }; // shortTermToggles
 

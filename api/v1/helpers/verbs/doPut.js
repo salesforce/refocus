@@ -44,8 +44,7 @@ function doPut(req, res, next, props) {
       u.checkDuplicateRLinks(rLinks);
     }
 
-    putPromise = u.getUserNameFromToken(req,
-      featureToggles.isFeatureEnabled('enforceWritePermission'))
+    putPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.putSample(req.swagger.params, user));
   } else {
     const puttableFields =
@@ -53,8 +52,7 @@ function doPut(req, res, next, props) {
     putPromise = u.findByKey(
         props, req.swagger.params
       )
-      .then((o) => u.isWritable(req, o,
-          featureToggles.isFeatureEnabled('enforceWritePermission')))
+      .then((o) => u.isWritable(req, o))
       .then((o) => {
         const keys = Object.keys(puttableFields);
         for (let i = 0; i < keys.length; i++) {
@@ -72,9 +70,10 @@ function doPut(req, res, next, props) {
             // take nullified fields out of changed fields
             o.changed(key, false);
           } else {
-
-            // value may have changed. set changed to true to
-            // trigger checks in the model
+            /**
+             * value may have changed. set changed to true to
+             * trigger checks in the model
+             */
             o.changed(key, true);
             o.set(key, toPut[key]);
           }

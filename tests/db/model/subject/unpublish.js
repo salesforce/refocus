@@ -10,7 +10,6 @@
  * tests/db/model/subject/unpublish.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -18,7 +17,7 @@ const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 
-describe('db: subject: unpublish: ', () => {
+describe('tests/db/model/subject/unpublish.js >', () => {
   let sample;
   let subject;
 

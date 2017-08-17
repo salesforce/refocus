@@ -50,6 +50,11 @@ module.exports = function bot(seq, dataTypes) {
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
+    ui: {
+      type: dataTypes.BLOB,
+      allowNull: true,
+      comment: 'The packaged UI of the bot',
+    },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
@@ -62,6 +67,14 @@ module.exports = function bot(seq, dataTypes) {
         contains: u.validateActionArray,
       },
       comment: 'List of actions a Bot can take',
+    },
+    settings: {
+      type: dataTypes.ARRAY(dataTypes.JSONB),
+      allowNull: true,
+      validate: {
+        contains: u.validateSettingsArray,
+      },
+      comment: 'Array[ {key: name of key, helpText: describe the value it is looking for},]',
     },
     data: {
       type: dataTypes.ARRAY(dataTypes.JSON),

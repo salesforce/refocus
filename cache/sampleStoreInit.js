@@ -21,6 +21,8 @@ const samsto = require('./sampleStore');
 const log = require('winston');
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
+const infoLoggingEnabled =
+  featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 
 /**
  * Deletes the previousStatuskey (that stores the previous value of the
@@ -88,8 +90,13 @@ function eradicate() {
     }));
   return deletePreviousStatus()
     .then(() => Promise.all(promises))
-    .then(() => log.info('Sample Store eradicated from cache :D'))
-    .then(() => true);
+    .then(() => {
+      if (infoLoggingEnabled) {
+        log.info('Sample Store eradicated from cache :D');
+      }
+
+      return true;
+    });
 } // eradicate
 
 /**
@@ -106,8 +113,11 @@ function populateAspects() {
     },
   })
   .then((allAspects) => {
-    const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
-    log.info(msg);
+    if (infoLoggingEnabled) {
+      const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
+      log.info(msg);
+    }
+
     aspects = allAspects;
     const getWritersPromises = [];
 
@@ -135,8 +145,13 @@ function populateAspects() {
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
     return redisClient.batch(cmds).execAsync()
-      .then(() => log.info('Done loading aspects to cache :D'))
-      .then(() => true);
+      .then(() => {
+        if (infoLoggingEnabled) {
+          log.info('Done loading aspects to cache :D');
+        }
+
+        return true;
+      });
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateAspects
@@ -147,10 +162,13 @@ function populateAspects() {
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateSubjects() {
-  return Subject.findAll({ where: { isPublished: true } })
+  return Subject.findAll()
   .then((subjects) => {
-    const msg = `Starting to load ${subjects.length} subjects to cache :|`;
-    log.info(msg);
+    if (infoLoggingEnabled) {
+      const msg = `Starting to load ${subjects.length} subjects to cache :|`;
+      log.info(msg);
+    }
+
     const cmds = [];
     subjects.forEach((s) => {
       const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
@@ -163,8 +181,13 @@ function populateSubjects() {
     });
 
     return redisClient.batch(cmds).execAsync()
-      .then(() => log.info('Done loading subjects to cache :D'))
-      .then(() => true);
+      .then(() => {
+        if (infoLoggingEnabled) {
+          log.info('Done loading subjects to cache :D');
+        }
+
+        return true;
+      });
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSubjects
@@ -177,9 +200,11 @@ function populateSubjects() {
 function populateSamples() {
   return Sample.findAll()
   .then((samples) => {
-    const msg = `Starting to load ${samples.length} samples to cache :|`;
-    log.info(msg);
-    const subjectIdx = new Set();
+    if (infoLoggingEnabled) {
+      const msg = `Starting to load ${samples.length} samples to cache :|`;
+      log.info(msg);
+    }
+
     const sampleIdx = new Set();
     const subjectSets = {};
     const sampleHashes = {};
@@ -195,7 +220,6 @@ function populateSamples() {
 
       // Track each of these in the master indexes for each object type.
       sampleIdx.add(samKey);
-      subjectIdx.add(subAspMapKey);
 
       /*
        * For creating each individual subject set, which is a mapping of
@@ -229,8 +253,13 @@ function populateSamples() {
 
     // Return once all batches have completed.
     return Promise.all(batchPromises)
-      .then(() => log.info('Done loading samples to cache :D'))
-      .then(() => true);
+      .then(() => {
+        if (infoLoggingEnabled) {
+          log.info('Done loading samples to cache :D');
+        }
+
+        return true;
+      });
   })
   .catch(console.error); // eslint-disable-line no-console
 } // populateSamples
@@ -242,8 +271,11 @@ function populateSamples() {
  *  false if the feature is not enabled.
  */
 function populate() {
-  const msg = 'Populating redis sample store from db started :|';
-  log.info(msg);
+  if (infoLoggingEnabled) {
+    const msg = 'Populating redis sample store from db started :|';
+    log.info(msg);
+  }
+
   let resp;
   const promises = [populateSubjects(), populateAspects()];
   return Promise.all(promises)
@@ -288,14 +320,20 @@ function storeSampleToCacheOrDb() {
        * "enableRedisSampleStore" flag has been changed from true to false
        */
       if (currentStatus) {
-        log.info('"enableRedisSampleStore" flag was switched to true,' +
-          ' so populating the cache from db');
+        if (infoLoggingEnabled) {
+          log.info('"enableRedisSampleStore" flag was switched to true, so ' +
+            'populating the cache from db');
+        }
+
         return populate();
       }
 
-      log.info('"enableRedisSampleStore" flag was switched to false' +
-          ' so persisting to db from cache. The cache will be eradicated ' +
+      if (infoLoggingEnabled) {
+        log.info('"enableRedisSampleStore" flag was switched to false so ' +
+          'so persisting to db from cache. The cache will be eradicated ' +
           'after the samples are persisted to db');
+      }
+
       return samstoPersist.storeSampleToDb() // populate the sample table
         .then(() => eradicate()); // eradicate the cache
     }

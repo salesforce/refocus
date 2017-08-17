@@ -1129,7 +1129,6 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-
     get:
       security:
         - jwt: []
@@ -1157,13 +1156,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the users having write permission to the aspect.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -1174,6 +1169,1891 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /collectors:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Access restricted to Refocus Collector only.
+      description: Access restricted to Refocus Collector only.
+      operationId: postCollector
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Access restricted to Refocus Collector only.
+            properties:
+              name:
+                type: string
+                description: Access restricted to Refocus Collector only.
+              description:
+                type: string
+                maxLength: 4096
+                description: Access restricted to Refocus Collector only.
+              helpEmail:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: Access restricted to Refocus Collector only.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
+            required:
+              - name
+      responses:
+        201:
+          description: Success.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Find a collector or collectors.
+      description: >-
+        Find a collector or collectors. You may query using field filters with asterisk (*) wildcards.
+        You may also optionally specify sort, limit, offset, and a list of fields to include in the response.
+      operationId: findCollectors
+      parameters:
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - status
+              - isRegistered
+              - lastHeartbeat
+              - lastModifiedAt
+              - createdBy
+              - lastUpdatedBy
+              - helpEmail
+              - helpUrl
+              - host
+              - ipAddress
+              - -name
+              - -status
+              - -isRegistered
+              - -lastHeartbeat
+              - -lastModifiedAt
+              - -createdBy
+              - -lastUpdatedBy
+              - -helpEmail
+              - -helpUrl
+              - -host
+              - -ipAddress
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: status
+          in: query
+          description: >-
+            Filter by status; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isRegistered
+          in: query
+          description: >-
+            Filter by isRegistered (true|false).
+          required: false
+          type: boolean
+        -
+          name: helpEmail
+          in: query
+          description: >-
+            Filter by helpEmail; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: helpUrl
+          in: query
+          description: >-
+            Filter by helpUrl; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: host
+          in: query
+          description: >-
+            Filter by host; asterisk (*) wildcards ok.
+          required: false
+          type: string
+      responses:
+        200:
+          description: Success, returns an array of zero or more Refocus collectors.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorResponse"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}:
+    x-swagger-router-controller: collectors
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: >-
+        Returns metadata for a single collector.
+      description: >-
+        Retrieve the specified collector metadata by the collector's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: getCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Collector not found"
+    patch:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Update the specified collector.
+      description: >-
+        Update the specified collector's config data. If a field is not included
+        in the querybody, that field will not be updated.
+      operationId: patchCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: Fields permitted for patching.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
+      responses:
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/deregister:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Access restricted to Refocus Collector only.
+      tags: [ collectors ]
+      description: >-
+        Access restricted to Refocus Collector only.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/heartbeat:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Access restricted to Refocus Collector only.
+      tags: [ collectors ]
+      description: >-
+        Access restricted to Refocus Collector only.
+      operationId: heartbeat
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Access restricted to Refocus Collector only.
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              description: Access restricted to Refocus Collector only.
+              properties:
+                logLines:
+                  type: array
+                  items:
+                    type: object
+                    description: Access restricted to Refocus Collector only.
+                    properties:
+                      timeStamp:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      sampleCount:
+                        type: integer
+                        description: Access restricted to Refocus Collector only.
+                      sourceUrls:
+                        type: array
+                        items:
+                          type: string
+                        description: Access restricted to Refocus Collector only.
+                      username:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      workTime:
+                        type: integer
+                        description: Access restricted to Refocus Collector only.
+      responses:
+        200:
+          description: Success.
+          schema:
+            $ref: "#/definitions/HeartbeatResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/start:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Access restricted to Refocus Collector only.
+      tags: [ collectors ]
+      description: >-
+        Access restricted to Refocus Collector only.
+      operationId: startCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Access restricted to Refocus Collector only.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/stop:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to Stopped.
+      tags: [ collectors ]
+      description: >-
+        Change collector status from Running to Stopped. Invalid if the
+        collector's status is already stopped.
+      operationId: stopCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to stop.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/pause:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status from Running to Paused.
+      tags: [ collectors ]
+      description: >-
+        Change collector status from Running to Paused. Invalid if the
+        collector's status is not Running.
+      operationId: pauseCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to pause.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/resume:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status from Paused to Running.
+      tags: [ collectors ]
+      description: >-
+        Change collector status from Paused to Running. Invalid if the
+        collector's status is not Paused.
+      operationId: resumeCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to resume.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/writers:
+    x-swagger-router-controller: collectors
+    delete:
+      security:
+        - jwt: []
+      summary: Remove all users from a collector's list of authorized writers
+      tags: [ collectors ]
+      description: >-
+        Remove all users from a collector’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: deleteCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+             The id or name of the collector.
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The collector is no longer write-protected.
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    get:
+      security:
+        - jwt: []
+      summary: Returns a list of users permitted to modify this collector.
+      tags: [ collectors, writers ]
+      description: >-
+        Returns a list of users permitted to modify this collector. DOES NOT
+        use wildcards.
+      operationId: getCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of
+            users are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns The users having write permission to the collector
+            metadata.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the collector metadata.
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add users to the list of authorized writers.
+      tags: [ collectors, writers ]
+      description: >-
+         Add one or more users to a collector's list of authorized writers.
+      operationId: postCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of
+            users are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized
+            writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CollectorWriterResponse"
+              description: >-
+                The users who have write permission to the collector metadata.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: collectors
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors, writers ]
+      summary: Determine whether a user is an authorized writer for a collector
+      description: >-
+        Determine whether a user is an authorized writer for a Collector.
+        If user is unauthorized, there is no writer by this name for this
+        collector.
+      operationId: getCollectorWriter
+      parameters:
+      -
+        name: key
+        in: path
+        description: The id or name of the collector
+        required: true
+        type: string
+      - name: userNameOrId
+        in: "path"
+        description: The id or name of the user
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success, return authorized user
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        404:
+          description: userNameOrId does not identify a User
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from a collector’s list of authorized writers
+      tags: [ collectors, writers ]
+      description: >-
+        Remove a user from a collector’s list of authorized writers.
+      operationId: deleteCollectorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the collector.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators:
+    x-swagger-router-controller: generators
+    get:
+      security:
+        - jwt: []
+      summary: Get a generator or all generators.
+      tags: [ generators ]
+      description: >-
+        Get a generator or all generators. You may query using field filters with asterisk
+        (*) wildcards. You may also optionally specify sort, limit, offset, and
+        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      externalDocs:
+        description: >-
+          GET /generators
+        url: http://focus.salesforce.com/docs/api/generators
+      operationId: findGenerators
+      parameters:
+        -
+          $ref: "#/parameters/GeneratorFieldsParam"
+        -
+          name: sort
+          in: query
+          description: >-
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - isActive
+              - aspects
+              - subjects
+              - subjectQuery
+              - createdAt
+              - description
+              - name
+              - updatedAt
+              - -isActive
+              - -aspects
+              - -subjects
+              - -subjectQuery
+              - -createdAt
+              - -description
+              - -name
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: description
+          in: query
+          type: string
+          maxLength: 4096
+          description: >-
+            Filter by the generator description; asterisk (*) wildcards ok.
+        -
+          name: createdBy
+          in: query
+          type: string
+          description: >-
+            Filter by the generator id; asterisk (*) wildcards ok.
+        -
+          name: isActive
+          in: query
+          type: boolean
+          description: >-
+            Filter by whether or not the generator is running on a collector.
+        -
+          name: name
+          in: query
+          type: string
+          description: >-
+            Filter by the generator name; asterisk (*) wildcards ok.
+        -
+          name: subjectQuery
+          in: query
+          type: string
+          description: >-
+            Filter by the query to append to GET subjects; asterisk (*) wildcards ok.
+        -
+          name: subjects
+          in: query
+          description: >-
+            Filter by the absolutePaths of the subjects.
+          type: array
+          items:
+            type: string
+        -
+          name: aspects
+          in: query
+          description: >-
+            Filter by the names of the aspects.
+          type: array
+          items:
+            type: string
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. Generators without tags are not included in the
+             include result set.
+          type: string
+          required: false
+      responses:
+        200:
+          description: >-
+            Success, returns a list of generators
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new generator.
+      tags: [ generators ]
+      description: >-
+        Create a new generator and makes the creator the writer of the generator. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: postGenerator
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+            required:
+              - name
+              - aspects
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}:
+    x-swagger-router-controller: generators
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified generator
+      tags: [ generators ]
+      description: >-
+        Retrieve the specified generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified generator
+      tags: [ generators ]
+      description: >-
+        Update the specified generator. Requires user to have write permision. If a field is not included in the query body, that field will not be updated. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: patchGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                readOnly: true
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                readOnly: true
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+      responses:
+        200:
+          description: Success, returns the updated generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified generator
+      tags: [ generators ]
+      description: >-
+        Update the specified generator. Requires user to have write permision.
+        If a field is not included in the query body, that field will be set to null or its default value.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: putGenerator
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generator to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generator configration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generator.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about the generator.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the generator.
+              name:
+                type: string
+                readOnly: true
+                description: The generator's name.
+              subjectQuery:
+                type: string
+                readOnly: true
+                description: The query to append to GET subjects.
+              subjects:
+                description: AbsolutePaths of the subjects.
+                type: array
+                items:
+                  type: string
+              aspects:
+                description: Names of the aspects.
+                type: array
+                items:
+                  type: string
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              connection:
+                type: object
+                description: Information about the connection.
+              context:
+                type: object
+                description: >-
+                  Variables accessible inside the transform function.
+            required:
+              - name
+              - aspects
+      responses:
+        200:
+          description: Success, returns the updated generator.
+          schema:
+            $ref: "#/definitions/GeneratorResponse"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}/writers:
+    x-swagger-router-controller: generators
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for an generator
+      tags: [ generators, writers ]
+      description: >-
+        Get the list of all authorized writers for an generator. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the generator.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generator
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to an generator’s list of authorized writers
+      tags: [ generators, writers ]
+      description: >-
+        Add one or more users to an generator’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postGeneratorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorWriterResponse"
+              description: >-
+                The users having write permission to the generator
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generators/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generators
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for an generator
+      tags: [ generators, writers ]
+      description: >-
+        Determine whether a user is an authorized writer for an generator. Returns the user if authorized, else
+        throws 404 if either the writer or generator is not found.
+        If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, return authorized user.
+          schema:
+            $ref: "#/definitions/UsersResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from an generator’s list of authorized writers
+      tags: [ generators, writers ]
+      description: >-
+        Remove a user from an generator’s list of authorized writers. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: deleteGeneratorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generator
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the generator.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Get a generatorTemplate or all generatorTemplates.
+      tags: [ generatorTemplates ]
+      description: >-
+        Get a generatorTemplate or all generatorTemplates. You may query using
+        field filters with asterisk (*) wildcards. You may also optionally
+        specify sort, limit, offset, and a list of fields to include in the
+        response. If the Refocus configuration parameter `useAccessToken` is
+        set to `true`, you must include an `Authorization` request header with
+        your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
+        value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      externalDocs:
+        description: >-
+          GET /generatorTemplates
+        url: http://focus.salesforce.com/docs/api/generatorTemplates
+      operationId: findGeneratorTemplates
+      parameters:
+        -
+          $ref: "#/parameters/GeneratorTemplateFieldsParam"
+        -
+          name: sort
+          in: query
+          description: >-
+            Specify the sort order using a field name, e.g. '...?sort=name'.
+            Prepend the field name with a minus sign to specify descending order,
+            e.g. '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - description
+              - name
+              - version
+              - createdAt
+              - updatedAt
+              - -description
+              - -name
+              - -version
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          type: string
+          description: >-
+            Filter by the generatorTemplate name; asterisk (*) wildcards ok.
+        -
+          name: version
+          in: query
+          type: string
+          description: >-
+            Filter by the generatorTemplate version; asterisk (*) wildcards ok.
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. GeneratorTemplates without tags are not included in the
+             include result set.
+          type: string
+          required: false
+        -
+          name: isPublished
+          in: query
+          type: boolean
+          description: >-
+            Filter by generatorTemplate isPublished (true|false)
+      responses:
+        200:
+          description: >-
+            Success, returns a list of generatorTemplates
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new generatorTemplate.
+      tags: [ generatorTemplates ]
+      description: >-
+        Create a new generatorTemplate and makes the creator the writer of the
+        generatorTemplate. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token](https://tools.ietf
+        .org/html/rfc7519) (JWT) as the value. You can get a token using `POST
+        /v1/register` or `POST /v1/tokens`.
+      operationId: postGeneratorTemplate
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+            required:
+              - name
+              - author
+              - connection
+              - transform
+              - isPublished
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Retrieve the specified generatoTemplate. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get
+        a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/GeneratorTemplateFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Update the specified generatorTemplate. Requires user to have write
+        permision. If a field is not included in the query body, that field
+        will not be updated. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get
+        a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: patchGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+      responses:
+        200:
+          description: Success, returns the updated generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Update the specified generatorTemplate. Requires user to have write
+        permision. If a field is not included in the query body, that field will
+        be set to null or its default value. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: putGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+            required:
+              - name
+              - author
+              - connection
+              - transform
+              - isPublished
+      responses:
+        200:
+          description: Success, returns the updated generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}/writers:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for a generatorTemplate
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Get the list of all authorized writers for a generatorTemplate. If the
+        Refocus configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplateWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the
+            generatorTemplate.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to a generatorTemplate’s list of authorized writers
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Add one or more users to a generatorTemplate’s list of authorized
+        writers. If the Refocus configuration parameter `useAccessToken` is set to
+        `true`, you must include an `Authorization` request header with your [JSON
+        Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can
+        get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postGeneratorTemplateWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized
+            writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorTemplateWriterResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for a generatorTemplate
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Determine whether a user is an authorized writer for a generatorTemplate.
+        Returns the user if authorized, else throws 404 if either the writer or
+        generatorTemplate is not found. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplateWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns requested user.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from a generatorTemplate’s list of authorized writers
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Remove a user from a generatorTemplate’s list of authorized writers. If
+        the Refocus configuration parameter `useAccessToken` is set to `true`, you
+        must include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: deleteGeneratorTemplateWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the generatorTemplate.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
   /globalconfig:
     x-swagger-router-controller: globalconfig
     get:
@@ -1328,7 +3208,7 @@ paths:
           required: true
           schema:
             type: object
-            description: >
+            description: >-
                   A global config item.
             properties:
               value:
@@ -1951,13 +3831,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2637,13 +4513,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2688,9 +4560,13 @@ paths:
               - id
               - name
               - aspectAccess
+              - botAccess
+              - eventAccess
               - lensAccess
               - perspectiveAccess
               - profileAccess
+              - roomAccess
+              - roomTypeAccess
               - sampleAccess
               - subjectAccess
               - userAccess
@@ -2700,9 +4576,13 @@ paths:
               - -id
               - -name
               - -aspectAccess
+              - -botAccess
+              - -eventAccess
               - -lensAccess
               - -perspectiveAccess
               - -profileAccess
+              - -roomAccess
+              - -roomTypeAccess
               - -sampleAccess
               - -subjectAccess
               - -userAccess
@@ -2759,6 +4639,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -2786,6 +4684,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -2938,6 +4854,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -2965,6 +4899,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -3049,6 +5001,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write aspects.
+              botAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write bots.
+              eventAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write events.
               lensAccess:
                 type: string
                 maxLength: 2
@@ -3076,6 +5046,24 @@ paths:
                 default: r
                 description: >
                   The permission to read and/or write profiles.
+              roomAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: rw
+                description: >
+                  The permission to read and/or write rooms.
+              roomTypeAccess:
+                type: string
+                maxLength: 2
+                enum:
+                  - r
+                  - rw
+                default: r
+                description: >
+                  The permission to read and/or write roomTypes.
               sampleAccess:
                 type: string
                 maxLength: 2
@@ -4908,13 +6896,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns the user record.
+            Success, return authorized user
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/UsersResponse"
-              description: >-
-                The users having write permission to the aspect
+            $ref: "#/definitions/UsersResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6140,22 +8124,733 @@ paths:
     get:
       tags: [ rooms ]
       operationId: findRooms
+      parameters:
+        -
+          name: name
+          description: Filter rooms by name
+          in: query
+          required: false
+          type: string
+        -
+          name: active
+          description: Filter rooms by active flag
+          in: query
+          required: false
+          type: boolean
+        -
+          name: type
+          description: Filter room by roomType
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
       responses:
         200:
           description: >-
-            Success
+            Success, returns all rooms
           schema:
-            type: object
-            properties:
-              Success:
-                type: boolean
-                readOnly: true
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
           $ref: "#/responses/401"
         404:
           $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new room
+      tags: [ rooms ]
+      description: Create a new room with a name
+      operationId: postRooms
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create room properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              active:
+                type: boolean
+                description: If the room is active
+              type:
+                type: string
+                maxLength: 254
+                description: Name of the room
+            required:
+              - name
+              - type
+      responses:
+        201:
+          description: >-
+            Created room
+          schema:
+            $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{key}:
+    x-swagger-router-controller: rooms
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified room
+      tags: [ rooms ]
+      description: >-
+        Delete a specific room
+      operationId: deleteRooms
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success, Deleted RoomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a room
+      tags: [ rooms ]
+      operationId: getRoom
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+        -
+          name: active
+          description: Get rooms depending on its active tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified room
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in room
+      tags: [ rooms ]
+      description: Update room fields
+      operationId: patchRoom
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the room to retrieve
+          required: true
+          type: integer
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified room fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the room
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              active:
+                type: boolean
+                description: If the room is active
+              type:
+                type: string
+                maxLength: 254
+                description: Id of roomType
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/RoomResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /botData:
+    x-swagger-router-controller: botData
+    get:
+      tags: [ botData ]
+      operationId: findBotData
+      parameters:
+        -
+          name: name
+          description: Filter botData by name
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botData
+      tags: [ botData ]
+      description: Create new bot data for a rooms specific bots
+      operationId: postBotData
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the corresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the corresponding room
+            required:
+              - name
+              - value
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botData/{key}:
+    x-swagger-router-controller: botData
+    get:
+      summary: Retrieve a botData
+      tags: [ botData ]
+      operationId: getBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botData
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botData
+      tags: [ botData ]
+      description: Update botData fields
+      operationId: patchBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                maxLength: 254
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the coresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the coresponding room
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botData
+      tags: [ botData ]
+      description: >-
+        Delete a specific botData
+      operationId: deleteBotData
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botData to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotData
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /rooms/{roomId}/bots/{botId}/data:
+      x-swagger-router-controller: botData
+      get:
+        summary: Retrieve bot data from a room from a specific bot
+        tags: [ rooms ]
+        operationId: findBotData
+        parameters:
+          -
+            name: roomId
+            in: path
+            description: >-
+              The id of the room to retrieve bot data from
+            required: true
+            type: integer
+          -
+            name: botId
+            in: path
+            description: >-
+              The id of the bot which people want to reference
+            required: true
+            type: string
+          -
+            $ref: "#/parameters/limitParam"
+          -
+            $ref: "#/parameters/offsetParam"
+        responses:
+          200:
+            description: >-
+              Success, returns specified bot data
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BotDataResponse"
+          400:
+            $ref: "#/responses/400"
+          401:
+            $ref: "#/responses/401"
+          404:
+            $ref: "#/responses/404"
+          default:
+            $ref: "#/responses/genericError"
+
+# =============================================================================
+  /roomTypes:
+    x-swagger-router-controller: roomTypes
+    get:
+      tags: [ roomTypes ]
+      operationId: findRoomTypes
+      parameters:
+        -
+          name: name
+          description: Filter roomTypes by name
+          in: query
+          required: false
+          type: string
+        -
+          name: isEnabled
+          description: Filter roomTypes by active flag
+          in: query
+          required: false
+          type: boolean
+        -
+          name: type
+          description: Filter roomType by roomTypeType
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all roomTypes
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new roomType
+      tags: [ roomTypes ]
+      description: Create a new roomType with a name
+      operationId: postRoomTypes
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create roomType properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isEnabled:
+                type: boolean
+                description: If the roomType is active
+              settings:
+                type: object
+                description: Default settings for roomType
+              rules:
+                type: array
+                description: Default rules for roomType
+                items:
+                  type: object
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created roomType
+          schema:
+            $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /roomTypes/{key}:
+    x-swagger-router-controller: roomTypes
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified roomType
+      tags: [ roomTypes ]
+      description: >-
+        Delete a specific roomType
+      operationId: deleteRoomTypes
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted RoomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a roomType
+      tags: [ roomTypes ]
+      operationId: getRoomType
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to retrieve
+          required: true
+          type: string
+        -
+          name: active
+          description: Get roomTypes depending on its active tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified roomType
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in roomType
+      tags: [ roomTypes ]
+      description: Update roomType fields
+      operationId: patchRoomType
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the roomType to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified roomType fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the roomType
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isEnabled:
+                type: boolean
+                description: If the roomType is active
+              settings:
+                type: object
+                description: Default settings for roomType
+              rules:
+                type: array
+                description: Default rules for roomType
+                items:
+                  type: object
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/RoomTypeResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
 
@@ -6207,37 +8902,48 @@ paths:
       tags: [ bots ]
       description: Create a new bot with a name
       operationId: postBots
+      consumes:
+        - multipart/form-data
       parameters:
         -
-          name: queryBody
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Create bot properties
-            properties:
-              name:
-                type: string
-                maxLength: 254
-                description: Name of the bot
-              url:
-                type: string
-                description: Bot url
-              active:
-                type: boolean
-                description: If the bot is active
-              actions:
-                type: array
-                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
-                items:
-                  type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a bot
-                items:
-                  type: object
-            required:
-              - name
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
       responses:
         201:
           description: >-
@@ -6298,7 +9004,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the bot to retrieve
+            The id or name of the bot to retrieve
           required: true
           type: string
         -
@@ -6346,7 +9052,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id or name of the bot to retrieve
+            The id or name of the bot to retrieve
           required: true
           type: string
         -
@@ -6361,6 +9067,7 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the bot
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
               url:
                 type: string
                 description: Bot url
@@ -6389,6 +9096,469 @@ paths:
           $ref: "#/responses/401"
         403:
           $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    put:
+      security:
+        - jwt: []
+      summary: Upgrade current bot
+      tags: [ bots ]
+      description: This route is used to update all the fields in a bot and to load in a new UI
+      operationId: putBots
+      consumes:
+        - multipart/form-data
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the bot to retrieve
+          required: true
+          type: string
+        -
+          name: name
+          in: formData
+          description: The unique readable name for the bot
+          type: string
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
+        -
+          name: active
+          in: formData
+          description: Flag for if a bot is active with communication
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: The URL of the bot server
+          type: string
+        -
+          name: ui
+          description: The zipped HTML and Javascript needed to run the UI of the bot
+          in: formData
+          type: file
+          format: binary
+        -
+          name: actions
+          in: formData
+          description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: Array of objects that contain the name of data on a bot
+          type: array
+          items:
+            type: string
+          default: []
+      responses:
+        201:
+          description: >-
+            Created bot
+          schema:
+            $ref: "#/definitions/BotResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /botActions:
+    x-swagger-router-controller: botActions
+    get:
+      summary: Retrieve all botActions
+      tags: [ botActions ]
+      operationId: findBotActions
+      parameters:
+        -
+          name: name
+          description: Get botActions by name
+          in: query
+          required: false
+          type: string
+        -
+          name: isPending
+          description: Get pending botActions
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all BotActions
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new botAction
+      tags: [ botActions ]
+      description: Create a new botAction with a name, room id and bot id
+      operationId: postBotActions
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botAction properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+            required:
+              - name
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Created botAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /botActions/{key}:
+    x-swagger-router-controller: botActions
+    delete:
+      security:
+        - jwt: []
+      summary: Delete the specified botAction
+      tags: [ botActions ]
+      description: >-
+        Delete a specific botAction
+      operationId: deleteBotActions
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, Deleted BotAction
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      summary: Retrieve a botAction
+      tags: [ botActions ]
+      operationId: getBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: isPending
+          description: Get botActions depending on its pending tag
+          in: query
+          required: false
+          type: boolean
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified botAction
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    patch:
+      security:
+        - jwt: []
+      summary: Update specified fields in botAction
+      tags: [ botActions ]
+      description: Update botAction fields
+      operationId: patchBotAction
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the botAction to retrieve
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Update specified botAction fields
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the botAction
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              isPending:
+                type: boolean
+                description: If the botAction is active
+              parameters:
+                type: array
+                description: Array of objects that contain the name of actions a botAction can take and an array of parameters needed for that action
+                items:
+                  type: object
+              response:
+                type: object
+                description: A JSON field that contains the output of an action
+              roomId:
+                type: integer
+                description: The room in which this action is in reference with
+              botId:
+                type: string
+                description: The bot of which this action is in reference with
+              userId:
+                type: string
+                description: The user of which this action is in reference with
+      responses:
+        200:
+          description: >-
+            Updated field
+          schema:
+            $ref: "#/definitions/BotActionResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+  /events:
+    x-swagger-router-controller: events
+    get:
+      summary: Retrieve all events
+      tags: [ events ]
+      operationId: findEvents
+      description: >-
+        All events are retrieved using this route and using the paramaters as filters you can focus on rooms, bots, or users.
+      parameters:
+        -
+          name: roomId
+          description: Get events from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get events from specific bot
+          in: query
+          required: false
+          type: string
+        -
+          name: botDataId
+          description: Get events from specific botData
+          in: query
+          required: false
+          type: string
+        -
+          name: botActionId
+          description: Get events from specific botAction
+          in: query
+          required: false
+          type: string
+        -
+          name: userId
+          description: Get events from specific user
+          in: query
+          required: false
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns all Events
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    post:
+      security:
+        - jwt: []
+      summary: Create a new event
+      tags: [ events ]
+      description: >-
+        Create a new event that can describe any action or information needed to be specifically logged,
+        typically used to activity in rooms.
+      operationId: postEvents
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create event properties
+            properties:
+              log:
+                type: string
+                description: Human readable log line to describe the context.
+              context:
+                type: object
+                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+              roomId:
+                type: integer
+                description: Room that this event relates to.
+              botId:
+                type: string
+                description: Bot that this event relates to.
+              botDataId:
+                type: string
+                description: Bot Data that this event relates to.
+              botActionId:
+                type: string
+                description: Bot Action that this event relates to.
+              userId:
+                type: string
+                description: User that this event relates to.
+            required:
+              - log
+      responses:
+        201:
+          description: >-
+            Created event
+          schema:
+            $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+# ---------------------------------------------------------------------------
+  /events/{key}:
+    x-swagger-router-controller: events
+    get:
+      summary: Retrieve an event
+      tags: [ events ]
+      description: >-
+        This route is used to retrieve a single event.
+      operationId: getEvent
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the event to retrieve
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified event
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/EventResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
 
@@ -6958,6 +10128,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write aspects.
+      botAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write bots.
+      eventAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write events.
       lensAccess:
         type: string
         readOnly: true
@@ -6988,6 +10178,26 @@ definitions:
         default: r
         description: >
           The permission to read and/or write profiles.
+      roomAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: rw
+        description: >
+          The permission to read and/or write rooms.
+      roomTypeAccess:
+        type: string
+        readOnly: true
+        maxLength: 2
+        enum:
+          - r
+          - rw
+        default: r
+        description: >
+          The permission to read and/or write roomTypes.
       sampleAccess:
         type: string
         readOnly: true
@@ -7528,6 +10738,58 @@ definitions:
         description: >
           Timestamp at which the the write permission was modified
 
+  GeneratorWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the generator
+    properties:
+      generatorId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected generator
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the generator
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  GeneratorTemplateWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the generatorTemplate
+    properties:
+      generatorTemplateId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected generatorTemplate
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the generatorTemplate
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
   LensWriterResponse:
     type: object
     description: >
@@ -7612,23 +10874,506 @@ definitions:
     properties:
       id:
         type: string
+        description: The UUID for the bot
       name:
         type: string
+        description: The unique readable name for the bot
       url:
         type: string
+        description: The URL of the bot server
       active:
         type: boolean
+        description: Flag for if a bot is active with communication
       actions:
         type: array
+        description: A list of actions that a bot can perform
         items:
           type: object
       data:
         type: array
+        description: A list of data that a bot can provide
         items:
           type: object
 
+  EventResponse:
+    type: object
+    description: A response for information about a event
+    properties:
+      id:
+        type: string
+        description: The UUID of the specified event
+      log:
+        type: string
+        description: Human readable log line describing the event and its context it stores
+      context:
+        type: object
+        description: A object, typically JSON, that contains the information to describe an event
+      roomId:
+        type: integer
+        description: The room ID in which the event deals with
+      botId:
+        type: string
+        description: The bot ID in which the event deals with
+      botDataId:
+        type: string
+        description: The bot data ID in which the event deals with
+      botActionId:
+        type: string
+        description: The bot action ID in which the event deals with
+      userId:
+        type: string
+        description: The user ID in which the event deals with
+
+  BotActionResponse:
+    type: object
+    description: A response for information about bot actions
+    properties:
+      id:
+        type: string
+        description: The UUID of the specified bot action
+      name:
+        type: string
+        description: The name of the bot action requested
+      isPending:
+        type: boolean
+        description: If the action is still pending completion
+      parameters:
+        type: array
+        description: The values required to run a bot action
+        items:
+          type: object
+      response:
+        type: object
+        description: The output of an bot action
+      roomId:
+        type: integer
+        description: The room ID in which the bot action deals with
+      botId:
+        type: string
+        description: The bot ID in which the bot action deals with
+      userId:
+        type: string
+        description: The user ID in which the bot action deals with
+
+  CollectorResponse:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      name:
+        type: "string"
+        description: "Should be unique."
+      currentGenerators:
+        readOnly: true
+        type: "array"
+        items:
+          type: "object"
+        description: "Generators assigned to this collector."
+      isRegistered:
+        type: "string"
+        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+        enum:
+        - true
+        - false
+      status:
+        type: "string"
+        description: "The collector status."
+        enum:
+        - "Stopped"
+        - "Running"
+        - "Paused"
+      lastHeartbeat:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the last heartbeat was sent.
+      lastModifiedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent modification.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Collector.
+      lastUpdatedBy:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent update.
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the collector.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the collector.
+      host:
+        type: string
+        description: >
+          The host where the collector is installed.
+        maxLength: 4096
+      ipAddress:
+        type: string
+        description: >
+          The ipAddress where the collector is installed.
+        maxLength: 60
+
+  CollectorWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the collector
+    properties:
+      collectorId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a collector
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the collector
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  HeartbeatResponse:
+    type: object
+    description: >
+      Gets the config and sample collection metadata from the Refocus server.
+    properties:
+      collectorConfigUpdates:
+        $ref: "#/definitions/CollectorConfigUpdatesResponse"
+      generatersAdded:
+        $ref: "#/definitions/GeneratorsAddedResponse"
+      generatersUpdated:
+        $ref: "#/definitions/GeneratorsUpdatedResponse"
+      generatorsRemoved:
+        $ref: "#/definitions/GeneratorsRemovedResponse"
+
+  CollectorConfigUpdatesResponse:
+    type: object
+    description: Collector config variables changed since last heartbeat.
+    properties:
+      heartbeatInterval:
+        type: integer
+        description: >
+          The number of milliseconds to wait before aborting a request to Refocus.
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the config update.
+      sampleCollectorTimeout:
+        type: integer
+        description: >-
+          The number of milliseconds to wait before aborting a request to a remote data source.
+          This value may be overridden by each Generator.
+      sampleUpsertQueueTime:
+        type: integer
+        description: >-
+          The maximum number of milliseconds that samples will wait before being sent to Refocus.
+          When samples are returned by Generator transform, the Collector enqueues those samples
+          to send as part of a larger bulk upsert to Refocus. In order to manage upsert load, a
+          system-wide minimum sample upsert queue time will be defined in Refocus config;
+          a Refocus admin will also be able to override that with a MINIMUM_SAMPLE_UPSERT_QUEUE_TIME
+          environment variable.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the collector.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the collector.
+
+  GeneratorsAddedResponse:
+    type: array
+    description: >-
+      List of generators assigned to this agent since last heartbeat.
+      New generator templates are included as well.
+    items:
+      $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorsUpdatedResponse:
+    type: array
+    description: >-
+      List of generators assigned to this agent, but were modified
+      since last heartbeat.
+    items:
+      $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorsRemovedResponse:
+    readOnly: true
+    type: array
+    description: >
+      List of generators which used to be assigned to this agent but is
+      no longer assigned to this agent. Array of generator names.
+    items:
+      type: string
+
+  GeneratorResponse:
+    type: object
+    description: >-
+      The designation of which subjects and aspects to collect, plus any additional context data
+    properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the generator.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the generator.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the generator.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Generator.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      isActive:
+        type: boolean
+        description: Whether or not the generator is running on a collector.
+      name:
+        type: string
+        readOnly: true
+        description: The generator's name.
+      subjectQuery:
+        type: string
+        readOnly: true
+        description: The query to append to GET subjects.
+      subjects:
+        description: AbsolutePaths of the subjects.
+        type: array
+        items:
+          type: string
+      aspects:
+        description: Names of the aspects.
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+        description: >
+          Array of tag names. Tag name: Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-). Tag
+          names cannot start with a dash (-).
+      connection:
+        type: object
+        description: Information about the connection.
+      context:
+        type: object
+        description: >
+          Variables accessible inside the transform function.
+      generatorTemplate:
+        $ref: "#/definitions/GeneratorTemplateResponse"
+
+  GeneratorTemplateResponse:
+    type: object
+    description: >-
+      The transform logic and the definition of what additional context data is required.
+    properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >-
+          A description of the generatorTemplate.
+      helpEmail:
+        type: string
+        description: >-
+          The email address where a user can go to get more help about the
+          generatorTemplate.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >-
+          The url where a user can go to get more help about the generatorTemplate.
+      name:
+        type: string
+        readOnly: true
+        description: >-
+          The generatorTemplate's name.
+      version:
+        type: string
+        description: >-
+          The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+      tags:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+        description: >-
+          Array of tag names. Tag name: Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-). Tag
+          names cannot start with a dash (-).
+      author:
+        type: object
+        description: >-
+          The author of this generatorTemplate.
+      repository:
+        type: object
+        description: >-
+          The repository where this generatorTemplate is located.
+      connection:
+        type: object
+        description: >-
+          Information about the connection.
+      contextDefinition:
+        type: object
+        description: >-
+          Variables available to connection.url, connection.toUrl, and
+          the transform function.
+      transform:
+        type: string
+        description: >-
+          The body of a javascript function which transforms some data into an
+          array of samples
+      isPublished:
+        type: boolean
+        description: >-
+          Default false. When set to true, the generatorTemplate is available to
+          all users.
+        default: false
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The generatorTemplate id.
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this generatorTemplate.
+
+
+  RoomResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: integer
+        description: The room number of the specified room
+      name:
+        type: string
+        description: The unique readable name for the room
+      active:
+        type: boolean
+        description: Flag for whether the room is still active or closed
+      type:
+        type: string
+        description: The roomType being used in the specified room
+
+  RoomTypeResponse:
+    type: object
+    description: A response for information about a bot
+    properties:
+      id:
+        type: string
+        description: The UUID of the roomType specified
+      name:
+        type: string
+        description: The roomType being used in the specified room
+      isEnabled:
+        type: boolean
+        description: Flag indicating whether a roomType is enabled to use on rooms
+      settings:
+        type: object
+        description: Key-value pairs used to configure bots and rooms intial state
+      rules:
+        type: array
+        items:
+          type: object
+        description: Array containing the rules that trigger automations for rooms of this type
+
+  BotDataResponse:
+    type: object
+    description: A response for information about a room
+    properties:
+      id:
+        type: string
+        description: UUID of the specified bot data
+      name:
+        type: string
+        description: Name of the bot data
+      value:
+        type: string
+        description: Current value of the bot data
+      roomId:
+        type: integer
+        description: The room number of the room of the bot data
+      botId:
+        type: string
+        description: UUID of the specified bot in that room
+
 # =============================================================================
 parameters:
+
+  CollectorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - id
+        - status
+        - isRegistered
+        - currentGenerators
+        - lastHeartbeat
+        - lastModifiedAt
+        - createdBy
+        - lastUpdatedBy
+        - description
+        - helpEmail
+        - helpUrl
+        - host
+        - ipAddress
 
   limitParam:
     name: limit
@@ -7677,6 +11422,55 @@ parameters:
         - valueLabel
         - valueType
         - warningRange
+
+  GeneratorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - isActive
+        - tags
+        - aspects
+        - subjects
+        - subjectQuery
+        - createdAt
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - name
+        - updatedAt
+
+  GeneratorTemplateFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - name
+        - version
+        - tags
+        - author
+        - repository
+        - connection
+        - contextDefinition
+        - transform
+        - isPublished
 
   LensesFieldsParam:
     name: fields
@@ -7746,9 +11540,13 @@ parameters:
         - id
         - name
         - aspectAccess
+        - botAccess
+        - eventAccess
         - lensAccess
         - perspectiveAccess
         - profileAccess
+        - roomAccess
+        - roomTypeAccess
         - sampleAccess
         - subjectAccess
         - userAccess
@@ -7844,24 +11642,6 @@ parameters:
         - createdBy
         - createdAt
         - sso
-        - updatedAt
-
-  SSOConfigFieldsParam:
-    name: fields
-    in: query
-    description: >
-      Comma-delimited list of field names to include in the response.
-    required: false
-    type: array
-    collectionFormat: csv
-    items:
-      type: string
-      enum:
-        - id
-        - samlEntryPoint
-        - samlIssuer
-        - createdBy
-        - createdAt
         - updatedAt
 
 # =============================================================================

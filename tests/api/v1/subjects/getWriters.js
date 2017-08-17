@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/getWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/subjects/{key}/writers';
 const getWriterPath = '/v1/subjects/{key}/writers/{userNameOrId}';
 
-describe('api: subjects: get writers: ', () => {
+describe('tests/api/v1/subjects/getWriters.js >', () => {
   let token;
   let subject;
   let user;
@@ -45,13 +44,12 @@ describe('api: subjects: get writers: ', () => {
     Subject.create(subjectToCreate)
     .then((sub) => {
       subject = sub;
-    }).then(() =>
-
-     /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created,
+     * so use one of these.
+     */
+    .then(() => User.findOne())
     .then((usr) => subject.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -65,43 +63,28 @@ describe('api: subjects: get writers: ', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('find Writers that have writer permission' +
-      'associated with the model', (done) => {
+  it('find Writers with writer permission', (done) => {
     api.get(getWritersPath.replace('{key}', subject.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body).to.have.length(2);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
-  it('find Writers and make sure the passwords are not returned', (done) => {
+  it('find Writers, make sure passwords not returned', (done) => {
     api.get(getWritersPath.replace('{key}', subject.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(2);
-
       const firstUser = res.body[0];
       const secondUser = res.body[1];
-
+      expect(res.body).to.have.length(2);
       expect(firstUser.password).to.equal(undefined);
       expect(secondUser.password).to.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('find Writer by username', (done) => {
@@ -110,16 +93,9 @@ describe('api: subjects: get writers: ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('name', user.name);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('find Writer by userId', (done) => {
@@ -128,16 +104,9 @@ describe('api: subjects: get writers: ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('id', user.id);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid resource but valid writers', (done) => {
@@ -145,13 +114,7 @@ describe('api: subjects: get writers: ', () => {
       .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid username', (done) => {
@@ -159,16 +122,10 @@ describe('api: subjects: get writers: ', () => {
       .replace('{userNameOrId}', 'invalidUser'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
-  describe('with api activity logs enabled', () => {
+  describe('with api activity logs enabled >', () => {
     before(() => tu.toggleOverride('enableApiActivityLogs', true));
     after(() => tu.toggleOverride('enableApiActivityLogs', false));
 

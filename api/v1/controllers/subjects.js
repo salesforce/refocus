@@ -10,20 +10,17 @@
  * api/v1/controllers/subjects.js
  */
 'use strict'; // eslint-disable-line strict
-
 const featureToggles = require('feature-toggles');
 const utils = require('./utils');
 const helper = require('../helpers/nouns/subjects');
 const userProps = require('../helpers/nouns/users');
-const doDeleteAllAssoc =
-                    require('../helpers/verbs/doDeleteAllBToMAssoc');
-const doDeleteOneAssoc =
-                    require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc =
-                    require('../helpers/verbs/doPostBToMAssoc');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doGetHierarchy = require('../helpers/verbs/doGetHierarchy');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
@@ -32,8 +29,9 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
-const sampleStoreFeature =
-                  require('../../../cache/sampleStore').constants.featureName;
+const sampleStore = require('../../../cache/sampleStore');
+const sampleStoreConstants = sampleStore.constants;
+const sampleStoreFeature = sampleStoreConstants.featureName;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
@@ -53,16 +51,15 @@ const ZERO = 0;
  * no validation to do, or the validation passes
  */
 function validateParentFields(req, res, next, callback) {
-
   const queryBody = req.swagger.params.queryBody.value;
   const { parentId, parentAbsolutePath } = queryBody;
 
-  // if both parentAbsolutePath and parentId,
-  // check they point to the same subject
+  /*
+   * If both parentAbsolutePath and parentId are present, make sure they point
+   * to the same subject.
+   */
   if (parentId && parentAbsolutePath) {
-    helper.model.findOne({
-      where: { absolutePath: parentAbsolutePath },
-    })
+    helper.model.findOne({ where: { absolutePath: parentAbsolutePath } })
     .then((parent) => {
       if (parent && parent.id !== parentId) {
         // parentAbsolutePath does not match parentId
@@ -95,10 +92,8 @@ function validateParentFields(req, res, next, callback) {
 function validateFilterParams(filterParams) {
   let subjectTagsCounter = 0;
   const EXCLUDE_SYMBOL = '-';
-
   subjectTagsCounter = filterParams
     .filter((i) => i.startsWith(EXCLUDE_SYMBOL)).length;
-
   if (subjectTagsCounter !== ZERO &&
     filterParams.length !== subjectTagsCounter) {
     throw new apiErrors.InvalidFilterParameterError();
@@ -215,7 +210,19 @@ module.exports = {
    */
   findSubjects(req, res, next) {
     validateTags(null, req.swagger.params);
-    doFind(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+      featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisSubjectModel.findSubjects(req, res, resultObj)
+      .then((response) => {
+
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
@@ -228,7 +235,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    doGet(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+    featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+      const resultObj = { reqStartTime: new Date() }; // for logging
+      redisSubjectModel.getSubject(req, res, resultObj)
+      .then((response) => {
+
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doGet(req, res, next, helper);
+    }
   },
 
   /**
@@ -326,18 +345,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriters(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriters(req, res, next, helper);
   }, // getSubjectWriters
 
   /**
@@ -351,23 +359,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriter(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      // throw ResourceNotFound error if resolved object is empty array
-      u.throwErrorForEmptyArray(o,
-        params.userNameOrId.value, userProps.modelName);
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriter(req, res, next, helper);
   }, // getSubjectWriter
 
   /**
@@ -380,15 +372,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSubjectWriters(req, res, next) {
-    const params = req.swagger.params;
-    const toPost = params.queryBody.value;
-    const options = {};
-    options.where = u.whereClauseForNameInArr(toPost);
-    userProps.model.findAll(options)
-    .then((usrs) => {
-      doPostAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, usrs);
-    });
+    doPostWriters(req, res, next, helper);
   }, // postSubjectWriters
 
   /**
@@ -421,7 +405,36 @@ module.exports = {
    */
   postSubject(req, res, next) {
     validateRequest(req);
-    doPost(req, res, next, helper);
+    const { name, parentId, parentAbsolutePath } =
+      req.swagger.params.queryBody.value;
+
+    /*
+     * Fast fail: if cache is on AND parentId
+     * is not provided, check whether the subject exists in cache.
+     * Else if parentId is provided OR cache is off,
+     * do normal post.
+     */
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+      featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+      featureToggles.isFeatureEnabled('fastFailDuplicateSubject') &&
+      !u.looksLikeId(parentId)) {
+      const absolutePath = parentAbsolutePath ?
+        (parentAbsolutePath + '.' + name) : name;
+      redisSubjectModel.subjectInSampleStore(absolutePath)
+      .then((found) => {
+        if (found) {
+          throw new apiErrors.DuplicateResourceError(
+            'The subject lower case absolutePath must be unique');
+        }
+
+        doPost(req, res, next, helper);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
+    } else {
+      doPost(req, res, next, helper);
+    }
   },
 
   /**
@@ -485,8 +498,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
@@ -520,8 +532,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {

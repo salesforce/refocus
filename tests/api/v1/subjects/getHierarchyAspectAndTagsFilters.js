@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,8 @@ const Aspect = tu.db.Aspect;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}:`, () => {
+describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
+`GET ${path} >`, () => {
   let token;
 
   //
@@ -137,7 +137,7 @@ describe(`api: GET ${path}:`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('SubjectTag filter on hierarchy', () => {
+  describe('SubjectTag filter on hierarchy >', () => {
     it('Only subjects matching the tag and its hierarchy should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?subjectTags=cold';
@@ -157,13 +157,7 @@ describe(`api: GET ${path}:`, () => {
         const quebecSubj = res.body.children[0].children[0].children[0];
         expect(quebecSubj.tags).to.include.members(['cold']);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Multiple Query Params: Only subjects matching the tag and' +
@@ -193,13 +187,7 @@ describe(`api: GET ${path}:`, () => {
         expect(na.children[0].children).to.have.length(1);
         expect(na.children[0].children[0].tags).to.include.members(['cold']);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Negation test: Subject with tags not matching the negated tag name ',
@@ -211,13 +199,7 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         expect(res.body.children).to.have.length(3);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Negation test: Multiple Tags: Subject with tags not matching the ' +
@@ -229,13 +211,7 @@ describe(`api: GET ${path}:`, () => {
       .expect((res) => {
         expect(res.body.children).to.have.length(2);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Multiple Query Params: Tags should be passed as include filter' +
@@ -245,7 +221,7 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
@@ -267,17 +243,37 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.errors[0].type).to
         .equal('InvalidFilterParameterError');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
+      .end(done);
+    });
 
-        done();
-      });
+    it('subjectTags field not included', (done) => {
+      const endpoint = path.replace('{key}', gp.id)
+        + '?subjectTags=cold&fields=name';
+      api.get(endpoint)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.not.equal(null);
+
+        // north america. Check to make sure it does not return the parOther
+        expect(res.body.children).to.have.length(1);
+        expect(res.body).to.not.have.property('tags');
+        expect(res.body).to.have.all
+        .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+
+        // canada
+        expect(res.body.children[0].children).to.have.length(1);
+
+        // quebec
+        const quebecSubj = res.body.children[0].children[0].children[0];
+        expect(quebecSubj.tags).to.include.members(['cold']);
+
+      })
+      .end(done);
     });
   });
 
-  describe('Aspect Filter on Hierarchy', () => {
+  describe('Aspect Filter on Hierarchy >', () => {
     it('should return samples with temperature and humidity aspects',
     (done) => {
       const endpoint = path.replace('{key}', par.id) +
@@ -289,13 +285,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body).to.not.equal(null);
         expect(res.body.samples).to.have.length(2);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('should return sample with just humidity aspect', (done) => {
@@ -313,13 +303,7 @@ describe(`api: GET ${path}:`, () => {
           .property('aspect.name', 'humidity');
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('test negitation humidity but no temperature', (done) => {
@@ -339,13 +323,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children[0].samples[0]).to.have.deep
         .property('aspect.name', 'wind-speed');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('test with aspect name not in the hierarchy', (done) => {
@@ -357,13 +335,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body).to.not.equal(null);
         expect(Object.keys(res.body.samples)).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('filter should apply to all levels of hierarchy', (done) => {
@@ -372,7 +344,7 @@ describe(`api: GET ${path}:`, () => {
       api.get(endpoint2)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
@@ -382,12 +354,12 @@ describe(`api: GET ${path}:`, () => {
         const aspectNames = [];
         aspectNames.push(res.body.samples[0].aspect.name);
         aspectNames.push(res.body.samples[1].aspect.name);
-        expect(aspectNames).to.include.members(['humidity','temperature']);
+        expect(aspectNames).to.include.members(['humidity', 'temperature']);
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(0);
-        expect(res.body.children[0].samples[0]).to.have.deep
-          .property('aspect.name', 'humidity');
+        expect(res.body.children[0].samples[0])
+        .to.have.deep.property('aspect.name', 'humidity');
         done();
       });
     });
@@ -404,16 +376,10 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].samples).to.have.length(0);
         expect(res.body.children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].samples).to.have.length(1);
-        expect(res.body.children[0].children[0].samples[0]).to.have.deep
-          .property('aspect.name', 'wind-speed');
+        expect(res.body.children[0].children[0].samples[0])
+        .to.have.deep.property('aspect.name', 'wind-speed');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('negation on aspect name filter with aspect name ' +
@@ -429,17 +395,11 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
-  describe('aspectTags filter on hierarchy', () => {
+  describe('aspectTags filter on hierarchy >', () => {
     it('Hierarchy for subject with Aspect tags matching the quuery params ' +
     'should be returned', (done) => {
       const endpoint = path.replace('{key}', chi.id) + '?aspectTags=wnd';
@@ -452,16 +412,10 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
-        expect(res.body.children[0].samples[0]).to.have.deep
-          .property('aspect.name', 'wind-speed');
+        expect(res.body.children[0].samples[0])
+        .to.have.deep.property('aspect.name', 'wind-speed');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Hierarchy for subject with Aspect tags matching the query params ' +
@@ -475,13 +429,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.samples).to.have.length(0);
         expect(res.body.children).to.have.length(0);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Multiple Query Params: Hierarchy for subject with Aspect tags' +
@@ -496,22 +444,16 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.tags[0])
-          .to.equal('temp');
+        .to.equal('temp');
         expect(res.body.children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].samples).to.have.length(0);
         expect(res.body.children[0].children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].children[0].samples)
-          .to.have.length(1);
+        .to.have.length(1);
         expect(res.body.children[0].children[0].children[0]
           .samples[0].aspect.tags[0]).to.equal('wnd');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Negation: Hierarchy for subject with Aspect tags' +
@@ -529,17 +471,11 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].children).to.have.length(1);
         expect(res.body.children[0].children[0].children[0].samples)
-          .to.have.length(1);
+        .to.have.length(1);
         expect(res.body.children[0].children[0].children[0]
           .samples[0].aspect.tags[0]).to.equal('wnd');
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('Negation: Multiple Query Params: Hierarchy for subject with Aspect' +
@@ -553,13 +489,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.samples).to.have.length(0);
         expect(res.body.children).to.have.length(1);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

@@ -7,16 +7,15 @@
  */
 
 /**
- * tests/db/model/subject/delete.js
+ * tests/db/model/generatortemplate/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 
-describe('db: Generatortemplate: delete: ', () => {
+describe('tests/db/model/generatortemplate/delete.js >', () => {
   const gt = u.getGeneratorTemplate();
 
   afterEach(u.forceDelete);

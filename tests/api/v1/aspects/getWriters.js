@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/getWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/aspects/{key}/writers';
 const getWriterPath = '/v1/aspects/{key}/writers/{userNameOrId}';
 
-describe('api: aspects: get writer(s)', () => {
+describe('tests/api/v1/aspects/getWriters.js >', () => {
   let token;
   let aspect;
   let user;
@@ -44,13 +43,12 @@ describe('api: aspects: get writer(s)', () => {
     Aspect.create(aspectToCreate)
     .then((asp) => {
       aspect = asp;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created,
+     * so use one of these.
+     */
+    .then(() => User.findOne())
     .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createSecondUser())
     .then((secUsr) => {
@@ -62,6 +60,7 @@ describe('api: aspects: get writer(s)', () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -73,13 +72,7 @@ describe('api: aspects: get writer(s)', () => {
     .expect((res) => {
       expect(res.body).to.have.length(3);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writers and make sure the passwords are not returned', (done) => {
@@ -99,13 +92,7 @@ describe('api: aspects: get writer(s)', () => {
 
       // TODO: see why sort by username fails on travis
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by username', (done) => {
@@ -114,16 +101,9 @@ describe('api: aspects: get writer(s)', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('name', user.name);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find Writer by userId', (done) => {
@@ -132,16 +112,9 @@ describe('api: aspects: get writer(s)', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body).to.have.length(1);
-      expect(res.body[0].name).to.contain('User');
+      expect(res.body).to.have.property('id', user.id);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid resource but valid writers', (done) => {
@@ -149,13 +122,7 @@ describe('api: aspects: get writer(s)', () => {
       .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Writer not found for invalid username', (done) => {
@@ -163,12 +130,6 @@ describe('api: aspects: get writer(s)', () => {
       .replace('{userNameOrId}', 'invalidUser'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

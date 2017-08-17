@@ -15,6 +15,7 @@
 require('./config/toggles'); // Loads the feature toggles
 const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
+const redisConfig = require('./config/redisConfig');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
@@ -30,14 +31,13 @@ const pghost = pe.PGHOST || 'localhost';
 const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
-const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
 const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   max: 5,
   min: 0,
   idle: 10000,
 };
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
-  pe.HIDDEN_ROUTES.split[','] : ['/rooms']; // Routes to hide
+  pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 
@@ -71,11 +71,24 @@ const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
-// default set to 30 minutes
-const DEFAULT_JOB_REMOVAL_DELAY_SECONDS = 1800;
+const DEFAULT_JOB_REMOVAL_INTERVAL_MINUTES = 30;
+const JOB_REMOVAL_INTERVAL = 60 * 1000 * (pe.KUE_JOBS_REMOVAL_INTERVAL_MINUTES ||
+  DEFAULT_JOB_REMOVAL_INTERVAL_MINUTES);
 
-const JOB_REMOVAL_DELAY_SECONDS = pe.KUE_JOBS_REMOVAL_DELAY ||
-  DEFAULT_JOB_REMOVAL_DELAY_SECONDS;
+const DEFAULT_JOB_REMOVAL_DELAY_MINUTES = 30;
+const JOB_REMOVAL_DELAY = 60 * 1000 * (pe.KUE_JOBS_REMOVAL_DELAY_MINUTES ||
+  DEFAULT_JOB_REMOVAL_DELAY_MINUTES);
+
+const DEFAULT_JOB_REMOVAL_BATCH_SIZE = 1000;
+const JOB_REMOVAL_BATCH_SIZE = pe.KUE_JOBS_REMOVAL_BATCH_SIZE ||
+  DEFAULT_JOB_REMOVAL_BATCH_SIZE;
+
+// This must be set to several times the value of JOB_REMOVAL_INTERVAL or
+// completed jobs may be overwritten sooner that JOB_REMOVAL_DELAY
+const DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES = 24 * 60;
+const JOB_COUNTER_RESET_INTERVAL = 60 * 1000 *
+  (pe.KUE_JOB_COUNTER_RESET_INTERVAL_MINUTES ||
+  DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES);
 
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
@@ -95,27 +108,6 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
-
-/*
- * Assigns each of the different redis uses cases to a particular redis
- * instance, if configured, or falls back to the primary redis instance.
- */
-const redisUrls = {
-  cache: pe.REDIS_CACHE && pe[pe.REDIS_CACHE] ?
-    pe[pe.REDIS_CACHE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  limiter: pe.REDIS_LIMITER && pe[pe.REDIS_LIMITER] ?
-    pe[pe.REDIS_LIMITER] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  pubsub: pe.REDIS_PUBSUB && pe[pe.REDIS_PUBSUB] ?
-    pe[pe.REDIS_PUBSUB] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  queue: pe.REDIS_QUEUE && pe[pe.REDIS_QUEUE] ?
-    pe[pe.REDIS_QUEUE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  realtimeLogging: pe.REDIS_REALTIME_LOGGING && pe[pe.REDIS_REALTIME_LOGGING] ?
-    pe[pe.REDIS_REALTIME_LOGGING] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  sampleStore: pe.REDIS_SAMPLE_STORE && pe[pe.REDIS_SAMPLE_STORE] ?
-    pe[pe.REDIS_SAMPLE_STORE] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-  session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?
-    pe[pe.REDIS_SESSION] : (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL),
-};
 
 module.exports = {
   api: {
@@ -138,9 +130,13 @@ module.exports = {
     adminProfile: {
       name: 'Admin',
       aspectAccess: 'rw',
+      botAccess: 'rw',
+      eventAccess: 'rw',
       lensAccess: 'rw',
       perspectiveAccess: 'rw',
       profileAccess: 'rw',
+      roomAccess: 'rw',
+      roomTypeAccess: 'rw',
       sampleAccess: 'rw',
       subjectAccess: 'rw',
       userAccess: 'rw',
@@ -158,18 +154,7 @@ module.exports = {
     modelDirName: 'model',
     passwordHashSaltNumRounds: 8,
   },
-  redis: {
-    channelName: 'focus',
-    instanceUrl: {
-      cache: redisUrls.cache,
-      limiter: redisUrls.limiter,
-      pubsub: redisUrls.pubsub,
-      queue: redisUrls.queue,
-      realtimeLogging: redisUrls.realtimeLogging,
-      sampleStore: redisUrls.sampleStore,
-      session: redisUrls.session,
-    },
-  },
+  redis: redisConfig,
 
   // When adding new environment, consider adding it to /config/migrationConfig
   // as well to enable database migraton in the environment.
@@ -239,7 +224,10 @@ module.exports = {
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,
-  JOB_REMOVAL_DELAY_SECONDS,
+  JOB_REMOVAL_INTERVAL,
+  JOB_REMOVAL_DELAY,
+  JOB_REMOVAL_BATCH_SIZE,
+  JOB_COUNTER_RESET_INTERVAL,
   deprioritizeJobsFrom,
   endpointToLimit,
   httpMethodToLimit,

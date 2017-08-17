@@ -119,6 +119,15 @@ apiErrors.create({
   defaultMessage: 'A subject may not be its own parent.',
 });
 
+apiErrors.create({
+  code: 11110,
+  status: 400,
+  name: 'DuplicateResourceError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You are not allowed to create a resource that already exists.',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

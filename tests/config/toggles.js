@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const toggles = require('../../config/toggles');
 
-describe('toggles', () => {
+describe('tests/config/toggles.js >', () => {
   it('environmentVariableTrue', (done) => {
     const env = {
       foo: true,

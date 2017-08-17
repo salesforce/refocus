@@ -10,7 +10,6 @@
  * api/v1/controllers/lenses.js
  */
 'use strict'; // eslint-disable-line strict
-
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
 const authUtils = require('../helpers/authUtils');
@@ -18,15 +17,15 @@ const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
-const doPostAssoc = require('../helpers/verbs/doPostBToMAssoc');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
-
 const ZERO = 0;
 const ONE = 1;
 
@@ -225,18 +224,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriters(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriters(req, res, next, helper);
   }, // getLensWriters
 
   /**
@@ -250,23 +238,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLensWriter(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
-    const params = req.swagger.params;
-    const options = {};
-    options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-    u.findAssociatedInstances(helper,
-      params, helper.belongsToManyAssoc.users, options)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      // throw a ResourceNotFound error if resolved object is empty array
-      u.throwErrorForEmptyArray(o,
-        params.userNameOrId.value, userProps.modelName);
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    doGetWriters.getWriter(req, res, next, helper);
   }, // getLensWriter
 
   /**
@@ -279,15 +251,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postLensWriters(req, res, next) {
-    const params = req.swagger.params;
-    const toPost = params.queryBody.value;
-    const options = {};
-    options.where = u.whereClauseForNameInArr(toPost);
-    userProps.model.findAll(options)
-    .then((usrs) => {
-      doPostAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, usrs);
-    });
+    doPostWriters(req, res, next, helper);
   }, // postLensWriters
 
   /**
@@ -361,8 +325,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const requestBody = req.swagger.params.queryBody.value;
     u.findByKey(helper, req.swagger.params)
-    .then((o) => u.isWritable(req, o,
-      featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       if (requestBody.name === '') {
         if (o.sourceName) {
@@ -486,9 +449,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqObj = req.swagger.params;
     u.findByKey(helper, req.swagger.params)
-    .then((o) =>
-      u.isWritable(req, o,
-        featureToggles.isFeatureEnabled('enforceWritePermission')))
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value === undefined) {

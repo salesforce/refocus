@@ -10,7 +10,6 @@
  * tests/api/v1/samples/postWithoutPerms.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,20 +18,16 @@ const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const User = tu.db.User;
-
 const postPath = '/v1/samples';
 
-describe('api: post samples without perms', () => {
+describe('tests/api/v1/samples/postWithoutPerms.js >', () => {
   let aspect;
   let subject;
   let otherValidToken;
   const sampleToPost = { value: '1' };
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -49,9 +44,7 @@ describe('api: post samples without perms', () => {
       sampleToPost.aspectId = aspect.id;
       return User.findOne({ where: { name: tu.userName } });
     })
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -63,7 +56,6 @@ describe('api: post samples without perms', () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
   it('sample write permission should be ' +
     'tied to permission on aspect', (done) => {
@@ -71,8 +63,6 @@ describe('api: post samples without perms', () => {
     .set('Authorization', otherValidToken)
     .send(sampleToPost)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res*/) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

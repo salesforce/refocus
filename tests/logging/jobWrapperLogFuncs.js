@@ -10,7 +10,6 @@
  * tests/logging/jobWrapperLogFuncs.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const u = require('./utils');
@@ -19,7 +18,7 @@ const jobWrapper = require('../../jobQueue/jobWrapper');
 const jobQueue = require('../../jobQueue/jobWrapper').jobQueue;
 const sinon = require('sinon');
 
-describe('jobWrapper: functions ', () => {
+describe('tests/logging/jobWrapperLogFuncs.js, jobWrapper functions >', () => {
   let token;
 
   before((done) => {
@@ -70,8 +69,8 @@ describe('jobWrapper: functions ', () => {
     done();
   });
 
-  it('logAndRemoveJobOnComplete function ok', (done) => {
-    sinon.spy(jobWrapper, 'logAndRemoveJobOnComplete');
+  it('logJobOnComplete function ok', (done) => {
+    sinon.spy(jobWrapper, 'logJobOnComplete');
     const reqObject = {
       headers: {
         authorization: token,
@@ -80,14 +79,12 @@ describe('jobWrapper: functions ', () => {
         remoteAddress: '1.2.3.4',
       },
     };
-
     const jobType = 'myTestJob';
     const testData = { foo: 'bar' };
     const job = jobQueue.createJob(jobType, testData);
-
-    jobWrapper.logAndRemoveJobOnComplete(reqObject, job);
+    jobWrapper.logJobOnComplete(reqObject, job);
     expect(jobWrapper.processJobOnComplete).to.have.been.called;
-    jobWrapper.logAndRemoveJobOnComplete.restore();
+    jobWrapper.logJobOnComplete.restore();
     done();
   });
 });

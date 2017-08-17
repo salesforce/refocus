@@ -16,7 +16,8 @@ import TestUtils from 'react-addons-test-utils';
 import { expect } from 'chai';
 import CheckBoxComponent from '../../../view/admin/components/common/CheckBoxComponent.js';
 
-describe('CheckBoxComponent test', () => {
+describe('tests/view/components/checkBoxTest.js, CheckBoxComponent test >',
+() => {
   const DUMMY_STRING = 'achoo';
 
   it('by default, checkbox is editable');

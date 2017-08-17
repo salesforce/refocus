@@ -20,7 +20,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const path = '/v1/profiles';
 
-describe(`api: GET ${path} (without users)`, () => {
+describe('tests/api/v1/profiles/getWithoutUsers.js (without users) >', () => {
   const profileObj = { name: `${tu.namePrefix}1` };
   let token;
 
@@ -30,13 +30,13 @@ describe(`api: GET ${path} (without users)`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     Profile.create(profileObj)
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -54,7 +54,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -74,7 +74,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -94,7 +94,7 @@ describe(`api: GET ${path} (without users)`, () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();

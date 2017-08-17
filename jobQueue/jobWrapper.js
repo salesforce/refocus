@@ -27,18 +27,9 @@ const queueTimeActivityLogs =
 const TIME_TO_LIVE =
   1000 * jobSetup.ttlForJobsAsync; // eslint-disable-line no-magic-numbers
 
-/*
- * The delay is introduced to avoid the job.id leakage. It can be any
- * arbitary number large enough that it does not cause the leakage. The delay
- * is converted to milliseconds by multiplying it by 1000.
- *
- * TODO: Clean this up once we move job removal listener to the clock process.
- */
-const delayToRemoveJobs =
-  1000 * jobSetup.delayToRemoveJobs; // eslint-disable-line no-magic-numbers
-
 /**
  * Set log object params from job results.
+ *
  * @param  {Object} jobResultObj - Job result object
  * @param  {Object} logObject - Log object
  */
@@ -74,12 +65,8 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
 }
 
 /**
- * Listen for a job completion event and clean up (remove) the job. The delay
- * is introduced to avoid the job.id leakage. If activity logs are enabled,
+ * Listen for a job completion event. If activity logs are enabled,
  * update logObject and print log
- *
- * TODO: This needs to be moved to the clock process, once we start exposing
- * APIs to monitor the jobs.
  *
  * @param {Object} job - Job object to be cleaned up from the queue
  * @param {Object} logObject - Object containing the information that needs to
@@ -88,28 +75,6 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
 function processJobOnComplete(job, logObject) {
   if (job) {
     job.on('complete', (jobResultObj) => {
-      setTimeout(() => {
-        try {
-          if (featureToggles.isFeatureEnabled('instrumentKue')) {
-            console.log('[KJI] Ready to ' + // eslint-disable-line no-console
-              `remove job ${job.id}`);
-          }
-
-          job.remove((err) => {
-            if (err) {
-              console.log('Error removing ' + // eslint-disable-line no-console
-                `${job.id}`, err);
-            } else if (featureToggles.isFeatureEnabled('instrumentKue')) {
-              console.log('[KJI] Removed ' + // eslint-disable-line no-console
-                `completed job ${job.id}`);
-            }
-          });
-        } catch (err) {
-          console.log('Error removing ' + // eslint-disable-line no-console
-            'kue job', job, err);
-        }
-      }, delayToRemoveJobs);
-
       // when enableWorkerActivityLogs are enabled, update the logObject
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
        jobResultObj && logObject) {
@@ -133,13 +98,13 @@ function processJobOnComplete(job, logObject) {
 } // processJobOnComplete
 
 /**
- * Logs worker activity and remove job when complete.
+ * Logs worker activity when complete.
  *
  * @param  {Object} req - Request object
  * @param  {Object} job - Worker job
  */
-function logAndRemoveJobOnComplete(req, job) {
-  // if activity logs are enabled, log activity and remove job
+function logJobOnComplete(req, job) {
+  // if activity logs are enabled, log activity info
   if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
     // create worker activity log object
     const logObject = {};
@@ -153,22 +118,23 @@ function logAndRemoveJobOnComplete(req, job) {
 
     /*
      * If req object is defined; extract the user name, token and ipaddress and
-     * update the log object
+     * update the log object. Add "request_id" if header is set by heroku.
      */
     if (req) {
+      if (req.headers && req.headers['x-request-id']) {
+        logObject.request_id = req.headers['x-request-id'];
+      }
+
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => {
         logObject.user = resObj.username;
         logObject.token = resObj.tokenname;
-      });
+      }).catch(() => {}); // no-op
     }
 
     // continue to update and print logObject on job completion.
     processJobOnComplete(job, logObject);
-  } else {
-    // no activity logs, remove job
-    processJobOnComplete(job);
   }
 }
 
@@ -224,7 +190,7 @@ function createPromisifiedJob(jobName, data, req) {
         return reject(msg);
       }
 
-      logAndRemoveJobOnComplete(req, job);
+      logJobOnComplete(req, job);
       return resolve(job);
     });
   });
@@ -259,7 +225,7 @@ function createJob(jobName, data, req) {
       throw new Error(msg);
     }
 
-    logAndRemoveJobOnComplete(req, job);
+    logJobOnComplete(req, job);
   });
 
   return job;
@@ -270,5 +236,5 @@ module.exports = {
   createJob,
   createPromisifiedJob,
   mapJobResultsToLogObject,
-  logAndRemoveJobOnComplete,
+  logJobOnComplete,
 }; // exports

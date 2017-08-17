@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,14 +19,13 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const postWritersPath = '/v1/lenses/{key}/writers';
 
-describe('api: lenses: post writers', () => {
+describe('tests/api/v1/lenses/postWriters.js >', () => {
   let lens;
   let token;
   let otherValidToken;
   const userNameArray = [];
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -40,16 +38,14 @@ describe('api: lenses: post writers', () => {
     u.doSetup()
     .then((lensInst) => {
       lens = lensInst;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => {
       userNameArray.push(usr.name);
-
       /*
        * user is added to make sure users are not given write
        * permission twice
@@ -84,23 +80,14 @@ describe('api: lenses: post writers', () => {
     .expect(constants.httpStatus.CREATED)
     .expect((res) => {
       expect(res.body).to.have.length(2);
-
       const userOne = res.body[0];
       const userTwo = res.body[1];
-
       expect(userOne.lensId).to.not.equal(undefined);
       expect(userOne.userId).to.not.equal(undefined);
-
       expect(userTwo.lensId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('return 403 for adding writers using an user that is not ' +
@@ -109,13 +96,7 @@ describe('api: lenses: post writers', () => {
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('a request body that is not an array should not be accepted', (done) => {
@@ -124,12 +105,6 @@ describe('api: lenses: post writers', () => {
     .set('Authorization', token)
     .send({ userName })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

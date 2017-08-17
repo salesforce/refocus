@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/deleteWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,37 +21,33 @@ const writersPath = '/v1/lenses/{key}/writers';
 const writerPath = '/v1/lenses/{key}/writers/{userNameOrId}';
 const lensPath = '/v1/lenses/{key}';
 
-describe('api: lenses: permissions', () => {
+describe('tests/api/v1/lenses/deleteWriters.js >', () => {
   let lens;
   let token;
   let otherValidToken;
   let user;
 
   beforeEach((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
     u.doSetup()
     .then((lensInst) => {
       lens = lensInst;
-    }).then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) =>
-      lens.addWriter(usr))
-    .then(() =>
-      tu.createSecondUser())
+    })
+    /*
+     * tu.createToken creates a user and an admin user is already created so
+     * use one of these.
+     */
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => lens.addWriter(usr))
+    .then(() => tu.createSecondUser())
     .then((secUsr) => {
       lens.addWriter(secUsr);
       user = secUsr;
@@ -63,28 +58,22 @@ describe('api: lenses: permissions', () => {
       otherValidToken = tkn;
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
+  describe('delete resource without permission >', () => {
     it('return 403 when deleting aspect without permission', (done) => {
       api.delete(lensPath.replace('{key}', lens.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission associated with the resource', (done) => {
       api.delete(writersPath.replace('{key}', lens.id))
       .set('Authorization', token)
@@ -95,32 +84,19 @@ describe('api: lenses: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', lens.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(0);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(0);
+        })
+        .end(done);
       });
     });
 
     it('return 403 when a token is not passed to the header', (done) => {
       api.delete(writersPath.replace('{key}', lens.id))
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 403 when deleteting writers using a token generated ' +
@@ -128,13 +104,7 @@ describe('api: lenses: permissions', () => {
       api.delete(writersPath.replace('{key}', lens.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('remove write permission using username', (done) => {
@@ -148,19 +118,12 @@ describe('api: lenses: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', lens.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -175,19 +138,12 @@ describe('api: lenses: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', lens.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(1);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(1);
+        })
+        .end(done);
       });
     });
 
@@ -202,19 +158,12 @@ describe('api: lenses: permissions', () => {
         }
 
         api.get(writersPath.replace('{key}', lens.id))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body).to.have.length(2);
-      })
-      .end((_err /* , res */) => {
-        if (_err) {
-          return done(_err);
-        }
-
-        return done();
-      });
-        return null;
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.length(2);
+        })
+        .end(done);
       });
     });
 
@@ -224,26 +173,14 @@ describe('api: lenses: permissions', () => {
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('return 404 when trying to delete an invalidResource', (done) => {
       api.delete(writersPath.replace('{key}', 'invalidResource'))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

@@ -11,6 +11,7 @@
  */
 'use strict';
 const u = require('./utils');
+const get = require('just-safe-get');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
 const ZERO = 0;
@@ -33,6 +34,22 @@ function escapePercentLiterals(val) {
 } // escapePercentLiterals
 
 /**
+ * Escapes all underscore literals so they're not treated as single-character matches.
+ *
+ * @param {String} val - The value to transform
+ * @returns {String} the transformed value
+ */
+function escapeUnderscoreLiterals(val) {
+  if (typeof val === 'string' || val instanceof String) {
+    if (val.indexOf(constants.SEQ_MATCH) > -ONE) {
+      return val.replace(constants.ALL_UNDERSCORES_RE, constants.ESCAPED_UNDERSCORE);
+    }
+  }
+
+  return val;
+} // escapeUnderscoreLiterals
+
+/**
  * Replaces all the asterisks from the query parameter value with the
  * sequelize wildcard char.
  *
@@ -40,11 +57,21 @@ function escapePercentLiterals(val) {
  * @returns {String} the transformed value
  */
 function toSequelizeWildcards(val) {
-  const chars = val.split(constants.EMPTY_STRING);
-  const arr = chars.map((ch) =>
-    (ch === constants.QUERY_PARAM_WILDCARD ? constants.SEQ_WILDCARD : ch));
-  return arr.join(constants.EMPTY_STRING);
+  return val.replace(constants.QUERY_PARAM_REPLACE_ALL_REGEX,
+    constants.SEQ_WILDCARD);
 } // toSequelizeWildcards
+
+/**
+ * Use when the field is in the list of props.fieldsToCamelCase.
+ *
+ * @param {Array} Array of words.
+ * @returns {Array} Converted array where for each word, the first letter
+ * is capitalized and the remaining letters are in lowerCase.
+ */
+function convertArrayElementsToCamelCase(arr) {
+  return arr.map((word) => word.substr(0, 1).toUpperCase() +
+    word.substr(1).toLowerCase());
+}
 
 /**
  * Transforms the value into a Sequelize where clause using "$ilike" for
@@ -76,8 +103,10 @@ function toWhereClause(val, props) {
   }
 
   const clause = {};
-  clause[constants.SEQ_LIKE] =
-    toSequelizeWildcards(escapePercentLiterals(val));
+  val = escapePercentLiterals(val);
+  val = escapeUnderscoreLiterals(val);
+  val = toSequelizeWildcards(val);
+  clause[constants.SEQ_LIKE] = val;
   return clause;
 } // toWhereClause
 
@@ -114,7 +143,11 @@ function toSequelizeWhere(filter, props) {
        */
       if (Array.isArray(props.fieldsWithEnum) &&
         props.fieldsWithEnum.indexOf(key) > -ONE) {
-        const enumArr = filter[key];
+
+        // if specified in props, convert the array in query to camelcase.
+        const enumArr = (props.fieldsToCamelCase &&
+          props.fieldsToCamelCase.indexOf(key) > -ONE) ?
+          convertArrayElementsToCamelCase(filter[key]) : filter[key];
 
         // to use $in instead of $contains in toWhereClause
         props.isEnum = true;
@@ -135,6 +168,10 @@ function toSequelizeWhere(filter, props) {
         for (let j = ZERO; j < filter[key].length; j++) {
           const v = filter[key][j];
           if (typeof v === 'boolean') {
+            values.push(v);
+          } else if (typeof v === 'number') {
+            values.push(v);
+          } else if (u.looksLikeId(v)) {
             values.push(v);
           } else if (typeof v === 'string') {
             const arr = v.split(constants.COMMA);
@@ -199,11 +236,11 @@ function options(params, props) {
   }
 
   // Specify the limit
-  if (params.limit.value) {
+  if (get(params, 'limit.value')) {
     opts.limit = parseInt(params.limit.value, defaults.limit);
   }
 
-  if (params.offset.value) {
+  if (get(params, 'offset.value')) {
     opts.offset = parseInt(params.offset.value, defaults.offset);
   }
 
@@ -213,7 +250,6 @@ function options(params, props) {
     const key = keys[i];
 
     const isFilterField = constants.NOT_FILTER_FIELDS.indexOf(key) < ZERO;
-
     if (isFilterField && params[key].value !== undefined) {
       filter[key] = params[key].value;
     }
@@ -316,4 +352,5 @@ module.exports = {
   getNextUrl,
   options,
   filterArrFromArr, // for testing
+  toSequelizeWildcards, // for testing
 }; // exports

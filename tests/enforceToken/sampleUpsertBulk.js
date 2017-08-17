@@ -10,7 +10,6 @@
  * tests/tokenReq/sampleUpsertBulk.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -23,7 +22,7 @@ const User = tu.db.User;
 const Profile = tu.db.Profile;
 const path = '/v1/samples/upsert/bulk';
 
-describe('api: POST ' + path, () => {
+describe('tests/enforceToken/sampleUpsertBulk.js, api: POST >' + path, () => {
   let token;
 
   before((done) => {
@@ -81,13 +80,7 @@ describe('api: POST ' + path, () => {
     ])
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/ForbiddenError/)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('all succeed', (done) => {
@@ -102,13 +95,7 @@ describe('api: POST ' + path, () => {
         value: '4',
       },
     ])
-    .expect(200)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .expect(constants.httpStatus.OK)
+    .end(done);
   });
 });

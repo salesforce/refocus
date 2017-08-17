@@ -9,9 +9,7 @@
 /**
  * tests/db/model/collector/create.js
  */
-
 'use strict';  // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -46,6 +44,8 @@ describe('tests/db/model/collector/create.js >', () => {
       );
       expect(obj.helpEmail).to.be.equal('test@test.com');
       expect(obj.helpUrl).to.be.equal('http://test.com');
+      expect(obj.host).to.be.equal('xxx-yyy-zzz.aaa.bbb.ccc.com');
+      expect(obj.ipAddress).to.be.equal('123.456.789.012');
       expect(obj.createdBy).to.be.equal(userId);
       expect(obj.updatedAt).to.not.be.null;
       expect(obj.createdAt).to.not.be.null;
@@ -112,6 +112,17 @@ describe('tests/db/model/collector/create.js >', () => {
       );
       done();
     });
+  });
+
+  it('Create collector, OK if missing host or ipAddress', (done) => {
+    delete collectorObj.host;
+    delete collectorObj.ipAddress;
+    Collector.create(collectorObj)
+    .then((obj) => {
+      expect(obj.name).to.be.equal('___Collector');
+      done();
+    })
+    .catch(done);
   });
 
   it('isWritableBy, OK', (done) => {

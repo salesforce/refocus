@@ -10,7 +10,6 @@
  * tests/api/v1/samples/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,16 +19,14 @@ const Sample = tu.db.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
-describe(`api: PATCH ${path} without permission`, () => {
+describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
+`PATCH ${path} without permission >`, () => {
   let sampleName;
   let aspect;
   let otherValidToken;
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
@@ -44,9 +41,7 @@ describe(`api: PATCH ${path} without permission`, () => {
       aspect = asp;
       return User.findOne({ where: { name: tu.userName } });
     })
-    .then((usr) => {
-      return aspect.addWriter(usr);
-    })
+    .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -58,22 +53,17 @@ describe(`api: PATCH ${path} without permission`, () => {
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enforceWritePermission', false));
 
-  describe('Patch without permission should fail', () => {
-    it('single related link', (done) => {
-      api.patch(`${path}/${sampleName}`)
-      .set('Authorization', otherValidToken)
-      .send({
-        value: '2',
-        relatedLinks: [
-          { name: 'link', url: 'https://samples.com' },
-        ],
-      })
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err /* , res */) => {
-        return err ? done(err) : done();
-      });
-    });
+  it('single related link', (done) => {
+    api.patch(`${path}/${sampleName}`)
+    .set('Authorization', otherValidToken)
+    .send({
+      value: '2',
+      relatedLinks: [
+        { name: 'link', url: 'https://samples.com' },
+      ],
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end(done);
   });
 });

@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/bots/delete.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -19,7 +18,7 @@ const path = '/v1/bots';
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/bots/delete.js >', () => {
   let testBot;
   let token;
 
@@ -44,29 +43,24 @@ describe(`api: DELETE ${path}`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('DELETE bot', () => {
-    it('Pass, delete bot', (done) => {
-      api.delete(`${path}/${testBot.id}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Pass, delete bot', (done) => {
+    api.delete(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(u.name);
-        done(err);
-      });
-    });
-
-    it('Fail, bot not found', (done) => {
-      api.delete(`${path}/INVALID_ID`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end((err) => {
-        done(err);
-      });
+      expect(res.body.name).to.equal(u.name);
+      done(err);
     });
   });
-});
 
+  it('Fail, bot not found', (done) => {
+    api.delete(`${path}/INVALID_ID`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(done);
+  });
+});

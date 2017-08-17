@@ -10,16 +10,15 @@
  * tests/db/model/aspect/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 
-describe('db: aspect: create: ', () => {
+describe('tests/db/model/aspect/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('field check: ', () => {
+  describe('field check >', () => {
     it('default values', (done) => {
       let asp;
       const toCreate = u.getSmall();
@@ -44,7 +43,7 @@ describe('db: aspect: create: ', () => {
           o.timeout === '1s' &&
           o.valueLabel === null &&
           o.valueType === 'BOOLEAN' &&
-          // TODO once we have users, expect createdBy to be populated
+          /* TODO once we have users, expect createdBy to be populated */
           o.createdBy === null &&
           o.updatedAt !== null &&
           o.createdAt !== null &&
@@ -85,7 +84,7 @@ describe('db: aspect: create: ', () => {
       .catch(done);
     });
 
-    describe('description: ', () => {
+    describe('description >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.description = '';
@@ -132,11 +131,11 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (ln === o.description.length) {
-            done();
-          } else {
-            done(new Error('aspect should be created with a 4096-character ' +
-              '"description"'));
+            return done();
           }
+
+          done(new Error('aspect should be created with a 4096-character ' +
+            '"description"'));
         })
         .catch(done);
       });
@@ -159,10 +158,10 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           if (err.name === tu.seqDbErrorName &&
             err.message === 'value too long for type character varying(4096)') {
-            done();
-          } else {
-            done(tu.seqDbError);
+            return done();
           }
+
+          done(tu.seqDbError);
         });
       });
 
@@ -177,10 +176,10 @@ describe('db: aspect: create: ', () => {
             err.errors[0].message === 'description cannot be an array or an ' +
               'object' &&
             err.errors[0].path === 'description') {
-            done();
-          } else {
-            done(tu.valError);
+            return done();
           }
+
+          done(tu.valError);
         });
       });
 
@@ -195,25 +194,25 @@ describe('db: aspect: create: ', () => {
             err.errors[0].message === 'description cannot be an array or an ' +
               'object' &&
             err.errors[0].path === 'description') {
-            done();
-          } else {
-            done(tu.valError);
+            return done();
           }
+
+          done(tu.valError);
         });
       });
     }); // description
 
-    describe('helpEmail: ', () => {
+    describe('helpEmail >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.helpEmail = '';
         Aspect.create(toCreate)
         .then((o) => {
           if (o.helpEmail === null) {
-            done();
-          } else {
-            done(new Error('helpEmail should be null'));
+            return done();
           }
+
+          done(new Error('helpEmail should be null'));
         })
         .catch(done);
       });
@@ -224,10 +223,10 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (o.helpEmail === null) {
-            done();
-          } else {
-            done(new Error('helpEmail should be null'));
+            return done();
           }
+
+          done(new Error('helpEmail should be null'));
         })
         .catch(done);
       });
@@ -248,10 +247,10 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotExpectedLength(o.helpEmail, ln)) {
-            done();
-          } else {
-            done(new Error('helpEmail length should be 74 characters'));
+            return done();
           }
+
+          done(new Error('helpEmail length should be 74 characters'));
         })
         .catch(done);
       });
@@ -274,10 +273,11 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isemail ' +
-           'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isemail failed');
           done();
-        }).catch(done);
+        })
+        .catch(done);
       });
 
       it('provide a string which is not email-address-y', (done) => {
@@ -288,10 +288,11 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isemail ' +
-           'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isemail failed');
           done();
-        }).catch(done);
+        })
+        .catch(done);
       });
 
       it('provide an array', (done) => {
@@ -309,10 +310,10 @@ describe('db: aspect: create: ', () => {
             err.errors[1].message === 'Validation isEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
-            done();
-          } else {
-            done(tu.valError);
+            return done();
           }
+
+          done(tu.valError);
         });
       });
 
@@ -331,25 +332,25 @@ describe('db: aspect: create: ', () => {
             err.errors[1].message === 'Validation isEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
-            done();
-          } else {
-            done(tu.valError);
+            return done();
           }
+
+          done(tu.valError);
         });
       });
     });
 
-    describe('helpUrl: ', () => {
+    describe('helpUrl >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.helpUrl = '';
         Aspect.create(toCreate)
         .then((o) => {
           if (o.helpUrl === null) {
-            done();
-          } else {
-            done(new Error('aspect should be created with a null "helpUrl"'));
+            return done();
           }
+
+          done(new Error('aspect should be created with a null "helpUrl"'));
         })
         .catch(done);
       });
@@ -360,10 +361,10 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (o.helpUrl === null) {
-            done();
-          } else {
-            done(new Error('aspect should be created with a null "helpUrl"'));
+            return done();
           }
+
+          done(new Error('aspect should be created with a null "helpUrl"'));
         })
         .catch(done);
       });
@@ -385,11 +386,11 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (ln === o.helpUrl.length) {
-            done();
-          } else {
-            done(new Error('aspect should be created with a 2082-character ' +
-              '"helpUrl"'));
+            return done();
           }
+
+          done(new Error('aspect should be created with a 2082-character ' +
+            '"helpUrl"'));
         })
         .catch(done);
       });
@@ -413,8 +414,8 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isurl failed');
           done();
         }).catch(done);
       });
@@ -427,8 +428,8 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isurl failed');
           done();
         }).catch(done);
       });
@@ -441,8 +442,8 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isurl failed');
           done();
         }).catch(done);
       });
@@ -455,14 +456,14 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase())
+          .to.contain('validation isurl failed');
           done();
         }).catch(done);
       });
     });
 
-    describe('id: ', () => {
+    describe('id >', () => {
       it('provide a null id', (done) => {
         const toCreate = u.getSmall();
         toCreate.id = null;
@@ -472,10 +473,10 @@ describe('db: aspect: create: ', () => {
           if (err.name === tu.dbErrorName &&
             err.message === 'null value in column "id" violates not-null ' +
               'constraint') {
-            done();
-          } else {
-            done(u.dbError);
+            return done();
           }
+
+          done(u.dbError);
         });
       });
 
@@ -487,10 +488,10 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           if (err.name === tu.dbErrorName &&
             err.message === 'invalid input syntax for uuid: "x"') {
-            done();
-          } else {
-            done(u.dbError);
+            return done();
           }
+
+          done(u.dbError);
         });
       });
 
@@ -503,10 +504,10 @@ describe('db: aspect: create: ', () => {
           if (err.name === tu.dbErrorName &&
             err.message === 'column "id" is of type uuid but expression is ' +
               'of type integer') {
-            done();
-          } else {
-            done(u.dbError);
+            return done();
           }
+
+          done(u.dbError);
         });
       });
 
@@ -526,15 +527,15 @@ describe('db: aspect: create: ', () => {
             err.errors[0].message === 'id must be unique' &&
             err.errors[0].type === 'unique violation' &&
             err.errors[0].path === 'id') {
-            done();
-          } else {
-            done(tu.uniError);
+            return done();
           }
+
+          done(tu.uniError);
         });
       });
     });
 
-    describe('isDeleted: ', () => {
+    describe('isDeleted >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.isDeleted = '';
@@ -543,10 +544,10 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           if (err.name === tu.dbErrorName &&
             err.message === 'invalid input syntax for integer: ""') {
-            done();
-          } else {
-            done(err);
+            return done();
           }
+
+          done(err);
         });
       });
 
@@ -562,10 +563,10 @@ describe('db: aspect: create: ', () => {
             err.errors[0].type === 'notNull Violation' &&
             err.errors[0].path === 'isDeleted' &&
             err.errors[0].value === null) {
-            done();
-          } else {
-            done(err);
+            return done();
           }
+
+          done(err);
         });
       });
 
@@ -577,10 +578,10 @@ describe('db: aspect: create: ', () => {
         .catch((err) => {
           if (err.name === tu.dbErrorName &&
             err.message === 'invalid input syntax for integer: "abcdefg"') {
-            done();
-          } else {
-            done(err);
+            return done();
           }
+
+          done(err);
         });
       });
 
@@ -590,10 +591,10 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (o.isDeleted === '100') {
-            done();
-          } else {
-            done(new Error('should have accepted a number-ish string'));
+            return done();
           }
+
+          done(new Error('should have accepted a number-ish string'));
         })
         .catch(done);
       });
@@ -604,10 +605,10 @@ describe('db: aspect: create: ', () => {
         Aspect.create(toCreate)
         .then((o) => {
           if (Number(o.isDeleted) === Number(100000000)) {
-            done();
-          } else {
-            done(new Error('should have accepted a number'));
+            return done();
           }
+
+          done(new Error('should have accepted a number'));
         })
         .catch(done);
       });
@@ -621,10 +622,10 @@ describe('db: aspect: create: ', () => {
           if (err.name === tu.dbErrorName &&
             err.message === 'column "isDeleted" is of type bigint but ' +
               'expression is of type integer[]') {
-            done();
-          } else {
-            done(u.dbError);
+            return done();
           }
+
+          done(u.dbError);
         });
       });
 
@@ -637,17 +638,17 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('imageUrl: ', () => {
+    describe('imageUrl >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
         toCreate.imageUrl = '';
         Aspect.create(toCreate)
         .then((o) => {
           if (o.helpUrl === null) {
-            done();
-          } else {
-            done(new Error('aspect should be created with a null "imageUrl"'));
+            return done();
           }
+
+          done(new Error('aspect should be created with a null "imageUrl"'));
         })
         .catch(done);
       });
@@ -760,7 +761,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('isPublished: ', () => {
+    describe('isPublished >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.isPublished = '';
@@ -916,7 +917,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('name: ', () => {
+    describe('name >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.name = '';
@@ -1035,7 +1036,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('criticalRange: ', () => {
+    describe('criticalRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = '';
@@ -1267,7 +1268,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('warningRange: ', () => {
+    describe('warningRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = '';
@@ -1503,7 +1504,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('infoRange: ', () => {
+    describe('infoRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = '';
@@ -1735,7 +1736,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('okRange: ', () => {
+    describe('okRange >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = '';
@@ -1959,7 +1960,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('timeout: ', () => {
+    describe('timeout >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.timeout = '';
@@ -2060,7 +2061,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('valueLabel: ', () => {
+    describe('valueLabel >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.valueLabel = '';
@@ -2158,7 +2159,7 @@ describe('db: aspect: create: ', () => {
       });
     });
 
-    describe('valueType: ', () => {
+    describe('valueType >', () => {
       it('provide an empty string', (done) => {
         const toCreate = u.getSmall();
         toCreate.valueType = '';
@@ -2274,7 +2275,7 @@ describe('db: aspect: create: ', () => {
     });
   }); // field checks
 
-  describe('duplicate names: ', () => {
+  describe('duplicate names >', () => {
     it('provide a name already in use, other aspect is not deleted', (done) => {
       Aspect.create(u.getSmall())
       .then(() => Aspect.create(u.getSmall()))
@@ -2302,8 +2303,8 @@ describe('db: aspect: create: ', () => {
     });
   }); // duplicate names
 
-  describe('associations: ', () => {
-    describe('tags: ', () => {
+  describe('associations >', () => {
+    describe('tags >', () => {
       it('create with one tag', (done) => {
         const asp = u.getSmall();
         asp.tags = ['___foo'];
@@ -2342,7 +2343,7 @@ describe('db: aspect: create: ', () => {
         'provided all elements are new." ');
     }); // tags
 
-    describe('createdBy: ', () => {
+    describe('createdBy: >', () => {
       it('provide an existing user id');
       it('provide an aspect id');
       it('provide a null user id');
@@ -2353,7 +2354,7 @@ describe('db: aspect: create: ', () => {
       it('provide a string (e.g. XXXXX)');
     }); // createdBy
 
-    describe('relatedLinks: ', () => {
+    describe('relatedLinks >', () => {
       it('create with one relatedLink');
       it('create with two relatedLinks');
     }); // relatedLinks

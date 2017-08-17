@@ -7,17 +7,16 @@
  */
 
 /**
- * tests/db/model/subject/create.js
+ * tests/db/model/generatortemplate/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
-describe('db: Generatortemplate: create: ', () => {
+describe('tests/db/model/generatortemplate/create.js >', () => {
   const gt = JSON.parse(JSON.stringify(u.getGeneratorTemplate()));
   let userInst;
   beforeEach((done) => {
@@ -118,7 +117,6 @@ describe('db: Generatortemplate: create: ', () => {
     .catch();
   });
 
-
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
     const _gt = JSON.parse(JSON.stringify(gt));
@@ -144,7 +142,8 @@ describe('db: Generatortemplate: create: ', () => {
     .catch((err) => {
       expect(err.message).to.contain('Validation error');
       expect(err.name).to.contain('SequelizeUniqueConstraintError');
-      expect(err.errors[0].message).to.contain('name must be unique');
+      expect(err.errors[0].message).to.contain('lower(name::text) ' +
+        'must be unique');
       expect(err.errors[1].message).to.contain('version must be unique');
       done();
     });
@@ -250,6 +249,7 @@ describe('db: Generatortemplate: create: ', () => {
     _gt.connection.toUrl = function () {
       return 'http://example.com';
     };
+
     GeneratorTemplate.create(_gt)
     .then(() => {
       done(' Error: Expecting validation error');

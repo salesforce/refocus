@@ -22,7 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
   let token;
 
   const na = {
@@ -74,19 +74,13 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('duplicate tags fail', () => {
+  describe('duplicate tags fail >', () => {
     it('GET with tag EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-US,-US`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err/* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('GET with tag EXCLUDE filter :: different case tags', (done) => {
@@ -94,13 +88,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err/* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('GET with tag INCLUDE filter', (done) => {
@@ -108,13 +96,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err /* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('GET with tag INCLUDE filter :: different case tags', (done) => {
@@ -122,13 +104,7 @@ describe(`api: GET ${path}`, () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/DuplicateFieldError/)
-      .end((err/* , res */) => {
-        if (err) {
-          done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 
@@ -139,7 +115,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO].absolutePath).to.equal(na.name);
@@ -157,7 +133,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO].sortBy).to.equal(na.sortBy);
@@ -174,7 +150,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO].name).to.equal(na.name);
@@ -191,7 +167,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[TWO].name).to.equal(na.name);
@@ -207,7 +183,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const result = JSON.parse(res.text);
@@ -223,7 +199,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.absolutePath).to.equal(na.name);
@@ -237,7 +213,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const absPath = res.body.absolutePath;
@@ -259,7 +235,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       const absPath = res.body.absolutePath;
@@ -281,7 +257,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(TWO);
@@ -296,7 +272,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
@@ -311,7 +287,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
@@ -326,7 +302,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(TWO);
@@ -342,11 +318,29 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].tags).to.eql(['US', 'NE']);
+      done();
+    });
+  });
+
+  it('GET with tag filter :: tag field not included', (done) => {
+    api.get(`${path}?tags=NE&fields=isPublished,name,sortBy`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      expect(res.body[ZERO].name).to.eql(vt.name);
+      expect(res.body[ZERO]).to.not.have.property('tags');
+      expect(res.body[ZERO]).to.have.all
+        .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
       done();
     });
   });
@@ -357,7 +351,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO]).to.not.have.property('absolutePath');
@@ -373,7 +367,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO]).to.have.property('sortBy');
@@ -387,7 +381,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO]).to.not.have.property('sortBy');
@@ -401,7 +395,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO]).to.have.property('tags');

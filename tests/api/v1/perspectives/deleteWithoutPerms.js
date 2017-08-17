@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/deleteWithoutPerms.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,12 +18,11 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/perspectives';
 
-describe(`api: DELETE ${path} without permission`, () => {
+describe('tests/api/v1/perspectives/deleteWithoutPerms.js >', () => {
   let otherValidToken;
   let perspective;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => done())
     .catch(done);
@@ -43,14 +41,10 @@ describe(`api: DELETE ${path} without permission`, () => {
     }))
     .then((createdPersp) => {
       perspective = createdPersp;
-    }).then(() =>
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return perspective.addWriter(usr);
     })
-    .then(() => {
-      return tu.createUser('myUNiqueUser');
-    })
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => perspective.addWriter(usr))
+    .then(() => tu.createUser('myUNiqueUser'))
     .then((fusr) => tu.createTokenFromUserName(fusr.name))
     .then((tkn) => {
       otherValidToken = tkn;
@@ -62,13 +56,10 @@ describe(`api: DELETE ${path} without permission`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-
   it('deleting a perspective without permission is forbidden', (done) => {
     api.delete(`${path}/${perspective.id}`)
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/putPatchWithoutPerms.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,14 +18,13 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/perspectives';
 
-describe('api: patch perspectives without permission', () => {
+describe('tests/api/v1/perspectives/putPatchWithoutPerms.js >', () => {
   let otherValidToken;
   let perspectiveId;
   let createdLensId;
   let perspective;
 
   before((done) => {
-    tu.toggleOverride('enforceWritePermission', true);
     tu.createToken()
     .then(() => done())
     .catch(done);
@@ -47,14 +45,10 @@ describe('api: patch perspectives without permission', () => {
       perspective = createdPersp;
       perspectiveId = createdPersp.id;
       createdLensId = createdPersp.lensId;
-    }).then(() =>
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return perspective.addWriter(usr);
     })
-    .then(() => {
-      return tu.createUser('myUNiqueUser');
-    })
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => perspective.addWriter(usr))
+    .then(() => tu.createUser('myUNiqueUser'))
     .then((fusr) => tu.createTokenFromUserName(fusr.name))
     .then((tkn) => {
       otherValidToken = tkn;
@@ -71,9 +65,7 @@ describe('api: patch perspectives without permission', () => {
     .set('Authorization', otherValidToken)
     .send({ rootSubject: 'changedMainSubject' })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('should not be able to PUT without permission', (done) => {
@@ -82,11 +74,9 @@ describe('api: patch perspectives without permission', () => {
     .send({ name: 'testPersp',
       lensId: createdLensId,
       rootSubject: 'changedMainSubject',
-      aspectTagFilter: ['_temp', '_hum']
+      aspectTagFilter: ['_temp', '_hum'],
     })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res*/) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });
