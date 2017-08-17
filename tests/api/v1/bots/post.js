@@ -36,7 +36,7 @@ describe(`api: POST ${path}`, () => {
   after(tu.forceDeleteToken);
 
   describe('POST bot', () => {
-    it('Pass, post bot', (done) => {
+    it('Pass, post bot with UI', (done) => {
       api.post(`${path}`)
       .set('Authorization', token)
       .field('name', u.name)
@@ -49,6 +49,7 @@ describe(`api: POST ${path}`, () => {
         }
 
         expect(res.body.name).to.equal(u.name);
+        expect(res.body.ui.name).to.equal('uiBlob');
         done();
       });
     });
