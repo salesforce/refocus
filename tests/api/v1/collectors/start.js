@@ -19,7 +19,7 @@ const path = '/v1/collectors/{key}/start';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
-describe(`api: ${path} >`, () => {
+describe('tests/api/v1/collectors/start.js >', () => {
   let i = 0;
   const asp = u.toCreate;
   let token;

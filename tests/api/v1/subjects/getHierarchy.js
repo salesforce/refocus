@@ -19,7 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
   let token;
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
@@ -77,7 +77,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('subject hierarchy with samples', () => {
+  describe('subject hierarchy with samples >', () => {
     it('should be an empty object at the parent level', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
@@ -179,7 +179,7 @@ describe(`api: GET ${path}`, () => {
     .end(done);
   });
 
-  describe('depth tests', () => {
+  describe('depth tests >', () => {
     it('no depth', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
@@ -268,7 +268,7 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  describe('fields param', () => {
+  describe('fields param >', () => {
     it('by id', (done) => {
       api.get(path.replace('{key}', ipar) + '?fields=name')
       .set('Authorization', token)

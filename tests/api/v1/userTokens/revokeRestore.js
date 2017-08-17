@@ -25,7 +25,8 @@ const adminUser = require('../../../../config').db.adminUser;
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST ${path}/U/tokens/T/[revoke|restore]`, () => {
+describe('tests/api/v1/userTokens/revokeRestore.js, ' +
+`POST ${path}/U/tokens/T/[revoke|restore] >`, () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );

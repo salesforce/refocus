@@ -21,7 +21,7 @@ const User = tu.db.User;
 const getWritersPath = '/v1/aspects/{key}/writers';
 const getWriterPath = '/v1/aspects/{key}/writers/{userNameOrId}';
 
-describe('api: aspects: get writer(s)', () => {
+describe('tests/api/v1/aspects/getWriters.js >', () => {
   let token;
   let aspect;
   let user;

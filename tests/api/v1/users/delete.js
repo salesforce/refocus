@@ -22,7 +22,7 @@ const Token = tu.db.Token;
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe(`api: DELETE ${path}/:id`, () => {
+describe(`tests/api/v1/users/delete.js, DELETE ${path}/:id >`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;

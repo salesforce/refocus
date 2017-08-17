@@ -19,7 +19,7 @@ const Generator = tu.db.Generator;
 const path = '/v1/generators';
 const expect = require('chai').expect;
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/generators/patch.js >', () => {
   let i = 0;
   const generatorToCreate = u.getGenerator();
   let token;

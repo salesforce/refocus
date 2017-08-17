@@ -20,7 +20,7 @@ const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/collectors/delete.js >', () => {
   let cid;
   let token;
 

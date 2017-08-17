@@ -20,7 +20,7 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: PUT ${path}`, () => {
+describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   let sampleName;
   let subjectId;
   let aspectId;

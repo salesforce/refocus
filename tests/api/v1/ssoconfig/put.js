@@ -22,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: PUT ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/put.js, PUT ${path} >`, () => {
   let token;
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name

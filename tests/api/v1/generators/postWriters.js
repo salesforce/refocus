@@ -20,7 +20,7 @@ const Generator = tu.db.Generator;
 const User = tu.db.User;
 const postWritersPath = '/v1/generators/{key}/writers';
 
-describe('api: aspects: post writers', () => {
+describe('tests/api/v1/generators/postWriters.js >', () => {
   let token;
   let aspect;
   let firstUser;

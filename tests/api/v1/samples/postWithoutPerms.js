@@ -18,10 +18,9 @@ const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const User = tu.db.User;
-
 const postPath = '/v1/samples';
 
-describe('api: post samples without perms', () => {
+describe('tests/api/v1/samples/postWithoutPerms.js >', () => {
   let aspect;
   let subject;
   let otherValidToken;

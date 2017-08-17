@@ -24,7 +24,8 @@ const adminUser = require('../../../../config').db.adminUser;
 const predefinedAdminUserToken =
   tu.createTokenFromUserName(adminUser.name, adminUser.name);
 
-describe(`api: upsert without cache`, () => {
+describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
+() => {
   const path = '/v1/samples/upsert';
   let aspect;
   let subject;
@@ -61,7 +62,7 @@ describe(`api: upsert without cache`, () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  describe(`new sample:`, () => {
+  describe(`new sample >`, () => {
     it('upsert succeeds when token is provided, and the result returns ' +
       ' non-empty provider and user fields', (done) => {
       api.post(path)
@@ -125,7 +126,7 @@ describe(`api: upsert without cache`, () => {
     });
   });
 
-  describe('existing sample:', () => {
+  describe('existing sample >', () => {
     beforeEach((done) => {
       Sample.create({
         name: `${subject.absolutePath}|${aspect.name}`,

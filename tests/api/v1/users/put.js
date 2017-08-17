@@ -22,7 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`api: PUT ${path}`, () => {
+describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
@@ -80,7 +80,7 @@ describe(`api: PUT ${path}`, () => {
 
   after(u.forceDelete);
 
-  describe('non-out of box admin:', () => {
+  describe('non-out of box admin >', () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
@@ -161,7 +161,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('normal user:', () => {
+  describe('normal user >', () => {
     it('cannot change its profileId',
       (done) => {
       const normalUserToken = jwtUtil.createToken(
@@ -241,7 +241,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('out of box admin:', () => {
+  describe('out of box admin >', () => {
     it('can PUT normal user', (done) => {
       const newName = `${tu.namePrefix}` + userOne;
       api.put(path + '/' + userOne)

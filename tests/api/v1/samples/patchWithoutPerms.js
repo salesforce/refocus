@@ -19,7 +19,8 @@ const Sample = tu.db.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
-describe(`api: PATCH ${path} without permission`, () => {
+describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
+`PATCH ${path} without permission >`, () => {
   let sampleName;
   let aspect;
   let otherValidToken;
@@ -53,18 +54,16 @@ describe(`api: PATCH ${path} without permission`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('Patch without permission should fail', () => {
-    it('single related link', (done) => {
-      api.patch(`${path}/${sampleName}`)
-      .set('Authorization', otherValidToken)
-      .send({
-        value: '2',
-        relatedLinks: [
-          { name: 'link', url: 'https://samples.com' },
-        ],
-      })
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end(done);
-    });
+  it('single related link', (done) => {
+    api.patch(`${path}/${sampleName}`)
+    .set('Authorization', otherValidToken)
+    .send({
+      value: '2',
+      relatedLinks: [
+        { name: 'link', url: 'https://samples.com' },
+      ],
+    })
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end(done);
   });
 });
