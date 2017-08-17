@@ -119,7 +119,7 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null || !inst.changed('bots')) {
+          if (!bots || !inst.changed('bots')) {
             resolve(inst);
           }
 
@@ -151,7 +151,7 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots) {
             resolve(inst);
           }
 
