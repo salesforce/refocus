@@ -73,7 +73,6 @@ function doPost(req, res, next, props) {
       return props.model.create(toPost);
     })
     .catch((err) => {
-
       // if no user found, proceed with post sample
       if (err.status === httpStatus.FORBIDDEN) {
         return isCacheOn ?
@@ -97,6 +96,10 @@ function doPost(req, res, next, props) {
   }
 
   return postPromise.then((o) => {
+    if (!o) { // could be here from u.handleError
+      return;
+    }
+
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
 
