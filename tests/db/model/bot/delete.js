@@ -10,14 +10,13 @@
  * tests/db/model/bot/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
 const constants = require('../../../../db/constants');
 
-describe('db: bot: delete: ', () => {
+describe('tests/db/model/bot/delete.js >', () => {
   beforeEach((done) => {
     u.createStandard()
     .then(() => u.createNonActive())
@@ -27,19 +26,17 @@ describe('db: bot: delete: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Delete bot', () => {
-    it('ok, bot deleted', (done) => {
-      const testStandard = u.getStandard();
-      Bot.destroy({ where: { active: false } })
-      .then(() => Bot.findAll())
-      .then((o) => {
-        expect(o.length).to.equal(1);
-        expect(o[0].dataValues.name).to.equal(testStandard.name);
-        expect(o[0].dataValues.url).to.equal(testStandard.url);
-        expect(o[0].dataValues.active).to.equal(testStandard.active);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot deleted', (done) => {
+    const testStandard = u.getStandard();
+    Bot.destroy({ where: { active: false } })
+    .then(() => Bot.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(1);
+      expect(o[0].dataValues.name).to.equal(testStandard.name);
+      expect(o[0].dataValues.url).to.equal(testStandard.url);
+      expect(o[0].dataValues.active).to.equal(testStandard.active);
+      done();
+    })
+    .catch(done);
   });
 });

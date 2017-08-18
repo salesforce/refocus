@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postRelatedLinks.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/postRelatedLinks.js, POST ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -48,13 +47,7 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('posting subject with duplicate relatedLinks should fail', (done) => {
@@ -73,13 +66,7 @@ describe(`api: POST ${path}`, () => {
         .to.contain('Name of the relatedlinks should be unique');
       expect(res.body.errors[0].type).to.contain('ValidationError');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post subject with relatedLinks of size zero', (done) => {
@@ -93,12 +80,6 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

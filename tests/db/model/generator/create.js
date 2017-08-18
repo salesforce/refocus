@@ -10,13 +10,12 @@
  * tests/db/model/generator/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Generator = tu.db.Generator;
 
-describe('db: Generator: create: ', () => {
+describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   let userInst;
   beforeEach((done) => {
@@ -90,7 +89,6 @@ describe('db: Generator: create: ', () => {
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
       expect(o.createdBy).to.equal(null);
-
       return o.getWriters();
     })
     .then((writers) => {
@@ -125,8 +123,8 @@ describe('db: Generator: create: ', () => {
     .catch((err) => {
       expect(err.message).to.contain('Validation error');
       expect(err.name).to.contain('SequelizeUniqueConstraintError');
-      expect(err.errors[0].message).to.contain('lower(name::text) ' +
-        'must be unique');
+      expect(err.errors[0].message)
+      .to.contain('lower(name::text) must be unique');
       done();
     });
   });
@@ -139,8 +137,8 @@ describe('db: Generator: create: ', () => {
       done(' Error: Expecting validation error');
     })
     .catch((err) => {
-      expect(err.errors[0].message).to.contain('The version must match ' +
-        'the semantic version format');
+      expect(err.errors[0].message)
+      .to.contain('The version must match the semantic version format');
       expect(err.name).to.contain('SequelizeValidationError');
       done();
     });
@@ -157,7 +155,7 @@ describe('db: Generator: create: ', () => {
     })
     .catch((err) => {
       expect(err.message)
-        .to.contain('Only one of ["subjects", "subjectQuery"] is required');
+      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
       done();
@@ -175,7 +173,7 @@ describe('db: Generator: create: ', () => {
     })
     .catch((err) => {
       expect(err.message)
-        .to.contain('Only one of ["subjects", "subjectQuery"] is required');
+      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
       done();

@@ -20,7 +20,7 @@ const Collector = tu.db.Collector;
 const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 
-describe(`api: POST ${path} >`, () => {
+describe('tests/api/v1/collectors/postWriters.js >', () => {
   let token;
   let coll;
   let firstUser;
@@ -80,13 +80,7 @@ describe(`api: POST ${path} >`, () => {
       expect(userTwo.collectorId).to.not.equal(undefined);
       expect(userTwo.userId).to.not.equal(undefined);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('return 403 for adding writers using an user that is not ' +
@@ -95,13 +89,7 @@ describe(`api: POST ${path} >`, () => {
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('a request body that is not an array should not be accepted', (done) => {
@@ -110,12 +98,6 @@ describe(`api: POST ${path} >`, () => {
     .set('Authorization', token)
     .send({ firstUserName })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

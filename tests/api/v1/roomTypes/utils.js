@@ -10,12 +10,11 @@
  * tests/db/api/roomType/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoomType`;
-const n2 = n+'NonActive';
+const n2 = n + 'NonActive';
 
 const standard = {
   name: n,
@@ -27,9 +26,9 @@ const standard = {
   rules: [
     {
       rule: {
-        'and': [
-          { '>': [1,2] },
-          { '<': [3,4] },
+        and: [
+          { '>': [1, 2] },
+          { '<': [3, 4] },
         ],
       },
       action: {
@@ -52,12 +51,12 @@ const standard = {
     },
     {
       rule: {
-        'or': [
-          { '>': [5,6] },
+        or: [
+          { '>': [5, 6] },
           {
-            'and': [
-              { '>': [7,8] },
-              { '<': [9,10] },
+            and: [
+              { '>': [7, 8] },
+              { '<': [9, 10] },
             ],
           },
         ],
@@ -93,9 +92,9 @@ const nonActive = {
   rules: [
     {
       rule: {
-        'and': [
-          { '>': [1,2] },
-          { '<': [3,4] },
+        and: [
+          { '>': [1, 2] },
+          { '<': [3, 4] },
         ],
       },
       action: {
@@ -118,12 +117,12 @@ const nonActive = {
     },
     {
       rule: {
-        'or': [
-          { '>': [5,6] },
+        or: [
+          { '>': [5, 6] },
           {
-            'and': [
-              { '>': [7,8] },
-              { '<': [9,10] },
+            and: [
+              { '>': [7, 8] },
+              { '<': [9, 10] },
             ],
           },
         ],

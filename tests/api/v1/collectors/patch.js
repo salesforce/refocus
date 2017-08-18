@@ -19,7 +19,7 @@ const path = '/v1/collectors';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/collectors/patch.js >', () => {
   let i = 0;
   let token;
 

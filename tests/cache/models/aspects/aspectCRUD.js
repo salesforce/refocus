@@ -10,12 +10,11 @@
  * tests/cache/models/aspects/aspectCRUD.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
 const redisStore = rtu.sampleStore;
-const redisClient = rtu.redisClient;
+const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
@@ -24,8 +23,10 @@ const subjectIndexName = redisStore.constants.indexKey.subject;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const aspectIndexName = redisStore.constants.indexKey.aspect;
 
-describe('redis: aspect: create: ', () => {
+describe('tests/cache/models/aspects/aspectCRUD.js, ' +
+'redis: aspect: create >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
+
   // const parUnPub =
   //       { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
 
@@ -90,9 +91,9 @@ describe('redis: aspect: create: ', () => {
     Aspect.findById(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
-      return redisClient.sismemberAsync(aspectIndexName, aspKey);
+      return rcli.sismemberAsync(aspectIndexName, aspKey);
     })
-    .then(() => redisClient.hgetallAsync(aspKey))
+    .then(() => rcli.hgetallAsync(aspKey))
     .then((asp) => {
       expect(asp.updatedAt).to.equal(new Date(asp.updatedAt).toISOString());
       expect(asp.createdAt).to.equal(new Date(asp.createdAt).toISOString());
@@ -101,17 +102,17 @@ describe('redis: aspect: create: ', () => {
     .catch(done);
   });
 
-  it('published aspects created should have an entry in aspectStore' +
-          ' and the aspect hash should also be created', (done) => {
+  it('published aspects created should have an entry in aspectStore and ' +
+  'the aspect hash should also be created', (done) => {
     let aspKey;
     Aspect.findById(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
-      return redisClient.sismemberAsync(aspectIndexName, aspKey);
+      return rcli.sismemberAsync(aspectIndexName, aspKey);
     })
     .then((ok) => {
       expect(ok).to.equal(1);
-      return redisClient.hgetallAsync(aspKey);
+      return rcli.hgetallAsync(aspKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -123,24 +124,24 @@ describe('redis: aspect: create: ', () => {
     .catch(done);
   });
 
-  it('unpublished aspect should not be found but should be found ' +
-                  ' after it is published', (done) => {
+  it('unpublished aspect should not be found but should be found after it ' +
+  'is published', (done) => {
     let aspect;
     let aspectKey;
     Aspect.findById(aspWCId)
     .then((asp) => {
       aspect = asp;
       aspectKey = redisStore.toKey('aspect', asp.name);
-      return redisClient.sismemberAsync(aspectIndexName, aspectKey);
+      return rcli.sismemberAsync(aspectIndexName, aspectKey);
     })
     .then((ok) => {
       expect(ok).to.equal(0);
       return aspect.update({ isPublished: true });
     })
-    .then(() => redisClient.sismemberAsync(aspectIndexName, aspectKey))
+    .then(() => rcli.sismemberAsync(aspectIndexName, aspectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
-      return redisClient.hgetallAsync(aspectKey);
+      return rcli.hgetallAsync(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -152,21 +153,18 @@ describe('redis: aspect: create: ', () => {
     .catch(done);
   });
 
-  it('when aspect is updated, the aspect hash should refelct this', (done) => {
-
+  it('when aspect is updated, the aspect hash should refelct this',
+  (done) => {
     Aspect.findById(aspTempId)
-    .then((asp) => {
-      return asp.update(
-        { tags: ['cold', 'verycold'],
-          rank: 10,
-          criticalRange: [0, 0],
-          warningRange: [1, 1],
-        }
-      );
-    })
+    .then((asp) => asp.update({
+      tags: ['cold', 'verycold'],
+      rank: 10,
+      criticalRange: [0, 0],
+      warningRange: [1, 1],
+    }))
     .then((asp) => {
       const aspectKey = redisStore.toKey('aspect', asp.name);
-      return redisClient.hgetallAsync(aspectKey);
+      return rcli.hgetallAsync(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -194,25 +192,22 @@ describe('redis: aspect: create: ', () => {
     .then((asp) => {
       const newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
-      return redisClient.sismemberAsync(aspectIndexName, newKey);
+      return rcli.sismemberAsync(aspectIndexName, newKey);
     })
     .then((ok) => {
-
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return redisClient.sismemberAsync(aspectIndexName, oldKey);
+      return rcli.sismemberAsync(aspectIndexName, oldKey);
     })
     .then((ok) => {
-
       // old key should not be found
       expect(ok).to.equal(0);
-      return redisClient.keysAsync(newName + '*');
+      return rcli.keysAsync(newName + '*');
     })
     .then((ret) => {
-
-      // since sample store has not been popluated yet. rename should not create
-      // a new entry in sample store.
+      // since sample store has not been popluated yet. rename should not
+      // create a new entry in sample store.
       expect(ret.length).to.equal(0);
       done();
     })
@@ -232,19 +227,18 @@ describe('redis: aspect: create: ', () => {
     .then((asp) => {
       const newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
-      return redisClient.sismemberAsync(aspectIndexName, newKey);
+      return rcli.sismemberAsync(aspectIndexName, newKey);
     })
     .then((ok) => {
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return redisClient.sismemberAsync(subjectIndexName, oldKey);
+      return rcli.sismemberAsync(subjectIndexName, oldKey);
     })
     .then((ok) => {
-
       // old key should not be found
       expect(ok).to.equal(0);
-      return redisClient.smembersAsync(sampleIndexName);
+      return rcli.smembersAsync(sampleIndexName);
     })
     .then((members) => {
       const oldNameWithPrefix = redisStore.toKey('sample', oldName);
@@ -273,29 +267,27 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('once an aspect is destroyed no entry should be found in the ' +
-    ' aspectStore and the corresponding hash set should not be found',
-   (done) => {
-     let aspectKey;
-     Aspect.findById(aspHumdId)
+  'aspectStore and the corresponding hash set should not be found', (done) => {
+    let aspectKey;
+    Aspect.findById(aspHumdId)
     .then((a) => a.destroy())
     .then((asp) => {
       aspectKey = redisStore.toKey('aspect', asp.name);
-      return redisClient.sismemberAsync(subjectIndexName, aspectKey);
+      return rcli.sismemberAsync(subjectIndexName, aspectKey);
     })
     .then((ok) => {
       expect(ok).to.equal(0);
-      return redisClient.hgetallAsync(aspectKey);
+      return rcli.hgetallAsync(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.equal(null);
       done();
     })
     .catch(done);
-   });
+  });
 
   it('once an aspect is destroyed all the related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
@@ -306,9 +298,7 @@ describe('redis: aspect: create: ', () => {
       return Subject.findById(ipar);
     })
     .then((s) => s.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -322,8 +312,7 @@ describe('redis: aspect: create: ', () => {
   });
 
   it('when an aspect is unpublished all its related samples should be ' +
-      'removed from the samplestore', (done) => {
-
+  'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
@@ -334,9 +323,7 @@ describe('redis: aspect: create: ', () => {
       return Subject.findById(ipar);
     })
     .then((s) => s.destroy())
-    .then(() => {
-      return redisClient.smembersAsync(sampleIndexName);
-    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');

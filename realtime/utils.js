@@ -9,10 +9,12 @@
 /**
  * realTime/utils.js
  */
-const ip = require('ip');
-
 'use strict'; // eslint-disable-line strict
+const ip = require('ip');
 const constants = require('./constants');
+const redisClient = require('../cache/redisCache').client.sampleStore;
+const redisStore = require('../cache/sampleStore');
+
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -29,12 +31,22 @@ const filters = ['aspectFilter',
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has parentAbsolutePath has
- * one of its property.
+ * @returns {Boolean} - returns true if the object has the property
+ * "parentAbsolutePath"
  */
 function isThisSubject(obj) {
   return obj.hasOwnProperty('parentAbsolutePath');
 }
+
+/**
+ * A function to see if an object is a sample object or not. It returns true
+ * if an object passed has 'value' as one of its property.
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the object has the property "value"
+ */
+function isThisSample(obj) {
+  return obj.hasOwnProperty('value');
+} // isThisSample
 
 /**
  * Transforms and returns the stringified object.
@@ -62,7 +74,7 @@ function getNewObjAsString(key, obj) {
 
 /**
  * The message object received from the redis channel, contains a "new" property
- * when a database instance is updated. This function check to see if the
+ * when a database instance is updated. This function checks to see if the
  * message object contains a "new" property, if it does, it returns the new
  * object.
  * @param {Object}  messgObj - Message object received from the redis channel.
@@ -301,6 +313,70 @@ function isIpWhitelisted(addr, whitelist) {
   throw new Error(`IP address "${addr}" is not whitelisted`);
 } // isIpWhitelisted
 
+/**
+ * When passed in a sample, its related subject and aspect is attached to the
+ * sample. If useSampleStore is set to true, the subject ans aspect is fetched
+ * for the cache instead of the database.
+ * @param {Object} sample - The sample instance.
+ * @param {Boolen} useSampleStore - The sample store flag, the subject and the
+ *   aspect is fetched from the cache if this is set.
+ * @param {Model} subjectModel - The database subject model.
+ * @param {Model} aspectModel - The database aspect model.
+ * @returns {Promise} - which resolves to a complete sample with its subject and
+ *   aspect.
+ */
+function attachAspectSubject(sample, useSampleStore, subjectModel,
+  aspectModel) {
+  const nameParts = sample.name.split('|');
+  const subName = nameParts[0];
+  const aspName = nameParts[1];
+  let promiseArr = [];
+  if (useSampleStore) {
+    const subKey = redisStore.toKey('subject', subName);
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+      redisClient.hgetallAsync(aspKey);
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      redisClient.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  } else {
+    const subOpts = {
+      where: {
+        absolutePath: subName,
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: aspName,
+      },
+    };
+    const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
+                              Promise.resolve(sample.aspect);
+    const getSubjectPromise = subjectModel ? subjectModel.findOne(subOpts) :
+                              Promise.resolve(sample.subject);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  }
+
+  return Promise.all(promiseArr)
+  .then((response) => {
+    let asp = response[0];
+    let sub = response[1];
+    asp = asp.get ? asp.get() : asp;
+    sub = sub.get ? sub.get() : sub;
+    sample.aspect = redisStore.arrayStringsToJson(asp,
+         redisStore.constants.fieldsToStringify.aspect);
+    sample.subject = redisStore.arrayStringsToJson(sub,
+         redisStore.constants.fieldsToStringify.subject);
+
+    /*
+     * attach absolutePath field to the sample. This is done to simplify the
+     * filtering done on the subject absolutePath
+     */
+    sample.absolutePath = subName;
+    return sample;
+  });
+} // attachAspectSubject
+
 module.exports = {
   getNamespaceString,
   getNewObjAsString,
@@ -308,4 +384,6 @@ module.exports = {
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
+  isThisSample,
+  attachAspectSubject,
 }; // exports

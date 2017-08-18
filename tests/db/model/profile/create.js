@@ -10,13 +10,13 @@
  * /tests/db/model/profile/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Profile = tu.db.Profile;
 
-describe('db: Profile: create', () => {
+describe('tests/db/model/profile/create.js >', () => {
+  const pname = `${tu.namePrefix}1`;
 
   afterEach(u.forceDelete);
 
@@ -44,44 +44,44 @@ describe('db: Profile: create', () => {
       })
       .catch(done);
     });
+  });
 
-    it('ok, subjectAccess rw', (done) => {
-      Profile.create({
-        name: pname,
-        subjectAccess: 'rw',
-      })
-      .then((o) => { 
-        expect(o).to.have.property('name').to.equal(pname);
-        expect(o).to.have.property('subjectAccess').to.equal('rw');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, subjectAccess rw', (done) => {
+    Profile.create({
+      name: pname,
+      subjectAccess: 'rw',
+    })
+    .then((o) => {
+      expect(o).to.have.property('name').to.equal(pname);
+      expect(o).to.have.property('subjectAccess').to.equal('rw');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('Fail, profile name missing', (done) => {
-      Profile.create({
-        subjectAccess: 'rw',
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.valErrorName);
-        expect(err.message.toLowerCase()).to.contain('name cannot be null');
-        done();
-      })
-      .catch(done);
-    });
+  it('Fail, profile name missing', (done) => {
+    Profile.create({
+      subjectAccess: 'rw',
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('name cannot be null');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('Fail, profile name cannot be an array', (done) => {
-      Profile.create({
-        name: [pname],
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.valErrorName);
-        expect(err.message.toLowerCase()).to.contain('name cannot be an array or an object');
-        done();
-      })
-      .catch(done);
-    });
+  it('Fail, profile name cannot be an array', (done) => {
+    Profile.create({
+      name: [pname],
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('name cannot be an array or an object');
+      done();
+    })
+    .catch(done);
   });
 });

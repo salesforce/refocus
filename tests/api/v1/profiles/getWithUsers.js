@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/getWithUsers.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -21,7 +20,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const path = '/v1/profiles';
 
-describe(`api: GET ${path} (with users)`, () => {
+describe('tests/api/v1/profiles/getWithUsers.js (with users) >', () => {
   let pid;
   let token;
 
@@ -31,7 +30,7 @@ describe(`api: GET ${path} (with users)`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -46,7 +45,7 @@ describe(`api: GET ${path} (with users)`, () => {
       });
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -56,13 +55,7 @@ describe(`api: GET ${path} (with users)`, () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => expect(res.body.users.length).to.be.equal(1))
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('get profile with userCount returns userCount, value 1', (done) => {
@@ -72,12 +65,6 @@ describe(`api: GET ${path} (with users)`, () => {
     .expect((res) => {
       expect(res.body.userCount).to.be.equal(1);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

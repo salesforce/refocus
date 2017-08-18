@@ -10,7 +10,6 @@
  * tests/realtime/setupSocketIO.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const socketIOSetup = require('../../realtime/setupSocketIO');
@@ -20,8 +19,8 @@ const httpServer = require('http').Server(app);
 const io = require('socket.io')(httpServer);
 const u = require('./utils');
 
-describe('socket.io setup', () => {
-  describe('with logging disabled', () => {
+describe('tests/realtime/setupSocketIO.js, socket.io setup >', () => {
+  describe('with logging disabled >', () => {
     const rootSubjNAUS = 'NA.US';
     const rootSubjNA = 'NA';
     let createdLensId;
@@ -46,7 +45,7 @@ describe('socket.io setup', () => {
         subjectTagFilter: ['ea', 'na'],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
-        statusFilterType: 'INCLUDE'
+        statusFilterType: 'INCLUDE',
       }))
       .then(() => done())
       .catch(done);
@@ -92,7 +91,7 @@ describe('socket.io setup', () => {
     });
   }); // with logging disabled
 
-  describe('with logging enabled', () => {
+  describe('with logging enabled >', () => {
     const rootSubjNAUS = 'NA.US';
     const rootSubjNA = 'NA';
     let createdLensId;
@@ -118,7 +117,7 @@ describe('socket.io setup', () => {
         subjectTagFilter: ['ea', 'na'],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
-        statusFilterType: 'INCLUDE'
+        statusFilterType: 'INCLUDE',
       }))
       .then(() => done())
       .catch(done);

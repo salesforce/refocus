@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/profiles/post.js >', () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
@@ -55,65 +54,69 @@ describe(`api: POST ${path}`, () => {
         done();
       });
     });
+  });
 
-    it('fail, not an admin profile', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
-        done();
-      });
+  it('fail, not an admin profile', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+      done();
     });
+  });
 
-    it('fail, no token provided', (done) => {
-      api.post(`${path}`)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
-        done();
-      });
+  it('fail, no token provided', (done) => {
+    api.post(`${path}`)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+      done();
     });
+  });
 
-    it('Fail, duplicate profile', (done) => {
-      // Create profile ___1
-      tu.db.Profile.create(p0);
-      // Create identical profile
-      api.post(`${path}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send(p0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SequelizeUniqueConstraintError');
-        done();
-      });
+  it('Fail, duplicate profile', (done) => {
+    // Create profile ___1
+    tu.db.Profile.create(p0);
+    /* Create identical profile */
+    api.post(`${path}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send(p0)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain('SequelizeUniqueConstraintError');
+      done();
     });
+  });
 
-    it('Fail, invalid profile name', (done) => {
-      api.post(`${path}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send({ name: ''})
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain('SCHEMA_VALIDATION_FAILED');
-        done();
-      });
+  it('Fail, invalid profile name', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ name: '' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain('SCHEMA_VALIDATION_FAILED');
+      done();
     });
   });
 });

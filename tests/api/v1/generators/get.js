@@ -10,7 +10,6 @@
  * tests/api/v1/generators/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -24,7 +23,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/generators/get.js >', () => {
   let token;
   const generatorOk = u.getGenerator();
   const generatorInfo = JSON.parse(JSON.stringify(u.getGenerator()));
@@ -73,7 +72,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.lengthOf(4);
@@ -92,7 +91,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[ZERO].name).to.equal(generatorCritical.name);
@@ -110,7 +109,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body[THREE].name).to.equal(generatorCritical.name);
@@ -127,7 +126,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(generatorOk.name);
@@ -141,7 +140,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(generatorCritical.name);
@@ -155,7 +154,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(generatorInfo.name);
@@ -169,7 +168,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
@@ -184,7 +183,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ZERO);

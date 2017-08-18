@@ -10,7 +10,6 @@
  * tests/db/model/room/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -18,7 +17,7 @@ const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const v = require('../roomType/utils');
 
-describe('db: room: find: ', () => {
+describe('tests/db/model/room/find.js >', () => {
   beforeEach((done) => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
@@ -32,14 +31,12 @@ describe('db: room: find: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Find room', () => {
-    it('ok, room active', (done) => {
-      Room.findOne({ where: { active: true } })
-      .then((o) => {
-        expect(o).to.have.property('name').to.equal(u.name);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, room active', (done) => {
+    Room.findOne({ where: { active: true } })
+    .then((o) => {
+      expect(o).to.have.property('name').to.equal(u.name);
+      done();
+    })
+    .catch(done);
   });
 });

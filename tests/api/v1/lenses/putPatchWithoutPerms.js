@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/putPatchWithoutPerms.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/lenses';
 
-describe('api: patch lens without permission', () => {
+describe('tests/api/v1/lenses/putPatchWithoutPerms.js >', () => {
   let lens;
   let otherValidToken;
 
@@ -34,15 +33,9 @@ describe('api: patch lens without permission', () => {
     .then((lns) => {
       lens = lns;
     })
-    .then(() =>
-
-      User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return lens.addWriter(usr);
-    })
-    .then(() => {
-      return tu.createUser('myUNiqueUser22');
-    })
+    .then(() => User.findOne({ where: { name: tu.userName } }))
+    .then((usr) => lens.addWriter(usr))
+    .then(() => tu.createUser('myUNiqueUser22'))
     .then((fusr) => tu.createTokenFromUserName(fusr.name))
     .then((tkn) => {
       otherValidToken = tkn;
@@ -59,9 +52,7 @@ describe('api: patch lens without permission', () => {
     .set('Authorization', otherValidToken)
     .send({ name: 'changedName' })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res */) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 
   it('should not be able to PUT without permission', (done) => {
@@ -70,8 +61,6 @@ describe('api: patch lens without permission', () => {
     .field('description', 'changed description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.FORBIDDEN)
-    .end((err /* , res*/) => {
-      return err ? done(err) : done();
-    });
+    .end(done);
   });
 });

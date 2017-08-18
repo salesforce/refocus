@@ -10,7 +10,6 @@
  * tests/view/perspectives/loadPerspectivePicker.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -19,7 +18,8 @@ import { statuses } from '../../../api/v1/constants';
 import sinon from 'sinon';
 import { getValuesObject } from '../../../view/perspective/utils.js';
 
-describe('Perspective app ', () => {
+describe('tests/view/perspectives/loadPerspectivePicker.js, ' +
+'Perspective app >', () => {
   const tags = ['one', 'two', 'three', 'four', 'five'];
   const ZERO = 0;
   const ONE = 1;
@@ -115,7 +115,7 @@ describe('Perspective app ', () => {
     };
   }
 
-  describe('results from GET requests', () => {
+  describe('results from GET requests >', () => {
     it('redirect is called when default perspective exists', () => {
       const globalconfigObject = {};
 

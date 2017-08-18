@@ -13,7 +13,7 @@
 const sampleStore = require('../../cache/sampleStore');
 const samstoinit = require('../../cache/sampleStoreInit');
 const samstopersist = require('../../cache/sampleStorePersist');
-const redisClient = require('../../cache/redisCache').client.sampleStore;
+const rcli = require('../../cache/redisCache').client.sampleStore;
 const featureToggles = require('feature-toggles');
 const expect = require('chai').expect;
 const tu = require('../testUtils');
@@ -24,7 +24,7 @@ const Subject = tu.db.Subject;
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 
-describe('persist sample store back to db', () => {
+describe('tests/cache/persist.js, persist sample store back to db >', () => {
   let a1;
   let a2;
   let a3;
@@ -85,7 +85,7 @@ describe('persist sample store back to db', () => {
       value: '0',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s2.id,
@@ -93,7 +93,7 @@ describe('persist sample store back to db', () => {
       value: '50',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => Sample.create({
       subjectId: s3.id,
@@ -101,7 +101,7 @@ describe('persist sample store back to db', () => {
       value: '5',
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
-      ]
+      ],
     }))
     .then(() => done())
     .catch(done);
@@ -109,7 +109,7 @@ describe('persist sample store back to db', () => {
 
   after((done) => {
     u.forceDelete(done)
-    .then(() => redisClient.flushallAsync())
+    .then(() => rcli.flushallAsync())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())
@@ -119,7 +119,7 @@ describe('persist sample store back to db', () => {
   it('ok', (done) => {
     samstoinit.eradicate()
     .then(() => samstoinit.populate())
-    .then(() => redisClient.scardAsync(sampleStore.constants.indexKey.sample))
+    .then(() => rcli.scardAsync(sampleStore.constants.indexKey.sample))
     .then((res) => expect(res).to.eql(3))
     .then(() => Sample.destroy({
       where: {

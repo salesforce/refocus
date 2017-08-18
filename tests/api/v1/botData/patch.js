@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/botData/patch.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -27,7 +26,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/botData/patch.js >', () => {
   const testBotData = u.getStandard();
   let saveBotData;
   let token;
@@ -66,90 +65,88 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('PATCH botData', () => {
-    it('Pass, patch botData name', (done) => {
-      const newName = 'newName';
+  it('Pass, patch botData name', (done) => {
+    const newName = 'newName';
+    api.patch(`${path}/${saveBotData.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(newName);
+      done();
+    });
+  });
+
+  it('Pass, patch botData value', (done) => {
+    const values = 'newValue';
+    api.patch(`${path}/${saveBotData.id}`)
+    .set('Authorization', token)
+    .send({ value: values })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.value).to.equal(values);
+      done();
+    });
+  });
+
+  it('Fail, patch botData invalid name', (done) => {
+    const newName = '~!invalidName';
+    api.patch(`${path}/${saveBotData.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, patch botData name already there', (done) => {
+    testBotData.name = 'newName';
+    const newName = testBotData.name;
+    BotData.create(testBotData)
+    .then(() => {
       api.patch(`${path}/${saveBotData.id}`)
       .set('Authorization', token)
       .send({ name: newName })
-      .expect(constants.httpStatus.OK)
+      .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.name).to.equal(newName);
+        expect(res.body.errors[ZERO].message).contains('must be unique');
         done();
       });
-    });
+    })
+    .catch(done);
+  });
 
-    it('Pass, patch botData value', (done) => {
-      const values = 'newValue';
-      api.patch(`${path}/${saveBotData.id}`)
-      .set('Authorization', token)
-      .send({ value: values })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
+  it('Fail, patch botData invalid attribute', (done) => {
+    api.patch(`${path}/${saveBotData.id}`)
+    .set('Authorization', token)
+    .send({ invalid: true })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.value).to.equal(values);
-        done();
-      });
-    });
-
-    it('Fail, patch botData invalid name', (done) => {
-      const newName = '~!invalidName';
-      api.patch(`${path}/${saveBotData.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
-        done();
-      });
-    });
-
-    it('Fail, patch botData name already there', (done) => {
-      testBotData.name = 'newName';
-      const newName = testBotData.name;
-      BotData.create(testBotData)
-      .then(() => {
-        api.patch(`${path}/${saveBotData.id}`)
-        .set('Authorization', token)
-        .send({ name: newName })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end((err, res) => {
-          if (err) {
-            done(err);
-          }
-          expect(res.body.errors[ZERO].message).contains('must be unique');
-          done();
-        });
-      })
-      .catch(done);
-    });
-
-    it('Fail, patch botData invalid attribute', (done) => {
-      api.patch(`${path}/${saveBotData.id}`)
-      .set('Authorization', token)
-      .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-
-        expect(res.body).not.to.have.property('invalid');
-        done();
-      });
+      expect(res.body).not.to.have.property('invalid');
+      done();
     });
   });
 });
-

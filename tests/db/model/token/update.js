@@ -9,7 +9,6 @@
 /**
  * tests/db/model/token/update.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const expect = require('chai').expect;
@@ -17,7 +16,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Token = tu.db.Token;
 
-describe('db: Token: update', () => {
+describe('tests/db/model/token/update.js >', () => {
   let tokenObj = {};
 
   beforeEach((done) => {

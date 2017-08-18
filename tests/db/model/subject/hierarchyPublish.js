@@ -10,7 +10,6 @@
  * tests/db/model/subject/hierarchyPublish.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -18,7 +17,7 @@ const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 
-describe('db: subject: get hierarchy: ', () => {
+describe('db/model/subject/hierarchyPublish.js >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true };
@@ -64,15 +63,13 @@ describe('db: subject: get hierarchy: ', () => {
       samp.aspectId = asp.id;
       return Sample.create(samp);
     })
-    .then(() => {
-      done();
-    })
+    .then(() => done())
     .catch(done);
   });
 
   afterEach(u.forceDelete);
 
-  describe('Subject isPublished tests: ', () => {
+  describe('isPublished >', () => {
     it('Subject should not be found once isPublished is ' +
     'set to false', (done) => {
       Subject.scope('hierarchy').findById(igrn)
@@ -135,7 +132,7 @@ describe('db: subject: get hierarchy: ', () => {
       .catch(done);
     });
 
-    describe('Subject hierarchy with samples isPublished tests: ', () => {
+    describe('with samples isPublished >', () => {
       it('include samples.relatedLinks association in herarchy',
       (done) => {
         Subject.scope(['hierarchy', 'withSamples']).findById(ipar)
@@ -147,7 +144,7 @@ describe('db: subject: get hierarchy: ', () => {
       });
     });
 
-    describe('Subject hierarchy with samples: ', () => {
+    describe('with samples >', () => {
       it('sample default scope should not have subject model in the resullset',
       (done) => {
         Subject.scope(['hierarchy', 'withSamples']).findById(ipar)

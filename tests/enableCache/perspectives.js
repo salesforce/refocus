@@ -22,7 +22,7 @@ const redisCache = require('../../cache/redisCache').client.cache;
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   let lensId;
   let token;
   let perspectiveId;

@@ -10,7 +10,6 @@
  * tests/api/v1/profiles/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const adminProfile = require('../../../../config').db.adminProfile;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/profiles/get.js >', () => {
   const pname = `${tu.namePrefix}1`;
   let token;
 
@@ -52,6 +51,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.have.property('name', pname);
       expect(res.body).to.have.property('aspectAccess', 'rw');
       expect(res.body).to.have.property('botAccess', 'rw');
@@ -76,6 +76,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.have.property('name', adminProfile.name);
       done();
     });
@@ -89,6 +90,7 @@ describe(`api: GET ${path}`, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body).to.be.instanceof(Array);
       done();
     });
@@ -98,6 +100,6 @@ describe(`api: GET ${path}`, () => {
     api.get(`${path}/who@what.com`)
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
-    .end(() => done());
+    .end(done);
   });
 });
