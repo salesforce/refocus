@@ -185,7 +185,7 @@ function isWritable(req, modelInst) {
         reject(new apiErrors.ForbiddenError(
           'Resource not writable for provided token'))
       )
-      .catch((err) => reject(err));
+      .catch(reject);
     } else if (req.user) {
       // try to use the logged-in user
       modelInst.isWritableBy(req.user.name)
@@ -193,14 +193,16 @@ function isWritable(req, modelInst) {
         reject(new apiErrors.ForbiddenError(
           'Resource not writable by this user'))
       )
-      .catch((err) => reject(err));
+      .catch(reject);
     } else {
-      // check if isWritable by default (no writers)
+      // check if isWritable with no user
+      // when not passed a user, isWritable will return true if
+      // the resource is not write protected, false if it is
       modelInst.isWritableBy()
       .then((ok) => ok ? resolve(modelInst) :
         reject(new apiErrors.ForbiddenError('Resource is write protected'))
       )
-      .catch((err) => reject(err));
+      .catch(reject);
     }
   });
 }
