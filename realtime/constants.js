@@ -37,6 +37,12 @@ module.exports = {
       del: 'refocus.internal.realtime.subject.remove',
     },
 
+    room: {
+      add: 'imc.internal.realtime.room.add',
+      upd: 'imc.internal.realtime.room.update',
+      del: 'imc.internal.realtime.room.remove',
+    },
+
     sample: {
       add: 'refocus.internal.realtime.sample.add',
       upd: 'refocus.internal.realtime.sample.update',

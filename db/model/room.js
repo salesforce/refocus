@@ -14,7 +14,21 @@
  */
 
 const constants = require('../constants');
+const u = require('../helpers/roomTypeUtils');
+const featureToggles = require('feature-toggles');
+const common = require('../helpers/common');
+
 const assoc = {};
+const sampleEventNames = {
+  add: 'refocus.internal.realtime.room.add',
+  upd: 'refocus.internal.realtime.room.update',
+  del: 'refocus.internal.realtime.room.remove',
+};
+const sampleStoreFeature =
+                  require('../../cache/sampleStore').constants.featureName;
+const redisOps = require('../../cache/redisOps');
+const redisRoomType = redisOps.roomType;
+const sampleType = redisOps.sampleType;
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
@@ -73,8 +87,65 @@ module.exports = function room(seq, dataTypes) {
         return RoomType.findById(instance.type)
         .then((roomType) => {
           instance.settings = roomType.settings;
+          if (instance.getDataValue('active')) {
+            if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+              // create an entry in Store
+              redisOps.addKey(redisRoomType, instance.getDataValue('name'));
+              redisOps.hmSet(redisRoomType, instance.name, instance);
+            }
+          }
         });
       },
+      beforeUpdate(instance /* , opts */) {
+        if (instance.changed('settings')) {
+          if (instance.active) {
+            common.publishChange(instance, sampleEventNames.del);
+          }
+        }
+      }, // hooks.beforeUpdate
+
+      afterUpdate(instance /* , opts */) {
+        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+          if (instance.changed('name') && instance.active) {
+            const newRoomName = instance.name;
+            const oldRoomName = instance._previousDataValues.name;
+
+            redisOps.renameKey(redisRoomType, oldRoomName, newRoomName);
+
+            redisOps.deleteKeys(sampleType, redisRoomType, instance.name);
+          } else if (instance.changed('active')) {
+            if (instance.active) {
+              redisOps.addKey(redisRoomType, instance.name);
+              redisOps.hmSet(redisRoomType, instance.name, instance.get());
+            } else {
+              redisOps.deleteKey(redisRoomType, instance.name);
+              redisOps.deleteKeys(sampleType, redisRoomType, instance.name);
+            }
+          } else if (instance.active) {
+            const instanceChanged = {};
+            Object.keys(instance._changed).forEach((key) => {
+              instanceChanged[key] = instance[key];
+            });
+            redisOps.hmSet(redisRoomType, instance.name, instanceChanged);
+          }
+        }
+
+        if (instance.changed('settings')) {
+          if (instance.active) {
+            common.publishChange(instance, sampleEventNames.del);
+          }
+        }
+        return seq.Promise.resolve();
+      }, // hooks.afterUpdate
+
+      afterDelete(instance /* , opts */) {
+        if (instance.getDataValue('active')) {
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            redisOps.deleteKey(redisRoomType, instance.name);
+            redisOps.deleteKeys(sampleType, redisRoomType, instance.name);
+          }
+        }
+      }, // hooks.afterDelete
     },
   });
   return Room;

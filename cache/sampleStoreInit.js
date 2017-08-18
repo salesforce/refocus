@@ -205,7 +205,7 @@ function populateRooms() {
     log.info(msg);
     const cmds = [];
     rooms.forEach((r) => {
-      const key = samsto.toKey(constants.objectType.room, r.absolutePath);
+      const key = samsto.toKey(constants.objectType.room, r.name);
 
       // add the room absoluePath to the master room index
       cmds.push(['sadd', constants.indexKey.room, key]);
