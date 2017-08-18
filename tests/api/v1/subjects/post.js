@@ -20,7 +20,7 @@ const path = '/v1/subjects';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -34,7 +34,7 @@ describe(`api: POST ${path}`, () => {
 
   after(tu.forceDeleteUser);
 
-  describe('Simple', () => {
+  describe('Simple >', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };
     const n2b = { name: `${tu.namePrefix}Quebec` };
     let i0 = 0;
@@ -81,7 +81,7 @@ describe(`api: POST ${path}`, () => {
 
     after(u.forceDelete);
 
-    describe('post duplicate fails', () => {
+    describe('post duplicate fails >', () => {
       const DUMMY = { name: `${tu.namePrefix}DUMMY` };
 
       beforeEach((done) => {
@@ -338,7 +338,7 @@ describe(`api: POST ${path}`, () => {
     });
   }); // Simple
 
-  describe('With a Parent', () => {
+  describe('With a Parent >', () => {
     const n0 = { name: `${tu.namePrefix}NorthAmerica` };
     const n1 = { name: `${tu.namePrefix}Canada` };
     let i0 = 0;
@@ -411,7 +411,7 @@ describe(`api: POST ${path}`, () => {
     });
   }); // With a Parent
 
-  describe('Duplicates', () => {
+  describe('Duplicates >', () => {
     const n0 = { name: `${tu.namePrefix}Canada` };
     const n1 = { name: `${tu.namePrefix}Ontario` };
     let i0 = 0;
@@ -462,7 +462,7 @@ describe(`api: POST ${path}`, () => {
     });
   }); // Duplicates
 
-  describe('Misc', () => {
+  describe('Misc >', () => {
     it('unexpected field in body OK', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -538,7 +538,7 @@ describe(`api: POST ${path}`, () => {
     });
   }); // Misc
 
-  describe('api: subject: tags', () => {
+  describe('api: subject: tags >', () => {
     afterEach(u.forceDelete);
     it('post subject with tags', (done) => {
       const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };

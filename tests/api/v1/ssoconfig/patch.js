@@ -22,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: PATCH ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/patch.js, PATCH ${path} >`, () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(

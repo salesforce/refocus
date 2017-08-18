@@ -16,7 +16,7 @@ const api = supertest(require('../../../../index').app);
 const samlPath = '/loginSAML';
 const u = require('./utils');
 
-describe('api: passport saml', () => {
+describe('tests/api/v1/authenticate/loginSaml.js >', () => {
   let ssoconfig;
   before((done) => {
     u.creatSSOConfig()

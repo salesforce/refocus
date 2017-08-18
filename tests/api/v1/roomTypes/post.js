@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/roomTypes/post.js >`, () => {
   let token;
 
   before((done) => {
@@ -34,60 +34,57 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('POST roomType', () => {
-    it('Pass, post roomType', (done) => {
+  it('Pass, post roomType', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(u.getStandard())
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
+
+  it('Fail, duplicate roomType', (done) => {
+    u.createStandard()
+    .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.name).to.equal(u.name);
-        done();
-      });
-    });
-
-    it('Fail, duplicate roomType', (done) => {
-      u.createStandard()
-      .then(() => {
-        api.post(`${path}`)
-        .set('Authorization', token)
-        .send(u.getStandard())
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.errors[ZERO].type)
-          .to.contain('SequelizeUniqueConstraintError');
-          done();
-        });
-      })
-      .catch(done);
-    });
-
-    it('Fail, roomType validation incorrect', (done) => {
-      let testRoomType = u.getStandard();
-      testRoomType.settings = 'INVALID_VALUE';
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testRoomType)
-      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
-        .to.contain('SCHEMA_VALIDATION_FAILED');
+        .to.contain('SequelizeUniqueConstraintError');
         done();
       });
+    })
+    .catch(done);
+  });
+
+  it('Fail, roomType validation incorrect', (done) => {
+    let testRoomType = u.getStandard();
+    testRoomType.settings = 'INVALID_VALUE';
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testRoomType)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain('SCHEMA_VALIDATION_FAILED');
+      done();
     });
   });
 });
-

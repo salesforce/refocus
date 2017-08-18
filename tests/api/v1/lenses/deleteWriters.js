@@ -21,7 +21,7 @@ const writersPath = '/v1/lenses/{key}/writers';
 const writerPath = '/v1/lenses/{key}/writers/{userNameOrId}';
 const lensPath = '/v1/lenses/{key}';
 
-describe('api: lenses: permissions', () => {
+describe('tests/api/v1/lenses/deleteWriters.js >', () => {
   let lens;
   let token;
   let otherValidToken;
@@ -64,7 +64,7 @@ describe('api: lenses: permissions', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
+  describe('delete resource without permission >', () => {
     it('return 403 when deleting aspect without permission', (done) => {
       api.delete(lensPath.replace('{key}', lens.id))
       .set('Authorization', otherValidToken)
@@ -73,7 +73,7 @@ describe('api: lenses: permissions', () => {
     });
   });
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission associated with the resource', (done) => {
       api.delete(writersPath.replace('{key}', lens.id))
       .set('Authorization', token)

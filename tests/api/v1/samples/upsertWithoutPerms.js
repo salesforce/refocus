@@ -18,10 +18,9 @@ const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const User = tu.db.User;
-
 const upsertPath = '/v1/samples/upsert';
 
-describe('api: upsert samples without perms', () => {
+describe('tests/api/v1/samples/upsertWithoutPerms.js >', () => {
   let aspect;
   let subject;
   let otherValidToken;

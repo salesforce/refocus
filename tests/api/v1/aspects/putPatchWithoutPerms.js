@@ -19,7 +19,7 @@ const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 const path = '/v1/aspects';
 
-describe('api: aspects:', () => {
+describe('tests/api/v1/aspects/putPatchWithoutPerms.js >', () => {
   // let token;
   let aspect;
   let otherValidToken;

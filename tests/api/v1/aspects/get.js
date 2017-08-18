@@ -23,7 +23,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/aspects/get.js >', () => {
   let token;
   const EXPECTED_ARR = ['toot', 'poop'];
   const toCreate = [
@@ -83,7 +83,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('filter with tags', () => {
+  describe('filter with tags >', () => {
     it('filter by single EXCLUDE tags returns expected values', (done) => {
       api.get(path + '?tags=-foo')
       .set('Authorization', token)
@@ -161,7 +161,7 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  describe('filter with duplicate tags fail', () => {
+  describe('filter with duplicate tags fail >', () => {
     it('EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-Foo,-Foo`)
       .set('Authorization', token)
@@ -219,7 +219,7 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  describe('Single Values: ', () => {
+  describe('Single Values >', () => {
     it('filter by BOOLEAN returns expected values', (done) => {
       api.get(path + '?valueType=PERCENT') // BOOLEAN is default
       .set('Authorization', token)
@@ -342,7 +342,7 @@ describe(`api: GET ${path}`, () => {
     });
   }); // Single Values
 
-  describe('Lists: ', () => {
+  describe('Lists >', () => {
     it('no wildcards', (done) => {
       api.get(`${path}?name=${tu.namePrefix}a0,${tu.namePrefix}a1`)
       .set('Authorization', token)
@@ -369,7 +369,7 @@ describe(`api: GET ${path}`, () => {
     });
   }); // Lists
 
-  describe('Aspect Sorting by rank: ', () => {
+  describe('Aspect Sorting by rank >', () => {
     it('sort ascending', (done) => {
       api.get(`${path}?sort=rank`)
       .set('Authorization', token)

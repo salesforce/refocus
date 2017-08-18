@@ -20,7 +20,7 @@ const Collector = tu.db.Collector;
 const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 
-describe(`api: POST ${path} >`, () => {
+describe('tests/api/v1/collectors/postWriters.js >', () => {
   let token;
   let coll;
   let firstUser;
