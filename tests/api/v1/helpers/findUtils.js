@@ -11,58 +11,16 @@
  */
 'use strict';
 const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
-const filterArrFromArr = fu.filterArrFromArr;
 const options = fu.options;
 const expect = require('chai').expect;
-const ZERO = 0;
-const ONE = 1;
 
 describe('tests/api/v1/helpers/findUtils.js', () => {
-  describe('filter subject array with tags array >', () => {
-    it('filter returns some elements with INCLUDE', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
-      const result = filterArrFromArr(sArr, 'a');
-      expect(result).to.deep.equal([sArr[ZERO]]);
-    });
-
-    it('filter returns one element with INCLUDE', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b', 'c'] }];
-      const result = filterArrFromArr(sArr, 'b,c');
-      expect(result).to.deep.equal([sArr[ONE]]);
-    });
-
-    it('filter returns no elements with multiple INCLUDE', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
-      const result = filterArrFromArr(sArr, 'a,b');
-      expect(result).to.deep.equal([]);
-    });
-
-    it('filter returns no elements with EXCLUDE', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
-      const result = filterArrFromArr(sArr, '-a,-b');
-      expect(result.length).to.equal(ZERO);
-    });
-
-    it('filter returns no elements with EXCLUDE, ' +
-      'with leading -', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
-      const result = filterArrFromArr(sArr, '-a,b');
-      expect(result.length).to.equal(ZERO);
-    });
-
-    it('filter returns some elements with EXCLUDE', () => {
-      const sArr = [{ tags: ['a'] }, { tags: ['b'] }];
-      const result = filterArrFromArr(sArr, '-a');
-      expect(result).to.deep.equal([sArr[ONE]]);
-    });
-  });
-
   describe('build options object >', () => {
     let props;
     let params;
 
     beforeEach((done) => {
-      props = {};
+      props = { tagFilterName: 'tags' };
       params = {
         fields: {},
         sort: {},
@@ -70,6 +28,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
         offset: {},
         name: {},
         description: {},
+        tags: {},
       };
       done();
     });
@@ -142,5 +101,36 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       expect(fu.toSequelizeWildcards('***a')).to.be.equal('%%%a');
       done();
     });
+
+    it('tags single include', () => {
+      params.tags.value = ['a'];
+      const opts = { where: { tags: { $contains: ['a'] } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
+
+    it('tags multiple include', () => {
+      params.tags.value = ['a', 'b'];
+      const opts = { where: { tags: { $contains: ['a', 'b'] } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
+
+    it('tags single exclude', () => {
+      params.tags.value = ['-a'];
+      const opts = { where: { $not: { tags: { $overlap: ['a'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
+
+    it('tags multiple exclude', () => {
+      params.tags.value = ['-a', 'b'];
+      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
+
+    it('tags multiple exclude', () => {
+      params.tags.value = ['-a', '-b'];
+      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      expect(options(params, props)).to.deep.equal(opts);
+    });
+
   });
 });
