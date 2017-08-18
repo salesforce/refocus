@@ -70,6 +70,23 @@ describe('tests/db/model/sample/upsert.js >', () => {
   });
 
   describe('unpublished tests:', () => {
+    it('unpublished subject cannot be used to CREATE sample', (done) => {
+      Subject.findById(publishedSubjectId)
+      .then((s) => s.update({ isPublished: false }))
+      .then(() => Sample.upsertByName({
+        name: subjectName + `|` + aspectName,
+        value: '1',
+      }))
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.resourceType).to.equal('Subject');
+        expect(err.resourceKey).to.equal(publishedSubjectId);
+        done();
+      });
+    });
+
     it('when referenced subject is unpublished, CREATE sample should fail',
       (done) => {
       Sample.create({
