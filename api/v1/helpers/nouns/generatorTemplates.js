@@ -7,13 +7,13 @@
  */
 
 /**
- * api/v1/helpers/nouns/generators.js
+ * api/v1/helpers/nouns/generatorTemplates.js
  */
 'use strict';
 
-const Generator = require('../../../../db/index').Generator;
+const GeneratorTemplate = require('../../../../db/index').GeneratorTemplate;
 
-const m = 'generator';
+const m = 'generatorTemplate';
 
 module.exports = {
   apiLinks: {
@@ -23,9 +23,9 @@ module.exports = {
     POST: `Create a new ${m}`,
     PUT: `Overwrite all attributes of this ${m}`,
   },
-  baseUrl: '/v1/generators',
-  model: Generator,
-  modelName: 'Generator',
+  baseUrl: '/v1/generatorTemplates',
+  model: GeneratorTemplate,
+  modelName: 'GeneratorTemplate',
 
   // define the associations that are to be deleted here
   belongsToManyAssoc: {
@@ -34,3 +34,4 @@ module.exports = {
   fieldsWithArrayType: ['tags'],
   tagFilterName: 'tags',
 }; // exports
+

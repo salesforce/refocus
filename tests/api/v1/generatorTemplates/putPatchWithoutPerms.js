@@ -7,8 +7,9 @@
  */
 
 /**
- * tests/api/v1/generators/putPatchWithoutPerms.js
+ * tests/api/v1/generatorTemplates/putPatchWithoutPerms.js
  */
+
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -16,32 +17,36 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
-const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
-const path = '/v1/generators';
+const path = '/v1/generatorTemplates';
 
-describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
-  let generator;
+describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
+  let generatorTemplate;
   let otherValidToken;
-  const generatorToCreate = u.getGenerator();
+  const generatorTemplateToCreate = u.getGeneratorTemplate();
 
   before((done) => {
     tu.createToken()
-    .then(() => done())
+    .then(() => {
+      done();
+    })
     .catch(done);
   });
 
   before((done) => {
-    Generator.create(generatorToCreate)
+    GeneratorTemplate.create(generatorTemplateToCreate)
     .then((gen) => {
-      generator = gen;
+      generatorTemplate = gen;
     })
-    /*
-     * tu.createToken creates a user and an admin user is already created so
-     * use one of these.
+    /**
+     * tu.createToken creates an user and an admin user is already created,
+     * so one use of these.
      */
     .then(() => User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => generator.addWriter(usr))
+    .then((usr) => {
+      return generatorTemplate.addWriter(usr);
+    })
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -54,29 +59,27 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
   after(tu.forceDeleteUser);
 
   it('PUT without permission: should return 403', (done) => {
-    const toPut =
-    { name: 'refocus-ok-generator',
-      description: 'Collect status data patched with name',
+    const toPut = {
+      name: 'template1',
+      description: 'this is template1...',
       tags: [
-        'status',
-        'STATUS',
+        'tag1',
+        'tag2'
       ],
-      generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+      author: {
+        name: 'author1',
+        url: 'http://www.aaa.com',
+        email: 'a@a.com'
       },
-      context: {
-        okValue: {
-          required: false,
-          default: '0',
-          description: 'An ok sample\'s value, e.g. \'0\'',
-        },
+      connection: {
+        method: 'GET',
+        url: 'http://www.bbb.com'
       },
-      subjects: ['US'],
-      aspects: ['Temperature', 'Weather'],
+      transform: 'function...',
+      isPublished: true,
     };
 
-    api.put(`${path}/${generator.id}`)
+    api.put(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
      .send(toPut)
     .expect(constants.httpStatus.FORBIDDEN)
@@ -90,9 +93,9 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
 
   it('PATCH without permission: should return 403', (done) => {
     const toPatch = {
-      name: 'New_Name',
+      name: 'template2',
     };
-    api.patch(`${path}/${generator.id}`)
+    api.patch(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
     .send(toPatch)
     .expect(constants.httpStatus.FORBIDDEN)
