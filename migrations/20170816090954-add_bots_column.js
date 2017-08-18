@@ -21,6 +21,7 @@ module.exports = {
           allowNull: true,
         });
       }
+
       return true;
     });
   },
@@ -33,6 +34,7 @@ module.exports = {
       if (attr.hasOwnProperty('bots')) {
         return qi.removeColumn(TBL, 'bots');
       }
+      
       return true;
     });
   },
