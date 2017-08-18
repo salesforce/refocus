@@ -58,6 +58,7 @@ describe('tests/api/v1/bots/put.js >', () => {
         return done(err);
       }
 
+      expect(res.body.ui.name).to.equal('uiBlob2');
       tu.db.Bot.findAll()
       .then((o) => {
         expect(o[ZERO].ui.length).to.equal(uiBlob2.length);
