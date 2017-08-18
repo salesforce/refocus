@@ -333,9 +333,17 @@ module.exports = function sample(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           inst.getSubject()
           .then((s) => {
-            inst.name = s.absolutePath + constants.sampleNameSeparator;
+            if (s && s.getDataValue('isPublished')) {
+              inst.name = s.absolutePath + constants.sampleNameSeparator;
+            } else {
+              const err = new dbErrors.ResourceNotFoundError();
+              err.resourceType = 'Subject';
+              err.resourceKey = s.id;
+              throw err;
+            }
+
+            return inst.getAspect();
           })
-          .then(() => inst.getAspect())
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;
