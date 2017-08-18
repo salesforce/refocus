@@ -23,6 +23,7 @@ const Subject = tu.db.Subject;
 describe('tests/db/model/sample/upsert.js >', () => {
   const aspectName = `${tu.namePrefix}Aspect`;
   const subjectName = `${tu.namePrefix}Subject`;
+  const unPublishedSubjectName = `${tu.namePrefix}UnpublishedSubject`;
 
   afterEach(u.forceDelete);
 
@@ -37,8 +38,42 @@ describe('tests/db/model/sample/upsert.js >', () => {
       isPublished: true,
       name: subjectName,
     }))
+    .then(() => Subject.create({
+      isPublished: false,
+      name: unPublishedSubjectName,
+    }))
     .then(() => done())
     .catch(done);
+  });
+
+  it.only('when referenced subject is unpublished, CREATE upsert sample should fail',
+    (done) => {
+    Subject.findOne({ where: { name: unPublishedSubjectName } })
+    .then((o) => {
+      expect(o.isPublished).to.be.false;
+      return Sample.create({
+        name: unPublishedSubjectName + `|` + aspectName,
+        value: '1',
+      })
+    })
+    .then(() => done('expecting to throw SequelizeValidationError'))
+    .catch((err) => {
+      expect(err).to.have.property('name').to.equal('SequelizeValidationError');
+      done();
+    });
+  });
+
+  it.only('when referenced subject is unpublished, upsert sample should fail',
+    (done) => {
+    Sample.upsertByName({
+      name: unPublishedSubjectName + `|` + aspectName,
+      value: '1',
+    })
+    .then(() => done('expecting to throw SequelizeValidationError'))
+    .catch((err) => {
+      expect(err).to.have.property('name').to.equal('SequelizeValidationError');
+      done();
+    });
   });
 
   it('when sample is new and when it already exists', (done) => {
