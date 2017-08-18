@@ -180,6 +180,13 @@ module.exports = function sample(seq, dataTypes) {
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
           .then((sa) => {
+            if (sa && sa.subject && !sa.subject.isPublished) {
+              const err = new dbErrors.ResourceNotFoundError();
+              err.resourceType = 'Subject';
+              err.resourceKey = sa.subject.id;
+              throw err;
+            }
+
             subjasp = sa;
             toUpsert.subjectId = sa.subject.id;
             toUpsert.aspectId = sa.aspect.id;
