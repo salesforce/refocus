@@ -167,11 +167,13 @@ function start() { // eslint-disable-line max-statements
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
 
-    // Allow some routes cross-origin resource sharing
+    /*
+     * Allow routes, that need to be accessed from scripting queries, access
+     * throught the cross-origin resource sharing HTTP standard e.g. Bots that
+     * needs to get needs to get current botData to continue its action
+     */
     if (featureToggles.isFeatureEnabled('enableCORS')) {
-      for (let i = 0; i < conf.corsRoutes.length; i++) {
-        app.use(conf.corsRoutes[i], cors());
-      }
+      conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
     }
 
     // Only let me be framed by people of the same origin

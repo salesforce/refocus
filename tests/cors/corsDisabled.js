@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -9,9 +9,7 @@
 /**
  * tests/cors/corsDisabled.js
  */
-
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 const constants = require('../../api/v1/constants');
@@ -24,7 +22,7 @@ const profilesPath = '/v1/profiles';
 const tu = require('../testUtils');
 const expect = require('chai').expect;
 
-describe('CORS testing for routes', () => {
+describe('tests/cors/corsEnabled.js,CORS testing for routes', () => {
   let token;
 
   before((done) => {
