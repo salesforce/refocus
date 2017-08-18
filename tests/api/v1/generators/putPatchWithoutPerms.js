@@ -57,7 +57,7 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
