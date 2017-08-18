@@ -47,6 +47,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body.ui.name).to.equal('uiBlob');
       done();
     });
   });
