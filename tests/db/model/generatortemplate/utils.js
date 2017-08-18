@@ -17,7 +17,7 @@ const testStartTime = new Date();
 const GT_SIMPLE = {
   name: 'refocus-ok-template',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
     'STATUS',
   ],
@@ -34,6 +34,7 @@ const GT_SIMPLE = {
     url: '{{baseTrustUrl}}/v1/instances/status/preview',
     method: 'GET',
     proxy: 'pro.xy.server.net',
+    bulk: false,
   },
   transform: 'return [{ name: "S1|A1", value: 10 }, ' +
     '{ name: "S2|A1", value: 2 }] ',
