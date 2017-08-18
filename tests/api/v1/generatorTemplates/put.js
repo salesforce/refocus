@@ -31,17 +31,17 @@ describe('tests/api/v1/generatorTemplates/put.js > ', () => {
       'tag1',
       'tag2',
     ],
-    "author": {
-      "name": "author1",
-      "url": "http://www.aaa.com",
-      "email": "a@a.com"
+    author: {
+      name: 'author1',
+      url: 'http://www.aaa.com',
+      email: 'a@a.com'
     },
-    "connection": {
-      "method": "GET",
-      "url": "http://www.bbb.com"
+    connection: {
+      method: 'GET',
+      url: 'http://www.bbb.com'
     },
-    "transform": "function...",
-    "isPublished": true,
+    transform: 'function...',
+    isPublished: true,
   };
 
   before((done) => {

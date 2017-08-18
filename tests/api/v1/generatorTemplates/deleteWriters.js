@@ -83,7 +83,6 @@ describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
           expect(res.body).to.have.length(1);
         })
         .end(done);
-        return null;
       });
     });
 
@@ -104,7 +103,6 @@ describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
           expect(res.body).to.have.length(1);
         })
         .end(done);
-        return null;
       });
     });
 
@@ -125,7 +123,6 @@ describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
           expect(res.body).to.have.length(2);
         })
         .end(done);
-        return null;
       });
     });
 

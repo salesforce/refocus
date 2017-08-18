@@ -43,6 +43,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.apiLinks).to.be.an('Array');
       expect(res.body.name).to.include(generatorTemplate.name);
       expect(res.body.id).to.not.equal(undefined);
@@ -68,6 +69,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       if (!err) {
         return done('Expecting "Schema Validation Failed" error');
       }
+
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(5);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
@@ -92,8 +94,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal(tu.uniErrorName);
         done();
       });
     });
@@ -109,8 +110,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
+        expect(res.body.errors[ZERO].type).to.equal(tu.uniErrorName);
         done();
       });
     });
