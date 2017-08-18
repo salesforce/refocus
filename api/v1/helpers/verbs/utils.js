@@ -182,18 +182,25 @@ function isWritable(req, modelInst) {
       jwtUtil.getTokenDetailsFromRequest(req)
       .then((resObj) => modelInst.isWritableBy(resObj.username))
       .then((ok) => ok ? resolve(modelInst) :
-          reject(new apiErrors.ForbiddenError())
+        reject(new apiErrors.ForbiddenError(
+          'Resource not writable for provided token'))
       )
       .catch((err) => reject(err));
     } else if (req.user) {
       // try to use the logged-in user
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) :
-          reject(new apiErrors.ForbiddenError())
+        reject(new apiErrors.ForbiddenError(
+          'Resource not writable by this user'))
       )
       .catch((err) => reject(err));
     } else {
-      reject(new apiErrors.ForbiddenError());
+      // check if isWritable by default (no writers)
+      modelInst.isWritableBy()
+      .then((ok) => ok ? resolve(modelInst) :
+        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+      )
+      .catch((err) => reject(err));
     }
   });
 }
