@@ -161,7 +161,13 @@ function validateBotsArray(inst, seq) {
     }
 
     bots.forEach((botName, index) => {
-      seq.models.Bot.findOne({ where: { name: botName } })
+      seq.models.Bot.findOne({
+        where: {
+          name: {
+            $iLike: botName,
+          },
+        },
+      })
       .then((o) => {
         if (!o) {
           reject(new dbErrors.ResourceNotFoundError({

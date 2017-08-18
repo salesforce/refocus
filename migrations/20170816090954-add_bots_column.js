@@ -20,9 +20,8 @@ module.exports = {
           type: Sequelize.ARRAY(Sequelize.STRING),
           allowNull: true,
         });
-      } else {
-        return true;
       }
+      return true;
     });
   },
 
@@ -33,9 +32,8 @@ module.exports = {
       attr = attributes;
       if (attr.hasOwnProperty('bots')) {
         return qi.removeColumn(TBL, 'bots');
-      } else {
-        return true;
       }
+      return true;
     });
   },
 };

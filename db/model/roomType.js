@@ -124,7 +124,13 @@ module.exports = function roomType(seq, dataTypes) {
           }
 
           inst._previousDataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
               inst.removeBots(o)
               .catch(reject);
@@ -132,7 +138,13 @@ module.exports = function roomType(seq, dataTypes) {
           });
 
           inst.dataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
               inst.addBots(o)
               .catch(reject);
@@ -156,7 +168,13 @@ module.exports = function roomType(seq, dataTypes) {
           }
 
           inst.dataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
               inst.removeBots(o)
               .catch(reject);
@@ -180,7 +198,13 @@ module.exports = function roomType(seq, dataTypes) {
           }
 
           inst.dataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
               inst.addBots(o)
               .catch(reject);
