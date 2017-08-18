@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/cors/get.js
+ * tests/cors/corsEnabled.js
  */
 
 'use strict';
