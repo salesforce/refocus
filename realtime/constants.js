@@ -22,6 +22,8 @@ module.exports = {
 
   statusFilterIndex: 4,
 
+  roomFilterIndex: 5,
+
   filterSeperator: '&',
 
   valuesSeparator: ';',

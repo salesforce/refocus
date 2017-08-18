@@ -177,6 +177,9 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   const obj = {};
   obj[event] = inst.get();
 
+  console.log(obj[event])
+  console.log("**********************************")
+
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the

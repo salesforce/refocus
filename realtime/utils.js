@@ -24,6 +24,7 @@ const eventName = {
 const filters = ['aspectFilter',
                   'subjectTagFilter',
                   'aspectTagFilter',
+                  'roomFilter',
                   'statusFilter',
                 ];
 
@@ -201,7 +202,6 @@ function shouldIEmitThisObj(nspString, obj) {
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
-
   // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 

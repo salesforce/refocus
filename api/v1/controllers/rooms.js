@@ -11,22 +11,13 @@
  */
 'use strict';
 
+const helper = require('../helpers/nouns/rooms');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-
-const sampleStore = require('../../../cache/sampleStore');
-const redisModelRoom = require('../../../cache/models/room');
-const httpStatus = require('../constants').httpStatus;
-const sampleStoreConstants = sampleStore.constants;
-const helper = require('../helpers/nouns/rooms');
-const featureToggles = require('feature-toggles');
-const u = require('../helpers/verbs/utils');
-const publisher = u.publisher;
-
 
 module.exports = {
 
@@ -53,19 +44,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findRooms(req, res, next) {
-    //doFind(req, res, next, helper);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelRoom.findRooms(req, res, resultObj)
-      .then((response) => {
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doFind(req, res, next, helper);
-    }
+    doFind(req, res, next, helper);
   },
 
   /**
