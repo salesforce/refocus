@@ -92,9 +92,37 @@ function toWhereClause(val, props) {
   }
 
   if (Array.isArray(val) && props.tagFilterName) {
-    const containsClause = {};
-    containsClause[constants.SEQ_CONTAINS] = val;
-    return containsClause;
+    const tagArr = val;
+    const INCLUDE = tagArr[ZERO].charAt(ZERO) !== '-';
+    const TAGLEN = tagArr.length;
+
+    /*
+     * If !INCLUDE, splice out the leading "-" in tags. Otherwise throw an
+     * exception if tag starts with "-".
+     */
+    for (let i = TAGLEN - ONE; i >= ZERO; i--) {
+      if (tagArr[i].charAt(ZERO) === '-') {
+        if (INCLUDE) {
+          throw new Error('To specify EXCLUDE tags, ' +
+            'prepend each tag with -');
+        }
+
+        tagArr[i] = tagArr[i].slice(ONE);
+      }
+    }
+
+    const tags = props.tagFilterName;
+    const whereClause = {};
+    if (INCLUDE) {
+      whereClause[tags] = {};
+      whereClause[tags][constants.SEQ_CONTAINS] = val;
+    } else { // EXCLUDE
+      whereClause[constants.SEQ_NOT] = {};
+      whereClause[constants.SEQ_NOT][tags] = {};
+      whereClause[constants.SEQ_NOT][tags][constants.SEQ_OVERLAP] = val;
+    }
+
+    return whereClause;
   }
 
   // TODO handle non-string data types like dates and numbers
@@ -156,14 +184,15 @@ function toSequelizeWhere(filter, props) {
       }
 
       /*
-       * If tag filter is enabled and key is "tags", then create a "contains"
-       * clause and add it to where clause, e.g.
-       * { where : { '$contains': ['tag1', 'tag2'] } }
+       * If tag filter is enabled and key is "tags":
+       * If it's an inclusion, create a "contains" clause:
+       * { where : { tags: { '$contains': ['tag1', 'tag2'] }}}
+       * If it's an exclusion, create a "not" "overlap" clause:
+       * { where : { '$not': { tags: { '$overlap': ['tag1', 'tag2'] }}}}}
        */
       else if (props.tagFilterName && key === props.tagFilterName) {
         const tagArr = filter[key];
-        values.push(toWhereClause(tagArr, props));
-        where[key] = values[ZERO];
+        Object.assign(where, toWhereClause(tagArr, props));
       } else {
         for (let j = ZERO; j < filter[key].length; j++) {
           const v = filter[key][j];
@@ -263,77 +292,6 @@ function options(params, props) {
 } // options
 
 /**
- * Returns a filtered resource array,
- * according to the supplied tag string
- *
- * @param {Array} sArr The array of resources
- * to filter from
- * @param {String} tagsStr Comma delimited String with
- * tags to check for.
- * @returns {Array} The filtered array
- */
-function filterArrFromArr(sArr, tagsStr) {
-  const tagsArr = tagsStr.split(',');
-  const TAGLEN = tagsArr.length;
-
-  // Assume TAGLEN has > 0 tags (otherwise express would throw error)
-  const INCLUDE = tagsArr[ZERO].charAt(ZERO) !== '-';
-
-  /*
-   * If !INCLUDE, splice out the leading "-" in tags. Otherwise throw an
-   * exception if tag starts with "-".
-   */
-  for (let i = TAGLEN - ONE; i >= ZERO; i--) {
-    if (tagsArr[i].charAt(ZERO) === '-') {
-      if (INCLUDE) {
-        throw new Error('To specify EXCLUDE tags, ' +
-          'prepend each tag with -');
-      }
-
-      tagsArr[i] = tagsArr[i].slice(ONE);
-    }
-  }
-
-  const filteredArr = [];
-
-  // append iff subject's tags contains all tags in tagsArr
-  if (INCLUDE) {
-    for (let i = ZERO; i < sArr.length; i++) {
-      let count = ZERO;
-      const tags = sArr[i].tags;
-      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
-        if (tags.indexOf(tagsArr[j]) > -ONE) {
-          count++;
-        }
-      }
-
-      if (count === TAGLEN) {
-        filteredArr.push(sArr[i]);
-      }
-    }
-  } else {
-    // EXCLUDE: append iff none of subject's tags
-    // is in tagsArr
-    for (let i = ZERO; i < sArr.length; i++) {
-      let addToArr = true;
-      const tags = sArr[i].tags;
-      for (let j = TAGLEN - ONE; j >= ZERO; j--) {
-        if (tags.indexOf(tagsArr[j]) > -ONE) {
-          addToArr = false;
-          break;
-        }
-      }
-
-      if (addToArr) {
-        filteredArr.push(sArr[i]);
-      }
-    }
-  }
-
-  return filteredArr;
-}
-
-/**
  * Generates the "next" URL for paginated result sets.
  *
  * @param {String} url - The original URL
@@ -351,6 +309,5 @@ function getNextUrl(url, limit, offset) {
 module.exports = {
   getNextUrl,
   options,
-  filterArrFromArr, // for testing
   toSequelizeWildcards, // for testing
 }; // exports
