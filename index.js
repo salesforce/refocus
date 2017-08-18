@@ -168,9 +168,9 @@ function start() { // eslint-disable-line max-statements
     app.use(helmet.xssFilter());
 
     /*
-     * Allow routes, that need to be accessed from scripting queries, access
-     * throught the cross-origin resource sharing HTTP standard e.g. Bots that
-     * needs to get needs to get current botData to continue its action
+     * Allow specified routes to be accessed from Javascript outside of Refocus
+     * throught cross-origin resource sharing
+     * e.g. A bot that needs to get current botData from Refocus
      */
     if (featureToggles.isFeatureEnabled('enableCORS')) {
       conf.corsRoutes.forEach((rte) => app.use(rte, cors()));

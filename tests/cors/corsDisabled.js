@@ -22,7 +22,7 @@ const profilesPath = '/v1/profiles';
 const tu = require('../testUtils');
 const expect = require('chai').expect;
 
-describe('tests/cors/corsEnabled.js,CORS testing for routes', () => {
+describe('tests/cors/corsDisabled.js, CORS testing for routes', () => {
   let token;
 
   before((done) => {
