@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { checkValidation } from '../../../view/admin/utils/getFormData.js';
 
-describe('Process form', () => {
+describe('tests/view/utils/processForm.js, Process form >', () => {
   const CONTAIN_SPACES = 'contain spaces';
   const ACCEPTABLE = 'accept_this_with_numbers999';
 

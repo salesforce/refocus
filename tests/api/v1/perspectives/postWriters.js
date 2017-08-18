@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,7 +19,7 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const postWritersPath = '/v1/perspectives/{key}/writers';
 
-describe('api: perspectives: post writers', () => {
+describe('tests/api/v1/perspectives/postWriters.js', () => {
   let perspective;
   let token;
   let otherValidToken;

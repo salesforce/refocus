@@ -18,7 +18,7 @@ const User = tu.db.User;
 const u = require('./utils');
 const path = '/v1/perspectives';
 
-describe('api: patch perspectives without permission', () => {
+describe('tests/api/v1/perspectives/putPatchWithoutPerms.js >', () => {
   let otherValidToken;
   let perspectiveId;
   let createdLensId;

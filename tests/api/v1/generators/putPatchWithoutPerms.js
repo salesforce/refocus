@@ -20,7 +20,7 @@ const Generator = tu.db.Generator;
 const User = tu.db.User;
 const path = '/v1/generators';
 
-describe('api: generators:', () => {
+describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
   let generator;
   let otherValidToken;
   const generatorToCreate = u.getGenerator();

@@ -22,7 +22,7 @@ const writersPath = '/v1/generators/{key}/writers';
 const writerPath = '/v1/generators/{key}/writers/{userNameOrId}';
 const generatorPath = '/v1/generators/{key}';
 
-describe('api: generatorss: permissions', () => {
+describe('tests/api/v1/generators/deleteWriters.js >', () => {
   let token;
   let otherValidToken;
   let generator;
@@ -67,7 +67,7 @@ describe('api: generatorss: permissions', () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission using username', (done) => {
       api.delete(writerPath.replace('{key}', generator.id)
         .replace('{userNameOrId}', user.name))

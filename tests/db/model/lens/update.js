@@ -19,7 +19,7 @@ const Lens = tu.db.Lens;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: lens: update: isWritableBy: ', () => {
+describe('tests/db/model/lens/update.js >', () => {
   let prof;
   let lensUnprotected;
   let lensProtected;

@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/lenses/get.js >', () => {
   let lensId;
   let lensName;
   let token;

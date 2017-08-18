@@ -20,7 +20,7 @@ const path = '/v1';
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('Sample Count:', () => {
+describe('tests/api/v1/samples/sampleCount.js >', () => {
   let token;
 
   before((done) => {
@@ -58,7 +58,7 @@ describe('Sample Count:', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('For Subject:', () => {
+  describe('For Subject >', () => {
     it('all subjects', (done) => {
       api.post('/v1/samples/upsert')
       .set('Authorization', token)
@@ -155,7 +155,7 @@ describe('Sample Count:', () => {
     });
   });
 
-  describe('For Aspects:', () => {
+  describe('For Aspects >', () => {
     it('all aspects', (done) => {
       api.post(`${path}/samples/upsert`)
       .set('Authorization', token)

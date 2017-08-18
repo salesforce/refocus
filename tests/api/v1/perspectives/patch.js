@@ -19,7 +19,7 @@ const path = '/v1/perspectives';
 const expect = require('chai').expect;
 const Perspective = tu.db.Perspective;
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/perspectives/patch.js >', () => {
   let perspectiveId;
   let token;
   const aspectFilterArr = ['temperature', 'humidity'];

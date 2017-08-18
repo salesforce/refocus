@@ -25,99 +25,97 @@ const Bot = tu.db.Bot;
 const BotAction = tu.db.BotAction;
 const BotData = tu.db.BotData;
 
-describe('db: event: create: ', () => {
+describe('tests/db/model/event/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('Create a new event', () => {
-    it('ok, event created for room and bot', (done) => {
-      const testEvent = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testEvent.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testEvent.botId = bot.id;
-        return Event.create(testEvent);
-      })
-      .then((o) => {
-        expect(o).to.have.property('id');
-        expect(o).to.have.property('botId');
-        expect(o).to.have.property('roomId');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, event created for room and bot', (done) => {
+    const testEvent = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testEvent.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testEvent.botId = bot.id;
+      return Event.create(testEvent);
+    })
+    .then((o) => {
+      expect(o).to.have.property('id');
+      expect(o).to.have.property('botId');
+      expect(o).to.have.property('roomId');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, event created for bot action', (done) => {
-      const testBotAction = ba.getStandard();
-      const testEvent = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        testEvent.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        testEvent.botId = bot.id;
-        return BotAction.create(testBotAction);
-      })
-      .then((botAction) => {
-        testEvent.botActionId = botAction.id;
-        return Event.create(testEvent);
-      })
-      .then((o) => {
-        expect(o).to.have.property('id');
-        expect(o).to.have.property('botId');
-        expect(o).to.have.property('roomId');
-        expect(o).to.have.property('botActionId');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, event created for bot action', (done) => {
+    const testBotAction = ba.getStandard();
+    const testEvent = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      testEvent.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      testEvent.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((botAction) => {
+      testEvent.botActionId = botAction.id;
+      return Event.create(testEvent);
+    })
+    .then((o) => {
+      expect(o).to.have.property('id');
+      expect(o).to.have.property('botId');
+      expect(o).to.have.property('roomId');
+      expect(o).to.have.property('botActionId');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, event created for bot data', (done) => {
-      const testBotData = bd.getStandard();
-      const testEvent = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotData.roomId = room.id;
-        testEvent.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotData.botId = bot.id;
-        testEvent.botId = bot.id;
-        return BotData.create(testBotData);
-      })
-      .then((botData) => {
-        testEvent.botDataId = botData.id;
-        return Event.create(testEvent);
-      })
-      .then((o) => {
-        expect(o).to.have.property('id');
-        expect(o).to.have.property('botId');
-        expect(o).to.have.property('roomId');
-        expect(o).to.have.property('botDataId');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, event created for bot data', (done) => {
+    const testBotData = bd.getStandard();
+    const testEvent = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      testEvent.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      testEvent.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then((botData) => {
+      testEvent.botDataId = botData.id;
+      return Event.create(testEvent);
+    })
+    .then((o) => {
+      expect(o).to.have.property('id');
+      expect(o).to.have.property('botId');
+      expect(o).to.have.property('roomId');
+      expect(o).to.have.property('botDataId');
+      done();
+    })
+    .catch(done);
   });
 });

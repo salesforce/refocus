@@ -22,7 +22,7 @@ const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const v = require('../roomTypes/utils');
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/rooms/patch.js >', () => {
   let testRoomType;
   let testRoom;
   let token;
@@ -53,54 +53,51 @@ describe(`api: PATCH ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('PATCH room', () => {
-    it('Pass, patch room name', (done) => {
-      const newName = 'newName';
-      api.patch(`${path}/${testRoom.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, patch room name', (done) => {
+    const newName = 'newName';
+    api.patch(`${path}/${testRoom.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(newName);
-        done();
-      });
+      expect(res.body.name).to.equal(newName);
+      done();
     });
+  });
 
-    it('Fail, patch room invalid name', (done) => {
-      const newName = '~!invalidName';
-      api.patch(`${path}/${testRoom.id}`)
-      .set('Authorization', token)
-      .send({ name: newName })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Fail, patch room invalid name', (done) => {
+    const newName = '~!invalidName';
+    api.patch(`${path}/${testRoom.id}`)
+    .set('Authorization', token)
+    .send({ name: newName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain(tu.schemaValidationErrorName);
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
     });
+  });
 
-    it('Fail, patch room invalid attribute', (done) => {
-      api.patch(`${path}/${testRoom.id}`)
-      .set('Authorization', token)
-      .send({ invalid: true })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Fail, patch room invalid attribute', (done) => {
+    api.patch(`${path}/${testRoom.id}`)
+    .set('Authorization', token)
+    .send({ invalid: true })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body).not.to.have.property('invalid');
-        done();
-      });
+      expect(res.body).not.to.have.property('invalid');
+      done();
     });
   });
 });
-

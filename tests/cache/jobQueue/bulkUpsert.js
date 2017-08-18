@@ -26,7 +26,8 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
 
-describe('redisStore: POST using worker process' + path, () => {
+describe('tests/cache/jobQueue/bulkUpsert.js, ' +
+'redisStore: POST using worker process' + path, () => {
   let token;
 
   before((done) => {
@@ -38,7 +39,7 @@ describe('redisStore: POST using worker process' + path, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -63,7 +64,7 @@ describe('redisStore: POST using worker process' + path, () => {
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(rtu.forceDelete);
@@ -89,7 +90,7 @@ describe('redisStore: POST using worker process' + path, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
     })
     .end((err) => {
@@ -124,7 +125,7 @@ describe('redisStore: POST using worker process' + path, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       //don't call done() yet, need to wait for data to be logged
@@ -177,12 +178,9 @@ describe('redisStore: POST using worker process' + path, () => {
           expect(logObj.dbTime).to.match(/\d+ms/);
           expect(logObj.recordCount).to.equal('3');
           expect(logObj.responseBytes).to.match(/\d+/);
-
           const totalTime = parseInt(logObj.totalTime);
           const dbTime = parseInt(logObj.dbTime);
-
           expect(totalTime).to.be.above(dbTime);
-
           apiLogged = true;
           if (workerLogged && apiLogged) {
             logger.removeListener('logging', testLogMessage);
@@ -194,7 +192,6 @@ describe('redisStore: POST using worker process' + path, () => {
           done(err);
         }
       }
-
     };
   });
 });

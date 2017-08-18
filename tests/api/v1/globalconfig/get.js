@@ -20,7 +20,7 @@ const path = '/v1/globalconfig';
 const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/globalconfig/get.js >', () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(

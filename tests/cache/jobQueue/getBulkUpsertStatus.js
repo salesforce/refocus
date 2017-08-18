@@ -10,7 +10,6 @@
  * tests/cache/jobQueue/getBulkUpsertStatus.js
  */
 'use strict'; // eslint-disable-line strict
-
 const jobSetup = require('../../../jobQueue/setup');
 const jobQueue = jobSetup.jobQueue;
 const expect = require('chai').expect;
@@ -27,7 +26,8 @@ const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamplesJob');
 
-describe('api: GET ' + getStatusPath, () => {
+describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
+`api: GET ${getStatusPath} >`, () => {
   let token;
 
   before((done) => {
@@ -38,7 +38,7 @@ describe('api: GET ' + getStatusPath, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -63,7 +63,7 @@ describe('api: GET ' + getStatusPath, () => {
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(rtu.forceDelete);
@@ -86,12 +86,12 @@ describe('api: GET ' + getStatusPath, () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '10',
-      }
+      },
     ])
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -108,8 +108,9 @@ describe('api: GET ' + getStatusPath, () => {
         api.get(getStatusPath.replace('{jobId}', jobId))
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
+
           expect(res.body.status).to.equal('complete');
           expect(res.body.errors.length).to.equal(0);
           return done();
@@ -134,18 +135,17 @@ describe('api: GET ' + getStatusPath, () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '10',
-        status: 'Info'
+        status: 'Info',
       },
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}_InvalidAspect`,
         value: '10',
-      }
-
+      },
     ])
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -162,13 +162,13 @@ describe('api: GET ' + getStatusPath, () => {
         api.get(getStatusPath.replace('{jobId}', jobId))
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
+
           expect(res.body.status).to.equal('complete');
           expect(res.body.errors.length).to.equal(2);
           expect(res.body.errors[0].name).to.equal('ValidationError');
           expect(res.body.errors[1].name).to.equal('ResourceNotFoundError');
-
           return done();
         });
       }, 500);
@@ -181,7 +181,7 @@ describe('api: GET ' + getStatusPath, () => {
     const toUpsert = [];
 
     // read-only field validation error
-    for (let i = 0;i< 50;i++) {
+    for (let i = 0; i < 50; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '10',
@@ -190,7 +190,7 @@ describe('api: GET ' + getStatusPath, () => {
     }
 
     // invalid aspect
-    for (let i = 0;i< 25;i++) {
+    for (let i = 0; i < 25; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect_Invalid`,
         value: '10',
@@ -198,7 +198,7 @@ describe('api: GET ' + getStatusPath, () => {
     }
 
     // invalid subject
-    for (let i = 0;i< 25;i++) {
+    for (let i = 0; i < 25; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject_Invalid|${tu.namePrefix}Aspect1`,
         value: '10',
@@ -216,7 +216,7 @@ describe('api: GET ' + getStatusPath, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      // make sure that the jobId is returned as a part of the response.
+      /* make sure that the jobId is returned as a part of the response. */
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -233,8 +233,9 @@ describe('api: GET ' + getStatusPath, () => {
         api.get(getStatusPath.replace('{jobId}', jobId))
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
+
           expect(res.body.status).to.equal('complete');
           expect(res.body.errors.length).to.equal(100);
           return done();

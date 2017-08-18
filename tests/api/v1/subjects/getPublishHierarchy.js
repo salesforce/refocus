@@ -19,7 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}:`, () => {
+describe(`tests/api/v1/subjects/getPublishHierarchy.js, GET ${path} >`, () => {
   let token;
   let gp = { name: `${tu.namePrefix}America`, isPublished: true };
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -86,7 +86,7 @@ describe(`api: GET ${path}:`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('isPublished flag:', () => {
+  describe('isPublished flag >', () => {
     it('hierarchy at gp level should contain parent as a child', (done) => {
       api.get(path.replace('{key}', gp.id))
       .set('Authorization', token)

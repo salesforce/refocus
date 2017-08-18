@@ -22,7 +22,7 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const adminUser = require('../../../../config').db.adminUser;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/profiles/delete.js >', () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
@@ -46,46 +46,44 @@ describe(`api: DELETE ${path}`, () => {
 
   afterEach(u.forceDelete);
 
-  describe('DELETE profile', () => {
-    it('Pass, delete profile', (done) => {
-      api.delete(`${path}/${p0.name}`)
-      .set('Authorization', predefinedAdminUserToken)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Pass, delete profile', (done) => {
+    api.delete(`${path}/${p0.name}`)
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.name).to.equal(p0.name);
-        done();
-      });
+      expect(res.body.name).to.equal(p0.name);
+      done();
     });
+  });
 
-    it('fail, not an admin profile', (done) => {
-      api.delete(`${path}/${p0.name}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('fail, not an admin profile', (done) => {
+    api.delete(`${path}/${p0.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
-        done();
-      });
+      expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+      done();
     });
+  });
 
-    it('Fail, profile not found', (done) => {
-      api.delete(`${path}/INVALID_PROFILE`)
-      .set('Authorization', predefinedAdminUserToken)
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('Fail, profile not found', (done) => {
+    api.delete(`${path}/INVALID_PROFILE`)
+    .set('Authorization', predefinedAdminUserToken)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        done();
-      });
+      done();
     });
   });
 });

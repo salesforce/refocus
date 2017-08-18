@@ -21,7 +21,7 @@ const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 const writerPath = '/v1/collectors/{key}/writers/{userNameOrId}';
 
-describe(`api: DELETE ${path} >`, () => {
+describe('tests/api/v1/collectors/deleteWriters.js >', () => {
   let token;
   let otherValidToken;
   let coll;
@@ -61,7 +61,7 @@ describe(`api: DELETE ${path} >`, () => {
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
-  describe('delete resource without permission', () => {
+  describe('without permission >', () => {
     it('return 403 when deleting without permission', (done) => {
       api.delete(path.replace('{key}', coll.id))
       .set('Authorization', otherValidToken)
@@ -70,7 +70,7 @@ describe(`api: DELETE ${path} >`, () => {
     });
   });
 
-  describe('delete writer(s)', () => {
+  describe('delete writer(s) >', () => {
     it('remove write permission associated with the resource', (done) => {
       api.delete(path.replace('{key}', coll.id))
       .set('Authorization', token)

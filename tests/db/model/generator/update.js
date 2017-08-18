@@ -17,7 +17,7 @@ const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const constants = require('../../../../db/constants');
 
-describe('db: Generator: update: ', () => {
+describe('tests/db/model/generator/update.js >', () => {
   const generator = u.getGenerator();
   let generatorDBInstance;
   const collectorObj1 = {

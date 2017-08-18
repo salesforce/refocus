@@ -21,8 +21,8 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('api: POST /samples with provider ' +
-  'when token is NOT enforced: ', () => {
+describe('tests/api/v1/samples/postWithProvider.js, token NOT enforced >',
+() => {
   let sampleToPost;
   let token;
 

@@ -22,7 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/aspects/put.js >', () => {
   let token;
   let aspectId = 0;
 
@@ -94,7 +94,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('with related links', () => {
+  describe('with related links >', () => {
     it('update to add related links', (done) => {
       const toPut = {
         name: `${tu.namePrefix}newName`,
@@ -199,7 +199,7 @@ describe(`api: PUT ${path}`, () => {
     });
   });
 
-  describe('with tags', () => {
+  describe('with tags >', () => {
     it('update to add tags', (done) => {
       const toPut = {
         name: `${tu.namePrefix}newName`,

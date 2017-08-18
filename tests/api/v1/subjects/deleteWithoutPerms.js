@@ -21,7 +21,7 @@ const path = '/v1/subjects';
 const deleteSubjectTag = '/v1/subjects/{key}/tags';
 const deleteSubjectRelLink = '/v1/subjects/{key}/relatedLinks';
 
-describe('api: DELETE Sample without permission', () => {
+describe('tests/api/v1/subjects/deleteWithoutPerms.js >', () => {
   let subject;
   let otherValidToken;
   let user;

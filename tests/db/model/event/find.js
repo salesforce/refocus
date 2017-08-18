@@ -24,7 +24,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe('db: event: find: ', () => {
+describe('tests/db/model/event/find.js >', () => {
   beforeEach((done) => {
     const testBotData = bd.getStandard();
     const testEvent = u.getStandard();
@@ -54,15 +54,13 @@ describe('db: event: find: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Find event', () => {
-    it('ok, event by roomId', (done) => {
-      Room.findAll()
-      .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
-      .then((o) => {
-        expect(o).to.have.property('log').to.equal(u.log);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, event by roomId', (done) => {
+    Room.findAll()
+    .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
+    .then((o) => {
+      expect(o).to.have.property('log').to.equal(u.log);
+      done();
+    })
+    .catch(done);
   });
 });

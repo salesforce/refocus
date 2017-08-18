@@ -20,7 +20,7 @@ const Subject = tu.db.Subject;
 const allDeletePath = '/v1/subjects/{key}/tags';
 const oneDeletePath = '/v1/subjects/{key}/tags/{akey}';
 
-describe('api: subjects: DELETE tags', () => {
+describe('tests/api/v1/subjects/deleteTags.js >', () => {
   let token;
   let i;
   const tag0 = 'tag0';

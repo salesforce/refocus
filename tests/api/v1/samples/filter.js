@@ -19,7 +19,7 @@ const Sample = tu.db.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 
-describe('sample api: FILTER' + path, () => {
+describe(`tests/api/v1/samples/filter.js, ${path} >`, () => {
   let token;
   const THREE = 3;
   const TWO = 2;
