@@ -18,6 +18,7 @@ const apiUtils = require('../../../../api/v1/helpers/verbs/utils.js');
 describe('tests/api/v1/helpers/utils.js >', () => {
   let token;
   let subject;
+  let user;
   const na = {
     name: `${tu.namePrefix}NorthAmerica`,
     description: 'continent',
@@ -28,7 +29,10 @@ describe('tests/api/v1/helpers/utils.js >', () => {
       subject = sub;
       return tu.createUser('myUNiqueUser');
     })
-    .then((usr) => tu.createTokenFromUserName(usr.name))
+    .then((usr) => {
+      user = usr;
+      return tu.createTokenFromUserName(usr.name)
+    })
     .then((tkn) => {
       token = tkn;
       done();
@@ -68,6 +72,32 @@ describe('tests/api/v1/helpers/utils.js >', () => {
         done();
       });
     });
+
+    it('no token required if requireAccessToken is false and the resource is not' +
+      ' write-protected', (done) => {
+      tu.toggleOverride('requireAccessToken', false);
+      const fakeReq = { headers: {} };
+      apiUtils.isWritable(fakeReq, subject)
+      .then((ok) => {
+        expect(ok).to.equal(subject);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('token required if requireAccessToken is false and the resource is' +
+      ' write-protected', (done) => {
+      tu.toggleOverride('requireAccessToken', false);
+      const fakeReq = { headers: {} };
+      subject.addWriters([user])
+      .then(() => apiUtils.isWritable(fakeReq, subject))
+      .then(() => done('expecting error'))
+      .catch((err) => {
+        expect(err.name).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
   });
 
   describe('getUserNameFromToken >', () => {
