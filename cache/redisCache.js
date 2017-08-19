@@ -15,6 +15,7 @@
 const redis = require('redis');
 const logger = require('winston');
 const rconf = require('../config').redis;
+const featureToggles = require('feature-toggles');
 
 /*
  * This will add "...Async" to all node_redis functions (e.g. return
@@ -77,22 +78,24 @@ const client = {
 };
 
 Object.keys(client).forEach((key) => {
-  client[key].on('connect', () => {
-    logger.info(`redisClientConnection=${key} event=connect`);
-  });
-
   client[key].on('error', (err) => {
     logger.error(`redisClientConnection=${key} event=error`, err);
     return new Error(err);
   });
 
-  client[key].on('ready', () => {
-    logger.info(`redisClientConnection=${key} event=ready`);
-  });
+  if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
+    client[key].on('connect', () => {
+      logger.info(`redisClientConnection=${key} event=connect`);
+    });
 
-  client[key].on('reconnecting', () => {
-    logger.info(`redisClientConnection=${key} event=reconnecting`);
-  });
+    client[key].on('ready', () => {
+      logger.info(`redisClientConnection=${key} event=ready`);
+    });
+
+    client[key].on('reconnecting', () => {
+      logger.info(`redisClientConnection=${key} event=reconnecting`);
+    });
+  }
 });
 
 module.exports = {
