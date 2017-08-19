@@ -33,7 +33,6 @@ module.exports = (io) => {
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
-
     if (featureToggles.isFeatureEnabled('publishPartialSample') &&
     rtUtils.isThisSample(parsedObj)) {
       const useSampleStore =
@@ -52,7 +51,6 @@ module.exports = (io) => {
         emitter(io, key, obj);
       });
     } else {
-
       /*
        * pass on the message received through the redis subscriber to the socket
        * io emitter to send data to the browser clients.
