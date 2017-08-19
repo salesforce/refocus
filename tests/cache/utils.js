@@ -10,9 +10,7 @@
  * tests/cache/utils.js
  */
 'use strict';
-
 const tu = require('../testUtils');
-
 const testStartTime = new Date();
 
 module.exports = {

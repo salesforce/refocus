@@ -22,7 +22,7 @@ const Bot = tu.db.Bot;
 const BotAction = tu.db.BotAction;
 const v = require('../roomType/utils');
 
-describe('db: bot action: update: ', () => {
+describe('tests/db/model/botAction/update.js >', () => {
   beforeEach((done) => {
     const testBotAction = u.getStandard();
     RoomType.create(rt.getStandard())
@@ -45,15 +45,13 @@ describe('db: bot action: update: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Update bot action', () => {
-    it('ok, update bot action isPending', (done) => {
-      BotAction.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ isPending: false }))
-      .then((o) => {
-        expect(o).to.have.property('isPending').to.equal(false);
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, update bot action isPending', (done) => {
+    BotAction.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ isPending: false }))
+    .then((o) => {
+      expect(o).to.have.property('isPending').to.equal(false);
+      done();
+    })
+    .catch(done);
   });
 });

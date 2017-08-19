@@ -22,7 +22,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const v = require('../roomType/utils');
 
-describe('db: bot data: delete: ', () => {
+describe('tests/db/model/botData/delete.js >', () => {
   beforeEach((done) => {
     const testBotData = u.getStandard();
     RoomType.create(rt.getStandard())
@@ -49,16 +49,14 @@ describe('db: bot data: delete: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Delete bot data', () => {
-    it('ok, bot data delete first data', (done) => {
-      BotData.destroy({ where: { name: u.name } })
-      .then(() => BotData.findAll())
-      .then((o) => {
-        expect(o.length).to.equal(1);
-        expect(o[0]).to.have.property('name').to.equal('SecondData');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot data delete first data', (done) => {
+    BotData.destroy({ where: { name: u.name } })
+    .then(() => BotData.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(1);
+      expect(o[0]).to.have.property('name').to.equal('SecondData');
+      done();
+    })
+    .catch(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const path = require('path');
 const fs = require('fs');

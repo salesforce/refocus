@@ -22,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: PATCH ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/patch.js, PATCH ${path} >`, () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -69,7 +69,7 @@ describe(`api: PATCH ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.errors).to.have.length(ONE);
         expect(res.body.errors).to.have.deep.property('[0].type',
@@ -90,12 +90,6 @@ describe(`api: PATCH ${path}`, () => {
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.not.equal(u.samlParams.samlEntryPoint);
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

@@ -16,7 +16,7 @@ const u = require('./utils');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
-describe('db: Generatortemplate: create: ', () => {
+describe('tests/db/model/generatortemplate/create.js >', () => {
   const gt = JSON.parse(JSON.stringify(u.getGeneratorTemplate()));
   let userInst;
   beforeEach((done) => {
@@ -42,7 +42,7 @@ describe('db: Generatortemplate: create: ', () => {
       expect(o.author).to.deep.equal(gt.author);
       expect(o.repository).to.deep.equal(gt.repository);
       expect(o.connection).to.deep.equal(gt.connection);
-      expect(o.keywords).to.deep.equal(gt.keywords);
+      expect(o.tags).to.deep.equal(gt.tags);
       expect(o.transform).to.deep.equal(gt.transform);
       expect(o.contextDefinition).to.deep.equal(gt.contextDefinition);
       expect(o.helpUrl).to.equal(gt.helpUrl);

@@ -10,7 +10,6 @@
  * tests/cache/models/aspects/deleteTags.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,10 +21,11 @@ const allDeletePath = '/v1/aspects/{key}/tags';
 const oneDeletePath = '/v1/aspects/{key}/tags/{akey}';
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = rtu.samstoinit;
 
-describe(`api: redisStore: aspects: DELETE tags`, () => {
+describe('tests/cache/models/aspects/deleteTags.js, ' +
+`api: redisStore: aspects: DELETE tags >`, () => {
   let token;
   let aspId;
   let aspName;
@@ -59,6 +59,7 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .then(() => done())
     .catch(done);
   });
+
   afterEach(rtu.forceDelete);
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
@@ -69,7 +70,7 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       redisOps.getHashPromise(objectType.aspect, n.name)
@@ -89,8 +90,9 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.tags).to.have.length(0);
       redisOps.getHashPromise(objectType.aspect, n.name)
       .then((aspect) => {
@@ -106,8 +108,9 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
       redisOps.getHashPromise(objectType.aspect, n.name)
@@ -126,8 +129,9 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
       redisOps.getHashPromise(objectType.aspect, n.name)
@@ -146,8 +150,9 @@ describe(`api: redisStore: aspects: DELETE tags`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
+
       expect(res.body.tags).to.have.length(2);
       expect(res.body.tags).to.have.members(['tag1', 'tag0']);
       redisOps.getHashPromise(objectType.aspect, n.name)

@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 
-describe('dropdown and modal data', () => {
+describe('tests/api/v1/perspectives/app.js, dropdown and modal data >', () => {
   let lensId;
   let perspectiveId;
   let perspectiveName;
@@ -66,7 +65,7 @@ describe('dropdown and modal data', () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);

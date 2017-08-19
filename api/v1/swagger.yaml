@@ -215,7 +215,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -226,7 +226,7 @@ paths:
              names with and without minus signs, for example ?tags=BAZ,-FOO
              are not allowed. Aspects without tags are not included in the
              include result set.
-          type: string
+          type: array
           required: false
       responses:
         200:
@@ -1922,7 +1922,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -1933,7 +1933,7 @@ paths:
              names with and without minus signs, for example ?tags=BAZ,-FOO
              are not allowed. Generators without tags are not included in the
              include result set.
-          type: string
+          type: array
           required: false
       responses:
         200:
@@ -2473,7 +2473,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -2484,7 +2484,7 @@ paths:
              names with and without minus signs, for example ?tags=BAZ,-FOO
              are not allowed. GeneratorTemplates without tags are not included in the
              include result set.
-          type: string
+          type: array
           required: false
         -
           name: isPublished
@@ -5870,7 +5870,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -5879,7 +5879,7 @@ paths:
              be excluded. For example, ?tags=-BAZ,-FOO will return only the
              subjects with tag name not equal to BAZ or FOO. Subjects without
              tags are not included in the result set.
-          type: string
+          type: array
           required: false
       responses:
         200:
@@ -10881,6 +10881,16 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
+      ui:
+        type: object
+        description: The UI of the bot
+        properties:
+          name:
+            type: string
+            description: The name of the UI file.
+          size:
+            type: integer
+            description: The size of the UI file (bytes)
       active:
         type: boolean
         description: Flag for if a bot is active with communication
