@@ -36,7 +36,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.id).to.not.equal(undefined);
       expect(o.name).to.equal(generator.name);
       expect(o.description).to.equal(generator.description);
-      expect(o.keywords).to.deep.equal(generator.keywords);
+      expect(o.tags).to.deep.equal(generator.tags);
       expect(o.context).to.deep.equal(generator.context);
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);

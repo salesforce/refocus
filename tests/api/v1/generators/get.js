@@ -22,6 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const FOUR = 4;
 
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
@@ -179,6 +180,34 @@ describe('tests/api/v1/generators/get.js >', () => {
 
   it('find by name wildcard, not found', (done) => {
     api.get(`${path}?name=*ok`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
+    });
+  });
+
+  it('find by tags, found', (done) => {
+    api.get(`${path}?tags=status`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(FOUR);
+      done();
+    });
+  });
+
+  it('find by tags, not found', (done) => {
+    api.get(`${path}?tags=blah`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

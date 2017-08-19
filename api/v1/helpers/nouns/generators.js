@@ -31,4 +31,6 @@ module.exports = {
   belongsToManyAssoc: {
     users: 'writers',
   },
+  fieldsWithArrayType: ['tags'],
+  tagFilterName: 'tags',
 }; // exports

@@ -68,23 +68,6 @@ function doFindAndCountAll(reqResNext, props, opts) {
  */
 function doFindAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: new Date() };
-  const { tags } = reqResNext.req.swagger.params;
-  const filterByTags = tags && tags.value && tags.value.length;
-  const excludeTagField = opts.attributes && opts.attributes.length
-    && !opts.attributes.includes('tags');
-
-  if (opts.where && opts.where.tags &&
-    opts.where.tags.$contains && opts.where.tags.$contains.length) {
-
-    // change to filter at the API level
-    opts.where.tags.$contains = [];
-  }
-
-  //if tags field is excluded, need to add it so we can filter by tags later
-  if (filterByTags && excludeTagField) {
-    opts.attributes.push('tags');
-  }
-
   return u.getScopedModel(props, opts.attributes).findAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -96,13 +79,6 @@ function doFindAll(reqResNext, props, opts) {
 
       return u.responsify(row, props, reqResNext.req.method);
     });
-
-    if (filterByTags) {
-      retval = fu.filterArrFromArr(retval, tags.value);
-      if (excludeTagField) {
-        retval.forEach(o => delete o.tags);
-      }
-    }
 
     u.logAPI(reqResNext.req, resultObj, retval);
     return retval;
