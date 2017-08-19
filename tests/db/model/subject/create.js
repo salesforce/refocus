@@ -10,16 +10,16 @@
  * tests/db/model/subject/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
+const constants = require('../../../../db/constants');
 
-describe('db: subject: create: ', () => {
+describe('tests/db/model/subject/create.js >', () => {
   after(u.forceDelete);
 
-  describe('Simple Subjects, i.e. no parents/children', () => {
+  describe('Simple Subjects, i.e. no parents/children >', () => {
     it('ok, simple subject', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}1`, null);
       Subject.create(s)
@@ -37,7 +37,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('parentAbsolutePath').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, unknown attribute is ignored', (done) => {
@@ -49,7 +49,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.not.have.property('x');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('should fail, missing name', (done) => {
@@ -102,7 +102,9 @@ describe('db: subject: create: ', () => {
     });
 
     it('should fail, name too long', (done) => {
-      const s = u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
+      const s =
+        u.getSubjectPrototype('abcdefghijklmnopqrstuvwxabcde' +
+            'fghijklmnopqrstuvwxabcdefghijklmnopqrstuvwx', null);
       Subject.create(s)
       .then(() => {
         done(new Error('should have failed since name is too long'));
@@ -139,13 +141,55 @@ describe('db: subject: create: ', () => {
       });
     });
 
+    it('should fail, invalid value for sort by', (done) => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}sortByContainsInvalidCharacters`, null);
+      s.sortBy = 'x@yz123$';
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by contains invalid ' +
+          'characters'));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
+
+    it('should fail, space in sort by', (done) => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}sortByWithSpaces`, null);
+      s.sortBy = 'abc xyz';
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by contains space '));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
+
+    it('should fail, sort by too long', (done) => {
+      var invalidLengthSortBy = new Array(constants.fieldlen.sortField + 10).join('a');
+      const s =
+        u.getSubjectPrototype(`${tu.namePrefix}sortByWithWrongLength`, null);
+      s.sortBy = invalidLengthSortBy;
+      Subject.create(s)
+      .then(() => {
+        done(new Error('should have failed since sort by is too long'));
+      })
+      .catch((err) => {
+        expect(err);
+        done();
+      });
+    });
+
     it('recreate OK', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}RecreateMe`, null);
       Subject.create(s)
       .then((o) => o.destroy())
       .then(() => Subject.create(s))
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing description', (done) => {
@@ -156,7 +200,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('description').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, null description', (done) => {
@@ -167,7 +211,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('description').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing helpEmail and helpUrl', (done) => {
@@ -180,7 +224,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('helpUrl').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing imageUrl', (done) => {
@@ -191,7 +235,7 @@ describe('db: subject: create: ', () => {
         expect(o).to.have.property('imageUrl').to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, missing isPublished defaults to false', (done) => {
@@ -204,7 +248,7 @@ describe('db: subject: create: ', () => {
         .to.equal(false);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, null parentId', (done) => {
@@ -215,7 +259,7 @@ describe('db: subject: create: ', () => {
         expect(o.dataValues.parentId).to.equal(null);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('should fail, parentId is not a UUID', (done) => {
@@ -241,7 +285,7 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.message.toLowerCase()).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
 
     it('geolocation array cannot contain less than two elements', (done) => {
@@ -254,7 +298,7 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.errors[0].path).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
 
     it('geolocation array cannot contain more than two elements', (done) => {
@@ -267,11 +311,11 @@ describe('db: subject: create: ', () => {
         expect(err.message.toLowerCase()).to.contain('validation error');
         expect(err.errors[0].path).to.contain('geolocation');
         done();
-      }).catch((err) => done(err));
+      }).catch(done);
     });
   });
 
-  describe('Children', () => {
+  describe('Children >', () => {
     let pId;
     const pName = `${tu.namePrefix}parent`;
 
@@ -282,7 +326,7 @@ describe('db: subject: create: ', () => {
         pId = o.id;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, child', (done) => {
@@ -297,9 +341,10 @@ describe('db: subject: create: ', () => {
         expect(created).to.have.property('name').to.equal(s.name);
         expect(created).to.have.property('parentId').to.equal(s.parentId);
         expect(created).to.have.property('parentAbsolutePath').to.equal(pName);
+        expect(created).to.have.property('sortBy').to.equal(s.sortBy);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });

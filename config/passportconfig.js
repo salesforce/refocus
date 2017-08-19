@@ -10,9 +10,10 @@
  * ./passport.js
  * Passport strategies
  */
+'use strict'; // eslint-disable-line strict
 
 const LocalStrategy = require('passport-local').Strategy;
-const User = require('../db/index').User;
+const User = require('../db/index').User.scope('withSensitiveInfo');
 const Profile = require('../db/index').Profile;
 const bcrypt = require('bcrypt-nodejs');
 
@@ -62,13 +63,15 @@ module.exports = (passportModule) => {
       return Profile.findOrCreate({ where: { name: 'RefocusUser' } });
     })
     .spread((profile, created) => { // eslint-disable-line no-unused-vars
+      // if non-sso register, create new user and token object.
+      let newUserCreated = null;
       User.create({
         profileId: profile.id,
         name: userName,
         email: req.body.email,
         password: userPassword,
       })
-      .then((newUser) => done(null, newUser))
+      .then((newUserCreated) => done(null, newUserCreated))
       .catch((_err) => done(_err));
     })
     .catch((err) => done(err));

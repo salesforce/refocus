@@ -10,7 +10,6 @@
  * tests/api/v1/aspects/deleteTags.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const Aspect = tu.db.Aspect;
 const allDeletePath = '/v1/aspects/{key}/tags';
 const oneDeletePath = '/v1/aspects/{key}/tags/{akey}';
 
-describe(`api: aspects: DELETE tags}`, () => {
+describe('tests/api/v1/aspects/deleteTags.js >', () => {
   let token;
   let aspId;
   const tag0 = 'tag0';
@@ -29,10 +28,7 @@ describe(`api: aspects: DELETE tags}`, () => {
   const n = {
     name: `${tu.namePrefix}ASPECTNAME`,
     timeout: '110s',
-    tags: [
-      'tag0',
-      'tag1'
-    ]
+    tags: ['tag0', 'tag1'],
   };
 
   before((done) => {
@@ -41,7 +37,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -50,7 +46,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       aspId = asp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -62,13 +58,7 @@ describe(`api: aspects: DELETE tags}`, () => {
     .expect((res) => {
       expect(res.body.tags).to.have.length(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete one tag', (done) => {
@@ -79,13 +69,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('delete tag by name', (done) => {
@@ -96,13 +80,7 @@ describe(`api: aspects: DELETE tags}`, () => {
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('error if tag not found', (done) => {
@@ -113,12 +91,6 @@ describe(`api: aspects: DELETE tags}`, () => {
       expect(res.body.tags).to.have.length(2);
       expect(res.body.tags).to.have.members(['tag1', 'tag0']);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

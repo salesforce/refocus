@@ -10,23 +10,18 @@
  * db/model/sample.js
  */
 'use strict'; // eslint-disable-line strict
+
+const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const u = require('../helpers/sampleUtils');
 const common = require('../helpers/common');
-const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
-const config = require('../../config');
-const eventName = {
-  add: 'refocus.internal.realtime.sample.add',
-  upd: 'refocus.internal.realtime.sample.update',
-  del: 'refocus.internal.realtime.sample.remove',
-};
-const dbLoggingEnabled = (
-    config.auditSamples === 'DB' || config.auditSamples === 'ALL'
-  ) || false;
+const dbErrors = require('../dbErrors');
+const commonUtils = require('../../utils/common');
 const messageCodeLen = 5;
 const assoc = {};
 const EMPTY_STRING = '';
-const NO = 0;
+const maxSampleNameLength = constants.fieldlen.longish +
+  constants.fieldlen.normalName + 1; // eslint-disable-line no-magic-numbers
 
 module.exports = function sample(seq, dataTypes) {
   const Sample = seq.define('Sample', {
@@ -35,11 +30,6 @@ module.exports = function sample(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     messageBody: {
       type: dataTypes.STRING(constants.fieldlen.longish),
     },
@@ -47,7 +37,7 @@ module.exports = function sample(seq, dataTypes) {
       type: dataTypes.STRING(messageCodeLen),
     },
     name: {
-      type: dataTypes.STRING(constants.fieldlen.longish),
+      type: dataTypes.STRING(maxSampleNameLength),
     },
     status: {
       type: dataTypes.ENUM(Object.keys(constants.statuses)),
@@ -86,11 +76,9 @@ module.exports = function sample(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.provider = Sample.belongsTo(models.User, {
+        assoc.user = Sample.belongsTo(models.User, {
           foreignKey: 'provider',
-
-          // TODO uncomment the next line once we have users/profiles done:
-          // allowNull: false,
+          as: 'user',
         });
         assoc.aspect = Sample.belongsTo(models.Aspect, {
           as: 'aspect',
@@ -106,11 +94,14 @@ module.exports = function sample(seq, dataTypes) {
             name: 'subjectId',
             allowNull: false,
           },
-          onDelete: 'CASCADE',
           hooks: true,
         });
         Sample.addScope('defaultScope', {
           include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
             {
               association: assoc.aspect,
               attributes: [
@@ -126,11 +117,12 @@ module.exports = function sample(seq, dataTypes) {
                 'infoRange',
                 'okRange',
                 'valueLabel',
+                'valueType',
+                'relatedLinks',
                 'tags',
+                'rank',
               ],
             },
-
-            // assoc.provider,
           ],
           order: ['Sample.name'],
         }, {
@@ -140,7 +132,11 @@ module.exports = function sample(seq, dataTypes) {
           attributes: [
             'id',
             'updatedAt',
-            'value'
+            'value',
+            'subjectId',
+            'aspectId',
+            'name',
+            'relatedLinks',
           ],
           where: {
             status: {
@@ -150,18 +146,27 @@ module.exports = function sample(seq, dataTypes) {
           include: [
             {
               association: assoc.aspect,
-              attributes: ['timeout', 'isPublished'],
+              attributes: ['timeout', 'isPublished', 'tags', 'name'],
             },
           ],
         });
       },
 
       /**
+       * NOTE:
+       * This sequelize method also has a check to make sure that the user
+       * performing the upsert operation is authorized to do so.
+       * The check is done in the DB layer to avoid extra calls to the aspect
+       * model every time an upsert is done. For example, if we are making
+       * a bulk upsert call with 1000 samples, we do not want to be making a
+       * 1000 calls in the API layer and a 1000 calls again in the DB layer.
+       *
        * Pseudo-upserts a sample using its name to look up its associated
        * subject and aspect. We can't use a "real" upsert because upsert
        * doesn't invoke hooks, and we rely on hooks to publish the change.
        *
        * @param {Sample} toUpsert - The sample to upsert
+       * @param {Object} user - The user performing the write operation
        * @param {Boolean} isBulk - true when used with bulk upsert, false
        *  otherwise
        * @returns {Promise} which resolves to the newly-created or -updated
@@ -169,98 +174,104 @@ module.exports = function sample(seq, dataTypes) {
        *  looking up the associated subject and aspect, or if an error was
        *  encountered while performing the sample upsert operation itself.
        */
-      upsertByName(toUpsert, isBulk) {
-        if (config.optimizeUpsert) {
-          let sampleExists = true;
-          return new seq.Promise((resolve, reject) => {
-            // get sample by name
-            Sample.findOne({
-              where: {
-                name: {
-                  $iLike: toUpsert.name,
-                },
-                isDeleted: NO,
-              },
-            })
-            .then((o) => {
-              // If sample does not exist, set sampleExists to false, which is
-              // used after this promise returns. Get corresponding subject and
-              //  aspect to check if the sample name is valid.
-              if (o === null) {
-                sampleExists = false;
-                return u.getSubjectAndAspectBySampleName(seq, toUpsert.name,
-                  isBulk);
-              }
+      upsertByName(toUpsert, user, isBulk) {
+        const userName = user ? user.name : false;
+        let subjasp;
+        return new seq.Promise((resolve, reject) => {
+          u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
+          .then((sa) => {
+            subjasp = sa;
+            toUpsert.subjectId = sa.subject.id;
+            toUpsert.aspectId = sa.aspect.id;
+            return sa.aspect.isWritableBy(userName);
+          })
+          .then((ok) => {
+            if (!ok) {
+              throw new dbErrors.UpdateDeleteForbidden();
+            }
 
-              // Else, if sample exists, update the sample.
-              // set value changed to true, during updates to avoid timeouts
-              // Adding this to the before update hook does
-              // give the needed effect; so adding it here!!!.
-              o.changed('value', true);
-              return o.update(toUpsert);
-            })
-            .then((returnedObj) => {
-              // If sample existed, return the updated object.
-              if (sampleExists) {
-                return returnedObj;
-              }
-
-              // If sample does not exist, update subject and aspect id in
-              // sample object to be created. Create sample.
-              toUpsert.subjectId = returnedObj.subject.id;
-              toUpsert.aspectId = returnedObj.aspect.id;
-              return Sample.create(toUpsert);
-            })
-            .then((o) => resolve(o))
-            .catch((err) => {
-              isBulk ? resolve(err) : reject(err);
-            });
-          });
-        } else {
-          let subjasp;
-          return new seq.Promise((resolve, reject) => {
-            u.getSubjectAndAspectBySampleName(seq, toUpsert.name, isBulk)
-            .then((sa) => {
-              subjasp = sa;
-              toUpsert.subjectId = sa.subject.id;
-              toUpsert.aspectId = sa.aspect.id;
-            })
-            .then(() => Sample.findOne({
+            return Sample.findOne({
               where: {
                 subjectId: subjasp.subject.id,
                 aspectId: subjasp.aspect.id,
-                isDeleted: NO,
               },
-            }))
-            .then((o) => {
-              if (o === null) {
-                return Sample.create(toUpsert);
+            });
+          })
+          .then((o) => {
+            if (o === null) {
+
+              // New sample. Add provider and user object,
+              // if conditions are met
+              if (user &&
+                featureToggles.isFeatureEnabled('returnUser')) {
+                toUpsert.provider = user.id;
+                toUpsert.user = { name: user.name, email: user.email };
               }
 
-              // set value changed to true, during updates to avoid timeouts
-              // Adding this to the before update hook does
-              // give the needed effect; so adding it here!!!.
-              o.changed('value', true);
-              return o.update(toUpsert);
-            })
-            .then((o) => resolve(o))
-            .catch((err) => {
-              isBulk ? resolve(err) : reject(err);
-            });
+              // Make sure the name is correct
+              toUpsert.name = subjasp.subject.absolutePath +
+                '|' + subjasp.aspect.name;
+              return Sample.create(toUpsert);
+            }
+
+            // Existing sample. Do not update sample name
+            delete toUpsert.name;
+
+            /*
+             * set value changed to true during updates to avoid timeouts.
+             * Adding this to the before update hook does
+             * give the needed effect; so adding it here!!!.
+             */
+            o.changed('value', true);
+            return o.update(toUpsert);
+          })
+          .then((o) => {
+            if (featureToggles.isFeatureEnabled('returnUser')) {
+              return o.reload().then((o) => resolve(o));
+            }
+
+            return resolve(o);
+          })
+          .catch((err) => {
+            if (isBulk) {
+              /*
+               * adding isFailed:true to differentiate failed results from
+               * success results in bulk upsert
+              */
+              resolve({ explanation: err, isFailed: true });
+            } else {
+              reject(err);
+            }
           });
-        }
+        });
       }, // upsertByName
 
-      bulkUpsertByName(toUpsert) {
-        const promises = toUpsert.map((s) =>
-          this.upsertByName(s, true)
+      /**
+       * Upsert multiple samples concurrently.
+       * @param  {Array} toUpsert - An array of sample objects to upsert
+       * @param {Object} user - The user performing the write operation
+       * @param {Array} readOnlyFields - An array of read-only-fields
+       * @returns {Array} - Resolves to an array of resolved promises
+      */
+      bulkUpsertByName(toUpsert, user, readOnlyFields) {
+        const promises = toUpsert.map((s) => {
+          try {
+            // thow an error if a sample is upserted with a read-only-field
+            commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
+            return this.upsertByName(s, user, true);
+          } catch (err) {
+            return Promise.resolve({ explanation: err, isFailed: true });
+          }
+        }
         );
         return seq.Promise.all(promises);
       }, // bulkUpsertByName
 
       /**
        * Invalidates samples which were last updated before the "timeout"
-       * specified by the aspect.
+       * specified by the aspect and resolves to an object containing the
+       * number of samples evaluated, the number of samples timedout and an
+       * array containing a "copy" of the sample object.
        *
        * @param {Date} now - For testing, pass in a Date object to represent
        *  the current time
@@ -270,17 +281,33 @@ module.exports = function sample(seq, dataTypes) {
         const curr = now || new Date();
         let numberTimedOut = 0;
         let numberEvaluated = 0;
+        const timedOutSamples = [];
         return new seq.Promise((resolve, reject) => {
           Sample.scope('checkTimeout').findAll()
           .each((s) => {
             numberEvaluated++;
             if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
               numberTimedOut++;
+
+              /*
+               * NOTE: a separate copy of the sample needed to be made (by
+               * deep cloning the required fields) to let the garbage collector
+               * cleanup the timedOutSamples array.
+               */
+              const timedOutSample = {
+                value: constants.statuses.Timeout,
+                status: constants.statuses.Timeout,
+                name: s.name.split()[0],
+                statusChangedAt: new Date(),
+                aspect: JSON.parse(JSON.stringify(s.aspect)),
+              };
+              timedOutSamples.push(timedOutSample);
               return s.update({ value: constants.statuses.Timeout });
             }
           })
-          .then(() => resolve(`Evaluated ${numberEvaluated} samples; ${numberTimedOut} were timed out.`))
-          .catch((err) => reject(err));
+          .then(() => resolve({ numberEvaluated, numberTimedOut,
+            timedOutSamples, }))
+          .catch(reject);
         });
       }, // doTimeout
     }, // classMethods
@@ -307,7 +334,7 @@ module.exports = function sample(seq, dataTypes) {
               inst.name += a.name;
               inst.status = u.computeStatus(a, inst.value);
             } else {
-              const err = new ResourceNotFoundError();
+              const err = new dbErrors.ResourceNotFoundError();
               err.resourceType = 'Aspect';
               err.resourceKey = inst.getDataValue('aspectId');
               throw err;
@@ -317,104 +344,6 @@ module.exports = function sample(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
-
-      /**
-       * Publishes the created sample to redis channel *including* the values
-       * from its aspect association.
-       *
-       * @param {Sample} inst - The newly-created instance
-       */
-      afterCreate(inst /* , opts */) {
-        let samp;
-
-        // log instance creation
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.add);
-        }
-
-        Sample.findById(inst.dataValues.id)
-        .then((found) => {
-          samp = found;
-          return common.sampleAspectAndSubjectArePublished(seq, samp);
-        })
-        .then((published) => {
-          if (published) {
-            // augment the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, samp)
-            .then(() => {
-              return common.publishChange(samp, eventName.add);
-            });
-          }
-        });
-      },
-
-      /**
-       * Publishes the delete to redis subscriber
-       *
-       * @param {Sample} inst - The Sample instance which was just deleted
-       */
-      afterDelete(inst /* , opts */) {
-        // log instance deletion
-        if (dbLoggingEnabled) {
-          common.createDBLog(inst, common.changeType.del);
-        }
-
-        return common.sampleAspectAndSubjectArePublished(seq, inst)
-        .then((published) => {
-          if (published) {
-            // augument the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, inst)
-            .then(() => {
-              return common.publishChange(inst, eventName.del);
-            });
-          }
-        });
-      }, // hooks.afterDelete
-
-      /**
-       * If the sample changed significantly,
-       * publish the updated and former sample to redis channel.
-       *
-       * @param {Sample} inst - The updated instance
-       */
-      afterUpdate(inst /* , opts */) {
-        const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-
-        // log instance update
-        if (dbLoggingEnabled) {
-          common.createDBLog(
-            inst, common.changeType.upd, changedKeys, ignoreAttributes
-          );
-        }
-
-        return common.sampleAspectAndSubjectArePublished(seq, inst)
-        .then((published) => {
-          if (published) {
-            // augument the sample instance with the subject instance to enable
-            // filtering by subjecttags in the realtime socketio module
-            common.augmentSampleWithSubjectInfo(seq, inst)
-            .then(() => {
-              return common.publishChange(inst, eventName.upd, changedKeys,
-              ignoreAttributes);
-            });
-          }
-        });
-      },
-
-      /**
-       * Update isDeleted.
-       * Publishes the deleted sample to redis channel.
-       *
-       * @param {Sample} inst - The Sample instance being deleted
-       * @returns {Promise} which resolves undefined or rejects if an error
-       *  was encountered trying to update the instance's isDeleted field
-       */
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      }, // hooks.beforeDestroy
 
       /**
        * Update status if value changed, loading the aspect (asynchronously)
@@ -440,7 +369,7 @@ module.exports = function sample(seq, dataTypes) {
               inst.calculateStatus();
               inst.setStatusChangedAt();
             } else {
-              const err = new ResourceNotFoundError();
+              const err = new dbErrors.ResourceNotFoundError();
               err.resourceType = 'Aspect';
               err.resourceKey = inst.getDataValue('aspectId');
               throw err;
@@ -454,11 +383,14 @@ module.exports = function sample(seq, dataTypes) {
 
     }, // hooks
     indexes: [
-      { unique: true, fields: ['aspectId', 'subjectId', 'isDeleted'] },
       {
-        name: 'SampleStatusDeletedAt',
+        name: 'AspectIdSubjectId',
+        unique: true,
+        fields: ['aspectId', 'subjectId'],
+      },
+      {
+        name: 'SampleStatusIdx',
         fields: [
-          'deletedAt',
           'status',
         ],
       },
@@ -478,6 +410,21 @@ module.exports = function sample(seq, dataTypes) {
         this.status = u.computeStatus(this.aspect, this.value);
       }, // calculateStatus
 
+      isWritableBy(who) {
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getAspect()
+          .then((a) => a.getWriters())
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          }));
+      }, // isWritableBy
+
       setStatusChangedAt() {
         if (this.status !== this._previousDataValues.status) {
           this.previousStatus = this._previousDataValues.status;
@@ -485,7 +432,6 @@ module.exports = function sample(seq, dataTypes) {
         }
       }, // setStatusChangedAt
     }, // instanceMethods
-    paranoid: true,
   });
   return Sample;
 

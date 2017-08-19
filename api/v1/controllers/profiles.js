@@ -18,20 +18,33 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const u = require('../helpers/verbs/utils');
+const authUtils = require('../helpers/authUtils');
 
 module.exports = {
 
   /**
    * DELETE /profiles/{key}
    *
-   * Deletes the profile and sends it back in the response.
+   * Deletes the profile and sends it back in the response. Only
+   * available to users with Admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteProfile(req, res, next) {
-    doDelete(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doDelete(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -65,27 +78,49 @@ module.exports = {
    *
    * Updates the profile and sends it back in the response. PATCH will only
    * update the attributes of the profile provided in the body of the request.
-   * Other attributes will not be updated.
+   * Other attributes will not be updated. Only available to users with Admin
+   * profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   patchProfile(req, res, next) {
-    doPatch(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doPatch(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * POST /profiles
    *
-   * Creates a new profile and sends it back in the response.
+   * Creates a new profile and sends it back in the response. Only
+   * available to users with Admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   postProfile(req, res, next) {
-    doPost(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doPost(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -93,13 +128,23 @@ module.exports = {
    *
    * Updates a profile and sends it back in the response. If any attributes
    * are missing from the body of the request, those attributes are cleared.
+   * Only available to users with Admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   putProfile(req, res, next) {
-    doPut(req, res, next, helper);
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        doPut(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
-
 }; // exports

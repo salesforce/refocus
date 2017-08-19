@@ -25,12 +25,16 @@ module.exports = {
    * @returns {Object} JSON object with status
    */
   logoutUser(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     if (req.isAuthenticated()) {
       req.session.destroy((err) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
         if (err) {
           return u.handleError(next, err, resourceName);
         }
 
+        // no resulting data to log
+        u.logAPI(req, resultObj);
         return res.status(httpStatus.OK).json({
           success: true,
           message: 'User logged out',

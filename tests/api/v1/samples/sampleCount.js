@@ -10,7 +10,6 @@
  * tests/api/v1/samples/sampleCount.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -21,7 +20,7 @@ const path = '/v1';
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('Sample Count:', () => {
+describe('tests/api/v1/samples/sampleCount.js >', () => {
   let token;
 
   before((done) => {
@@ -30,7 +29,7 @@ describe('Sample Count:', () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -53,13 +52,13 @@ describe('Sample Count:', () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('For Subject:', () => {
+  describe('For Subject >', () => {
     it('all subjects', (done) => {
       api.post('/v1/samples/upsert')
       .set('Authorization', token)
@@ -121,23 +120,23 @@ describe('Sample Count:', () => {
         value: '2',
       })
       .expect(constants.httpStatus.OK)
-      .end((postErr /* , res */) => {
+      .end((postErr, res) => {
         if (postErr) {
           return done(postErr);
         }
 
         api.delete(`${path}/samples/${tu.namePrefix}Subject|` +
-                                  `${tu.namePrefix}Aspect1`)
+          `${tu.namePrefix}Aspect1`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .end((delErr /* , res */) => {
+        .end((delErr, res) => {
           if (delErr) {
             return done(delErr);
           }
 
           api.get(`${path}/subjects/${tu.namePrefix}Subject`)
           .set('Authorization', token)
-          .expect(constants.httpStatus.OK)
+          /* .expect(constants.httpStatus.OK) */
           .expect((res) => {
             expect(res.body.sampleCount).to.equal(undefined);
 
@@ -156,7 +155,7 @@ describe('Sample Count:', () => {
     });
   });
 
-  describe('For Aspects:', () => {
+  describe('For Aspects >', () => {
     it('all aspects', (done) => {
       api.post(`${path}/samples/upsert`)
       .set('Authorization', token)
@@ -241,13 +240,7 @@ describe('Sample Count:', () => {
             // making sure the samples array is deleted in the response
             expect(res.body.samples).to.equal(undefined);
           })
-          .end((getErr /* , res */) => {
-            if (getErr) {
-              return done(getErr);
-            }
-
-            done();
-          });
+          .end(done);
         });
       });
     });

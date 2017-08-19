@@ -9,7 +9,6 @@
 /**
  * /tests/db/model/user/create.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const bcrypt = require('bcrypt-nodejs');
@@ -19,26 +18,24 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('db: User: create', () => {
+describe('tests/db/model/user/create.js, db: User: create >', () => {
   let user = {};
 
   beforeEach((done) => {
     Profile.create({
       name: tu.namePrefix + 1,
     })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+    }))
     .then((createdUser) => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -48,10 +45,11 @@ describe('db: User: create', () => {
     expect(user).to.have.property('email').to.equal('user@example.com');
     expect(user.password).to.not.equal('user123password');
     bcrypt.compare('user123password', user.password, (err, res) => {
-      if(err){
+      if (err) {
         throw err;
       }
-      expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
+
+      expect(res).to.be.true; // eslint-disable-line no-unused-expressions
     });
     done();
   });

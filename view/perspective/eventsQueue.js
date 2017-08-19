@@ -6,6 +6,10 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * view/perspective/eventsQueue.js
+ *
+ */
 
 'use strict';
 const ZERO = 0;
@@ -58,59 +62,13 @@ function createAndDispatchLensEvent(queueToFlush, lensElement) {
 }
 
 /**
- * Clone object to handle race conditions.
- * @param  {Object} obj - Object to copy
- * @returns {Object} copy - New copied object
- */
-function clone(obj) {
-  let copy;
-
-  // Handle simple types, and null or undefined
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-
-  // Handle Date
-  if (obj instanceof Date) {
-    copy = new Date();
-    copy.setTime(obj.getTime());
-    return copy;
-  }
-
-  // Handle Array
-  if (obj instanceof Array) {
-    copy = [];
-    for (let i = 0, len = obj.length; i < len; i++) {
-      copy[i] = clone(obj[i]);
-    }
-
-    return copy;
-  }
-
-  // Handle Object
-  if (obj instanceof Object) {
-    copy = {};
-    for (const attr in obj) {
-      if (obj.hasOwnProperty(attr)) {
-        copy[attr] = clone(obj[attr]);
-      }
-    }
-
-    return copy;
-  }
-
-  throw new Error("Unable to copy obj! Its type isn't supported.");
-}
-
-/**
  * schedule flushing of queue after given time interval.
  * @param  {Object} lensElement - document lens element
  */
 function scheduleFlushQueue(lensElement, realtimeEventThrottleMilliseconds) {
-  // clone events queue, initialize events queue, flush events queue copy.
+  // clone and clear the events queue, dispatch events from the clone
   setInterval(() => {
-    const queueCopy = clone(queue);
-    queue.length = 0;
+    const queueCopy = queue.splice(0);
     createAndDispatchLensEvent(queueCopy, lensElement);
   }, realtimeEventThrottleMilliseconds);
 }
@@ -120,6 +78,5 @@ module.exports = {
   scheduleFlushQueue,
   eventType,
   queue,
-  clone,
   createAndDispatchLensEvent,
 };

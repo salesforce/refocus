@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postRelatedLinks.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/postRelatedLinks.js, POST ${path} >`, () => {
   let token;
 
   before((done) => {
@@ -28,7 +27,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -36,9 +35,10 @@ describe(`api: POST ${path}`, () => {
 
   it('post subject with relatedLinks', (done) => {
     const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link2', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link2', url: 'https://samples.com' },
+    ];
     subjectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -47,20 +47,15 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 
   it('posting subject with duplicate relatedLinks should fail', (done) => {
     const subjectToPost = { name: `${tu.namePrefix}Asia` };
-
-    const relatedLinks = [{ name: 'link1', url: 'https://samples.com' },
-      { name: 'link1', url: 'https://samples.com' }
-      ];
+    const relatedLinks = [
+      { name: 'link1', url: 'https://samples.com' },
+      { name: 'link1', url: 'https://samples.com' },
+    ];
     subjectToPost.relatedLinks = relatedLinks;
     api.post(path)
     .set('Authorization', token)
@@ -71,12 +66,7 @@ describe(`api: POST ${path}`, () => {
         .to.contain('Name of the relatedlinks should be unique');
       expect(res.body.errors[0].type).to.contain('ValidationError');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 
   it('post subject with relatedLinks of size zero', (done) => {
@@ -90,11 +80,6 @@ describe(`api: POST ${path}`, () => {
     .expect((res) => {
       expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
-    });
+    .end(done);
   });
 });

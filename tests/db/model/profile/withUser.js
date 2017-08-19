@@ -10,14 +10,13 @@
  * /tests/db/model/profile/withUser.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('Profile model with users', () => {
+describe('tests/db/model/profile/withUser.js >', () => {
   let profile = {};
   let user = {};
 
@@ -47,7 +46,7 @@ describe('Profile model with users', () => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -58,7 +57,7 @@ describe('Profile model with users', () => {
     Profile.create({ name: `${tu.namePrefix}2` })
     .then((p) => {
       newProfileId = p.id;
-      p.destroy();
+      return p.destroy();
     })
     .then(() => user.update({ profileId: newProfileId }))
     .then((returnedUser) => {
@@ -66,11 +65,12 @@ describe('Profile model with users', () => {
       done(new Error(msg));
     })
     .catch((err) => {
-      done();
       expect(err.name).to.equal('SequelizeValidationError');
       expect(err.errors[0].type).to.equal('Validation error');
       expect(err.errors[0].path).to.equal('profileExists');
-    });
+      done();
+    })
+    .catch(done);
   });
 
   it('Expect update profile to null, to throw SequelizeValidationError ' +
@@ -78,11 +78,12 @@ describe('Profile model with users', () => {
     user.update({ profileId: null })
     .then(() => done(new Error('Unexpected successful update')))
     .catch((err) => {
-      done();
       expect(err.name).to.equal('SequelizeValidationError');
       expect(err.errors[0].type).to.equal('Validation error');
       expect(err.errors[0].path).to.equal('profileExists');
-    });
+      done();
+    })
+    .catch(done);
   });
 
   it('Profile should have userCount of 1, after attaching a user to it',
@@ -95,7 +96,7 @@ describe('Profile model with users', () => {
       expect(p.users.length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Update user profileId, decrements old profile\'s userCount',
@@ -111,7 +112,7 @@ describe('Profile model with users', () => {
       expect(!oldProfile.users);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Profile should have userCount of 0, after attaching, and detaching a ' +
@@ -129,7 +130,7 @@ describe('Profile model with users', () => {
       expect(!profile.dataValues.users);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Update user profileId, increments new profile userCount', (done) => {
@@ -149,7 +150,7 @@ describe('Profile model with users', () => {
       expect(newProfile.users.length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Deleting profile with user attached, throws error', (done) => {
@@ -163,7 +164,7 @@ describe('Profile model with users', () => {
       expect(err).to.have.property('profile');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('After attaching a user to a profile, get all profiles should contain ' +
@@ -182,6 +183,6 @@ describe('Profile model with users', () => {
       expect(p.get('users').length).to.equal(1);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

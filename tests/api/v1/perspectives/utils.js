@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/utils.js
  */
 'use strict'; // eslint-disable-line strict
-
 const tu = require('../../../testUtils');
 const path = require('path');
 const fs = require('fs');
@@ -33,8 +32,8 @@ module.exports = {
         library: willSendthis,
       };
       tu.db.Lens.create(lens)
-      .then((createdLens) => resolve(createdLens))
-      .catch((err) => reject(err));
+      .then(resolve)
+      .catch(reject);
     });
   },
 
@@ -42,6 +41,6 @@ module.exports = {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

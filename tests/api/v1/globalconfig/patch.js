@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/patch.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,11 +18,16 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
+const jwtUtil = require('../../../../utils/jwtUtil');
 
-describe(`api: PATCH ${path}`, () => {
-  let testUserToken;
-  let predefinedAdminUserToken;
+describe('tests/api/v1/globalconfig/patch.js >', () => {
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
+  let testUserToken = '';
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  const GLOBAL_CONFIG = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
 
   before((done) => {
     tu.createToken()
@@ -31,87 +35,87 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
    * Register a non-admin user and an admin user; grab the predefined admin
    * user's token
    */
-  before((done) => {
+  beforeEach((done) => {
     api.post('/v1/register')
     .set('Authorization', token)
     .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
+      username: uname,
+      email: uname,
       password: 'abcdefghijklmnopqrstuvwxyz',
     })
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        testUserToken = res.body.token;
-        api.post('/v1/token')
-        .send({
-          username: adminUser.name,
-          email: adminUser.name,
-          password: adminUser.password,
-        })
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            predefinedAdminUserToken = res2.body.token;
-            api.post(path)
-            .set('Authorization', predefinedAdminUserToken)
-            .send({
-              key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
-              value: 'def',
-            })
-            .expect(constants.httpStatus.CREATED)
-            .end((err3, res3) => {
-              //
-            });
-          }
-        });
-        done();
+        return done(err);
       }
+
+      testUserToken = res.body.token;
+
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({
+        key: GLOBAL_CONFIG,
+        value: 'def',
+      })
+      .expect(constants.httpStatus.CREATED)
+      .end(done);
     });
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
   it('forbidden if not admin user', (done) => {
-    api.patch(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
+    api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', testUserToken)
-    .send({
-      value: 'updating',
-    })
+    .send({ value: 'updating' })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body.errors).to.have.length(1);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
-        done();
+        return done(err);
       }
+
+      expect(res.body.errors).to.have.length(1);
+      expect(res.body.errors)
+      .to.have.deep.property('[0].type', 'ForbiddenError');
+      done();
     });
   });
 
   it('sucessful patch by predefined admin user', (done) => {
-    api.patch(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
+    api.patch(path + '/' + GLOBAL_CONFIG)
     .set('Authorization', predefinedAdminUserToken)
-    .send({
-      value: 'updated!',
-    })
+    .send({ value: 'updated!' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      expect(res.body).to.have.property('key',
-        `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
-      expect(res.body).to.have.property('value', 'updated!');
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.key).to.equal(GLOBAL_CONFIG);
+      expect(res.body.value).to.equal('updated!');
+      done();
+    });
+  });
+
+  it('sucessful patch by predefined user with different case', (done) => {
+    const updatedConfig = GLOBAL_CONFIG.toLowerCase();
+    api.patch(path + '/' + GLOBAL_CONFIG)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ key: updatedConfig })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.key).to.equal(updatedConfig);
       done();
     });
   });

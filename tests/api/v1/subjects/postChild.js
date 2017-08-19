@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postChild.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,7 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/child';
 const expect = require('chai').expect;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/subjects/postChild.js, POST ${path} >`, () => {
   let token;
   const n0 = { name: `${tu.namePrefix}NorthAmerica` };
   const n1 = { name: `${tu.namePrefix}Canada` };
@@ -32,7 +31,7 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach('create parent', (done) => {
@@ -41,7 +40,7 @@ describe(`api: POST ${path}`, () => {
       i0 = o.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -105,13 +104,7 @@ describe(`api: POST ${path}`, () => {
         throw new Error('wrong parent?');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post child with parent name in url', (done) => {
@@ -124,20 +117,14 @@ describe(`api: POST ${path}`, () => {
         throw new Error('wrong parent?');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('post child with published true while parent is unpublished',
   (done) => {
     api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
     .set('Authorization', token)
-    .send({ 'name': 'test', 'isPublished': true })
+    .send({ name: 'test', isPublished: true })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -148,6 +135,23 @@ describe(`api: POST ${path}`, () => {
       .equal('You cannot insert a subject with isPublished = true ' +
         'unless all its ancestors are also published.');
       done();
+    });
+  });
+
+  it('posting child with hierarchy level field should fail',
+  (done) => {
+    api.post(path.replace('{key}', `${tu.namePrefix}NorthAmerica`))
+    .set('Authorization', token)
+    .send({ name: 'test', hierarchyLevel: -1 })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description)
+      .to.contain('You cannot modify the read-only field');
+      return done();
     });
   });
 });

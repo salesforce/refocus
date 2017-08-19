@@ -9,59 +9,58 @@
 /**
  * ./db/createOrDropDb.js
  *
- * Creates or deletes the configured db, depending on
- * the option after the filename.
+ * Call this script from the command line to create or drop the db. Requires
+ * a command line argument to indicate whether to create (--init, -i) or drop
+ * (--drop, -d) the database.
  */
-
 const commandLineArgs = require('command-line-args');
 const pgtools = require('pgtools');
-const conf = require('../config');
-const env = conf.environment[conf.nodeEnv];
-const DB_URL = env.dbUrl;
-
-// example DB_URL: 'postgres://username:password@host:port/name'
-const dbConfig = {
-  name: DB_URL.split('/').pop(),
-  user: DB_URL.split(':')[1].slice(2),
-  password: DB_URL.split(':')[2].split('@')[0],
-  host: DB_URL.split('@').pop().split(':')[0],
-  port: DB_URL.split(':').pop().split('/')[0],
-};
-
-/**
- * Creates or drops db
- * @param {boolean} bool - If true, creates the db with dbConfig properties.
- * Bool defaults to false, to delete the configured db.
- * @param {Object} pgtool - Npm module for creating and dropping db.
- * @parm {Object} dbConfigObj - Js Object with db config, as input to pgtool.
-*/
-function createOrDropDb(bool, pgtool, dbConfigObj) {
-  (bool ? pgtool.createdb : pgtool.dropdb)(
-  dbConfigObj,
-  dbConfigObj.name,
-  (err, res) => {
-    if (err) {
-      console.error('ERROR', err.name); // eslint-disable-line
-      process.exit(1); // eslint-disable-line
-    }
-
-    console.log(`${res.command} "${dbConfigObj.name}"... OK`); // eslint-disable-line
-    process.exit(0); // eslint-disable-line
-  });
-}
-
+const u = require('./utils');
 const cli = commandLineArgs([
   { name: 'init', alias: 'i', type: Boolean },
   { name: 'drop', alias: 'd', type: Boolean },
 ]);
 
-const options = cli.parse();
-const keys = Object.keys(options);
+/**
+ * Must be called with one and only one arg. Throws error if invalid arg count.
+ *
+ * @param {Array} args - Array of keys from the command line args.
+ * @throws {Error} - No args or more than one arg.
+ */
+function validateArgCount(args) {
+  if (args.length !== 1) { // eslint-disable-line no-magic-numbers
+    throw new Error();
+  }
+} // validateArgCount
 
-if (keys.indexOf('init') >= 0) {
-  createOrDropDb(true, pgtools, dbConfig);
-} else if (keys.indexOf('drop') >= 0) {
-  createOrDropDb(false, pgtools, dbConfig);
+try {
+  // Parse the command line options
+  const options = cli.parse();
+  const keys = Object.keys(options);
+
+  // Make sure we only have one command line arg. More or less is an error.
+  validateArgCount(keys);
+
+  // Create or drop the database.
+  if (keys.includes('init')) {
+    u.createOrDropDb(pgtools.createdb)
+    .then((res) => {
+      u.clog('createOrDropDb', '', res);
+    })
+    .catch((err) => {
+      u.clog('createOrDropDb', '', err.message);
+    });
+  } else {
+    u.createOrDropDb(pgtools.dropdb)
+    .then((res) => {
+      u.clog('createOrDropDb', '', res);
+    })
+    .catch((err) => {
+      u.clog('createOrDropDb', '', err.message);
+    });
+  }
+} catch (err) {
+  u.clog('createOrDropDb', '',
+      'Script must be called with one command line arg: ' +
+      '--init OR -i OR --drop OR -d.');
 }
-
-

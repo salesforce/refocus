@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -18,8 +17,10 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/lenses/get.js >', () => {
   let lensId;
   let lensName;
   let token;
@@ -30,7 +31,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -40,7 +41,7 @@ describe(`api: GET ${path}`, () => {
       lensName = lens.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -55,12 +56,13 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body).to.have.length(1);
+      expect(res.body).to.have.length(ONE);
       expect(res.body).to.have.deep.property('[0].id');
       expect(res.body).to.not.have.deep.property('[0].library');
-      expect(res.body).to.have.deep.property('[0].name', `${tu.namePrefix}testLensName`);
+      expect(res.body).to.have.deep
+        .property('[0].name', `${tu.namePrefix}testLensName`);
 
-      return done();
+      done();
     });
   });
 
@@ -78,7 +80,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.library['lens.js']).to.exist;
       expect(res.body.library['lens.json']).to.exist;
 
-      return done();
+      done();
     });
   });
 
@@ -92,7 +94,21 @@ describe(`api: GET ${path}`, () => {
       }
 
       expect(res.body.sourceName).to.equal('testSourceLensName');
-      return done();
+      done();
+    });
+  });
+
+  it('basic get by name with different case', (done) => {
+    api.get(`${path}/${lensName.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.sourceName).to.equal('testSourceLensName');
+      done();
     });
   });
 
@@ -102,7 +118,7 @@ describe(`api: GET ${path}`, () => {
     .send({ isPublished: false })
     .end((_err) => {
       if (_err) {
-        return done(_err);
+        done(_err);
       }
 
       api.get(`${path}/${lensName}`)
@@ -113,8 +129,9 @@ describe(`api: GET ${path}`, () => {
           return done(err);
         }
 
-        expect(res.body.errors[0].description).to.equal('Lens is not published. Please contact Refocus admin.');
-        return done();
+        expect(res.body.errors[ZERO].description)
+          .to.equal('Lens is not published. Please contact Refocus admin.');
+        done();
       });
     });
   });

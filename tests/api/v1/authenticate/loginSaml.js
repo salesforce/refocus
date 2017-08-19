@@ -9,17 +9,14 @@
 /**
  * tests/api/v1/authenticate/loginSaml.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const samlPath = '/loginSAML';
 const u = require('./utils');
 
-
-describe(`api: passport saml`, () => {
+describe('tests/api/v1/authenticate/loginSaml.js >', () => {
   let ssoconfig;
   before((done) => {
     u.creatSSOConfig()
@@ -27,7 +24,7 @@ describe(`api: passport saml`, () => {
       ssoconfig = createdconfig;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDeleteSSOConfig);
@@ -37,16 +34,10 @@ describe(`api: passport saml`, () => {
     .expect(() => {
       api.get(samlPath)
       .expect((res) => expect(res.redirect).to.be.true)
-      .expect((res) => {
-        expect(res.header.location).to.contain(ssoconfig.samlEntryPoint);
-      });
+      .expect((res) =>
+        expect(res.header.location).to.contain(ssoconfig.samlEntryPoint));
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-      done();
-    });
+    .end(done);
   });
 });
 

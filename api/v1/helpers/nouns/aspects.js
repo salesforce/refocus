@@ -17,6 +17,7 @@ const m = 'aspect';
 
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
+const fieldsWithEnum = ['valueType'];
 
 module.exports = {
   apiLinks: {
@@ -32,6 +33,14 @@ module.exports = {
   },
   model: Aspect,
   modelName: 'Aspect',
+
+  // define the associations that are to be deleted here
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
   fieldsWithArrayType,
   fieldsWithJsonArrayType,
+  fieldsWithEnum,
+  tagFilterName: 'tags',
+  readOnlyFields: ['id', 'isDeleted'],
 }; // exports

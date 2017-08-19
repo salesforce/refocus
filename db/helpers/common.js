@@ -11,14 +11,13 @@
  *
  * Common utility file used by all the models
  */
-
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../pubsub').pub;
+const pub = require('../../cache/redisCache').client.pub;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
-const logDB = require('../../utils/loggingUtil').logDB;
-
+const revalidator = require('revalidator');
+const ValidationError = require('../dbErrors').ValidationError;
 
 // jsonSchema keys for relatedLink
 const jsonSchemaProperties = {
@@ -33,27 +32,34 @@ const changeType = {
 };
 
 /**
- * Takes a sample instance and enhances it with the subject instance
+ * Takes a sample instance and enhances it with the subject instance and
+ * aspect instance
  * @param {Sequelize} seq - A reference to Sequelize to have access to the
  * the Promise class.
  * @param {Instance} inst - The Sample Instance.
  * @returns {Promise} - Returns a promise which resolves to sample instance
- * enhanced with subject instance information.
+ * enhanced with subject instance and aspect instance information.
  */
-function augmentSampleWithSubjectInfo(seq, inst) {
+function augmentSampleWithSubjectAspectInfo(seq, inst) {
   return new seq.Promise((resolve, reject) => {
     inst.getSubject()
     .then((sub) => {
       inst.dataValues.subject = sub;
 
       // adding absolutePath to sample instance
-      inst.dataValues.absolutePath = sub.absolutePath;
+      if (sub) {
+        inst.dataValues.absolutePath = sub.absolutePath;
+      }
+
       inst.subject = sub;
+    }).then(() => inst.getAspect())
+    .then((asp) => {
+      inst.dataValues.aspect = asp;
       resolve(inst);
     })
     .catch((err) => reject(err));
   });
-}
+} // augmentSampleWithSubjectAspectInfo
 
 /**
  * This function checks if the aspect and subject associated with the sample
@@ -68,11 +74,16 @@ function augmentSampleWithSubjectInfo(seq, inst) {
  */
 function sampleAspectAndSubjectArePublished(seq, inst) {
   return new seq.Promise((resolve, reject) => {
-    let asp, sub;
+    let asp;
+    let sub;
     inst.getSubject()
-    .then((s) => sub = s)
+    .then((s) => {
+      sub = s;
+    })
     .then(() => inst.getAspect())
-    .then((a) => asp = a)
+    .then((a) => {
+      asp = a;
+    })
     .then(() => resolve(sub && asp && sub.isPublished && asp.isPublished))
     .catch((err) => reject(err));
   });
@@ -121,7 +132,8 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
     }
   }
 
-  logDB(instance, eventType, changedVals);
+  // TODO: revisit this to fix logDB
+  // logDB(instance, eventType, changedVals);
 }
 
 /**
@@ -224,13 +236,51 @@ function setIsDeleted(Promise, inst) {
     .catch((err) => reject(err)));
 } // setIsDeleted
 
+/**
+ * Validates a function against a schema. It throws an error if the object
+ * does not match the schema. The revalidator library is used for this purpose
+ * @param  {Object} object - The input object to be instered into the database
+ * @param  {Object} schema - The schema against which the object is to be
+ * validated
+ * @throws {ValidationError} If the object does not conform to the schema
+ */
+function validateObject(object, schema) {
+  const options = { additionalProperties: false };
+  const result = revalidator.validate(object, schema, options);
+  if (!result.valid) {
+    // convert the error message to a readable string before throwing the error
+    throw new ValidationError(JSON.stringify(result.errors));
+  }
+} // validateObject
+
+/**
+ * A custom validator to validate the context definition object
+ * @param  {Object} contextDef - A context definition object
+ * @param {Array} requiredProps - Any array of the required field names
+ * @throws {ValidationError} If the object does not pass the validation.
+ */
+function validateContextDef(contextDef, requiredProps) {
+  const message = requiredProps.join(' and ');
+  const keys = Object.keys(contextDef);
+  for (let i = 0; i < keys.length; i++) {
+    const nestedKeys = new Set(Object.keys(contextDef[keys[i]]));
+    const intersection = new Set(requiredProps.filter((element) =>
+      nestedKeys.has(element)));
+    if (intersection.size !== requiredProps.length) {
+      throw new ValidationError(message + ' is required');
+    }
+  }
+} // validateContextDef
+
 module.exports = {
   dbconf,
   setIsDeleted,
   publishChange,
   sampleAspectAndSubjectArePublished,
-  augmentSampleWithSubjectInfo,
+  augmentSampleWithSubjectAspectInfo,
   validateJsonSchema,
   createDBLog,
   changeType,
+  validateObject,
+  validateContextDef,
 }; // exports

@@ -33,6 +33,7 @@ title: Quickstart
 
 Refocus is a visualization platform for the status and health of anything you want to monitor.
 If you care about how your service is performing *right now*, use Refocus to:
+
 - **Understand**  
   Understand your data in new ways by gaining insight
   
@@ -64,7 +65,8 @@ Let’s familiarize you with the terms we use in Refocus.
   
 ## Refocus Interface
 
-Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.  
+Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.
+
 - **MultiTable**  
   A set of tables with the various subject components arranged like a menu board. You can view system status at a glance and expand the components for combos and sides.  
   
@@ -74,13 +76,14 @@ Refocus displays real-time system status in a browser window based on the select
 - **Tree**  
   An expandable display of system components, organized in a root, trunk, and branch hierarchy. Go out on a limb to view the status of individual components.  
   
-You can develop your own lenses with the [lens developer kit](https://github.com/salesforce/refocus/blob/master/docs/QuickStart.md#create-your-own-lens) (LDK).
+You can develop your own lenses with the [lens developer kit](./50-lensdevelopment.html) (LDK).
 
 ## Getting Started with Refocus  
 You have two ways to deploy Refocus. Select the one that best meets your needs.
 
-- I want [one-click Heroku deployment](./QuickStartHeroku.md)
-- I want to [download and build and deploy locally](./QuickStartLocal.md)
+- I want [one-click Heroku deployment](./03-quickstartheroku.html)
+- I want to [download and build and deploy locally](./04-quickstartlocal.html)
+- I want to [run Refocus locally as docker container](./05-quickstartlocaldocker.html)
 
 Refocus requires that both Redis and PostgreSQL are running. After Refocus is deployed, create an account and sign in.
 
@@ -94,9 +97,11 @@ As you work with Refocus, you’ll understand how these parts work together to b
 
 ### Refocus API
 
-This guide uses the [Refocus API](https://refocus.internal.salesforce.com/v1/docs/) extensively to show you how to get data into your custom deployment. You use an API client to do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
+This guide uses the Refocus API extensively to show you how to get data into your custom deployment. You use an API client to do this. We like [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
 
 We’ve outlined the API endpoints and body for each step. But to simplify it even further, you can use our [sample Postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change each request’s URL to your own Refocus domain.
+
+Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 *Got it? OK, let's get started.*
 
@@ -153,7 +158,7 @@ An aspect is a characteristic of the monitored subject.
 
 So we want to monitor the unemployment rate and daily Gross Domestic Product (GDP) across the United States. Let's create the unemployment rate aspect first.
 
-POST to `/v1/aspects using the following body`:
+POST to `/v1/aspects` using the following body:
 
 ```json
 {
@@ -180,7 +185,7 @@ POST to `/v1/aspects` using the following body:
   "criticalRange": [0, 2000000000],
   "warningRange": [2000000001, 4000000000],
   "infoRange": [4000000001, 5500000000],
-  "okRange": [5500000001, 1000000000],
+  "okRange": [5500000001, 10000000000],
   "tags": [
     { "name": "economic" }
   ],
@@ -191,6 +196,9 @@ POST to `/v1/aspects` using the following body:
 The `timeout` field refers to the acceptable lapse in time between an update. You can customize it for various units of time. For instance, `2s` sets the timeout to 2 seconds. Likewise, `5m` refers to 5 minutes, and `1d` refers to 1 day. A sample is assigned a timeout status if no new data is received within this time period.
 
 Another interesting attribute to note is `tags`. Tags are useful because they can help categorize your aspects. In this case, we’ve included the tag “economic” for our GDP aspect.
+
+If you care about the order in which aspects are displayed, you can assign a “rank” to each aspect: lenses can render aspects sorted in ascending order by rank (numeric, nulls last) then within rank in ascending order by name (alphanumeric).
+For example, given a list of aspects like this: [{ name: “Zebra”, rank: 1, ... }, { name: “Elephant”, rank: 10, ... }, { name: “Aardvark”, rank: null, … }, { name: “Lion”, rank: 1, …}] you would expect a lens to order aspects like this: [“Lion”, “Zebra”, “Elephant”, “Aardvark”].
 
 *Nice job! We've set up the subject hierarchy and monitored aspects.*
 
@@ -234,7 +242,7 @@ Almost, but not quite. We need to set up our lens and perspectives to visualize 
 
 Different lenses enable you to focus on different things, so it’s important to completely understand what you want to focus on. For now, the process of installing a lens is available only by using the API. However, the UI is coming soon, we promise!
 
-At this step, you need to select the lens best suited for your use. We’re going to  use the MultiTable lens. A lens is deployed as a zip file. To get the MultiTable lens, git clone [this repository](https://github.com/salesforce/refocus). The lens zip archive is under the dist folder.
+At this step, you need to select the lens best suited for your use. We’re going to  use the MultiTable lens. A lens is deployed as a zip file. Download the MultiTable Lens from [here](https://github.com/salesforce/refocus-lens-multitable/tree/master/dist).
 
 Upload the MultiTable lens that you downloaded earlier to your Refocus deployment. Ensure that headers in Postman are disabled. Do a new POST request with the endpoint set to `/v1/lenses`.
 
@@ -287,4 +295,9 @@ POST to `v1/subjects/USA/child` using the following body:
     ]
 }
 ```
-:sparkles:*Built with love by the Site Reliability Tools team @ Salesforce.*:sparkles:
+### Request Rate Limiting
+
+Refocus lets you limit requests based on IP address using environment variables. Set `DDOS_RATE_WINDOW` to the time interval in milliseconds after which the limits are reset and set `DDOS_RATE_LIMIT` to the total number of requests allowed per IP. When the request limit is exceeded, the request is rejected with HTTP status code 429.
+For example, if you set `DDOS_RATE_WINDOW=300000` and `DDOS_RATE_LIMIT=250`, then only 250 requests will be allowed from any individual IP address over any rolling five minute period.
+
+*Built with love by the Site Reliability Tools team @ Salesforce.*

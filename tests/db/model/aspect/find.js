@@ -10,43 +10,34 @@
  * tests/db/model/aspect/find.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 
-describe('db: aspect: find: ', () => {
+describe('tests/db/model/aspect/find.js >', () => {
   before((done) => {
     u.createMedium()
     .then(() => {
-      return Aspect.create({
+      Aspect.create({
         name: 'luke',
         timeout: '1s',
         isPublished: true,
-        tags: [
-          'jedi',
-          'boring'
-        ],
+        tags: ['jedi', 'boring'],
+      });
+      Aspect.create({
+        name: 'leia',
+        timeout: '1m',
+        isPublished: true,
+        tags: ['princess', 'jedi'],
       });
     })
-    .then(() => Aspect.create({
-      name: 'leia',
-      timeout: '1m',
-      isPublished: true,
-      tags: [
-        'princess',
-        'jedi'
-      ],
-    }))
     .then(() => done())
-    .catch((err) => {
-      done(err);
-    });
+    .catch(done);
   });
 
   after(u.forceDelete);
 
-  describe('find by name', () => {
+  describe('find by name >', () => {
     it('find by name, found', (done) => {
       Aspect.findOne({ where: { name: u.name } })
       .then((o) => {
@@ -56,7 +47,7 @@ describe('db: aspect: find: ', () => {
           done();
         }
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('find by name, not found', (done) => {
@@ -68,17 +59,13 @@ describe('db: aspect: find: ', () => {
           done(new Error('expecting record to not be found'));
         }
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
   it('find by tag, found', (done) => {
     Aspect.findAll({
-      where: {
-        tags: {
-          $contains: ['jedi']
-        }
-      }
+      where: { tags: { $contains: ['jedi'] } },
     })
     .then((o) => {
       if (o.length !== 2) {
@@ -86,11 +73,7 @@ describe('db: aspect: find: ', () => {
       }
     })
     .then(() => Aspect.findAll({
-      where: {
-        tags: {
-          $contains: ['boring']
-        }
-      }
+      where: { tags: { $contains: ['boring'] } },
     }))
     .then((o) => {
       if (o.length !== 1) {
@@ -98,11 +81,7 @@ describe('db: aspect: find: ', () => {
       }
     })
     .then(() => Aspect.findAll({
-      where: {
-        tags: {
-          $contains: ['father']
-        }
-      }
+      where: { tags: { $contains: ['father'] } },
     }))
     .then((o) => {
       if (tu.gotArrayWithExpectedLength(o, 0)) {
@@ -111,7 +90,7 @@ describe('db: aspect: find: ', () => {
         done(new Error('expecting zero aspects'));
       }
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('tags and related links in default scope', (done) => {
@@ -127,8 +106,9 @@ describe('db: aspect: find: ', () => {
           throw new Error('expecting "relatedLinks" attribute');
         }
       }
+
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

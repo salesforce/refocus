@@ -10,13 +10,12 @@
  * tests/api/v1/globalconfig/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 
 module.exports = {
-  forceDelete(done) {
+  forceDelete() {
     return tu.db.GlobalConfig.destroy({
       where: {
         key: {
@@ -30,7 +29,6 @@ module.exports = {
       force: true,
     })
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => done())
-    .catch((err) => done(err));
+    .then(() => tu.forceDelete(tu.db.Token, testStartTime));
   },
 };

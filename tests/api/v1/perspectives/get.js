@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -18,8 +17,10 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/perspectives/get.js >', () => {
   let lensId;
   let perspectiveId;
   let perspectiveName;
@@ -31,7 +32,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -51,7 +52,7 @@ describe(`api: GET ${path}`, () => {
       perspectiveName = createdPersp.name;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -66,18 +67,18 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body).to.have.length(1);
+      expect(res.body).to.have.length(ONE);
       expect(res.body).to.have.deep.property('[0].id');
       expect(res.body).to.have.deep.property(
         '[0].rootSubject', 'myMainSubject'
       );
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-      expect(res.body[0].aspectFilter).to.eql(['temperature', 'humidity']);
-      expect(res.body[0].aspectTagFilter).to.eql(['temp', 'hum']);
-      expect(res.body[0].subjectTagFilter).to.eql(['ea', 'na']);
-      expect(res.body[0].statusFilter).to.eql(['Critical', '-OK']);
+      expect(res.body[ZERO].aspectFilter).to.eql(['temperature', 'humidity']);
+      expect(res.body[ZERO].aspectTagFilter).to.eql(['temp', 'hum']);
+      expect(res.body[ZERO].subjectTagFilter).to.eql(['ea', 'na']);
+      expect(res.body[ZERO].statusFilter).to.eql(['Critical', '-OK']);
 
-      return done();
+      done();
     });
   });
 
@@ -98,7 +99,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
 
-      return done();
+      done();
     });
   });
 
@@ -119,7 +120,21 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
       expect(res.body.statusFilter).to.eql(['Critical', '-OK']);
-      return done();
+      done();
+    });
+  });
+
+  it('get by name is case-INsenstive', (done) => {
+    api.get(`${path}/${perspectiveName.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
+      done();
     });
   });
 
@@ -135,7 +150,7 @@ describe(`api: GET ${path}`, () => {
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body).to.not.have.property('rootSubject');
       expect(res.body).to.not.have.property('lens');
-      return done();
+      done();
     });
   });
 
@@ -148,11 +163,69 @@ describe(`api: GET ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body).to.have.length.of.at.least(1);
-      expect(res.body[0]).to.have.property('name');
-      expect(res.body[0]).to.have.property('rootSubject');
-      expect(res.body[0]).to.not.have.property('lens');
-      return done();
+      expect(res.body).to.have.length.of.at.least(ONE);
+      expect(res.body[ZERO]).to.have.property('name');
+      expect(res.body[ZERO]).to.have.property('rootSubject');
+      expect(res.body[ZERO]).to.not.have.property('lens');
+      done();
+    });
+  });
+
+  it('find by rootSubject wildcard, found', (done) => {
+    api.get(`${path}?rootSubject=*Main*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ONE);
+      expect(res.body[0]).to.have.property('rootSubject', 'myMainSubject');
+      done();
+    });
+  });
+
+  it('find by rootSubject wildcard, NOT found', (done) => {
+    api.get(`${path}?rootSubject=XXXXXXXXXXXX*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
+    });
+  });
+
+  it('find by name wildcard, found', (done) => {
+    api.get(`${path}?name=*testPersp`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ONE);
+      expect(res.body[0]).to.have.property('name', perspectiveName);
+      done();
+    });
+  });
+
+  it('find by name wildcard, NOT found', (done) => {
+    api.get(`${path}?name=XXXXXXXXXXXX*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
     });
   });
 });

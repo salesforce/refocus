@@ -10,7 +10,6 @@
  * tests/api/v1/samples/delete.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,142 +20,168 @@ const path = '/v1/samples';
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
 const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
 const expect = require('chai').expect;
+const ZERO = 0;
+const ONE = 1;
 
-describe(`api: DELETE ${path}`, () => {
-  let sampleId;
-  let token;
+describe('tests/api/v1/samples/delete.js >', () => {
+  describe(`DELETE ${path} >`, () => {
+    let sampleName;
+    let token;
 
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch((err) => done(err));
-  });
-
-  before((done) => {
-    u.doSetup()
-    .then((samp) => {
-      return Sample.create(samp);
-    })
-    .then((samp) => {
-      sampleId = samp.id;
-      done();
-    })
-    .catch((err) => done(err));
-  });
-
-  after(u.forceDelete);
-  after(tu.forceDeleteUser);
-
-  it('basic delete', (done) => {
-    api.delete(`${path}/${sampleId}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (tu.gotExpectedLength(res.body, 0)) {
-        throw new Error('expecting sample');
-      }
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-      return done();
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
     });
-  });
-});
-describe('api: samples: DELETE RelatedLinks', () => {
-  let token;
-  let sampleId;
 
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch((err) => done(err));
-  });
+    beforeEach((done) => {
+      u.doSetup()
+      .then((samp) => Sample.create(samp))
+      .then((samp) => {
+        sampleName = samp.name;
+        done();
+      })
+      .catch(done);
+    });
 
-  beforeEach((done) => {
-    u.doSetup()
-    .then((samp) => {
-      samp.relatedLinks = [
-        {
-          name: 'rlink0',
-          url: 'https://samples.com',
-        },
-        {
-          name: 'rlink1',
-          url: 'https://samples.com',
-        },
-      ];
-      return Sample.create(
-        samp
-      );
-    })
-    .then((samp) => {
-      sampleId = samp.id;
-      done();
-    })
-    .catch((err) => done(err));
-  });
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
 
-  afterEach(u.forceDelete);
-  after(tu.forceDeleteUser);
+    it('in basic delete, apiLinks only contains the POST endpoint', (done) => {
+      api.delete(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        const { apiLinks } = res.body;
+        expect(apiLinks.length).to.equal(ONE);
+        expect(apiLinks[0].method).to.equal('POST');
+        expect(apiLinks[0].href).to.equal(path);
+      })
+      .end(done);
+    });
 
-  it('delete all related links', (done) => {
-    api.delete(allDeletePath.replace('{key}', sampleId))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(0);
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+    it('basic delete', (done) => {
+      api.delete(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        if (tu.gotExpectedLength(res.body, ZERO)) {
+          throw new Error('expecting sample');
+        }
+      })
+      .end(done);
+    });
 
-      return done();
+    it('does not return id', (done) => {
+      api.delete(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.name).to.equal(sampleName);
+        done();
+      });
+    });
+
+    it('is case in-sensitive', (done) => {
+      api.delete(`${path}/${sampleName.toLowerCase()}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.name).to.equal(sampleName);
+        done();
+      });
     });
   });
 
-  it('delete one relatedLink', (done) => {
-    api.delete(
-      oneDeletePath.replace('{key}', sampleId).replace('{akey}', 'rlink0')
-    )
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
-      expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+  describe('DELETE RelatedLinks >', () => {
+    let token;
+    let sampleName;
 
-      return done();
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
     });
-  });
 
-  it('delete related link by name', (done) => {
-    api.delete(oneDeletePath.replace('{key}', sampleId)
-      .replace('{akey}', 'rlink0'))
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.relatedLinks).to.have.length(1);
-      expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
+    beforeEach((done) => {
+      u.doSetup()
+      .then((samp) => {
+        samp.relatedLinks = [
+          {
+            name: 'rlink0',
+            url: 'https://samples.com',
+          },
+          {
+            name: 'rlink1',
+            url: 'https://samples.com',
+          },
+        ];
+        return Sample.create(
+          samp
+        );
+      })
+      .then((samp) => {
+        sampleName = samp.name;
+        done();
+      })
+      .catch(done);
+    });
 
-      return done();
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('delete all related links', (done) => {
+      api.delete(allDeletePath.replace('{key}', sampleName))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.relatedLinks).to.have.length(ZERO);
+        done();
+      });
+    });
+
+    it('delete one relatedLink', (done) => {
+      api.delete(
+        oneDeletePath.replace('{key}', sampleName).replace('{akey}', 'rlink0')
+      )
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.relatedLinks).to.have.length(ONE);
+        expect(res.body.relatedLinks)
+          .to.have.deep.property('[0].name', 'rlink1');
+      })
+      .end(done);
+    });
+
+    it('delete related link by name', (done) => {
+      api.delete(oneDeletePath.replace('{key}', sampleName)
+        .replace('{akey}', 'rlink0'))
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.relatedLinks).to.have.length(ONE);
+        expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
+      })
+      .end(done);
     });
   });
 });

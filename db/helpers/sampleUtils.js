@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const constants = require('../constants');
-const ResourceNotFoundError = require('../dbErrors').ResourceNotFoundError;
+const dbErrors = require('../dbErrors');
 const fourByteBase = 2;
 const fourByteExponent = 31;
 const fourByteLimit = Math.pow(fourByteBase, fourByteExponent);
@@ -160,7 +160,7 @@ function parseName(name) {
     return retval;
   }
 
-  const err = new ResourceNotFoundError();
+  const err = new dbErrors.ResourceNotFoundError();
   err.resourceType = 'Sample';
   err.resourceKey = name;
   throw err;
@@ -212,7 +212,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
         if (s) {
           retval.subject = s;
         } else {
-          const err = new ResourceNotFoundError();
+          const err = new dbErrors.ResourceNotFoundError();
           err.resourceType = 'Subject';
           err.resourceKey = parsedName.subject.absolutePath;
           throw err;
@@ -223,7 +223,7 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
         if (a) {
           retval.aspect = a;
         } else {
-          const err = new ResourceNotFoundError();
+          const err = new dbErrors.ResourceNotFoundError();
           err.resourceType = 'Aspect';
           err.resourceKey = parsedName.aspect.name;
           throw err;
@@ -237,7 +237,12 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
   }
 } // getSubjectAndAspectBySampleName
 
+/**
+ * @param {String} now ISO formatted date.
+ * @return {Boolean} whether the sample timed out
+ */
 function isTimedOut(timeout, now, updatedAt) {
+  const dateNow = new Date(now);
   const unit = timeout.slice(-1)  // eslint-disable-line no-magic-numbers
                .toLowerCase();
   const num = timeout.substring(0, timeout.length - 1);
@@ -258,8 +263,8 @@ function isTimedOut(timeout, now, updatedAt) {
     default:
       secs = num;
   }
-  const nowSecs = Math.round(now.getTime() / MILLISECS_PER_SEC);
-  const updatedAtSecs = Math.round(updatedAt.getTime() / MILLISECS_PER_SEC);
+  const nowSecs = Math.round(dateNow.getTime() / MILLISECS_PER_SEC);
+  const updatedAtSecs = Math.round(new Date(updatedAt).getTime() / MILLISECS_PER_SEC);
   if (secs < (nowSecs - updatedAtSecs)) {
     return true;
   }

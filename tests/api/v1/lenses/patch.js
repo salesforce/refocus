@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/patch.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
 
-describe(`api: PATCH ${path}`, () => {
+describe('tests/api/v1/lenses/patch.js >', () => {
   let lensId;
   let token;
 
@@ -29,7 +28,7 @@ describe(`api: PATCH ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -38,7 +37,7 @@ describe(`api: PATCH ${path}`, () => {
       lensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -55,7 +54,7 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.name).to.equal('changedName');
-      return done();
+      done();
     });
   });
 
@@ -70,7 +69,7 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.description).to.equal('changed description');
-      return done();
+      done();
     });
   });
 
@@ -85,7 +84,7 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.sourceDescription).to.equal('test Source Description');
-      return done();
+      done();
     });
   });
 
@@ -100,7 +99,7 @@ describe(`api: PATCH ${path}`, () => {
       }
 
       expect(res.body.isPublished).to.equal(false);
-      return done();
+      done();
     });
   });
 });

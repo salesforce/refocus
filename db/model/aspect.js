@@ -13,11 +13,21 @@
 const common = require('../helpers/common');
 const u = require('../helpers/aspectUtils');
 const constants = require('../constants');
-
+const featureToggles = require('feature-toggles');
 const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
 const valueLabelLength = 10;
+const sampleEventNames = {
+  add: 'refocus.internal.realtime.sample.add',
+  upd: 'refocus.internal.realtime.sample.update',
+  del: 'refocus.internal.realtime.sample.remove',
+};
+const sampleStoreFeature =
+                  require('../../cache/sampleStore').constants.featureName;
+const redisOps = require('../../cache/redisOps');
+const aspectType = redisOps.aspectType;
+const sampleType = redisOps.sampleType;
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -86,6 +96,10 @@ module.exports = function aspect(seq, dataTypes) {
         rangeOk: u.validateStatusRange,
       },
     },
+    rank: {
+      type: dataTypes.INTEGER,
+      allowNull: true,
+    },
     timeout: {
       type: dataTypes.STRING(timeoutLength),
       allowNull: false,
@@ -122,17 +136,28 @@ module.exports = function aspect(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = Aspect.belongsTo(models.User, {
+        assoc.user = Aspect.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.samples = Aspect.hasMany(models.Sample, {
           as: 'samples',
           foreignKey: 'aspectId',
           hooks: true,
         });
+        assoc.writers = Aspect.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'AspectWriters',
+          foreignKey: 'aspectId',
+        });
 
         Aspect.addScope('defaultScope', {
-
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
           order: ['Aspect.name'],
         }, {
           override: true,
@@ -146,10 +171,25 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
-
       },
     },
     hooks: {
+
+      /**
+       * When a publihsed aspect is deleted. Delete its entry in the aspectStore
+       * and the sampleStore if any.
+       *
+       * @param {Aspect} inst - The deleted instance
+       */
+      afterCreate(inst /* , opts */) {
+        if (inst.getDataValue('isPublished')) {
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // create an entry in aspectStore
+            redisOps.addKey(aspectType, inst.getDataValue('name'));
+            redisOps.hmSet(aspectType, inst.name, inst);
+          }
+        }
+      }, // hooks.afterCreate
 
       /**
        * Set the isDeleted timestamp.
@@ -169,6 +209,10 @@ module.exports = function aspect(seq, dataTypes) {
 
       /**
        * Recalculate sample status if any of the status ranges changed.
+       * If aspect tags changed, send a "delete" realtime event for all the
+       * samples for this aspect. (The afterUpdate hook will subsequently send
+       * an "add" event.) This way, perspectives which filter by aspect tags
+       * will get the right samples.
        *
        * @param {Aspect} inst - The instance being updated
        * @returns {Promise}
@@ -191,19 +235,95 @@ module.exports = function aspect(seq, dataTypes) {
             .catch((err) => reject(err))
           );
         }
+
+        if (inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            inst.getSamples()
+            .each((samp) =>
+              common.sampleAspectAndSubjectArePublished(seq, samp)
+              .then((published) => {
+                if (published) {
+                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
+                  .then((s) => {
+                    common.publishChange(s, sampleEventNames.del);
+                  });
+                }
+
+                return seq.Promise.resolve(true);
+              }))
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
+
+        return seq.Promise.resolve(true);
       }, // hooks.beforeUpdate
 
       /**
-       * If isPublished is being updated from true to false, delete any samples
-       * which are associated with the aspect.
+       * If isPublished is being updated from true to false or the name of the
+       * aspect is changed, delete any samples associated with the aspect.
+       * If aspect tags changed, send an "add" realtime event for all the
+       * samples for this aspect. (The beforeUpdate hook will already have
+       * sent a "delete" event.) This way, perspectives which filter by aspect
+       * tags will get the right samples.
        *
        * @param {Aspect} inst - The updated instance
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        /*
+         * When the sample store feature is enabled do the following
+         * 1. if aspect name is changed and it is published, rename the entry
+         * on aspectStore and the aspect hash.
+         * 2. if the aspect is updated to published, add an entry to the
+         * aspectStore and create the aspect hash
+         * 3. if the aspect is updated to unpublished, delete the entry in the
+         * aspectStore, delete the aspect hash and delete the related samples
+         * 4. if the aspect that is updated is already published, update the
+         * the aspect with the new values.
+        */
+        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+          if (inst.changed('name') && inst.isPublished) {
+            const newAspName = inst.name;
+            const oldAspectName = inst._previousDataValues.name;
+
+            // rename entry in aspectStore
+            redisOps.renameKey(aspectType, oldAspectName, newAspName);
+
+            /*
+             * delete multiple possible sample entries in the sample master
+             * list of index
+             */
+            redisOps.deleteKeys(sampleType, aspectType, inst.name);
+          } else if (inst.changed('isPublished')) {
+            if (inst.isPublished) {
+
+              redisOps.addKey(aspectType, inst.name);
+              redisOps.hmSet(aspectType, inst.name, inst.get());
+            } else {
+
+              // delete the entry in the subject store
+              redisOps.deleteKey(aspectType, inst.name);
+
+              /*
+               * Delete multiple possible entries in the sample master list of
+               * index
+               */
+              redisOps.deleteKeys(sampleType, aspectType, inst.name);
+            }
+          } else if (inst.isPublished) {
+            const instChanged = {};
+            Object.keys(inst._changed).forEach((key) => {
+              instChanged[key] = inst[key];
+            });
+            redisOps.hmSet(aspectType, inst.name, instChanged);
+          }
+        }
+
         if (inst.changed('isPublished') &&
           inst.previous('isPublished') &&
-          !inst.getDataValue('isPublished')) {
+          !inst.getDataValue('isPublished') ||
+          inst.changed('name')) {
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())
@@ -212,8 +332,46 @@ module.exports = function aspect(seq, dataTypes) {
           );
         }
 
+        if (inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            inst.getSamples()
+            .each((samp) =>
+              common.sampleAspectAndSubjectArePublished(seq, samp)
+              .then((published) => {
+                if (published) {
+                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
+                  .then((s) => {
+                    common.publishChange(s, sampleEventNames.add);
+                  });
+                }
+
+                return seq.Promise.resolve(true);
+              }))
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
+
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
+
+      /**
+       * When a publihsed aspect is deleted. Delete its entry in the aspectStore
+       * and the sampleStore if any.
+       *
+       * @param {Aspect} inst - The deleted instance
+       */
+      afterDelete(inst /* , opts */) {
+        if (inst.getDataValue('isPublished')) {
+          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // delete the entry in the aspectStore
+            redisOps.deleteKey(aspectType, inst.name);
+
+            // delete multiple possible entries in sampleStore
+            redisOps.deleteKeys(sampleType, aspectType, inst.name);
+          }
+        }
+      }, // hooks.afterDelete
 
       /**
        * Makes sure isUrl/isEmail validations will handle empty strings
@@ -253,6 +411,21 @@ module.exports = function aspect(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          }));
+      }, // isWritableBy
+    },
     paranoid: true,
   });
 

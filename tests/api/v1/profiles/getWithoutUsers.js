@@ -20,7 +20,7 @@ const u = require('./utils');
 const Profile = tu.db.Profile;
 const path = '/v1/profiles';
 
-describe(`api: GET ${path} (without users)`, () => {
+describe('tests/api/v1/profiles/getWithoutUsers.js (without users) >', () => {
   const profileObj = { name: `${tu.namePrefix}1` };
   let token;
 
@@ -30,27 +30,26 @@ describe(`api: GET ${path} (without users)`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
     Profile.create(profileObj)
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
 
-  it('GET all with fields [name,id] returns only name & id fields (and ' +
-  'apiLinks)', (done) => {
-    api.get(`${path}?fields=name,id`)
+  it('GET ?fields=name returns name, id & apiLinks)', (done) => {
+    api.get(`${path}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.length).to.be.above(0);
-      for (var i = 0; i < res.body.length; i++) {
+      for (let i = 0; i < res.body.length; i++) {
         const p = res.body[i];
-        expect(p).to.have.all.keys(['name', 'id', 'apiLinks']);
+        expect(p).to.have.all.keys(['apiLinks', 'id', 'name']);
       }
     })
     .end((err /* , res */) => {
@@ -62,16 +61,15 @@ describe(`api: GET ${path} (without users)`, () => {
     });
   });
 
-  it('GET all with fields=userCount, returns userCount field (and apiLinks)',
-  (done) => {
+  it('GET ?fields=userCount returns userCount, id & apiLinks)', (done) => {
     api.get(`${path}?fields=userCount`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.length).to.be.above(0);
-      for (var i = 0; i < res.body.length; i++) {
+      for (let i = 0; i < res.body.length; i++) {
         const p = res.body[i];
-        expect(p).to.have.all.keys(['userCount', 'apiLinks']);
+        expect(p).to.have.all.keys(['apiLinks', 'id', 'userCount']);
       }
     })
     .end((err /* , res */) => {
@@ -83,15 +81,15 @@ describe(`api: GET ${path} (without users)`, () => {
     });
   });
 
-  it('GET all, with fields userCount and name only (and apiLinks)', (done) => {
+  it('GET ?fields=userCount,name', (done) => {
     api.get(`${path}?fields=userCount,name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.length).to.be.above(0);
-      for (var i = 0; i < res.body.length; i++) {
+      for (let i = 0; i < res.body.length; i++) {
         const p = res.body[i];
-        expect(p).to.have.all.keys(['userCount', 'name', 'apiLinks']);
+        expect(p).to.have.all.keys(['apiLinks', 'id', 'name', 'userCount']);
       }
     })
     .end((err /* , res */) => {

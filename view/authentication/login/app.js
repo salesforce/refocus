@@ -14,7 +14,6 @@
 'use strict'; // eslint-disable-line strict
 
 import request from 'superagent';
-const u = require('../../utils');
 
 const input = document.loginform.elements;
 
@@ -44,19 +43,17 @@ function getQueryParams(qs) {
 function sendData(jsonData) {
   let returnUrl = {};
   request
-  .post('/v1/authenticate/')
+  .post('/v1/authenticate')
   .send(jsonData)
   .end((error, res) => {
     if (error) {
       let errorText = 'An unexpected error occurred';
-      if (error.response.body.errors[0].description === 'Invalid credentials' ||
-        error.response.body.errors[0].message === 'Invalid credentials') {
+      if (error.body && error.body.message === 'Invalid credentials') {
         errorText = 'Invalid credentials';
       }
 
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
-      u.setCookie('Authorization', res.body.token);
       returnUrl = getQueryParams(window.location.search.substring(1));
       if (returnUrl.ru) {
         window.location.href = returnUrl.ru;
@@ -74,4 +71,9 @@ document.loginform.addEventListener('submit', (evt) => {
   jsonData.password = input.password.value;
 
   sendData(jsonData);
+});
+
+document.getElementById('show-login').addEventListener('click', (evt) => {
+  evt.preventDefault();
+  document.getElementById('login-form').classList.remove('hide');
 });

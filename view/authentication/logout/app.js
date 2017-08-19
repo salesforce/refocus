@@ -12,7 +12,6 @@
  */
 
 import request from 'superagent';
-const u = require('../../utils');
 
 /**
  * Send request to logout user and redirect to login page
@@ -20,7 +19,6 @@ const u = require('../../utils');
 function logoutUser() {
   request
   .get('/v1/logout/')
-  .set('Authorization', u.getCookie('Authorization'))
   .end((error /* , res*/) => {
     if (!error) {
       window.location.href = '/login';

@@ -12,15 +12,15 @@
 'use strict';
 
 const Sample = require('../../../../db/index').Sample;
-const config = require('../../../../config');
+const Aspect = require('../../../../db/index').Aspect;
+const Subject = require('../../../../db/index').Subject;
 
 const m = 'sample';
-
 const fieldsWithJsonArrayType = ['relatedLinks'];
-const loggingEnabled = (
-  config.auditSamples === 'API' || config.auditSamples === 'ALL'
-  ) || false;
 
+// exclude fields of the response at the API level
+const fieldsToExclude = ['id'];
+const fieldsWithEnum = ['status', 'previousStatus'];
 
 module.exports = {
   apiLinks: {
@@ -34,6 +34,18 @@ module.exports = {
   model: Sample,
   modelName: 'Sample',
   fieldsWithJsonArrayType,
-  loggingEnabled,
-
+  fieldsWithEnum,
+  fieldsToExclude,
+  publishEvents: true,
+  associatedModels: {
+    aspect: Aspect,
+    subject: Subject,
+  },
+  fieldsToCamelCase: [
+    'status', 'previousStatus',
+  ],
+  readOnlyFields: [
+    'id', 'isDeleted', 'status', 'previousStatus',
+    'statusChangedAt', 'createdAt', 'updatedAt', 'name',
+  ],
 }; // exports

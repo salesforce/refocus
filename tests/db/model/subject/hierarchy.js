@@ -10,29 +10,29 @@
  * tests/db/model/subject/hierarchy.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 
-describe('db: subject: get hierarchy: ', () => {
-  const parTag = [
-    '___na',
-    '___continent'
-  ];
-  const grnTag = [
-    '___qbc', '___state'
-  ];
-
+describe('tests/db/model/subject/hierarchy.js >', () => {
+  const parTag = ['___na', '___continent'];
+  const grnTag = ['___qbc', '___state'];
   const parLink = [{ name: '____parlink', url: 'https://fakelink.com' }];
   const grnLink = [{ name: '____grnlink', url: 'https://fakelink.com' }];
-
-  const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true,
-    tags: parTag, relatedLinks: parLink };
+  const par = {
+    name: `${tu.namePrefix}NorthAmerica`,
+    isPublished: true,
+    tags: parTag,
+    relatedLinks: parLink,
+  };
   const chi = { name: `${tu.namePrefix}Canada`, isPublished: true };
-  const grn = { name: `${tu.namePrefix}Quebec`, isPublished: true,
-    tags: grnTag, relatedLinks: grnLink };
+  const grn = {
+    name: `${tu.namePrefix}Quebec`,
+    isPublished: true,
+    tags: grnTag,
+    relatedLinks: grnLink,
+  };
   let ipar = 0;
   let ichi = 0;
   before((done) => {
@@ -50,12 +50,12 @@ describe('db: subject: get hierarchy: ', () => {
       return Subject.create(grn);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
 
-  describe('with tags and related links', () => {
+  describe('with tags and related links >', () => {
     it('at all levels of hierarchy', (done) => {
       Subject.scope('hierarchy').findById(ipar)
       .then((sub) => {
@@ -71,7 +71,7 @@ describe('db: subject: get hierarchy: ', () => {
           .length(grnLink.length);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('no tags and relatedlinks at child level', (done) => {
@@ -81,7 +81,7 @@ describe('db: subject: get hierarchy: ', () => {
         expect(sub.relatedLinks).to.have.length(0);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('parentAbsolutePath is null at root level', (done) => {
@@ -90,7 +90,7 @@ describe('db: subject: get hierarchy: ', () => {
         expect(sub.dataValues.parentAbsolutePath).to.equal.null;
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('parentAbsolutePath is non-null at child level', (done) => {
@@ -99,7 +99,7 @@ describe('db: subject: get hierarchy: ', () => {
         expect(sub.dataValues.parentAbsolutePath).to.equal(par.name);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('present at the grand child level', (done) => {
@@ -109,7 +109,7 @@ describe('db: subject: get hierarchy: ', () => {
         expect(sub.relatedLinks).to.have.length(grnLink.length);
       })
       .then(() => done())
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
@@ -128,7 +128,7 @@ describe('db: subject: get hierarchy: ', () => {
       expect(ch).to.not.have.property('children');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('explicitly include descendents', (done) => {
@@ -155,7 +155,7 @@ describe('db: subject: get hierarchy: ', () => {
       expect(ch).to.not.have.property('children');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('using "hierarchy" scope', (done) => {
@@ -174,26 +174,46 @@ describe('db: subject: get hierarchy: ', () => {
       expect(ch).to.have.property('samples');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
+  it('using "subject hierarchy" scope: sample should not be ' +
+    ' included in any level of the hierarchy', (done) => {
+    Subject.scope('subjectHierarchy').findById(ipar)
+    .then((o) => {
+      const gp = o.get({ plain: true });
+      expect(gp).to.not.have.property('samples');
+      expect(gp.children).to.have.length(1);
+      expect(gp.childCount).to.equal(1);
+      const pa = gp.children[0].get();
+      expect(pa.children).to.have.length(1);
+      expect(pa.childCount).to.equal(1);
+      expect(pa).to.not.have.property('samples');
+      const ch = pa.children[0].get();
+      expect(ch.parentAbsolutePath).to.equal(pa.absolutePath);
+      expect(ch.childCount).to.equal(0);
+      expect(ch).to.not.have.property('children');
+      expect(ch).to.not.have.property('samples');
+      done();
+    })
+    .catch(done);
+  });
 
-  describe('db: subject: get hierarchy: with children', () => {
+  describe('with children >', () => {
     const howManyChildren = 7;
 
     afterEach(u.forceDelete);
 
     beforeEach(function beforeTest(done) {
-    // Turn off the timeout for this "beforeEach" because
-    // creating 100 subjects (or however many we want to create)
-    // takes longer than the default timeout of 2000ms.
-    // Also: accessing this.timeout() DOES NOT WORK with fat-arrow
-    // syntax!
+      // Turn off the timeout for this "beforeEach" because
+      // creating 100 subjects (or however many we want to create)
+      // takes longer than the default timeout of 2000ms.
+      // Also: accessing this.timeout() DOES NOT WORK with fat-arrow
+      // syntax!
 
       let parentId;
       let previousId = parentId;
       this.timeout(0); // eslint-disable-line no-invalid-this
-
 
       const myParent1 = u
       .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
@@ -205,44 +225,39 @@ describe('db: subject: get hierarchy: ', () => {
       .then(() => {
         const childrenToCreate = [];
         for (let x = 0; x < howManyChildren; x++) {
-          childrenToCreate.push({ name: 'child' + x, parentId,
-            isPublished: true });
+          childrenToCreate.push({
+            name: 'child' + x,
+            parentId,
+            isPublished: true,
+          });
         }
-        // console.log(childrenToCreate);
+
         return Subject.bulkCreate(childrenToCreate,
-         { individualHooks: true, validate: true });
+          { individualHooks: true, validate: true });
       })
       .each((kid) => {
         const newParentId = previousId;
         previousId = kid.id;
         return kid.update({ parentId: newParentId });
       })
-      .then(() => {
-        done();
-      })
-      .catch((err) => {
-        // console.log('catching err:', err);
-        done(err);
-      });
+      .then(() => done())
+      .catch(done);
     });
 
     it('Parent with lots of children', (done) => {
       Subject.findOne({
         where: {
-          name: 'child'+(howManyChildren -1),
+          name: 'child' + (howManyChildren - 1),
         },
       })
       .then((child) => {
-        // console.log(child.dataValues.absolutePath);
         const apParts = child.dataValues.absolutePath.split('.');
-        // console.log(apParts);
-        expect(apParts.length).to.equal(howManyChildren+1);
+        expect(apParts.length).to.equal(howManyChildren + 1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
+
+  it('test out lots of different { includes: ... } options');
 });
-
-it('test out lots of different { includes: ... } options');
-

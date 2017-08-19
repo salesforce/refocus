@@ -7,7 +7,7 @@
  */
 
 /**
- * api/v1/controllers/utils.js
+ * api/v1/helpers/verbs/utils.js
  */
 'use strict';
 
@@ -15,19 +15,37 @@ const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
+const jwtUtil = require('../../../../utils/jwtUtil');
+const logAPI = require('../../../../utils/apiLog').logAPI;
+const publisher = require('../../../../realtime/redisPublisher');
+const realtimeEvents = require('../../../../realtime/constants').events;
 
 /**
- * This functions adds the association scope name to the as the to all
+ * In-place removal of certain keys from the input object
+ *
+ * @oaram {Array} fieldsArr The fields to remove from the following obj
+ * @oaram {Object} responseObj The dataValues object, may have fields for removal
+ * @oaram {Object} The input object without the keys in fieldsArr
+ */
+function removeFieldsFromResponse(fieldsToExclude, responseObj) {
+  for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
+    delete responseObj[fieldsToExclude[i]];
+  }
+}
+
+/**
+ * This function adds the association scope name to the as the to all
  * the elements of the associaton array
- * @param {Array} assocArry -  The array of association objects that are
- * to be created
- * @param {Module} props - The module containing the properties of the
+ *
+ * @param {Array} associations -  The array of association objects that are
+ *  to be created
+ * @param {Object} props - The module containing the properties of the
  *  resource type to post
  */
-function addAssociationScope(assocArry, props) {
-  assocArry.map((o) =>
-    o.associatedModelName = props.modelName
-  );
+function addAssociationScope(associations, props) {
+  associations.map((o) => {
+    o.associatedModelName = props.modelName;
+  });
 } // addAssociationScope
 
 /**
@@ -59,7 +77,8 @@ function includeAssocToCreate(obj, props) {
 } // includeAssocToCreate
 
 /**
- * Function that capitalises the first letter of the string and returns it.
+ * Capitalize the first letter of the string and returns the modified string.
+ *
  * @param  {String} str - String that has to have its first letter capitalized
  * @returns {String} str - String with the first letter capitalized
  */
@@ -127,6 +146,7 @@ function handleAssociations(reqObj, inst, props, method) {
 /**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
+ * Always include the "id" field even if it was not explicitly requested.
  *
  * @param {Object} params - The request parameters
  * @returns {Object} - Sequelize options
@@ -135,10 +155,82 @@ function buildFieldList(params) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
+    if (!opts.attributes.includes('id')) {
+      opts.attributes.push('id');
+    }
   }
 
   return opts;
 } // buildFieldList
+
+/**
+ * Checks if the model instance is writable by a user. The username is extracted
+ * from the header if present, if not the user name of the logged in user is
+ * used.
+ * @param {Object} req  - The request object
+ * @param {Object}  modelInst - DB Model instance
+ * @returns {Promise} - A promise which resolves to the modle instance when
+ * the model instance is writable or rejects with a forbidden error
+ */
+function isWritable(req, modelInst) {
+  return new Promise((resolve, reject) => {
+    if (typeof modelInst.isWritableBy !== 'function') {
+      resolve(modelInst);
+    }
+
+    if (req.headers && req.headers.authorization) {
+      jwtUtil.getTokenDetailsFromRequest(req)
+      .then((resObj) => modelInst.isWritableBy(resObj.username))
+      .then((ok) => ok ? resolve(modelInst) :
+        reject(new apiErrors.ForbiddenError(
+          'Resource not writable for provided token'))
+      )
+      .catch(reject);
+    } else if (req.user) {
+      // try to use the logged-in user
+      modelInst.isWritableBy(req.user.name)
+      .then((ok) => ok ? resolve(modelInst) :
+        reject(new apiErrors.ForbiddenError(
+          'Resource not writable by this user'))
+      )
+      .catch(reject);
+    } else {
+      // check if isWritable with no user
+      // when not passed a user, isWritable will return true if
+      // the resource is not write protected, false if it is
+      modelInst.isWritableBy()
+      .then((ok) => ok ? resolve(modelInst) :
+        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+      )
+      .catch(reject);
+    }
+  });
+}
+
+/**
+ * This is a wrapper for the function with the same name in jwtUtil.
+ * @param  {Object} req  - The request object
+ * @param  {Boolean} doDecode - A flag to decide if the username has to be coded
+ * from the token.
+ * @returns {Promise} - A promise object which resolves to a username if the
+ * doDecode flag is set
+ */
+function getUserNameFromToken(req) {
+  return new Promise((resolve, reject) => {
+    if (req.headers && req.headers.authorization) {
+      jwtUtil.getTokenDetailsFromRequest(req)
+      .then((resObj) => {
+        resolve(resObj.username);
+      })
+      .catch((err) => reject(err));
+    } else if (req.user) {
+      // try to use the logged-in user
+      resolve(req.user.name);
+    } else {
+      resolve(false);
+    }
+  });
+} // getUserNameFromToken
 
 /**
  * Builds the API links to send back in the response.
@@ -161,15 +253,11 @@ function getApiLinks(key, props, method) {
   }
 
   // Otherwise include all the methods specified for this resource
-  return Object.keys(props.apiLinks).map((i) => {
-    return {
-      href: i === 'POST' ?
-        props.baseUrl :
-        props.baseUrl + constants.SLASH + key,
-      method: i,
-      rel: props.apiLinks[i],
-    };
-  });
+  return Object.keys(props.apiLinks).map((i) => ({
+    href: i === 'POST' ? props.baseUrl : props.baseUrl + constants.SLASH + key,
+    method: i,
+    rel: props.apiLinks[i],
+  }));
 } // getApiLinks
 
 /**
@@ -183,6 +271,51 @@ function getApiLinks(key, props, method) {
  */
 function looksLikeId(key) {
   return constants.POSTGRES_UUID_RE.test(key);
+}
+
+/**
+ * Returns a where clause object that can be used to query the model.
+ * @param  {String} nameOrId - Name or id of the record that the where clause
+ * has to find
+ * @returns {Object} - A where clause object
+ */
+function whereClauseForNameOrId(nameOrId) {
+  const whr = {};
+  if (looksLikeId(nameOrId)) {
+    whr.id = nameOrId;
+  } else {
+    whr.name = nameOrId;
+  }
+
+  return whr;
+} // whereClauseForNameOrId
+
+/**
+ * Returns a where clause object that uses the "IN" operator
+ * @param  {Array} arr - An array that needs to be assigned to the "IN" operator
+ * @returns {Object} - An where clause object
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+  whr.name = {};
+  whr.name[constants.SEQ_IN] = arr;
+  return whr;
+} // whereClauseForNameOrId
+
+/**
+ * A function that throws resource not found error if an array passed
+ * to the function is empty
+ * @param  {Array} arr  -  An array
+ * @param  {String} key - Record id for which the error is thrown
+ * @param  {String} modelName - Name of the model throwing the error
+ */
+function throwErrorForEmptyArray(arr, key, modelName) {
+  if (Array.isArray(arr) && !arr.length) {
+    const err = new apiErrors.ResourceNotFoundError();
+    err.resource = modelName;
+    err.key = key;
+    throw err;
+  }
 }
 
 /**
@@ -433,12 +566,14 @@ function cleanAndStripNulls(obj) {
 
       // if undefined, parentAbsolutePath needs to be set to empty string,
       // to pass swagger's schema validation
-      if (key == 'parentAbsolutePath' && !o[key]) {
+      if (key === 'parentAbsolutePath' && !o[key]) {
         o[key] = '';
+      } else if (key === 'parentId' && !o[key]) {
+        o[key] = null;
       } else if (o[key] === undefined || o[key] === null) {
         delete o[key];
       } else if (Array.isArray(o[key])) {
-        o[key] = o[key].map((i) => cleanAndStripNulls(i));
+        o[key] = o[key].map((j) => cleanAndStripNulls(j));
       } else if (typeof o[key] === 'object') {
         o[key] = cleanAndStripNulls(o[key]);
       }
@@ -448,9 +583,198 @@ function cleanAndStripNulls(obj) {
   return o;
 }
 
+/**
+ * If the key looks like a postgres uuid, tries calling findById first, but
+ * falls back to find by name (or subject.absolutePath) if none found. If
+ * the key does not look like a postgres uuid, just tries to find by name
+ * (or subject.absolutePath).
+ *
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Object} params - The request params
+ * @param {Array} extraAttributes - An array of... // TODO
+ * @returns {Promise} which resolves to the record found, or rejects with
+ *  ResourceNotFoundError if record not found
+ */
+function findByKey(props, params, extraAttributes) {
+  const key = params.key.value;
+  const opts = buildFieldList(params);
+  const keyClause = {};
+  keyClause[constants.SEQ_LIKE] = key;
+  opts.where = {};
+  opts.where[props.nameFinder || 'name'] = keyClause;
+
+  const attrArr = [];
+  if (opts.attributes && Array.isArray(opts.attributes)) {
+    for (let i = 0; i < opts.attributes.length; i++) {
+      attrArr.push(opts.attributes[i]);
+    }
+  }
+
+  if (extraAttributes && Array.isArray(extraAttributes)) {
+    for (let i = 0; i < extraAttributes.length; i++) {
+      attrArr.push(extraAttributes[i]);
+    }
+  }
+
+  const scopedModel = getScopedModel(props, attrArr);
+
+  // If the key is a UUID then find the records by ID or name.
+  // If the models key auto-increments then the key will be an
+  // integer and still should find records by ID.
+  if (looksLikeId(key)) {
+    return findByIdThenName(scopedModel, key, opts);
+  } else if ((typeof key === 'number') && (key % 1 === 0)) {
+    return findByIdThenName(scopedModel, key, opts);
+  }
+
+  return findByName(scopedModel, key, opts);
+} // findByKey
+
+/**
+ * Finds the associated instances of a given model
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Object} params - The request params
+ * @param  {String} association - Name of the associated model
+ * @param  {[type]} options - An optional object to apply a "where" clause or
+ * "scopes" to the associated model
+ * @returns {Promise} which resolves to the associated record found or rejects
+ * with ResourceNotFoundError if the given model(parent record) is not found.
+ */
+function findAssociatedInstances(props, params, association, options) {
+  return new Promise((resolve, reject) => {
+    findByKey(props, params)
+    .then((o) => {
+      if (o) {
+        const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
+        o[getAssocfuncName](options)
+        .then((assocArry) => resolve(assocArry));
+      }
+    })
+    .catch((err) => reject(err));
+  });
+}
+
+/**
+ * Deletes all the "belongs to many" associations of the model instance. The
+ * assocNames contains the name of the associations that are to be deleted.
+ * @param {Model} modelInst - The DB model instance that need to have all its
+ *  association removed
+ * @param {Array} assocNames - The name of the associations that are associated
+ * with the model
+ *
+ */
+function deleteAllAssociations(modelInst, assocNames) {
+  let functionName;
+  assocNames.forEach((assocName) => {
+    functionName = `set${capitalizeFirstLetter(assocName)}`;
+
+    // an empty array needs to be passed to the "setAssociations" function
+    // to delete all the associations.
+    modelInst[functionName]([]);
+  });
+} // deleteAllAssociations
+
+/**
+ * Attaches the resource type to the error and passes it on to the next
+ * handler.
+ *
+ * @param {Function} next - The next middleware function in the stack
+ * @param {Error} err - The error to handle
+ * @param {String} modelName - The DB model name, used to disambiguate field
+ *  names
+ */
+function handleError(next, err, modelName) {
+  err.resource = modelName;
+  next(err);
+}
+
+/**
+ * Attaches the resource type to the error and passes it on to the next
+ * handler.
+ *
+ * @param {Function} next - The next middleware function in the stack
+ * @param {String} modelName - The DB model name, used to disambiguate field
+ *  names
+ */
+function forbidden(next, modelName) {
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'Forbidden.',
+  });
+  handleError(next, err, modelName);
+} // forbidden
+
+/**
+ * Check if related links array have duplicate names.
+ * @param  {Array}  rLinkArr - Array of related link objects
+ * @throws {Error} If duplcate related link is found
+ */
+function checkDuplicateRLinks(rLinkArr) {
+  const uniqlinks = [];
+  rLinkArr.forEach((rLinkObj) => {
+    if (rLinkObj.name && uniqlinks.includes(rLinkObj.name.toLowerCase())) {
+      throw new apiErrors.ValidationError({
+        explanation: 'Name of the relatedlinks should be unique.',
+      });
+    }
+
+    uniqlinks.push(rLinkObj.name.toLowerCase());
+  });
+} // checkDuplicateRLinks
+
+/**
+ * Checks if the user has the permission to create the sample and creates the
+ * sample if so.
+ * @param  {Object} req  - The request object
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @returns {Promise}  which resolves to the created sample instance
+ */
+function createSample(req, props) {
+  const toCreate = req.swagger.params.queryBody.value;
+  const aspectModel = props.associatedModels.aspect;
+  const options = {};
+  options.where = whereClauseForNameOrId(toCreate.aspectId);
+  let user;
+
+  // get the user name from the request object
+  return getUserNameFromToken(req)
+  .then((usr) => {
+    user = usr;
+
+    // find the aspect related to the sample being created
+    return aspectModel.findOne(options);
+  })
+  .then((aspect) => {
+    if (!aspect) {
+      throw new apiErrors.ResourceNotFoundError({
+        explanation: 'Aspect not found.',
+      });
+    }
+
+    // check if the user has permission to create the sample
+    return aspect.isWritableBy(user);
+  })
+  .then((ok) => {
+    if (!ok) {
+      throw new apiErrors.ForbiddenError({
+        explanation: `The user: ${user}, does not have write permission` +
+            'on the sample',
+      });
+    }
+
+    // create the sample if the user has write permission
+    return props.model.create(toCreate);
+  });
+}
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
+  realtimeEvents,
+
+  publisher,
+
+  logAPI,
 
   buildFieldList,
 
@@ -468,53 +792,37 @@ module.exports = {
    */
   responsify(rec, props, method) {
     const o = cleanAndStripNulls(rec);
-    o.apiLinks = getApiLinks(o.id, props, method);
+    let key = o.id;
+
+    // if do not return id, use name instead and delete id field
+    if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
+      key = o.name;
+      delete o.id;
+    }
+
+    o.apiLinks = getApiLinks(key, props, method);
+    if (props.stringify) {
+      props.stringify.forEach((f) => {
+        o[f] = `${o[f]}`;
+      });
+    }
+
     return o;
   }, // responsify
 
-  /**
-   * If the key looks like a postgres uuid, tries calling findById first, but
-   * falls back to find by name (or subject.absolutePath) if none found. If
-   * the key does not look like a postgres uuid, just tries to find by name
-   * (or subject.absolutePath).
-   *
-   * @param {Object} props - The helpers/nouns module for the given DB model
-   * @param {Object} params - The request params
-   * @param {Array} extraAttributes - An array of... // TODO
-   * @returns {Promise} which resolves to the record found, or rejects with
-   *  ResourceNotFoundError if record not found
-   */
-  findByKey(props, params, extraAttributes) {
-    const key = params.key.value;
-    const opts = buildFieldList(params);
-    const keyClause = {};
-    keyClause[constants.SEQ_LIKE] = key;
-    opts.where = {};
-    opts.where[props.nameFinder || 'name'] = keyClause;
-    const attrArr = [];
-    if (opts.attributes && Array.isArray(opts.attributes)) {
-      for (let i = 0; i < opts.attributes.length; i++) {
-        attrArr.push(opts.attributes[i]);
-      }
-    }
+  findAssociatedInstances,
 
-    if (extraAttributes && Array.isArray(extraAttributes)) {
-      for (let i = 0; i < extraAttributes.length; i++) {
-        attrArr.push(extraAttributes[i]);
-      }
-    }
+  findByKey,
 
-    const scopedModel = getScopedModel(props, attrArr);
-    if (looksLikeId(key)) {
-      return findByIdThenName(scopedModel, key, opts);
-    }
-
-    return findByName(scopedModel, key, opts);
-  }, // findByKey
+  forbidden,
 
   getScopedModel,
 
   includeAssocToCreate,
+
+  isWritable,
+
+  getUserNameFromToken,
 
   handleAssociations,
 
@@ -524,21 +832,17 @@ module.exports = {
 
   mergeDuplicateArrayElements,
 
-  /**
-   * Attaches the resource type to the error and passes it on to the next
-   * handler.
-   *
-   * @param {Function} next - The next middleware function in the stack
-   * @param {Error} err - The error to handle
-   * @param {String} modelName - The DB model name, used to disambiguate field
-   *  names
-   */
-  handleError(next, err, modelName) {
-    err.resource = modelName;
-    next(err);
-  },
+  handleError,
+
+  deleteAllAssociations,
 
   looksLikeId,
+
+  whereClauseForNameOrId,
+
+  whereClauseForNameInArr,
+
+  throwErrorForEmptyArray,
 
   cleanAndStripNulls,
 
@@ -549,5 +853,11 @@ module.exports = {
   patchArrayFields,
 
   getApiLinks,
+
+  removeFieldsFromResponse,
+
+  checkDuplicateRLinks,
+
+  createSample,
 
 }; // exports

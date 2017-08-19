@@ -32,13 +32,100 @@ apiErrors.create({
 });
 
 apiErrors.create({
-  code: 11100,
+  code: 11102,
   status: 400,
-  name: 'SubjectValidationError',
+  name: 'InvalidTokenActionError',
   parent: apiErrors.ValidationError,
   fields: [],
-  defaultMessage: 'You are not allowed to set the subject\'s absolutePath attribute' +
-    'directly--it is generated based on the subject\'s name and parent.',
+  defaultMessage: 'You are not allowed to restore a token if it was not ' +
+    'previously revoked, and vice versa.',
+});
+
+apiErrors.create({
+  code: 11103,
+  status: 400,
+  name: 'DuplicateFieldError',
+  parent: apiErrors.ValidationError,
+  fields: ['tags'],
+  defaultMessage: 'Tags are case-insensitive. Duplicates found',
+});
+
+apiErrors.create({
+  code: 11103,
+  status: 400,
+  name: 'InvalidPerspectiveError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You tried to create a filter with Include equal to ' +
+  ' an empty array. This is not a valid filter combination ',
+});
+
+apiErrors.create({
+  code: 11104,
+  status: 400,
+  name: 'InvalidFilterParameterError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'Filter should be passed in query parameter as ' +
+  'an include filter or an exclude filter, but not the combination of both.',
+});
+
+apiErrors.create({
+  code: 11105,
+  status: 400,
+  name: 'InvalidSampleStoreState',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You cannot rebuild the sample store if the ' +
+    'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
+});
+
+apiErrors.create({
+  code: 11106,
+  status: 400,
+  name: 'RebuildSampleStoreNotPermittedNow',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You cannot rebuild the sample store from the database ' +
+    'right now because it is currently being persisted *to* to the ' +
+    'database. Please try again in a moment.',
+});
+
+apiErrors.create({
+  code: 11107,
+  status: 400,
+  name: 'ParentSubjectNotFound',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'Could not find the specified parent for this subject.',
+  explanation: 'If a subject specifies that it has a parent, the parent ' +
+   'subject must already exist.',
+});
+
+apiErrors.create({
+  code: 11108,
+  status: 400,
+  name: 'ParentSubjectNotMatch',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'The parentAbsolutePath and parentId do not match.',
+  explanation: 'If a subject specifies both a parentAbsolutePath and a parentId, the parent ' +
+    'specified by both fields need to have the same id.',
+});
+
+apiErrors.create({
+  code: 11109,
+  status: 400,
+  name: 'IllegalSelfParenting',
+  parent: apiErrors.ValidationError,
+  defaultMessage: 'A subject may not be its own parent.',
+});
+
+apiErrors.create({
+  code: 11110,
+  status: 400,
+  name: 'DuplicateResourceError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'You are not allowed to create a resource that already exists.',
 });
 
 // ----------------------------------------------------------------------------
@@ -74,6 +161,19 @@ apiErrors.create({
   name: 'ForbiddenError',
   parent: apiErrors.RefocusApiError,
   defaultMessage: 'Forbidden',
+  resourceType: '',
+  resourceKey: '',
+});
+
+// ----------------------------------------------------------------------------
+// Worker Timeout Error
+// ----------------------------------------------------------------------------
+apiErrors.create({
+  code: 11500,
+  status: 503,
+  name: 'WorkerTimeoutError',
+  parent: apiErrors.RefocusApiError,
+  defaultMessage: 'Timeout exceeded in worker process',
   resourceType: '',
   resourceKey: '',
 });

@@ -10,16 +10,17 @@
  * tests/api/v1/lenses/post.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const Lens = tu.db.Lens;
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/lenses/post.js >', () => {
   let token;
 
   before((done) => {
@@ -28,11 +29,53 @@ describe(`api: POST ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  describe('post duplicate fails >', () => {
+    beforeEach((done) => {
+      u.doSetup()
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('with identical name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .field('name', u.name)
+      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .field('name', u.name)
+      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+  });
 
   it('OK', (done) => {
     api.post(path)
@@ -41,13 +84,7 @@ describe(`api: POST ${path}`, () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      return done();
-    });
+    .end(done);
   });
 
   it('Error if required files not present in zip', (done) => {
@@ -57,12 +94,51 @@ describe(`api: POST ${path}`, () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/lenses/lensZips/missing_json_lens.zip')
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err /* , res */) => {
+    .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      return done();
+      expect(res.body.errors[0].description).contains(
+        'lens.js and lens.json are required files in lens zip'
+      );
+      done();
+    });
+  });
+
+  it('Error if library is not zip file', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .attach('library', 'tests/api/v1/lenses/lensZips/lens.json')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'The library parameter mime type should be application/zip'
+      );
+      done();
+    });
+  });
+
+  it('Error if name not present in lens json', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .field('description', 'test description')
+    .field('name', 'testLens')
+    .attach('library', 'tests/api/v1/lenses/lensZips/lensNoName.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'name is required in lens json'
+      );
+      done();
     });
   });
 
@@ -78,7 +154,54 @@ describe(`api: POST ${path}`, () => {
       }
 
       expect(res.body.name).to.equal(res.body.sourceName);
-      return done();
+      done();
+    });
+  });
+
+  it('name with dot in lens json should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .attach('library', 'tests/api/v1/lenses/lensZips/lensWithDotInName.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].description).contains(
+        'Name field should be max 60 characters; case ' +
+        'insensitive; allows alpha-numeric characters,underscore (_) ' +
+        'and dash (-).'
+      );
+      Lens.findOne({ where: { name: 'testLensv1.1' } })
+      .then((resp) => {
+        expect(resp).to.be.null;
+      })
+      .then(() => done());
+    });
+  });
+
+  it('name with dot in request field should fail', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .field('name', 'testLensv1.1')
+    .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].message).contains(
+        'Request validation failed: Parameter (name) does not match required ' +
+        'pattern'
+      );
+
+      Lens.findOne({ where: { name: 'testLensv1.1' } })
+      .then((resp) => {
+        expect(resp).to.be.null;
+      })
+      .then(() => done());
     });
   });
 });

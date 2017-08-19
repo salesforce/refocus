@@ -9,15 +9,13 @@
 /**
  * tests/db/model/ssoconfig/create.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const SSOConfig = tu.db.SSOConfig;
 
-describe('db: SSOConfig: create', () => {
+describe('tests/db/model/ssoconfig/create.js >', () => {
   let ssoconfig = {};
 
   beforeEach((done) => {
@@ -26,7 +24,7 @@ describe('db: SSOConfig: create', () => {
       ssoconfig = createdSSOConfig;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -48,7 +46,7 @@ describe('db: SSOConfig: create', () => {
       expect(foundSSOConfig).to.equal(null);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Adding new row should fail', (done) => {

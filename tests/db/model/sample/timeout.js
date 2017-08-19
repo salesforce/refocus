@@ -10,7 +10,6 @@
  * tests/db/model/sample/timeout.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -21,8 +20,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('db: sample: timeout: ', function() {
-
+describe('tests/db/model/sample/timeout.js >', () => {
   let updatedAt;
   const defaultForStatus = 'Timeout';
   const twentyFourhours = 24;
@@ -95,15 +93,17 @@ describe('db: sample: timeout: ', function() {
       updatedAt = s.updatedAt;
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 100 days in the future', (done) => {
     const mockUpdatedAt = updatedAt;
-    mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours*hundredDays);
+    mockUpdatedAt.setHours(updatedAt.getHours() +
+      (twentyFourhours * hundredDays));
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 4 were timed out.');
+    .then((res) => {
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 4 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -116,15 +116,16 @@ describe('db: sample: timeout: ', function() {
       expect(s.status).to.equal(defaultForStatus);
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 1 day in the future', (done) => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setHours(updatedAt.getHours() + twentyFourhours);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 3 were timed out.');
+    .then((res) => {
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 3 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -150,15 +151,16 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 5 minutes in the future', (done) => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setMinutes(updatedAt.getMinutes() + fiveMinutes);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 2 were timed out.');
+    .then((res) => {
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 2 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -184,15 +186,16 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('simulate 10 seconds in the past', (done) => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setSeconds(updatedAt.getSeconds() - tenSeconds);
     Sample.doTimeout(mockUpdatedAt)
-    .then((msg) => {
-      expect(msg).to.equal('Evaluated 4 samples; 0 were timed out.');
+    .then((res) => {
+      expect(res).to.contain({ numberEvaluated: 4, numberTimedOut: 0 });
+      expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
     })
     .then(() => Sample.findAll({
       where: {
@@ -218,7 +221,7 @@ describe('db: sample: timeout: ', function() {
       }
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('checktimeout scope should only return required fields' +
@@ -228,24 +231,25 @@ describe('db: sample: timeout: ', function() {
       expect(samp.id).to.not.equal(undefined);
       expect(samp.value).to.not.equal(undefined);
       expect(samp.updatedAt).to.not.equal(undefined);
+      expect(samp.name).to.not.equal(undefined);
+      expect(samp.aspectId).to.not.equal(undefined);
+      expect(samp.subjectId).to.not.equal(undefined);
+      expect(samp.relatedLinks).to.not.equal(undefined);
+      expect(samp.aspect.name).to.not.equal(undefined);
+      expect(samp.aspect.tags).to.not.equal(undefined);
 
       /*
        * the following sample fields should not be fetched in the
        * checktimeout query
-       *
        */
       expect(samp.previousStatus).to.equal(undefined);
       expect(samp.messageBody).to.equal(undefined);
       expect(samp.messageCode).to.equal(undefined);
-      expect(samp.name).to.equal(undefined);
       expect(samp.status).to.equal(undefined);
-      expect(samp.aspectId).to.equal(undefined);
-      expect(samp.subjectId).to.equal(undefined);
-      expect(samp.relatedLinks).to.equal(undefined);
       expect(samp.createdAt).to.equal(undefined);
       expect(samp.deletedAt).to.equal(undefined);
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

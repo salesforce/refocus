@@ -16,21 +16,31 @@ import React, { PropTypes } from 'react';
 
 class ErrorRender extends React.Component {
   render() {
+    const { displayRelative, hide, error } = this.props;
+    const style = {
+      position: displayRelative ?
+        'relative' : 'fixed', // default fixed position.
+    };
     return (
-      <div className='slds-notify_container'>
+      <div className='slds-notify_container' style={ style }>
         <div
-          className='slds-notify slds-notify--alert slds-theme--error slds-theme--alert-texture'
+          className={'slds-notify slds-notify--alert' +
+          ' slds-theme--error slds-theme--alert-texture'}
           role='alert'>
           <button
-            onClick={this.props.hide}
-            className='slds-button slds-button--icon-inverse slds-notify__close'>
+            onClick={ hide }
+            className={'slds-button slds-button--icon-inverse' +
+            ' slds-notify__close'}>
             <svg aria-hidden='true' className='slds-icon slds-icon--x-small'>
-              <use xlinkHref='../static/icons/utility-sprite/svg/symbols.svg#close'></use>
+              <use
+                xlinkHref={'../static/icons/utility-sprite/svg/' +
+                'symbols.svg#close'}>
+              </use>
             </svg>
             <span className='slds-assistive-text'>Close</span>
           </button>
           <span className='slds-assistive-text'>Error</span>
-          <h2 className='error-text'>{this.props.error}</h2>
+          <h2 className='error-text'>{ error }</h2>
         </div>
       </div>
     );
@@ -39,7 +49,8 @@ class ErrorRender extends React.Component {
 
 ErrorRender.propTypes = {
   hide: PropTypes.func.isRequired,
-  error: PropTypes.string
+  error: PropTypes.string,
+  displayRelative: PropTypes.bool,
 };
 
 export default ErrorRender;

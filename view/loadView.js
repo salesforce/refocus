@@ -19,8 +19,8 @@ const User = require('../db/index').User;
 const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
-const jwtUtil = require('../api/v1/helpers/jwtUtil');
-const NOT_FOUND = 404;
+const jwtUtil = require('../utils/jwtUtil');
+const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 
 // protected urls
@@ -36,6 +36,7 @@ const viewmap = {
   '/samples/:key/edit': 'admin',
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
+  '/tokens/new': 'tokens/new',
 };
 
 /**
@@ -92,7 +93,7 @@ function samlAuthentication(userProfile, done) {
 
 /**
  * Creates redirect url for sso.
- * @param  {String} qs Query string
+ * @param  {String} req Query string
  * @returns {Object} Decode query params object
  */
 function getRedirectUrlSSO(req) {
@@ -117,8 +118,9 @@ module.exports = function loadView(app, passport) {
       (req, res) => {
         const trackObj = {
           trackingId: viewConfig.trackingId,
-          user: req.user,
+          user: JSON.stringify(req.user),
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+          transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
         const templateVars = Object.assign(
@@ -167,9 +169,9 @@ module.exports = function loadView(app, passport) {
           return next();
         }
 
-        return res.status(NOT_FOUND).send('Page not found');
+        return res.status(httpStatus.NOT_FOUND).send('Page not found');
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     passport.authenticate(
@@ -201,9 +203,9 @@ module.exports = function loadView(app, passport) {
           return next();
         }
 
-        return res.status(NOT_FOUND).send('Page not found');
+        return res.status(httpStatus.NOT_FOUND).send('Page not found');
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     passport.authenticate('saml',
@@ -211,11 +213,18 @@ module.exports = function loadView(app, passport) {
         failureRedirect: '/login',
       }),
     (_req, _res) => {
-      const token = jwtUtil.createToken(_req.user);
-      _res.cookie('Authorization', token);
+      if (_req.user && _req.user.name) {
+        const token = jwtUtil.createToken(_req.user.name, _req.user.name);
+        _req.session.token = token;
+      }
 
-      // get the redirect url from relay state
-      _res.redirect(_req.body.RelayState);
+      if (_req.body.RelayState) {
+        // get the redirect url from relay state if present
+        _res.redirect(_req.body.RelayState);
+      } else {
+        // redirect to home page
+        _res.redirect('/');
+      }
     }
   );
 
@@ -255,12 +264,12 @@ module.exports = function loadView(app, passport) {
       SSOConfig.findOne()
       .then((ssoconfig) => {
         if (ssoconfig) {
-          return res.status(NOT_FOUND).send('Page not found');
+          return res.status(httpStatus.NOT_FOUND).send('Page not found');
         }
 
         return next();
       })
-      .catch(() => res.status(NOT_FOUND).send('Page not found'));
+      .catch(() => res.status(httpStatus.NOT_FOUND).send('Page not found'));
     },
 
     (req, res/* , next*/) => {

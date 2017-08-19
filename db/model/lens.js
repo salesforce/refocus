@@ -12,9 +12,9 @@
 
 const common = require('../helpers/common');
 const constants = require('../constants');
-const redisCache = require('../../cache/redisCache').client;
+const redisCache = require('../../cache/redisCache').client.cache;
 const lensUtil = require('../../utils/lensUtil');
-
+const featureToggles = require('feature-toggles');
 const assoc = {};
 
 module.exports = function lens(seq, dataTypes) {
@@ -81,8 +81,14 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.installedBy = Lens.belongsTo(models.User, {
+        assoc.user = Lens.belongsTo(models.User, {
           foreignKey: 'installedBy',
+          as: 'user',
+        });
+        assoc.writers = Lens.belongsToMany(models.User, {
+          as: 'writers',
+          through: 'LensWriters',
+          foreignKey: 'lensId',
         });
 
         Lens.addScope('lensLibrary', {
@@ -90,12 +96,22 @@ module.exports = function lens(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Lens.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
+          attributes: { exclude: ['library'] },
+          order: ['Lens.name'],
+        }, {
+          override: true,
+        });
       },
     },
-    defaultScope: {
-      attributes: { exclude: ['library'] },
-      order: ['Lens.name'],
-    },
+
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
@@ -161,6 +177,21 @@ module.exports = function lens(seq, dataTypes) {
         ],
       },
     ],
+    instanceMethods: {
+      isWritableBy(who) {
+        return new seq.Promise((resolve /* , reject */) =>
+          this.getWriters()
+          .then((writers) => {
+            if (!writers.length) {
+              resolve(true);
+            }
+
+            const found = writers.filter((w) =>
+              w.name === who || w.id === who);
+            resolve(found.length === 1);
+          }));
+      }, // isWritableBy
+    },
     paranoid: true,
     tableName: 'Lenses',
   });

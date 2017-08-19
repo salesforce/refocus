@@ -15,6 +15,7 @@ const helper = require('../helpers/nouns/ssoconfig');
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const apiErrors = require('../apiErrors');
+const authUtils = require('../helpers/authUtils');
 
 /**
  * Builds the API links to send back in the response.
@@ -37,13 +38,11 @@ function getApiLinks(key, props, method) {
   }
 
   // Otherwise include all the methods specified for this resource
-  return Object.keys(props.apiLinks).map((i) => {
-    return {
-      href: props.baseUrl,
-      method: i,
-      rel: props.apiLinks[i],
-    };
-  });
+  return Object.keys(props.apiLinks).map((i) => ({
+    href: props.baseUrl,
+    method: i,
+    rel: props.apiLinks[i],
+  }));
 } // getApiLinks
 
 /**
@@ -60,38 +59,51 @@ function getApiLinks(key, props, method) {
  */
 function responsify(rec, props, method) {
   const o = u.cleanAndStripNulls(rec);
-
   o.apiLinks = getApiLinks(o.id, props, method);
   return o;
-}// responsify
+} // responsify
 
 module.exports = {
 
   /**
    * DELETE /ssoconfig
    *
-   * Deletes the ssoconfig and sends it back in the response.
+   * Deletes the ssoconfig and sends it back in the response. Reject if user
+   * does not have an admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSSOConfig(req, res, next) {
-    helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        o.destroy()
-        .then((destroyedObj) => {
-          res.status(httpStatus.OK)
-          .json(responsify(destroyedObj, helper, req.method));
-        });
+    const resultObj = { reqStartTime: new Date() };
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        helper.model.findOne()
+        .then((o) => {
+          if (o) {
+            o.destroy()
+            .then((destroyedObj) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              u.logAPI(req, resultObj, destroyedObj);
+              res.status(httpStatus.OK)
+              .json(responsify(destroyedObj, helper, req.method));
+            });
+          } else {
+            const err = new apiErrors.ResourceNotFoundError();
+            err.info = 'There is no sso config to delete.';
+            u.handleError(next, err, helper.modelName);
+          }
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.info = 'There is no sso config to delete.';
-        u.handleError(next, err, helper.modelName);
+        u.forbidden(next);
       }
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -104,9 +116,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSSOConfig(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     helper.model.findOne()
     .then((o) => {
       if (o) {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
         res.status(httpStatus.OK).json(responsify(o, helper, req.method));
       } else {
         const err = new apiErrors.ResourceNotFoundError({
@@ -125,105 +140,146 @@ module.exports = {
    *
    * Updates the ssoconfig and sends it back in the response. PATCH will only
    * update the attributes of the user provided in the body of the request.
-   * Other attributes will not be updated.
+   * Other attributes will not be updated. Reject if user does not have an
+   * admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   patchSSOConfig(req, res, next) {
-    helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        const requestBody = req.swagger.params.queryBody.value;
+    const resultObj = { reqStartTime: new Date() };
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        helper.model.findOne()
+        .then((o) => {
+          if (o) {
+            const requestBody = req.swagger.params.queryBody.value;
 
-        // if patching with value,
-        // force db to update value, regardless of whether it changed
-        if (Object.keys(requestBody).indexOf('value') >= 0) {
-          o.changed('value', true);
-        }
+            // if patching with value,
+            // force db to update value, regardless of whether it changed
+            if (Object.keys(requestBody).indexOf('value') >= 0) {
+              o.changed('value', true);
+            }
 
-        o.update(requestBody)
-        .then((updatedObj) => {
-          res.status(httpStatus.OK)
-          .json(responsify(updatedObj, helper, req.method));
-        });
+            o.update(requestBody)
+            .then((updatedObj) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              u.logAPI(req, resultObj, o.dataValues);
+              res.status(httpStatus.OK)
+              .json(responsify(updatedObj, helper, req.method));
+            });
+          } else {
+            const err = new apiErrors.ResourceNotFoundError({
+              explanation: 'There is no sso config.',
+            });
+            u.handleError(next, err, helper.modelName);
+          }
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const err = new apiErrors.ResourceNotFoundError({
-          explanation: 'There is no sso config.',
-        });
-        u.handleError(next, err, helper.modelName);
+        u.forbidden(next);
       }
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * POST /ssoconfig
    *
-   * Creates a new ssoconfig and sends it back in the response.
+   * Creates a new ssoconfig and sends it back in the response. Reject if user
+   * does not have an admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   postSSOConfig(req, res, next) {
-    const toPost = req.swagger.params.queryBody.value;
-    const assocToCreate = u.includeAssocToCreate(toPost, helper);
-    helper.model.create(toPost, assocToCreate)
-    .then((o) =>
-      res.status(httpStatus.CREATED).json(responsify(o, helper, req.method))
-    )
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    const resultObj = { reqStartTime: new Date() };
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const toPost = req.swagger.params.queryBody.value;
+        const assocToCreate = u.includeAssocToCreate(toPost, helper);
+        helper.model.create(toPost, assocToCreate)
+        .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
+          res.status(httpStatus.CREATED).json(responsify(o, helper, req.method));
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
    * PUT /ssoconfig
    *
    * Updates ssoconfig and sends it back in the response. If any attributes are
-   * missing from the body of the request, those attributes are cleared.
+   * missing from the body of the request, those attributes are cleared. Reject
+   * if user does not have an admin profile.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   putSSOConfig(req, res, next) {
-    const toPut = req.swagger.params.queryBody.value;
-    const puttableFields =
-      req.swagger.params.queryBody.schema.schema.properties;
-    helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        const keys = Object.keys(puttableFields);
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if (toPut[key] === undefined) {
-            let nullish = null;
-            if (puttableFields[key].type === 'boolean') {
-              nullish = false;
-            } else if (puttableFields[key].enum) {
-              nullish = puttableFields[key].default;
+    const resultObj = { reqStartTime: new Date() };
+    authUtils.isAdmin(req)
+    .then((ok) => {
+      if (ok) {
+        const toPut = req.swagger.params.queryBody.value;
+        const puttableFields =
+          req.swagger.params.queryBody.schema.schema.properties;
+        helper.model.findOne()
+        .then((o) => {
+          if (o) {
+            const keys = Object.keys(puttableFields);
+            for (let i = 0; i < keys.length; i++) {
+              const key = keys[i];
+              if (toPut[key] === undefined) {
+                let nullish = null;
+                if (puttableFields[key].type === 'boolean') {
+                  nullish = false;
+                } else if (puttableFields[key].enum) {
+                  nullish = puttableFields[key].default;
+                }
+
+                o.set(key, nullish);
+              } else {
+                o.set(key, toPut[key]);
+              }
             }
 
-            o.set(key, nullish);
+            o.save()
+            .then((savedObj) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              u.logAPI(req, resultObj, savedObj);
+              res.status(httpStatus.OK)
+              .json(responsify(savedObj, helper, req.method));
+            });
           } else {
-            o.set(key, toPut[key]);
+            const err = new apiErrors.ResourceNotFoundError({
+              explanation: 'There is no sso config.',
+            });
+            u.handleError(next, err, helper.modelName);
           }
-        }
-
-        o.save()
-        .then((savedObj) => {
-          res.status(httpStatus.OK)
-          .json(responsify(savedObj, helper, req.method));
-        });
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const err = new apiErrors.ResourceNotFoundError({
-          explanation: 'There is no sso config.',
-        });
-        u.handleError(next, err, helper.modelName);
+        u.forbidden(next);
       }
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
-
 }; // exports

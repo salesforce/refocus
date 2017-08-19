@@ -17,7 +17,7 @@ const loginPath = '/login';
 const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
 
-describe('api: login ssoconfig', () => {
+describe('tests/api/v1/authenticate/SSOConfig.js >', () => {
   after(u.forceDeleteSSOConfig);
 
   it('does not contain sso config button if no ssoconfig', (done) => {
@@ -26,13 +26,7 @@ describe('api: login ssoconfig', () => {
       expect(res.text).to.not.contain('SSO Login');
       expect(res.text).to.contain('Sign Up');
     })
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('contains sso login button text if ssoconfig', (done) => {
@@ -47,12 +41,12 @@ describe('api: login ssoconfig', () => {
         })
         .end((err/* , res*/) => {
           if (err) {
-            return done(err);
+            done(err);
           }
         });
       }
     })
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

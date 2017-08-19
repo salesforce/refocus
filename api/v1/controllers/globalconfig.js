@@ -12,44 +12,13 @@
 'use strict';
 
 const helper = require('../helpers/nouns/globalconfig');
-const Profile = require('../helpers/nouns/profiles').model;
-const User = require('../helpers/nouns/users').model;
 const doDelete = require('../helpers/verbs/doDelete');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doGet = require('../helpers/verbs/doGet');
 const doFind = require('../helpers/verbs/doFind');
-const apiErrors = require('../apiErrors');
 const u = require('../helpers/verbs/utils');
-const jwtUtil = require('../helpers/jwtUtil');
-
-function isAdmin(req) {
-  return new Promise((resolve, reject) => {
-    if (req.headers.authorization) {
-      // use the token
-      jwtUtil.getUsernameFromToken(req)
-      .then((username) => {
-        return User.findOne({ where: { name: username } });
-      })
-      .then((user) => {
-        resolve(Profile.isAdmin(user.profileId));
-      })
-      .catch((err) => reject(err));
-    } else if (req.user) {
-      // try to use the logged-in user
-      resolve(Profile.isAdmin(req.user.profileId));
-    } else {
-      resolve(false);
-    }
-  });
-} // isAdmin
-
-function forbidden(next) {
-  const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
-  });
-  u.handleError(next, err, helper.modelName);
-} // forbidden
+const authUtils = require('../helpers/authUtils');
 
 module.exports = {
 
@@ -64,16 +33,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteGlobalConfig(req, res, next) {
-    isAdmin(req)
+    authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
         doDelete(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 
@@ -116,16 +85,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGlobalConfig(req, res, next) {
-    isAdmin(req)
+    authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
         doPatch(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 
@@ -140,16 +109,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGlobalConfig(req, res, next) {
-    isAdmin(req)
+    authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
         doPost(req, res, next, helper);
       } else {
-        forbidden(next);
+        u.forbidden(next);
       }
     })
     .catch((err) => {
-      forbidden(next);
+      u.forbidden(next);
     });
   },
 

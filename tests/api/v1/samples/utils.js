@@ -10,10 +10,12 @@
  * tests/api/v1/samples/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
+const aspectName = `${tu.namePrefix}TEST_ASPECT`;
+const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
+const sampleName = subjectName + '|' + aspectName;
 
 const aspectToCreate = {
   description: 'this is a0 description',
@@ -33,7 +35,7 @@ const aspectToCreateNotPublished = {
   description: 'this is a0 description',
   imageUrl: 'http://www.bar.com/a0.jpg',
   isPublished: false,
-  name: `${tu.namePrefix}TEST_ASPECT`,
+  name: aspectName,
   timeout: '30s',
   valueLabel: 's',
   valueType: 'NUMERIC',
@@ -51,12 +53,49 @@ const subjectToCreate = {
   },
   imageUrl: 'http://www.bar.com/a0.jpg',
   isPublished: true,
-  name: `${tu.namePrefix}TEST_SUBJECT`,
+  name: subjectName,
 };
+
+/**
+ * Sets up an object with aspect id, subject id
+ *
+ * @param {String} aspectName The name of the aspect
+ * @param {String} subjectName The name of the subject
+ * @returns {Object} contains aspect id, subject id
+ */
+function doCustomSetup(aspectName, subjectName) {
+  const aspectToCreate = {
+    isPublished: true,
+    name: `${tu.namePrefix + aspectName}`,
+    timeout: '30s',
+    criticalRange: [3, 3],
+    valueType: 'NUMERIC',
+  };
+
+  const subjectToCreate = {
+    isPublished: true,
+    name: `${tu.namePrefix + subjectName}`,
+  };
+
+  return new tu.db.Sequelize.Promise((resolve, reject) => {
+    const samp = {};
+    tu.db.Aspect.create(aspectToCreate)
+    .then((a) => {
+      samp.aspectId = a.id;
+      return tu.db.Subject.create(subjectToCreate);
+    })
+    .then((s) => {
+      samp.subjectId = s.id;
+      resolve(samp);
+    })
+    .catch((err) => reject(err));
+  });
+}
 
 module.exports = {
   aspectToCreate,
-
+  sampleName,
+  doCustomSetup,
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       const samp = { value: '1' };
@@ -94,7 +133,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 
   subjectToCreate,

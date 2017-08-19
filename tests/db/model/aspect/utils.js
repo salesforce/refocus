@@ -10,18 +10,14 @@
  * tests/db/model/aspect/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestAspect`;
-
 const small = {
   name: n,
   timeout: '1s',
   isPublished: true,
 };
-
 const medium = {
   name: n,
   description: 'This is an awesome aspect I\'m testing here',
@@ -53,10 +49,13 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Aspect, testStartTime)
+    tu.forceDelete(tu.db.Sample, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.Tag, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

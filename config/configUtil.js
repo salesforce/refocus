@@ -11,10 +11,14 @@
  * Utilities for config
  */
 'use strict'; // eslint-disable-line strict
+
 /**
- * convert ipWhitelist string to array of ip ranges
- * @param  {String} strIPList - ip list eg. '[ [1.2.3.4,1.2.3.8], [7.6.5.4,7.6.9.9] ]'
- * @return {Array}  Array of ip list eg. [['1.2.3.4','1.2.3.8'],['7.6.5.4','7.6.9.9']]
+ * Convert ipWhitelist string to array of ip ranges.
+ *
+ * @param  {String} strIPList - ip list e.g. '[ [1.2.3.4,1.2.3.8],
+ *  [7.6.5.4,7.6.9.9] ]'
+ * @returns {Array}  Array of ip list e.g.
+ *  [['1.2.3.4','1.2.3.8'],['7.6.5.4','7.6.9.9']]
  */
 function parseIPlist(strIPList) {
   // remove spaces before or after any of the commas
@@ -43,8 +47,51 @@ function parseIPlist(strIPList) {
   }
 
   return iplist;
-}
+} // parseIPlist
+
+/**
+ * Convert a string of comma-separated values to an array.
+ *
+ * @param {String} str - The string.
+ * @returns {Array} - The array.
+ */
+function csvToArray(str) {
+  if (str) {
+    return str.split(',').map((i) => i.trim());
+  }
+
+  return [];
+} // csvToArray
+
+/**
+ * Returns all the DB URLs of the configured read-only replicas as an array.
+ *
+ * @param {Object} pe - Node process environment variable(process.env)
+ * @param {String} replicaLabel - "Config variable name" that contains that
+ *  name of the databases configured as read-only replicas
+ * @returns {Array} an array of all the dburls configured as read-only
+ *  replicas.
+ */
+function getReadReplicas(pe, replicaLabel) {
+  let replicas = [];
+  if (pe[replicaLabel]) {
+    const replicaList = csvToArray(pe[replicaLabel]);
+    replicaList.forEach((replica) => {
+      if (pe[replica]) {
+        replicas.push(pe[replica]);
+      }
+    });
+  }
+
+  if (!replicas.length) {
+    replicas = undefined;
+  }
+
+  return replicas;
+} // getReadReplicas
 
 module.exports = {
+  csvToArray,
   parseIPlist,
+  getReadReplicas,
 };

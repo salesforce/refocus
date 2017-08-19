@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/getPublishHierarchy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,14 +19,12 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}:`, () => {
+describe(`tests/api/v1/subjects/getPublishHierarchy.js, GET ${path} >`, () => {
   let token;
-
   let gp = { name: `${tu.namePrefix}America`, isPublished: true };
   let par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   let chi = { name: `${tu.namePrefix}Canada`, isPublished: false };
   let grn = { name: `${tu.namePrefix}Quebec`, isPublished: false };
-
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
@@ -38,7 +35,6 @@ describe(`api: GET ${path}:`, () => {
     timeout: '30s',
     isPublished: true,
   };
-
   const sample1 = { value: '10' };
   const sample2 = { value: '10' };
 
@@ -48,7 +44,7 @@ describe(`api: GET ${path}:`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -82,17 +78,15 @@ describe(`api: GET ${path}:`, () => {
       sample1.aspectId = a.id;
       return tu.db.Sample.create(sample1);
     })
-    .then(() => {
-      return tu.db.Sample.create(sample2);
-    })
+    .then(() => tu.db.Sample.create(sample2))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('isPublished flag:', () => {
+  describe('isPublished flag >', () => {
     it('hierarchy at gp level should contain parent as a child', (done) => {
       api.get(path.replace('{key}', gp.id))
       .set('Authorization', token)
@@ -104,13 +98,7 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body.children[0].name).to
                   .equal(`${tu.namePrefix}NorthAmerica`);
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('hierarchy at parent level should have no children', (done) => {
@@ -121,39 +109,21 @@ describe(`api: GET ${path}:`, () => {
         expect(res.body).to.not.equal(null);
         expect(res.body.children).to.be.empty;
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('nothing should be found at the child level', (done) => {
       api.get(path.replace('{key}', chi.id))
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
 
     it('nothing should be found at the grn child level', (done) => {
       api.get(path.replace('{key}', chi.id))
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
+      .end(done);
     });
   });
 });

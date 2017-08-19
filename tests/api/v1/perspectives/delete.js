@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -18,10 +17,12 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/perspectives';
 const expect = require('chai').expect;
+const ZERO = 0;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/perspectives/delete.js >', () => {
   let perspectiveId;
   let token;
+  const name = `${tu.namePrefix}testPersp`;
 
   before((done) => {
     tu.createToken()
@@ -29,13 +30,13 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
-  before((done) => {
+  beforeEach((done) => {
     u.doSetup()
     .then((createdLens) => tu.db.Perspective.create({
-      name: `${tu.namePrefix}testPersp`,
+      name,
       lensId: createdLens.id,
       rootSubject: 'myMainSubject',
     }))
@@ -43,12 +44,26 @@ describe(`api: DELETE ${path}`, () => {
       perspectiveId = createdPersp.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  
+
+  it('delete with case insensitive name succeeds', (done) => {
+    api.delete(`${path}/${name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(name);
+      done();
+    });
+  });
+
   it('delete ok', (done) => {
     api.delete(`${path}/${perspectiveId}`)
     .set('Authorization', token)
@@ -58,8 +73,8 @@ describe(`api: DELETE ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.isDeleted).to.not.equal(0);
-      return done();
+      expect(res.body.isDeleted).to.not.equal(ZERO);
+      done();
     });
   });
 });

@@ -14,7 +14,8 @@ const configuredPassport = require('../../../index').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/users');
-const jwtUtil = require('../helpers/jwtUtil');
+const jwtUtil = require('../../../utils/jwtUtil');
+const apiErrors = require('../apiErrors');
 
 const resourceName = 'register';
 
@@ -28,23 +29,33 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     configuredPassport.authenticate('local-signup', (err, user) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (err) {
-        u.handleError(next, err, resourceName);
-      } else {
-        req.logIn(user, (_err) => {
-          if (_err) {
-            return u.handleError(next, _err, resourceName);
-          }
-
-          // Create a new token on login.
-          const createdToken = jwtUtil.createToken(user);
-
-          const userObj = u.responsify(user, helper, req.method);
-          userObj.token = createdToken;
-          return res.status(httpStatus.CREATED).json(userObj);
-        });
+        return u.handleError(next, err, resourceName);
       }
+
+      if (!user || !user.name) {
+        const loginErr = new apiErrors.LoginError({
+          explanation: 'User not created.',
+        });
+        return u.handleError(next, loginErr, resourceName);
+      }
+
+      // Create token
+      const tokenToReturn = jwtUtil.createToken(user.name, user.name);
+      req.logIn(user, (_err) => {
+        if (_err) {
+          return u.handleError(next, _err, resourceName);
+        }
+
+        const userObj = u.responsify(user, helper, req.method);
+        userObj.token = tokenToReturn;
+        req.session.token = tokenToReturn;
+        u.logAPI(req, resultObj, userObj);
+        return res.status(httpStatus.CREATED).json(userObj);
+      });
     })(req, res, next);
   },
 

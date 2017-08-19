@@ -9,31 +9,87 @@
 /**
  * realTime/utils.js
  */
-
 'use strict'; // eslint-disable-line strict
+const ip = require('ip');
 const constants = require('./constants');
+const redisClient = require('../cache/redisCache').client.sampleStore;
+const redisStore = require('../cache/sampleStore');
+
+const eventName = {
+  add: 'refocus.internal.realtime.subject.add',
+  upd: 'refocus.internal.realtime.subject.update',
+  del: 'refocus.internal.realtime.subject.remove',
+};
+
+const filters = ['aspectFilter',
+                  'subjectTagFilter',
+                  'aspectTagFilter',
+                  'statusFilter',
+                ];
 
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has parentAbsolutePath has
- * one of its property.
+ * @returns {Boolean} - returns true if the object has the property
+ * "parentAbsolutePath"
  */
 function isThisSubject(obj) {
   return obj.hasOwnProperty('parentAbsolutePath');
 }
 
 /**
+ * A function to see if an object is a sample object or not. It returns true
+ * if an object passed has 'value' as one of its property.
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the object has the property "value"
+ */
+function isThisSample(obj) {
+  return obj.hasOwnProperty('value');
+} // isThisSample
+
+/**
+ * Transforms and returns the stringified object.
+ * If the key, i.e. the event type, ends with "update", then return the
+ * stringified object with the specified key as the property and the given
+ * object as the value of a "new" property. Otherwise return the stringified
+ * object with the specified key as the property name and the given object as
+ * the value.
+ *
+ * @param {String} key - The key of the returned object, i.e. the event type.
+ * @param {Object} obj - The object to return.
+ * @returns {String} - The stringified object nested inside the key (and also
+ *  nested inside "new" if the event is an "update").
+ */
+function getNewObjAsString(key, obj) {
+  const wrappedObj = {};
+  if (key.endsWith('update')) {
+    wrappedObj[key] = { new: obj };
+  } else {
+    wrappedObj[key] = obj;
+  }
+
+  return JSON.stringify(wrappedObj);
+}
+
+/**
  * The message object received from the redis channel, contains a "new" property
- * when a database instance is updated. This function check to see if the
+ * when a database instance is updated. This function checks to see if the
  * message object contains a "new" property, if it does, it returns the new
  * object.
  * @param {Object}  messgObj - Message object received from the redis channel.
  * @returns {Object} - returns the parsed message object.
  */
-function parseObject(messgObj) {
+function parseObject(messgObj, key) {
+  // If event is subject delete then send the old subject so that namespace
+  // filter can send the delete event to perspectives
   if (messgObj.new) {
+    return key === eventName.del ? messgObj.old : messgObj.new;
+  }
+
+  // If event is subject add then send the new subject so that namespace
+  // filter can send the add event to perspectives
+  if (key === eventName.add && messgObj.new) {
     return messgObj.new;
   }
 
@@ -62,7 +118,7 @@ function isPresent(filterValueSet, objValueArr) {
  * The filterString is used to extract the filterType and filter values and
  * the object is compared against the extracted filter to check if the field
  * of the object matches the filter criteria.
- * @param  {String} filterString - String of the form filterType|values.
+ * @param  {String} filterString - String of the form filterType=values.
  * @param  {String|Array} objValues - The values of the object, that is to be
  * matched against a filter criteria
  * @returns {Boolean} - true if the object matches the filter criteria, false
@@ -96,6 +152,7 @@ function applyFilter(filterString, objValues) {
     if (filterComponents.length < 2) {
       return true;
     }
+
     // filter type is either INCLUDE or EXCLUDE
     const filterType = filterComponents[0];
 
@@ -108,10 +165,10 @@ function applyFilter(filterString, objValues) {
                                                   .valuesSeparator));
 
     if (filterType === constants.filterTypeInclude) {
-    /*
-     * if any of the values in the objValueArr is found in the filterValueSet
-     * return true
-     */
+      /*
+       * If any of the values in the objValueArr is found in the filterValueSet
+       * return true.
+       */
       return isPresent(filterValueSet, objValueArr);
     }
 
@@ -145,15 +202,15 @@ function shouldIEmitThisObj(nspString, obj) {
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
 
-  // extract absolute path from the message object
+  // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 
   if ((absolutePathObj).startsWith(absPathNsp)) {
-   /*
-    * when none of the filters are set, the nspComponent just has the
-    * subjectAbsolutePath in it, so we do not have to check for the
-    * filter conditions and we just need to return true.
-    */
+    /*
+     * When none of the filters are set, the nspComponent just has the
+     * subjectAbsolutePath in it, so we do not have to check for the filter
+     * conditions and we just need to return true.
+     */
     if (nspComponents.length < 2) {
       return true;
     }
@@ -170,7 +227,7 @@ function shouldIEmitThisObj(nspString, obj) {
     return applyFilter(aspectFilter, obj.aspect.name) &&
       applyFilter(subjectTagFilter, obj.subject.tags) &&
       applyFilter(aspectTagFilter, obj.aspect.tags) &&
-      applyFilter(statusFilter, obj.status) ;
+      applyFilter(statusFilter, obj.status);
   }
 
   return false;
@@ -192,33 +249,15 @@ function getNamespaceString(inst) {
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
-  if (inst.aspectFilter) {
-    namespace += constants.filterSeperator + inst.aspectFilterType +
+
+  for (let i = 0; i < filters.length; i++) {
+    if (inst[filters[i]] && inst[filters[i]].length) {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
                 constants.fieldTypeFieldSeparator +
-                inst.aspectFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectFilterType;
-  }
-  if (inst.subjectTagFilter) {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.subjectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.subjectTagFilterType;
-  }
-  if (inst.aspectTagFilter) {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.aspectTagFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.aspectTagFilterType;
-  }
-  if (inst.statusFilter) {
-    namespace += constants.filterSeperator + inst.statusFilterType +
-                constants.fieldTypeFieldSeparator +
-                inst.statusFilter.join(constants.valuesSeparator);
-  } else {
-    namespace += constants.filterSeperator + inst.statusFilterType;
+                inst[filters[i]].join(constants.valuesSeparator);
+    } else {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
+    }
   }
 
   return namespace;
@@ -237,11 +276,114 @@ function initializeNamespace(inst, io) {
   return io;
 }
 
-module.exports = {
+/**
+ * Utility function checks an ip address against a whitelist.
+ *
+ * @param {String} addr - The address to test
+ * @param {Array} whitelist - An array of arrays
+ * @returns {Boolean} true if address is whitelisted
+ * @throws {Error} if address is NOT whitelisted
+ */
+function isIpWhitelisted(addr, whitelist) {
+  /*
+   * if the whitelist passed is not defined or it is not an array, assume
+   * that the ip address is whitelisted
+   */
+  if (!Array.isArray(whitelist)) {
+    return true;
+  }
 
+  const thisAddr = ip.toLong(addr);
+  const ok = whitelist.some((range) => {
+    if (Array.isArray(range) && range.length === 2) {
+      const lo = ip.toLong(range[0]);
+      const hi = ip.toLong(range[1]);
+      if (lo <= hi && thisAddr >= lo && thisAddr <= hi) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  if (ok) {
+    return ok;
+  }
+
+  throw new Error(`IP address "${addr}" is not whitelisted`);
+} // isIpWhitelisted
+
+/**
+ * When passed in a sample, its related subject and aspect is attached to the
+ * sample. If useSampleStore is set to true, the subject ans aspect is fetched
+ * for the cache instead of the database.
+ * @param {Object} sample - The sample instance.
+ * @param {Boolen} useSampleStore - The sample store flag, the subject and the
+ *   aspect is fetched from the cache if this is set.
+ * @param {Model} subjectModel - The database subject model.
+ * @param {Model} aspectModel - The database aspect model.
+ * @returns {Promise} - which resolves to a complete sample with its subject and
+ *   aspect.
+ */
+function attachAspectSubject(sample, useSampleStore, subjectModel,
+  aspectModel) {
+  const nameParts = sample.name.split('|');
+  const subName = nameParts[0];
+  const aspName = nameParts[1];
+  let promiseArr = [];
+  if (useSampleStore) {
+    const subKey = redisStore.toKey('subject', subName);
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+      redisClient.hgetallAsync(aspKey);
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      redisClient.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  } else {
+    const subOpts = {
+      where: {
+        absolutePath: subName,
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: aspName,
+      },
+    };
+    const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
+                              Promise.resolve(sample.aspect);
+    const getSubjectPromise = subjectModel ? subjectModel.findOne(subOpts) :
+                              Promise.resolve(sample.subject);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  }
+
+  return Promise.all(promiseArr)
+  .then((response) => {
+    let asp = response[0];
+    let sub = response[1];
+    asp = asp.get ? asp.get() : asp;
+    sub = sub.get ? sub.get() : sub;
+    sample.aspect = redisStore.arrayStringsToJson(asp,
+         redisStore.constants.fieldsToStringify.aspect);
+    sample.subject = redisStore.arrayStringsToJson(sub,
+         redisStore.constants.fieldsToStringify.subject);
+
+    /*
+     * attach absolutePath field to the sample. This is done to simplify the
+     * filtering done on the subject absolutePath
+     */
+    sample.absolutePath = subName;
+    return sample;
+  });
+} // attachAspectSubject
+
+module.exports = {
   getNamespaceString,
+  getNewObjAsString,
   initializeNamespace,
+  isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-
+  isThisSample,
+  attachAspectSubject,
 }; // exports

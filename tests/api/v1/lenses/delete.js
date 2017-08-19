@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/delete.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -18,8 +17,9 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
+const ZERO = 0;
 
-describe(`api: DELETE ${path}`, () => {
+describe('tests/api/v1/lenses/delete.js >', () => {
   let lensId;
   let token;
 
@@ -29,20 +29,34 @@ describe(`api: DELETE ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
-  before((done) => {
+  beforeEach((done) => {
     u.doSetup()
     .then((lens) => {
       lensId = lens.id;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
-  after(u.forceDelete);
+  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('with same name and different case succeeds', (done) => {
+    api.delete(`${path}/${u.name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
 
   it('delete ok', (done) => {
     api.delete(`${path}/${lensId}`)
@@ -53,8 +67,8 @@ describe(`api: DELETE ${path}`, () => {
         return done(err);
       }
 
-      expect(res.body.isDeleted).to.not.equal(0);
-      return done();
+      expect(res.body.isDeleted).to.not.equal(ZERO);
+      done();
     });
   });
 });

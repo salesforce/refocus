@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,11 +18,15 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
+const jwtUtil = require('../../../../utils/jwtUtil');
 
-describe(`api: GET ${path}`, () => {
-  let testUserToken;
-  let predefinedAdminUserToken;
+describe('tests/api/v1/globalconfig/get.js >', () => {
   let token;
+  const uname = `${tu.namePrefix}test@test.com`;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  let testUserToken = '';
 
   before((done) => {
     tu.createToken()
@@ -31,7 +34,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   /**
@@ -42,44 +45,44 @@ describe(`api: GET ${path}`, () => {
     api.post('/v1/register')
     .set('Authorization', token)
     .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
+      username: uname,
+      email: uname,
       password: 'abcdefghijklmnopqrstuvwxyz',
     })
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        testUserToken = res.body.token;
-        api.post('/v1/token')
-        .send({
-          username: adminUser.name,
-          email: adminUser.name,
-          password: adminUser.password,
-        })
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            predefinedAdminUserToken = res2.body.token;
-            api.post(path)
-            .set('Authorization', predefinedAdminUserToken)
-            .send({
-              key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
-              value: 'def',
-            })
-            .expect(constants.httpStatus.CREATED)
-            .end((err3, res3) => {
-              done();
-            });
-          }
-        });
+        return done(err);
       }
+
+      testUserToken = res.body.token;
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send({
+        key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+        value: 'def',
+      })
+      .expect(constants.httpStatus.CREATED)
+      .end(done);
     });
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
+
+  it('sucessful get by non-admin user with different case', (done) => {
+    const config = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
+    api.get(path + '/' + config.toLowerCase())
+    .set('Authorization', testUserToken)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.key).to.equal(config);
+      done();
+    });
+  });
 
   it('sucessful get by non-admin user', (done) => {
     api.get(`${path}/${tu.namePrefix}_GLOBAL_CONFIG_ABC`)
@@ -87,13 +90,13 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('key',
-          `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
-        expect(res.body).to.have.property('value', 'def');
-          done();
+        return done(err);
       }
+
+      expect(res.body).to.have.property('key',
+        `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
+      expect(res.body).to.have.property('value', 'def');
+      done();
     });
   });
 
@@ -102,6 +105,10 @@ describe(`api: GET ${path}`, () => {
     .set('Authorization', predefinedAdminUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
       expect(res.body).to.have.property('key',
         `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
       expect(res.body).to.have.property('value', 'def');

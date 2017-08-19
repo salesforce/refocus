@@ -9,9 +9,7 @@
 /**
  * tests/db/model/user/update.js
  */
-
 'use strict';  // eslint-disable-line strict
-
 const bcrypt = require('bcrypt-nodejs');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -19,25 +17,23 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: user: update: ', () => {
+describe('tests/db/model/user/update.js, db: user: update >', () => {
   let user = {};
   beforeEach((done) => {
     Profile.create({
       name: tu.namePrefix + 1,
     })
-    .then((createdProfile) => {
-      return User.create({
-        profileId: createdProfile.id,
-        name: `${tu.namePrefix}1`,
-        email: 'user@example.com',
-        password: 'user123password',
-      });
-    })
+    .then((createdProfile) => User.create({
+      profileId: createdProfile.id,
+      name: `${tu.namePrefix}1`,
+      email: 'user@example.com',
+      password: 'user123password',
+    }))
     .then((createdUser) => {
       user = createdUser;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -46,20 +42,23 @@ describe('db: user: update: ', () => {
     user.update({ password: 'changedPwd789' })
     .then((returnedUser) => {
       bcrypt.compare('user123password', returnedUser.password, (err, res) => {
-        if(err){
+        if (err) {
           throw err;
         }
+
         expect(res).to.be.false;  // eslint-disable-line no-unused-expressions
       });
 
       bcrypt.compare('changedPwd789', returnedUser.password, (err, res) => {
-        if(err){
+        if (err) {
           throw err;
         }
+
         expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
       });
+
+      done();
     })
-    .catch((err) => done(err));
-    done();
+    .catch(done);
   });
 });

@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,70 +18,105 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
+const jwtUtil = require('../../../../utils/jwtUtil');
+const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
-  let testUserToken;
-  let predefinedAdminUserToken;
+describe('tests/api/v1/globalconfig/post.js >', () => {
   let token;
-
-  before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch((err) => done(err));
-  });
+  const key = `${tu.namePrefix}_GLOBAL_CONFIG_ABC`;
+  const predefinedAdminUserToken = jwtUtil.createToken(
+    adminUser.name, adminUser.name
+  );
+  const uname = `${tu.namePrefix}test@test.com`;
+  let testUserToken = '';
 
   /**
    * Register a non-admin user and an admin user; grab the predefined admin
    * user's token
    */
   before((done) => {
-    api.post('/v1/register')
-    .set('Authorization', token)
-    .send({
-      username: `${tu.namePrefix}test@test.com`,
-      email: `${tu.namePrefix}test@test.com`,
-      password: 'abcdefghijklmnopqrstuvwxyz',
-    })
-    .end((err, res) => {
-      if (err) {
-        done(err);
-      } else {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      api.post('/v1/register')
+      .set('Authorization', token)
+      .send({
+        username: uname,
+        email: uname,
+        password: 'abcdefghijklmnopqrstuvwxyz',
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
         testUserToken = res.body.token;
-        api.post('/v1/token')
-        .send({
-          username: adminUser.name,
-          email: adminUser.name,
-          password: adminUser.password,
-        })
-        .end((err2, res2) => {
-          if (err2) {
-            done(err2);
-          } else {
-            predefinedAdminUserToken = res2.body.token;
-          }
-        });
         done();
-      }
-    });
+      });
+    })
+    .catch(done);
   });
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
+  describe('post duplicate fails >', () => {
+    const DUMMY = {
+      key: `${tu.namePrefix}_DUMMY_KEY`,
+    };
+
+    beforeEach((done) => {
+      tu.db.GlobalConfig.create(DUMMY)
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+
+    it('with identical name', (done) => {
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(DUMMY)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+
+    it('with case different name', (done) => {
+      api.post(path)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(DUMMY)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[ZERO].type)
+          .to.equal(tu.uniErrorName);
+        done();
+      });
+    });
+  });
+
   it('forbidden if not admin user', (done) => {
     api.post(path)
     .set('Authorization', testUserToken)
     .send({
-      key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+      key,
       value: 'def',
     })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors).to.have.deep.property('[0].type',
@@ -96,16 +130,15 @@ describe(`api: POST ${path}`, () => {
     api.post(path)
     .set('Authorization', predefinedAdminUserToken)
     .send({
-      key: `${tu.namePrefix}_GLOBAL_CONFIG_ABC`,
+      key,
       value: 'def',
     })
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
-        expect(res.body).to.have.property('key',
-          `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
+        expect(res.body.key).to.equal(key);
         expect(res.body).to.have.property('value', 'def');
         done();
       }
@@ -122,7 +155,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body).to.have.property('key',
           `${tu.namePrefix}_GLOBAL_CONFIG_DUPE`);

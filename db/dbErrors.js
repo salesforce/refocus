@@ -22,6 +22,7 @@ dbErrors.create({
 // ----------------------------------------------------------------------------
 // Validation Errors
 // ----------------------------------------------------------------------------
+
 dbErrors.create({
   code: 10100,
   status: 400,
@@ -65,10 +66,25 @@ dbErrors.create({
   status: 400,
   name: 'ParentSubjectNotFound',
   parent: dbErrors.ValidationError,
-  range: [],
   defaultMessage: 'Could not find the specified parent for this subject.',
-  explanation: 'If a subject specifies that it has a parent, the parent' +
-   'subject must already exist.'
+  explanation: 'If a subject specifies that it has a parent, the parent ' +
+   'subject must already exist.',
+});
+dbErrors.create({
+  code: 10115,
+  status: 400,
+  name: 'ParentSubjectNotMatch',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'The parentAbsolutePath and parentId do not match.',
+  explanation: 'If a subject specifies both a parentAbsolutePath and a parentId, the parent ' +
+    'specified by both fields need to have the same id.',
+});
+dbErrors.create({
+  code: 10115,
+  status: 400,
+  name: 'IllegalSelfParenting',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'A subject may not be its own parent.',
 });
 
 // ----------------------------------------------------------------------------
@@ -106,6 +122,15 @@ dbErrors.create({
   parent: dbErrors.DeleteConstraintError,
   subject: {},
 });
+dbErrors.create({
+  code: 10303,
+  status: 403,
+  name: 'TokenDeleteConstraintError',
+  parent: dbErrors.DeleteConstraintError,
+  token: {},
+  defaultMessage: 'Not allowed to delete the system-created token.',
+  explanation: 'Not allowed to delete the system-created token.',
+});
 
 // ----------------------------------------------------------------------------
 // Create Constraint Errors
@@ -132,6 +157,16 @@ dbErrors.create({
   code: 10500,
   status: 403,
   name: 'AdminUpdateDeleteForbidden',
+  parent: dbErrors.FocusDatabaseError,
+  range: [],
+  defaultMessage: 'Unauthorized.',
+  explanation: 'Unauthorized.',
+});
+
+dbErrors.create({
+  code: 10501,
+  status: 403,
+  name: 'UpdateDeleteForbidden',
   parent: dbErrors.FocusDatabaseError,
   range: [],
   defaultMessage: 'Unauthorized.',

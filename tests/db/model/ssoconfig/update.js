@@ -15,11 +15,11 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const SSOConfig = tu.db.SSOConfig;
 
-describe('db: ssoconfig: update: ', () => {
+describe('tests/db/model/ssoconfig/update.js >', () => {
   beforeEach((done) => {
     u.creatSSOConfig()
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
@@ -32,6 +32,6 @@ describe('db: ssoconfig: update: ', () => {
       expect(o.samlIssuer).to.equal('passport-saml123');
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

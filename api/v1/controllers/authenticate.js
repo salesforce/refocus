@@ -14,7 +14,7 @@ const configuredPassport = require('../../../index').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const apiErrors = require('../apiErrors');
-const jwtUtil = require('../helpers/jwtUtil');
+const jwtUtil = require('../../../utils/jwtUtil');
 
 const resourceName = 'authenticate';
 
@@ -29,31 +29,34 @@ module.exports = {
    *
    */
   authenticateUser(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     configuredPassport.authenticate('local-login', (err, user/* , info */) => {
       if (err) {
         return u.handleError(next, err, resourceName);
       }
 
-      if (!user) {
+      if (!user || !user.name) {
         const loginErr = new apiErrors.LoginError({
           explanation: 'Invalid credentials',
         });
         return u.handleError(next, loginErr, resourceName);
       }
 
-      // Create a new token on login.
-      const createdToken = jwtUtil.createToken(user);
-
       req.logIn(user, (_err) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
-        return res.status(httpStatus.OK).json({
+        // create token
+        const token = jwtUtil.createToken(req.user.name, req.user.name);
+        req.session.token = token;
+        const retObj = {
           success: true,
           message: 'authentication succeeded',
-          token: createdToken,
-        });
+        };
+        u.logAPI(req, resultObj, retObj);
+        return res.status(httpStatus.OK).json(retObj);
       });
     })(req, res, next);
   },

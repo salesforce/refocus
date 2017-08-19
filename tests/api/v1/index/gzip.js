@@ -10,13 +10,12 @@
  * tests/api/v1/index/gzip.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const path = '/v1/api-docs';
 
-describe(`api: ${path}`, () => {
+describe('tests/api/v1/index/gzip.js >', () => {
   const gzipEncode = 'gzip';
   const deflateEncode = 'deflate';
 
@@ -26,13 +25,7 @@ describe(`api: ${path}`, () => {
     .expect('Content-Type', /json/)
     .expect(/Refocus API/)
     .expect('content-encoding', gzipEncode)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('GET unzipped/deflated content when asked for it', (done) => {
@@ -42,13 +35,7 @@ describe(`api: ${path}`, () => {
     .expect('Content-Type', /json/)
     .expect(/Refocus API/)
     .expect('content-encoding', deflateEncode)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('GET gzipped content when asked for it', (done) => {
@@ -58,12 +45,6 @@ describe(`api: ${path}`, () => {
     .expect('Content-Type', /json/)
     .expect(/Refocus API/)
     .expect('content-encoding', gzipEncode)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

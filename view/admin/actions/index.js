@@ -16,7 +16,8 @@ import superagent from 'superagent';
 import * as constants from '../constants';
 const env = process.env.NODE_ENV || 'development';
 const API_URL = '/v1';
-const u = require('../../utils');
+const ONE = 1;
+const ZERO = 0;
 // ACTION CREATORS
 // -----------------------------------------------------------------
 
@@ -42,12 +43,15 @@ function hideMessage() {
 
 /**
  * Returns an action object
+ * @param {Object, String} Make a string representation of it.
  * @returns {Object} action An action type
  */
 function handleError(error) {
+  const errorMessage = (error && typeof error === 'object') ?
+    JSON.stringify(error) : error;
   return {
     type: constants.SHOW_ERROR,
-    error
+    error: errorMessage,
   };
 }
 
@@ -114,7 +118,7 @@ function getActionAndKeyFromUrl(verb, url) {
   const _verb = verb || 'FETCH';
   let key = 'subjects';
   let actionName = constants[_verb + key.toUpperCase()];
-  const resource = url.split('/')[1];
+  const resource = url.split('/')[ONE];
   // check for pathname after resource:
   // /aspects/ split into arr -> ["", "aspects", ""]
   if (_verb === 'FETCH' && !url.split('/')[2]) {
@@ -123,7 +127,7 @@ function getActionAndKeyFromUrl(verb, url) {
     actionName = constants[_verb + '_' + resource.toUpperCase()];
   } else {
     // single resource change, create actionName with verb_upperCase -s
-    const upToLastChar = resource.slice(0, -1);
+    const upToLastChar = resource.slice(ZERO, -ONE);
     actionName = constants[_verb + '_' + upToLastChar.toUpperCase()];
     key = upToLastChar;
   }
@@ -147,7 +151,6 @@ function requestWithOutPayload(verb, url) {
   return new Promise((resolve, reject) => {
     superagent(verb, API_URL + url)
     .set('Content-Type', 'application/json')
-    .set('Authorization', u.getCookie('Authorization'))
     .end((error, response) => {
       error ? reject(error) : resolve(response.body);
     });
@@ -169,7 +172,6 @@ function requestWithPayload(requestObject) {
   return new Promise((resolve, reject) => {
     superagent(verb, API_URL + url)
     .set('Content-Type', 'application/json')
-    .set('Authorization', u.getCookie('Authorization'))
     .send(JSON.stringify(formObj))
     .end((error, response) => {
       error ? reject(error) : resolve(response.body);
@@ -219,7 +221,7 @@ function deleteResource(url) {
       const action = createActionWithPayload(actionName, key, res);
       dispatch(action);
       // dispatch fetchResources with url ie. /subjects
-      dispatch(fetchResources(url.slice(0, url.lastIndexOf('/'))));
+      dispatch(fetchResources(url.slice(ZERO, url.lastIndexOf('/'))));
       dispatch(handleMessage('Successfully deleted ' + key + ': ' + res.id));
     })
     .catch((err) => {
@@ -253,7 +255,7 @@ function putResource(formObj, url, callback) {
     .then((res) => {
       const action = createActionWithPayload(actionName, key, res);
       dispatch(action);
-      callback('/' + url.split('/')[1] + '/' + res.id);
+      callback('/' + url.split('/')[ONE] + '/' + res.id);
       dispatch(handleMessage('Successfully PUTted ' + key + ': ' + res.id));
     })
     .catch((err) => {

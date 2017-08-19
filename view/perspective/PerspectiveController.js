@@ -23,13 +23,16 @@ class PerspectiveController extends React.Component {
     super(props);
     this.sendResource = this.sendResource.bind(this);
     this.state = {
+      name: props.values.name, // perspective name
+      isEditing: false,
       showCreatePanel: false,
+      isCreating: false,
       showEditPanel: false,
     };
   }
   sendResource(verb, formObj, errCallback) {
     new Promise((resolve, reject) => {
-      request(verb, '/v1/perspectives')
+      request(verb, formObj.url)
       .set('Content-Type', 'application/json')
       .set('Authorization', u.getCookie('Authorization'))
       .send(JSON.stringify(formObj))
@@ -43,44 +46,46 @@ class PerspectiveController extends React.Component {
       errCallback(err);
     });
   }
-  goToUrl(event) {
-    window.location.href = '/perspectives/' + event.target.textContent;
-  }
+  // TODO: test this is independent of onEdit
   openCreatePanel() {
-    this.setState({ showCreatePanel: true });
+    this.setState({ isEditing: false, isCreating: true, showCreatePanel: true });
   }
   cancelForm() {
     this.setState({ showCreatePanel: false });
   }
 
+  onEdit(event) {
+    // prevent the page from refreshing to another perspective
+    event.preventDefault();
+    // TODO: refactor to get from onclick handler, instead of through DOM
+    const name = event.target.parentElement.parentElement.textContent;
+    // update values according to name
+    this.setState({ isEditing: true, name, showCreatePanel: true });
+  }
+
   render() {
-    const { values, stateObject } = this.props;
-    let persNames = [];
-    if (values && values.perspectives) {
-      persNames = values.perspectives.map((persObject) => {
-        return persObject.name;
-      });
-    }
-    // to hide perspective name on createPerspective modal,
-    // set perspectives key to value empty
-    const createPerspectiveVal = JSON.parse(JSON.stringify(stateObject));
-    createPerspectiveVal.perspectives = '';
+    const { values, params } = this.props;
+    const { showCreatePanel, isEditing, name } = this.state;
     return (
       <div>
         <Dropdown
-          defaultValue={ values.name }
+          defaultValue={ this.state.name }
           allOptionsLabel='All Perspectives'
           placeholderText='Search Perspectives'
-          options={ persNames }
-          showSearchIcon={ true }
-          onAddNewButton={ this.openCreatePanel.bind(this) }
-          onClickItem={ this.goToUrl.bind(this) }
+          showEditIcon={ true }
+          onEdit={ this.onEdit.bind(this) }
+          options={ values.persNames }
+          // if there's lenses, open modal
+          onAddNewButton={ values.lenses && this.openCreatePanel.bind(this) }
           newButtonText='New Perspective'
+          renderAsLink={ true }
         />
-        { this.state.showCreatePanel && <CreatePerspective
+        { showCreatePanel && <CreatePerspective
           cancelCreate={ this.cancelForm.bind(this) }
+          isEditing={ isEditing }
           values={ values }
-          stateObject={ createPerspectiveVal }
+          name={ name }
+          params={ params }
           sendResource={ this.sendResource }
         /> }
       </div>
@@ -89,8 +94,8 @@ class PerspectiveController extends React.Component {
 }
 
 PerspectiveController.PropTypes = {
+  // contains perspective, subjects, ...
   values: PropTypes.object,
-  stateObject: PropTypes.object,
 };
 
 export default PerspectiveController;

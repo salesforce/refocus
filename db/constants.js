@@ -13,6 +13,7 @@
 module.exports = {
   fieldlen: {
     email: 254,
+    sortField: 254,
     longish: 4096,
     normalName: 60,
     reallyShort: 5,
@@ -20,6 +21,8 @@ module.exports = {
     url: 2082, // sequelize validator default
   },
   nameRegex: /^[0-9a-z_-]+$/i,
+  sortByRegex: /^[0-9a-z_-]*$/i,
+  versionRegex: /^\d+\.\d+\.\d+$/i,
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
@@ -30,5 +33,10 @@ module.exports = {
     Warning: 'Warning',
     Info: 'Info',
     OK: 'OK',
+  },
+  collectorStatuses: {
+    Stopped: 'Stopped',
+    Running: 'Running',
+    Paused: 'Paused',
   },
 };

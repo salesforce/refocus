@@ -51,20 +51,23 @@ const aspectMetaData = [{
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ 'object' }
       disabled={ object.disabled }
-      value={ object.value }
+      values={ object.value }
       fields={ ['url', 'name'] }
     />;
   },
 }, {
   propertyName: 'tags',
   displayName: 'Tags',
+  validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   customOutput: (object) => {
     return <CompoundFieldComponent
       name={ object.name }
+      type={ 'string' }
       disabled={ object.disabled }
-      value={ object.value }
-      fields={ ['name'] }
+      values={ object.value }
+      fields={ [] }
     />;
   },
 }, {
@@ -169,6 +172,7 @@ const subjectMetaData = [
   {
     propertyName: 'name',
     displayName: 'Name',
+    validate: /^[0-9A-Za-z_\\-]{1,60}$/,
   }, {
     propertyName: 'parentAbsolutePath',
     displayName: 'Parent Absolute Path',
@@ -183,6 +187,10 @@ const subjectMetaData = [
   }, {
     propertyName: 'description',
     displayName: 'Description',
+  }, {
+    propertyName: 'sortBy',
+    displayName: 'Sort By',
+    validate: /^[0-9A-Za-z_\\-]{0,254}$/,
   }, {
     propertyName: 'helpEmail',
     displayName: 'Help Email',
@@ -199,20 +207,23 @@ const subjectMetaData = [
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
+        type={ 'object' }
         disabled={ object.disabled }
-        value={ object.value }
+        values={ object.value }
         fields={ ['url', 'name'] }
       />;
     },
   }, {
     propertyName: 'tags',
     displayName: 'Tags',
+    validate: /^[0-9A-Za-z_\\-]{1,60}$/,
     customOutput: (object) => {
       return <CompoundFieldComponent
         name={ object.name }
+        type={ 'string' }
         disabled={ object.disabled }
-        value={ object.value }
-        fields={ ['name'] }
+        values={ object.value }
+        fields={ [] }
       />;
     },
   }, {
@@ -224,16 +235,16 @@ const subjectMetaData = [
     displayName: 'Last Modified On',
     readOnly: true,
   }, {
-  propertyName: 'isPublished',
-  displayName: 'Subject is published',
-  customOutput: (obj) => {
-    return <CheckBoxComponent
-      name={ obj.name }
-      disabled={ obj.disabled }
-      checked={ obj.value }
-    />;
+    propertyName: 'isPublished',
+    displayName: 'Subject is published',
+    customOutput: (obj) => {
+      return <CheckBoxComponent
+        name={ obj.name }
+        disabled={ obj.disabled }
+        checked={ obj.value }
+      />;
+    },
   },
-},
 ];
 
 const obj = {};

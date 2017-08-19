@@ -10,14 +10,13 @@
  * tests/db/model/subject/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Profile = tu.db.Profile;
 const Subject = tu.db.Subject;
 
-describe('db: subject: find: ', () => {
+describe('tests/db/model/subject/find.js >', () => {
   let id1 = 0;
   let id2 = 0;
   let idDel = 0;
@@ -41,21 +40,21 @@ describe('db: subject: find: ', () => {
     })
     .then((created3) => {
       idDel = created3.id;
-      created3.destroy();
+      return created3.destroy();
     })
     .then(() => Subject.findAll()) // Buffer added because test is too fast
     .then(() => done()) // created3.destroy() doesnt run without buffer
-    .catch((err) => done(err));
+    .catch(done);
   });
 
-  describe('findById', () => {
+  describe('findById >', () => {
     it('should be found', (done) => {
       Subject.findById(id1)
       .then((found) => {
         expect(found).to.have.property('id');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('find a profile id, should not be found', (done) => {
@@ -67,7 +66,7 @@ describe('db: subject: find: ', () => {
           done();
         }
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('find a deleted subject, should not be found', (done) => {
@@ -79,18 +78,18 @@ describe('db: subject: find: ', () => {
           done();
         }
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
-  describe('findOne', () => {
+  describe('findOne >', () => {
     it('ok, just returned one', (done) => {
       Subject.findOne()
       .then((found) => {
         expect(found).to.have.property('id');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, none found', (done) => {
@@ -104,18 +103,18 @@ describe('db: subject: find: ', () => {
           done();
         }
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 
-  describe('findAll', () => {
+  describe('findAll >', () => {
     it('ok, found all, not including deleted ones', (done) => {
       Subject.findAll()
       .then((found) => {
         expect(found).to.have.length(2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, found none', (done) => {
@@ -124,20 +123,21 @@ describe('db: subject: find: ', () => {
         expect(shouldBeZeroLength).to.have.length(0);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     // Flapping test: The query in this test applies limit first and then sorts
     // the subjects, hence we cannot assert a specific subject name.
-    // Ref:https://github.com/sequelize/sequelize/issues/4146
+    // Ref: https://github.com/sequelize/sequelize/issues/4146
     it('limit', (done) => {
       Subject.findAll({ limit: 1 })
       .then((found) => {
         expect(found).to.have.length(1);
-        // expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}1`);
+
+        // TODO expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}1`);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     // Flapping test: The query in this test applies limit and offset first and
@@ -146,10 +146,11 @@ describe('db: subject: find: ', () => {
       Subject.findAll({ limit: 1, offset: 1 })
       .then((found) => {
         expect(found).to.have.length(1);
-        // expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}2`);
+
+        // TODO expect(found[0]).to.have.property('name').to.equal(`${tu.namePrefix}2`);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     // Both tests only compare the numbers not strings.
@@ -161,7 +162,7 @@ describe('db: subject: find: ', () => {
         expect(found[1]).to.have.property('id').to.equal(id2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('name (string data type) order desc', (done) => {
@@ -172,7 +173,7 @@ describe('db: subject: find: ', () => {
         expect(found[1]).to.have.property('id').to.equal(id1);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('id (uuid data type) order asc', (done) => {
@@ -184,7 +185,7 @@ describe('db: subject: find: ', () => {
         expect(foundId1).to.be.below(foundId2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('id (uuid data type) order desc', (done) => {
@@ -196,19 +197,19 @@ describe('db: subject: find: ', () => {
         expect(foundId1).to.be.above(foundId2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('createdAt (date data type) order asc', (done) => {
       Subject.findAll({ order: ['createdAt'] })
       .then((found) => {
         const foundId1 = found[0].dataValues.createdAt.getTime();
-        const foundId2= found[1].dataValues.createdAt.getTime();
+        const foundId2 = found[1].dataValues.createdAt.getTime();
         expect(found).to.have.length(2);
         expect(foundId1).to.be.below(foundId2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('createdAt (date data type) order desc', (done) => {
@@ -220,7 +221,7 @@ describe('db: subject: find: ', () => {
         expect(foundId1).to.be.above(foundId2);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, found all, including soft-deleted ones', (done) => {
@@ -229,21 +230,16 @@ describe('db: subject: find: ', () => {
         expect(found).to.have.length(3);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('test out lots of different { where: ... $between} options', (done) => {
       Subject.findAll({ order: ['name'] })
       .then((found) => {
-        where: {
-          name: {
-            $ne: '___1'
-          }
-          expect(found[0].dataValues.name).to.equal('___1');
-        }
+        expect(found[0].dataValues.name).to.equal('___1');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
   });
 });
