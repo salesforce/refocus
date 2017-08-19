@@ -62,7 +62,9 @@ const opts = {
   }, // retryStrategy
 };
 
-logger.info('Redis Retry Strategy', opts);
+if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
+  logger.info('Redis Retry Strategy', opts);
+}
 
 const sub = redis.createClient(rconf.instanceUrl.pubsub, opts);
 sub.subscribe(rconf.channelName);
