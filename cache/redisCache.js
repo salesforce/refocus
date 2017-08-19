@@ -86,13 +86,13 @@ Object.keys(client).forEach((key) => {
     return new Error(err);
   });
 
-  // client[key].on('ready', () => {
-  //   logger.info(`redisClientConnection=${key} event=ready`);
-  // });
+  client[key].on('ready', () => {
+    logger.info(`redisClientConnection=${key} event=ready`);
+  });
 
-  // client[key].on('reconnecting', () => {
-  //   logger.info(`redisClientConnection=${key} event=reconnecting`);
-  // });
+  client[key].on('reconnecting', () => {
+    logger.info(`redisClientConnection=${key} event=reconnecting`);
+  });
 });
 
 module.exports = {
