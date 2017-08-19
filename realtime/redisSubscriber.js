@@ -24,14 +24,13 @@ const logger = require('winston');
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
-    // message object to be sent to the clients
-    const mssgObj = JSON.parse(mssgStr);
-
     if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
       logger.info('Size of the sample received by the subscriber',
         mssgStr.length);
     }
 
+    // message object to be sent to the clients
+    const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
 
