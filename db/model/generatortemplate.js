@@ -65,7 +65,6 @@ const connectionSchema = {
       type: 'string',
     },
 
-    // TODO: revisit toUrl validation, while doing the api changes
     toUrl: {
       description: 'The string body of a function which returns the url ' +
       'to connect to. One of ["url", "toUrl"] is required.',
@@ -77,6 +76,15 @@ const connectionSchema = {
     headers: {
       description: 'Optional connection headers',
       type: 'object',
+    },
+    bulk: {
+      description: 'Set to false if you want to send one request for each of ' +
+      'the designated subjects. Set to true if you want to collect data for ' +
+      'all of the designated subjects in a single request. When set to true, ' +
+      'the url string or url function may only reference context attributes ' +
+      'with defaults.',
+      type: 'boolean',
+      defaultValue: false,
     },
   },
 };
@@ -120,11 +128,7 @@ module.exports = function user(seq, dataTypes) {
         is: constants.versionRegex,
       },
     },
-    bulk: {
-      type: dataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    keywords: {
+    tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
@@ -199,7 +203,7 @@ module.exports = function user(seq, dataTypes) {
               attributes: ['name', 'email'],
             },
           ],
-          order: ['name'],
+          order: ['GeneratorTemplate.name'],
         }, {
           override: true,
         });
