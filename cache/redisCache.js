@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const redis = require('redis');
+const logger = require('winston');
 const rconf = require('../config').redis;
 
 /*
@@ -24,33 +25,43 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 const opts = {
-  /**
-   * Redis Client Retry Strategy:
-   * - Stop retrying if we're getting an ECONNREFUSED error. Flush all
-   *   commands with a custom error message.
-   * - Stop retrying if it's been over an hour since the last successful
-   *   connection. Flush all commands with a custom error message.
-   * - Stop retrying if we've already tried 10 times. Flush all commands with
-   *   the standard built-in error.
-   * - Try to reconnect with a simple back-off strategy: the lower of either 3
-   *   seconds OR (the number of previous attempts * 100ms).
-   */
+  /* Redis Client Retry Strategy */
   retry_strategy: (options) => {
+    /*
+     * Stop retrying if we're getting an ECONNREFUSED error. Flush all commands
+     * with a custom error message.
+     */
     if (options.error && options.error.code === 'ECONNREFUSED') {
       return new Error('The server refused the connection');
     }
 
-    if (options.total_retry_time > 1000 * 60 * 60) {
+    /*
+     * Stop retrying if we've exceeded the configured threshold since the last
+     * successful connection. Flush all commands with a custom error message.
+     */
+    if (options.total_retry_time > rconf.retryStrategy.totalRetryTime) {
       return new Error('Retry time exhausted');
     }
 
-    if (options.attempt > 10) {
+    /*
+     * Stop retrying if we've already tried the maximum number of configured
+     * attempts. Flush all commands with the standard built-in error.
+     */
+    if (options.attempt > rconf.retryStrategy.attempt) {
       return undefined;
     }
 
-    return Math.min(options.attempt * 100, 3000);
+    /*
+     * Try to reconnect with a simple back-off strategy: the lower of either
+     * the configured backoffMax OR (the number of previous attempts * the
+     * the configured backoffFactor).
+     */
+    return Math.min(options.attempt * rconf.retryStrategy.backoffFactor,
+      rconf.retryStrategy.backoffMax);
   }, // retryStrategy
 };
+
+logger.info('Redis Retry Strategy', opts);
 
 const sub = redis.createClient(rconf.instanceUrl.pubsub, opts);
 sub.subscribe(rconf.channelName);
@@ -75,13 +86,13 @@ Object.keys(client).forEach((key) => {
     return new Error(err);
   });
 
-  client[key].on('ready', () => {
-    console.log(`redis client connection [${key}] event=ready`);
-  });
+  // client[key].on('ready', () => {
+  //   console.log(`redis client connection [${key}] event=ready`);
+  // });
 
-  client[key].on('reconnecting', () => {
-    console.log(`redis client connection [${key}] event=reconnecting`);
-  });
+  // client[key].on('reconnecting', () => {
+  //   console.log(`redis client connection [${key}] event=reconnecting`);
+  // });
 });
 
 module.exports = {
