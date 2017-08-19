@@ -78,20 +78,20 @@ const client = {
 
 Object.keys(client).forEach((key) => {
   client[key].on('connect', () => {
-    console.log(`redis client connection [${key}] event=connect`);
+    logger.info(`redis client connection [${key}] event=connect`);
   });
 
   client[key].on('error', (err) => {
-    console.log(`redis client connection [${key}] event=error`, err);
+    logger.error(`redis client connection [${key}] event=error`, err);
     return new Error(err);
   });
 
   // client[key].on('ready', () => {
-  //   console.log(`redis client connection [${key}] event=ready`);
+  //   logger.info(`redis client connection [${key}] event=ready`);
   // });
 
   // client[key].on('reconnecting', () => {
-  //   console.log(`redis client connection [${key}] event=reconnecting`);
+  //   logger.info(`redis client connection [${key}] event=reconnecting`);
   // });
 });
 
