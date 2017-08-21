@@ -14,6 +14,7 @@ const emitter = require('./socketIOEmitter');
 const sub = require('../cache/redisCache').client.sub;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
+const logger = require('winston');
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -23,6 +24,11 @@ const rtUtils = require('./utils');
  */
 module.exports = (io) => {
   sub.on('message', (channel, mssgStr) => {
+    if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
+      logger.info('Size of the sample received by the subscriber',
+        mssgStr.length);
+    }
+
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];

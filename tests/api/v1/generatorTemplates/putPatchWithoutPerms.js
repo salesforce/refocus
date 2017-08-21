@@ -44,9 +44,7 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
      * so one use of these.
      */
     .then(() => User.findOne({ where: { name: tu.userName } }))
-    .then((usr) => {
-      return generatorTemplate.addWriter(usr);
-    })
+    .then((usr) => generatorTemplate.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
@@ -64,16 +62,16 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
       description: 'this is template1...',
       tags: [
         'tag1',
-        'tag2'
+        'tag2',
       ],
       author: {
         name: 'author1',
         url: 'http://www.aaa.com',
-        email: 'a@a.com'
+        email: 'a@a.com',
       },
       connection: {
         method: 'GET',
-        url: 'http://www.bbb.com'
+        url: 'http://www.bbb.com',
       },
       transform: 'function...',
       isPublished: true,
@@ -92,12 +90,9 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
   });
 
   it('PATCH without permission: should return 403', (done) => {
-    const toPatch = {
-      name: 'template2',
-    };
     api.patch(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
-    .send(toPatch)
+    .send({ name: 'template2' })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       const errorArray = JSON.parse(res.text).errors;
@@ -107,4 +102,3 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
     });
   });
 });
-
