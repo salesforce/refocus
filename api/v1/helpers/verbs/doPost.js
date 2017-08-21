@@ -21,6 +21,47 @@ const redisModelSample = require('../../../../cache/models/samples');
 const featureToggles = require('feature-toggles');
 
 /**
+ * Given user object, make the post promise.
+ *
+ * @params {Object} user
+ * @params {Object} params Swagger params
+ * @params {Boolean} isCacheOnAndIsSample if the resource is a sample
+ *  AND the cache is on
+ * @returns {Promise} the post promise
+ */
+function makePostPromiseWithUser(user, params, isCacheOnAndIsSample) {
+  const toPost = params.queryBody.value;
+
+  // if cache is on, check relatedLinks
+  if (isCacheOnAndIsSample) {
+    const rLinks = toPost.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    // since cache is on AND get user.
+    // populate the user object.
+    // need to pass down the user id to populate provider field
+    const userObject = user &&
+    featureToggles.isFeatureEnabled('returnUser') ?
+      { name: user.name, id: user.id, email: user.email } : false;
+    return redisModelSample.postSample(params, userObject);
+  }
+
+  // cache is off AND returnUser is true.
+  // if there is a user, set the provider value.
+  if (user) {
+    if (props.modelName === 'Sample') {
+      toPost.provider = user.id;
+    } else {
+      toPost.createdBy = user.id;
+    }
+  }
+
+  return props.model.create();
+}
+
+/**
  * Creates a new record and sends it back in the json response with status
  * code 201.
  *
@@ -32,51 +73,23 @@ const featureToggles = require('feature-toggles');
  */
 function doPost(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
-  const toPost = req.swagger.params.queryBody.value;
+  const params = req.swagger.params;
+  const toPost = params.queryBody.value;
   u.mergeDuplicateArrayElements(toPost, props);
   let postPromise;
-  const isCacheOn = featureToggles.isFeatureEnabled(constants.featureName) &&
+  const isCacheOnAndIsSample = featureToggles.isFeatureEnabled(constants.featureName) &&
      props.modelName === 'Sample';
 
   // if either "cache is on" or returnUser, get User
-  if (isCacheOn ||
+  if (isCacheOnAndIsSample ||
     featureToggles.isFeatureEnabled('returnUser')) {
     postPromise = authUtils.getUser(req)
-    .then((user) => {
-
-      // if cache is on, check relatedLinks
-      if (isCacheOn) {
-        const rLinks = toPost.relatedLinks;
-        if (rLinks) {
-          u.checkDuplicateRLinks(rLinks);
-        }
-
-        // since cache is on AND get user.
-        // populate the user object.
-        // need to pass down the user id to populate provider field
-        const userObject = user &&
-        featureToggles.isFeatureEnabled('returnUser') ?
-          { name: user.name, id: user.id, email: user.email } : false;
-        return redisModelSample.postSample(req.swagger.params, userObject);
-      }
-
-      // cache is off AND returnUser is true.
-      // if there is a user, set the provider value.
-      if (user) {
-        if (props.modelName === 'Sample') {
-          toPost.provider = user.id;
-        } else {
-          toPost.createdBy = user.id;
-        }
-      }
-
-      return props.model.create(toPost);
-    })
+    .then((user) => makePostPromiseWithUser(user, params, isCacheOnAndIsSample))
     .catch((err) => {
 
       // if no user found, proceed with post sample
       if (err.status === httpStatus.FORBIDDEN) {
-        return isCacheOn ?
+        return isCacheOnAndIsSample ?
           redisModelSample.postSample(req.swagger.params, false) :
           props.model.create(toPost);
       }
