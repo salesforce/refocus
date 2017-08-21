@@ -251,4 +251,3 @@ describe('db: sample: update: isWritableBy: ', () => {
     done();
   });
 }); // db: aspect: update: permission:
-
