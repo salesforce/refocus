@@ -21,6 +21,48 @@ const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 
 /**
+ * Given user object, make the post promise.
+ *
+ * @params {Object} user
+ * @params {Object} params Swagger params
+ * @params {Boolean} isCacheOnAndIsSample if the resource is a sample
+ *  AND the cache is on
+ * @params {Object} props From the request
+ * @returns {Promise} the post promise
+ */
+function makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props) {
+  const toPost = params.queryBody.value;
+
+  // if cache is on, check relatedLinks
+  if (isCacheOnAndIsSample) {
+    const rLinks = toPost.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    // since cache is on AND get user.
+    // populate the user object.
+    // need to pass down the user id to populate provider field
+    const userObject = user &&
+    featureToggles.isFeatureEnabled('returnUser') ?
+      { name: user.name, id: user.id, email: user.email } : false;
+    return redisModelSample.postSample(params, userObject);
+  }
+
+  // cache is off AND returnUser is true.
+  // if there is a user, set the provider value.
+  if (user) {
+    if (props.modelName === 'Sample') {
+      toPost.provider = user.id;
+    } else {
+      toPost.createdBy = user.id;
+    }
+  }
+
+  return props.model.create(toPost);
+}
+
+/**
  * In-place removal of certain keys from the input object
  *
  * @oaram {Array} fieldsArr The fields to remove from the following obj
@@ -859,5 +901,7 @@ module.exports = {
   checkDuplicateRLinks,
 
   createSample,
+
+  makePostPromiseWithUser,
 
 }; // exports

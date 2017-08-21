@@ -21,47 +21,6 @@ const redisModelSample = require('../../../../cache/models/samples');
 const featureToggles = require('feature-toggles');
 
 /**
- * Given user object, make the post promise.
- *
- * @params {Object} user
- * @params {Object} params Swagger params
- * @params {Boolean} isCacheOnAndIsSample if the resource is a sample
- *  AND the cache is on
- * @returns {Promise} the post promise
- */
-function makePostPromiseWithUser(user, params, isCacheOnAndIsSample) {
-  const toPost = params.queryBody.value;
-
-  // if cache is on, check relatedLinks
-  if (isCacheOnAndIsSample) {
-    const rLinks = toPost.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
-
-    // since cache is on AND get user.
-    // populate the user object.
-    // need to pass down the user id to populate provider field
-    const userObject = user &&
-    featureToggles.isFeatureEnabled('returnUser') ?
-      { name: user.name, id: user.id, email: user.email } : false;
-    return redisModelSample.postSample(params, userObject);
-  }
-
-  // cache is off AND returnUser is true.
-  // if there is a user, set the provider value.
-  if (user) {
-    if (props.modelName === 'Sample') {
-      toPost.provider = user.id;
-    } else {
-      toPost.createdBy = user.id;
-    }
-  }
-
-  return props.model.create();
-}
-
-/**
  * Creates a new record and sends it back in the json response with status
  * code 201.
  *
@@ -83,8 +42,9 @@ function doPost(req, res, next, props) {
   // if either "cache is on" or returnUser, get User
   if (isCacheOnAndIsSample ||
     featureToggles.isFeatureEnabled('returnUser')) {
+
     postPromise = authUtils.getUser(req)
-    .then((user) => makePostPromiseWithUser(user, params, isCacheOnAndIsSample))
+    .then((user) => u.makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props))
     .catch((err) => {
 
       // if no user found, proceed with post sample
@@ -100,17 +60,9 @@ function doPost(req, res, next, props) {
        */
       throw err;
     });
-  } else if (props.modelName === 'Sample') {
-
-    // cache is off and returnUser is false.
-    postPromise = u.createSample(req, props);
   } else {
-
-    /**
-     * cache is off and returnUser is false.
-     * not a sample
-     */
-    postPromise = props.model.create(toPost);
+    postPromise = (props.modelName === 'Sample') ?
+      u.createSample(req, props) : props.model.create(toPost);
   }
 
   return postPromise.then((o) => {
