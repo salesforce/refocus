@@ -44,14 +44,14 @@ describe('tests/db/model/sample/upsert.js >', () => {
       return Subject.create({
         isPublished: true,
         name: subjectName,
-      })
+      });
     })
     .then((s) => {
       publishedSubjectId = s.id;
       return Subject.create({
         isPublished: false,
         name: unPublishedSubjectName,
-      })
+      });
     })
     .then((s) => {
       unPublishedSubjectId = s.id;
