@@ -126,22 +126,6 @@ describe('tests/db/helpers/common.js >', () => {
       .catch(done);
     });
 
-    it('sampleAspectAndSubjectArePublished : check for false', (done) => {
-      Subject.findById(sub.id)
-      .then((s) => s.update({ isPublished: false }))
-      .then(() => Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      }))
-      .then((samp) =>
-        common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp))
-      .then((pub) => {
-        expect(pub).to.equal(false);
-      })
-      .then(() => done())
-      .catch(done);
-    });
-
     it('augmentSampleWithSubjectAspectInfo : returned sample should have' +
         ' subject and aspect information', (done) => {
       Sample.upsertByName({
