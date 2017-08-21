@@ -34,11 +34,11 @@ describe('tests/api/v1/generatorTemplates/put.js > ', () => {
     author: {
       name: 'author1',
       url: 'http://www.aaa.com',
-      email: 'a@a.com'
+      email: 'a@a.com',
     },
     connection: {
       method: 'GET',
-      url: 'http://www.bbb.com'
+      url: 'http://www.bbb.com',
     },
     transform: 'function...',
     isPublished: true,
@@ -85,7 +85,7 @@ describe('tests/api/v1/generatorTemplates/put.js > ', () => {
     .expect((res) => {
       expect(res.body.description).to.equal(toPut.description);
     })
-    .end(done)
+    .end(done);
   });
 
   it('put without required fields', (done) => {
@@ -103,6 +103,7 @@ describe('tests/api/v1/generatorTemplates/put.js > ', () => {
       if (!err) {
         return done('Expecting "Schema Validation Failed" error');
       }
+
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(5);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
