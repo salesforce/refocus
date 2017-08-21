@@ -31,6 +31,11 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
 
   afterEach(u.forceDelete);
 
+  it('correct profile access field name', () => {
+    expect(Generator.getProfileAccessField())
+    .to.equal('generatorTemplateAccess');
+  });
+
   it('ok, create with all fields', (done) => {
     GeneratorTemplate.create(gt)
     .then((o) => {
