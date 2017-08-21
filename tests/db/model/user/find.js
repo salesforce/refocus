@@ -48,4 +48,9 @@ describe('db: user: find: ', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(User.getProfileAccessField()).to.equal('userAccess');
+    done();
+  });
 });

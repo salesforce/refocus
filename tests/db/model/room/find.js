@@ -41,5 +41,10 @@ describe('db: room: find: ', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Room.getProfileAccessField()).to.equal('roomAccess');
+      done();
+    });
   });
 });

@@ -45,5 +45,10 @@ describe('db: bot: find: ', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Bot.getProfileAccessField()).to.equal('botAccess');
+      done();
+    });
   });
 });

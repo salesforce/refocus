@@ -83,5 +83,10 @@ describe('db: Profile: create', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Profile.getProfileAccessField()).to.equal('profileAccess');
+      done();
+    });
   });
 });

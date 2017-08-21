@@ -245,5 +245,10 @@ describe('db: sample: update: isWritableBy: ', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Sample.getProfileAccessField()).to.equal('sampleAccess');
+    done();
+  });
 }); // db: aspect: update: permission:
 

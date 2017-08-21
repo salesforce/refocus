@@ -124,4 +124,9 @@ describe('db: perspective: update: isWritableBy: ', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Perspective.getProfileAccessField()).to.equal('perspectiveAccess');
+    done();
+  });
 }); // db: lens: update: permission:

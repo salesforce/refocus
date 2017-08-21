@@ -67,5 +67,10 @@ describe('db: event: find: ', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Event.getProfileAccessField()).to.equal('eventAccess');
+      done();
+    });
   });
 });
