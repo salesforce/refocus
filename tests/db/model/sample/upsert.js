@@ -23,6 +23,12 @@ const Subject = tu.db.Subject;
 describe('tests/db/model/sample/upsert.js >', () => {
   const aspectName = `${tu.namePrefix}Aspect`;
   const subjectName = `${tu.namePrefix}Subject`;
+  const unPublishedSubjectName = `${tu.namePrefix}UnPublishedSubject`;
+  const unPublishedAspectName = `${tu.namePrefix}UnPublishedAspect`;
+  let publishedAspectId;
+  let unPublishedAspectId;
+  let publishedSubjectId;
+  let unPublishedSubjectId;
 
   afterEach(u.forceDelete);
 
@@ -33,12 +39,110 @@ describe('tests/db/model/sample/upsert.js >', () => {
       timeout: '30s',
       valueType: 'NUMERIC',
     })
-    .then(() => Subject.create({
-      isPublished: true,
-      name: subjectName,
-    }))
-    .then(() => done())
+    .then((a) => {
+      publishedAspectId = a.id;
+      return Subject.create({
+        isPublished: true,
+        name: subjectName,
+      })
+    })
+    .then((s) => {
+      publishedSubjectId = s.id;
+      return Subject.create({
+        isPublished: false,
+        name: unPublishedSubjectName,
+      })
+    })
+    .then((s) => {
+      unPublishedSubjectId = s.id;
+      return Aspect.create({
+        isPublished: false,
+        name: unPublishedAspectName,
+        timeout: '30s',
+        valueType: 'NUMERIC',
+      });
+    })
+    .then((a) => {
+      unPublishedAspectId = a.id;
+      done();
+    })
     .catch(done);
+  });
+
+  describe('unpublished tests:', () => {
+    it('unpublished subject cannot be used to CREATE sample', (done) => {
+      Subject.findById(publishedSubjectId)
+      .then((s) => s.update({ isPublished: false }))
+      .then(() => Sample.upsertByName({
+        name: subjectName + `|` + aspectName,
+        value: '1',
+      }))
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.resourceType).to.equal('Subject');
+        expect(err.resourceKey).to.equal(publishedSubjectId);
+        done();
+      });
+    });
+
+    it('when referenced subject is unpublished, CREATE sample should fail',
+      (done) => {
+      Sample.create({
+        subjectId: unPublishedSubjectId,
+        aspectId: publishedAspectId,
+      })
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.resourceType).to.equal('Subject');
+        expect(err.resourceKey).to.equal(unPublishedSubjectId);
+        done();
+      });
+    });
+
+    it('when referenced aspect is unpublished, CREATE sample should fail',
+      (done) => {
+      Sample.create({
+        subjectId: publishedSubjectId,
+        aspectId: unPublishedAspectId,
+      })
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.resourceType).to.equal('Aspect');
+        expect(err.resourceKey).to.equal(unPublishedAspectId);
+        done();
+      });
+    });
+
+    it('when referenced aspect is unpublished, UPSERT sample should fail',
+      (done) => {
+      Sample.upsertByName({
+        name: subjectName + `|` + unPublishedAspectName,
+        value: '1',
+      })
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        done();
+      });
+    });
+
+    it('when referenced subject is unpublished, UPSERT sample should fail',
+      (done) => {
+      Sample.upsertByName({
+        name: unPublishedSubjectName + `|` + aspectName,
+        value: '1',
+      })
+      .then(() => done('expecting to throw ResourceNotFoundError'))
+      .catch((err) => {
+        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        done();
+      });
+    });
   });
 
   it('when sample is new and when it already exists', (done) => {
