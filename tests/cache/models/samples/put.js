@@ -10,7 +10,6 @@
  * tests/cache/models/samples/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,12 +19,13 @@ const rtu = require('../redisTestUtil');
 const u = require('./utils');
 const redisOps = require('../../../../cache/redisOps');
 const objectType = require('../../../../cache/sampleStore')
-                    .constants.objectType;
+  .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const ZERO = 0;
-describe(`api: cache: PUT ${path}`, () => {
+
+describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
   let sampleName;
   let token;
   let aspectId;
@@ -38,7 +38,7 @@ describe(`api: cache: PUT ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   beforeEach((done) => {
@@ -55,14 +55,14 @@ describe(`api: cache: PUT ${path}`, () => {
       subjectId = sampleObj.subjectId;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   afterEach(rtu.forceDelete);
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  describe('Lists: ', () => {
+  describe('Lists >', () => {
     it('reject if name is in request body', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -70,7 +70,7 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const error = res.body.errors[0];
@@ -87,7 +87,7 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.aspect).to.be.an('object');
@@ -104,7 +104,7 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.id).to.be.undefined;
@@ -117,9 +117,9 @@ describe(`api: cache: PUT ${path}`, () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         const { updatedAt, createdAt } = res.body;
@@ -136,7 +136,7 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         if (!(res && res.body &&
@@ -149,7 +149,7 @@ describe(`api: cache: PUT ${path}`, () => {
     });
   });
 
-  describe('PUT Related Links ', () => {
+  describe('PUT Related Links >', () => {
     it('single related link', (done) => {
       api.put(`${path}/${sampleName}`)
       .set('Authorization', token)
@@ -162,12 +162,12 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.relatedLinks).to.have.length(1);
-        expect(res.body.relatedLinks).to.have.deep.property('[0].name',
-            'link');
+        expect(res.body.relatedLinks)
+        .to.have.deep.property('[0].name', 'link');
         done();
       });
     });
@@ -179,7 +179,7 @@ describe(`api: cache: PUT ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .end((err/* , res */) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         api.put(`${path}/${sampleName}`)
@@ -193,8 +193,8 @@ describe(`api: cache: PUT ${path}`, () => {
         })
         .expect(constants.httpStatus.OK)
         .end((_err, res) => {
-          if (err) {
-            done(err);
+          if (_err) {
+            return done(_err);
           }
 
           expect(res.body.relatedLinks).to.have.length(2);
@@ -204,7 +204,7 @@ describe(`api: cache: PUT ${path}`, () => {
              * at the end to get the name dynamically.
              */
             expect(res.body.relatedLinks[i])
-              .to.have.property('name', 'link' + i);
+            .to.have.property('name', 'link' + i);
           }
 
           done();
@@ -224,7 +224,7 @@ describe(`api: cache: PUT ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body).to.have.property('errors');

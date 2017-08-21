@@ -16,13 +16,15 @@ import sinon from 'sinon';
 import PerspectiveController from '../../../view/perspective/PerspectiveController.js';
 import { mount } from 'enzyme';
 
-describe('Perspective controller ', () => {
+describe('tests/view/perspectives/perspectiveController.js, ' +
+'Perspective controller >', () => {
   const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
   const DUMMY_STRING = 'COOL';
   const DUMMY_ID = '743bcf42-cd79-46d0-8c0f-d43adbb63866';
   const DUMMY_FUNCTION = () => {};
+
   const ONE_SUBJECT = {
     absolutePath: DUMMY_STRING,
     isPublished: true,
@@ -46,12 +48,13 @@ describe('Perspective controller ', () => {
         rootSubject: {},
         lens: {}, // includes library
       },
-    }
+    };
+
     const enzymeWrapper = mount(<PerspectiveController {...defaultProps} />);
     return enzymeWrapper;
   }
 
-  describe('on show create modal', () => {
+  describe('on show create modal >', () => {
     it('calling openCreatePanel sets state to true', () => {
       const enzymeWrapper = setup();
       const instance = enzymeWrapper.instance();

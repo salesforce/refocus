@@ -10,7 +10,6 @@
  * tests/tokenNotReq/sampleUpsertBulk.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -20,7 +19,8 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 
-describe('token not required api: POST ' + path, () => {
+describe('tests/tokenNotReq/sampleUpsertBulk.js, token not required api: ' +
+'POST >' + path, () => {
   before((done) => {
     Aspect.create({
       isPublished: true,
@@ -41,7 +41,7 @@ describe('token not required api: POST ' + path, () => {
       name: `${tu.namePrefix}Subject`,
     }))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -58,12 +58,6 @@ describe('token not required api: POST ' + path, () => {
       },
     ])
     .expect(200)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

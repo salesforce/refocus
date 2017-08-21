@@ -10,7 +10,6 @@
  * tests/db/model/generatortemplate/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
@@ -18,13 +17,13 @@ const testStartTime = new Date();
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
-    'STATUS'
+    'STATUS',
   ],
   generatorTemplate: {
     name: 'refocus-ok-template',
-    version: '1.0.0'
+    version: '1.0.0',
   },
   context: {
     okValue: {
@@ -56,5 +55,6 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
   getGenerator,
 };

@@ -22,8 +22,7 @@ const Promise = require('bluebird');
 jobQueue.completeCountAsync = Promise.promisify(jobQueue.completeCount);
 jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
 
-describe('jobCleanup', () => {
-
+describe('tests/clock/jobCleanup.js >', () => {
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     jobQueue.process('TEST', 100, testJob);
@@ -72,7 +71,7 @@ describe('jobCleanup', () => {
     .then((count) => { expect(count).to.equal(n); });
   }
 
-  describe('no delay - ', () => {
+  describe('no delay >', () => {
     const durationType = 'parallel';
     const duration = 0;
     const delay = 0;
@@ -168,14 +167,14 @@ describe('jobCleanup', () => {
 
   });
 
-  describe('delay - staggered - ', () => {
+  describe('delay - staggered >', () => {
     const durationType = 'staggered';
     const duration = 50;
     const jobCount = 20;
     const batchSize = 5;
 
     it('skip 3', (done) => {
-      const delay = 199;
+      const delay = 190;
       const expectedCount = 3;
 
       runJobs(jobCount, duration, durationType)
@@ -185,7 +184,7 @@ describe('jobCleanup', () => {
     });
 
     it('skip 15', (done) => {
-      const delay = 799;
+      const delay = 790;
       const expectedCount = 15;
 
       runJobs(jobCount, duration, durationType)
@@ -196,14 +195,14 @@ describe('jobCleanup', () => {
 
   });
 
-  describe('delay - non-contiguous - ', () => {
+  describe('delay - non-contiguous >', () => {
     const durationType = 'non-contiguous';
     const jobCount = 20;
     const batchSize = 5;
 
     it('skip 1/2', (done) => {
       const duration = [0, 100];
-      const delay = 99;
+      const delay = 90;
       const expectedCount = 10;
 
       runJobs(jobCount, duration, durationType)
@@ -214,7 +213,7 @@ describe('jobCleanup', () => {
 
     it('skip 1/4', (done) => {
       const duration = [0, 100, 200, 300];
-      const delay = 99;
+      const delay = 90;
       const expectedCount = 5;
 
       runJobs(jobCount, duration, durationType)
@@ -224,7 +223,7 @@ describe('jobCleanup', () => {
     });
   });
 
-  describe('end-to-end - ', () => {
+  describe('end-to-end >', () => {
     jobQueue.process(jobType.JOB_CLEANUP, jobCleanupJob);
     const duration = 0;
     const durationType = 'parallel';

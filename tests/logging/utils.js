@@ -19,6 +19,6 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 };

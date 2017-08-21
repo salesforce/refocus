@@ -19,7 +19,7 @@ const path = '/v1/collectors';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/collectors/get.js >', () => {
   let token;
   let cid;
 

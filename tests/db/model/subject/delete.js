@@ -10,7 +10,6 @@
  * tests/db/model/subject/delete.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -18,8 +17,8 @@ const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 
-describe('db: subject: delete: ', () => {
-  describe('no children: ', () => {
+describe('tests/db/model/subject/delete.js >', () => {
+  describe('no children >', () => {
     let id = 0;
 
     beforeEach((done) => {
@@ -45,7 +44,7 @@ describe('db: subject: delete: ', () => {
     });
   });
 
-  describe('with children', () => {
+  describe('with children >', () => {
     let grandparent;
     let parent;
     let child1;
@@ -114,7 +113,7 @@ describe('db: subject: delete: ', () => {
     });
   });
 
-  describe('with children', () => {
+  describe('with children >', () => {
     let grandParent;
     let theParent;
     let childId1;
@@ -339,7 +338,7 @@ describe('db: subject: delete: ', () => {
     });
   });
 
-  describe('cascade delete samples: ', () => {
+  describe('cascade delete samples >', () => {
     let sample;
     let subject;
 

@@ -9,7 +9,6 @@
 /**
  * tests/db/model/collector/find.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const expect = require('chai').expect;

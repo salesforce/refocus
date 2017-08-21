@@ -215,7 +215,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -226,7 +226,7 @@ paths:
              names with and without minus signs, for example ?tags=BAZ,-FOO
              are not allowed. Aspects without tags are not included in the
              include result set.
-          type: string
+          type: array
           required: false
       responses:
         200:
@@ -1850,7 +1850,6 @@ paths:
             type: string
             enum:
               - isActive
-              - keywords
               - aspects
               - subjects
               - subjectQuery
@@ -1859,7 +1858,6 @@ paths:
               - name
               - updatedAt
               - -isActive
-              - -keywords
               - -aspects
               - -subjects
               - -subjectQuery
@@ -1919,13 +1917,24 @@ paths:
           items:
             type: string
         -
-          name: keywords
+          name: tags
           in: query
-          description: >-
-            Filter by the keywords; asterisk (*) wildcards ok.
-          type: array
           items:
             type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. Generators without tags are not included in the
+             include result set.
+          type: array
+          required: false
       responses:
         200:
           description: >-
@@ -1988,11 +1997,16 @@ paths:
                 type: array
                 items:
                   type: string
-              keywords:
-                description: Describes this generator.
+              tags:
                 type: array
                 items:
                   type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
               connection:
                 type: object
                 description: Information about the connection.
@@ -2103,11 +2117,16 @@ paths:
                 type: array
                 items:
                   type: string
-              keywords:
-                description: Describes this generator.
+              tags:
                 type: array
                 items:
                   type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
               connection:
                 type: object
                 description: Information about the connection.
@@ -2187,11 +2206,16 @@ paths:
                 type: array
                 items:
                   type: string
-              keywords:
-                description: Describes this generator.
+              tags:
                 type: array
                 items:
                   type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
               connection:
                 type: object
                 description: Information about the connection.
@@ -2370,6 +2394,655 @@ paths:
         204:
           description: >-
             The user’s write permission has been revoked for the generator.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Get a generatorTemplate or all generatorTemplates.
+      tags: [ generatorTemplates ]
+      description: >-
+        Get a generatorTemplate or all generatorTemplates. You may query using
+        field filters with asterisk (*) wildcards. You may also optionally
+        specify sort, limit, offset, and a list of fields to include in the
+        response. If the Refocus configuration parameter `useAccessToken` is
+        set to `true`, you must include an `Authorization` request header with
+        your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
+        value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+      externalDocs:
+        description: >-
+          GET /generatorTemplates
+        url: http://focus.salesforce.com/docs/api/generatorTemplates
+      operationId: findGeneratorTemplates
+      parameters:
+        -
+          $ref: "#/parameters/GeneratorTemplateFieldsParam"
+        -
+          name: sort
+          in: query
+          description: >-
+            Specify the sort order using a field name, e.g. '...?sort=name'.
+            Prepend the field name with a minus sign to specify descending order,
+            e.g. '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - description
+              - name
+              - version
+              - createdAt
+              - updatedAt
+              - -description
+              - -name
+              - -version
+              - -createdAt
+              - -updatedAt
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          type: string
+          description: >-
+            Filter by the generatorTemplate name; asterisk (*) wildcards ok.
+        -
+          name: version
+          in: query
+          type: string
+          description: >-
+            Filter by the generatorTemplate version; asterisk (*) wildcards ok.
+        -
+          name: tags
+          in: query
+          items:
+            type: string
+            maxLength: 60
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+          description: >-
+             Comma-separated list of tags to include/exclude. Tag names are
+             case-insensitive. For example, ?tags=FOO,BAR will only return
+             aspects with tags FOO and BAR. Prefix each of the tag name with
+             a negative sign to indicate that a aspect with that tag should
+             be excluded. For example, ?tags=-BAZ,FOO will return only the
+             aspects with tag name not equal to BAZ or FOO. A mix of tag
+             names with and without minus signs, for example ?tags=BAZ,-FOO
+             are not allowed. GeneratorTemplates without tags are not included in the
+             include result set.
+          type: array
+          required: false
+        -
+          name: isPublished
+          in: query
+          type: boolean
+          description: >-
+            Filter by generatorTemplate isPublished (true|false)
+      responses:
+        200:
+          description: >-
+            Success, returns a list of generatorTemplates
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create a new generatorTemplate.
+      tags: [ generatorTemplates ]
+      description: >-
+        Create a new generatorTemplate and makes the creator the writer of the
+        generatorTemplate. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token](https://tools.ietf
+        .org/html/rfc7519) (JWT) as the value. You can get a token using `POST
+        /v1/register` or `POST /v1/tokens`.
+      operationId: postGeneratorTemplate
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+            required:
+              - name
+              - author
+              - connection
+              - transform
+              - isPublished
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Retrieve the specified generatoTemplate. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get
+        a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/GeneratorTemplateFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Update the specified generatorTemplate. Requires user to have write
+        permision. If a field is not included in the query body, that field
+        will not be updated. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get
+        a token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: patchGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+      responses:
+        200:
+          description: Success, returns the updated generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update the specified generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Update the specified generatorTemplate. Requires user to have write
+        permision. If a field is not included in the query body, that field will
+        be set to null or its default value. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: putGeneratorTemplate
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or key of the generatorTemplate to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: A generatorTemplate configuration object.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the generatorTemplate.
+              helpEmail:
+                type: string
+                description: >-
+                  The email address where a user can go to get more help about
+                  the generatorTemplate.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >-
+                  The url where a user can go to get more help about the
+                  generatorTemplate.
+              name:
+                type: string
+                readOnly: true
+                description: >-
+                  The generatorTemplate's name.
+              version:
+                type: string
+                description: >-
+                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+              tags:
+                type: array
+                items:
+                  type: string
+                  maxLength: 60
+                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+                description: >
+                  Array of tag names. Tag name: Max 60 characters; case
+                  insensitive; allows alpha-numeric characters, underscore (_)
+                  and dash (-). Tag names cannot start with a dash (-).
+              author:
+                type: object
+                description: >-
+                  The author of this generatorTemplate.
+              repository:
+                type: object
+                description: >-
+                  The repository where this generatorTemplate is located.
+              connection:
+                type: object
+                description: >-
+                  Information about the connection.
+              contextDefinition:
+                type: object
+                description: >-
+                  Variables available to connection.url, connection.toUrl, and
+                  the transform function.
+              transform:
+                type: string
+                description: >-
+                  The body of a javascript function which transforms some data into
+                  an array of samples
+              isPublished:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generatorTemplate is
+                  available to all users.
+                default: false
+            required:
+              - name
+              - author
+              - connection
+              - transform
+              - isPublished
+      responses:
+        200:
+          description: Success, returns the updated generatorTemplate.
+          schema:
+            $ref: "#/definitions/GeneratorTemplateResponse"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}/writers:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Get the list of all authorized writers for a generatorTemplate
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Get the list of all authorized writers for a generatorTemplate. If the
+        Refocus configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplateWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns the users having write permission to the
+            generatorTemplate.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add one or more users to a generatorTemplate’s list of authorized writers
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Add one or more users to a generatorTemplate’s list of authorized
+        writers. If the Refocus configuration parameter `useAccessToken` is set to
+        `true`, you must include an `Authorization` request header with your [JSON
+        Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can
+        get a token using `POST /v1/register` or `POST /v1/token`.
+      operationId: postGeneratorTemplateWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized
+            writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GeneratorTemplateWriterResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+
+  /generatorTemplates/{key}/writers/{userNameOrId}:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+        - jwt: []
+      summary: Determine whether a user is an authorized writer for a generatorTemplate
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Determine whether a user is an authorized writer for a generatorTemplate.
+        Returns the user if authorized, else throws 404 if either the writer or
+        generatorTemplate is not found. If the Refocus configuration parameter
+        `useAccessToken` is set to `true`, you must include an `Authorization`
+        request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: getGeneratorTemplateWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate for which the authorized list
+            of users are to be obtained.
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns requested user.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the generatorTemplate
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from a generatorTemplate’s list of authorized writers
+      tags: [ generatorTemplates, writers ]
+      description: >-
+        Remove a user from a generatorTemplate’s list of authorized writers. If
+        the Refocus configuration parameter `useAccessToken` is set to `true`, you
+        must include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
+      operationId: deleteGeneratorTemplateWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the generatorTemplate
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the generatorTemplate.
         400:
           $ref: "#/responses/400"
         403:
@@ -5197,7 +5870,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -5206,7 +5879,7 @@ paths:
              be excluded. For example, ?tags=-BAZ,-FOO will return only the
              subjects with tag name not equal to BAZ or FOO. Subjects without
              tags are not included in the result set.
-          type: string
+          type: array
           required: false
       responses:
         200:
@@ -10091,6 +10764,32 @@ definitions:
         description: >
           Timestamp at which the the write permission was modified
 
+  GeneratorTemplateWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the generatorTemplate
+    properties:
+      generatorTemplateId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected generatorTemplate
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the generatorTemplate
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
   LensWriterResponse:
     type: object
     description: >
@@ -10182,6 +10881,16 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
+      ui:
+        type: object
+        description: The UI of the bot
+        properties:
+          name:
+            type: string
+            description: The name of the UI file.
+          size:
+            type: integer
+            description: The size of the UI file (bytes)
       active:
         type: boolean
         description: Flag for if a bot is active with communication
@@ -10488,11 +11197,16 @@ definitions:
         type: array
         items:
           type: string
-      keywords:
-        description: Describes this generator.
+      tags:
         type: array
         items:
           type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+        description: >
+          Array of tag names. Tag name: Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-). Tag
+          names cannot start with a dash (-).
       connection:
         type: object
         description: Information about the connection.
@@ -10508,21 +11222,80 @@ definitions:
     description: >-
       The transform logic and the definition of what additional context data is required.
     properties:
-      name:
-        type: string
-        description: The name of the generator template.
       description:
         type: string
-        description: Describes the generator template.
-      context:
-        type: object
-        description: Fields passed to the transform function.
-      transform:
+        maxLength: 4096
         description: >-
-          Stringified javascript commands to convert values in context to samples.
+          A description of the generatorTemplate.
+      helpEmail:
+        type: string
+        description: >-
+          The email address where a user can go to get more help about the
+          generatorTemplate.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >-
+          The url where a user can go to get more help about the generatorTemplate.
+      name:
+        type: string
+        readOnly: true
+        description: >-
+          The generatorTemplate's name.
+      version:
+        type: string
+        description: >-
+          The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
+      tags:
         type: array
         items:
           type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+        description: >-
+          Array of tag names. Tag name: Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-). Tag
+          names cannot start with a dash (-).
+      author:
+        type: object
+        description: >-
+          The author of this generatorTemplate.
+      repository:
+        type: object
+        description: >-
+          The repository where this generatorTemplate is located.
+      connection:
+        type: object
+        description: >-
+          Information about the connection.
+      contextDefinition:
+        type: object
+        description: >-
+          Variables available to connection.url, connection.toUrl, and
+          the transform function.
+      transform:
+        type: string
+        description: >-
+          The body of a javascript function which transforms some data into an
+          array of samples
+      isPublished:
+        type: boolean
+        description: >-
+          Default false. When set to true, the generatorTemplate is available to
+          all users.
+        default: false
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The generatorTemplate id.
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this generatorTemplate.
+
 
   RoomResponse:
     type: object
@@ -10672,7 +11445,7 @@ parameters:
       type: string
       enum:
         - isActive
-        - keywords
+        - tags
         - aspects
         - subjects
         - subjectQuery
@@ -10683,6 +11456,31 @@ parameters:
         - id
         - name
         - updatedAt
+
+  GeneratorTemplateFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - description
+        - helpEmail
+        - helpUrl
+        - id
+        - name
+        - version
+        - tags
+        - author
+        - repository
+        - connection
+        - contextDefinition
+        - transform
+        - isPublished
 
   LensesFieldsParam:
     name: fields

@@ -10,7 +10,6 @@
  * tests/api/v1/perspectives/postWriters.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -20,7 +19,7 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const postWritersPath = '/v1/perspectives/{key}/writers';
 
-describe('api: perspectives: post writers', () => {
+describe('tests/api/v1/perspectives/postWriters.js', () => {
   let perspective;
   let token;
   let otherValidToken;
@@ -104,7 +103,7 @@ describe('api: perspectives: post writers', () => {
     })
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -119,7 +118,7 @@ describe('api: perspectives: post writers', () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();
@@ -134,7 +133,7 @@ describe('api: perspectives: post writers', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err /* , res */) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       done();

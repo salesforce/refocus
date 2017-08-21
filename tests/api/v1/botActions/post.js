@@ -9,7 +9,6 @@
 /**
  * tests/api/v1/botActions/post.js
  */
-
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -27,8 +26,7 @@ const path = '/v1/botActions';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/botActions/post.js >', () => {
   let testBotAction;
   let token;
 
@@ -63,59 +61,57 @@ describe(`api: POST ${path}`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  describe('POST botAction', () => {
-    it('Pass, post botAction', (done) => {
+  it('Pass, post botAction', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotAction)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
+
+  it('Fail, duplicate botAction', (done) => {
+    BotAction.create(testBotAction)
+    .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotAction)
-      .expect(constants.httpStatus.CREATED)
+      .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
-        expect(res.body.name).to.equal(u.name);
+        expect(res.body.errors[ZERO].type)
+        .to.contain('SequelizeUniqueConstraintError');
         done();
       });
-    });
+    })
+    .catch(done);
+  });
 
-    it('Fail, duplicate botAction', (done) => {
-      BotAction.create(testBotAction)
-      .then(() => {
-        api.post(`${path}`)
-        .set('Authorization', token)
-        .send(testBotAction)
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end((err, res) => {
-          if (err) {
-            done(err);
-          }
+  it('Fail, botAction validation incorrect', (done) => {
+    testBotAction = u.getStandard();
+    testBotAction.actions = 'INVALID_VALUE';
 
-          expect(res.body.errors[ZERO].type).to
-          .contain('SequelizeUniqueConstraintError');
-          done();
-        });
-      })
-      .catch(done);
-    });
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotAction)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-    it('Fail, botAction validation incorrect', (done) => {
-      testBotAction = u.getStandard();
-      testBotAction.actions = 'INVALID_VALUE';
-
-      api.post(`${path}`)
-      .set('Authorization', token)
-      .send(testBotAction)
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-        }
-        expect(res.body.errors[ZERO].type).to
-        .contain(tu.schemaValidationErrorName);
-        done();
-      });
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
     });
   });
 });
-

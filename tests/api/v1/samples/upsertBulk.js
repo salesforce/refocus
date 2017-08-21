@@ -10,7 +10,6 @@
  * tests/api/v1/samples/upsertBulk.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
@@ -27,7 +26,7 @@ const relatedLinks = [
   { name: 'link2', url: URL1 },
 ];
 
-describe('api: POST ' + path, () => {
+describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
   let token;
   let aspectIdOne = '';
   let aspectIdTwo = '';
@@ -86,13 +85,7 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('some succeed, some fail returns ok', (done) => {
@@ -108,13 +101,7 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('all fail returns ok', (done) => {
@@ -130,13 +117,7 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('all succeed with relatedLinks', (done) => {
@@ -154,13 +135,7 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('duplicate relatedLinks and sample name sends back ok', (done) => {
@@ -184,13 +159,7 @@ describe('api: POST ' + path, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('bulk upsert should return OK even if every sample in the request ' +
@@ -213,6 +182,7 @@ describe('api: POST ' + path, () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.status).to.equal('OK');
       return done();
     });
@@ -230,7 +200,7 @@ describe('api: POST ' + path, () => {
       {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '10',
-      }
+      },
     ])
     .expect(constants.httpStatus.OK)
     .then(() => {
@@ -244,8 +214,9 @@ describe('api: POST ' + path, () => {
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
+
           expect(res.body).to.have.length(2);
           expect(res.body[0].value).to.not.equal('10');
           expect(res.body[1].value).to.equal('10');
@@ -255,7 +226,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  describe('upsert bulk when sample already exists', () => {
+  describe('when sample already exists >', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -271,7 +242,7 @@ describe('api: POST ' + path, () => {
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
@@ -299,7 +270,7 @@ describe('api: POST ' + path, () => {
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body).to.have.length(1);
@@ -311,7 +282,7 @@ describe('api: POST ' + path, () => {
     });
   });
 
-  describe('aspect isPublished false', () => {
+  describe('aspect isPublished false >', () => {
     // unpublish the aspects
     before((done) => {
       Aspect.findById(aspectIdOne)

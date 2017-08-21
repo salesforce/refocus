@@ -9,7 +9,6 @@
 /**
  * tests/tokenReq/api/token/createtoken.js
  */
-
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
@@ -18,14 +17,14 @@ const u = require('../testUtils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe('api: createToken', () => {
+describe('tests/enforceToken/createToken.js, api: createToken >', () => {
   let defaultToken;
   before((done) => {
     api.post(registerPath)
     .send(u.fakeUserCredentials)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       defaultToken = res.body.token;
@@ -40,13 +39,7 @@ describe('api: createToken', () => {
     .send({ name: 'newToken' })
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/No authorization token was found/)
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('error if wrong token found provided', (done) => {
@@ -55,13 +48,7 @@ describe('api: createToken', () => {
     .send({ name: 'newToken' })
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/Invalid Token/)
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('sucessful authentication, create token for user', (done) => {

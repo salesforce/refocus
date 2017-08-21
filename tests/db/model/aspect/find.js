@@ -16,7 +16,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 
-describe('db: aspect: find: ', () => {
+describe('tests/db/model/aspect/find.js >', () => {
   before((done) => {
     u.createMedium()
     .then(() => {
@@ -39,7 +39,7 @@ describe('db: aspect: find: ', () => {
 
   after(u.forceDelete);
 
-  describe('find by name', () => {
+  describe('find by name >', () => {
     it('find by name, found', (done) => {
       Aspect.findOne({ where: { name: u.name } })
       .then((o) => {

@@ -21,7 +21,7 @@ const Perspective = tu.db.Perspective;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: perspective: update: isWritableBy: ', () => {
+describe('tests/db/model/perspective/update.js >', () => {
   let prof;
   let subj;
   let lensId;

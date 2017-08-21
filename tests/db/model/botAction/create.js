@@ -10,7 +10,6 @@
  * tests/db/model/botAction/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -24,144 +23,142 @@ const BotAction = tu.db.BotAction;
 const ZERO = 0;
 const ONE = 1;
 
-describe('db: bot action: create: ', () => {
+describe('db/model/botAction/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('Create a new bot action', () => {
-    it('ok, bot action created', (done) => {
-      const testBotAction = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        return BotAction.create(testBotAction);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot action created', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('ok, bot action response created', (done) => {
-      const testBotAction = u.getResponse();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        return BotAction.create(testBotAction);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, bot action response created', (done) => {
+    const testBotAction = u.getResponse();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
 
-    it('fail, bot action missing value', (done) => {
-      const testBotAction = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        testBotAction.parameters[ZERO] = { name: 'Fake1' };
-        return BotAction.create(testBotAction);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.name).to.equal(tu.valErrorName);
-        done();
-      });
+  it('fail, bot action missing value', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      testBotAction.parameters[ZERO] = { name: 'Fake1' };
+      return BotAction.create(testBotAction);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      done();
     });
+  });
 
-    it('fail, bot action missing parameters', (done) => {
-      const testBotAction = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        testBotAction.parameters = [
-          {
-            name: 'Param1',
-            value: true,
-          },
-          {
-            name: 'Param2',
-            value: 4,
-          },
-          {
-            name: 'Param3',
-            value: 62.2,
-          },
-        ];
-        return BotAction.create(testBotAction);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.message).to.equal(
-          'Not enough parameters were sent to run this action'
-        );
-        done();
-      });
+  it('fail, bot action missing parameters', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      testBotAction.parameters = [
+        {
+          name: 'Param1',
+          value: true,
+        },
+        {
+          name: 'Param2',
+          value: 4,
+        },
+        {
+          name: 'Param3',
+          value: 62.2,
+        },
+      ];
+      return BotAction.create(testBotAction);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.equal(
+        'Not enough parameters were sent to run this action'
+      );
+      done();
     });
+  });
 
-    it('ok, bot action no parameters', (done) => {
-      const testBotAction = {
-        isPending: true,
-        name: 'Action1',
-      };
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotAction.botId = bot.id;
-        testBotAction.parameters = null;
-        return BotAction.create(testBotAction);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.message).to.equal('Action must contain parameters');
-        done();
-      });
+  it('ok, bot action no parameters', (done) => {
+    const testBotAction = {
+      isPending: true,
+      name: 'Action1',
+    };
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      testBotAction.parameters = null;
+      return BotAction.create(testBotAction);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.equal('Action must contain parameters');
+      done();
     });
   });
 });

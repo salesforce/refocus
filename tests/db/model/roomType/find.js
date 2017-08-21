@@ -10,13 +10,12 @@
  * tests/db/model/roomType/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const RoomType = tu.db.RoomType;
 
-describe('db: room type: find: ', () => {
+describe('tests/db/model/roomType/find.js >', () => {
   beforeEach((done) => {
     RoomType.create(u.getStandard())
     .then(() => done())

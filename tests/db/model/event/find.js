@@ -10,7 +10,6 @@
  * tests/db/model/event/find.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -25,7 +24,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe('db: event: find: ', () => {
+describe('tests/db/model/event/find.js >', () => {
   beforeEach((done) => {
     const testBotData = bd.getStandard();
     const testEvent = u.getStandard();
