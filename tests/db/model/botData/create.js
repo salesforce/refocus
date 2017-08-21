@@ -10,7 +10,6 @@
  * tests/db/model/botData/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -24,133 +23,127 @@ const BotData = tu.db.BotData;
 const ZERO = 0;
 const ONE = 1;
 
-describe('db: bot data: create: ', () => {
+describe('tests/db/model/botData/create.js >', () => {
   afterEach(u.forceDelete);
 
-  describe('Create a new bot data', () => {
-    it('ok, bot data created', (done) => {
-      const testBotData = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotData.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotData.botId = bot.id;
-        return BotData.create(testBotData);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('ok, bot data created room different', (done) => {
-      const testBotData = u.getStandard();
-      const testBotData2 = u.getStandard();
-      const room2 = r.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        room2.type = room.type;
-        room2.name = 'Room2';
-        testBotData.roomId = room.id;
-        return Room.create(room2);
-      })
-      .then((room) => {
-        testBotData2.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotData.botId = bot.id;
-        return BotData.create(testBotData);
-      })
-      .then((botData) => {
-        testBotData2.botId = botData.botId;
-        return BotData.create(testBotData2);
-      })
-      .then(() => BotData.findAll())
-      .then((o) => {
-        expect(o[ZERO].name).to.equal(o[ONE].name);
-        expect(o[ZERO].botId).to.equal(o[ONE].botId);
-        expect(o[ZERO].roomId).to.not.equal(o[ONE].roomId);
-        done();
-      })
-      .catch(done);
-    });
-
-    it('ok, bot data created bot different', (done) => {
-      const testBotData = u.getStandard();
-      const testBotData2 = u.getStandard();
-      const bot2 = b.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotData.roomId = room.id;
-        testBotData2.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotData.botId = bot.id;
-        bot2.name = 'NewBot';
-        return Bot.create(bot2);
-      })
-      .then((bot) => {
-        testBotData2.botId = bot.id;
-        return BotData.create(testBotData);
-      })
-      .then(() => {
-        return BotData.create(testBotData2);
-      })
-      .then(() => BotData.findAll())
-      .then((o) => {
-        expect(o[ZERO].name).to.equal(o[ONE].name);
-        expect(o[ZERO].botId).to.not.equal(o[ONE].botId);
-        expect(o[ZERO].roomId).to.equal(o[ONE].roomId);
-        done();
-      })
-      .catch(done);
-    });
-
-    it('fail, bot data already been created', (done) => {
-      const testBotData = u.getStandard();
-      RoomType.create(rt.getStandard())
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testBotData.roomId = room.id;
-        return Bot.create(b.getStandard());
-      })
-      .then((bot) => {
-        testBotData.botId = bot.id;
-        return BotData.create(testBotData);
-      })
-      .then(() => {
-        return BotData.create(testBotData);
-      })
-      .then(() => done(tu.valError))
-      .catch((err) => {
-        expect(err.message).to.contain('is in use');
-        done();
-      })
+  it('ok, bot data created', (done) => {
+    const testBotData = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
     .catch(done);
-    });
+  });
+
+  it('ok, bot data created room different', (done) => {
+    const testBotData = u.getStandard();
+    const testBotData2 = u.getStandard();
+    const room2 = r.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      room2.type = room.type;
+      room2.name = 'Room2';
+      testBotData.roomId = room.id;
+      return Room.create(room2);
+    })
+    .then((room) => {
+      testBotData2.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then((botData) => {
+      testBotData2.botId = botData.botId;
+      return BotData.create(testBotData2);
+    })
+    .then(() => BotData.findAll())
+    .then((o) => {
+      expect(o[ZERO].name).to.equal(o[ONE].name);
+      expect(o[ZERO].botId).to.equal(o[ONE].botId);
+      expect(o[ZERO].roomId).to.not.equal(o[ONE].roomId);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, bot data created bot different', (done) => {
+    const testBotData = u.getStandard();
+    const testBotData2 = u.getStandard();
+    const bot2 = b.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      testBotData2.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      bot2.name = 'NewBot';
+      return Bot.create(bot2);
+    })
+    .then((bot) => {
+      testBotData2.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then(() => BotData.create(testBotData2))
+    .then(() => BotData.findAll())
+    .then((o) => {
+      expect(o[ZERO].name).to.equal(o[ONE].name);
+      expect(o[ZERO].botId).to.not.equal(o[ONE].botId);
+      expect(o[ZERO].roomId).to.equal(o[ONE].roomId);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('fail, bot data already been created', (done) => {
+    const testBotData = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then(() => BotData.create(testBotData))
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.contain('is in use');
+      done();
+    })
+  .catch(done);
   });
 });

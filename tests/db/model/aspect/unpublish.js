@@ -10,7 +10,6 @@
  * tests/db/model/aspect/unpublish.js
  */
 'use strict';
-
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -23,7 +22,7 @@ const Subject = tu.db.Subject;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 
-describe('aspect gets unpublished:', () => {
+describe('tests/db/model/aspect/unpublish.js >', () => {
   let asp;
 
   beforeEach((done) => {

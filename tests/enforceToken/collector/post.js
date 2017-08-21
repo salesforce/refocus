@@ -20,7 +20,7 @@ const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/enforceToken/collector/post.js, api: POST ${path} >`, () => {
   let token;
   before((done) => {
     tu.createToken()
@@ -47,7 +47,7 @@ describe(`api: POST ${path}`, () => {
       const deRegisterPath = `/v1/collectors/${res.body.id}/deregister`;
       return Collector.destroy({
         where: {},
-        truncate: true
+        truncate: true,
       })
       .then(() => {
         api.post(deRegisterPath)

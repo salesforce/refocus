@@ -10,7 +10,6 @@
  * tests/api/v1/samples/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
@@ -134,7 +133,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 
   subjectToCreate,

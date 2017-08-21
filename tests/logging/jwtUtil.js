@@ -10,12 +10,12 @@
  * tests/logging/jwtUtil.js
  */
 'use strict'; // eslint-disable-line strict
-
 const expect = require('chai').expect;
 const jwtUtil = require('../../utils/jwtUtil');
 const tu = require('../testUtils');
 
-describe('jwtUtil getTokenDetailsFromTokenString test', (done) => {
+describe('tests/logging/jwtUtil.js, jwtUtil getTokenDetailsFromTokenString ' +
+'test >', (done) => {
   // setup
   let token;
   const FORBIDDEN = 403;

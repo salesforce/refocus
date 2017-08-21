@@ -21,7 +21,7 @@ const User = tu.db.User;
 const path = '/v1/collectors/{key}/writers';
 const writerPath = '/v1/collectors/{key}/writers/{userNameOrId}';
 
-describe(`api: GET ${path} >`, () => {
+describe('tests/api/v1/collectors/getWriters.js >', () => {
   let token;
   let coll;
   let user;
@@ -51,6 +51,7 @@ describe(`api: GET ${path} >`, () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -61,13 +62,7 @@ describe(`api: GET ${path} >`, () => {
     .expect((res) => {
       expect(res.body).to.have.length(3);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('find writer by username', (done) => {
@@ -78,12 +73,6 @@ describe(`api: GET ${path} >`, () => {
     .expect((res) => {
       expect(res.body.name).to.contain('User');
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

@@ -21,7 +21,7 @@ const Perspective = tu.db.Perspective;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: perspective: update: isWritableBy: ', () => {
+describe('tests/db/model/perspective/update.js >', () => {
   let prof;
   let subj;
   let lensId;
@@ -123,5 +123,10 @@ describe('db: perspective: update: isWritableBy: ', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Perspective.getProfileAccessField()).to.equal('perspectiveAccess');
+    done();
   });
 }); // db: lens: update: permission:

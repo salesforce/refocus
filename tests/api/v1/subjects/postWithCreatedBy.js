@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/postWithCreatedBy.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const adminUser = require('../../../../config').db.adminUser;
@@ -24,7 +23,8 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const tokenPath = '/v1/tokens';
 
-describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
+describe('tests/api/v1/subjects/postWithCreatedBy.js, ' +
+`POST with createdBy when token is NOT enforced ${path} >`, () => {
   let token;
   let user;
   const n2b = { name: `${tu.namePrefix}Quebec` };
@@ -54,7 +54,7 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.equal(user.id);
@@ -64,14 +64,14 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     });
   });
 
-   it('if token is NOT provided, createdBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('if token is NOT provided, createdBy and user fields are NOT ' +
+  'returned', (done) => {
     api.post(path)
     .send({ name: n2b.name })
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;
@@ -86,9 +86,9 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
     .set('Authorization', 'iDontExist')
     .send({ name: n2b.name })
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.createdBy).to.be.undefined;
@@ -121,7 +121,7 @@ describe(`api: POST with createdBy when token is NOT enforced ${path}`, () => {
         .expect(constants.httpStatus.CREATED)
         .end((err, res) => {
           if (err) {
-            done(err);
+            return done(err);
           }
 
           expect(res.body.createdBy).to.equal(user.id);

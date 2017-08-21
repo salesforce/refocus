@@ -19,7 +19,7 @@ const Lens = tu.db.Lens;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: lens: update: isWritableBy: ', () => {
+describe('tests/db/model/lens/update.js >', () => {
   let prof;
   let lensUnprotected;
   let lensProtected;
@@ -107,5 +107,10 @@ describe('db: lens: update: isWritableBy: ', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Lens.getProfileAccessField()).to.equal('lensAccess');
+    done();
   });
 }); // db: lens: update: permission:

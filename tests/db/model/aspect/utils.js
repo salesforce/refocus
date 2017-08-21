@@ -10,18 +10,14 @@
  * tests/db/model/aspect/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestAspect`;
-
 const small = {
   name: n,
   timeout: '1s',
   isPublished: true,
 };
-
 const medium = {
   name: n,
   description: 'This is an awesome aspect I\'m testing here',

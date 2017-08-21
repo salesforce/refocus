@@ -344,36 +344,35 @@ module.exports = function subject(seq, dataTypes) {
 
         /*
          * When the sample store feature is enabled do the following
-         * 1. if subject is changed from published to unpublished -> delete
-         * 2. if subject is changed from unpublished to published -> add
-         * 3. if the asbsolutepath of the subject changes and the subject is
-         * puslished, rename the keys
+         * 1. if subject is changed from unpublished to published -> update subject
+         * 2. if subject is changed from published to unpublished -> update subject,
+         *   delete subject aspect map, remove its samples
+         * 3. if the asbsolutepath of the subject changes: rename the subject key,
+         *   update subject, delete subject aspect map, and remove its samples
         */
         if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-          if (inst.changed('absolutePath') && inst.isPublished) {
+          if (inst.changed('absolutePath') ||
+            (inst.changed('isPublished') && !inst.isPublished)) {
             const newAbsPath = inst.absolutePath;
             const oldAbsPath = inst._previousDataValues.absolutePath;
 
-            // rename entry in subject store
-            redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
-            redisOps.hmSet(subjectType, newAbsPath, inst.get());
+            if (inst.changed('absolutePath')) {
+
+              // rename entry in subject store
+              redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
+            }
 
             /*
-             * When subject absolutePath changes delete multiple possible
-             * entries in sample master list of index
+             * Delete multiple possible
+             * entries in sample master list of index.
+             * Delete the subject to aspect mapping
              */
             redisOps.deleteKeys(sampleType, subjectType, oldAbsPath);
-
-            // also delete the subject to aspect mapping
             redisOps.deleteKey(subAspMapType, oldAbsPath);
-          } else if (inst.changed('isPublished')) {
-            if (inst.isPublished) {
-              redisOps.addKey(subjectType, inst.absolutePath);
-              redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
-            } else {
-              subjectUtils.removeFromRedis(inst.absolutePath);
-            }
           }
+
+          //  update subject
+          redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
         }
 
         if (inst.changed('parentAbsolutePath') ||

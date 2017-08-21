@@ -16,7 +16,7 @@ import sinon from 'sinon';
 import List from '../../../view/admin/components/pages/List.js';
 import { mount } from 'enzyme';
 
-describe('List view ', () => {
+describe('tests/view/components/listViewTest.js, List view >', () => {
   const ONE = '1';
   const DUMMY_STRING = 'COOL';
   const DUMMY_FUNCTION = () => {};

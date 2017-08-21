@@ -9,7 +9,6 @@
 /**
  * tests/db/model/token/create.js
  */
-
 'use strict';  // eslint-disable-line strict
 
 const expect = require('chai').expect;
@@ -20,7 +19,7 @@ const User = tu.db.User;
 const Token = tu.db.Token;
 const pfx = '___';
 
-describe('db: Token: create', () => {
+describe('tests/db/model/token/create.js >', () => {
   let userObj = {};
   const tokenName = 'testTokenName';
 
@@ -91,13 +90,11 @@ describe('db: Token: create', () => {
       name: tokenName,
       createdBy: userObj.id,
     })
-    .then((createdToken) => {
-      return Token.create({
-        name: createdToken.name.toLowerCase(),
-        createdBy: userObj.id,
-      });
-    })
-    .then(done)
+    .then((createdToken) => Token.create({
+      name: createdToken.name.toLowerCase(),
+      createdBy: userObj.id,
+    }))
+    .then(() => done())
     .catch((err) => {
       expect(err).to.have.property('name', 'SequelizeUniqueConstraintError');
       done();

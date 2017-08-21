@@ -18,36 +18,32 @@ const ONE = 1;
 const TWO = 2;
 const client = redis.client.realtimeLogging;
 
-describe('queueStatsActivityLogs', () => {
-  it('arrayToString', (done) => {
+describe('tests/clock/queueStatsActivityLogs.js >', () => {
+  it('arrayToString', () => {
     const resp = qs.arrayToString([ZERO, ONE, TWO]);
     expect(resp).to.be.an('string');
     expect(resp).to.equal('0,1,2');
-    done();
   });
 
-  it('stringToArray', (done) => {
+  it('stringToArray', () => {
     const resp = qs.stringToArray('0,1,2');
     expect(resp).to.be.an('array');
     expect(resp).to.deep.equal([ZERO, ONE, TWO]);
-    done();
   });
 
-  it('stringToArray null string', (done) => {
+  it('stringToArray null string', () => {
     const resp = qs.stringToArray('');
     expect(resp).to.be.an('array');
     expect(resp).to.deep.equal([]);
-    done();
   });
 
-  it('addToArray', (done) => {
+  it('addToArray', () => {
     const resp = qs.addToArray('0,1', TWO);
     expect(resp).to.be.an('string');
     expect(resp).to.equal('0,1,2');
-    done();
   });
 
-  it('calculateStatsEvenNumber', (done) => {
+  it('calculateStatsEvenNumber', () => {
     const qt = [];
     for (let i = 1; i <= 20; i++) {
       qt.push(i);
@@ -58,11 +54,9 @@ describe('queueStatsActivityLogs', () => {
     expect(resp.averageQueueTimeMillis).to.equal('10.50');
     expect(resp.medianQueueTimeMillis).to.equal('10.50');
     expect(resp.queueTime95thMillis).to.equal(19);
-
-    done();
   });
 
-  it('calculateStatsOddNumber', (done) => {
+  it('calculateStatsOddNumber', () => {
     const qt = [];
     for (let i = 1; i <= 21; i++) {
       qt.push(i);
@@ -73,8 +67,6 @@ describe('queueStatsActivityLogs', () => {
     expect(resp.averageQueueTimeMillis).to.equal('11.00');
     expect(resp.medianQueueTimeMillis).to.equal('11.00');
     expect(resp.queueTime95thMillis).to.equal(20);
-
-    done();
   });
 
   it('checkUpdate of queueStats', (done) => {
@@ -101,9 +93,7 @@ describe('queueStatsActivityLogs', () => {
           done();
         }
       })
-      .catch((err) => {
-        done(err);
-      });
+      .catch(done);
     }, 600);
   });
 
@@ -135,9 +125,7 @@ describe('queueStatsActivityLogs', () => {
           done();
         }
       })
-      .catch((err) => {
-        done(err);
-      });
+      .catch(done);
     }, 600);
   });
 });

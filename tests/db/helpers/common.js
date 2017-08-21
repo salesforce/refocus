@@ -10,7 +10,6 @@
  * tests/db/helpers/common.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../testUtils');
 const u = require('../model/subject/utils');
@@ -19,9 +18,9 @@ const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const common = require('../../../db/helpers/common');
 
-describe('utility function tests:', () => {
+describe('tests/db/helpers/common.js >', () => {
   after(u.forceDelete);
-  describe('publishChange function:', () => {
+  describe('publishChange function >', () => {
     it('create a model', (done) => {
       const par = { name: `${tu.namePrefix}Alpha`, isPublished: true };
       Subject.create(par)
@@ -76,7 +75,7 @@ describe('utility function tests:', () => {
       .catch(done);
     });
 
-    it('update a model instance field with the same filed'+
+    it('update a model instance field with the same field ' +
       'in ignoreAttributes', (done) => {
       const par = { name: `${tu.namePrefix}Eta`, isPublished: false };
       Subject.create(par)
@@ -92,8 +91,8 @@ describe('utility function tests:', () => {
       .catch(done);
     });
   });
-  describe('test sampleAspectAndSubjectArePublished and' +
-    ' augmentSampleWithSubjectAspectInfo function:', () => {
+  describe('test sampleAspectAndSubjectArePublished and ' +
+  'augmentSampleWithSubjectAspectInfo function >', () => {
     let sub;
     before((done) => {
       Aspect.create({

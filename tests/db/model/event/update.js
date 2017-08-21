@@ -10,7 +10,6 @@
  * tests/db/model/event/update.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -25,7 +24,7 @@ const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const ZERO = 0;
 
-describe('db: event: update: ', () => {
+describe('tests/db/model/event/update.js >', () => {
   beforeEach((done) => {
     const testBotData = bd.getStandard();
     const testEvent = u.getStandard();
@@ -55,20 +54,14 @@ describe('db: event: update: ', () => {
 
   afterEach(u.forceDelete);
 
-  describe('Update event', () => {
-    it('ok, event log', (done) => {
-      Room.findAll()
-      .then((rooms) => {
-        return Event.findOne({ where: { roomId: rooms[ZERO].id } });
-      })
-      .then((events) => {
-        return events.update({ log: 'New Log' });
-      })
-      .then((o) => {
-        expect(o).to.have.property('log').to.equal('New Log');
-        done();
-      })
-      .catch(done);
-    });
+  it('ok, event log', (done) => {
+    Room.findAll()
+    .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
+    .then((events) => events.update({ log: 'New Log' }))
+    .then((o) => {
+      expect(o).to.have.property('log').to.equal('New Log');
+      done();
+    })
+    .catch(done);
   });
 });

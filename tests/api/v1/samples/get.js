@@ -10,7 +10,6 @@
  * tests/api/v1/samples/get.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,7 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 
-describe(`api: GET ${path}`, () => {
+describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
   let token;
 
@@ -31,7 +30,7 @@ describe(`api: GET ${path}`, () => {
       token = returnedToken;
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   before((done) => {
@@ -57,7 +56,7 @@ describe(`api: GET ${path}`, () => {
         const apiLinks = res.body[i].apiLinks;
         for (let j = apiLinks.length - 1; j >= 0; j--) {
           href = apiLinks[j].href;
-          if (apiLinks[j].method!= 'POST') {
+          if (apiLinks[j].method != 'POST') {
             expect(href.split('/').pop()).to.equal(u.sampleName);
           } else {
             expect(href).to.equal(path);
@@ -65,13 +64,7 @@ describe(`api: GET ${path}`, () => {
         }
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('basic get', (done) => {
@@ -87,22 +80,16 @@ describe(`api: GET ${path}`, () => {
         throw new Error('Incorrect Status Value');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('basic get does not return id', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.length).to.be.above(ZERO);
@@ -124,13 +111,7 @@ describe(`api: GET ${path}`, () => {
         throw new Error('Incorrect Status Value');
       }
     })
-    .end((err /* , res */) => {
-      if (err) {
-        done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('by name is case in-sensitive', (done) => {
@@ -140,7 +121,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(name);
@@ -155,7 +136,7 @@ describe(`api: GET ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.id).to.be.undefined;
