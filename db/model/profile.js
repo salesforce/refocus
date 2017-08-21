@@ -90,7 +90,7 @@ module.exports = function profile(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'profileAccess';
       },
 

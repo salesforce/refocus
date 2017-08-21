@@ -65,7 +65,7 @@ module.exports = function roomType(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'roomTypeAccess';
       },
 

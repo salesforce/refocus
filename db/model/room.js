@@ -50,7 +50,7 @@ module.exports = function room(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'roomAccess';
       },
 

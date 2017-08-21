@@ -135,7 +135,7 @@ module.exports = function aspect(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'aspectAccess';
       },
 

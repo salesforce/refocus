@@ -75,7 +75,7 @@ module.exports = function sample(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'sampleAccess';
       },
 

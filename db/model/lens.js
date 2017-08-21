@@ -80,7 +80,7 @@ module.exports = function lens(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'lensAccess';
       },
 

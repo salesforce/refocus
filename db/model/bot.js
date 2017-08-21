@@ -90,7 +90,7 @@ module.exports = function bot(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'botAccess';
       },
 

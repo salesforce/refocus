@@ -58,7 +58,7 @@ module.exports = function user(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'userAccess';
       },
 

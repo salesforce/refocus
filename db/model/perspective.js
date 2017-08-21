@@ -84,7 +84,7 @@ module.exports = function perspective(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'perspectiveAccess';
       },
 

@@ -130,7 +130,7 @@ module.exports = function subject(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'subjectAccess';
       },
 

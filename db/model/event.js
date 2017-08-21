@@ -41,7 +41,7 @@ module.exports = function event(seq, dataTypes) {
         return assoc;
       },
 
-      getAccessField() {
+      getProfileAccessField() {
         return 'eventAccess';
       },
 
