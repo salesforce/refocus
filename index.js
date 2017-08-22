@@ -169,7 +169,7 @@ function start() { // eslint-disable-line max-statements
 
     /*
      * Allow specified routes to be accessed from Javascript outside of Refocus
-     * throught cross-origin resource sharing
+     * through cross-origin resource sharing
      * e.g. A bot that needs to get current botData from Refocus
      */
     if (featureToggles.isFeatureEnabled('enableCORS')) {
