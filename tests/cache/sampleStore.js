@@ -49,6 +49,7 @@ describe('tests/cache/sampleStore.js >', () => {
     let s1;
     let s2;
     let s3;
+    let s4;
     let user1;
     let user2;
     let user3;
@@ -85,7 +86,7 @@ describe('tests/cache/sampleStore.js >', () => {
       }))
       .then((created) => (a3 = created))
       .then(() => Aspect.create({
-        isPublished: false, // unpublished subject should still be found
+        isPublished: false, // unpublished aspect should still be found
         name: `${tu.namePrefix}Aspect4`,
         timeout: '10m',
         valueType: 'BOOLEAN',
@@ -124,11 +125,17 @@ describe('tests/cache/sampleStore.js >', () => {
       }))
       .then((created) => (s2 = created))
       .then(() => Subject.create({
-        isPublished: false,
+        isPublished: true,
         name: `${tu.namePrefix}Subject3`,
         parentId: s1.id,
       }))
       .then((created) => (s3 = created))
+      .then(() => Subject.create({
+        isPublished: false, // should still be found in cache
+        name: `${tu.namePrefix}Subject4`,
+        parentId: s1.id,
+      }))
+      .then((created) => (s4 = created))
       .then(() => Sample.create({
         subjectId: s2.id,
         aspectId: a1.id,
@@ -166,8 +173,8 @@ describe('tests/cache/sampleStore.js >', () => {
       .catch(done);
     });
 
-    it('subject is populated', (done) => {
-      const absolutePath = '___subject1.___subject2';
+    it('unpublished subject is in cache', (done) => {
+      const absolutePath = '___subject1.___subject4';
       samstoinit.eradicate()
       .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
       .then((res) => expect(res.length).to.eql(0))
@@ -176,7 +183,7 @@ describe('tests/cache/sampleStore.js >', () => {
       .then((res) => {
         expect(res.includes('samsto:subject:' + absolutePath))
         .to.be.true;
-        expect(res.includes('samsto:subject:___subject1.___subject3'))
+        expect(res.includes('samsto:subject:___subject1.___subject4'))
         .to.be.true;
       })
       .then(() => rcli.hgetallAsync('samsto:subject:' + absolutePath))

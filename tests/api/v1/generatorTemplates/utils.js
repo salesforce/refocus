@@ -29,7 +29,7 @@ const GENERATOR_TEMPLATE_SIMPLE = {
   connection: {
     method: 'GET',
     url: 'http://www.bbb.com',
-    bulk: false
+    bulk: false,
   },
   transform: 'function...',
   isPublished: true,
@@ -49,9 +49,9 @@ const GENERATOR_TEMPLATE_SIMPLE = {
       description: 'b',
       ba: 3,
       bb: 4,
-    }
-  }
-}
+    },
+  },
+};
 
 /**
  * Function to get a simple generatorTemplate
@@ -70,5 +70,6 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
   getGeneratorTemplate,
 };
