@@ -55,7 +55,7 @@ describe('tests/db/model/token/find.js >', () => {
     const errorMsg = 'Token.getProfileAccessField is not a function';
     try {
       Token.getProfileAccessField();
-    } catch(err) {
+    } catch (err) {
       expect(err.message).to.equal(errorMsg);
       done();
     }

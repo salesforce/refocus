@@ -57,7 +57,7 @@ describe('tests/db/model/event/find.js >', () => {
   describe('Find event', () => {
     it('ok, event by roomId', (done) => {
       Room.findAll()
-      .then((rooms) => {
+      .then(rooms => {
         return Event.findOne({ where: { roomId: rooms[ZERO].id } });
       })
       .then((o) => {
