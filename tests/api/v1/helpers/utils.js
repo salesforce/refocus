@@ -31,7 +31,7 @@ describe('tests/api/v1/helpers/utils.js >', () => {
     })
     .then((usr) => {
       user = usr;
-      return tu.createTokenFromUserName(usr.name)
+      return tu.createTokenFromUserName(usr.name);
     })
     .then((tkn) => {
       token = tkn;

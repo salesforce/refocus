@@ -419,7 +419,6 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
     });
   });
 
-
   it('returns expected fields when passing ?fields=...', (done) => {
     api.get(`${path}?fields=isPublished,name,sortBy`)
     .set('Authorization', token)
