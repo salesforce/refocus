@@ -96,6 +96,10 @@ module.exports = function bot(seq, dataTypes) {
           through: 'BotWriters',
           foreignKey: 'botId',
         });
+        assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
+          foreignKey: 'botId',
+          through: 'RoomTypeBots',
+        });
       },
     },
   });

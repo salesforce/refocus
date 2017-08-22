@@ -38,7 +38,7 @@ describe('tests/api/v1/aspects/get.js >', () => {
       valueLabel: 'ms',
       valueType: 'NUMERIC',
       rank: 2,
-      tags: ['foo'],
+      tags: ['foo', 'baz', 'foo-bar'],
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -50,7 +50,7 @@ describe('tests/api/v1/aspects/get.js >', () => {
       valueLabel: '%',
       valueType: 'PERCENT',
       rank: 1,
-      tags: ['bar'],
+      tags: ['bar', 'baz'],
     },
     {
       description: 'this is a2 description',
@@ -142,6 +142,28 @@ describe('tests/api/v1/aspects/get.js >', () => {
       .end(done);
     });
 
+    it('filter by single INCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by single EXCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=-foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.contain('bar');
+      })
+      .end(done);
+    });
+
     it('filter with tags - tag field not included', (done) => {
       api.get(`${path}?tags=foo&fields=name,description`)
       .set('Authorization', token)
@@ -159,6 +181,95 @@ describe('tests/api/v1/aspects/get.js >', () => {
         return done();
       });
     });
+
+    it('filter by tags with limit 1', (done) => {
+      api.get(path + '?tags=baz&limit=1')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+      })
+      .end(done);
+    });
+
+    it('filter by tags with limit 2', (done) => {
+      api.get(path + '?tags=baz&limit=2')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+      })
+      .end(done);
+    });
+
+    it('filter by tags with limit 3', (done) => {
+      api.get(path + '?tags=baz&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+      })
+      .end(done);
+    });
+
+    it('filter by single EXCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=-foo&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[1].tags).to.not.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by multiple EXCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=-foo,bar&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[0].tags).to.not.contain('bar');
+      })
+      .end(done);
+    });
+
+    it('filter by single INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=foo&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by multiple INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=foo,bar&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+
+        // none of aspects contain BOTH foo and bar tags
+        expect(res.body.length).to.equal(ZERO);
+      })
+      .end(done);
+    });
+
+    it('filter by multiple INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=toot,poop&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR);
+      })
+      .end(done);
+    });
+
   });
 
   describe('filter with duplicate tags fail >', () => {

@@ -27,6 +27,8 @@ const u = require('./utils');
 describe('tests/cache/models/samples/post.js >', () => {
   describe(`api: redisStore: POST ${path} >`, () => {
     let sampleToPost;
+    let subjectId;
+    let aspectId;
     let token;
     const sampleName = `${tu.namePrefix}TEST_SUBJECT` + '.' +
     `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
@@ -46,6 +48,7 @@ describe('tests/cache/models/samples/post.js >', () => {
         const samp = { value: '1' };
         tu.db.Aspect.create(u.aspectToCreate)
         .then((a) => {
+          aspectId = a.id;
           samp.aspectId = a.id;
           return tu.db.Subject.create(u.subjectToCreate);
         })
@@ -55,6 +58,7 @@ describe('tests/cache/models/samples/post.js >', () => {
           parentId: s.id,
         }))
         .then((s) => {
+          subjectId = s.id;
           samp.subjectId = s.id;
           resolve(samp);
         })
@@ -72,6 +76,67 @@ describe('tests/cache/models/samples/post.js >', () => {
     afterEach(rtu.forceDelete);
     afterEach(rtu.flushRedis);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+    describe('unpublished subject/aspect fails >', () => {
+      it('unpublished aspect fails', (done) => {
+        tu.db.Aspect.create({
+          isPublished: false,
+          name: `${tu.namePrefix}UNPUBLISHED_ASPECT`,
+          timeout: '3d',
+        })
+        .then((a) => {
+          const sampleWithUnpublishedAspect = {
+           aspectId: a.id,
+           subjectId: subjectId,
+           value: '1',
+          };
+
+          api.post(path)
+          .set('Authorization', token)
+          .send(sampleWithUnpublishedAspect)
+          .expect(constants.httpStatus.NOT_FOUND)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            const _err = res.body.errors[ZERO];
+            expect(_err.type).to.equal('ResourceNotFoundError');
+            expect(_err.description).to.equal('Aspect not found.');
+            done();
+          });
+        });
+      });
+
+      it('unpublished subject fails', (done) => {
+        tu.db.Subject.create({
+          isPublished: false,
+          name: `${tu.namePrefix}UNPUBLISHED_SUBJECT`,
+        })
+        .then((s) => {
+          const sampleWithUnpublishedSubject = {
+           aspectId: aspectId,
+           subjectId: s.id,
+           value: '1',
+          };
+
+          api.post(path)
+          .set('Authorization', token)
+          .send(sampleWithUnpublishedSubject)
+          .expect(constants.httpStatus.NOT_FOUND)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            const _err = res.body.errors[ZERO];
+            expect(_err.type).to.equal('ResourceNotFoundError');
+            expect(_err.description).to.equal('Subject not found.');
+            done();
+          });
+        });
+      });
+    });
 
     describe('post duplicate fails >', () => {
       beforeEach((done) => {
@@ -276,44 +341,6 @@ describe('tests/cache/models/samples/post.js >', () => {
       .expect((res) => {
         expect(res.body.relatedLinks).to.have.length(relatedLinks.length);
       })
-      .end(done);
-    });
-  });
-
-  describe(`api: redisStore: POST ${path} aspect isPublished false >`, () => {
-    let sampleToPost;
-    let token;
-
-    before((done) => {
-      tu.toggleOverride('enableRedisSampleStore', true);
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
-
-    beforeEach((done) => {
-      u.doSetupAspectNotPublished()
-      .then((samp) => {
-        sampleToPost = samp;
-        return samstoinit.eradicate();
-      })
-      .then(() => samstoinit.init())
-      .then(() => done())
-      .catch(done);
-    });
-
-    afterEach(rtu.forceDelete);
-    afterEach(rtu.flushRedis);
-    after(() => tu.toggleOverride('enableRedisSampleStore', false));
-
-    it('cannot create sample if aspect not published', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send(sampleToPost)
-      .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
     });
   });

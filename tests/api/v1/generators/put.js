@@ -51,7 +51,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
@@ -85,7 +85,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
@@ -118,7 +118,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
