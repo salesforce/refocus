@@ -10,8 +10,8 @@
  * api/v1/helpers/verbs/utils.js
  */
 'use strict';
-
 const NOT_FOUND = -1;
+const redisModelSample = require('../../../../cache/models/samples');
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
@@ -104,7 +104,7 @@ function handlePostResult(o, resultObj, props, res, req) {
   // publish the update event to the redis channel
   if (props.publishEvents) {
     publisher.publishSample(o, props.associatedModels.subject,
-      event.sample.add, props.associatedModels.aspect);
+      realtimeEvents.sample.add, props.associatedModels.aspect);
   }
 
   // if response directly from sequelize, call reload to attach
@@ -521,24 +521,20 @@ function findByIdThenName(model, key, opts) {
 } // findByIdThenName
 
 /**
- * Duplicate elements in an Array of strings are removed and the request object
- * is returned.
+ * Duplicate elements in an Array of strings are removed in-place.
+ *
  * @param  {Object} requestBody  - The request object
- * @param  {Object} props - The helpers/nouns module for the given DB model
- * @returns {Object} the updated object with the duplicate elements in the array
- * removed.
+ * @param  {Object} fieldsWithArrayType - The helpers/nouns module for the given DB model
  */
-function mergeDuplicateArrayElements(requestBody, props) {
-  if (props.fieldsWithArrayType) {
-    props.fieldsWithArrayType.forEach((field) => {
+function mergeDuplicateArrayElements(requestBody, fieldsWithArrayType) {
+  if (fieldsWithArrayType) {
+    fieldsWithArrayType.forEach((field) => {
       if (requestBody[field]) {
         const aSet = new Set(requestBody[field]);
         requestBody[field] = Array.from(aSet);
       }
     });
   }
-
-  return requestBody;
 }
 
 /**
