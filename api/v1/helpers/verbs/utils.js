@@ -21,6 +21,35 @@ const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 
 /**
+ *
+ * @param {Object} o Sequelize object
+ * @param {Object} resultObj For logging
+ * @param {Object} props From express
+ * @param {Object} res From express
+ */
+function handlePostResult(o, resultObj, props, res) {
+  console.log('in actual handlePostResult')
+  resultObj.dbTime = new Date() - resultObj.reqStartTime;
+  logAPI(req, resultObj, o);
+
+  // publish the update event to the redis channel
+  if (props.publishEvents) {
+    publisher.publishSample(o, props.associatedModels.subject,
+      event.sample.add, props.associatedModels.aspect);
+  }
+
+  // if response directly from sequelize, call reload to attach
+  // the associations
+  if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
+    o.reload()
+    .then(() => res.status(httpStatus.CREATED).json(
+        responsify(o, props, req.method)));
+  } else {
+    return res.status(httpStatus.CREATED).json(responsify(o, props, req.method));
+  }
+}
+
+/**
  * Given user object, make the post promise.
  *
  * @params {Object} user
@@ -903,5 +932,7 @@ module.exports = {
   createSample,
 
   makePostPromiseWithUser,
+
+  handlePostResult,
 
 }; // exports
