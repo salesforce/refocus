@@ -80,7 +80,9 @@ function doPost(req, res, next, props) {
           props.model.create(toPost);
       }
 
-      return u.handleError(next, err, props.modelName);
+      // non FORBIDDEN error. Throw it to be caught by the latter .catch.
+      // this bypasses the postPromise.then function
+      throw err;
     });
   } else if (props.modelName === 'Sample') {
 
@@ -96,10 +98,6 @@ function doPost(req, res, next, props) {
   }
 
   return postPromise.then((o) => {
-    if (!o) { // could be here from u.handleError
-      return;
-    }
-
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
 
