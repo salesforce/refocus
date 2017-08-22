@@ -12,13 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
-const authUtils = require('../authUtils');
-const publisher = u.publisher;
-const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
-const redisModelSample = require('../../../../cache/models/samples');
-const featureToggles = require('feature-toggles');
+const pu = require('./postUtils');
 
 /**
  * Creates a new record and sends it back in the json response with status
@@ -33,38 +27,9 @@ const featureToggles = require('feature-toggles');
 function doPost(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
   const params = req.swagger.params;
-  const toPost = params.queryBody.value;
-  u.mergeDuplicateArrayElements(toPost, props);
-  let postPromise;
-  const isCacheOnAndIsSample = featureToggles.isFeatureEnabled(constants.featureName) &&
-     props.modelName === 'Sample';
-
-  // if either "cache is on" or returnUser, get User
-  if (isCacheOnAndIsSample ||
-    featureToggles.isFeatureEnabled('returnUser')) {
-
-    postPromise = authUtils.getUser(req)
-    .then((user) => u.makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props))
-    .catch((err) => {
-
-      // if no user found, proceed with post sample
-      if (err.status === httpStatus.FORBIDDEN) {
-        return isCacheOnAndIsSample ?
-          redisModelSample.postSample(req.swagger.params, false) :
-          props.model.create(toPost);
-      }
-
-      /*
-       * non FORBIDDEN error. Throw it to be caught by the latter .catch.
-       * This bypasses the postPromise.then function
-       */
-      throw err;
-    });
-  } else {
-    postPromise = (props.modelName === 'Sample') ?
-      u.createSample(req, props) : props.model.create(toPost);
-  }
-  return postPromise //.then((o) => u.handlePostResult(o, resultObj, props, res))
+  u.mergeDuplicateArrayElements(params.queryBody.value, props);
+  pu.makePostPromise(params, props, req)
+  .then((o) => pu.handlePostResult(o, resultObj, props, res, req))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

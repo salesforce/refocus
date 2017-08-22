@@ -45,7 +45,7 @@ path + ' >', () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it.only('if token provided, createdBy and user fields are returned', (done) => {
+  it('if token provided, createdBy and user fields are returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)

@@ -19,6 +19,76 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
+const authUtils = require('../authUtils');
+const featureToggles = require('feature-toggles');
+
+/**
+ * @param {Object} params From swagger
+ * @param {Object} props From express
+ * @param {Object} req From express
+ */
+function makePostPromise(params, props, req) {
+  const toPost = params.queryBody.value;
+  const isCacheOnAndIsSample = featureToggles.isFeatureEnabled(constants.featureName) &&
+    props.modelName === 'Sample';
+
+  // if either "cache is on" or returnUser, get User
+  if (isCacheOnAndIsSample ||
+    featureToggles.isFeatureEnabled('returnUser')) {
+    return authUtils.getUser(req)
+    .then((user) => makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props))
+    .catch((err) => {
+
+      // if no user found, proceed with post sample
+      if (err.status === constants.httpStatus.FORBIDDEN) {
+        return isCacheOnAndIsSample ?
+          redisModelSample.postSample(params, false) :
+          props.model.create(toPost);
+      }
+
+      // non FORBIDDEN error. Throw it to be caught by the latter .catch.
+      // this bypasses the postPromise.then function
+      throw err;
+    });
+  } else {
+
+    // cache is off and returnUser is false.
+    return (props.modelName === 'Sample') ?
+      createSample(req, props) : props.model.create(toPost);
+  }
+}
+
+/**
+ * Prepares the object to be sent back in the response ("cleans" the object,
+ * strips out nulls, adds API links).
+ *
+ * @param {Instance|Array} rec - The record or records to return in the
+ *  response
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {String} method - The request method, used to help build the API
+ *  links
+ * @returns {Object} the "responsified" cleaned up object to send back in
+ *  the response
+ */
+function responsify(rec, props, method) {
+  const o = cleanAndStripNulls(rec);
+  let key = o.id;
+
+  // if do not return id, use name instead and delete id field
+  if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
+    key = o.name;
+    delete o.id;
+  }
+
+  o.apiLinks = getApiLinks(key, props, method);
+  if (props.stringify) {
+    props.stringify.forEach((f) => {
+      o[f] = `${o[f]}`;
+    });
+  }
+
+  return o;
+} // responsify
 
 /**
  *
@@ -27,8 +97,7 @@ const realtimeEvents = require('../../../../realtime/constants').events;
  * @param {Object} props From express
  * @param {Object} res From express
  */
-function handlePostResult(o, resultObj, props, res) {
-  console.log('in actual handlePostResult')
+function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, o);
 
@@ -42,10 +111,10 @@ function handlePostResult(o, resultObj, props, res) {
   // the associations
   if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
     o.reload()
-    .then(() => res.status(httpStatus.CREATED).json(
+    .then(() => res.status(constants.httpStatus.CREATED).json(
         responsify(o, props, req.method)));
   } else {
-    return res.status(httpStatus.CREATED).json(responsify(o, props, req.method));
+    return res.status(constants.httpStatus.CREATED).json(responsify(o, props, req.method));
   }
 }
 
@@ -66,7 +135,7 @@ function makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props) {
   if (isCacheOnAndIsSample) {
     const rLinks = toPost.relatedLinks;
     if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
+      checkDuplicateRLinks(rLinks);
     }
 
     // since cache is on AND get user.
@@ -849,37 +918,7 @@ module.exports = {
 
   buildFieldList,
 
-  /**
-   * Prepares the object to be sent back in the response ("cleans" the object,
-   * strips out nulls, adds API links).
-   *
-   * @param {Instance|Array} rec - The record or records to return in the
-   *  response
-   * @param {Object} props - The helpers/nouns module for the given DB model
-   * @param {String} method - The request method, used to help build the API
-   *  links
-   * @returns {Object} the "responsified" cleaned up object to send back in
-   *  the response
-   */
-  responsify(rec, props, method) {
-    const o = cleanAndStripNulls(rec);
-    let key = o.id;
-
-    // if do not return id, use name instead and delete id field
-    if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
-      key = o.name;
-      delete o.id;
-    }
-
-    o.apiLinks = getApiLinks(key, props, method);
-    if (props.stringify) {
-      props.stringify.forEach((f) => {
-        o[f] = `${o[f]}`;
-      });
-    }
-
-    return o;
-  }, // responsify
+  responsify,
 
   findAssociatedInstances,
 
@@ -934,5 +973,7 @@ module.exports = {
   makePostPromiseWithUser,
 
   handlePostResult,
+
+  makePostPromise,
 
 }; // exports
