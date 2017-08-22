@@ -10,7 +10,6 @@
  * tests/db/model/generatortemplate/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
@@ -18,14 +17,14 @@ const testStartTime = new Date();
 const GT_SIMPLE = {
   name: 'refocus-ok-template',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
-    'STATUS'
+    'STATUS',
   ],
   author: {
     name: 'Salesforce CX Tools',
     email: 'SiteReliabilityTools@salesforce.com',
-    url: 'https://www.authorinfo.com'
+    url: 'https://www.authorinfo.com',
   },
   repository: {
     type: 'git',
@@ -34,10 +33,11 @@ const GT_SIMPLE = {
   connection: {
     url: '{{baseTrustUrl}}/v1/instances/status/preview',
     method: 'GET',
-    proxy: 'pro.xy.server.net'
+    proxy: 'pro.xy.server.net',
+    bulk: false,
   },
   transform: 'return [{ name: "S1|A1", value: 10 }, ' +
-          '{ name: "S2|A1", value: 2 }] ',
+    '{ name: "S2|A1", value: 2 }] ',
   contextDefinition: {
     okValue: {
       required: false,
@@ -65,5 +65,6 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
   getGeneratorTemplate,
 };

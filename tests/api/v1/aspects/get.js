@@ -23,7 +23,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 
-describe(`api: GET ${path}`, () => {
+describe('tests/api/v1/aspects/get.js >', () => {
   let token;
   const EXPECTED_ARR = ['toot', 'poop'];
   const toCreate = [
@@ -38,7 +38,7 @@ describe(`api: GET ${path}`, () => {
       valueLabel: 'ms',
       valueType: 'NUMERIC',
       rank: 2,
-      tags: ['foo']
+      tags: ['foo', 'baz', 'foo-bar'],
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -50,7 +50,7 @@ describe(`api: GET ${path}`, () => {
       valueLabel: '%',
       valueType: 'PERCENT',
       rank: 1,
-      tags: ['bar']
+      tags: ['bar', 'baz'],
     },
     {
       description: 'this is a2 description',
@@ -83,7 +83,7 @@ describe(`api: GET ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('filter with tags', () => {
+  describe('filter with tags >', () => {
     it('filter by single EXCLUDE tags returns expected values', (done) => {
       api.get(path + '?tags=-foo')
       .set('Authorization', token)
@@ -93,7 +93,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body[0].tags).to.not.contain('foo');
         expect(res.body[1].tags).to.not.contain('foo');
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('filter by multiple EXCLUDE tags returns expected values', (done) => {
@@ -105,7 +105,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body[0].tags).to.not.contain('foo');
         expect(res.body[0].tags).to.not.contain('bar');
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('filter by single INCLUDE tags returns single aspect', (done) => {
@@ -116,7 +116,7 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.length).to.equal(ONE);
         expect(res.body[0].tags).to.contain('foo');
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('filter by multiple INCLUDE tags returns no aspects', (done) => {
@@ -128,7 +128,7 @@ describe(`api: GET ${path}`, () => {
         // none of aspects contain BOTH foo and bar tags
         expect(res.body.length).to.equal(ZERO);
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('filter by multiple INCLUDE tags returns aspects with both tags', (done) => {
@@ -137,9 +137,31 @@ describe(`api: GET ${path}`, () => {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(ONE);
-        expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR)
+        expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR);
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
+    });
+
+    it('filter by single INCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by single EXCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=-foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.contain('bar');
+      })
+      .end(done);
     });
 
     it('filter with tags - tag field not included', (done) => {
@@ -154,14 +176,103 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.length).to.equal(ONE);
         expect(res.body[0].name).to.equal(`${tu.namePrefix}a0`);
         expect(res.body[0]).to.not.have.property('tags');
-        expect(res.body[0]).to.have.all
-          .keys(['apiLinks', 'id', 'name', 'description']);
+        expect(res.body[0])
+        .to.have.all.keys(['apiLinks', 'id', 'name', 'description']);
         return done();
       });
     });
+
+    it('filter by tags with limit 1', (done) => {
+      api.get(path + '?tags=baz&limit=1')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+      })
+      .end(done);
+    });
+
+    it('filter by tags with limit 2', (done) => {
+      api.get(path + '?tags=baz&limit=2')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+      })
+      .end(done);
+    });
+
+    it('filter by tags with limit 3', (done) => {
+      api.get(path + '?tags=baz&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+      })
+      .end(done);
+    });
+
+    it('filter by single EXCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=-foo&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[1].tags).to.not.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by multiple EXCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=-foo,bar&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.not.contain('foo');
+        expect(res.body[0].tags).to.not.contain('bar');
+      })
+      .end(done);
+    });
+
+    it('filter by single INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=foo&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by multiple INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=foo,bar&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+
+        // none of aspects contain BOTH foo and bar tags
+        expect(res.body.length).to.equal(ZERO);
+      })
+      .end(done);
+    });
+
+    it('filter by multiple INCLUDE tags with limit', (done) => {
+      api.get(path + '?tags=toot,poop&limit=3')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR);
+      })
+      .end(done);
+    });
+
   });
 
-  describe('filter with duplicate tags fail', () => {
+  describe('filter with duplicate tags fail >', () => {
     it('EXCLUDE filter', (done) => {
       api.get(`${path}?tags=-Foo,-Foo`)
       .set('Authorization', token)
@@ -219,7 +330,7 @@ describe(`api: GET ${path}`, () => {
     });
   });
 
-  describe('Single Values: ', () => {
+  describe('Single Values >', () => {
     it('filter by BOOLEAN returns expected values', (done) => {
       api.get(path + '?valueType=PERCENT') // BOOLEAN is default
       .set('Authorization', token)
@@ -228,20 +339,14 @@ describe(`api: GET ${path}`, () => {
         expect(res.body.length).to.be.equal(ONE);
         expect(res.body[ZERO].valueType).to.be.equal('PERCENT');
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('key used twice in url', (done) => {
       api.get(`${path}?name=${tu.namePrefix}a0&description=foo&name=xyz`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('no asterisk is treated as "equals"', (done) => {
@@ -254,13 +359,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 1 aspect');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('with same name and different case succeeds', (done) => {
@@ -289,7 +388,7 @@ describe(`api: GET ${path}`, () => {
           expect(aspect.name.slice(ZERO, THREE)).to.equal(tu.namePrefix);
         });
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
 
     it('leading asterisk is treated as "ends with"', (done) => {
@@ -302,13 +401,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 1 aspect');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('leading and trailing asterisks are treated as "contains"', (done) => {
@@ -320,13 +413,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 2 aspects');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('multiple asterisks treated as wildcards', (done) => {
@@ -338,13 +425,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 0 aspects');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('inner asterisks are treated as wildcards', (done) => {
@@ -356,13 +437,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 0 aspects');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('url encoding', (done) => {
@@ -374,17 +449,11 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 1 aspect');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
   }); // Single Values
 
-  describe('Lists: ', () => {
+  describe('Lists >', () => {
     it('no wildcards', (done) => {
       api.get(`${path}?name=${tu.namePrefix}a0,${tu.namePrefix}a1`)
       .set('Authorization', token)
@@ -394,13 +463,7 @@ describe(`api: GET ${path}`, () => {
           throw new Error('expecting 2 aspects');
         }
       })
-      .end((err /* , res */) => {
-        if (err) {
-          return done(err);
-        }
-
-        return done();
-      });
+      .end(done);
     });
 
     it('with wildcards', (done) => {
@@ -413,11 +476,11 @@ describe(`api: GET ${path}`, () => {
           expect(aspect.name).to.contain('a');
         });
       })
-      .end((err /* , res */) => done(err));
+      .end(done);
     });
   }); // Lists
 
-  describe('Aspect Sorting by rank: ', () => {
+  describe('Aspect Sorting by rank >', () => {
     it('sort ascending', (done) => {
       api.get(`${path}?sort=rank`)
       .set('Authorization', token)

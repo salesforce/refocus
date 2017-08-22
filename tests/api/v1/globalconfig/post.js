@@ -10,7 +10,6 @@
  * tests/api/v1/globalconfig/post.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,7 +21,7 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 
-describe(`api: POST ${path}`, () => {
+describe('tests/api/v1/globalconfig/post.js >', () => {
   let token;
   const key = `${tu.namePrefix}_GLOBAL_CONFIG_ABC`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -48,7 +47,7 @@ describe(`api: POST ${path}`, () => {
       })
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         testUserToken = res.body.token;
@@ -61,7 +60,7 @@ describe(`api: POST ${path}`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('post duplicate fails', () => {
+  describe('post duplicate fails >', () => {
     const DUMMY = {
       key: `${tu.namePrefix}_DUMMY_KEY`,
     };
@@ -81,7 +80,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -97,7 +96,7 @@ describe(`api: POST ${path}`, () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.errors[ZERO].type)
@@ -117,7 +116,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors).to.have.deep.property('[0].type',
@@ -137,7 +136,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body.key).to.equal(key);
         expect(res.body).to.have.property('value', 'def');
@@ -156,7 +155,7 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       } else {
         expect(res.body).to.have.property('key',
           `${tu.namePrefix}_GLOBAL_CONFIG_DUPE`);

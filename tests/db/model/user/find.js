@@ -16,7 +16,7 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 
-describe('db: user: find: ', () => {
+describe('tests/db/model/user/find.js, db: user: find >', () => {
   beforeEach((done) => {
     Profile.create({ name: `${tu.namePrefix}1` })
     .then((createdProfile) => User.create({

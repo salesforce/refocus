@@ -10,7 +10,6 @@
  * tests/api/v1/samples/postWithProvider.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -22,8 +21,8 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('api: POST /samples with provider ' +
-  'when token is NOT enforced: ', () => {
+describe('tests/api/v1/samples/postWithProvider.js, token NOT enforced >',
+() => {
   let sampleToPost;
   let token;
 
@@ -56,9 +55,9 @@ describe('api: POST /samples with provider ' +
     .set('Authorization', token)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.an('string');
@@ -74,9 +73,9 @@ describe('api: POST /samples with provider ' +
     api.post(path)
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;
@@ -91,9 +90,9 @@ describe('api: POST /samples with provider ' +
     .set('Authorization', 'iDontExist')
     .send(sampleToPost)
     .expect(constants.httpStatus.CREATED)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.provider).to.be.undefined;

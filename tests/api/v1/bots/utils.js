@@ -10,14 +10,13 @@
  * tests/db/api/bot/utils.js
  */
 'use strict';
-
 const path = require('path');
 const fs = require('fs');
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBot`;
-const n2 = n+'NonActive';
+const n2 = n + 'NonActive';
 const mt = path.join(__dirname, './uiBlob');
 const uiBlob = fs.readFileSync(mt);
 
@@ -30,67 +29,28 @@ const standard = {
     {
       name: 'Action1',
       parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
+        { name: 'Param1', type: 'BOOLEAN' },
+        { name: 'Param2', type: 'INTEGER' },
+        { name: 'Param3', type: 'DECIMAL' },
+        { name: 'Param4', type: 'STRING' },
       ],
     },
     {
       name: 'Action2',
       parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
+        { name: 'Param1', type: 'BOOLEAN' },
+        { name: 'Param2', type: 'INTEGER' },
+        { name: 'Param3', type: 'DECIMAL' },
+        { name: 'Param4', type: 'STRING' },
       ],
-    }
+    },
   ],
   data: [
-    {
-      name: 'Data1',
-      type: 'BOOLEAN',
-    },
-    {
-      name: 'Data2',
-      type: 'INTEGER',
-    },
-    {
-      name: 'Data3',
-      type: 'DECIMAL',
-    },
-    {
-      name: 'Data4',
-      type: 'STRING',
-    },
-    {
-      name: 'Data5',
-      type: 'ARRAY',
-    },
+    { name: 'Data1', type: 'BOOLEAN' },
+    { name: 'Data2', type: 'INTEGER' },
+    { name: 'Data3', type: 'DECIMAL' },
+    { name: 'Data4', type: 'STRING' },
+    { name: 'Data5', type: 'ARRAY' },
   ],
 };
 
@@ -103,22 +63,10 @@ const nonActive = {
     {
       name: 'Action1',
       parameters: [
-        {
-          name: 'Param1',
-          type: 'BOOLEAN',
-        },
-        {
-          name: 'Param2',
-          type: 'INTEGER',
-        },
-        {
-          name: 'Param3',
-          type: 'DECIMAL',
-        },
-        {
-          name: 'Param4',
-          type: 'STRING',
-        },
+        { name: 'Param1', type: 'BOOLEAN' },
+        { name: 'Param2', type: 'INTEGER' },
+        { name: 'Param3', type: 'DECIMAL' },
+        { name: 'Param4', type: 'STRING' },
       ],
     },
     {
@@ -141,7 +89,7 @@ const nonActive = {
           type: 'STRING',
         },
       ],
-    }
+    },
   ],
   data: [
     {

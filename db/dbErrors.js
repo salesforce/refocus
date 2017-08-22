@@ -86,6 +86,13 @@ dbErrors.create({
   parent: dbErrors.ValidationError,
   defaultMessage: 'A subject may not be its own parent.',
 });
+dbErrors.create({
+  code: 10116,
+  status: 400,
+  name: 'DuplicateBotError',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'You cannot have duplicate bots in a room.',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

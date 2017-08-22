@@ -22,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: POST ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/post.js, POST ${path} >`, () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -63,13 +63,13 @@ describe(`api: POST ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body.errors).to.have.length(ONE);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
-        done();
+        return done(err);
       }
+
+      expect(res.body.errors).to.have.length(ONE);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'ForbiddenError');
+      done();
     });
   });
 
@@ -78,13 +78,7 @@ describe(`api: POST ${path}`, () => {
     .set('Authorization', predefinedAdminUserToken)
     .send(u.samlParams)
     .expect(constants.httpStatus.CREATED)
-    .end((err) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 
   it('Cannot post if there is already a config row in database', (done) => {
@@ -93,12 +87,6 @@ describe(`api: POST ${path}`, () => {
     .send(u.samlParams)
     .expect(constants.httpStatus.FORBIDDEN)
     .expect(/SSOConfigCreateConstraintError/)
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

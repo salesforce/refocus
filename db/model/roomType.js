@@ -95,32 +95,94 @@ module.exports = function roomType(seq, dataTypes) {
        *  a bot is not found or duplicate bots are requested
        */
       beforeCreate(inst /* , opts */) {
+        return u.validateBotsArray(inst, seq);
+      }, // hooks.beforeCreate
+
+      /**
+       * Ensures that all bots in request actually exist
+       *
+       * @param {Instance} inst - The instance being created
+       * @returns {Promise} which resolves to the instance, or rejects if
+       *  a bot is not found or duplicate bots are requested
+       */
+      beforeUpdate(inst /* , opts */) {
+        return u.validateBotsArray(inst, seq);
+      }, // hooks.beforeUpdate
+
+      /**
+       * Deletes previous relationships with old bots and creates
+       * new relationships with new bots
+       *
+       * @param {RoomType} inst - The newly-created instance
+       */
+      afterUpdate(inst /* , opts */) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots || !inst.changed('bots')) {
             resolve(inst);
           }
 
-          if (bots.length > new Set(bots).size) {
-            reject(new Error(`Cannot have duplicate bots`));
-          }
-
-          bots.map((botName, index) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+          inst._previousDataValues.bots.forEach((botName) => {
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
-              if (o === null) {
-                reject(new Error(`Bot ${botName} not found`));
-              }
-
-              if (index === bots.length - 1) {
-                resolve(inst);
-              }
-
+              inst.removeBots(o)
+              .catch(reject);
             });
           });
+
+          inst.dataValues.bots.forEach((botName) => {
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
+            .then((o) => {
+              inst.addBots(o)
+              .catch(reject);
+            });
+          });
+          resolve(inst);
         });
-      }, // hooks.beforeCreate
+      }, // hooks.afterUpdate
+
+      /**
+       * Deletes relationships between this roomtype and bots
+       *
+       * @param {RoomType} inst - The newly-created instance
+       */
+      beforeDelete(inst /* , opts */) {
+        const bots = inst.dataValues.bots;
+
+        return new seq.Promise((resolve, reject) => {
+          if (!bots) {
+            resolve(inst);
+          }
+
+          inst.dataValues.bots.forEach((botName) => {
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
+            .then((o) => {
+              inst.removeBots(o)
+              .catch(reject);
+            });
+          });
+          resolve(inst);
+        });
+      }, // hooks.beforeDelete
 
       /**
        * Creates relationship between roomType & bots
@@ -131,15 +193,21 @@ module.exports = function roomType(seq, dataTypes) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
-          if (bots == null) {
+          if (!bots) {
             resolve(inst);
           }
 
-          inst.dataValues.bots.map((botName, index) => {
-            seq.models.Bot.findOne({ where: { name: botName } })
+          inst.dataValues.bots.forEach((botName) => {
+            seq.models.Bot.findOne({
+              where: {
+                name: {
+                  $iLike: botName,
+                },
+              },
+            })
             .then((o) => {
               inst.addBots(o)
-              .catch((err) => reject(err));
+              .catch(reject);
             });
           });
           resolve(inst);
@@ -149,4 +217,3 @@ module.exports = function roomType(seq, dataTypes) {
   });
   return RoomType;
 };
-

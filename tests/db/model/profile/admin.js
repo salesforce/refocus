@@ -10,13 +10,12 @@
  * /tests/db/model/profile/admin.js
  */
 'use strict';
-
 const conf = require('../../../../config');
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const Profile = tu.db.Profile;
 
-describe('Admin Profile Tests:', () => {
+describe('tests/db/model/profile/admin.js >', () => {
   let ap = null;
 
   before((done) => {

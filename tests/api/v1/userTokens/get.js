@@ -10,7 +10,6 @@
  * tests/api/v1/userTokens/get.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -21,7 +20,8 @@ const expect = require('chai').expect;
 const regPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe(`api: GET ${path}/U/tokens`, () => {
+describe('tests/api/v1/userTokens/get.js, ' +
+`GET ${path}/U/tokens >`, () => {
   /* user uname has 2 tokens: Voldemort and Tom
    user with unameOther has 1 token: Dumbledore */
   const uname = `${tu.namePrefix}test@refocus.com`;
@@ -42,7 +42,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
     })
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       userId = res.body.id;
@@ -54,7 +54,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
       .send({ name: tname1 })
       .end((err1, res1) => {
         if (err1) {
-          done(err1);
+          return done(err1);
         }
 
         // create token ___Tom
@@ -63,7 +63,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
         .send({ name: tname2 })
         .end((err2, res2) => {
           if (err2) {
-            done(err2);
+            return done(err2);
           }
 
           // create user __testOther@refocus.com
@@ -75,7 +75,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
           })
           .end((err3, res3) => {
             if (err3) {
-              done(err3);
+              return done(err3);
             }
 
             // create token ___Tom
@@ -84,7 +84,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
             .send({ name: tnameOther })
             .end((err4, res4) => {
               if (err4) {
-                done(err4);
+                return done(err4);
               }
 
               done();
@@ -103,12 +103,12 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', tname1);
-        expect(res.body.isDeleted).to.not.equal(0);
-        done();
+        return done(err);
       }
+
+      expect(res.body).to.have.property('name', tname1);
+      expect(res.body.isDeleted).to.not.equal(0);
+      done();
     });
   });
 
@@ -118,12 +118,12 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.property('name', tname1);
-        expect(res.body.isDeleted).to.not.equal(0);
-        done();
+        return done(err);
       }
+
+      expect(res.body).to.have.property('name', tname1);
+      expect(res.body.isDeleted).to.not.equal(0);
+      done();
     });
   });
 
@@ -133,7 +133,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
-        throw err;
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
@@ -147,7 +147,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        throw err;
+        return done(err);
       }
 
       expect(res.body).to.length(0);
@@ -161,7 +161,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
-        throw err;
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
@@ -175,7 +175,7 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
-        throw err;
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
@@ -189,13 +189,13 @@ describe(`api: GET ${path}/U/tokens`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body).to.have.length(2);
-        expect(res.body[0].User).to.have.property('name', uname);
-        expect(res.body[1].User).to.have.property('name', uname);
-        done();
+        return done(err);
       }
+
+      expect(res.body).to.have.length(2);
+      expect(res.body[0].User).to.have.property('name', uname);
+      expect(res.body[1].User).to.have.property('name', uname);
+      done();
     });
   });
 });

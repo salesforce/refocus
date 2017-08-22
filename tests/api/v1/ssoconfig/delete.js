@@ -22,7 +22,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const ZERO = 0;
 const ONE = 1;
 
-describe(`api: DELETE ${path}`, () => {
+describe(`tests/api/v1/ssoconfig/delete.js, DELETE ${path} >`, () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   const predefinedAdminUserToken = jwtUtil.createToken(
@@ -48,7 +48,7 @@ describe(`api: DELETE ${path}`, () => {
   before((done) => {
     u.newGenericUser(token, (err, t) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       testUserToken = t;
@@ -65,13 +65,13 @@ describe(`api: DELETE ${path}`, () => {
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       if (err) {
-        done(err);
-      } else {
-        expect(res.body.errors).to.have.length(ONE);
-        expect(res.body.errors).to.have.deep.property('[0].type',
-          'ForbiddenError');
-        done();
+        return done(err);
       }
+
+      expect(res.body.errors).to.have.length(ONE);
+      expect(res.body.errors).to.have.deep.property('[0].type',
+        'ForbiddenError');
+      done();
     });
   });
 
@@ -83,12 +83,6 @@ describe(`api: DELETE ${path}`, () => {
       expect(res.body.samlEntryPoint).to.equal(u.samlParams.samlEntryPoint);
       expect(res.body.isDeleted).to.not.equal(0);
     })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .end(done);
   });
 });

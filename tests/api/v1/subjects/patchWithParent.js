@@ -10,7 +10,6 @@
  * tests/api/v1/subjects/patchWithParent.js
  */
 'use strict';
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -23,7 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe(`api: PATCH ${path} with parents`, () => {
+describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
   let token;
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
@@ -40,6 +39,7 @@ describe(`api: PATCH ${path} with parents`, () => {
   let i1 = ZERO;
   let i0a = ZERO;
   let iRoot = ZERO;
+
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -78,18 +78,25 @@ describe(`api: PATCH ${path} with parents`, () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  /**
-  (a) PATCH /v1/subjects/{key} with parentId and parentAbsolutePath fails if parentAbsolutePath does not refer to the same subject record as specified by parentId
-  (b) PATCH /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets the parent based on the parentId
-  (c) PATCH /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets the parent based on the parentAbsolutePath
-  (d) PATCH /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath does not reparent the subject
+  /*
+  (a) PATCH /v1/subjects/{key} with parentId and parentAbsolutePath fails if
+        parentAbsolutePath does not refer to the same subject record as
+        specified by parentId
+  (b) PATCH /v1/subjects/{key} with parentId BUT NO parentAbsolutePath sets
+        the parent based on the parentId
+  (c) PATCH /v1/subjects/{key} with parentAbsolutePath BUT NO parentId sets
+        the parent based on the parentAbsolutePath
+  (d) PATCH /v1/subjects/{key} with NEITHER parentId NOR parentAbsolutePath
+        does not reparent the subject
   (e) PATCH /v1/subjects/{key} with parentId === id fails
   (e) PATCH /v1/subjects/{key} with parentAbsolutePath === absolutePath fails
-  (f) PATCH /v1/subjects/{key} with parentId unchanged, parentAbsolutePath pointing to a different parent fails
-  (g) PATCH /v1/subjects/{key} with parentAbsolutePath unchanged, parentId pointing to a different parent fails
+  (f) PATCH /v1/subjects/{key} with parentId unchanged, parentAbsolutePath
+        pointing to a different parent fails
+  (g) PATCH /v1/subjects/{key} with parentAbsolutePath unchanged, parentId
+        pointing to a different parent fails
   */
 
-  describe('on un-publish', () => {
+  describe('on un-publish >', () => {
     it('with NEITHER parentId NOR parentAbsolutePath,' +
       ' set the subject as a root subject', (done) => {
       const NAME = 'iAmRoot';
@@ -97,9 +104,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       .set('Authorization', token)
       .send({ name: NAME, isPublished: true })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.parentAbsolutePath).to.equal('');
@@ -121,9 +128,9 @@ describe(`api: PATCH ${path} with parents`, () => {
         isPublished: false,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.name).to.equal(NEW_NAME);
@@ -131,8 +138,7 @@ describe(`api: PATCH ${path} with parents`, () => {
       });
     });
 
-    it('on change parent, the parent is set by ' +
-      'parentAbsolutePath', (done) => {
+    it('on change parent, the parent is set by parentAbsolutePath', (done) => {
       const NEW_NAME = 'newName';
 
       // use leaf subject
@@ -144,9 +150,9 @@ describe(`api: PATCH ${path} with parents`, () => {
         parentAbsolutePath: _root.name,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.isPublished).to.be.false;
@@ -170,9 +176,9 @@ describe(`api: PATCH ${path} with parents`, () => {
         parentId: iRoot,
       })
       .expect(constants.httpStatus.OK)
-      .end((err, res ) => {
+      .end((err, res) => {
         if (err) {
-          done(err);
+          return done(err);
         }
 
         expect(res.body.isPublished).to.be.false;
@@ -184,7 +190,8 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('fail when trying to update with parentId pointing to different subject than parentAbsolutePath', (done) => {
+  it('fail when trying to update with parentId pointing to different ' +
+  'subject than parentAbsolutePath', (done) => {
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send({
@@ -193,9 +200,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: n0.name, // unchanged parent
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -203,7 +210,8 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('fail when trying to update with parentAbsolutePath pointing to different subject than parentId', (done) => {
+  it('fail when trying to update with parentAbsolutePath pointing to ' +
+  'different subject than parentId', (done) => {
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send({
@@ -212,9 +220,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: n0a.name,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -230,9 +238,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentId: i0a,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('IllegalSelfParenting');
@@ -248,9 +256,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: n0.name,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('IllegalSelfParenting');
@@ -258,7 +266,8 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('pass if parentAbsolutePath refers to the same subject as specified by parentId', (done) => {
+  it('pass if parentAbsolutePath refers to the same subject as specified ' +
+  'by parentId', (done) => {
     api.patch(`${path}/${i0a}`)
     .set('Authorization', token)
     .send({
@@ -267,9 +276,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: n0.name,
     })
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal(n0.name);
@@ -278,7 +287,8 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('fail if parentAbsolutePath refers to a different subject than specified by parentId', (done) => {
+  it('fail if parentAbsolutePath refers to a different subject than ' +
+  'specified by parentId', (done) => {
     api.patch(`${path}/${i0}`)
     .set('Authorization', token)
     .send({
@@ -287,9 +297,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: _root.name,
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotMatch');
@@ -298,7 +308,7 @@ describe(`api: PATCH ${path} with parents`, () => {
   });
 
   it('fail if parentAbsolutePath refers to non-existent subject, ' +
-    'when parentId refers to existing subject', (done) => {
+  'when parentId refers to existing subject', (done) => {
     api.patch(`${path}/${i0}`)
     .set('Authorization', token)
     .send({
@@ -307,9 +317,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: 'iDontExist',
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotFound');
@@ -318,7 +328,7 @@ describe(`api: PATCH ${path} with parents`, () => {
   });
 
   it('fail if parentAbsolutePath refers to non-existent subject, ' +
-    'and parentId is not supplied', (done) => {
+  'and parentId is not supplied', (done) => {
     api.patch(`${path}/${i0}`)
     .set('Authorization', token)
     .send({
@@ -326,9 +336,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: 'iDontExist',
     })
     .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotFound');
@@ -344,9 +354,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentId: i0a,
     })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentAbsolutePath).to.equal(n0a.name);
@@ -364,9 +374,9 @@ describe(`api: PATCH ${path} with parents`, () => {
       parentAbsolutePath: _root.name,
     })
     .expect(constants.httpStatus.OK)
-    .end((err, res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentId).to.equal(iRoot);
@@ -375,14 +385,15 @@ describe(`api: PATCH ${path} with parents`, () => {
     });
   });
 
-  it('with NEITHER parentId NOR parentAbsolutePath, does not reparent the subject', (done) => {
+  it('with NEITHER parentId NOR parentAbsolutePath, does not reparent the ' +
+  'subject', (done) => {
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send({ name: n2.name + '_random' })
     .expect(constants.httpStatus.OK)
-    .end((err  , res ) => {
+    .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.parentId).to.equal(i0);

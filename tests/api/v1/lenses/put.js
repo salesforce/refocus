@@ -10,7 +10,6 @@
  * tests/api/v1/lenses/put.js
  */
 'use strict'; // eslint-disable-line strict
-
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -19,7 +18,7 @@ const u = require('./utils');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
 
-describe(`api: PUT ${path}`, () => {
+describe('tests/api/v1/lenses/put.js >', () => {
   let lensId;
   let token;
 
@@ -53,7 +52,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(newName);
@@ -69,7 +68,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.description).to.equal('changed description');
@@ -84,7 +83,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.isPublished).to.not.be.true;
@@ -99,7 +98,7 @@ describe(`api: PUT ${path}`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(res.body.sourceName);

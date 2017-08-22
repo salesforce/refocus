@@ -75,6 +75,10 @@ const longTermToggles = {
   // Enable Rooms functionality
   enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
 
+  // Enable sample store info logging
+  enableSampleStoreInfoLogging: environmentVariableTrue(pe,
+    'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
+
   // Enable worker activity logging
   enableWorkerActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
@@ -121,6 +125,12 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+
+  fastFailDuplicateSubject: environmentVariableTrue(pe,
+    'FAST_FAIL_DUPLICATE_SUBJECT'),
+
+  // publish partial sample to the subscribers
+  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 
 }; // shortTermToggles
 

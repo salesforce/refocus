@@ -10,15 +10,15 @@
  * tests/api/v1/helpers/utils.js
  */
 'use strict';
-
 const tu = require('../../../testUtils');
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 const apiUtils = require('../../../../api/v1/helpers/verbs/utils.js');
 
-describe('api/v1/helpers/utils.js function tests', () => {
+describe('tests/api/v1/helpers/utils.js >', () => {
   let token;
   let subject;
+  let user;
   const na = {
     name: `${tu.namePrefix}NorthAmerica`,
     description: 'continent',
@@ -30,10 +30,11 @@ describe('api/v1/helpers/utils.js function tests', () => {
       return tu.createUser('myUNiqueUser');
     })
     .then((usr) => {
+      user = usr;
       return tu.createTokenFromUserName(usr.name);
     })
     .then((tkn) => {
-      token= tkn;
+      token = tkn;
       done();
     })
     .catch(done);
@@ -41,7 +42,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
 
   after(tu.forceDeleteSubject);
   after(tu.forceDeleteUser);
-  describe('isWritable function tests', () => {
+  describe('isWritable >', () => {
     it('return the instance no writers are added to the object', (done) => {
       const fakeReq = { headers: { authorization: token } };
       apiUtils.isWritable(fakeReq, subject)
@@ -49,7 +50,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal(subject);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('with req object containing username', (done) => {
@@ -59,7 +60,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal(subject);
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('must throw an error for invalid tokens', (done) => {
@@ -71,9 +72,35 @@ describe('api/v1/helpers/utils.js function tests', () => {
         done();
       });
     });
+
+    it('no token required if requireAccessToken is false and the resource is not' +
+      ' write-protected', (done) => {
+      tu.toggleOverride('requireAccessToken', false);
+      const fakeReq = { headers: {} };
+      apiUtils.isWritable(fakeReq, subject)
+      .then((ok) => {
+        expect(ok).to.equal(subject);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('token required if requireAccessToken is false and the resource is' +
+      ' write-protected', (done) => {
+      tu.toggleOverride('requireAccessToken', false);
+      const fakeReq = { headers: {} };
+      subject.addWriters([user])
+      .then(() => apiUtils.isWritable(fakeReq, subject))
+      .then(() => done('expecting error'))
+      .catch((err) => {
+        expect(err.name).to.equal('ForbiddenError');
+        done();
+      });
+    });
+
   });
 
-  describe('getUserNameFromToken function tests', () => {
+  describe('getUserNameFromToken >', () => {
     it('doDecode is true: should return the username', (done) => {
       const fakeReq = { headers: { authorization: token } };
       apiUtils.getUserNameFromToken(fakeReq)
@@ -81,7 +108,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal('___myUNiqueUser');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('with req object containing username', (done) => {
@@ -91,7 +118,7 @@ describe('api/v1/helpers/utils.js function tests', () => {
         expect(ok).to.equal('myUserName');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('must throw an error for invalid tokens', (done) => {

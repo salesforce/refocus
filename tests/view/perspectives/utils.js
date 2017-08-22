@@ -48,7 +48,8 @@ module.exports = {
   getSubjects,
 };
 
-describe('Config perspective functions', () => {
+describe('tests/view/perspectives/utils.js, Config perspective functions >',
+() => {
   const ZERO = 0;
   const NUM = 10;
   const POPULAR_SAYING = 'The quick brown fox jumps over the lazy dog';
@@ -85,7 +86,7 @@ describe('Config perspective functions', () => {
     expect(arr).to.not.contain(' ');
   });
 
-  describe('getConfig', () => {
+  describe('getConfig >', () => {
     it('config options contain the expected number of options', () => {
       const key = 'statusFilter'; // any string
       const values = {};
@@ -105,7 +106,7 @@ describe('Config perspective functions', () => {
     });
   });
 
-  describe('getArray', () => {
+  describe('getArray >', () => {
     it('returns published resources', () => {
       const published = getArray(
         'absolutePath',

@@ -10,17 +10,16 @@
  * tests/db/model/subject/create.js
  */
 'use strict';
-
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const constants = require('../../../../db/constants');
 
-describe('db: subject: create: ', () => {
+describe('tests/db/model/subject/create.js >', () => {
   after(u.forceDelete);
 
-  describe('Simple Subjects, i.e. no parents/children', () => {
+  describe('Simple Subjects, i.e. no parents/children >', () => {
     it('ok, simple subject', (done) => {
       const s = u.getSubjectPrototype(`${tu.namePrefix}1`, null);
       Subject.create(s)
@@ -316,7 +315,7 @@ describe('db: subject: create: ', () => {
     });
   });
 
-  describe('Children', () => {
+  describe('Children >', () => {
     let pId;
     const pName = `${tu.namePrefix}parent`;
 
