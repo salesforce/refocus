@@ -123,7 +123,7 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          if(inst._previousDataValues.bots){
+          if (inst._previousDataValues.bots) {
             inst._previousDataValues.bots.forEach((botName) => {
               seq.models.Bot.findOne({
                 where: {

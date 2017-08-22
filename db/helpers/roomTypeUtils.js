@@ -150,7 +150,7 @@ function validateRulesArray(arr) {
 
 function validateBotsArray(inst, seq) {
   const bots = inst.dataValues.bots;
-  
+
   return new seq.Promise((resolve, reject) => {
     if (!bots || !inst.changed('bots') || bots.length === 0) {
       resolve(inst);
