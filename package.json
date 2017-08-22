@@ -143,7 +143,6 @@
     "serve-favicon": "^2.3.0",
     "shelljs": "^0.7.5",
     "sinon": "^1.17.2",
-    "sinon-as-promised": "^4.0.3",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
     "stats-webpack-plugin": "^0.2.1",
