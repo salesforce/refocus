@@ -73,6 +73,7 @@ function doPost(req, res, next, props) {
       return props.model.create(toPost);
     })
     .catch((err) => {
+
       // if no user found, proceed with post sample
       if (err.status === httpStatus.FORBIDDEN) {
         return isCacheOn ?
@@ -80,8 +81,10 @@ function doPost(req, res, next, props) {
           props.model.create(toPost);
       }
 
-      // non FORBIDDEN error. Throw it to be caught by the latter .catch.
-      // this bypasses the postPromise.then function
+      /*
+       * non FORBIDDEN error. Throw it to be caught by the latter .catch.
+       * This bypasses the postPromise.then function
+       */
       throw err;
     });
   } else if (props.modelName === 'Sample') {
