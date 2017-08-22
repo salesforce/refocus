@@ -32,7 +32,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   afterEach(u.forceDelete);
 
   it('correct profile access field name', () => {
-    expect(Generator.getProfileAccessField())
+    expect(GeneratorTemplate.getProfileAccessField())
     .to.equal('generatorTemplateAccess');
   });
 

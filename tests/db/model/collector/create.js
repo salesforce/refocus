@@ -32,7 +32,7 @@ describe('tests/db/model/collector/create.js >', () => {
   afterEach(u.forceDelete);
 
   it('correct profile access field name', () => {
-    expect(Generator.getProfileAccessField()).to.equal('collectorAccess');
+    expect(Collector.getProfileAccessField()).to.equal('collectorAccess');
   });
 
   it('Create collector, OK, check collector writer', (done) => {
