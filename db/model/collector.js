@@ -73,6 +73,10 @@ module.exports = function collector(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'collectorAccess';
+      },
+
       postImport(models) {
         assoc.createdBy = Collector.belongsTo(models.User, {
           foreignKey: 'createdBy',
