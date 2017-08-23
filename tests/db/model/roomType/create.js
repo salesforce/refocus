@@ -13,15 +13,15 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const bot_u = require('../bot/utils');
+const bu = require('../bot/utils');
 const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/roomType/create.js >', () => {
   afterEach(u.forceDelete);
-  before(bot_u.createStandard);
-  after(bot_u.forceDelete);
+  before(bu.createStandard);
+  after(bu.forceDelete);
 
   it('ok, room created', (done) => {
     RoomType.create(u.getStandard())
@@ -39,7 +39,7 @@ describe('tests/db/model/roomType/create.js >', () => {
 
   it('ok, room created with a bot', (done) => {
     const roomtype = u.getStandard();
-    roomtype.bots = [bot_u.name];
+    roomtype.bots = [bu.name];
     RoomType.create(roomtype)
     .then((o) => {
       expect(o).to.have.property('name');
@@ -79,7 +79,7 @@ describe('tests/db/model/roomType/create.js >', () => {
 
   it('fail, bot does not exist', (done) => {
     const roomtype = u.getStandard();
-    roomtype.bots = [bot_u.name + 'a'];
+    roomtype.bots = [bu.name + 'a'];
     RoomType.create(roomtype)
     .then(() => done(tu.valError))
     .catch((err) => {
@@ -91,7 +91,7 @@ describe('tests/db/model/roomType/create.js >', () => {
 
   it('fail, cannot have duplicate bots', (done) => {
     const roomtype = u.getStandard();
-    roomtype.bots = [bot_u.name, bot_u.name];
+    roomtype.bots = [bu.name, bu.name];
     RoomType.create(roomtype)
     .then(() => done(tu.valError))
     .catch((err) => {

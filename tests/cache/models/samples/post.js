@@ -86,9 +86,9 @@ describe('tests/cache/models/samples/post.js >', () => {
         })
         .then((a) => {
           const sampleWithUnpublishedAspect = {
-           aspectId: a.id,
-           subjectId: subjectId,
-           value: '1',
+            aspectId: a.id,
+            subjectId: subjectId,
+            value: '1',
           };
 
           api.post(path)
@@ -115,9 +115,9 @@ describe('tests/cache/models/samples/post.js >', () => {
         })
         .then((s) => {
           const sampleWithUnpublishedSubject = {
-           aspectId: aspectId,
-           subjectId: s.id,
-           value: '1',
+            aspectId: aspectId,
+            subjectId: s.id,
+            value: '1',
           };
 
           api.post(path)
