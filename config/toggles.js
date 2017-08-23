@@ -93,12 +93,6 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
-  /*
-   * Use this to signal that we are using the heroku release phase feature.
-   */
-  releasePhaseMigration: environmentVariableTrue(pe,
-    'RELEASE_PHASE_MIGRATION'),
-
   // Enforce that all API requests have valid API token
   requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 
