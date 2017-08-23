@@ -107,6 +107,10 @@ module.exports = function generator(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'generatorAccess';
+      },
+
       postImport(models) {
         assoc.user = Generator.belongsTo(models.User, {
           foreignKey: 'createdBy',

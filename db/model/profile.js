@@ -38,7 +38,19 @@ module.exports = function profile(seq, dataTypes) {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'r',
     },
+    collectorAccess: {
+      type: dataTypes.ENUM('r', 'rw'),
+      defaultValue: 'r',
+    },
     eventAccess: {
+      type: dataTypes.ENUM('r', 'rw'),
+      defaultValue: 'r',
+    },
+    generatorAccess: {
+      type: dataTypes.ENUM('r', 'rw'),
+      defaultValue: 'r',
+    },
+    generatorTemplateAccess: {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'r',
     },
