@@ -15,6 +15,9 @@
  * present. Otherwise, it creates the database, runs resetdb to create the
  * tables and indexes, and does "pseudo-migrations" to bring the migration
  * table up to date.
+ *
+ * Note: if running in heroku then we don't have to run the migration during
+ * prestart because heroku is running it on release!
  */
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
@@ -61,8 +64,16 @@ seq.query(`select count(*) from
       process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
     });
   } else {
-    // The database AND the table schemas exist.
-    require('./migrate.js'); // eslint-disable-line global-require
+    /*
+     * The database AND the table schemas already exist. If we're running on
+     * heroku then we're done because db migrations are handled in the release
+     * phase. Otherwise, do the db migrations now.
+     */
+    if (process.env.IS_HEROKU && process.env.IS_HEROKU === 'true') {
+      process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
+    } else {
+      require('./migrate.js'); // eslint-disable-line global-require
+    }
   }
 })
 .catch((err) => {

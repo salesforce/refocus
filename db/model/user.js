@@ -58,6 +58,10 @@ module.exports = function user(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'userAccess';
+      },
+
       postImport(models) {
         assoc.createdBy = User.belongsTo(models.User, {
           foreignKey: 'createdBy',

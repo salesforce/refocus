@@ -25,7 +25,10 @@ const THREE = 3;
 
 describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
-  let o1, o2, o3, o4;
+  let o1;
+  let o2;
+  let o3;
+  let o4;
   const template1 = u.getGeneratorTemplate();
   template1.name = 'template1';
   const template2 = u.getGeneratorTemplate();
@@ -213,7 +216,6 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
   });
 
-
   describe('get with fields > ', () => {
     function getAllWithFields(done, ...fields) {
       const extraFields = ['apiLinks'];
@@ -240,6 +242,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
             expect(responseObj[field]).to.deep.equal(template[field]);
           });
         }
+
         expect(res.body[0]).to.have.all.keys(expectedFields);
         done();
       });
@@ -267,7 +270,8 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
 
     const fields = ['description', 'helpEmail', 'helpUrl', 'id', 'name',
       'version', 'tags', 'author', 'repository', 'connection',
-      'contextDefinition', 'transform', 'isPublished'];
+      'contextDefinition', 'transform',
+      'isPublished']; // jscs:ignore requireTrailingComma
 
     fields.forEach((field) => {
       it(`fields param all - ${field}`, (done) => {

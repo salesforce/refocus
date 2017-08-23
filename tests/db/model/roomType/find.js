@@ -24,12 +24,19 @@ describe('tests/db/model/roomType/find.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('ok, room type isEnabled', (done) => {
-    RoomType.findOne({ where: { isEnabled: true } })
-    .then((o) => {
-      expect(o).to.have.property('name').to.equal(u.name);
+  describe('Find room type', () => {
+    it('ok, room type isEnabled', (done) => {
+      RoomType.findOne({ where: { isEnabled: true } })
+      .then((o) => {
+        expect(o).to.have.property('name').to.equal(u.name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('returns correct profile access field name', (done) => {
+      expect(RoomType.getProfileAccessField()).to.equal('roomTypeAccess');
       done();
-    })
-    .catch(done);
+    });
   });
 });

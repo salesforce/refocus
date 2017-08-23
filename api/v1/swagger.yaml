@@ -215,7 +215,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -1922,7 +1922,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -2473,7 +2473,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -5870,7 +5870,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return

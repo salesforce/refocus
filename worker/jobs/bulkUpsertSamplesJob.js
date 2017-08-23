@@ -60,7 +60,12 @@ module.exports = (job, done) => {
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
         } else {
-          publisher.publishSample(results[i], subHelper.model);
+          if (featureToggles // eslint-disable-line  no-lonely-if
+            .isFeatureEnabled('publishPartialSample')) {
+            publisher.publishPartialSample(results[i]);
+          } else {
+            publisher.publishSample(results[i], subHelper.model);
+          }
         }
       }
 

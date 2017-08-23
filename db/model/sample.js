@@ -75,6 +75,10 @@ module.exports = function sample(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'sampleAccess';
+      },
+
       postImport(models) {
         assoc.user = Sample.belongsTo(models.User, {
           foreignKey: 'provider',
@@ -180,6 +184,13 @@ module.exports = function sample(seq, dataTypes) {
         return new seq.Promise((resolve, reject) => {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
           .then((sa) => {
+            if (sa && sa.subject && !sa.subject.isPublished) {
+              const err = new dbErrors.ResourceNotFoundError();
+              err.resourceType = 'Subject';
+              err.resourceKey = sa.subject.id;
+              throw err;
+            }
+
             subjasp = sa;
             toUpsert.subjectId = sa.subject.id;
             toUpsert.aspectId = sa.aspect.id;
@@ -326,9 +337,17 @@ module.exports = function sample(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           inst.getSubject()
           .then((s) => {
-            inst.name = s.absolutePath + constants.sampleNameSeparator;
+            if (s && s.getDataValue('isPublished')) {
+              inst.name = s.absolutePath + constants.sampleNameSeparator;
+            } else {
+              const err = new dbErrors.ResourceNotFoundError();
+              err.resourceType = 'Subject';
+              err.resourceKey = s.id;
+              throw err;
+            }
+
+            return inst.getAspect();
           })
-          .then(() => inst.getAspect())
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;

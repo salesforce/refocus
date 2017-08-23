@@ -38,7 +38,7 @@ describe('tests/api/v1/aspects/get.js >', () => {
       valueLabel: 'ms',
       valueType: 'NUMERIC',
       rank: 2,
-      tags: ['foo', 'baz'],
+      tags: ['foo', 'baz', 'foo-bar'],
     }, {
       description: 'this is a1 description',
       helpEmail: 'a1@bar.com',
@@ -138,6 +138,28 @@ describe('tests/api/v1/aspects/get.js >', () => {
       .expect((res) => {
         expect(res.body.length).to.equal(ONE);
         expect(res.body[0].tags).to.deep.equal(EXPECTED_ARR);
+      })
+      .end(done);
+    });
+
+    it('filter by single INCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].tags).to.contain('foo');
+      })
+      .end(done);
+    });
+
+    it('filter by single EXCLUDE tags - tag has dash', (done) => {
+      api.get(path + '?tags=-foo-bar')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(TWO);
+        expect(res.body[0].tags).to.contain('bar');
       })
       .end(done);
     });
