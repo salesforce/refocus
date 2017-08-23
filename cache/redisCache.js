@@ -29,14 +29,6 @@ const opts = {
   /* Redis Client Retry Strategy */
   retry_strategy: (options) => {
     /*
-     * Stop retrying if we're getting an ECONNREFUSED error. Flush all commands
-     * with a custom error message.
-     */
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      return new Error('The server refused the connection');
-    }
-
-    /*
      * Stop retrying if we've exceeded the configured threshold since the last
      * successful connection. Flush all commands with a custom error message.
      */
