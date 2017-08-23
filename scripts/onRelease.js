@@ -10,5 +10,9 @@
  * ./scripts/onRelease.js
  *
  * Executed during the release phase in a heroku environment.
+ *
+ * Note: right now, this is just doing migrations but we're setting this up as
+ * its own module with its own script in package.json in anticipation of adding
+ * more release phase steps in the future.
  */
 require('../db/migrate'); // Executes db migrations.
