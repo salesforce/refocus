@@ -1,4 +1,4 @@
-clock: npm run start-clock
-release: npm run on-release
-web: npm start
-worker: npm run start-worker
+clock: IS_HEROKU=true npm run start-clock
+release: IS_HEROKU=true npm run on-release
+web: IS_HEROKU=true npm start
+worker: IS_HEROKU=true npm run start-worker

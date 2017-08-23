@@ -22,7 +22,6 @@
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
-const isHeroku = require('../utils/platform').isHeroku;
 const env = conf.environment[conf.nodeEnv];
 const seq = new Sequelize(env.dbUrl, {
   logging: env.dbLogging,
@@ -70,7 +69,7 @@ seq.query(`select count(*) from
      * heroku then we're done because db migrations are handled in the release
      * phase. Otherwise, do the db migrations now.
      */
-    if (isHeroku()) {
+    if (process.env.IS_HEROKU && process.env.IS_HEROKU === 'true') {
       process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
     } else {
       require('./migrate.js'); // eslint-disable-line global-require
