@@ -54,13 +54,20 @@ describe('tests/db/model/event/find.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('ok, event by roomId', (done) => {
-    Room.findAll()
-    .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
-    .then((o) => {
-      expect(o).to.have.property('log').to.equal(u.log);
+  describe('Find event', () => {
+    it('ok, event by roomId', (done) => {
+      Room.findAll()
+      .then((rooms) => Event.findOne({ where: { roomId: rooms[ZERO].id } }))
+      .then((o) => {
+        expect(o).to.have.property('log').to.equal(u.log);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Event.getProfileAccessField()).to.equal('eventAccess');
       done();
-    })
-    .catch(done);
+    });
   });
 });
