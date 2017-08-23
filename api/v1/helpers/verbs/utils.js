@@ -12,6 +12,7 @@
 'use strict';
 const NOT_FOUND = -1;
 const redisModelSample = require('../../../../cache/models/samples');
+const sampleStore = require('../../../../cache/sampleStore');
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
@@ -29,7 +30,8 @@ const featureToggles = require('feature-toggles');
  */
 function makePostPromise(params, props, req) {
   const toPost = params.queryBody.value;
-  const isCacheOnAndIsSample = featureToggles.isFeatureEnabled(constants.featureName) &&
+  const isCacheOnAndIsSample = featureToggles
+    .isFeatureEnabled(sampleStore.constants.featureName) &&
     props.modelName === 'Sample';
 
   // if either "cache is on" or returnUser, get User
@@ -521,20 +523,24 @@ function findByIdThenName(model, key, opts) {
 } // findByIdThenName
 
 /**
- * Duplicate elements in an Array of strings are removed in-place.
- *
+ * Duplicate elements in an Array of strings are removed and the request object
+ * is returned.
  * @param  {Object} requestBody  - The request object
- * @param  {Object} fieldsWithArrayType - The helpers/nouns module for the given DB model
+ * @param  {Object} props - The helpers/nouns module for the given DB model
+ * @returns {Object} the updated object with the duplicate elements in the array
+ * removed.
  */
-function mergeDuplicateArrayElements(requestBody, fieldsWithArrayType) {
-  if (fieldsWithArrayType) {
-    fieldsWithArrayType.forEach((field) => {
+function mergeDuplicateArrayElements(requestBody, props) {
+  if (props.fieldsWithArrayType) {
+    props.fieldsWithArrayType.forEach((field) => {
       if (requestBody[field]) {
         const aSet = new Set(requestBody[field]);
         requestBody[field] = Array.from(aSet);
       }
     });
   }
+
+  return requestBody;
 }
 
 /**
