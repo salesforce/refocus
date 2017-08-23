@@ -111,7 +111,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(0);
           done();
         });
-      }, 500);
+      }, 400);
     });
   });
 
