@@ -67,8 +67,8 @@ module.exports = {
       pe[pe.REDIS_SESSION] : PRIMARY_REDIS,
   },
   retryStrategy: {
-    /* Number of times to attempt to reconnect. Default 10. */
-    attempt: +pe.REDIS_RETRY_ATTEMPT || 10,
+    /* Number of times to attempt to reconnect. Default 100. */
+    attempt: +pe.REDIS_RETRY_ATTEMPT || 100,
 
     backoffFactor: +pe.REDIS_RETRY_BACKOFF_FACTOR || 100,
 

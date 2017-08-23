@@ -26,6 +26,9 @@ const sampleStore = require('./cache/sampleStoreInit');
  * Entry point for each clustered process.
  */
 function start() { // eslint-disable-line max-statements
+  const SegfaultHandler = require('segfault-handler');
+  SegfaultHandler.registerHandler('crash.log');
+
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
   if (conf.newRelicKey) {
