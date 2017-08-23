@@ -32,4 +32,4 @@ Note: Samples don’t have their own write-protection--a Sample inherits the wri
 
 # Cross Origin Resource Sharing
 
-By default no route is accessible on websites from domains outside the Refocus instance. It might become necessary to loose this restriction for some routes; especially for the use of bots. To allow cross-origin resource sharing (CORS) for a route you need to set the environment variable `CORS_ROUTES` to the routes name e.g `CORS_ROUTES=/v1/bots`. If you have multiple routes simply create a comma delimited list e.g `CORS_ROUTES=/v1/bots,/v1/botActions,/v1/botData`.
+By default no route is accessible on websites from domains outside the Refocus instance. It might become necessary to loosen this restriction for some routes; especially for the use of bots. To allow cross-origin resource sharing (CORS) for a route you need to set the environment variable `CORS_ROUTES` to the routes name e.g `CORS_ROUTES=/v1/bots`. If you have multiple routes simply create a comma delimited list e.g `CORS_ROUTES=/v1/bots,/v1/botActions,/v1/botData`.
