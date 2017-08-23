@@ -90,6 +90,10 @@ module.exports = function bot(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'botAccess';
+      },
+
       postImport(models) {
         assoc.writers = Bot.belongsToMany(models.User, {
           as: 'writers',
