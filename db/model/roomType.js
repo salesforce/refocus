@@ -139,6 +139,7 @@ module.exports = function roomType(seq, dataTypes) {
                 });
               });
             }
+
             resolve();
           })
           .then(() => {
