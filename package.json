@@ -33,6 +33,7 @@
     "jscs-enforce": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue migrations realtime tests/api tests/cache tests/clock tests/config tests/db tests/disableHttp tests/enableCache tests/enforceToken tests/jobQueue tests/logging tests/realtime tests/roomFlag tests/tokenNotReq utils worker",
     "lint": "eslint view/admin",
     "migratedb": "node db/migrate.js",
+    "on-release": "node scripts/onRelease.js",
     "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && node scripts/moveSocket.js",
     "prestart": "npm run checkdb",
     "start": "node index.js",

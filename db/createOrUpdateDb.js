@@ -15,8 +15,12 @@
  * present. Otherwise, it creates the database, runs resetdb to create the
  * tables and indexes, and does "pseudo-migrations" to bring the migration
  * table up to date.
+ *
+ * Note: if env var RELEASE_PHASE_MIGRATION=true then we don't have to run the
+ * migration during prestart because heroku is running it once only on release!
  */
 const Sequelize = require('sequelize');
+const featureToggles = require('feature-toggles');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
@@ -61,8 +65,17 @@ seq.query(`select count(*) from
       process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
     });
   } else {
-    // The database AND the table schemas exist.
-    require('./migrate.js'); // eslint-disable-line global-require
+    /*
+     * The database AND the table schemas already exist. If the heroku release
+     * phase feature is enabled, we're done because db migrations are handled
+     * in the release phase. If the feature is NOT enabled, do the db
+     * migrations now.
+     */
+    if (featureToggles.isFeatureEnabled('releasePhaseMigration')) {
+      process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
+    } else {
+      require('./migrate.js'); // eslint-disable-line global-require
+    }
   }
 })
 .catch((err) => {
