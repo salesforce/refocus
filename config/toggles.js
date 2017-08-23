@@ -56,9 +56,6 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
-  // Enable cross origin resource sharing
-  enableCORS: environmentVariableTrue(pe, 'ENABLE_CORS'),
-
   // Enable Kue stats activity logging
   enableKueStatsActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_KUESTATS_ACTIVITY_LOGS'),

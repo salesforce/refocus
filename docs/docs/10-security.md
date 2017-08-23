@@ -29,3 +29,7 @@ Alternatively, if you already have an API token, you can use that token to creat
 By default, Subjects, Aspects, Perspectives and Lenses are writable by all authenticated users. If you want to prevent unauthorized users from modifying or deleting your resources, you may designate a set of users as "writers" for a resource (provided you have permission to modify or delete that resource). If no writers are specified (the default on record creation), then the record is writable (and deletable) by all authenticated users. Once there is at least one writer designated for a resource, the record is write-protected, i.e. only a designated writer may modify or delete the record.
 
 Note: Samples don’t have their own write-protection--a Sample inherits the write-protection of its Aspect. If a user is authorized to modify or delete an Aspect, then that user is automatically authorized to modify or delete all of the Samples for that Aspect.
+
+# Cross Origin Resource Sharing
+
+By default no route is accessible on websites from domains outside the Refocus instance. It might become necessary to loose this restriction for some routes; especially for the use of bots. To allow cross-origin resource sharing (CORS) for a route you need to set the environment variable `CORS_ROUTES` to the routes name e.g `CORS_ROUTES=/v1/bots`. If you have multiple routes simply create a comma delimited list e.g `CORS_ROUTES=/v1/bots,/v1/botActions,/v1/botData`.

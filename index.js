@@ -172,9 +172,7 @@ function start() { // eslint-disable-line max-statements
      * through cross-origin resource sharing
      * e.g. A bot that needs to get current botData from Refocus
      */
-    if (featureToggles.isFeatureEnabled('enableCORS')) {
-      conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
-    }
+    conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
 
     // Only let me be framed by people of the same origin
     app.use(helmet.frameguard());  // Same-origin by default
