@@ -70,6 +70,10 @@ module.exports = function roomType(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'roomTypeAccess';
+      },
+
       postImport(models) {
         assoc.type = RoomType.hasMany(models.Room, {
           foreignKey: 'type',

@@ -124,4 +124,9 @@ describe('tests/db/model/perspective/update.js >', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Perspective.getProfileAccessField()).to.equal('perspectiveAccess');
+    done();
+  });
 }); // db: lens: update: permission:
