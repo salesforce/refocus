@@ -47,6 +47,7 @@ function start() { // eslint-disable-line max-statements
   const env = conf.environment[conf.nodeEnv];
   const ENCODING = 'utf8';
   const compress = require('compression');
+  const cors = require('cors');
 
   // set up server side socket.io and redis publisher
   const express = require('express');
@@ -168,6 +169,13 @@ function start() { // eslint-disable-line max-statements
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
+
+    /*
+     * Allow specified routes to be accessed from Javascript outside of Refocus
+     * through cross-origin resource sharing
+     * e.g. A bot that needs to get current botData from Refocus
+     */
+    conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
 
     // Only let me be framed by people of the same origin
     app.use(helmet.frameguard());  // Same-origin by default
