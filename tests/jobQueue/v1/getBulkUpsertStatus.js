@@ -86,6 +86,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
+
       // make sure that the jobId is returned as a part of the response
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
@@ -140,6 +141,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
+
       // make sure that the jobId is returned as a part of the response.
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
@@ -212,6 +214,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
+
       // make sure that the jobId is returned as a part of the response.
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
