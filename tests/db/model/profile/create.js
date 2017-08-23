@@ -84,4 +84,9 @@ describe('tests/db/model/profile/create.js >', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Profile.getProfileAccessField()).to.equal('profileAccess');
+    done();
+  });
 });
