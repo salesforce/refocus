@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
-const sub = require('../cache/redisCache').client.sub;
+const subPerspective = require('../cache/redisCache').client.subPerspective;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const logger = require('winston');
@@ -23,7 +23,7 @@ const logger = require('winston');
  * @param {Object} sub - Redis subscriber instance
  */
 module.exports = (io) => {
-  sub.on('message', (channel, mssgStr) => {
+  subPerspective.on('message', (channel, mssgStr) => {
     if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
       logger.info('Size of the sample received by the subscriber',
         mssgStr.length);
@@ -33,6 +33,7 @@ module.exports = (io) => {
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
+
     if (featureToggles.isFeatureEnabled('publishPartialSample') &&
     rtUtils.isThisSample(parsedObj)) {
       const useSampleStore =

@@ -15,7 +15,6 @@
 const Sample = require('../db').Sample;
 const Aspect = require('../db').Aspect;
 const Subject = require('../db').Subject;
-const Room = require('../db').Room;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
@@ -193,33 +192,6 @@ function populateSubjects() {
   .catch(console.error); // eslint-disable-line no-console
 } // populateSubjects
 
-/**
- * Populate the redis room store with room from the db.
- *
- * @returns {Promise} which resolves to the list of redis batch responses.
- */
-function populateRooms() {
-  return Room.findAll({ where: { active: true } })
-  .then((rooms) => {
-    const msg = `Starting to load ${rooms.length} rooms to cache :|`;
-    log.info(msg);
-    const cmds = [];
-    rooms.forEach((r) => {
-      const key = samsto.toKey(constants.objectType.room, r.name);
-
-      // add the room absoluePath to the master room index
-      cmds.push(['sadd', constants.indexKey.room, key]);
-
-      // create a mapping of room absolutePath to room object
-      cmds.push(['hmset', key, samsto.cleanRoom(r)]);
-    });
-
-    return redisClient.batch(cmds).execAsync()
-      .then(() => log.info('Done loading rooms to cache :D'))
-      .then(() => true);
-  })
-  .catch(console.error); // eslint-disable-line no-console
-} // populateRooms
 
 /**
  * Populate the redis sample store with samples from the db.
@@ -306,7 +278,7 @@ function populate() {
   }
 
   let resp;
-  const promises = [populateSubjects(), populateAspects(), populateRooms()];
+  const promises = [populateSubjects(), populateAspects()];
   return Promise.all(promises)
   .then((retval) => {
     resp = retval;

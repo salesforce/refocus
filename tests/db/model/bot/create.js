@@ -19,24 +19,23 @@ const invalidValue = '^thisValueisAlwaysInvalid#';
 describe('tests/db/model/bot/create.js >', () => {
   after(u.forceDelete);
 
-  describe('Create a new bot', () => {
-    it('ok, bot created', (done) => {
-      Bot.create(u.getStandard())
-      .then((o) => {
-        expect(o).to.have.property('name');
-        expect(o).to.have.property('url').to.equal('http://www.bar.com');
-        expect(o).to.have.property('active').to.equal(true);
-        expect(o).to.have.property('actions');
-        expect(o.actions.length).to.equal(2);
-        expect(o.actions[0].parameters.length).to.equal(4);
-        expect(o).to.have.property('data');
-        expect(o.data.length).to.equal(5);
-        expect(o).to.have.property('settings');
-        expect(o.settings.length).to.equal(1);
-        done();
-      })
-    .catch(done);
-    });
+  it('ok, bot created', (done) => {
+    Bot.create(u.getStandard())
+    .then((o) => {
+      expect(o).to.have.property('name');
+      expect(o).to.have.property('url').to.equal('http://www.bar.com');
+      expect(o).to.have.property('active').to.equal(true);
+      expect(o).to.have.property('actions');
+      expect(o.actions.length).to.equal(2);
+      expect(o.actions[0].parameters.length).to.equal(4);
+      expect(o).to.have.property('data');
+      expect(o.data.length).to.equal(5);
+      expect(o).to.have.property('settings');
+      expect(o.settings.length).to.equal(1);
+      done();
+    })
+  .catch(done);
+  });
 
   it('fail, bot empty name', (done) => {
     Bot.create({

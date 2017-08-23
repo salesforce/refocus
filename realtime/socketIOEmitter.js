@@ -28,9 +28,6 @@ module.exports = (io, key, obj) => {
     // Send events only if namespace connections > 0
     if (nsp && (Object.keys(nsp).length > 0) &&
      rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      console.log("socketIOEmitter")
-      console.log(nsp)
-      console.log(obj)
       io.of(nsp).emit(key, newObjectAsString);
     }
   }

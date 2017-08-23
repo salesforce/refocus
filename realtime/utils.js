@@ -24,8 +24,8 @@ const eventName = {
 const filters = ['aspectFilter',
                   'subjectTagFilter',
                   'aspectTagFilter',
-                  'roomFilter',
                   'statusFilter',
+                  'roomFilter',
                 ];
 
 /**
@@ -37,6 +37,17 @@ const filters = ['aspectFilter',
  */
 function isThisSubject(obj) {
   return obj.hasOwnProperty('parentAbsolutePath');
+}
+
+/**
+ * A function to see if an object is a room object or not. It returns true
+ * if an object passed has 'type' and 'settings' as its property.
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the object has the property
+ * "type" && "settings"
+ */
+function isThisRoom(obj) {
+  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
 }
 
 /**
@@ -202,6 +213,7 @@ function shouldIEmitThisObj(nspString, obj) {
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
+  const room = nspComponents[constants.roomFilterIndex];
   // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 
@@ -211,7 +223,7 @@ function shouldIEmitThisObj(nspString, obj) {
      * subjectAbsolutePath in it, so we do not have to check for the filter
      * conditions and we just need to return true.
      */
-    if (nspComponents.length < 2) {
+    if (nspComponents.length <= 2) {
       return true;
     }
 
@@ -221,6 +233,10 @@ function shouldIEmitThisObj(nspString, obj) {
      */
     if (isThisSubject(obj)) {
       return applyFilter(subjectTagFilter, obj.tags);
+    }
+
+    if (isThisRoom(obj)) {
+      return applyFilter(room, obj.name);
     }
 
     // apply all the filters and return the result
@@ -250,13 +266,17 @@ function getNamespaceString(inst) {
     namespace += inst.rootSubject;
   }
 
-  for (let i = 0; i < filters.length; i++) {
-    if (inst[filters[i]] && inst[filters[i]].length) {
-      namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
-                constants.fieldTypeFieldSeparator +
-                inst[filters[i]].join(constants.valuesSeparator);
-    } else {
-      namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
+  if (isThisRoom(inst.toJSON())) {
+    namespace += constants.filterSeperator + inst.name;
+  } else {
+    for (let i = 0; i < filters.length; i++) {
+      if (inst[filters[i]] && inst[filters[i]].length) {
+        namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
+              constants.fieldTypeFieldSeparator +
+              inst[filters[i]].join(constants.valuesSeparator);
+      } else {
+        namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
+      }
     }
   }
 

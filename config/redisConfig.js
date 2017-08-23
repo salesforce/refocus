@@ -36,8 +36,14 @@ module.exports = {
     /*
      * PubSub for real-time events.
      */
-    pubsub: pe.REDIS_PUBSUB && pe[pe.REDIS_PUBSUB] ?
-      pe[pe.REDIS_PUBSUB] : PRIMARY_REDIS,
+    pubsubPespective: pe.REDIS_PUBSUB_PERSPECTIVES && pe[pe.REDIS_PUBSUB_PERSPECTIVES] ?
+      pe[pe.REDIS_PUBSUB_PERSPECTIVES] : PRIMARY_REDIS,
+
+     /*
+     * PubSub for real-time events.
+     */
+    pubsubBots: pe.REDIS_PUBSUB_BOTS && pe[pe.REDIS_PUBSUB_BOTS] ?
+      pe[pe.REDIS_PUBSUB_BOTS] : PRIMARY_REDIS,
 
     /*
      * Kue job queue for work being delegated to worker dynos.

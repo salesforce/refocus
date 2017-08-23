@@ -13,7 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../cache/redisCache').client.pub;
+const pubPerspective = require('../../cache/redisCache').client.pubPerspective;
+const pubBot = require('../../cache/redisCache').client.pubBot;
+
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.channelName;
 const revalidator = require('revalidator');
@@ -137,6 +139,18 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
 }
 
 /**
+ * A function to see if an object is a room object or not. It returns true
+ * if an object passed has 'type' and 'settings' as its property.
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the object has the property
+ * "type" && "settings"
+ */
+function isThisRoom(obj) {
+  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
+}
+
+
+/**
  * This function returns an object to be published via redis channel
  * @param  {Object} inst  -  Model instance
   @param  {[Array]} changedKeys - An array containing the fields of the model
@@ -177,9 +191,6 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   const obj = {};
   obj[event] = inst.get();
 
-  console.log(obj[event])
-  console.log("**********************************")
-
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -191,7 +202,11 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    pub.publish(channelName, JSON.stringify(obj));
+    if (isThisRoom(obj[event])) {
+      pubBot.publish(channelName, JSON.stringify(obj));
+    } else {
+      pubPerspective.publish(channelName, JSON.stringify(obj));
+    }
   }
 
   return obj;

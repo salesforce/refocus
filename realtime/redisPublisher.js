@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
-const pub = require('../cache/redisCache').client.pub;
+const pub = require('../cache/redisCache').client.pubPerspective;
 const channelName = require('../config').redis.channelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
@@ -70,7 +70,6 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 function publishObject(inst, event, changedKeys, ignoreAttributes) {
   const obj = {};
   obj[event] = inst;
-
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the

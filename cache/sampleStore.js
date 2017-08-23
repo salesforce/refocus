@@ -33,16 +33,14 @@ const constants = {
     ],
     sample: ['relatedLinks', 'user'],
     subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
-    room: ['settings'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
     sample: PFX + SEP + 'samples',
     subject: PFX + SEP + 'subjects',
-    room: PFX + SEP + 'rooms',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
-    subAspMap: 'subaspmap', room: 'room' },
+    subAspMap: 'subaspmap', },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
@@ -184,25 +182,10 @@ function cleanSample(s) {
   return retval;
 } // cleanSample
 
-/**
- * Remove nulls and stringify arrays.
- *
- * @param {Object} room - The room to clean. This can be either be a
- * sequelize object instance or just a regular object.
- * @returns {Object} cleaned up and ready to store in redis.
- */
-function cleanRoom(room) {
-  let retval = room.get ? room.get() : room;
-  retval = removeNullsAndStringifyArrays(retval,
-    constants.fieldsToStringify.room);
-  return retval;
-} // cleanRoom
-
 module.exports = {
   cleanAspect,
   cleanSubject,
   cleanSample,
-  cleanRoom,
   constants,
   toKey,
   arrayStringsToJson,

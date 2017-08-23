@@ -18,8 +18,6 @@ const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
-const roomType = redisStore.constants.objectType.room;
-
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -170,10 +168,8 @@ function deleteKeys(type, objectName, name) {
       const nameParts = key.split('|');
       const subjectKey = nameParts[0];
       const aspect = nameParts[1];
-      const room = nameParts[2];
       if ((objectName.toLowerCase() === subjectType && nameKey === subjectKey)
-        || (objectName.toLowerCase() === aspectType && name === aspect)
-         || (objectName.toLowerCase() === roomType && name === room)) {
+        || (objectName.toLowerCase() === aspectType && name === aspect)) {
         keyArr.push(key);
       }
     });
@@ -261,23 +257,16 @@ function renameKeys(type, objectName, oldName, newName) {
       const nameParts = key.split('|');
       const subjectKey = nameParts[0];
       const aspect = nameParts[1];
-      const room = nameParts[2];
       let finalNewKey;
       if (oldKey === subjectKey &&
         objectName.toLowerCase() === redisStore.constants.objectType.subject) {
-        finalNewKey = newKey + '|' + aspect + '|' + room;
+        finalNewKey = newKey + '|' + aspect;
         finalNewKeyArr.push(finalNewKey);
         finalOldKeyArr.push(key);
         cmds.push(['rename', key, finalNewKey]);
       } else if (oldName === aspect &&
         objectName.toLowerCase() === redisStore.constants.objectType.aspect) {
         finalNewKey = subjectKey + '|' + newName;
-        finalNewKeyArr.push(finalNewKey);
-        finalOldKeyArr.push(key);
-        cmds.push(['rename', key, finalNewKey]);
-      } else if (oldName === room &&
-        objectName.toLowerCase() === redisStore.constants.objectType.aspect) {
-        finalNewKey = subjectKey + '|' + aspect + '|' + newName ;
         finalNewKeyArr.push(finalNewKey);
         finalOldKeyArr.push(key);
         cmds.push(['rename', key, finalNewKey]);
@@ -475,8 +464,6 @@ module.exports = {
   aspectType,
 
   sampleType,
-
-  roomType,
 
   subAspMapType,
 
