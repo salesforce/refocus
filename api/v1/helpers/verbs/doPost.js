@@ -81,7 +81,11 @@ function doPost(req, res, next, props) {
           props.model.create(toPost);
       }
 
-      return u.handleError(next, err, props.modelName);
+      /*
+       * non FORBIDDEN error. Throw it to be caught by the latter .catch.
+       * This bypasses the postPromise.then function
+       */
+      throw err;
     });
   } else if (props.modelName === 'Sample') {
 
