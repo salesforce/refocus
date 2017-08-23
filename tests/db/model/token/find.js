@@ -50,4 +50,14 @@ describe('tests/db/model/token/find.js >', () => {
     })
     .catch(done);
   });
+
+  it('returns error because the function does not exist', (done) => {
+    const errorMsg = 'Token.getProfileAccessField is not a function';
+    try {
+      Token.getProfileAccessField();
+    } catch (err) {
+      expect(err.message).to.equal(errorMsg);
+      done();
+    }
+  });
 });

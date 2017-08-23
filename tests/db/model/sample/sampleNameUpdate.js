@@ -245,5 +245,10 @@ describe('tests/db/model/sample/sampleNameUpdate.js >', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Sample.getProfileAccessField()).to.equal('sampleAccess');
+      done();
+    });
   });
 });

@@ -41,6 +41,10 @@ module.exports = function event(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'eventAccess';
+      },
+
       postImport(models) {
         assoc.room = Event.belongsTo(models.Room, {
           foreignKey: 'roomId',
