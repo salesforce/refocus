@@ -54,7 +54,7 @@ function makePostPromise(params, props, req) {
 
     // cache is off and returnUser is false.
     return (props.modelName === 'Sample') ?
-      createSample(req, props) : props.model.create(toPost);
+      u.createSample(req, props) : props.model.create(toPost);
   }
 }
 
