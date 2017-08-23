@@ -38,6 +38,8 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
 };
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
   pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
+const corsRoutes = pe.CORS_ROUTES ?
+  pe.CORS_ROUTES.split(',') : ['']; // Routes to allow CORS
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 
@@ -246,4 +248,5 @@ module.exports = {
   rateWindow,
   readReplicas,
   hiddenRoutes,
+  corsRoutes,
 };
