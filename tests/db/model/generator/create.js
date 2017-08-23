@@ -30,6 +30,10 @@ describe('tests/db/model/generator/create.js >', () => {
 
   afterEach(u.forceDelete);
 
+  it('correct profile access field name', () => {
+    expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
+  });
+
   it('ok, create with all fields', (done) => {
     Generator.create(generator)
     .then((o) => {
