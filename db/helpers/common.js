@@ -149,7 +149,6 @@ function isThisRoom(obj) {
   return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
 }
 
-
 /**
  * This function returns an object to be published via redis channel
  * @param  {Object} inst  -  Model instance

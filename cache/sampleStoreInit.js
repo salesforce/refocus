@@ -192,7 +192,6 @@ function populateSubjects() {
   .catch(console.error); // eslint-disable-line no-console
 } // populateSubjects
 
-
 /**
  * Populate the redis sample store with samples from the db.
  * Creates subjectAbspath to aspectMapping and sample to sampleObject Mapping

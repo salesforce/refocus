@@ -214,6 +214,7 @@ function shouldIEmitThisObj(nspString, obj) {
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
   const room = nspComponents[constants.roomFilterIndex];
+
   // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 

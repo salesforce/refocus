@@ -73,7 +73,7 @@ const client = {
    opts),
   sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
   subPerspective,
-  subBot
+  subBot,
 };
 
 Object.keys(client).forEach((key) => {

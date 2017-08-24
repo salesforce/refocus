@@ -39,7 +39,7 @@ module.exports = {
     pubsubPespective: pe.REDIS_PUBSUB_PERSPECTIVES && pe[pe.REDIS_PUBSUB_PERSPECTIVES] ?
       pe[pe.REDIS_PUBSUB_PERSPECTIVES] : PRIMARY_REDIS,
 
-     /*
+    /*
      * PubSub for real-time events.
      */
     pubsubBots: pe.REDIS_PUBSUB_BOTS && pe[pe.REDIS_PUBSUB_BOTS] ?

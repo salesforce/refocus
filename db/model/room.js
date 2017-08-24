@@ -89,6 +89,7 @@ module.exports = function room(seq, dataTypes) {
             common.publishChange(instance, roomEventNames.upd);
           }
         }
+
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 

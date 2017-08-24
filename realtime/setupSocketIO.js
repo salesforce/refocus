@@ -70,7 +70,7 @@ function setupNamespace(io) {
         objArr.forEach((o) => rtUtils.initializeNamespace(o, io));
         room.findAll()
         .then((rooms) => {
-          if (rooms){
+          if (rooms) {
             rooms.forEach((r) => rtUtils.initializeNamespace(r.toJSON(), io));
             resolve(io);
           } else {
