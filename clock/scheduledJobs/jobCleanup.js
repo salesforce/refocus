@@ -17,7 +17,7 @@ const kue = require('kue');
 const jobType = require('../../jobQueue/setup').jobType;
 const jobWrapper = require('../../jobQueue/jobWrapper');
 const conf = require('../../config');
-const rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
+kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 
 /**
@@ -28,7 +28,7 @@ kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
  * @returns {Promise}
  */
 function execute(batchSize, delay) {
-  const now = Date.now();
+  let now;
   let removedJobCount = 0;
   let skippedJobCount = 0;
 
@@ -47,9 +47,10 @@ function execute(batchSize, delay) {
     if (n === 0) return Promise.resolve();
     const from = skippedJobCount;
     const to = skippedJobCount + n - 1;
+    if (!now) now = Date.now();
 
     // get n jobs
-    return rangeByStateAsync('complete', from, to, 'asc')
+    return kue.Job.rangeByStateAsync('complete', from, to, 'asc')
     .catch((err) => {
       console.log('Error getting completed jobs from queue', err);
       return Promise.reject(err);
@@ -58,7 +59,7 @@ function execute(batchSize, delay) {
     // delete n jobs
     .then((jobs) =>
       Promise.all(jobs.map((job) => {
-        if (now - job.updated_at < delay) {
+        if (delay > 0 && now - job.updated_at < delay) {
           return 'skipped';
         } else {
           return job.removeAsync()
