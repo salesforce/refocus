@@ -15,15 +15,8 @@
  * present. Otherwise, it creates the database, runs resetdb to create the
  * tables and indexes, and does "pseudo-migrations" to bring the migration
  * table up to date.
- *
- * Note: if running in heroku then we don't have to do any of this during
- * prestart because heroku is running it on release!
  */
 const u = require('./utils');
-if (process.env.IS_HEROKU && process.env.IS_HEROKU === 'true') {
-  process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
-}
-
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
