@@ -19,6 +19,7 @@
  * Note: if running in heroku then we don't have to do any of this during
  * prestart because heroku is running it on release!
  */
+const u = require('./utils');
 if (process.env.IS_HEROKU && process.env.IS_HEROKU === 'true') {
   process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
 }
@@ -31,7 +32,6 @@ const seq = new Sequelize(env.dbUrl, {
   logging: env.dbLogging,
 });
 const pgtools = require('pgtools');
-const u = require('./utils');
 
 /**
  * Create the database, run resetdb to create the tables and indexes, and do
