@@ -127,6 +127,19 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       .catch(done);
     });
 
+    it('no match when GT matching the name is not found', (done) => {
+      const gtName = 'removeRandomSGTName';
+      GeneratorTemplate.getGTMatchingNameVersion(gtName, '1.0.0')
+      .then((o) => {
+        if (!o) {
+          return done();
+        }
+
+        return done('Expecting no sample generatorTemplate to be returned');
+      })
+      .catch(done);
+    });
+
     it('no match when GT version = 5.0.0 and test ' +
       'verison is <=4.0.0', (done) => {
       gt.version = '5.0.0';

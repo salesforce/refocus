@@ -13,13 +13,17 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/update.js >', () => {
   const generator = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
   let generatorDBInstance;
+  let sgtDBInstance;
   const collectorObj1 = {
     name: 'collector1',
   };
@@ -27,7 +31,11 @@ describe('tests/db/model/generator/update.js >', () => {
     name: 'collector2',
   };
   before((done) => {
-    Generator.create(generator)
+    GeneratorTemplate.create(generatorTemplate)
+    .then((o) => {
+      sgtDBInstance = o;
+      return Generator.create(generator);
+    })
     .then((o) => {
       generatorDBInstance = o;
     })
@@ -43,6 +51,7 @@ describe('tests/db/model/generator/update.js >', () => {
   });
 
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
 
   it('ok, simple update should be fine', (done) => {
     generatorDBInstance.update({ name: 'New_Name' })
@@ -56,31 +65,55 @@ describe('tests/db/model/generator/update.js >', () => {
 
   it('ok, generator template version must accept semver format ' +
     'with ^', (done) => {
-    generatorDBInstance.update({
+    sgtDBInstance.update({ name: 'newName', version: '1.0.0' })
+    .then(() => generatorDBInstance.update({
       generatorTemplate: {
         name: 'newName',
-        version: '^1.1.0',
+        version: '^1.0.0',
       },
-    })
+    }))
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
-      expect(o.generatorTemplate.version).to.equal('^1.1.0');
+      expect(o.generatorTemplate.version).to.equal('^1.0.0');
+      expect(o.generatorTemplate.name).to.equal('newName');
       done();
     })
     .catch(done);
   });
 
+  it('not ok, generator cannot be updated when generator template ' +
+    'is not found', (done) => {
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: 'newName',
+        version: '^99.0.0',
+      },
+    })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => {
+      done('Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.message).to.equal('The Generator Template with name:newName' +
+       ' and version: ^99.0.0 was not found');
+      done();
+    });
+  });
+
   it('ok, generator template version must accept semver format ' +
     'with >=', (done) => {
-    generatorDBInstance.update({
+    sgtDBInstance.update({ name: 'newName', version: '1.2.0' })
+    .then(() => generatorDBInstance.update({
       generatorTemplate: {
         name: 'newName',
         version: '>=1.1.0',
       },
-    })
+    }))
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('>=1.1.0');
+      expect(o.generatorTemplate.name).to.equal('newName');
       done();
     })
     .catch(done);
@@ -88,15 +121,17 @@ describe('tests/db/model/generator/update.js >', () => {
 
   it('ok, generator template version must accept semver format ' +
     'with alpha beta', (done) => {
-    generatorDBInstance.update({
+    sgtDBInstance.update({ name: 'newName', version: '1.2.3' })
+    .then(() => generatorDBInstance.update({
       generatorTemplate: {
         name: 'newName',
-        version: '1.2.3-alpha.10.beta',
+        version: '^1.2.3-alpha.10.beta',
       },
-    })
+    }))
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
-      expect(o.generatorTemplate.version).to.equal('1.2.3-alpha.10.beta');
+      expect(o.generatorTemplate.version).to.equal('^1.2.3-alpha.10.beta');
+      expect(o.generatorTemplate.name).to.equal('newName');
       done();
     })
     .catch(done);

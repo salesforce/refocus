@@ -14,7 +14,6 @@ const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
-
 const generatorTemplateSchema = {
   properties: {
     name: {
@@ -144,6 +143,46 @@ module.exports = function generator(seq, dataTypes) {
     },
 
     hooks: {
+
+      beforeCreate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        return seq.models.GeneratorTemplate.getGTMatchingNameVersion(gtName,
+          gtVersion).then((ret) => {
+            if (!ret) {
+              throw new ValidationError('The Generator Template with name:' +
+                `${gtName} and version: ${gtVersion} was not found`);
+            }
+
+            /*
+             * go through the context definition and encrypt the related context
+             * fields in the generator
+             */
+          });
+      }, // beforeCreate
+
+      beforeUpdate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        if (inst.changed('generatorTemplate') || inst.changed('context')) {
+          return seq.models.GeneratorTemplate.getGTMatchingNameVersion(gtName,
+            gtVersion).then((ret) => {
+              console.log('see what is returned', ret);
+              if (!ret) {
+                throw new ValidationError('The Generator Template with name:' +
+                `${gtName} and version: ${gtVersion} was not found`);
+              }
+
+              /*
+               * go through the context definition and encrypt the related
+               * context fields in the generator
+               */
+            });
+        }
+
+        return inst;
+      }, // beforeUpdate
+
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
       }, // beforeDestroy
