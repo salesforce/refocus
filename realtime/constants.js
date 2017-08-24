@@ -22,8 +22,6 @@ module.exports = {
 
   statusFilterIndex: 4,
 
-  roomFilterIndex: 5,
-
   filterSeperator: '&',
 
   valuesSeparator: ';',
@@ -41,7 +39,7 @@ module.exports = {
 
     room: {
       add: 'imc.internal.realtime.room.add',
-      upd: 'imc.internal.realtime.room.update',
+      upd: 'imc.internal.realtime.room.settingsChanged',
       del: 'imc.internal.realtime.room.remove',
     },
 

@@ -223,7 +223,7 @@ function shouldIEmitThisObj(nspString, obj) {
      * subjectAbsolutePath in it, so we do not have to check for the filter
      * conditions and we just need to return true.
      */
-    if (nspComponents.length <= 2) {
+    if (nspComponents.length < 2) {
       return true;
     }
 
@@ -266,17 +266,15 @@ function getNamespaceString(inst) {
     namespace += inst.rootSubject;
   }
 
-  if (isThisRoom(inst.toJSON())) {
-    namespace += constants.filterSeperator + inst.name;
-  } else {
-    for (let i = 0; i < filters.length; i++) {
-      if (inst[filters[i]] && inst[filters[i]].length) {
-        namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
+  for (let i = 0; i < filters.length; i++) {
+    if (inst[filters[i]] && inst[filters[i]].length) {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
               constants.fieldTypeFieldSeparator +
               inst[filters[i]].join(constants.valuesSeparator);
-      } else {
-        namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
-      }
+    } else if (isThisRoom(obj) && i === constants.roomFilterIndex) {
+      namespace += constants.filterSeperator + inst.name;
+    } else {
+      namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
     }
   }
 

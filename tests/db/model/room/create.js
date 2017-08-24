@@ -51,35 +51,19 @@ describe('tests/db/model/room/create.js >', () => {
     .catch(done);
   });
 
-    it('ok, room created settings default', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((o) => {
-        expect(o).to.have.property('settings');
-        expect(o.settings[o.settings.length-1]).to.deep.equal({ key: 'Key2', value: 'Value2' });
-        expect(o.settings.length).to.equal(2);
-        done();
-      })
-    .catch(done);
-    });
-
-    it('ok, room created active false', (done) => {
-      RoomType.create(v.getStandard())
-      .then((roomType) => {
-        const room = u.getStandard();
-        room.type = roomType.id;
-        room.active = false;
-        return Room.create(room);
-      })
-      .then((o) => {
-        expect(o).to.have.property('name');
-        expect(o).to.have.property('active').to.equal(false);
-        done();
-      })
+  it('ok, room created active false', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      room.active = false;
+      return Room.create(room);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      expect(o).to.have.property('active').to.equal(false);
+      done();
+    })
     .catch(done);
   });
 

@@ -24,6 +24,7 @@ const featureToggles = require('feature-toggles');
 const bluebird = require('bluebird');
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
+
 const opts = {
   /* Redis Client Retry Strategy */
   retry_strategy: (options) => {
@@ -57,19 +58,20 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
   logger.info('Redis Retry Strategy', opts);
 }
 
-const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective);
+const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective, opts);
 subPerspective.subscribe(rconf.channelName);
 
-const subBot = redis.createClient(rconf.instanceUrl.pubsubBot);
+const subBot = redis.createClient(rconf.instanceUrl.pubsubBot, opts);
 subBot.subscribe(rconf.channelName);
 
 const client = {
-  cache: redis.createClient(rconf.instanceUrl.cache),
-  limiter: redis.createClient(rconf.instanceUrl.limiter),
-  pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective),
-  pubBot: redis.createClient(rconf.instanceUrl.pubsubBot),
-  realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging),
-  sampleStore: redis.createClient(rconf.instanceUrl.sampleStore),
+  cache: redis.createClient(rconf.instanceUrl.cache, opts),
+  limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
+  pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective, opts),
+  pubBot: redis.createClient(rconf.instanceUrl.pubsubBot, opts),
+  realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
+   opts),
+  sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
   subPerspective,
   subBot
 };
