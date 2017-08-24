@@ -37,7 +37,7 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
       for (let i = 0; i < 10; i++) {
         const toCreate = JSON.parse(JSON.stringify(sampleObj));
         toCreate.aspectId = createdAspects[i].id;
-        toCreate.name += `${i}-${i % 2}`;
+        toCreate.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
         modelList.push(toCreate);
       }
 
@@ -50,5 +50,6 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  getWithLimit(path);
+  const skipWildcards = true;
+  getWithLimit(path, skipWildcards);
 });

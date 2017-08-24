@@ -20,6 +20,7 @@ const config = require('../../../../config');
 function getWithLimit(path, skipWildcards) {
   const originalDefaultLimit = config.DEFAULT_LIMIT;
   let expectedResponse;
+  let filteredResponse;
   let token;
 
   before((done) => {
@@ -43,6 +44,7 @@ function getWithLimit(path, skipWildcards) {
     .expect((res) => {
       expect(res.body.length).to.be.at.least(10);
       expectedResponse = res.body;
+      filteredResponse = res.body.filter((o) => o.name && o.name.includes('limitTest'));
     })
     .end(done);
   });
@@ -91,28 +93,28 @@ function getWithLimit(path, skipWildcards) {
   });
 
   if (!skipWildcards) {
-    it('name=*1&limit=3', (done) => {
-      api.get(`${path}?&name=*1&limit=3`)
+    it('name=*even&limit=3', (done) => {
+      api.get(`${path}?&name=*even&limit=3`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(expectedResponse[1].name);
-        expect(res.body[1].name).to.equal(expectedResponse[3].name);
-        expect(res.body[2].name).to.equal(expectedResponse[5].name);
+        expect(res.body[0].name).to.equal(filteredResponse[0].name);
+        expect(res.body[1].name).to.equal(filteredResponse[2].name);
+        expect(res.body[2].name).to.equal(filteredResponse[4].name);
       })
       .end(done);
     });
 
-    it('name=*1&limit=2&offset=2', (done) => {
-      api.get(`${path}?name=*1&limit=3&offset=2`)
+    it('name=*even&limit=2&offset=2', (done) => {
+      api.get(`${path}?name=*even&limit=3&offset=2`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(expectedResponse[5].name);
-        expect(res.body[1].name).to.equal(expectedResponse[7].name);
-        expect(res.body[2].name).to.equal(expectedResponse[9].name);
+        expect(res.body[0].name).to.equal(filteredResponse[4].name);
+        expect(res.body[1].name).to.equal(filteredResponse[6].name);
+        expect(res.body[2].name).to.equal(filteredResponse[8].name);
       })
       .end(done);
     });
@@ -155,30 +157,30 @@ function getWithLimit(path, skipWildcards) {
   });
 
   if (!skipWildcards) {
-    it('default limit 3, name=*1', (done) => {
+    it('default limit 3, name=*even', (done) => {
       config.DEFAULT_LIMIT = 3;
-      api.get(`${path}?name=*1`)
+      api.get(`${path}?name=*even`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(expectedResponse[1].name);
-        expect(res.body[1].name).to.equal(expectedResponse[3].name);
-        expect(res.body[2].name).to.equal(expectedResponse[5].name);
+        expect(res.body[0].name).to.equal(filteredResponse[0].name);
+        expect(res.body[1].name).to.equal(filteredResponse[2].name);
+        expect(res.body[2].name).to.equal(filteredResponse[4].name);
       })
       .end(done);
     });
 
-    it('default limit 3, name=*1&offset=2', (done) => {
+    it('default limit 3, name=*even&offset=2', (done) => {
       config.DEFAULT_LIMIT = 3;
-      api.get(`${path}?name=*1&offset=2`)
+      api.get(`${path}?name=*even&offset=2`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(expectedResponse[5].name);
-        expect(res.body[1].name).to.equal(expectedResponse[7].name);
-        expect(res.body[2].name).to.equal(expectedResponse[9].name);
+        expect(res.body[0].name).to.equal(filteredResponse[4].name);
+        expect(res.body[1].name).to.equal(filteredResponse[6].name);
+        expect(res.body[2].name).to.equal(filteredResponse[8].name);
       })
       .end(done);
     });

@@ -27,11 +27,11 @@ const FOUR = 4;
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
   const generatorOk = u.getGenerator();
-  const generatorInfo = JSON.parse(JSON.stringify(u.getGenerator()));
+  const generatorInfo = u.getGenerator();
   generatorInfo.name = 'refocus-info-generator';
-  const generatorCritical = JSON.parse(JSON.stringify(u.getGenerator()));
+  const generatorCritical = u.getGenerator();
   generatorCritical.name = 'refocus-critical-generator';
-  const generatorWarning = JSON.parse(JSON.stringify(u.getGenerator()));
+  const generatorWarning = u.getGenerator();
   generatorWarning.name = 'refocus-warning-generator';
 
   before((done) => {

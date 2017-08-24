@@ -22,7 +22,7 @@ describe('tests/api/v1/generators/getWithLimit.js >', () => {
   before((done) => {
     for (let i = 0; i < 10; i++) {
       const toCreate = JSON.parse(JSON.stringify(u.getGenerator()));
-      toCreate.name += `${i}-${i % 2}`;
+      toCreate.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
       modelList.push(toCreate);
     }
 

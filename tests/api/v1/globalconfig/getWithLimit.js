@@ -27,7 +27,7 @@ describe('tests/api/v1/globalconfig/getWithLimit.js >', () => {
 
     for (let i = 0; i < 10; i++) {
       const toCreate = JSON.parse(JSON.stringify(obj));
-      toCreate.key += `${i}-${i % 2}`;
+      toCreate.key += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
       modelList.push(toCreate);
     }
 
