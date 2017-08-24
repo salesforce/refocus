@@ -37,8 +37,8 @@ function doFindAndCountAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: new Date() };
 
   // enforce the default limit
-  if (!opts.limit || opts.limit > config.DEFAULT_LIMIT) {
-    opts.limit = config.DEFAULT_LIMIT;
+  if (!opts.limit || opts.limit > config.GET_REQUEST_DEFAULT_LIMIT) {
+    opts.limit = config.GET_REQUEST_DEFAULT_LIMIT;
   }
 
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
