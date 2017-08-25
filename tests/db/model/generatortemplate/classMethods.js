@@ -114,9 +114,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       gt.version = '4.0.0';
       gt.name += '4';
       GeneratorTemplate.create(gt)
-      .then(() => {
-        return GeneratorTemplate.getGTMatchingNameVersion(gt.name, '>4.0.0');
-      })
+      .then(() => GeneratorTemplate.getGTMatchingNameVersion(gt.name, '>4.0.0'))
       .then((o) => {
         if (!o) {
           return done();

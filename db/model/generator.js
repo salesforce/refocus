@@ -167,7 +167,6 @@ module.exports = function generator(seq, dataTypes) {
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getGTMatchingNameVersion(gtName,
             gtVersion).then((ret) => {
-              console.log('see what is returned', ret);
               if (!ret) {
                 throw new ValidationError('The Generator Template with name:' +
                 `${gtName} and version: ${gtVersion} was not found`);
