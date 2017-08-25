@@ -8756,6 +8756,11 @@ paths:
                 description: Default rules for roomType
                 items:
                   type: object
+              bots:
+                type: array
+                description: Default bots for roomType
+                items:
+                  type: string
             required:
               - name
       responses:
@@ -8887,6 +8892,11 @@ paths:
                 description: Default rules for roomType
                 items:
                   type: object
+              bots:
+                type: array
+                description: Default bots for roomType
+                items:
+                  type: string
       responses:
         200:
           description: >-
@@ -11383,6 +11393,11 @@ definitions:
         items:
           type: object
         description: Array containing the rules that trigger automations for rooms of this type
+      bots:
+        type: array
+        items:
+          type: string
+        description: Array containing the bots to be used for rooms of this type
 
   BotDataResponse:
     type: object
