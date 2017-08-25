@@ -138,23 +138,6 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       .catch(done);
     });
 
-    it('no match when GT version = 5.0.0 and test ' +
-      'verison is <=4.0.0', (done) => {
-      gt.version = '5.0.0';
-      gt.name += '5';
-      GeneratorTemplate.create(gt)
-      .then(() => GeneratorTemplate
-        .getSemverMatch(gt.name, '<=4.0.0'))
-      .then((o) => {
-        if (!o) {
-          return done();
-        }
-
-        return done('Expecting no sample generatorTemplate to be returned');
-      })
-      .catch(done);
-    });
-
     it('should return the right GT version matching the ^ or >= or <= ' +
       'schemantics', (done) => {
       gt.version = '6.0.0';

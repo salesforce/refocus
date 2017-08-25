@@ -203,7 +203,7 @@ describe('tests/db/model/generator/create.js >', () => {
     _generator.generatorTemplate.name = 'SomeRandomNameNotFoundInDb';
     Generator.create(_generator)
     .then(() => {
-      done(' Error: Expection GeneratorTemplate not found error');
+      done(' Error: Expecting GeneratorTemplate not found error');
     })
     .catch((err) => {
       expect(err.name).to.equal('ValidationError');
