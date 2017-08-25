@@ -202,12 +202,12 @@ module.exports = function user(seq, dataTypes) {
           let matchedTemplate = null;
           templates.forEach((template) => {
             if (matchedTemplate) {
-             /*
-              * ok is true when the current template version satisfies the
-              * given version and the current template version is greater
-              * than or equal(>=) to the version of the matched template
-              * that is returned finally.
-              */
+              /*
+               * ok is true when the current template version satisfies the
+               * given version and the current template version is greater
+               * than or equal(>=) to the version of the matched template
+               * that is returned finally.
+               */
               const ok = semver.satisfies(template.version, version) &&
                semver.gte(template.version, matchedTemplate.version);
               matchedTemplate = ok ? template : matchedTemplate;
