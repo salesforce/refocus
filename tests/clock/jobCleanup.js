@@ -19,6 +19,8 @@ const jobType = jobSetup.jobType;
 const jobCleanupJob = require('../../worker/jobs/jobCleanupJob');
 const conf = require('../../config');
 const Promise = require('bluebird');
+const kue = require('kue');
+const originalRangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 jobQueue.completeCountAsync = Promise.promisify(jobQueue.completeCount);
 jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
 
@@ -30,7 +32,10 @@ describe('tests/clock/jobCleanup.js >', () => {
   });
 
   beforeEach((done) => {
-    jobCleanup.execute(100, 0).then(done).catch(done);
+    jobCleanup.execute(100, 0)
+    .then(jobCleanup.resetCounter())
+    .then(done)
+    .catch(done);
   });
 
   after((done) => {
@@ -39,31 +44,43 @@ describe('tests/clock/jobCleanup.js >', () => {
   });
 
   function testJob(job, done) {
-    setTimeout(done, job.data);
+    done();
   }
 
-  function runJobs(jobCount, duration, durationType) {
+  function runJobs(jobCount) {
     return new Promise((resolve, reject) => {
       let completeCount = 0;
       for (let i = 0; i < jobCount; i++) {
         let job;
-
-        if (durationType === 'parallel') {
-          job = jobWrapper.createJob('TEST', duration);
-        } else if (durationType === 'staggered') {
-          job = jobWrapper.createJob('TEST', i * duration);
-        } else if (durationType === 'non-contiguous' && Array.isArray(duration)) {
-          job = jobWrapper.createJob('TEST', duration[i % duration.length]);
-        }
-
+        job = jobWrapper.createJob('TEST');
         job.on('complete', () => {
           completeCount++;
           if (completeCount === jobCount) {
-            setTimeout(resolve, duration);
+            resolve();
           }
         });
       }
     });
+  }
+
+  // Overwrite the function used by jobCleanup to retrieve the jobs
+  // to set mock end times for testing
+  function interceptJobEndTimes(duration, durationType) {
+    let now;
+    kue.Job.rangeByStateAsync = function (state, from, to, order) {
+      if (!now) now = Date.now();
+      return originalRangeByStateAsync(state, from, to, order)
+      .then((jobs) => {
+        jobs.forEach((job) => {
+          if (durationType === 'staggered') {
+            job.updated_at = now - job.id * duration;
+          } else if (durationType === 'non-contiguous' && Array.isArray(duration)) {
+            job.updated_at = now - duration[job.id % duration.length];
+          }
+        });
+        return jobs;
+      });
+    };
   }
 
   function expectNJobs(n) {
@@ -72,8 +89,6 @@ describe('tests/clock/jobCleanup.js >', () => {
   }
 
   describe('no delay >', () => {
-    const durationType = 'parallel';
-    const duration = 0;
     const delay = 0;
     const expectedCount = 0;
 
@@ -91,7 +106,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 1;
       const batchSize = 10;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -102,7 +117,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 5;
       const batchSize = 10;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -113,7 +128,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 22;
       const batchSize = 5;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -124,7 +139,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 19;
       const batchSize = 5;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -135,7 +150,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 100;
       const batchSize = 5;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -146,7 +161,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 100;
       const batchSize = 1;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -158,7 +173,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const batchSize = 0;
       const expectedCount = 5;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
@@ -169,25 +184,27 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   describe('delay - staggered >', () => {
     const durationType = 'staggered';
-    const duration = 50;
+    const duration = 100;
     const jobCount = 20;
     const batchSize = 5;
 
     it('skip 3', (done) => {
-      const delay = 190;
+      const delay = 350;
       const expectedCount = 3;
+      interceptJobEndTimes(duration, durationType);
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
     });
 
     it('skip 15', (done) => {
-      const delay = 790;
+      const delay = 1550;
       const expectedCount = 15;
+      interceptJobEndTimes(duration, durationType);
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
@@ -202,10 +219,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('skip 1/2', (done) => {
       const duration = [0, 100];
-      const delay = 90;
+      const delay = 50;
       const expectedCount = 10;
+      interceptJobEndTimes(duration, durationType);
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
@@ -213,10 +231,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('skip 1/4', (done) => {
       const duration = [0, 100, 200, 300];
-      const delay = 90;
+      const delay = 50;
       const expectedCount = 5;
+      interceptJobEndTimes(duration, durationType);
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(done).catch(done);
@@ -225,15 +244,13 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   describe('end-to-end >', () => {
     jobQueue.process(jobType.JOB_CLEANUP, jobCleanupJob);
-    const duration = 0;
-    const durationType = 'parallel';
     conf.JOB_REMOVAL_DELAY = 0;
 
     it('worker disabled', (done) => {
       const jobCount = 10;
       const expectedCount = 0;
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => {
         tu.toggleOverride('enableWorkerProcess', false);
@@ -248,7 +265,7 @@ describe('tests/clock/jobCleanup.js >', () => {
       const jobCount = 10;
       const expectedCount = 1; // the cleanup job can't delete itself
 
-      runJobs(jobCount, duration, durationType)
+      runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.enqueue())
       .then((job) => {
@@ -264,18 +281,16 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   it('id counter reset', (done) => {
     const jobCount = 10;
-    const duration = 0;
-    const durationType = 'parallel';
     const batchSize = 5;
     const delay = 0;
 
-    runJobs(jobCount, duration, durationType)
+    runJobs(jobCount)
     .then(() => jobCleanup.execute(batchSize, delay))
-    .then(() => runJobs(jobCount, duration, durationType))
+    .then(() => runJobs(jobCount))
     .then(() => jobQueue.completeAsync())
     .then((ids) => { expect(ids[0]).to.be.greaterThan(jobCount); })
     .then(() => jobCleanup.resetCounter())
-    .then(() => runJobs(jobCount, duration, durationType))
+    .then(() => runJobs(jobCount))
     .then(() => jobQueue.completeAsync())
     .then((ids) => { expect(ids[0]).to.equal(1); })
     .then(done).catch(done);
