@@ -21,7 +21,9 @@ kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 
 /**
- * Execute the call to clean up jobs
+ * Execute the call to clean up completed jobs.
+ * Get batchSize completed jobs, delete those jobs, and repeat until there are
+ * no jobs left, skipping any that are younger than delay ms.
  *
  * @param {Number} batchSize - the number of jobs to delete in each batch
  * @param {Number} delay - the delay, in ms, before completed jobs should be deleted

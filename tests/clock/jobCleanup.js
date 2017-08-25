@@ -63,6 +63,8 @@ describe('tests/clock/jobCleanup.js >', () => {
     });
   }
 
+  // Overwrite the function used by jobCleanup to retrieve the jobs
+  // to set mock end times for testing
   function interceptJobEndTimes(duration, durationType) {
     let now;
     kue.Job.rangeByStateAsync = function (state, from, to, order) {
