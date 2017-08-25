@@ -147,16 +147,16 @@ module.exports = function generator(seq, dataTypes) {
       beforeCreate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
-        return seq.models.GeneratorTemplate.getGTMatchingNameVersion(gtName,
-          gtVersion).then((ret) => {
+        return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+          .then((ret) => {
             if (!ret) {
-              throw new ValidationError('The Generator Template with name:' +
-                `${gtName} and version: ${gtVersion} was not found`);
+              throw new ValidationError('No Generator Template matches name:' +
+                ` ${gtName} and version: ${gtVersion}`);
             }
 
             /*
-             * go through the context definition and encrypt the related context
-             * fields in the generator
+             * TODO: go through the context definition and encrypt the
+             * related context fields in the generator
              */
           });
       }, // beforeCreate
@@ -165,15 +165,15 @@ module.exports = function generator(seq, dataTypes) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
-          return seq.models.GeneratorTemplate.getGTMatchingNameVersion(gtName,
-            gtVersion).then((ret) => {
+          return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+            .then((ret) => {
               if (!ret) {
-                throw new ValidationError('The Generator Template with name:' +
-                `${gtName} and version: ${gtVersion} was not found`);
+                throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
               }
 
               /*
-               * go through the context definition and encrypt the related
+               * TODO: go through the context definition and encrypt the related
                * context fields in the generator
                */
             });

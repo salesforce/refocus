@@ -189,7 +189,7 @@ module.exports = function user(seq, dataTypes) {
         return 'generatorTemplateAccess';
       },
 
-      getGTMatchingNameVersion(name, version) {
+      getSemverMatch(name, version) {
         return GeneratorTemplate.findAll({
           where: {
             name,
@@ -202,10 +202,10 @@ module.exports = function user(seq, dataTypes) {
           let matchedTemplate = null;
           templates.forEach((template) => {
             if (matchedTemplate) {
-              /*
+             /*
               * ok is true when the current template version satisfies the
-              * given version and the current template version is >= greater
-              * then or equal to the version of the matched template
+              * given version and the current template version is greater
+              * than or equal(>=) to the version of the matched template
               * that is returned finally.
               */
               const ok = semver.satisfies(template.version, version) &&

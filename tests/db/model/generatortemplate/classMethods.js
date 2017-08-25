@@ -28,7 +28,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
     });
   });
 
-  describe('getGTMatchingNameVersion tests', () => {
+  describe('getSemverMatch tests', () => {
     it('exact version match when GT version = 1.0.0 and test ' +
       'version = 1.0.0', (done) => {
       let createdGT;
@@ -37,7 +37,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       GeneratorTemplate.create(gt)
       .then((o) => {
         createdGT = o;
-        return GeneratorTemplate.getGTMatchingNameVersion(gt.name, '1.0.0');
+        return GeneratorTemplate.getSemverMatch(gt.name, '1.0.0');
       })
       .then((o) => {
         if (!o) {
@@ -58,7 +58,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       GeneratorTemplate.create(gt)
       .then((o) => {
         createdGT = o;
-        return GeneratorTemplate.getGTMatchingNameVersion(gt.name, '^2.0.0');
+        return GeneratorTemplate.getSemverMatch(gt.name, '^2.0.0');
       })
       .then((o) => {
         if (!o) {
@@ -79,7 +79,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       GeneratorTemplate.create(gt)
       .then((o) => {
         createdGT = o;
-        return GeneratorTemplate.getGTMatchingNameVersion(gt.name, '<=3.0.0');
+        return GeneratorTemplate.getSemverMatch(gt.name, '<=3.0.0');
       })
       .then((o) => {
         if (!o) {
@@ -98,7 +98,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       gt.name += '5';
       GeneratorTemplate.create(gt)
       .then(() => GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '<=4.0.0'))
+        .getSemverMatch(gt.name, '<=4.0.0'))
       .then((o) => {
         if (!o) {
           return done();
@@ -114,7 +114,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       gt.version = '4.0.0';
       gt.name += '4';
       GeneratorTemplate.create(gt)
-      .then(() => GeneratorTemplate.getGTMatchingNameVersion(gt.name, '>4.0.0'))
+      .then(() => GeneratorTemplate.getSemverMatch(gt.name, '>4.0.0'))
       .then((o) => {
         if (!o) {
           return done();
@@ -127,7 +127,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
 
     it('no match when GT matching the name is not found', (done) => {
       const gtName = 'removeRandomSGTName';
-      GeneratorTemplate.getGTMatchingNameVersion(gtName, '1.0.0')
+      GeneratorTemplate.getSemverMatch(gtName, '1.0.0')
       .then((o) => {
         if (!o) {
           return done();
@@ -144,7 +144,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       gt.name += '5';
       GeneratorTemplate.create(gt)
       .then(() => GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '<=4.0.0'))
+        .getSemverMatch(gt.name, '<=4.0.0'))
       .then((o) => {
         if (!o) {
           return done();
@@ -168,7 +168,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
 
       GeneratorTemplate.bulkCreate([gt, gt1, gt2, gt3])
       .then(() => GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '^6.0.0'))
+        .getSemverMatch(gt.name, '^6.0.0'))
       .then((o) => {
         if (!o) {
           return done('Expection a GeneratorTemplate object');
@@ -177,19 +177,19 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
         expect(o.dataValues.name).to.equal(gt3.name);
         expect(o.dataValues.version).to.equal(gt3.version);
         return GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '>=6.0.0');
+        .getSemverMatch(gt.name, '>=6.0.0');
       })
       .then((o) => {
         expect(o.dataValues.name).to.equal(gt3.name);
         expect(o.dataValues.version).to.equal(gt3.version);
         return GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '<6.0.1');
+        .getSemverMatch(gt.name, '<6.0.1');
       })
       .then((o) => {
         expect(o.dataValues.name).to.equal(gt.name);
         expect(o.dataValues.version).to.equal(gt.version);
         return GeneratorTemplate
-        .getGTMatchingNameVersion(gt.name, '6.1.1');
+        .getSemverMatch(gt.name, '6.1.1');
       })
       .then((o) => {
         expect(o.dataValues.name).to.equal(gt2.name);

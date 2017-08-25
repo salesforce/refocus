@@ -95,8 +95,8 @@ describe('tests/db/model/generator/update.js >', () => {
     })
     .catch((err) => {
       expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('The Generator Template with name:newName' +
-       ' and version: ^99.0.0 was not found');
+      expect(err.message).to.equal('No Generator Template matches name: ' +
+        'newName and version: ^99.0.0');
       done();
     });
   });

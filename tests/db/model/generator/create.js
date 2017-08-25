@@ -196,4 +196,20 @@ describe('tests/db/model/generator/create.js >', () => {
       done();
     });
   });
+
+  it('not ok, cannot create a generator without a matching generator' +
+    ' template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.generatorTemplate.name = 'SomeRandomNameNotFoundInDb';
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expection GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.message).to.equal('No Generator Template matches ' +
+        'name: SomeRandomNameNotFoundInDb and version: 1.0.0');
+      done();
+    });
+  });
 });
