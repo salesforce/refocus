@@ -61,14 +61,14 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective, opts);
 subPerspective.subscribe(rconf.channelName);
 
-const subBot = redis.createClient(rconf.instanceUrl.pubsubBot, opts);
+const subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
 subBot.subscribe(rconf.channelName);
 
 const client = {
   cache: redis.createClient(rconf.instanceUrl.cache, opts),
   limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
   pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective, opts),
-  pubBot: redis.createClient(rconf.instanceUrl.pubsubBot, opts),
+  pubBot: redis.createClient(rconf.instanceUrl.pubsubBots, opts),
   realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
    opts),
   sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),

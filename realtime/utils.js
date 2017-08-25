@@ -272,7 +272,7 @@ function getNamespaceString(inst) {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
               constants.fieldTypeFieldSeparator +
               inst[filters[i]].join(constants.valuesSeparator);
-    } else if (isThisRoom(obj) && i === constants.roomFilterIndex) {
+    } else if (isThisRoom(inst) && i === constants.roomFilterIndex-1) {
       namespace += constants.filterSeperator + inst.name;
     } else {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'];

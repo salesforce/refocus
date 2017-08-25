@@ -65,6 +65,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let persRootNAUS;
   let persRootNA;
   let persRootNAUSCA;
+  let roomTest;
 
   let createdLensId;
   before((done) => {
@@ -105,8 +106,16 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then((pers3) => {
       persRootNAUSCA = pers3;
+      return tu.db.RoomType.create(u.getStandardRoomType());
     })
-    .then(() => done())
+    .then((roomType) => {
+      const room = u.getStandardRoom();
+      room.type = roomType.id;
+      return tu.db.Room.create(room);
+    })
+    .then((room) => {
+      roomTest = room.toJSON();
+    }).then(() => done())
     .catch(done);
   });
 
@@ -132,27 +141,39 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
           looksLikeSampleObjNAUS)).to.equal(true);
       });
+
+      it('for should return true for roomTest', () => {
+        const nspString = realtimeUtils.getNamespaceString(roomTest);
+        expect(realtimeUtils.shouldIEmitThisObj(nspString,
+          roomTest).to.equal(true);
+      });
     });
 
     describe('getNamespaceString tests >', () => {
       it('for perspective persNAUS', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
         expect(nspString)
-        .to.equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
+        .to.equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE&undefined');
+      });
+
+      it('for roomTest', () => {
+        const nspString = realtimeUtils.getNamespaceString(roomTest);
+        expect(nspString)
+        .to.equal('/&undefined&undefined&undefined&undefined&'+roomTest.name);
       });
 
       it('for perspective persNA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNA);
         expect(nspString)
         .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
-          '&INCLUDE=temp;hum&INCLUDE=OK');
+          '&INCLUDE=temp;hum&INCLUDE=OK&undefined');
       });
 
       it('for perspective persNAUSCA', () => {
         const nspString = realtimeUtils.getNamespaceString(persRootNAUSCA);
         expect(nspString)
         .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
-          '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
+          '&EXCLUDE&EXCLUDE&EXCLUDE=OK&undefined');
       });
     });
 
