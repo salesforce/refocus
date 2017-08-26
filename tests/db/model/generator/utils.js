@@ -11,7 +11,7 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
+const gtUtil = require('../generatortemplate/utils');
 const testStartTime = new Date();
 
 const GENERATOR_SIMPLE = {
@@ -57,4 +57,6 @@ module.exports = {
   },
 
   getGenerator,
+
+  gtUtil,
 };

@@ -15,23 +15,30 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const expect = require('chai').expect;
 const ZERO = 0;
 
 describe('tests/api/v1/generators/post.js >', () => {
   let token;
   const generator = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generator);
+
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => done())
     .catch(done);
   });
   afterEach(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('simple post OK', (done) => {

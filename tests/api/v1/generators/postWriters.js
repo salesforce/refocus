@@ -7,9 +7,9 @@
  */
 
 /**
- * tests/api/v1/aspects/postWriters.js
+ * tests/api/v1/generators/postWriters.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -17,31 +17,31 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
+const gtUtil = u.gtUtil;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
 const postWritersPath = '/v1/generators/{key}/writers';
 
 describe('tests/api/v1/generators/postWriters.js >', () => {
   let token;
-  let aspect;
+  let generator;
   let firstUser;
   let secondUser;
   let otherValidToken;
   const userNameArray = [];
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
 
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    Generator.create(generatorToCreate)
-    .then((asp) => {
-      aspect = asp;
+    .then(() => Generator.create(generatorToCreate))
+    .then((gen) => {
+      generator = gen;
     }).then(() =>
 
       /**
@@ -66,12 +66,14 @@ describe('tests/api/v1/generators/postWriters.js >', () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('add writers to the record and make sure the writers are ' +
       'associated with the right object', (done) => {
-    api.post(postWritersPath.replace('{key}', aspect.id))
+    api.post(postWritersPath.replace('{key}', generator.id))
     .set('Authorization', token)
     .send(userNameArray)
     .expect(constants.httpStatus.CREATED)
@@ -89,7 +91,7 @@ describe('tests/api/v1/generators/postWriters.js >', () => {
 
   it('return 403 for adding writers using an user that is not ' +
     'already a writer of that resource', (done) => {
-    api.post(postWritersPath.replace('{key}', aspect.id))
+    api.post(postWritersPath.replace('{key}', generator.id))
     .set('Authorization', otherValidToken)
     .send(userNameArray)
     .expect(constants.httpStatus.FORBIDDEN)
@@ -103,7 +105,7 @@ describe('tests/api/v1/generators/postWriters.js >', () => {
 
   it('a request body that is not an array should not be accepted', (done) => {
     const firstUserName = firstUser.name;
-    api.post(postWritersPath.replace('{key}', aspect.id))
+    api.post(postWritersPath.replace('{key}', generator.id))
     .set('Authorization', token)
     .send({ firstUserName })
     .expect(constants.httpStatus.BAD_REQUEST)

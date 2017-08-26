@@ -13,22 +13,27 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 
 describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
   let userInst;
-  beforeEach((done) => {
+  before((done) => {
     tu.createUser('GeneratorOwner')
     .then((user) => {
       userInst = user;
       generator.createdBy = user.id;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => done())
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
+  after(gtUtil.forceDelete);
 
   it('correct profile access field name', () => {
     expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
@@ -56,6 +61,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, create should set the creater as the sole writer ', (done) => {
+    generator.name += 'soleWriter';
     Generator.create(generator)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
@@ -74,6 +80,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, isWritableBy should return true for createdBy user', (done) => {
+    generator.name += 'isWritableBy';
     Generator.create(generator)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
@@ -88,6 +95,7 @@ describe('tests/db/model/generator/create.js >', () => {
 
   it('ok, no writers when createdBy is not specified', (done) => {
     const _g = JSON.parse(JSON.stringify(generator));
+    _g.name += 'withNoCreatedBy';
     delete _g.createdBy;
     Generator.create(_g)
     .then((o) => {
@@ -103,6 +111,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, create multiple generators', (done) => {
+    generator.name = 'First';
     const gSecond = JSON.parse(JSON.stringify(generator));
     gSecond.name = 'Second';
     const gThird = JSON.parse(JSON.stringify(generator));
@@ -112,13 +121,14 @@ describe('tests/db/model/generator/create.js >', () => {
     Generator.bulkCreate([generator, gSecond, gThird, gFourth])
     .then(() => Generator.findAll())
     .then((o) => {
-      expect(o.length).to.equal(4);
+      expect(o.length).to.be.at.least(4);
       done();
     })
-    .catch();
+    .catch(done);
   });
 
   it('not ok, name should be unique', (done) => {
+    generator.name = 'Unique';
     Generator.create(generator)
     .then(() => Generator.create(generator))
     .then(() => {
@@ -135,6 +145,7 @@ describe('tests/db/model/generator/create.js >', () => {
 
   it('version not ok, when version = 1.1.a', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name += 'withVersionNotOK';
     _generator.generatorTemplate.version = '1.1.a';
     Generator.create(_generator)
     .then(() => {
@@ -153,6 +164,7 @@ describe('tests/db/model/generator/create.js >', () => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.subjects = ['Asia, America'];
     _generator.subjectQuery = '?subjects=A*';
+    _generator.name += 'bothSubSUbQPresent';
     Generator.create(_generator)
     .then(() => {
       done(' Error: Expecting validation error');
@@ -171,6 +183,7 @@ describe('tests/db/model/generator/create.js >', () => {
     const _generator = JSON.parse(JSON.stringify(generator));
     delete _generator.subjects;
     delete _generator.subjectQuery;
+    _generator.name += 'bothSubSubQNotPresent';
     Generator.create(_generator)
     .then(() => {
       done(' Error: Expecting validation error');
@@ -180,6 +193,22 @@ describe('tests/db/model/generator/create.js >', () => {
       .to.contain('Only one of ["subjects", "subjectQuery"] is required');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
+      done();
+    });
+  });
+
+  it('not ok, cannot create a generator without a matching generator' +
+    ' template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.generatorTemplate.name = 'SomeRandomNameNotFoundInDb';
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.message).to.equal('No Generator Template matches ' +
+        'name: SomeRandomNameNotFoundInDb and version: 1.0.0');
       done();
     });
   });
