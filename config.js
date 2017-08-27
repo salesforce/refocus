@@ -111,6 +111,8 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
 
+const GET_REQUEST_DEFAULT_LIMIT = +pe.GET_REQUEST_DEFAULT_LIMIT || 10000;
+
 module.exports = {
   api: {
     defaults: {
@@ -249,4 +251,5 @@ module.exports = {
   readReplicas,
   hiddenRoutes,
   corsRoutes,
+  GET_REQUEST_DEFAULT_LIMIT,
 };

@@ -30,6 +30,7 @@ describe('tests/api/v1/generators/get.js >', () => {
   let token;
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+
   const generatorOk = u.getGenerator();
   u.createSGtoSGTMapping(generatorTemplate, generatorOk);
 
