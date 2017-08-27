@@ -15,26 +15,26 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generators';
 const expect = require('chai').expect;
 
 describe('tests/api/v1/generators/patch.js >', () => {
   let i = 0;
-  const generatorToCreate = u.getGenerator();
   let token;
+  const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
 
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
-    .catch(done);
-  });
-
-  beforeEach((done) => {
-    Generator.create(generatorToCreate)
+    .then(() => Generator.create(generatorToCreate))
     .then((gen) => {
       i = gen.id;
       done();
@@ -42,19 +42,20 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(tu.forceDeleteUser);
+  after(gtUtil.forceDelete);
 
   it('simple patching: ok', (done) => {
-    const newName = {
-      name: 'New_Name',
+    const newDescription = {
+      description: 'Smiple patching test of generator',
     };
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
-    .send(newName)
+    .send(newDescription)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.name).to.equal(newName.name);
+      expect(res.body.description).to.equal(newDescription.description);
     })
     .end(done);
   });
@@ -75,10 +76,6 @@ describe('tests/api/v1/generators/patch.js >', () => {
 
   it('patch complex json schema', (done) => {
     const toPatch = {
-      generatorTemplate: {
-        name: 'refocus-ok-generator-template_V1',
-        version: '^1.0.0',
-      },
       context: {
         okValue: {
           required: true,
@@ -97,7 +94,6 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .send(toPatch)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.generatorTemplate).to.deep.equal(toPatch.generatorTemplate);
       expect(res.body.context).to.deep.equal(toPatch.context);
     })
     .end(done);
