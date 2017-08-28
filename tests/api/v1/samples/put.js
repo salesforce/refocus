@@ -172,4 +172,42 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       done();
     });
   });
+
+  describe('subject isPublished false >', () => {
+    beforeEach((done) => {
+      tu.db.Subject.findById(subjectId)
+      .then((sub) => {
+        sub.update({ isPublished: false });
+        done();
+      })
+      .catch(done);
+    });
+
+    it('cannot create sample if subject not published', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ subjectId, aspectId, value: '2' })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
+
+  describe('aspect isPublished false >', () => {
+    beforeEach((done) => {
+      tu.db.Aspect.findById(aspectId)
+      .then((asp) => {
+        asp.update({ isPublished: false });
+        done();
+      })
+      .catch(done);
+    });
+
+    it('cannot create sample if aspect not published', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ subjectId, aspectId, value: '2' })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
 });
