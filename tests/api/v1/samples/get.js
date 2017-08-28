@@ -19,6 +19,7 @@ const Sample = tu.db.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
@@ -81,6 +82,66 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       }
     })
     .end(done);
+  });
+
+  it('get with wildcard and without cacheGetSamplesWildcard flag on ' +
+    'should not cache response', (done) => {
+    api.get(`${path}?name=${sampleName}*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.above(ZERO);
+          done();
+        }
+      });
+    });
+  });
+
+  it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
+    'shold cache response', (done) => {
+    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    api.get(`${path}?name=${sampleName}*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          return done(cacheErr);
+        }
+
+        expect(JSON.parse(reply).length).to.be.above(ZERO);
+        expect(JSON.parse(reply)[0].name).to.equal(`${sampleName}`);
+        done();
+      });
+    });
+  });
+
+  it('get without wildcard and with cacheGetSamplesWildcard flag on ' +
+    'shold not cache response', (done) => {
+    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    api.get(`${path}?name=${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      
+      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.above(ZERO);
+          done();
+        }
+      });
+    });
   });
 
   it('basic get does not return id', (done) => {

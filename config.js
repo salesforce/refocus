@@ -50,6 +50,9 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 // Check for timed-out samples every 30 seconds if not specified in env var
 const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
 
+// GET Samples Cache invalidation default time
+const GET_SAMPLES_WILDCARD_CACHE_INVALIDATION = 5;
+
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
 
@@ -223,6 +226,9 @@ module.exports = {
   DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
+  getSamplesWildcardCacheInvalidation:
+    pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
+    GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,
