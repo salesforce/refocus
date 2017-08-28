@@ -159,7 +159,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for roomTest', () => {
         const nspString = realtimeUtils.getNamespaceString(roomTest);
         expect(nspString)
-        .to.equal('/&undefined&undefined&undefined&undefined&'+roomTest.name);
+        .to.equal('/&undefined&undefined&undefined&undefined&' + roomTest.name);
       });
 
       it('for perspective persNA', () => {
