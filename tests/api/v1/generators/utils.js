@@ -9,9 +9,9 @@
 /**
  * tests/api/v1/generators/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
-
+const gtUtil = require('../generatorTemplates/utils');
 const testStartTime = new Date();
 
 const GENERATOR_SIMPLE = {
@@ -39,11 +39,23 @@ const GENERATOR_SIMPLE = {
 };
 
 /**
+ * Given a sample generator template sgt and a sample generator sg, assign the
+ * sgt name and sgt version to sg.generatorTemplate.name and
+ * sg.generatorTemplate.version keys of sg.
+ * @param  {Object} sgt - Sample Generator Template object
+ * @param  {Object} sg  - Sample Generator oject
+ */
+function createSGtoSGTMapping(sgt, sg) {
+  sg.generatorTemplate.name = sgt.name;
+  sg.generatorTemplate.version = sgt.version;
+}
+
+/**
  * Function to get a simple generator
  * @returns {Object} - Generator object
  */
 function getGenerator() {
-  return GENERATOR_SIMPLE;
+  return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
 module.exports = {
@@ -57,4 +69,6 @@ module.exports = {
   },
 
   getGenerator,
+  gtUtil,
+  createSGtoSGTMapping,
 };
