@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -10,7 +10,6 @@
  * api/v1/helpers/verbs/postUtils.js
  */
 'use strict';
-const NOT_FOUND = -1;
 const redisModelSample = require('../../../../cache/models/samples');
 const sampleStore = require('../../../../cache/sampleStore');
 const constants = require('../../constants');
@@ -23,7 +22,7 @@ const featureToggles = require('feature-toggles');
 
 /**
  * @param {Object} params From swagger
- * @param {Object} props From express
+ * @param {Object} props The helpers/nouns module for the given DB model
  * @param {Object} req From express
  */
 function makePostPromise(params, props, req) {
@@ -46,8 +45,10 @@ function makePostPromise(params, props, req) {
           props.model.create(toPost);
       }
 
-      // non FORBIDDEN error. Throw it to be caught by the latter .catch.
-      // this bypasses the postPromise.then function
+      /*
+       *non FORBIDDEN error. Throw it to be caught by the latter .catch.
+       * this bypasses the postPromise.then function
+       */
       throw err;
     });
   } else {
@@ -62,8 +63,9 @@ function makePostPromise(params, props, req) {
  *
  * @param {Object} o Sequelize object
  * @param {Object} resultObj For logging
- * @param {Object} props From express
+ * @param {Object} props The helpers/nouns module for the given DB model
  * @param {Object} res From express
+ * @param {Object} req From express
  */
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
