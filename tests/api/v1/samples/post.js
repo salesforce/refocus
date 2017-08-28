@@ -20,18 +20,18 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe('tests/api/v1/samples/post.js >', () => {
+  let token;
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
   describe(`POST ${path} >`, () => {
     let sampleToPost;
-    let token;
-
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
 
     beforeEach((done) => {
       u.doSetup()
@@ -254,18 +254,36 @@ describe('tests/api/v1/samples/post.js >', () => {
     });
   });
 
-  describe('aspect isPublished false >', () => {
+  describe('subject isPublished false >', () => {
     let sampleToPost;
-    let token;
 
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
+    beforeEach((done) => {
+      u.doSetup()
+      .then((samp) => {
+        sampleToPost = samp;
+        return tu.db.Subject.findById(samp.subjectId)
+      })
+      .then((sub) => {
+        sub.update({ isPublished: false });
         done();
       })
       .catch(done);
     });
+
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('cannot create sample if subject not published', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send(sampleToPost)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
+
+  describe('aspect isPublished false >', () => {
+    let sampleToPost;
 
     beforeEach((done) => {
       u.doSetupAspectNotPublished()
