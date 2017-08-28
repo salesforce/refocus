@@ -1,0 +1,27 @@
+//
+  Copyright (c) 2016, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or
+  https://opensource.org/licenses/BSD-3-Clause
+
+
+doctype html
+html
+  head
+    title Refocus Room
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css', rel='stylesheet', media='screen')
+    link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
+    link(rel="stylesheet", type="text/css", href="/static/tokens/tokens.css")
+    script(src='http://code.jquery.com/jquery-1.11.1.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js')
+    script(src='http://localhost:5000/public/refocus-bdk.js')
+  body
+  div#root
+  script.
+    pollingUI('http://localhost:3000/v1/','events',null);
+    pollingUI('http://localhost:3000/v1/','botActions',null);
+    var trackingId = '#{trackingId}';
+  script(src='/static/analytics/app.js')
+  script(src='/static/rooms/app.js')
