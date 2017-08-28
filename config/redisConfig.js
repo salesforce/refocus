@@ -34,13 +34,13 @@ module.exports = {
       pe[pe.REDIS_LIMITER] : PRIMARY_REDIS,
 
     /*
-     * PubSub for real-time events.
+     * PubSub for perspective real-time events.
      */
     pubsubPerspective: pe.REDIS_PUBSUB_PERSPECTIVES && pe[pe.REDIS_PUBSUB_PERSPECTIVES] ?
       pe[pe.REDIS_PUBSUB_PERSPECTIVES] : PRIMARY_REDIS,
 
     /*
-     * PubSub for real-time events.
+     * PubSub for bots real-time events.
      */
     pubsubBots: pe.REDIS_PUBSUB_BOTS && pe[pe.REDIS_PUBSUB_BOTS] ?
       pe[pe.REDIS_PUBSUB_BOTS] : PRIMARY_REDIS,

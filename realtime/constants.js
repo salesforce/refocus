@@ -22,7 +22,7 @@ module.exports = {
 
   statusFilterIndex: 4,
 
-  roomFilterIndex: 5,
+  roomFilterIndex: 1,
 
   filterSeperator: '&',
 

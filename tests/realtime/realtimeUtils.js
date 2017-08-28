@@ -147,6 +147,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
          roomTest)).to.equal(true);
       });
+
+      it('should return false for some randomSubjectRoom', () => {
+        const nspString = '/SomRandomRoom';
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest))
+          .to.equal(false);
+      });
     });
 
     describe('getNamespaceString tests >', () => {
