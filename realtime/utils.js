@@ -25,7 +25,6 @@ const filters = ['aspectFilter',
                   'subjectTagFilter',
                   'aspectTagFilter',
                   'statusFilter',
-                  'roomFilter',
                 ];
 
 /**
@@ -224,7 +223,7 @@ function shouldIEmitThisObj(nspString, obj) {
      * subjectAbsolutePath in it, so we do not have to check for the filter
      * conditions and we just need to return true.
      */
-    if (nspComponents.length < 2) {
+    if (nspComponents.length <= 2) {
       return true;
     }
 
@@ -272,11 +271,25 @@ function getNamespaceString(inst) {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
               constants.fieldTypeFieldSeparator +
               inst[filters[i]].join(constants.valuesSeparator);
-    } else if (isThisRoom(inst) && i === constants.roomFilterIndex - 1) {
-      namespace += constants.filterSeperator + inst.name;
     } else {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
     }
+  }
+
+  return namespace;
+}
+
+/**
+ * When passed a room object, it returns a namespace string based on the
+ * fields set in the room object.
+ * @param  {Instance} inst - Perspective object
+ * @returns {String} - namespace string.
+ */
+function getNamespaceStringBots(inst) {
+  let namespace = '/';
+
+  if (isThisRoom(inst)) {
+    namespace += constants.filterSeperator + inst.name;
   }
 
   return namespace;
@@ -291,6 +304,19 @@ function getNamespaceString(inst) {
  */
 function initializeNamespace(inst, io) {
   const nspString = getNamespaceString(inst);
+  io.of(nspString);
+  return io;
+}
+
+/**
+ * Initializes a socketIO namespace based on the bot object.
+ * @param {Instance} inst - The perspective instance.
+ * @param {Socket.io} io - The socketio's server side object
+ * @returns {Set} - The socketio server side object with the namespaces
+ * initialized
+ */
+function initializeBotNamespace(inst, io) {
+  const nspString = getNamespaceStringBots(inst);
   io.of(nspString);
   return io;
 }
@@ -398,8 +424,10 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
 
 module.exports = {
   getNamespaceString,
+  getNamespaceStringBots,
   getNewObjAsString,
   initializeNamespace,
+  initializeBotNamespace,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,

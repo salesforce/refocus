@@ -71,7 +71,7 @@ function setupNamespace(io) {
         room.findAll()
         .then((rooms) => {
           if (rooms) {
-            rooms.forEach((r) => rtUtils.initializeNamespace(r.toJSON(), io));
+            rooms.forEach((r) => rtUtils.getNamespaceStringBots(r.toJSON(), io));
             resolve(io);
           } else {
             const err = new ResourceNotFoundError();
