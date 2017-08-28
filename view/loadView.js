@@ -37,7 +37,8 @@ const viewmap = {
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
   '/tokens/new': 'tokens/new',
-  '/rooms': 'rooms',
+  '/rooms': 'rooms/list',
+  '/rooms/:key': 'rooms',
 };
 
 /**

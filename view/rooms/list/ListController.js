@@ -14,7 +14,7 @@
  */
 import React, { PropTypes } from 'react';
 import request from 'superagent';
-const u = require('../utils');
+const u = require('../../utils');
 
 class ListController extends React.Component {
   constructor(props) {
@@ -25,7 +25,7 @@ class ListController extends React.Component {
     const { values } = this.props;
     return (
       <div>
-        {values[0]}
+        {values[0].id}
       </div>
     );
   }

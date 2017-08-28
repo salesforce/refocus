@@ -7,7 +7,7 @@
  */
 
 /**
- * view/rooms/app.js
+ * view/rooms/list/app.js
  *
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
@@ -18,9 +18,8 @@ import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ListController from './ListController';
-const botsContainer = document.getElementById('root');
-const AdmZip = require('adm-zip');
-const GET_BOTS = '/v1/bots';
+const listContainer = document.getElementById('root');
+const GET_ROOMS = '/v1/rooms';
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -46,48 +45,10 @@ function getPromiseWithUrl(url) {
   });
 } // getPromiseWithUrl
 
-/**
- * Create DOM elements for each of the files in the bots zip.
- *
- * @param {Object} bots - The ui buffer saved in the bots ui
- */
-function parseBot(bot) {
-  // Unzip bots
-  const zip = new AdmZip(new Buffer(bot.data));
-  const zipEntries = zip.getEntries();
-
-  // Get the bots section of the page
-  const botContainer = document.createElement('div');
-  const botScript = document.createElement('script');
-
-  // 'index.html' contains root elements that scripts hook up to
-  // and needs to be loaded into the DOM first
-  const index = zipEntries.filter((entry) => entry.name === 'index.html');
-  if (index.length > 0) {
-    botContainer.innerHTML = zip.readAsText(index[0]);
-  }
-  // go through zipEntries that arent 'index.html'
-  const zipEntriesNoIndex = zipEntries.filter(
-    (entry) => entry.name !== 'index.html'
-  );
-  for (let i = 0; i < zipEntriesNoIndex.length; i++) {
-    botScript.appendChild(
-      document.createTextNode(zip.readAsText(zipEntriesNoIndex[i]))
-    );
-    document.body.appendChild(botScript);
-  }
-
-  return botContainer;
-} // parseBots
-
 window.onload = () => {
-  getPromiseWithUrl(GET_BOTS)
+  getPromiseWithUrl(GET_ROOMS)
   .then((res) => {
-    let bots = [];
-    res.body.forEach((bot) => {
-      bots.push(parseBot(bot.ui));
-    });
-    loadController(bots);
+    loadController(res.body);
   });
 };
 
@@ -101,7 +62,7 @@ function loadController(values) {
     <ListController
       values={ values }
     />,
-    botsContainer
+    listContainer
   );
 }
 
