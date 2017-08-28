@@ -32,7 +32,6 @@ describe('tests/api/v1/samples/post.js >', () => {
 
   describe(`POST ${path} >`, () => {
     let sampleToPost;
-
     beforeEach((done) => {
       u.doSetup()
       .then((samp) => {
@@ -256,12 +255,11 @@ describe('tests/api/v1/samples/post.js >', () => {
 
   describe('subject isPublished false >', () => {
     let sampleToPost;
-
     beforeEach((done) => {
       u.doSetup()
       .then((samp) => {
         sampleToPost = samp;
-        return tu.db.Subject.findById(samp.subjectId)
+        return tu.db.Subject.findById(samp.subjectId);
       })
       .then((sub) => {
         sub.update({ isPublished: false });
@@ -284,7 +282,6 @@ describe('tests/api/v1/samples/post.js >', () => {
 
   describe('aspect isPublished false >', () => {
     let sampleToPost;
-
     beforeEach((done) => {
       u.doSetupAspectNotPublished()
       .then((samp) => {

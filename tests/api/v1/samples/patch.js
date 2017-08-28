@@ -21,20 +21,20 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe('tests/api/v1/samples/patch.js >', () => {
+  let token;
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
   describe(`PATCH ${path} >`, () => {
     let sampleName;
     let sampUpdatedAt;
     let sampleValue;
-    let token;
-
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
 
     beforeEach((done) => {
       u.doSetup()
@@ -329,17 +329,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
-    let token;
-
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
-
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
@@ -371,17 +360,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
-    let token;
-
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
-
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
