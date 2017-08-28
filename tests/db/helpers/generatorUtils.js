@@ -152,6 +152,56 @@ describe('tests/db/helpers/sampleUtils.js >', () => {
         done();
       }).catch(done);
     });
+
+    it('when SGEncryptionAlgorithm is not found, encryption should ' +
+      'not happen', (done) => {
+      const looksLikeSGT = {
+        name: 'My_TEST_SGT',
+        version: '1.0.0',
+        contextDefinition: {
+          password: {
+            encrypted: true,
+          },
+          secretInformation: {
+            encrypted: true,
+          },
+          otherNonSecretInformation: {
+            encrypted: false,
+          },
+        },
+      };
+
+      const password = 'superlongandsupersecretpassword';
+      const secretInformation = 'asecretthatyoushouldnotknow';
+      const otherNonSecretInformation = 'nonsecreInformation';
+      const looksLikeSG = {
+        name: 'MY_TEST_SG',
+        version: '1.0.0',
+        context: {
+          password,
+          secretInformation,
+          otherNonSecretInformation,
+        },
+      };
+
+      GlobalConfig.find({
+        where: {
+          key: dbConstants.SGEncryptionAlgorithm,
+          value: algorithm,
+        },
+      })
+      .then((o) => o.destroy())
+      .then(() => generatorUtils.encryptSGContextValues(GlobalConfig,
+        looksLikeSG, looksLikeSGT))
+      .then((sg) => {
+        expect(sg).to.not.equal(undefined);
+        expect(sg.context.otherNonSecretInformation).to
+          .equal(otherNonSecretInformation);
+        expect(sg.context.secretInformation).to.equal(secretInformation);
+        expect(sg.context.password).to.equal(password);
+        done();
+      }).catch(done);
+    });
   });
 });
 
