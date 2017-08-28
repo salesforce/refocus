@@ -152,7 +152,7 @@ function validateBotsArray(inst, seq) {
   const bots = inst.dataValues.bots;
 
   return new seq.Promise((resolve, reject) => {
-    if (!bots || !inst.changed('bots')) {
+    if (!bots || !inst.changed('bots') || !bots.length) {
       resolve(inst);
     }
 
@@ -171,7 +171,7 @@ function validateBotsArray(inst, seq) {
       .then((o) => {
         if (!o) {
           reject(new dbErrors.ResourceNotFoundError({
-            message: 'Bot ${botName} not found',
+            message: `Bot ${botName} not found`,
           }));
         }
 

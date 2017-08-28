@@ -18,6 +18,7 @@ const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
+const bu = require('../bots/utils');
 
 describe('tests/api/v1/roomTypes/patch.js >', () => {
   let testRoomType;
@@ -43,6 +44,7 @@ describe('tests/api/v1/roomTypes/patch.js >', () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
+  after(bu.forceDelete);
 
   it('Pass, patch roomType name', (done) => {
     const newName = 'newName';
@@ -56,6 +58,23 @@ describe('tests/api/v1/roomTypes/patch.js >', () => {
       }
 
       expect(res.body.name).to.equal(newName);
+      done();
+    });
+  });
+
+  it('Pass, patch roomType bots', (done) => {
+    bu.createStandard();
+    api.patch(`${path}/${testRoomType.name}`)
+    .set('Authorization', token)
+    .send({ bots: [bu.name] })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.bots.length).to.equal(1);
+      expect(res.body.bots[0]).to.equal(bu.name);
       done();
     });
   });

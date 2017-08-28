@@ -9,14 +9,16 @@
 /**
  * tests/api/v1/generators/getWriters.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
 const getWritersPath = '/v1/generators/{key}/writers';
 const getWriterPath = '/v1/generators/{key}/writers/{userNameOrId}';
@@ -26,21 +28,20 @@ describe('tests/api/v1/generators/getWriters.js >', () => {
   let generator;
   let user;
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
 
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    Generator.create(generatorToCreate)
+    .then(() => Generator.create(generatorToCreate))
     .then((gen) => {
       generator = gen;
     })
+
     /*
      * tu.createToken creates an user and an admin user is already created,
      * so one use of these.
@@ -59,6 +60,7 @@ describe('tests/api/v1/generators/getWriters.js >', () => {
   });
 
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('find Writers that have writer permission'
