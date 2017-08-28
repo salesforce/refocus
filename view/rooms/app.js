@@ -21,7 +21,6 @@ import ListController from './ListController';
 const botsContainer = document.getElementById('root');
 const AdmZip = require('adm-zip');
 const GET_BOTS = '/v1/bots';
-const GET_BOTS = '/v1/bots';
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -81,6 +80,7 @@ function parseBots(bots) {
 window.onload = () => {
   getPromiseWithUrl(GET_BOTS)
   .then((res) => {
+    console.log(res);
     loadController(res);
   });
 };

@@ -25,7 +25,7 @@ class ListController extends React.Component {
     const { values } = this.props;
     return (
       <div>
-        values
+        {values.length}
       </div>
     );
   }
