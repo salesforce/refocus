@@ -327,6 +327,48 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
+  describe(`PATCH ${path} subject isPublished false >`, () => {
+    let sampleName;
+    let token;
+
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    before((done) => {
+      u.doSetup()
+      .then((samp) => Sample.create(samp))
+      .then((samp) => {
+        sampleName = samp.name;
+        samp.getSubject()
+        .then((sub) => {
+          sub.update({ isPublished: false });
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
+      })
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('cannot patch sample if subject not published', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
+
   describe(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
     let token;
