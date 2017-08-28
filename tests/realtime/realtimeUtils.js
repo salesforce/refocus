@@ -145,7 +145,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for should return true for roomTest', () => {
         const nspString = realtimeUtils.getNamespaceString(roomTest);
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
-          roomTest).to.equal(true);
+         roomTest)).to.equal(true);
       });
     });
 
