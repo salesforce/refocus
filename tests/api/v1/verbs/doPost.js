@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/verbs/doPost.js
+ * api/v1/helpers/verbs/postUtils.js
  */
 'use strict';
 const expect = require('chai').expect;
@@ -19,7 +19,7 @@ const utils = require('../../../../api/v1/helpers/verbs/utils');
 const authUtils = require('../../../../api/v1/helpers/authUtils');
 const apiErrors = require('../../../../api/v1/apiErrors');
 
-describe('tests/api/v1/verbs/doPost.js, doPost verb Tests >', () => {
+describe('api/v1/helpers/verbs/postUtils.js, Tests >', () => {
   const SAMPLE = {
     subjectId: 'hoot',
     aspectId: 'hoot',
