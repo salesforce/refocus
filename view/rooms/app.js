@@ -15,12 +15,11 @@
  */
 
 import request from 'superagent';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import ListController from './ListController';
-const botsContainer = document.getElementById('root');
+const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
 const GET_BOTS = '/v1/bots';
+const GET_ROOM = '/v1' + window.location.pathname;
+const GET_ROOMTYPES = '/v1/roomTypes';
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -59,12 +58,14 @@ function parseBot(bot) {
   // Get the bots section of the page
   const botContainer = document.createElement('div');
   const botScript = document.createElement('script');
+  botContainer.className = 'slds-p-horizontal--small slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-3';
 
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
   const index = zipEntries.filter((entry) => entry.name === 'index.html');
   if (index.length > 0) {
     botContainer.innerHTML = zip.readAsText(index[0]);
+    botsContainer.appendChild(botContainer);
   }
   // go through zipEntries that arent 'index.html'
   const zipEntriesNoIndex = zipEntries.filter(
@@ -77,31 +78,21 @@ function parseBot(bot) {
     document.body.appendChild(botScript);
   }
 
-  return botContainer;
 } // parseBots
 
 window.onload = () => {
-  getPromiseWithUrl(GET_BOTS)
+  getPromiseWithUrl(GET_ROOM)
+  .then((res) => {
+    return getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);
+  })
+  .then((res) => {
+    console.log(res);
+    return getPromiseWithUrl(GET_BOTS);
+  })
   .then((res) => {
     let bots = [];
     res.body.forEach((bot) => {
-      bots.push(parseBot(bot.ui));
+      parseBot(bot.ui);
     });
-    loadController(bots);
   });
 };
-
-/**
- * Passes data on to Controller to pass onto renderers.
- *
- * @param {Object} values Data returned from AJAX.
- */
-function loadController(values) {
-  ReactDOM.render(
-    <ListController
-      values={ values }
-    />,
-    botsContainer
-  );
-}
-

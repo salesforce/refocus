@@ -16,7 +16,7 @@ html
     script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js')
     script(src='http://localhost:5000/public/refocus-bdk.js')
   body
-    div#root
+    div#botsContainer.slds-grid.slds-wrap
   script.
     pollingUI('http://localhost:3000/v1/','events',null);
     pollingUI('http://localhost:3000/v1/','botActions',null);
