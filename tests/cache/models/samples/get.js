@@ -79,7 +79,7 @@ describe('tests/cache/models/samples/get.js, ' +
 
   it('get with wildcard and with cacheGetSamplesWildcard flag off ' +
     'shold not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesWildcard', false);
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
     api.get(`${path}?name=___Subj*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -101,7 +101,7 @@ describe('tests/cache/models/samples/get.js, ' +
 
   it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
     'shold cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=___Subj*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

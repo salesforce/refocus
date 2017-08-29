@@ -114,9 +114,9 @@ const longTermToggles = {
  */
 const shortTermToggles = {
 
-  // Cache the GET request for samples with wildcard
-  cacheGetSamplesWildcard: environmentVariableTrue(pe,
-    'CACHE_GET_SAMPLES_WILDCARD'),
+  // Cache the GET request for samples with wildcard by name
+  cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
+    'CACHE_GET_SAMPLES_BY_NAME_WILDCARD'),
 
   // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
   getSubjectFromCache: environmentVariableTrue(pe,

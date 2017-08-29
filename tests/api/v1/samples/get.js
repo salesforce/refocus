@@ -93,6 +93,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       if (err) {
         return done(err);
       }
+
       redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.above(ZERO);
@@ -104,7 +105,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
   it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
     'shold cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=${sampleName}*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -112,6 +113,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       if (err) {
         return done(err);
       }
+
       redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           return done(cacheErr);
@@ -126,7 +128,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
   it('get without wildcard and with cacheGetSamplesWildcard flag on ' +
     'shold not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=${sampleName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -134,7 +136,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       if (err) {
         return done(err);
       }
-      
+
       redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.above(ZERO);
