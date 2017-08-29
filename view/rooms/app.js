@@ -86,13 +86,14 @@ window.onload = () => {
     return getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);
   })
   .then((res) => {
-    console.log(res);
-    return getPromiseWithUrl(GET_BOTS);
+    const promises = res.body.bots.map((botName) => {
+      return getPromiseWithUrl(GET_BOTS + '/' + botName);
+    });
+    return Promise.all(promises);
   })
   .then((res) => {
-    let bots = [];
-    res.body.forEach((bot) => {
-      parseBot(bot.ui);
+    res.forEach((bot) => {
+      parseBot(bot.body.ui);
     });
   });
 };
