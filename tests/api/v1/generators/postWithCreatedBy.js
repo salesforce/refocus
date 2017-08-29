@@ -17,6 +17,8 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generators';
 const expect = require('chai').expect;
 const tokenPath = '/v1/tokens';
@@ -27,18 +29,25 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
   const predefinedAdminUserToken = jwtUtil.createToken(
     adminUser.name, adminUser.name
   );
+
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
+
   before((done) => {
     tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()
     .then((obj) => {
       token = obj.token;
       user = obj.user;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => done())
     .catch(done);
   });
+
   afterEach(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 

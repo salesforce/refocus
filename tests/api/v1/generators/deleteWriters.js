@@ -15,12 +15,13 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const User = tu.db.User;
 const writersPath = '/v1/generators/{key}/writers';
 const writerPath = '/v1/generators/{key}/writers/{userNameOrId}';
-const generatorPath = '/v1/generators/{key}';
 
 describe('tests/api/v1/generators/deleteWriters.js >', () => {
   let token;
@@ -28,21 +29,25 @@ describe('tests/api/v1/generators/deleteWriters.js >', () => {
   let generator;
   let user;
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
 
-  beforeEach((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+  before((done) => {
+    GeneratorTemplate.create(generatorTemplate)
+    .then(() => Generator.create(generatorToCreate))
+    .then((gen) => {
+      generator = gen;
       done();
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    Generator.create(generatorToCreate)
-    .then((gen) => {
-      generator = gen;
-    }).then(() =>
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+    })
+    .then(() =>
 
       /**
        * tu.createToken creates an user and an admin user is already created,
@@ -64,7 +69,8 @@ describe('tests/api/v1/generators/deleteWriters.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
+  after(gtUtil.forceDelete);
   afterEach(tu.forceDeleteUser);
 
   describe('delete writer(s) >', () => {

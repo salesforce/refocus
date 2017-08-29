@@ -127,34 +127,41 @@ module.exports = function roomType(seq, dataTypes) {
             resolve(inst);
           }
 
-          inst._previousDataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({
-              where: {
-                name: {
-                  $iLike: botName,
-                },
-              },
-            })
-            .then((o) => {
-              inst.removeBots(o)
-              .catch(reject);
-            });
-          });
+          new Promise((resolve, reject) => {
+            if (inst._previousDataValues.bots) {
+              inst._previousDataValues.bots.forEach((botName) => {
+                seq.models.Bot.findOne({
+                  where: {
+                    name: {
+                      $iLike: botName,
+                    },
+                  },
+                })
+                .then((o) => {
+                  inst.removeBots(o)
+                  .catch(reject);
+                });
+              });
+            }
 
-          inst.dataValues.bots.forEach((botName) => {
-            seq.models.Bot.findOne({
-              where: {
-                name: {
-                  $iLike: botName,
+            resolve();
+          })
+          .then(() => {
+            inst.dataValues.bots.forEach((botName) => {
+              seq.models.Bot.findOne({
+                where: {
+                  name: {
+                    $iLike: botName,
+                  },
                 },
-              },
-            })
-            .then((o) => {
-              inst.addBots(o)
-              .catch(reject);
+              })
+              .then((o) => {
+                inst.addBots(o)
+                .catch(reject);
+              });
             });
+            resolve(inst);
           });
-          resolve(inst);
         });
       }, // hooks.afterUpdate
 
@@ -221,4 +228,3 @@ module.exports = function roomType(seq, dataTypes) {
   });
   return RoomType;
 };
-
