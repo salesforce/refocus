@@ -24,8 +24,35 @@ class ListController extends React.Component {
   render() {
     const { values } = this.props;
     return (
-      <div>
-        {values[0].id}
+      <div className="slds-grid">
+        <table className="slds-table slds-table--bordered slds-table-cell-buffer">
+          <thead>
+            <tr className="slds-text-title--caps">
+              <th scope="col">
+                <div className="slds-truncate" title="roomID">ID</div>
+              </th>
+              <th scope="col">
+                <div className="slds-truncate" title="roomName">Name</div>
+              </th>
+              <th scope="col">
+                <div className="slds-truncate" title="type">Type</div>
+              </th>
+              <th scope="col">
+                <div className="slds-truncate" title="active">Active</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {values.map((room) => {
+              return <tr>
+                <td><a href={'/rooms/'+room.id}>{room.id}</a></td>
+                <td><a href={'/rooms/'+room.id}>{room.name}</a></td>
+                <td>{room.type}</td>
+                <td>{room.active ? 'True' : 'False'}</td>
+              </tr>;
+            })}
+          </tbody>
+        </table>
       </div>
     );
   }

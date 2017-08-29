@@ -24,8 +24,10 @@ class ListController extends React.Component {
   render() {
     const { values } = this.props;
     return (
-      <div>
-        {values[0]}
+      <div className='slds-grid slds-grid_frame'>
+        <div>
+          {values[0]}
+        </div>
       </div>
     );
   }
