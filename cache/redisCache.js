@@ -61,7 +61,6 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective, opts);
 subPerspective.subscribe(rconf.perspectiveChannelName);
 
-
 const client = {
   cache: redis.createClient(rconf.instanceUrl.cache, opts),
   limiter: redis.createClient(rconf.instanceUrl.limiter, opts),

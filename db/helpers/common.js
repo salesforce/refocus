@@ -146,7 +146,7 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
  * @returns {Boolean} - returns true if the name singular is room
  */
 function isRoom(inst) {
-  return inst['$modelOptions'].name.singular === 'Room';
+  return inst.$modelOptions.name.singular === 'Room';
 }
 
 /**
