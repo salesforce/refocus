@@ -17,7 +17,8 @@ const pubPerspective = require('../../cache/redisCache').client.pubPerspective;
 const pubBot = require('../../cache/redisCache').client.pubBot;
 
 const dbconf = require('../../config').db;
-const channelName = require('../../config').redis.channelName;
+const perspectiveChannelName = require('../../config').redis.perspectiveChannelName;
+const botChannelName = require('../../config').redis.botChannelName;
 const revalidator = require('revalidator');
 const ValidationError = require('../dbErrors').ValidationError;
 
@@ -139,14 +140,13 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
 }
 
 /**
- * A function to see if an object is a room object or not. It returns true
- * if an object passed has 'type' and 'settings' as its property.
+ * A function to see if an instance is an instance of a room
+ * Checks the name from the model
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has the property
- * "type" && "settings"
+ * @returns {Boolean} - returns true if the name singular is room
  */
-function isThisRoom(obj) {
-  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
+function isRoom(inst) {
+  return inst['$modelOptions'].name.singular === 'Room';
 }
 
 /**
@@ -201,10 +201,10 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if (isThisRoom(obj[event])) {
-      pubBot.publish(channelName, JSON.stringify(obj));
+    if (isRoom(inst)) {
+      pubBot.publish(botChannelName, JSON.stringify(obj));
     } else {
-      pubPerspective.publish(channelName, JSON.stringify(obj));
+      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
     }
   }
 

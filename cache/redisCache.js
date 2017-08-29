@@ -59,7 +59,7 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 }
 
 const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective, opts);
-subPerspective.subscribe(rconf.channelName);
+subPerspective.subscribe(rconf.perspectiveChannelName);
 
 
 const client = {

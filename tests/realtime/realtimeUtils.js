@@ -130,22 +130,22 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
 
       it('should return true for pers rootNA', () => {
-        const nspString = realtimeUtils.getNamespaceString(persRootNA);
+        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
         expect(realtimeUtils
           .shouldIEmitThisObj(nspString, looksLikeSampleObjNA))
           .to.equal(true);
       });
 
       it('should return true for pers rootNAUS', () => {
-        const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
+        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUS);
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
           looksLikeSampleObjNAUS)).to.equal(true);
       });
 
       it('for should return true for roomTest', () => {
-        const nspString = realtimeUtils.getNamespaceStringBots(roomTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString,
-         roomTest)).to.equal(true);
+        const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest))
+        .to.equal(true);
       });
 
       it('should return false for some randomSubjectRoom', () => {
@@ -155,28 +155,27 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
     });
 
-    describe('getNamespaceString tests >', () => {
+    describe('getPerspectiveNamespaceString tests >', () => {
       it('for perspective persNAUS', () => {
-        const nspString = realtimeUtils.getNamespaceString(persRootNAUS);
+        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUS);
         expect(nspString)
         .to.equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
 
       it('for roomTest', () => {
-        const nspString = realtimeUtils.getNamespaceStringBots(roomTest);
-        expect(nspString)
-        .to.equal('/&' + roomTest.name);
+        const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
+        expect(nspString).to.equal('/&' + roomTest.name);
       });
 
       it('for perspective persNA', () => {
-        const nspString = realtimeUtils.getNamespaceString(persRootNA);
+        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
         expect(nspString)
         .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
           '&INCLUDE=temp;hum&INCLUDE=OK');
       });
 
       it('for perspective persNAUSCA', () => {
-        const nspString = realtimeUtils.getNamespaceString(persRootNAUSCA);
+        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUSCA);
         expect(nspString)
         .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
           '&EXCLUDE&EXCLUDE&EXCLUDE=OK');

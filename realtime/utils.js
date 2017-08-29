@@ -45,7 +45,7 @@ function isThisSubject(obj) {
  * @returns {Boolean} - returns true if the object has the property
  * "type" && "settings"
  */
-function isThisRoom(obj) {
+function isRoom(obj) {
   return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
 }
 
@@ -235,7 +235,7 @@ function shouldIEmitThisObj(nspString, obj) {
       return applyFilter(subjectTagFilter, obj.tags);
     }
 
-    if (isThisRoom(obj)) {
+    if (isRoom(obj)) {
       return applyFilter(room, obj.name);
     }
 
@@ -260,7 +260,7 @@ function shouldIEmitThisObj(nspString, obj) {
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
-function getNamespaceString(inst) {
+function getPerspectiveNamespaceString(inst) {
   let namespace = '/';
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
@@ -285,10 +285,10 @@ function getNamespaceString(inst) {
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
-function getNamespaceStringBots(inst) {
+function getBotsNamespaceString(inst) {
   let namespace = '/';
 
-  if (isThisRoom(inst)) {
+  if (isRoom(inst)) {
     namespace += constants.filterSeperator + inst.name;
   }
 
@@ -302,8 +302,8 @@ function getNamespaceStringBots(inst) {
  * @returns {Set} - The socketio server side object with the namespaces
  * initialized
  */
-function initializeNamespace(inst, io) {
-  const nspString = getNamespaceString(inst);
+function initializePerspectiveNamespace(inst, io) {
+  const nspString = getPerspectiveNamespaceString(inst);
   io.of(nspString);
   return io;
 }
@@ -316,7 +316,7 @@ function initializeNamespace(inst, io) {
  * initialized
  */
 function initializeBotNamespace(inst, io) {
-  const nspString = getNamespaceStringBots(inst);
+  const nspString = getBotsNamespaceString(inst);
   io.of(nspString);
   return io;
 }
@@ -423,10 +423,10 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
 } // attachAspectSubject
 
 module.exports = {
-  getNamespaceString,
-  getNamespaceStringBots,
+  getPerspectiveNamespaceString,
+  getBotsNamespaceString,
   getNewObjAsString,
-  initializeNamespace,
+  initializePerspectiveNamespace,
   initializeBotNamespace,
   isIpWhitelisted,
   parseObject,

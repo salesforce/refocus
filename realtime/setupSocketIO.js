@@ -67,11 +67,11 @@ function setupNamespace(io) {
     perspective.findAll()
     .then((objArr) => {
       if (objArr) {
-        objArr.forEach((o) => rtUtils.initializeNamespace(o, io));
+        objArr.forEach((o) => rtUtils.initializePerspectiveNamespace(o, io));
         room.findAll()
         .then((rooms) => {
           if (rooms) {
-            rooms.forEach((r) => rtUtils.getNamespaceStringBots(r.toJSON(), io));
+            rooms.forEach((r) => rtUtils.initializeBotNamespace(r, io));
             resolve(io);
           } else {
             const err = new ResourceNotFoundError();

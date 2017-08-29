@@ -40,9 +40,9 @@ module.exports = {
     },
 
     room: {
-      add: 'imc.internal.realtime.room.add',
-      upd: 'imc.internal.realtime.room.settingsChanged',
-      del: 'imc.internal.realtime.room.remove',
+      add: 'refocus.internal.realtime.room.add',
+      upd: 'refocus.internal.realtime.room.settingsChanged',
+      del: 'refocus.internal.realtime.room.remove',
     },
 
     sample: {

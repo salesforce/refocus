@@ -16,10 +16,12 @@
 const pe = process.env; // eslint-disable-line no-process-env
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
 const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
-const channelName = 'focus';
+const perspectiveChannelName = 'focus';
+const botChannelName = 'imc';
 
 module.exports = {
-  channelName,
+  perspectiveChannelName,
+  botChannelName,
   instanceUrl: {
     /*
      * Cache perspectives, lenses, etc.
