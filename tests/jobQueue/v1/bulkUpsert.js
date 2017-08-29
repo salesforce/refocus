@@ -30,6 +30,8 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
 
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableApiActivityLogs', false);
+    tu.toggleOverride('enableWorkerActivityLogs', false);
     jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
     tu.createToken()
     .then((returnedToken) => {
@@ -77,6 +79,9 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '4',
+      }, {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '4',
       },
@@ -93,6 +98,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
   it('test logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
+    logger.on('logging', testLogMessage);
     let workerLogged = false;
     let apiLogged = false;
 
@@ -119,7 +125,6 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
       //don't call done() yet, need to wait for data to be logged
     });
 
-    logger.on('logging', testLogMessage);
     function testLogMessage(transport, level, msg, meta) {
       const logObj = {};
       msg.split(' ').forEach((entry) => {
@@ -202,6 +207,9 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
         {
           name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
           value: '2',
+        }, {
+          name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+          value: '4',
         }, {
           name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
           value: '4',
