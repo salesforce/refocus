@@ -21,7 +21,7 @@ module.exports = (io, key, obj) => {
 
   // Initialize namespace when perspective initialize namespace event is sent
   if (key.startsWith(initEvent)) {
-    rtUtils.initializeNamespace(obj, io);
+    rtUtils.initializePerspectiveNamespace(obj, io);
   }
 
   for (const nsp in io.nsps) {
