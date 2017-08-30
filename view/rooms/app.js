@@ -11,14 +11,13 @@
  *
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
- *
  */
 
 import request from 'superagent';
 const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
+const u = require('../utils');
 const ROOM_ID = window.location.pathname.split('/rooms/')[1];
-console.log(ROOM_ID);
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
@@ -27,6 +26,8 @@ const REQ_HEADERS = {
   Expires: '-1',
   'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',
 };
+const SPINNER_ID = 'loading_spinner';
+
 
 /**
  * @param {String} url The url to get from
@@ -80,15 +81,12 @@ function parseBot(bot) {
     document.body.appendChild(botScript);
   }
 
-  removeSpinner();
+  u.removeSpinner(SPINNER_ID);
 } // parseBots
 
-function removeSpinner() {
-  const spinner = document.getElementById('loading_spinner');
-  spinner.parentNode.removeChild(spinner);
-}
-
 window.onload = () => {
+  document.getElementById("title").innerHTML = "Room #" + ROOM_ID;
+
   getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     return getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);

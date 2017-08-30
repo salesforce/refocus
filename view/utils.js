@@ -79,9 +79,20 @@ function getNamespaceString(inst) {
   return namespace;
 }
 
+/**
+ * Remove spinner from DOM
+ *
+ * @param  {String} spinnerID - Id of spinner
+ */
+function removeSpinner(spinnerID) {
+  const spinner = document.getElementById(spinnerID);
+  spinner.parentNode.removeChild(spinner);
+}
+
 
 module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
+  removeSpinner,
 };

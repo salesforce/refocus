@@ -9,8 +9,7 @@
 /**
  * view/rooms/list/app.js
  *
- * When page is loaded we take all the bots queried and processed
- * to have their UI appended to the page.
+ * Create a list of all the rooms in refocus
  *
  */
 
@@ -60,7 +59,7 @@ window.onload = () => {
 function loadController(values) {
   ReactDOM.render(
     <ListController
-      values={ values }
+      rooms={ values }
     />,
     listContainer
   );
