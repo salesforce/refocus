@@ -2593,10 +2593,10 @@ paths:
                 default: false
             required:
               - name
+              - version
               - author
               - connection
               - transform
-              - isPublished
       responses:
         201:
           description: >-

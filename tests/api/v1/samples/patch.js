@@ -21,20 +21,20 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe('tests/api/v1/samples/patch.js >', () => {
+  let token;
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
   describe(`PATCH ${path} >`, () => {
     let sampleName;
     let sampUpdatedAt;
     let sampleValue;
-    let token;
-
-    before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
 
     beforeEach((done) => {
       u.doSetup()
@@ -327,19 +327,39 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe(`PATCH ${path} aspect isPublished false >`, () => {
+  describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
-    let token;
-
     before((done) => {
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
+      u.doSetup()
+      .then((samp) => Sample.create(samp))
+      .then((samp) => {
+        sampleName = samp.name;
+        samp.getSubject()
+        .then((sub) => {
+          sub.update({ isPublished: false });
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
       })
       .catch(done);
     });
 
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('cannot patch sample if subject not published', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
+
+  describe(`PATCH ${path} aspect isPublished false >`, () => {
+    let sampleName;
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))

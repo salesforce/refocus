@@ -231,7 +231,7 @@ function validateJsonSchema(value) {
     }
 
     if (relLinkNameSet.has(relLink.name)) {
-      throw new Error('Name of the relatedlinks should be unique');
+      throw new Error('Name of the relatedlinks should be unique.');
     } else {
       relLinkNameSet.add(relLink.name);
     }

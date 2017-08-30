@@ -373,14 +373,16 @@ module.exports = function sample(seq, dataTypes) {
        */
       beforeUpdate(inst /* , opts */) {
         if (inst.changed('value')) {
-          return new seq.Promise((resolve, reject) => {
-            if (inst.aspect) {
-              resolve(inst.aspect);
-            } else {
-              inst.getAspect()
-              .then(resolve)
-              .catch(reject);
+          return inst.getSubject()
+          .then((subject) => {
+            if (subject && subject.isPublished) {
+              return inst.aspect ? inst.aspect : inst.getAspect();
             }
+
+            const err = new dbErrors.ResourceNotFoundError();
+            err.resourceType = 'Subject';
+            err.resourceKey = inst.getDataValue('subjectId');
+            throw err;
           })
           .then((aspect) => {
             if (aspect && aspect.getDataValue('isPublished')) {
