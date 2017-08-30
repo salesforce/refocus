@@ -18,6 +18,7 @@ const path = '/v1/roomTypes';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
+const bu = require('../bots/utils');
 
 describe(`tests/api/v1/roomTypes/post.js >`, () => {
   let token;
@@ -26,6 +27,9 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
+    })
+    .then(() => {
+      bu.createStandard();
       done();
     })
     .catch(done);
@@ -33,6 +37,7 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
+  after(bu.forceDelete);
 
   it('Pass, post roomType', (done) => {
     api.post(`${path}`)
@@ -45,6 +50,25 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
+
+  it('Pass, post roomType with a valid Bot', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name];
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(roomtype)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      expect(res.body.bots.length).to.equal(1);
+      expect(res.body.bots[0]).to.equal(bu.name);
       done();
     });
   });
@@ -84,6 +108,42 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain('SCHEMA_VALIDATION_FAILED');
+      done();
+    });
+  });
+
+  it('Fail, bot does not exist', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name + 'a'];
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(roomtype)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain('ResourceNotFoundError');
+      done();
+    });
+  });
+
+  it('Fail, duplicate bots not allowed', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name, bu.name];
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(roomtype)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain('DuplicateBotError');
       done();
     });
   });

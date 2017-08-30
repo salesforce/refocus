@@ -13,11 +13,15 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const bu = require('../bot/utils');
 const RoomType = tu.db.RoomType;
+const Bot = tu.db.Bot;
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/roomType/create.js >', () => {
   afterEach(u.forceDelete);
+  before(bu.createStandard);
+  after(bu.forceDelete);
 
   it('ok, room created', (done) => {
     RoomType.create(u.getStandard())
@@ -26,6 +30,23 @@ describe('tests/db/model/roomType/create.js >', () => {
       expect(o).to.have.property('isEnabled').to.equal(true);
       expect(o).to.have.property('settings');
       expect(o).to.have.property('rules');
+      expect(o).to.have.property('bots');
+      expect(o).to.have.property('bots').to.equal(null);
+      done();
+    })
+  .catch(done);
+  });
+
+  it('ok, room created with a bot', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name];
+    RoomType.create(roomtype)
+    .then((o) => {
+      expect(o).to.have.property('name');
+      expect(o).to.have.property('isEnabled').to.equal(true);
+      expect(o).to.have.property('settings');
+      expect(o).to.have.property('rules');
+      expect(o).to.have.property('bots').to.have.lengthOf(1);
       done();
     })
   .catch(done);
@@ -51,6 +72,30 @@ describe('tests/db/model/roomType/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, bot does not exist', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name + 'a'];
+    RoomType.create(roomtype)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message.toLowerCase()).to.contain('not found');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, cannot have duplicate bots', (done) => {
+    const roomtype = u.getStandard();
+    roomtype.bots = [bu.name, bu.name];
+    RoomType.create(roomtype)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message.toLowerCase()).to.contain('cannot have duplicate bots');
       done();
     })
   .catch(done);

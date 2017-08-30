@@ -97,7 +97,12 @@ paths:
       description: >-
         Find an aspect or aspects. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified. If the Refocus
+        configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /aspects
@@ -215,7 +220,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -1228,8 +1233,10 @@ paths:
       tags: [ collectors ]
       summary: Find a collector or collectors.
       description: >-
-        Find a collector or collectors. You may query using field filters with asterisk (*) wildcards.
-        You may also optionally specify sort, limit, offset, and a list of fields to include in the response.
+        Find a collector or collectors. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified.
       operationId: findCollectors
       parameters:
         -
@@ -1825,9 +1832,14 @@ paths:
       summary: Get a generator or all generators.
       tags: [ generators ]
       description: >-
-        Get a generator or all generators. You may query using field filters with asterisk
-        (*) wildcards. You may also optionally specify sort, limit, offset, and
-        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Get a generator or all generators. You may query using field filters
+        with asterisk (*) wildcards. You may also optionally specify sort,
+        limit, offset, and a list of fields to include in the response. The
+        global default limit will apply if no limit param is specified. If the
+        Refocus configuration parameter `useAccessToken` is set to `true`, you
+        must include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /generators
@@ -1922,7 +1934,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -2416,7 +2428,8 @@ paths:
         Get a generatorTemplate or all generatorTemplates. You may query using
         field filters with asterisk (*) wildcards. You may also optionally
         specify sort, limit, offset, and a list of fields to include in the
-        response. If the Refocus configuration parameter `useAccessToken` is
+        response. The global default limit will apply if no limit param is
+        specified. If the Refocus configuration parameter `useAccessToken` is
         set to `true`, you must include an `Authorization` request header with
         your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the
         value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
@@ -2473,7 +2486,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -3062,7 +3075,12 @@ paths:
       summary: Get all global config items
       tags: [ globalconfig ]
       description: >-
-        Get all global config items. You may optionally specify limit and offset. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        Get all global config items. You may optionally specify limit and offset.
+        The global default limit will apply if no limit param is specified. If
+        the Refocus configuration parameter `useAccessToken` is set to `true`,
+        you must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value.
+        You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /globalconfig
@@ -3240,7 +3258,12 @@ paths:
       description: >-
         Find a lens or lenses. You may query using field filters with asterisk
         (*) wildcards. You may also optionally specify sort, limit, offset, and
-        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        a list of fields to include in the response. The global default limit
+        will apply if no limit param is specified. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value.
+        You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /lenses
@@ -3854,7 +3877,12 @@ paths:
       description: >-
         Find a perspective or perspectives. You may query using field filters
         with asterisk (*) wildcards. You may also optionally specify sort,
-        limit, offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        limit, offset, and a list of fields to include in the response. The
+        global default limit will apply if no limit param is specified. If the
+        Refocus configuration parameter `useAccessToken` is set to `true`, you
+        must include an `Authorization` request header with your
+        [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value.
+        You can get a token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /perspectives
@@ -4536,7 +4564,12 @@ paths:
       description: >-
         Find a profile or profiles. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified. If the Refocus
+        configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /profiles
@@ -5121,7 +5154,12 @@ paths:
       description: >-
         Find a sample or samples. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified. If the Refocus
+        configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /samples
@@ -5742,7 +5780,12 @@ paths:
       description: >-
         Find a subject or subjects. You may query using field filters with
         asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified. If the Refocus
+        configuration parameter `useAccessToken` is set to `true`, you must
+        include an `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /subjects
@@ -5870,7 +5913,7 @@ paths:
           items:
             type: string
             maxLength: 60
-            pattern: ^[0-9A-Za-z_\\-][0-9A-Za-z_]{1,59}$
+            pattern: ^[0-9A-Za-z_-]{1,60}$
           description: >-
              Comma-separated list of tags to include/exclude. Tag names are
              case-insensitive. For example, ?tags=FOO,BAR will only return
@@ -6919,7 +6962,12 @@ paths:
       description: >-
         Find a user or users. You may query using field filters with asterisk
         (*) wildcards. You may also optionally specify sort, limit, offset, and
-        a list of fields to include in the response. If the Refocus configuration parameter `useAccessToken` is set to `true`, you must include an `Authorization` request header with your [JSON Web Token](https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a token using `POST /v1/register` or `POST /v1/tokens`.
+        a list of fields to include in the response. The global default limit
+        will apply if no limit param is specified. If the Refocus configuration
+        parameter `useAccessToken` is set to `true`, you must include an
+        `Authorization` request header with your [JSON Web Token]
+        (https://tools.ietf.org/html/rfc7519) (JWT) as the value. You can get a
+        token using `POST /v1/register` or `POST /v1/tokens`.
       externalDocs:
         description: >-
           GET /users
@@ -8708,6 +8756,11 @@ paths:
                 description: Default rules for roomType
                 items:
                   type: object
+              bots:
+                type: array
+                description: Default bots for roomType
+                items:
+                  type: string
             required:
               - name
       responses:
@@ -8839,6 +8892,11 @@ paths:
                 description: Default rules for roomType
                 items:
                   type: object
+              bots:
+                type: array
+                description: Default bots for roomType
+                items:
+                  type: string
       responses:
         200:
           description: >-
@@ -11335,6 +11393,11 @@ definitions:
         items:
           type: object
         description: Array containing the rules that trigger automations for rooms of this type
+      bots:
+        type: array
+        items:
+          type: string
+        description: Array containing the bots to be used for rooms of this type
 
   BotDataResponse:
     type: object

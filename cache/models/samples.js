@@ -543,7 +543,7 @@ module.exports = {
 
     return db.Subject.findById(reqBody.subjectId)
     .then((subjFromDb) => {
-      if (!subjFromDb) {
+      if (!subjFromDb || !subjFromDb.isPublished) {
         throw new redisErrors.ResourceNotFoundError({
           explanation: 'Subject not found.',
         });

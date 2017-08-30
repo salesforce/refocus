@@ -58,9 +58,7 @@ describe('tests/api/v1/generatorTemplates/postWriters.js > ', () => {
       userNameArray.push(secondUser.name);
       return tu.createThirdUser();
     })
-    .then((tUsr) => {
-      return tu.createTokenFromUserName(tUsr.name);
-    })
+    .then((tUsr) => tu.createTokenFromUserName(tUsr.name))
     .then((tkn) => {
       otherValidToken = tkn;
     })
@@ -71,7 +69,7 @@ describe('tests/api/v1/generatorTemplates/postWriters.js > ', () => {
   after(tu.forceDeleteUser);
 
   it('add writers to the record and make sure the writers are ' +
-    'associated with the right object', (done) => {
+  'associated with the right object', (done) => {
     api.post(postWritersPath.replace('{key}', generatorTemplate.id))
     .set('Authorization', token)
     .send(userNameArray)
@@ -90,8 +88,8 @@ describe('tests/api/v1/generatorTemplates/postWriters.js > ', () => {
     .end(done);
   });
 
-  it('return 403 for adding writers using an user that is not '+
-    'already a writer of that resource', (done) => {
+  it('return 403 for adding writers using an user that is not ' +
+  'already a writer of that resource', (done) => {
     api.post(postWritersPath.replace('{key}', generatorTemplate.id))
     .set('Authorization', otherValidToken)
     .send(userNameArray)
@@ -117,4 +115,3 @@ describe('tests/api/v1/generatorTemplates/postWriters.js > ', () => {
     });
   });
 });
-

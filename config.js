@@ -38,6 +38,8 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
 };
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
   pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
+const corsRoutes = pe.CORS_ROUTES ?
+  pe.CORS_ROUTES.split(',') : ['']; // Routes to allow CORS
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 
@@ -108,6 +110,8 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
+
+const GET_REQUEST_DEFAULT_LIMIT = +pe.GET_REQUEST_DEFAULT_LIMIT || 10000;
 
 module.exports = {
   api: {
@@ -246,4 +250,6 @@ module.exports = {
   rateWindow,
   readReplicas,
   hiddenRoutes,
+  corsRoutes,
+  GET_REQUEST_DEFAULT_LIMIT,
 };

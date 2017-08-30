@@ -12,6 +12,7 @@
 const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
+const semver = require('semver');
 
 const assoc = {};
 
@@ -182,6 +183,41 @@ module.exports = function user(seq, dataTypes) {
     classMethods: {
       getGeneratortemplateAssociations() {
         return assoc;
+      },
+
+      getProfileAccessField() {
+        return 'generatorTemplateAccess';
+      },
+
+      getSemverMatch(name, version) {
+        return GeneratorTemplate.findAll({
+          where: {
+            name,
+          },
+        }).then((templates) => {
+          if (!templates || !templates.length) {
+            return null;
+          }
+
+          let matchedTemplate = null;
+          templates.forEach((template) => {
+            if (matchedTemplate) {
+              /*
+               * ok is true when the current template version satisfies the
+               * given version and the current template version is greater
+               * than or equal(>=) to the version of the matched template
+               * that is returned finally.
+               */
+              const ok = semver.satisfies(template.version, version) &&
+               semver.gte(template.version, matchedTemplate.version);
+              matchedTemplate = ok ? template : matchedTemplate;
+            } else if (semver.satisfies(template.version, version)) {
+              matchedTemplate = template;
+            }
+          });
+
+          return matchedTemplate;
+        });
       },
 
       postImport(models) {
