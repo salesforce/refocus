@@ -17,8 +17,10 @@
 import request from 'superagent';
 const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
+const ROOM_ID = window.location.pathname.split('/rooms/')[1];
+console.log(ROOM_ID);
 const GET_BOTS = '/v1/bots';
-const GET_ROOM = '/v1' + window.location.pathname;
+const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
@@ -58,7 +60,7 @@ function parseBot(bot) {
   // Get the bots section of the page
   const botContainer = document.createElement('div');
   const botScript = document.createElement('script');
-  botContainer.className = 'slds-p-horizontal--small slds-size--1-of-1 slds-medium-size--1-of-2 slds-large-size--1-of-3';
+  botContainer.className = 'slds-large-size--1-of-3';
 
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
@@ -78,7 +80,13 @@ function parseBot(bot) {
     document.body.appendChild(botScript);
   }
 
+  removeSpinner();
 } // parseBots
+
+function removeSpinner() {
+  const spinner = document.getElementById('loading_spinner');
+  spinner.parentNode.removeChild(spinner);
+}
 
 window.onload = () => {
   getPromiseWithUrl(GET_ROOM)

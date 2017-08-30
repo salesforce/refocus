@@ -16,10 +16,25 @@ html
     script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js')
     script(src='http://localhost:5000/public/refocus-bdk.js')
   body
-    div#botsContainer.slds-grid.slds-wrap
+    div.slds-page-header
+      div.slds-grid
+        div.slds-cols.slds-has-flexi-truncate
+          div.slds-media.slds-no-space.slds-grow
+            div.slds-media__body
+              h1.slds-page-header__title.slds-m-right--small.slds-align-middle.slds-truncate
+                Refocus Room #1
+    div.slds-page-header__detail-row
+      div#botsContainer.slds-grid.slds-wrap
+    div#loading_spinner
+      .slds-spinner_container
+        .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
+          span.slds-assistive-text Loading
+          .slds-spinner__dot-a
+          .slds-spinner__dot-b
   script.
     pollingUI('http://localhost:3000/v1/','events',null);
     pollingUI('http://localhost:3000/v1/','botActions',null);
     var trackingId = '#{trackingId}';
   script(src='/static/analytics/app.js')
   script(src='/static/rooms/app.js')
+
