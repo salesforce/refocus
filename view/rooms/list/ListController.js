@@ -13,6 +13,7 @@
  * Passes on data to CreatePerspective
  */
 import React, { PropTypes } from 'react';
+import moment from 'moment';
 
 class ListController extends React.Component {
   constructor(props) {
@@ -21,6 +22,10 @@ class ListController extends React.Component {
 
   render() {
     const rooms = this.props.rooms !== undefined ? this.props.rooms : [];
+    rooms.sort((a, b) => {
+      return moment(b.updatedAt) - moment(a.updatedAt);
+    });
+    const roomTypes = this.props.roomTypes !== undefined ? this.props.roomTypes : [];
     return (
       <div>
         <div className="slds-page-header">
@@ -51,15 +56,24 @@ class ListController extends React.Component {
                 <th scope="col">
                   <div className="slds-truncate" title="active">Active</div>
                 </th>
+                <th scope="col">
+                  <div className="slds-truncate" title="create">Created At</div>
+                </th>
+                <th scope="col">
+                  <div className="slds-truncate" title="updated">Update At</div>
+                </th>
               </tr>
             </thead>
             <tbody>
               {rooms.map((room) => {
+                const roomType = roomTypes.filter((rt) => rt.id === room.type);
                 return <tr>
                   <td><a href={'/rooms/'+room.id}>{room.id}</a></td>
                   <td><a href={'/rooms/'+room.id}>{room.name}</a></td>
-                  <td>{room.type}</td>
+                  <td>{roomType[0].name}</td>
                   <td>{room.active ? 'True' : 'False'}</td>
+                  <td>{moment(room.createdAt).format('LLL')}</td>
+                  <td>{moment(room.updatedAt).format('LLL')}</td>
                 </tr>;
               })}
             </tbody>
@@ -72,6 +86,7 @@ class ListController extends React.Component {
 
 ListController.PropTypes = {
   rooms: PropTypes.object,
+  roomTypes: PropTypes.object,
 };
 
 export default ListController;

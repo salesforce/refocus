@@ -19,6 +19,7 @@ import ReactDOM from 'react-dom';
 import ListController from './ListController';
 const listContainer = document.getElementById('root');
 const GET_ROOMS = '/v1/rooms';
+const GET_ROOMTYPES = '/v1/roomTypes';
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -45,9 +46,16 @@ function getPromiseWithUrl(url) {
 } // getPromiseWithUrl
 
 window.onload = () => {
+  let rooms;
+  let roomTypes;
   getPromiseWithUrl(GET_ROOMS)
   .then((res) => {
-    loadController(res.body);
+    rooms = res.body;
+    return getPromiseWithUrl(GET_ROOMTYPES);
+  })
+  .then((res) => {
+    roomTypes = res.body;
+    loadController(rooms, roomTypes);
   });
 };
 
@@ -56,10 +64,11 @@ window.onload = () => {
  *
  * @param {Object} values Data returned from AJAX.
  */
-function loadController(values) {
+function loadController(rooms, roomTypes) {
   ReactDOM.render(
     <ListController
-      rooms={ values }
+      rooms={ rooms }
+      roomTypes={ roomTypes }
     />,
     listContainer
   );
