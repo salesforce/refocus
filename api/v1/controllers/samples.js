@@ -95,7 +95,7 @@ module.exports = {
   findSamples(req, res, next) {
     // Check if Cache is on for Wildcard Sample query
     if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
-      const query = req.query.name || '';
+      const query = req.query.name;
       helper.cacheEnabled = query && (query.indexOf('*') > -1);
       helper.cacheKey =  helper.cacheEnabled ? query : null;
       helper.cacheExpiry = helper.cacheEnabled ?

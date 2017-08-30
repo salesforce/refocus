@@ -84,25 +84,6 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     .end(done);
   });
 
-  it('get with wildcard and without cacheGetSamplesWildcard flag on ' +
-    'should not cache response', (done) => {
-    api.get(`${path}?name=${sampleName}*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.above(ZERO);
-          done();
-        }
-      });
-    });
-  });
-
   it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
     'shold cache response', (done) => {
     tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
@@ -121,6 +102,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
         expect(JSON.parse(reply).length).to.be.above(ZERO);
         expect(JSON.parse(reply)[0].name).to.equal(`${sampleName}`);
+        redisCache.del(`${sampleName}*`);
         done();
       });
     });
@@ -130,6 +112,26 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     'shold not cache response', (done) => {
     tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get(`${sampleName}`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.above(ZERO);
+          done();
+        }
+      });
+    });
+  });
+
+  it('get with wildcard and without cacheGetSamplesWildcard flag on ' +
+    'should not cache response', (done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
+    api.get(`${path}?name=${sampleName}*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

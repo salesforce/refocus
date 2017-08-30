@@ -77,30 +77,8 @@ describe('tests/cache/models/samples/get.js, ' +
     });
   });
 
-  it('get with wildcard and with cacheGetSamplesWildcard flag off ' +
-    'shold not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-    api.get(`${path}?name=___Subj*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get('___Subj*', (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.equal(3);
-          expect(res.body[0].name).to.equal(s1s2a1);
-          done();
-        }
-
-      });
-    });
-  });
-
   it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
-    'shold cache response', (done) => {
+    'should cache response', (done) => {
     tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=___Subj*`)
     .set('Authorization', token)
@@ -117,13 +95,14 @@ describe('tests/cache/models/samples/get.js, ' +
 
         expect(JSON.parse(reply).length).to.be.equal(3);
         expect(JSON.parse(reply)[0].name).to.equal(s1s2a1);
+        redisCache.del('___Subj*');
         done();
       });
     });
   });
 
   it('get without wildcard and with cacheGetSamplesWildcard flag on ' +
-    'shold not cache response', (done) => {
+    'should not cache response', (done) => {
     tu.toggleOverride('cacheGetSamplesWildcard', true);
     api.get(`${path}?name=___Subject1.___Subject2|___Aspect1`)
     .set('Authorization', token)
@@ -140,6 +119,28 @@ describe('tests/cache/models/samples/get.js, ' +
           expect(res.body[0].name).to.equal(s1s2a1);
           done();
         }
+      });
+    });
+  });
+
+  it('get with wildcard and with cacheGetSamplesWildcard flag off ' +
+    'should not cache response', (done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
+    api.get(`${path}?name=___Subj*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get('___Subj*', (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.equal(3);
+          expect(res.body[0].name).to.equal(s1s2a1);
+          done();
+        }
+
       });
     });
   });
