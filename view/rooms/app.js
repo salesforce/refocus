@@ -85,10 +85,11 @@ function parseBot(bot) {
 } // parseBots
 
 window.onload = () => {
-  document.getElementById("title").innerHTML = "Room #" + ROOM_ID;
+  document.getElementById('title').innerHTML = 'Room #' + ROOM_ID;
 
   getPromiseWithUrl(GET_ROOM)
   .then((res) => {
+    document.getElementById('subTitle').innerHTML = res.body.name;
     return getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);
   })
   .then((res) => {
