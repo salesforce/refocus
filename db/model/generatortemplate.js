@@ -57,7 +57,6 @@ const connectionSchema = {
     method: {
       description: 'The http method',
       enum: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'],
-      required: true,
     },
     url: {
       description: 'The url to connect to. Specify variables for variable ' +
@@ -65,7 +64,6 @@ const connectionSchema = {
       '["url", "toUrl"] is required.',
       type: 'string',
     },
-
     toUrl: {
       description: 'The string body of a function which returns the url ' +
       'to connect to. One of ["url", "toUrl"] is required.',
