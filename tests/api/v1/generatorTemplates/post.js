@@ -59,7 +59,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
     delete _generatorTemplate.author;
     delete _generatorTemplate.connection;
     delete _generatorTemplate.transform;
-    delete _generatorTemplate.isPublished;
+    delete _generatorTemplate.version;
 
     api.post(path)
     .set('Authorization', token)

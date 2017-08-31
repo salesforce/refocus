@@ -70,6 +70,36 @@ describe('tests/cache/models/samples/upsert.js, ' +
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  describe('when subject not present >', () => {
+    // unpublish the subjects
+    beforeEach((done) => {
+      rcli.delAsync(
+        sampleStore.toKey(sampleStore.constants.objectType.subject, subject.absolutePath)
+      )
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('sample upsert returns not found', (done) => { // subject issue
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description)
+        .to.be.equal('subject not found');
+        done();
+      });
+    });
+  });
+
   describe('when aspect not present >', () => {
     // unpublish the aspects
     beforeEach((done) => {
