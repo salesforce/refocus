@@ -16,7 +16,7 @@ const generatorUtils = require('../../../db/helpers/generatorUtils');
 const tu = require('../../testUtils');
 const GlobalConfig = tu.db.GlobalConfig;
 
-describe('tests/db/helpers/sampleUtils.js >', () => {
+describe('tests/db/helpers/generatorUtils.js >', () => {
   const secretKey = 'mySecretKey';
   const algorithm = 'aes-256-cbc';
 
