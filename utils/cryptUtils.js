@@ -7,14 +7,14 @@
  */
 
 /**
- * db/helpers/generatorUtils.js
+ * utils/cryptUtils
  *
- * DB utils for the generator model.
+ * Utils for encryption and decryption needs in refocus
  */
 'use strict'; // eslint-disable-line strict
 
 const crypto = require('crypto');
-const dbConstants = require('../constants');
+const dbConstants = require('../db/constants');
 
 /**
  * Encrypt the given data using passed in secretKey and algorithm

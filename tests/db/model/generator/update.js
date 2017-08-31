@@ -18,7 +18,7 @@ const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
-const generatorUtils = require('../../../../db/helpers/generatorUtils');
+const cryptUtils = require('../../../../utils/cryptUtils');
 const constants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/update.js >', () => {
@@ -238,7 +238,7 @@ describe('tests/db/model/generator/update.js >', () => {
          */
         expect(o.context.password).to.not.equal('newPassword');
         expect(o.context.token).to.not.equal('newToken');
-        return generatorUtils
+        return cryptUtils
           .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
       })
       .then((o) => {

@@ -7,16 +7,16 @@
  */
 
 /**
- * tests/db/helpers/generatorUtils.js
+ * tests/utils/cryptUtils.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
-const dbConstants = require('../../../db/constants');
-const generatorUtils = require('../../../db/helpers/generatorUtils');
-const tu = require('../../testUtils');
+const dbConstants = require('../../db/constants');
+const generatorUtils = require('../../utils/cryptUtils');
+const tu = require('../testUtils');
 const GlobalConfig = tu.db.GlobalConfig;
 
-describe('tests/db/helpers/generatorUtils.js >', () => {
+describe('tests/utils/cryptUtils.js >', () => {
   const secretKey = 'mySecretKey';
   const algorithm = 'aes-256-cbc';
 

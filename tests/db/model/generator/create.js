@@ -17,7 +17,7 @@ const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
-const generatorUtils = require('../../../../db/helpers/generatorUtils');
+const cryptUtils = require('../../../../utils/cryptUtils');
 const dbConstants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/create.js >', () => {
@@ -259,7 +259,7 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(typeof o.getWriters).to.equal('function');
         expect(typeof o.getCollectors).to.equal('function');
-        return generatorUtils
+        return cryptUtils
           .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
       })
       .then((o) => {
@@ -267,8 +267,8 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.context.token).to.equal(token);
         return o.update({ context: { password: 'newPassword' }, });
       })
-      .then((o) => generatorUtils
-      .decryptSGContextValues(GlobalConfig, o, generatorTemplate))
+      .then((o) => cryptUtils
+        .decryptSGContextValues(GlobalConfig, o, generatorTemplate))
       .then((o) => {
         expect(o.context.token).to.equal(undefined);
         expect(o.context.password).to.deep.equal('newPassword');

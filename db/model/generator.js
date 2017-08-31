@@ -10,7 +10,7 @@
  * db/model/generator.js
  */
 const common = require('../helpers/common');
-const generatorUtils = require('../helpers/generatorUtils');
+const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
@@ -155,7 +155,7 @@ module.exports = function generator(seq, dataTypes) {
                 `name: ${gtName} and version: ${gtVersion}`);
             }
 
-            return generatorUtils
+            return cryptUtils
               .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
           });
       }, // beforeCreate
@@ -172,7 +172,7 @@ module.exports = function generator(seq, dataTypes) {
               }
 
               if (inst.changed('context')) {
-                return generatorUtils
+                return cryptUtils
                   .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
               }
 
