@@ -11,6 +11,8 @@
  *
  * DB utils for the generator model.
  */
+'use strict'; // eslint-disable-line strict
+
 const crypto = require('crypto');
 const dbConstants = require('../constants');
 
@@ -77,6 +79,8 @@ function getSGEncryptionKeyAndAlgorithm(globalConfigModel) {
 /**
  * Encrypts the sample generator context values, if the corresponding
  * sample generator template context definition value requires encryption.
+ * If the secret key and algorithm are not found in the global config table
+ * the encryption is not done.
  * @param  {GlobalConfig} globalConfigModel - The global config model
  * @param  {Object} sg - The sample generator object
  * @param  {Object} sgt - The sample generatot template object.
@@ -105,7 +109,9 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
 } // encryptSGContextValues
 
 /**
- * Decrypts the encrypted sample generator context values.
+ * Decrypts the encrypted sample generator context values. If the secret key
+ * and algorithm are not found in the global config table the encryption is
+ * not done.
  * @param  {GlobalConfig} globalConfigModel - The global config model
  * @param  {Object} sg - The sample generator object
  * @param  {Object} sgt - The sample generatot template object.

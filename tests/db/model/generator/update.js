@@ -233,8 +233,8 @@ describe('tests/db/model/generator/update.js >', () => {
         expect(o.generatorTemplate.name).to.equal('newName');
 
         /*
-         * the two asserts belowprove that the encrypted=true fields are
-         * stored as encrypted in the database
+         * the two asserts below, prove that the fields that require encryption
+         * are stored encrypted in the database.
          */
         expect(o.context.password).to.not.equal('newPassword');
         expect(o.context.token).to.not.equal('newToken');

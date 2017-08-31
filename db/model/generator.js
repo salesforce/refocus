@@ -151,8 +151,8 @@ module.exports = function generator(seq, dataTypes) {
         return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
           .then((gt) => {
             if (!gt) {
-              throw new ValidationError('No Generator Template matches name:' +
-                ` ${gtName} and version: ${gtVersion}`);
+              throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
             }
 
             return generatorUtils
@@ -167,8 +167,8 @@ module.exports = function generator(seq, dataTypes) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
             .then((gt) => {
               if (!gt) {
-                throw new ValidationError('No Generator Template matches' +
-                ` name: ${gtName} and version: ${gtVersion}`);
+                throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
               }
 
               if (inst.changed('context')) {
