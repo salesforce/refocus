@@ -83,6 +83,10 @@ function getSGEncryptionKeyAndAlgorithm(globalConfigModel) {
  * @returns {Objec} - sample generator object with encrypted context values
  */
 function encryptSGContextValues(globalConfigModel, sg, sgt) {
+  if (!sg.context || !sgt.contextDefinition) {
+    return Promise.resolve(sg);
+  }
+
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
     if (!config || !config.secretKey || !config.algorithm) {
@@ -90,7 +94,7 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
     }
 
     Object.keys(sgt.contextDefinition).forEach((key) => {
-      if (sgt.contextDefinition[key].encrypted) {
+      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
         sg.context[key] = encrypt(sg.context[key],
           config.secretKey, config.algorithm);
       }
@@ -108,6 +112,10 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
  * @returns {Objec} - sample generator object with decrypted context values
  */
 function decryptSGContextValues(globalConfigModel, sg, sgt) {
+  if (!sg.context || !sgt.contextDefinition) {
+    return Promise.resolve(sg);
+  }
+
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
     if (!config || !config.secretKey || !config.algorithm) {
@@ -115,7 +123,7 @@ function decryptSGContextValues(globalConfigModel, sg, sgt) {
     }
 
     Object.keys(sgt.contextDefinition).forEach((key) => {
-      if (sgt.contextDefinition[key].encrypted) {
+      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
         sg.context[key] = decrypt(sg.context[key],
           config.secretKey, config.algorithm);
       }

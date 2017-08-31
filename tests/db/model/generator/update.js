@@ -9,7 +9,7 @@
 /**
  * tests/db/model/generator/update.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -17,6 +17,8 @@ const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
+const GlobalConfig = tu.db.GlobalConfig;
+const generatorUtils = require('../../../../db/helpers/generatorUtils');
 const constants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/update.js >', () => {
@@ -58,6 +60,17 @@ describe('tests/db/model/generator/update.js >', () => {
     .then(() => Generator.findById(generatorDBInstance.id))
     .then((o) => {
       expect(o.name).to.equal('New_Name');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, context should not be encrypted when global config is not ' +
+    'found', (done) => {
+    generatorDBInstance.update({ context: { password: 'newPassword' } })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then((o) => {
+      expect(o.context.password).to.equal('newPassword');
       done();
     })
     .catch(done);
@@ -177,6 +190,63 @@ describe('tests/db/model/generator/update.js >', () => {
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors.length).to.equal(2);
       done();
+    });
+  });
+
+  describe('with GlobalConfig for SG/SGT added', () => {
+    const secretKey = 'mySecretKey';
+    const algorithm = 'aes-256-cbc';
+    before((done) => {
+      GlobalConfig.create({
+        key: constants.SGEncryptionKey,
+        value: secretKey,
+      })
+      .then(() => GlobalConfig.create({
+        key: constants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    after((done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('ok, updating the encrypted=true fields should be fine', (done) => {
+      sgtDBInstance.update({ name: 'newName', version: '1.2.0' })
+      .then(() => generatorDBInstance.update({
+        generatorTemplate: {
+          name: 'newName',
+          version: '>=1.1.0',
+        },
+        context: {
+          password: 'newPassword',
+          token: 'newToken',
+        },
+      }))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((o) => {
+        expect(o.generatorTemplate.version).to.equal('>=1.1.0');
+        expect(o.generatorTemplate.name).to.equal('newName');
+
+        /*
+         * the two asserts belowprove that the encrypted=true fields are
+         * stored as encrypted in the database
+         */
+        expect(o.context.password).to.not.equal('newPassword');
+        expect(o.context.token).to.not.equal('newToken');
+        return generatorUtils
+          .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
+      })
+      .then((o) => {
+        expect(o.context.password).to.equal('newPassword');
+        expect(o.context.token).to.equal('newToken');
+        done();
+      })
+      .catch(done);
     });
   });
 });

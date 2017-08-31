@@ -9,13 +9,16 @@
 /**
  * tests/db/model/generator/create.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
+const GlobalConfig = tu.db.GlobalConfig;
+const generatorUtils = require('../../../../db/helpers/generatorUtils');
+const dbConstants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
@@ -210,6 +213,68 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(err.message).to.equal('No Generator Template matches ' +
         'name: SomeRandomNameNotFoundInDb and version: 1.0.0');
       done();
+    });
+  });
+
+  describe('with GlobalConfig rows with key and algorithm added', () => {
+    const secretKey = 'mySecretKey';
+    const algorithm = 'aes-256-cbc';
+    before((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: secretKey,
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    after((done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('ok, with globalConfig entry for SGKey and SGAlgorithm, context ' +
+      'values should be encrypted', (done) => {
+      const _g = JSON.parse(JSON.stringify(generator));
+      _g.name += 'withGolbalConfig';
+      const password = _g.context.password;
+      const token = _g.context.token;
+
+      Generator.create(_g)
+      .then((o) => {
+        expect(o.id).to.not.equal(undefined);
+        expect(o.name).to.equal(_g.name);
+        expect(o.description).to.equal(_g.description);
+        expect(o.tags).to.deep.equal(_g.tags);
+        expect(o.helpUrl).to.equal(_g.helpUrl);
+        expect(o.helpEmail).to.equal(_g.helpEmail);
+        expect(o.createdBy).to.equal(_g.createdBy);
+        expect(o.isActive).to.equal(false);
+        expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
+        expect(o.generatorTemplate.version).to.equal('1.0.0');
+        expect(typeof o.getWriters).to.equal('function');
+        expect(typeof o.getCollectors).to.equal('function');
+        return generatorUtils
+          .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
+      })
+      .then((o) => {
+        expect(o.context.password).to.equal(password);
+        expect(o.context.token).to.equal(token);
+        return o.update({ context: { password: 'newPassword' }, });
+      })
+      .then((o) => generatorUtils
+      .decryptSGContextValues(GlobalConfig, o, generatorTemplate))
+      .then((o) => {
+        expect(o.context.token).to.equal(undefined);
+        expect(o.context.password).to.deep.equal('newPassword');
+        done();
+      })
+      .catch(done);
     });
   });
 });
