@@ -11249,7 +11249,7 @@ definitions:
         description: Names of the registered collectors.
         type: array
         items:
-          type: string
+          type: object
       subjects:
         description: AbsolutePaths of the subjects.
         type: array

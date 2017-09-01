@@ -158,7 +158,6 @@ module.exports = function generator(seq, dataTypes) {
     hooks: {
 
       beforeCreate(inst /* , opts */) {
-        console.log(inst)
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
         return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)

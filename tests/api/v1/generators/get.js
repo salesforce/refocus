@@ -28,13 +28,14 @@ const FOUR = 4;
 
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
+  let collector;
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   const generatorOk = u.getGenerator();
 
   // add collectors to generator
-  generatorOk.collectors = [ 'hello', 'world' ];
+  generatorOk.collectors = [{ name: 'hello'}];
   u.createSGtoSGTMapping(generatorTemplate, generatorOk);
 
   const generatorInfo = u.getGenerator();
@@ -52,7 +53,10 @@ describe('tests/api/v1/generators/get.js >', () => {
   before((done) => {
     tu.db.Collector.create({ name: 'hello' })
     .then(() => tu.db.Collector.create({ name: 'world' }))
-    .then(() => tu.createToken())
+    .then((_collector) => {
+      collector = _collector;
+      return tu.createToken();
+    })
     .then((returnedToken) => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
@@ -60,6 +64,10 @@ describe('tests/api/v1/generators/get.js >', () => {
     .then(() => Generator.create(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
+      return gen.addCollectors([collector]);
+    })
+    .then((updatedGenerator) => {
+      console.log('updatedGenerator', updatedGenerator[0][0])
       return Generator.create(generatorInfo);
     })
     .then((gen) => {
@@ -81,11 +89,12 @@ describe('tests/api/v1/generators/get.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('simple GET OK', (done) => {
+  it.only('simple GET OK', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    // .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      console.log(res.body)
       if (err) {
         return done(err);
       }
@@ -177,17 +186,17 @@ describe('tests/api/v1/generators/get.js >', () => {
     });
   });
 
-  it('GET a collector returns only one collectors field, since only ' +
+  it('GET a generator returns only one collectors field, since only ' +
     'one collector is registered');
 
-  it.only('GET a collector returns collectors field', (done) => {
+  it.skip('GET a generator returns collectors field', (done) => {
     const _path = `${path}/${generatorInfo.name.toLowerCase()}`;
     // const _path = '/v1/collectors';
     api.get(_path)
     .set('Authorization', token)
-    // .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      // console.log(res.body)
+      console.log(res.body)
       if (err) {
         return done(err);
       }
