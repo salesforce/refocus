@@ -18,6 +18,7 @@ const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 
 describe('tests/db/model/generator/create.js >', () => {
+  let createdGenerator;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   let userInst;
@@ -28,7 +29,11 @@ describe('tests/db/model/generator/create.js >', () => {
       generator.createdBy = user.id;
       return GeneratorTemplate.create(generatorTemplate);
     })
-    .then(() => done())
+    .then(() => Generator.create(generator))
+    .then((_createdGenerator) => {
+      createdGenerator = _createdGenerator;
+      done();
+    })
     .catch(done);
   });
 
@@ -43,9 +48,8 @@ describe('tests/db/model/generator/create.js >', () => {
       tu.db.Collector.create({ name: 'snow' })
       .then((_collector) => {
         collector = _collector;
-        return Generator.create(generator)
+        return createdGenerator.addCollectors([collector]);
       })
-      .then((gen) => gen.addCollectors([collector]))
       .then((generatorCollectorEntry) => Generator
         .findOne({ where: { name: generator.name }}))
       .then((findresult) => findresult.reload())
@@ -56,8 +60,10 @@ describe('tests/db/model/generator/create.js >', () => {
       .catch(done);
     });
 
+    after(u.forceDeleteCollector);
+
     it('ok, create with one collectors field', () => {
-        expect(relodedGenerator.collectors.length).to.equal(1);
+      expect(relodedGenerator.collectors.length).to.equal(1);
     });
 
     it('get collector returns one collector', (done) => {
@@ -71,30 +77,52 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it.skip('get collectors returns two collectors in the same order they were created',
-    (done) => {
+  describe('with two collectors', () => {
     let collector1 = { name: 'hello' };
     let collector2 = { name: 'world' };
-    Promise.all([
-      tu.db.Collector.create(collector1),
-      tu.db.Collector.create(collector2),
-    ])
-    .then((collectors) => {
-      collector1 = collectors[0];
-      collector2 = collectors[1];
-      return Generator.create(generator);
-    })
-    .then((gen) => gen.addCollectors([collector1, collector2]))
-    .then((generatorCollectorEntry) => Generator
-      .findOne({ where: { name: generator.name }}))
-    .then((findresult) => findresult.getCollectors())
-    .then((collectors) => {
-      expect(collectors.length).to.equal(2);
-      expect(collectors[0].name).to.equal(collector1.name);
-      expect(collectors[1].name).to.equal(collector2.name);
-      done();
-    })
-    .catch(done);
+    let relodedGenerator;
+
+    before((done) => {
+      // expect all the collectors to be gone
+      tu.db.Collector.findAll()
+      .then((results) => {
+        expect(results.length).to.equal(0);
+        return Promise.all([
+          tu.db.Collector.create(collector1),
+          tu.db.Collector.create(collector2),
+        ])
+      })
+      .then((collectors) => {
+        collector1 = collectors[0];
+        collector2 = collectors[1];
+        return createdGenerator.addCollectors([collector1, collector2]);
+      })
+      .then((generatorCollectorEntry) => Generator
+        .findOne({ where: { name: generator.name }}))
+      .then((findresult) => findresult.reload())
+      .then((generator) => {
+        relodedGenerator = generator;
+        done();
+      })
+      .catch(done);
+    });
+
+    after(u.forceDeleteCollector);
+
+    it('ok, create with two collectors field', () => {
+      expect(relodedGenerator.collectors.length).to.equal(2);
+    });
+
+    it('get collector returns two collector', (done) => {
+      relodedGenerator.getCollectors()
+      .then((collectors) => {
+        expect(collectors.length).to.equal(2);
+        expect(collectors[0].name).to.equal(collector1.name);
+        expect(collectors[1].name).to.equal(collector2.name);
+        done();
+      })
+      .catch(done);
+    });
   });
 });
 
