@@ -46,12 +46,11 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('apiLinks in basic get end  with sample name', (done) => {
+  it('apiLinks in basic get end  with sample name', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      console.log(res.body)
       let href = '';
       for (let i = res.body.length - 1; i >= 0; i--) {
         const apiLinks = res.body[i].apiLinks;
