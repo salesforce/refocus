@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/model/generator/createWithCollectors.js
+ * tests/db/model/generator/withCollectors.js
  */
 'use strict';
 const expect = require('chai').expect;
@@ -83,15 +83,10 @@ describe('tests/db/model/generator/create.js >', () => {
     let relodedGenerator;
 
     before((done) => {
-      // expect all the collectors to be gone
-      tu.db.Collector.findAll()
-      .then((results) => {
-        expect(results.length).to.equal(0);
-        return Promise.all([
-          tu.db.Collector.create(collector1),
-          tu.db.Collector.create(collector2),
-        ])
-      })
+      Promise.all([
+        tu.db.Collector.create(collector1),
+        tu.db.Collector.create(collector2),
+      ])
       .then((collectors) => {
         collector1 = collectors[0];
         collector2 = collectors[1];
