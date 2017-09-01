@@ -135,6 +135,18 @@ module.exports = function generator(seq, dataTypes) {
               association: assoc.user,
               attributes: ['name', 'email'],
             },
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
           ],
           order: ['name'],
         }, {
@@ -146,6 +158,7 @@ module.exports = function generator(seq, dataTypes) {
     hooks: {
 
       beforeCreate(inst /* , opts */) {
+        console.log(inst)
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
         return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)

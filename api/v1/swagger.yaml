@@ -11245,6 +11245,11 @@ definitions:
         type: string
         readOnly: true
         description: The query to append to GET subjects.
+      collectors:
+        description: Names of the registered collectors.
+        type: array
+        items:
+          type: string
       subjects:
         description: AbsolutePaths of the subjects.
         type: array
