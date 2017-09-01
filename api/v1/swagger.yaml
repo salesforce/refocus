@@ -11246,7 +11246,7 @@ definitions:
         readOnly: true
         description: The query to append to GET subjects.
       collectors:
-        description: Names of the registered collectors.
+        description: Created collector resources.
         type: array
         items:
           type: object
