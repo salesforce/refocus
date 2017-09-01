@@ -39,4 +39,6 @@ module.exports = {
     Running: 'Running',
     Paused: 'Paused',
   },
+  SGEncryptionKey: 'SampleGeneratorEncryptionKey',
+  SGEncryptionAlgorithm: 'SampleGeneratorEncryptionAlgorithm',
 };
