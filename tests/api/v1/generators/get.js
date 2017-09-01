@@ -28,14 +28,10 @@ const FOUR = 4;
 
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
-  let collector;
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   const generatorOk = u.getGenerator();
-
-  // add collectors to generator
-  generatorOk.collectors = [{ name: 'hello'}];
   u.createSGtoSGTMapping(generatorTemplate, generatorOk);
 
   const generatorInfo = u.getGenerator();
@@ -51,12 +47,7 @@ describe('tests/api/v1/generators/get.js >', () => {
   u.createSGtoSGTMapping(generatorTemplate, generatorWarning);
 
   before((done) => {
-    tu.db.Collector.create({ name: 'hello' })
-    .then(() => tu.db.Collector.create({ name: 'world' }))
-    .then((_collector) => {
-      collector = _collector;
-      return tu.createToken();
-    })
+    tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
@@ -64,10 +55,6 @@ describe('tests/api/v1/generators/get.js >', () => {
     .then(() => Generator.create(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
-      return gen.addCollectors([collector]);
-    })
-    .then((updatedGenerator) => {
-      console.log('updatedGenerator', updatedGenerator[0][0])
       return Generator.create(generatorInfo);
     })
     .then((gen) => {
@@ -89,12 +76,11 @@ describe('tests/api/v1/generators/get.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('simple GET OK', (done) => {
+  it('simple GET OK', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
-    // .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      console.log(res.body)
       if (err) {
         return done(err);
       }
@@ -182,26 +168,6 @@ describe('tests/api/v1/generators/get.js >', () => {
       }
 
       expect(res.body.name).to.equal(generatorInfo.name);
-      done();
-    });
-  });
-
-  it('GET a generator returns only one collectors field, since only ' +
-    'one collector is registered');
-
-  it.skip('GET a generator returns collectors field', (done) => {
-    const _path = `${path}/${generatorInfo.name.toLowerCase()}`;
-    // const _path = '/v1/collectors';
-    api.get(_path)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      console.log(res.body)
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.collectors.length).to.equal(2);
       done();
     });
   });
