@@ -24,7 +24,6 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
-const FOUR = 4;
 
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
@@ -42,10 +41,6 @@ describe('tests/api/v1/generators/get.js >', () => {
   genWithTwoCollectors.name = 'refocus-critical-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithTwoCollectors);
 
-  const generatorWarning = u.getGenerator();
-  generatorWarning.name = 'refocus-warning-generator';
-  u.createSGtoSGTMapping(generatorTemplate, generatorWarning);
-
   let collector1 = { name: 'hello' };
   let collector2 = { name: 'world' };
 
@@ -55,8 +50,8 @@ describe('tests/api/v1/generators/get.js >', () => {
       tu.db.Collector.create(collector2),
     ])
     .then((collectors) => {
-      collector1 = collectors[0];
-      collector2 = collectors[1];
+      collector1 = collectors[ZERO];
+      collector2 = collectors[ONE];
     })
     .then(() => tu.createToken())
     .then((returnedToken) => {
@@ -95,13 +90,13 @@ describe('tests/api/v1/generators/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body).to.have.lengthOf(3);
+      expect(res.body).to.have.lengthOf(THREE);
       expect(res.body[ZERO].collectors.length).to.equal(TWO);
-      expect(res.body[ZERO].collectors[0].name).to.equal(collector1.name);
-      expect(res.body[ZERO].collectors[1].name).to.equal(collector2.name);
+      expect(res.body[ZERO].collectors[ZERO].name).to.equal(collector1.name);
+      expect(res.body[ZERO].collectors[ONE].name).to.equal(collector2.name);
       expect(res.body[ZERO].id).to.not.equal(undefined);
       expect(res.body[ONE].collectors.length).to.equal(ONE);
-      expect(res.body[ONE].collectors[0].name).to.equal(collector1.name);
+      expect(res.body[ONE].collectors[ZERO].name).to.equal(collector1.name);
       expect(res.body[ONE].id).to.not.equal(undefined);
       expect(res.body[TWO].collectors.length).to.equal(ZERO);
       expect(res.body[TWO].id).to.not.equal(undefined);
@@ -109,8 +104,7 @@ describe('tests/api/v1/generators/get.js >', () => {
     });
   });
 
-  it('get individual generator yields non-empty collectors field',
-    (done) => {
+  it('get individual generator yields non-empty collectors field', (done) => {
     api.get(`${path}/${genWithTwoCollectors.id}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -120,8 +114,8 @@ describe('tests/api/v1/generators/get.js >', () => {
       }
 
       expect(res.body.collectors.length).to.equal(TWO);
-      expect(res.body.collectors[0].name).to.equal(collector1.name);
-      expect(res.body.collectors[1].name).to.equal(collector2.name);
+      expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
+      expect(res.body.collectors[ONE].name).to.equal(collector2.name);
       done();
     });
   });
