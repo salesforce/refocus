@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
 const pub = require('../cache/redisCache').client.pubPerspective;
-const channelName = require('../config').redis.channelName;
+const channelName = require('../config').redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
 

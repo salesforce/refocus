@@ -18,7 +18,7 @@ const common = require('../helpers/common');
 
 const assoc = {};
 const roomEventNames = {
-  add: 'refocus.internal.realtime.room.add',
+  add: 'refocus.internal.realtime.bot.namespace.initialize',
   upd: 'refocus.internal.realtime.room.settingsChanged',
   del: 'refocus.internal.realtime.room.remove',
 };
@@ -80,6 +80,10 @@ module.exports = function room(seq, dataTypes) {
         return RoomType.findById(instance.type)
         .then((roomType) => {
           instance.settings = roomType.settings;
+          const changedKeys = Object.keys(instance._changed);
+          const ignoreAttributes = ['isDeleted'];
+          return common.publishChange(instance, roomEventNames.add, changedKeys,
+              ignoreAttributes);
         });
       },
 

@@ -27,6 +27,8 @@ const filters = ['aspectFilter',
                   'statusFilter',
                 ];
 
+const botAbsolutePath = '/Bots';
+
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
@@ -193,6 +195,45 @@ function applyFilter(filterString, objValues) {
   return true;
 }
 
+function perspectiveEmit(nspComponents, obj){
+  const aspectFilter = nspComponents[constants.aspectFilterIndex];
+  const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
+  const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
+  const statusFilter = nspComponents[constants.statusFilterIndex];
+
+      /*
+     * When none of the filters are set, the nspComponent just has the
+     * subjectAbsolutePath in it, so we do not have to check for the filter
+     * conditions and we just need to return true.
+     */
+  if (nspComponents.length < 2) {
+    return true;
+  }
+
+    /*
+     * if this is a subject object, just apply the subjcTagFilter and return
+     * the results
+     */
+  if (isThisSubject(obj)) {
+    return applyFilter(subjectTagFilter, obj.tags);
+  }
+
+    // apply all the filters and return the result
+  return applyFilter(aspectFilter, obj.aspect.name) &&
+      applyFilter(subjectTagFilter, obj.subject.tags) &&
+      applyFilter(aspectTagFilter, obj.aspect.tags) &&
+      applyFilter(statusFilter, obj.status);
+}
+
+function botEmit(nspComponents, obj){
+  const room = nspComponents[constants.roomFilterIndex];
+
+  if (isRoom(obj)) {
+    return applyFilter(room, obj.name);
+  }
+  return false;
+}
+
 /**
  * The decision to emit an object over a namespace identified by the nspString
  * variable happens here. The nspString is decoded to various filters and the
@@ -208,46 +249,17 @@ function shouldIEmitThisObj(nspString, obj) {
   // extract all the components that makes up a namespace.
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
-  const aspectFilter = nspComponents[constants.aspectFilterIndex];
-  const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
-  const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
-  const statusFilter = nspComponents[constants.statusFilterIndex];
-  const room = nspComponents[constants.roomFilterIndex];
-
-  // extract the subject absolute path from the message object
   const absolutePathObj = '/' + obj.absolutePath;
 
   if ((absolutePathObj).startsWith(absPathNsp)) {
-    /*
-     * When none of the filters are set, the nspComponent just has the
-     * subjectAbsolutePath in it, so we do not have to check for the filter
-     * conditions and we just need to return true.
-     */
-    if (nspComponents.length <= 2) {
-      return true;
-    }
-
-    /*
-     * if this is a subject object, just apply the subjcTagFilter and return
-     * the results
-     */
-    if (isThisSubject(obj)) {
-      return applyFilter(subjectTagFilter, obj.tags);
-    }
-
-    if (isRoom(obj)) {
-      return applyFilter(room, obj.name);
-    }
-
-    // apply all the filters and return the result
-    return applyFilter(aspectFilter, obj.aspect.name) &&
-      applyFilter(subjectTagFilter, obj.subject.tags) &&
-      applyFilter(aspectTagFilter, obj.aspect.tags) &&
-      applyFilter(statusFilter, obj.status);
+    return perspectiveEmit(nspComponents, obj);
+  } else if (absPathNsp === botAbsolutePath) {
+    return botEmit(nspComponents, obj);
   }
 
   return false;
 }
+
 
 /**
  * When passed a perspective object, it returns a namespace string based on the
@@ -286,7 +298,7 @@ function getPerspectiveNamespaceString(inst) {
  * @returns {String} - namespace string.
  */
 function getBotsNamespaceString(inst) {
-  let namespace = '/';
+  let namespace = botAbsolutePath;
 
   if (isRoom(inst)) {
     namespace += constants.filterSeperator + inst.name;

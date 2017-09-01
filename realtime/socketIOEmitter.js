@@ -13,15 +13,20 @@
 'use strict'; // eslint-disable-line strict
 
 const rtUtils = require('./utils');
-const initEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
+const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
+const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {
   // newObjectAsString contains { key: {new: obj }}
   const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
   // Initialize namespace when perspective initialize namespace event is sent
-  if (key.startsWith(initEvent)) {
+  if (key.startsWith(initPerspectiveEvent)) {
     rtUtils.initializePerspectiveNamespace(obj, io);
+  }
+
+  if (key.startsWith(initBotEvent)) {
+    rtUtils.initializeBotNamespace(obj, io);
   }
 
   for (const nsp in io.nsps) {

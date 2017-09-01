@@ -144,13 +144,13 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('for should return true for roomTest', () => {
         const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest))
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest, true))
         .to.equal(true);
       });
 
-      it('should return false for some randomSubjectRoom', () => {
+      it('should return false for some random absolutePath', () => {
         const nspString = '/SomRandomRoom';
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest))
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest, true))
           .to.equal(false);
       });
     });
@@ -164,7 +164,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('for roomTest', () => {
         const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
-        expect(nspString).to.equal('/&' + roomTest.name);
+        expect(nspString).to.equal('/Bots&' + roomTest.name);
       });
 
       it('for perspective persNA', () => {
