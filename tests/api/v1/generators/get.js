@@ -32,6 +32,9 @@ describe('tests/api/v1/generators/get.js >', () => {
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   const generatorOk = u.getGenerator();
+
+  // add collectors to generator
+  generatorOk.collectors = [ 'hello', 'world' ];
   u.createSGtoSGTMapping(generatorTemplate, generatorOk);
 
   const generatorInfo = u.getGenerator();
@@ -47,7 +50,9 @@ describe('tests/api/v1/generators/get.js >', () => {
   u.createSGtoSGTMapping(generatorTemplate, generatorWarning);
 
   before((done) => {
-    tu.createToken()
+    tu.db.Collector.create({ name: 'hello' })
+    .then(() => tu.db.Collector.create({ name: 'world' }))
+    .then(() => tu.createToken())
     .then((returnedToken) => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
@@ -168,6 +173,26 @@ describe('tests/api/v1/generators/get.js >', () => {
       }
 
       expect(res.body.name).to.equal(generatorInfo.name);
+      done();
+    });
+  });
+
+  it('GET a collector returns only one collectors field, since only ' +
+    'one collector is registered');
+
+  it.only('GET a collector returns collectors field', (done) => {
+    const _path = `${path}/${generatorInfo.name.toLowerCase()}`;
+    // const _path = '/v1/collectors';
+    api.get(_path)
+    .set('Authorization', token)
+    // .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      // console.log(res.body)
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.collectors.length).to.equal(2);
       done();
     });
   });
