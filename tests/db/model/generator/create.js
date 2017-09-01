@@ -48,9 +48,60 @@ describe('tests/db/model/generator/create.js >', () => {
     expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
   });
 
+  it.skip('ok, create with one collectors field', (done) => {
+    let collector;
+    tu.db.Collector.create({ name: 'snow' })
+    .then((_collector) => {
+      collector = _collector;
+      return Generator.create(generator)
+    })
+    // .then((gen) => gen.addCollectors([collector]))
+    // .then((generatorCollectorEntry) => Generator
+    //   .findOne({ where: { name: generator.name }}))
+    // .then((findresult) => findresult.reload())
+    // .then((result) => {
+    //   expect(result.collectors.length).to.equal(1);
+    //   done();
+    // })
+    .catch((err) => {
+      console.log(err)
+      done(err)
+    });
+  });
+
+//       return o.getWriters();
+    // })
+    // .then((writers) => {
+
+  it('ok, create with two collectors field', (done) => {
+    const generatorCopy = JSON.parse(JSON.stringify(u.getGenerator()));
+    generatorCopy.name = 'two collectors';
+    let collector1;
+    let collector2;
+    Promise.all([
+      tu.db.Collector.create({ name: 'hello' }),
+      tu.db.Collector.create({ name: 'world' }),
+    ])
+    // .then((collectors) => {
+    //   collector1 = collectors[0];
+    //   collector2 = collectors[1];
+    //   return Generator.create(generatorCopy);
+    // })
+    // .then((gen) => gen.addCollectors([collector1, collector2]))
+    // .then((generatorCollectorEntry) => Generator
+    //   .findOne({ where: { name: generatorCopy.name }}))
+    // .then((findresult) => findresult.reload())
+    // .then((result) => {
+    //   expect(result.collectors.length).to.equal(2);
+    //   done();
+    // })
+    .catch(done);
+  });
+
   it('ok, create with all fields', (done) => {
     Generator.create(generator)
     .then((o) => {
+      expect(o.collectors).to.be.undefined;
       expect(o.id).to.not.equal(undefined);
       expect(o.name).to.equal(generator.name);
       expect(o.description).to.equal(generator.description);
