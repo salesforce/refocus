@@ -26,7 +26,56 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const decryptSGContextValues = require('../../../utils/cryptUtils')
+                                .decryptSGContextValues;
+const encrypt = require('../../../utils/cryptUtils').encrypt;
+const GlobalConfig = require('../../../db/index').GlobalConfig;
+const encryptionAlgoForCollector = require('../../../config')
+                                    .encryptionAlgoForCollector;
 const ZERO = 0;
+
+/**
+ * Decrypt sample generator context values marked as 'encrypted' in sample
+ * generator template. Then, encrypt the values again with secret key, which is
+ * a combination of collector auth token and timestamp.
+ * @param  {Object}   sg - Sample generator having generator template as an
+ * attribute.
+ * @param  {String}   authToken - Collector authentication token
+ * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
+ * @return {Object} Sample generator with reencrypted context values.
+ */
+function reEncryptSGContextValues(sg, authToken, timestamp) {
+  if (!authToken || !timestamp) {
+    const err = new apiErrors.ValidationError({
+      explanation: 'Collector authentication token or timestamp not ' +
+      'available to encrypt the context values',
+    });
+    return Promise.reject(err);
+  }
+
+  if (!sg.generatorTemplate) {
+    const err = new apiErrors.ValidationError({
+      explanation: 'Sample generator template not found in sample generator.',
+    });
+    return Promise.reject(err);
+  }
+
+  const sgt = sg.generatorTemplate;
+  return decryptSGContextValues(GlobalConfig, sg, sgt)
+  .then((sampleGenerator) => { // sample generator with decrypted context values
+    const secretKey = authToken + timestamp;
+
+    Object.keys(sgt.contextDefinition).forEach((key) => {
+      if (sgt.contextDefinition[key].encrypted) {
+        // encrypt context values in sample generator
+        sampleGenerator.context[key] = encrypt(sampleGenerator.context[key],
+          secretKey, encryptionAlgoForCollector);
+      }
+    });
+
+    return sampleGenerator; // reencrypted sample generator
+  });
+}
 
 /**
  * Register a collector. Access restricted to Refocus Collector only.
@@ -140,6 +189,7 @@ function heartbeat(req, res, next) {
    * TODO populate generatorsAdded
    * - look up any new generators assigned to this collector since the last
    *   heartbeat
+   * - reEncrypt context values using reEncryptSGContextValues function
    */
 
   /*
@@ -152,6 +202,7 @@ function heartbeat(req, res, next) {
    * TODO populate generatorsUpdated
    * - for generators which were already assigned to this collector, look up
    *   any changes made to the generator since the last heartbeat
+   * - reEncrypt context values using reEncryptSGContextValues function
    */
 
   res.status(httpStatus.OK).json(retval);
@@ -295,4 +346,5 @@ module.exports = {
   getCollectorWriter,
   deleteCollectorWriter,
   deleteCollectorWriters,
+  reEncryptSGContextValues, // exporting for testing purposes only
 };
