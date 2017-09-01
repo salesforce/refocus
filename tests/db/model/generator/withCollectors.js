@@ -50,7 +50,7 @@ describe('tests/db/model/generator/create.js >', () => {
         collector = _collector;
         return createdGenerator.addCollectors([collector]);
       })
-      .then((generatorCollectorEntry) => Generator
+      .then(() => Generator
         .findOne({ where: { name: generator.name }}))
       .then((findresult) => findresult.reload())
       .then((generator) => {
@@ -92,7 +92,7 @@ describe('tests/db/model/generator/create.js >', () => {
         collector2 = collectors[1];
         return createdGenerator.addCollectors([collector1, collector2]);
       })
-      .then((generatorCollectorEntry) => Generator
+      .then(() => Generator
         .findOne({ where: { name: generator.name }}))
       .then((findresult) => findresult.reload())
       .then((generator) => {
