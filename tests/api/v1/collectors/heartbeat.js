@@ -69,7 +69,6 @@ describe('tests/api/v1/collectors/heartbeat.js > ' +
     .then(() => cryptUtils.encryptSGContextValues(GlobalConfig,
         looksLikeSG, looksLikeSGT))
     .then((sg) => {
-      // console.log(sg);
       encryptedSG = sg;
       encryptedSG.generatorTemplate = looksLikeSGT;
 

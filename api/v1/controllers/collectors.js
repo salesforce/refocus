@@ -29,7 +29,7 @@ const httpStatus = require('../constants').httpStatus;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
                                 .decryptSGContextValues;
 const encrypt = require('../../../utils/cryptUtils').encrypt;
-const GlobalConfig = require('../../../db/index').GlobalConfig;
+const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const encryptionAlgoForCollector = require('../../../config')
                                     .encryptionAlgoForCollector;
 const ZERO = 0;
