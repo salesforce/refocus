@@ -23,6 +23,11 @@ const dbConstants = require('../../../../db/constants');
 describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+  const gtWithEncryption = gtUtil.getGeneratorTemplate();
+  gtWithEncryption.name = 'gtWithEncryption';
+  gtWithEncryption.contextDefinition.password.encrypted = true;
+  gtWithEncryption.contextDefinition.token.encrypted = true;
+
   let userInst;
   before((done) => {
     tu.createUser('GeneratorOwner')
@@ -31,6 +36,7 @@ describe('tests/db/model/generator/create.js >', () => {
       generator.createdBy = user.id;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => GeneratorTemplate.create(gtWithEncryption))
     .then(() => done())
     .catch(done);
   });
@@ -216,6 +222,25 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
+  it('not ok, cannot create a generator with encrypted filed ' +
+    'when key/algo not found in global config', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.generatorTemplate.name = gtWithEncryption.name;
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.message).to.equal('Unable to save this Sample Generator ' +
+        'with encrypted context data. Please contact your Refocus ' +
+        'administrator to set up the encryption algorithm and key to ' +
+        'protect any sensitive information you may include in ' +
+        'your Sample Generator\'s context');
+      done();
+    });
+  });
+
   describe('with GlobalConfig rows with key and algorithm added', () => {
     const secretKey = 'mySecretKey';
     const algorithm = 'aes-256-cbc';
@@ -242,6 +267,7 @@ describe('tests/db/model/generator/create.js >', () => {
       'values should be encrypted', (done) => {
       const _g = JSON.parse(JSON.stringify(generator));
       _g.name += 'withGolbalConfig';
+      _g.generatorTemplate.name = gtWithEncryption.name;
       const password = _g.context.password;
       const token = _g.context.token;
 
@@ -255,12 +281,12 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.helpEmail).to.equal(_g.helpEmail);
         expect(o.createdBy).to.equal(_g.createdBy);
         expect(o.isActive).to.equal(false);
-        expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
+        expect(o.generatorTemplate.name).to.equal('gtWithEncryption');
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(typeof o.getWriters).to.equal('function');
         expect(typeof o.getCollectors).to.equal('function');
         return cryptUtils
-          .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
+          .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
       })
       .then((o) => {
         expect(o.context.password).to.equal(password);
@@ -268,7 +294,7 @@ describe('tests/db/model/generator/create.js >', () => {
         return o.update({ context: { password: 'newPassword' }, });
       })
       .then((o) => cryptUtils
-        .decryptSGContextValues(GlobalConfig, o, generatorTemplate))
+        .decryptSGContextValues(GlobalConfig, o, gtWithEncryption))
       .then((o) => {
         expect(o.context.token).to.equal(undefined);
         expect(o.context.password).to.deep.equal('newPassword');

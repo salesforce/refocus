@@ -156,7 +156,10 @@ module.exports = function generator(seq, dataTypes) {
             }
 
             return cryptUtils
-              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
+              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+              .catch((err) => {
+                throw new ValidationError(err);
+              });
           });
       }, // beforeCreate
 
@@ -171,12 +174,11 @@ module.exports = function generator(seq, dataTypes) {
                 `name: ${gtName} and version: ${gtVersion}`);
               }
 
-              if (inst.changed('context')) {
-                return cryptUtils
-                  .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
-              }
-
-              return inst;
+              return cryptUtils
+                .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                .catch((err) => {
+                  throw new ValidationError(err);
+                });
             });
         }
 

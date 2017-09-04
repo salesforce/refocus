@@ -24,6 +24,11 @@ const constants = require('../../../../db/constants');
 describe('tests/db/model/generator/update.js >', () => {
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+  const gtWithEncryption = gtUtil.getGeneratorTemplate();
+  gtWithEncryption.name = 'gtWithEncryption';
+  gtWithEncryption.contextDefinition.password.encrypted = true;
+  gtWithEncryption.contextDefinition.token.encrypted = true;
+
   let generatorDBInstance;
   let sgtDBInstance;
   const collectorObj1 = {
@@ -33,7 +38,8 @@ describe('tests/db/model/generator/update.js >', () => {
     name: 'collector2',
   };
   before((done) => {
-    GeneratorTemplate.create(generatorTemplate)
+    GeneratorTemplate.create(gtWithEncryption)
+    .then(() => GeneratorTemplate.create(generatorTemplate))
     .then((o) => {
       sgtDBInstance = o;
       return Generator.create(generator);
@@ -193,6 +199,28 @@ describe('tests/db/model/generator/update.js >', () => {
     });
   });
 
+  it('not ok, cannot switch to a generatorTemplate that has encrypted ' +
+    'fields when global config key and algo pair is not set', (done) => {
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: gtWithEncryption.name,
+        version: '1.0.0',
+      }
+    })
+    .then(() => {
+      done('Expecting Validation Error');
+    })
+    .catch((err) => {
+      expect(err.message).to.equal('Unable to save this Sample Generator ' +
+        'with encrypted context data. Please contact your Refocus ' +
+        'administrator to set up the encryption algorithm and key to ' +
+        'protect any sensitive information you may include in ' +
+        'your Sample Generator\'s context');
+      expect(err.name).to.contain('ValidationError');
+      done();
+    });
+  });
+
   describe('with GlobalConfig for SG/SGT added', () => {
     const secretKey = 'mySecretKey';
     const algorithm = 'aes-256-cbc';
@@ -219,8 +247,8 @@ describe('tests/db/model/generator/update.js >', () => {
       sgtDBInstance.update({ name: 'newName', version: '1.2.0' })
       .then(() => generatorDBInstance.update({
         generatorTemplate: {
-          name: 'newName',
-          version: '>=1.1.0',
+          name: gtWithEncryption.name,
+          version: '1.0.0',
         },
         context: {
           password: 'newPassword',
@@ -229,8 +257,8 @@ describe('tests/db/model/generator/update.js >', () => {
       }))
       .then(() => Generator.findById(generatorDBInstance.id))
       .then((o) => {
-        expect(o.generatorTemplate.version).to.equal('>=1.1.0');
-        expect(o.generatorTemplate.name).to.equal('newName');
+        expect(o.generatorTemplate.version).to.equal('1.0.0');
+        expect(o.generatorTemplate.name).to.equal(gtWithEncryption.name);
 
         /*
          * the two asserts below, prove that the fields that require encryption
@@ -239,7 +267,7 @@ describe('tests/db/model/generator/update.js >', () => {
         expect(o.context.password).to.not.equal('newPassword');
         expect(o.context.token).to.not.equal('newToken');
         return cryptUtils
-          .decryptSGContextValues(GlobalConfig, o, generatorTemplate);
+          .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
       })
       .then((o) => {
         expect(o.context.password).to.equal('newPassword');
