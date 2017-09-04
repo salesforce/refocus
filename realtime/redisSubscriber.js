@@ -65,15 +65,16 @@ module.exports = (io) => {
       logger.info('Size of the bot received by the subscriber',
         mssgStr.length);
     }
+
     // message object to be sent to the clients
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
 
-      /*
-       * pass on the message received through the redis subscriber to the socket
-       * io emitter to send data
-       */
+    /*
+     * pass on the message received through the redis subscriber to the socket
+     * io emitter to send data
+     */
     emitter(io, key, parsedObj);
   });
 };

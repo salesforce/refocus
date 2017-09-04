@@ -188,49 +188,50 @@ function applyFilter(filterString, objValues) {
     /*
      * if any of the values in the objValueArr is found in the filterValueSet
      * return false
-     */
+    */
     return !isPresent(filterValueSet, objValueArr);
   }
 
   return true;
 }
 
-function perspectiveEmit(nspComponents, obj){
+function perspectiveEmit(nspComponents, obj) {
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
 
-      /*
-     * When none of the filters are set, the nspComponent just has the
-     * subjectAbsolutePath in it, so we do not have to check for the filter
-     * conditions and we just need to return true.
-     */
+  /*
+   * When none of the filters are set, the nspComponent just has the
+   * subjectAbsolutePath in it, so we do not have to check for the filter
+   * conditions and we just need to return true.
+  */
   if (nspComponents.length < 2) {
     return true;
   }
 
-    /*
-     * if this is a subject object, just apply the subjcTagFilter and return
-     * the results
-     */
+  /*
+   * if this is a subject object, just apply the subjcTagFilter and return
+   * the results
+   */
   if (isThisSubject(obj)) {
     return applyFilter(subjectTagFilter, obj.tags);
   }
 
-    // apply all the filters and return the result
+  // apply all the filters and return the result
   return applyFilter(aspectFilter, obj.aspect.name) &&
       applyFilter(subjectTagFilter, obj.subject.tags) &&
       applyFilter(aspectTagFilter, obj.aspect.tags) &&
       applyFilter(statusFilter, obj.status);
 }
 
-function botEmit(nspComponents, obj){
+function botEmit(nspComponents, obj) {
   const room = nspComponents[constants.roomFilterIndex];
 
   if (isRoom(obj)) {
     return applyFilter(room, obj.name);
   }
+
   return false;
 }
 
@@ -259,7 +260,6 @@ function shouldIEmitThisObj(nspString, obj) {
 
   return false;
 }
-
 
 /**
  * When passed a perspective object, it returns a namespace string based on the

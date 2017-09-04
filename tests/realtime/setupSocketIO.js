@@ -46,9 +46,8 @@ describe('tests/realtime/setupSocketIO.js, socket.io setup >', () => {
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
         statusFilterType: 'INCLUDE',
-      })).then(() => {
-        return tu.db.RoomType.create(u.getStandardRoomType());
-      }).then((roomType) => {
+      })).then(() => tu.db.RoomType.create(u.getStandardRoomType()))
+      .then((roomType) => {
         const room = u.getStandardRoom();
         room.type = roomType.id;
         return tu.db.Room.create(room);
@@ -82,9 +81,6 @@ describe('tests/realtime/setupSocketIO.js, socket.io setup >', () => {
       socketIOSetup.init(io)
       .then((sio) => {
         // init should return a socketio io object
-        expect(sio.nsps).to.be.an('object');
-        console.log("**************************************")
-        console.log(sio.nsps)
         // the returned socketio object must contain the initialized namespace
         expect(sio.nsps).to.have.all.keys([
           '/',
