@@ -15,10 +15,6 @@
 
 const crypto = require('crypto');
 const dbConstants = require('../db/constants');
-const message = 'Unable to save this Sample Generator with encrypted '+
-  'context data. Please contact your Refocus administrator to set ' +
-  'up the encryption algorithm and key to protect any sensitive information '
-  + 'you may include in your Sample Generator\'s context';
 
 /**
  * Encrypt the given data using passed in secretKey and algorithm
@@ -98,14 +94,15 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
     const isKeyAlgoConfigured =
-      config && config.secretKey && config.algorithm
+      config && config.secretKey && config.algorithm;
     for (const key in sgt.contextDefinition) {
       if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
         if (isKeyAlgoConfigured) {
           sg.context[key] = encrypt(sg.context[key], config.secretKey,
             config.algorithm);
         } else {
-          return Promise.reject(message);
+          return Promise.reject('Cannot encrypt the text without the ' +
+            'secretKey and algorithm');
         }
       }
     }
@@ -125,7 +122,7 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
  */
 function decryptSGContextValues(globalConfigModel, sg, sgt) {
   if (!sg.context || !sgt.contextDefinition) {
-    return sg;
+    return Promise.resolve(sg);
   }
 
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
@@ -138,7 +135,8 @@ function decryptSGContextValues(globalConfigModel, sg, sgt) {
           sg.context[key] = decrypt(sg.context[key], config.secretKey,
             config.algorithm);
         } else {
-          return Promise.reject(message);
+          return Promise.reject('Cannot decrypt the text without the ' +
+            'secretKey and algorithm');
         }
       }
     }

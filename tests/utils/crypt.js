@@ -147,11 +147,8 @@ describe('tests/utils/cryptUtils.js >', () => {
         done('Expecting unable to save this Sample Generator Error');
       })
       .catch((err) => {
-        expect(err).to.contain('Unable to save this Sample Generator ' +
-          'with encrypted context data. Please contact your Refocus ' +
-          'administrator to set up the encryption algorithm and key ' +
-          'to protect any sensitive information you may include in your ' +
-          'Sample Generator\'s context');
+        expect(err).to.contain('Cannot encrypt the text without the ' +
+          'secretKey and algorithm');
         done();
       })
       ;
@@ -201,11 +198,8 @@ describe('tests/utils/cryptUtils.js >', () => {
         done('Expecting unable to save this Sample Generator Error');
       })
       .catch((err) => {
-        expect(err).to.contain('Unable to save this Sample Generator ' +
-          'with encrypted context data. Please contact your Refocus ' +
-          'administrator to set up the encryption algorithm and key ' +
-          'to protect any sensitive information you may include in your ' +
-          'Sample Generator\'s context');
+        expect(err).to.contain('Cannot encrypt the text without the ' +
+            'secretKey and algorithm');
         done();
       });
     });

@@ -12,7 +12,8 @@
 const common = require('../helpers/common');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
-const ValidationError = require('../dbErrors').ValidationError;
+const dbErrors = require('../dbErrors');
+const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
 const generatorTemplateSchema = {
@@ -157,8 +158,8 @@ module.exports = function generator(seq, dataTypes) {
 
             return cryptUtils
               .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
-              .catch((err) => {
-                throw new ValidationError(err);
+              .catch(() => {
+                throw new dbErrors.NoSGKeyAlgoPairFound();
               });
           });
       }, // beforeCreate
@@ -176,8 +177,8 @@ module.exports = function generator(seq, dataTypes) {
 
               return cryptUtils
                 .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
-                .catch((err) => {
-                  throw new ValidationError(err);
+                .catch(() => {
+                  throw new dbErrors.NoSGKeyAlgoPairFound();
                 });
             });
         }
