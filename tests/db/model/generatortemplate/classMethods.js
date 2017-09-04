@@ -16,7 +16,7 @@ const u = require('./utils');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 
 describe('tests/db/model/generatortemplate/classMethods.js >', () => {
-  const gt = JSON.parse(JSON.stringify(u.getGeneratorTemplate()));
+  const gt = u.getGeneratorTemplate();
 
   after(u.forceDelete);
 
