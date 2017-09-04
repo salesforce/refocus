@@ -15,6 +15,10 @@
 
 const crypto = require('crypto');
 const dbConstants = require('../db/constants');
+const message = 'Unable to save this Sample Generator with encrypted '+
+  'context data. Please contact your Refocus administrator to set ' +
+  'up the encryption algorithm and key to protect any sensitive information '
+  + 'you may include in your Sample Generator\'s context';
 
 /**
  * Encrypt the given data using passed in secretKey and algorithm
@@ -71,7 +75,7 @@ function getSGEncryptionKeyAndAlgorithm(globalConfigModel) {
     });
   })
   .then((gc) => {
-    sgObj.algorithm = gc && gc.value ? gc.value : null;
+    sgObj.algorithm = gc ? gc.value : null;
     return sgObj;
   });
 } // getSGEncryptionKeyAndAlgorithm
@@ -93,16 +97,18 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
 
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
-    if (!config || !config.secretKey || !config.algorithm) {
-      return sg;
-    }
-
-    Object.keys(sgt.contextDefinition).forEach((key) => {
+    const isKeyAlgoConfigured =
+      config && config.secretKey && config.algorithm
+    for (const key in sgt.contextDefinition) {
       if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
-        sg.context[key] = encrypt(sg.context[key],
-          config.secretKey, config.algorithm);
+        if (isKeyAlgoConfigured) {
+          sg.context[key] = encrypt(sg.context[key], config.secretKey,
+            config.algorithm);
+        } else {
+          return Promise.reject(message);
+        }
       }
-    });
+    }
 
     return sg;
   });
@@ -119,21 +125,23 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
  */
 function decryptSGContextValues(globalConfigModel, sg, sgt) {
   if (!sg.context || !sgt.contextDefinition) {
-    return Promise.resolve(sg);
+    return sg;
   }
 
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
-    if (!config || !config.secretKey || !config.algorithm) {
-      return sg;
-    }
-
-    Object.keys(sgt.contextDefinition).forEach((key) => {
+    const isKeyAlgoConfigured =
+      config && config.secretKey && config.algorithm;
+    for (const key in sgt.contextDefinition) {
       if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
-        sg.context[key] = decrypt(sg.context[key],
-          config.secretKey, config.algorithm);
+        if (isKeyAlgoConfigured) {
+          sg.context[key] = decrypt(sg.context[key], config.secretKey,
+            config.algorithm);
+        } else {
+          return Promise.reject(message);
+        }
       }
-    });
+    }
 
     return sg;
   });

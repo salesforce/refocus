@@ -143,14 +143,18 @@ describe('tests/utils/cryptUtils.js >', () => {
       GlobalConfig.destroy({ truncate: true, force: true })
       .then(() => generatorUtils.encryptSGContextValues(GlobalConfig,
         looksLikeSG, looksLikeSGT))
-      .then((sg) => {
-        expect(sg).to.not.equal(undefined);
-        expect(sg.context.otherNonSecretInformation).to
-          .equal(otherNonSecretInformation);
-        expect(sg.context.secretInformation).to.equal(secretInformation);
-        expect(sg.context.password).to.equal(password);
+      .then(() => {
+        done('Expecting unable to save this Sample Generator Error');
+      })
+      .catch((err) => {
+        expect(err).to.contain('Unable to save this Sample Generator ' +
+          'with encrypted context data. Please contact your Refocus ' +
+          'administrator to set up the encryption algorithm and key ' +
+          'to protect any sensitive information you may include in your ' +
+          'Sample Generator\'s context');
         done();
-      }).catch(done);
+      })
+      ;
     });
 
     it('when SGEncryptionAlgorithm is not found, encryption should ' +
@@ -193,14 +197,17 @@ describe('tests/utils/cryptUtils.js >', () => {
       .then((o) => o.destroy())
       .then(() => generatorUtils.encryptSGContextValues(GlobalConfig,
         looksLikeSG, looksLikeSGT))
-      .then((sg) => {
-        expect(sg).to.not.equal(undefined);
-        expect(sg.context.otherNonSecretInformation).to
-          .equal(otherNonSecretInformation);
-        expect(sg.context.secretInformation).to.equal(secretInformation);
-        expect(sg.context.password).to.equal(password);
+      .then(() => {
+        done('Expecting unable to save this Sample Generator Error');
+      })
+      .catch((err) => {
+        expect(err).to.contain('Unable to save this Sample Generator ' +
+          'with encrypted context data. Please contact your Refocus ' +
+          'administrator to set up the encryption algorithm and key ' +
+          'to protect any sensitive information you may include in your ' +
+          'Sample Generator\'s context');
         done();
-      }).catch(done);
+      });
     });
   });
 });
