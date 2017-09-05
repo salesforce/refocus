@@ -108,7 +108,7 @@ describe('tests/cache/models/samples/get.js, ' +
 
   it('get without wildcard and with cacheGetSamplesWildcard flag on ' +
     'should not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesWildcard', true);
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     api.get(`${path}?name=___Subject1.___Subject2|___Aspect1`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
