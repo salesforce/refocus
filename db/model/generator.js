@@ -10,6 +10,7 @@
  * db/model/generator.js
  */
 const common = require('../helpers/common');
+const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
@@ -148,16 +149,14 @@ module.exports = function generator(seq, dataTypes) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
         return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
-          .then((ret) => {
-            if (!ret) {
-              throw new ValidationError('No Generator Template matches name:' +
-                ` ${gtName} and version: ${gtVersion}`);
+          .then((gt) => {
+            if (!gt) {
+              throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
             }
 
-            /*
-             * TODO: go through the context definition and encrypt the
-             * related context fields in the generator
-             */
+            return cryptUtils
+              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
           });
       }, // beforeCreate
 
@@ -166,16 +165,18 @@ module.exports = function generator(seq, dataTypes) {
         const gtVersion = inst.generatorTemplate.version;
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
-            .then((ret) => {
-              if (!ret) {
+            .then((gt) => {
+              if (!gt) {
                 throw new ValidationError('No Generator Template matches ' +
                 `name: ${gtName} and version: ${gtVersion}`);
               }
 
-              /*
-               * TODO: go through the context definition and encrypt the related
-               * context fields in the generator
-               */
+              if (inst.changed('context')) {
+                return cryptUtils
+                  .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
+              }
+
+              return inst;
             });
         }
 
