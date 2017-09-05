@@ -113,6 +113,10 @@ const queueStatsActivityLogsInterval = 60000;
 
 const GET_REQUEST_DEFAULT_LIMIT = +pe.GET_REQUEST_DEFAULT_LIMIT || 10000;
 
+// encryption/decryption algorithm used for securing the context variables when
+// sent to collector.
+const encryptionAlgoForCollector = 'aes-256-cbc';
+
 module.exports = {
   api: {
     defaults: {
@@ -252,4 +256,5 @@ module.exports = {
   hiddenRoutes,
   corsRoutes,
   GET_REQUEST_DEFAULT_LIMIT,
+  encryptionAlgoForCollector,
 };
