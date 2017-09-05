@@ -25,7 +25,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 
-describe('tests/api/v1/generators/get.js >', () => {
+describe('tests/api/v1/generators/getWithCollector.js >', () => {
   let token;
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
