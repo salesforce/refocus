@@ -211,7 +211,7 @@ function perspectiveEmit(nspComponents, obj) {
   }
 
   /*
-   * if this is a subject object, just apply the subjecTagFilter and return
+   * if this is a subject object, just apply the subjectTagFilter and return
    * the results
    */
   if (isThisSubject(obj)) {
