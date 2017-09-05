@@ -96,7 +96,8 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
     const isKeyAlgoConfigured =
       config && config.secretKey && config.algorithm;
     for (const key in sgt.contextDefinition) {
-      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
+      if (sgt.contextDefinition.hasOwnProperty(key) &&
+        sgt.contextDefinition[key].encrypted && sg.context[key]) {
         if (isKeyAlgoConfigured) {
           sg.context[key] = encrypt(sg.context[key], config.secretKey,
             config.algorithm);
@@ -130,7 +131,8 @@ function decryptSGContextValues(globalConfigModel, sg, sgt) {
     const isKeyAlgoConfigured =
       config && config.secretKey && config.algorithm;
     for (const key in sgt.contextDefinition) {
-      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
+      if (sgt.contextDefinition.hasOwnProperty(key) &&
+        sgt.contextDefinition[key].encrypted && sg.context[key]) {
         if (isKeyAlgoConfigured) {
           sg.context[key] = decrypt(sg.context[key], config.secretKey,
             config.algorithm);
