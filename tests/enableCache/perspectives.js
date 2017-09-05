@@ -21,6 +21,8 @@ const expect = require('chai').expect;
 const redisCache = require('../../cache/redisCache').client.cache;
 const ZERO = 0;
 const ONE = 1;
+const pe = process.env;
+const enableApiActivityLogs = pe.ENABLE_API_ACTIVITY_LOGS;
 
 describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   let lensId;
@@ -76,17 +78,54 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   });
 
   it('basic get, response present in cache', (done) => {
-    redisCache.get('{\"where\":{}}', (cacheErr, reply) => {
-      if (reply) {
-        const jsonReply = JSON.parse(reply);
-        expect(jsonReply).to.have.length(ONE);
-        expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
-        expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
-
-        done();
-      } else {
-        throw new Error('Expected response value in cache');
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
       }
+
+      redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+        if (reply) {
+          const jsonReply = JSON.parse(reply);
+          expect(jsonReply).to.have.length(ONE);
+          expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
+          expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
+
+          done();
+        } else {
+          console.log(cacheErr);
+          throw new Error('Expected response value in cache');
+        }
+      });
+    });
+  });
+
+  it('basic get, response present in cache with enableApiActivityLogs',
+    (done) => {
+    tu.toggleOverride('enableApiActivityLogs', true);
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+        if (reply) {
+          const jsonReply = JSON.parse(reply);
+          expect(jsonReply).to.have.length(ONE);
+          expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
+          expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
+          tu.toggleOverride('enableApiActivityLogs', enableApiActivityLogs);
+          done();
+        } else {
+          console.log(cacheErr);
+          throw new Error('Expected response value in cache');
+        }
+      });
     });
   });
 
@@ -108,11 +147,20 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   });
 
   it('get with limit and sort, response not present in cache', (done) => {
-    redisCache.get('{"order":["name"],"limit":10,"where":{}}',
+    api.get(path + '?limit=10&sort=name')
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        done(err);
+      }
+
+      redisCache.get('{"order":["name"],"limit":10,"where":{}}',
       (cacheErr, reply) => {
         expect(reply).to.not.exist;
         done();
       });
+    });
   });
 
   it('basic get by id', (done) => {

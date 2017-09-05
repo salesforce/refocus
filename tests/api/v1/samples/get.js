@@ -20,6 +20,9 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const pe = process.env;
+const cacheGetSamplesByNameWildcard =
+  pe.CACHE_GET_SAMPLES_BY_NAME_WILDCARD;
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
@@ -103,6 +106,9 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         expect(JSON.parse(reply).length).to.be.above(ZERO);
         expect(JSON.parse(reply)[0].name).to.equal(`${sampleName}`);
         redisCache.del(`${sampleName}*`);
+
+        tu.toggleOverride('cacheGetSamplesByNameWildcard',
+          cacheGetSamplesByNameWildcard);
         done();
       });
     });
@@ -122,6 +128,9 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       redisCache.get(`${sampleName}`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.above(ZERO);
+
+          tu.toggleOverride('cacheGetSamplesByNameWildcard',
+          cacheGetSamplesByNameWildcard);
           done();
         }
       });
@@ -142,6 +151,9 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.above(ZERO);
+
+          tu.toggleOverride('cacheGetSamplesByNameWildcard',
+          cacheGetSamplesByNameWildcard);
           done();
         }
       });

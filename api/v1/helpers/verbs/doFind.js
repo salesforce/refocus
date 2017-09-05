@@ -110,7 +110,6 @@ function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
  */
 module.exports = function doFind(req, res, next, props) {
   const opts = fu.options(req.swagger.params, props);
-  const cacheKey = JSON.stringify(opts);
 
   // Check if Cache is on or not
   if (props.cacheEnabled) {

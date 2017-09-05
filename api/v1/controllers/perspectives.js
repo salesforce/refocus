@@ -25,6 +25,8 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const featureToggles = require('feature-toggles');
+const config = require('../../../config');
+const fu = require('../helpers/verbs/findUtils');
 
 module.exports = {
 
@@ -79,8 +81,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
-    helper.cacheEnabled = featureToggles
-    .isFeatureEnabled('enableCachePerspective');
+    // Caching perspective
+    if (featureToggles
+      .isFeatureEnabled('enableCachePerspective') &&
+      Object.keys(req.query).length === 0) {
+      helper.cacheEnabled = true;
+      helper.cacheKey = req.url;
+      helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
+    }
+
     doFind(req, res, next, helper);
   },
 
