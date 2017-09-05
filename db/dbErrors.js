@@ -96,7 +96,7 @@ dbErrors.create({
 dbErrors.create({
   code: 10118,
   status: 400,
-  name: 'NoSGKeyAlgoPairFound',
+  name: 'SampleGeneratorContextEncryptionError',
   parent: dbErrors.ValidationError,
   defaultMessage: 'Unable to save this Sample Generator with encrypted ' +
   'context data. Please contact your Refocus administrator to set ' +

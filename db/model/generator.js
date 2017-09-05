@@ -159,7 +159,7 @@ module.exports = function generator(seq, dataTypes) {
             return cryptUtils
               .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
               .catch(() => {
-                throw new dbErrors.NoSGKeyAlgoPairFound();
+                throw new dbErrors.SampleGeneratorContextEncryptionError();
               });
           });
       }, // beforeCreate
@@ -178,7 +178,7 @@ module.exports = function generator(seq, dataTypes) {
               return cryptUtils
                 .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
                 .catch(() => {
-                  throw new dbErrors.NoSGKeyAlgoPairFound();
+                  throw new dbErrors.SampleGeneratorContextEncryptionError();
                 });
             });
         }

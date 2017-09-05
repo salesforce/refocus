@@ -231,7 +231,7 @@ describe('tests/db/model/generator/create.js >', () => {
       done(' Error: Expecting GeneratorTemplate not found error');
     })
     .catch((err) => {
-      expect(err.name).to.equal('NoSGKeyAlgoPairFound');
+      expect(err.name).to.equal('SampleGeneratorContextEncryptionError');
       expect(err.message).to.equal('Unable to save this Sample Generator ' +
         'with encrypted context data. Please contact your Refocus ' +
         'administrator to set up the encryption algorithm and key to ' +

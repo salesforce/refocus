@@ -216,7 +216,7 @@ describe('tests/db/model/generator/update.js >', () => {
         'administrator to set up the encryption algorithm and key to ' +
         'protect any sensitive information you may include in ' +
         'your Sample Generator\'s context');
-      expect(err.name).to.contain('NoSGKeyAlgoPairFound');
+      expect(err.name).to.contain('SampleGeneratorContextEncryptionError');
       done();
     });
   });
