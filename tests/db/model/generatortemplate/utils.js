@@ -44,6 +44,16 @@ const GT_SIMPLE = {
       default: '0',
       description: 'An ok sample\'s value, e.g. \'0\'',
     },
+    password: {
+      required: false,
+      description: 'password required to log in',
+      encrypted: true,
+    },
+    token: {
+      required: false,
+      description: 'token required to be passed on to the header',
+      encrypted: true,
+    },
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',

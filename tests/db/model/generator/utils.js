@@ -27,10 +27,11 @@ const GENERATOR_SIMPLE = {
   },
   context: {
     okValue: {
-      required: false,
       default: '0',
       description: 'An ok sample\'s value, e.g. \'0\'',
     },
+    password: 'superlongandsupersecretpassword',
+    token: 'alphanumerictoken',
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
