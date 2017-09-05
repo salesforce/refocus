@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/utils/cryptUtils.js
+ * tests/utils/crypt.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
