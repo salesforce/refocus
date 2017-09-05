@@ -303,4 +303,48 @@ describe('tests/db/model/generator/create.js >', () => {
       .catch(done);
     });
   });
+
+  describe('GlobalConfig rows with wrong encrytion algorithm', () => {
+    const secretKey = 'mySecretKey';
+    const algorithm = 'aes-256-invalid-algorithm';
+    beforeEach((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: secretKey,
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach((done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('not ok, should throw an error when trying to encrypt with ' +
+      'wrong algorithm', (done) => {
+      const _g = JSON.parse(JSON.stringify(generator));
+      _g.name += 'withGolbalConfig';
+      _g.generatorTemplate.name = gtWithEncryption.name;
+
+      Generator.create(_g)
+      .then(() => {
+        done(' Error: Expecting GeneratorTemplate not found error');
+      })
+      .catch((err) => {
+        expect(err.name).to.equal('SampleGeneratorContextEncryptionError');
+        expect(err.message).to.equal('Unable to save this Sample Generator ' +
+          'with encrypted context data. Please contact your Refocus ' +
+          'administrator to set up the encryption algorithm and key to ' +
+          'protect any sensitive information you may include in ' +
+          'your Sample Generator\'s context');
+        done();
+      });
+    });
+  });
 });
