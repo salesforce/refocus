@@ -7,7 +7,7 @@
  */
 
 /**
- * utils/cryptUtils
+ * utils/cryptUtils.js
  *
  * Utils for encryption and decryption needs in refocus
  */
