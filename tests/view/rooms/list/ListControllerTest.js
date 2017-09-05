@@ -31,29 +31,29 @@ describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
 
   it('2 rooms in list', () => {
     const rooms = [
-  	  {
-  	    id: '1',
-  		name: 'TestRoom',
-  		type: 'ID1',
-  		active: true,
-  		createdAt: moment(),
- 		updatedAt: moment(),
+      {
+        id: '1',
+        name: 'TestRoom',
+        type: 'ID1',
+        active: true,
+        createdAt: moment(),
+        updatedAt: moment(),
   	  },
   	  {
-  		id: '2',
-  		name: 'TestRoom2',
-  		type: 'ID1',
-  		active: true,
-  		createdAt: moment(),
-  		updatedAt: moment(),
-  	  },
-  	];
-  	const roomTypes = [
-  	  {
-	  	id: 'ID1',
-	    name: 'RoomType',
-  	  }
-  	];
+        id: '2',
+        name: 'TestRoom2',
+        type: 'ID1',
+        active: true,
+        createdAt: moment(),
+        updatedAt: moment(),
+      },
+    ];
+    const roomTypes = [
+      {
+        id: 'ID1',
+        name: 'RoomType',
+      }
+    ];
     const listComponent = TestUtils.renderIntoDocument(
       <ListController
       	rooms={rooms}
