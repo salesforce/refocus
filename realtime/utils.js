@@ -188,7 +188,7 @@ function applyFilter(filterString, objValues) {
     /*
      * if any of the values in the objValueArr is found in the filterValueSet
      * return false
-    */
+     */
     return !isPresent(filterValueSet, objValueArr);
   }
 
@@ -211,7 +211,7 @@ function perspectiveEmit(nspComponents, obj) {
   }
 
   /*
-   * if this is a subject object, just apply the subjcTagFilter and return
+   * if this is a subject object, just apply the subjecTagFilter and return
    * the results
    */
   if (isThisSubject(obj)) {
@@ -220,9 +220,9 @@ function perspectiveEmit(nspComponents, obj) {
 
   // apply all the filters and return the result
   return applyFilter(aspectFilter, obj.aspect.name) &&
-      applyFilter(subjectTagFilter, obj.subject.tags) &&
-      applyFilter(aspectTagFilter, obj.aspect.tags) &&
-      applyFilter(statusFilter, obj.status);
+    applyFilter(subjectTagFilter, obj.subject.tags) &&
+    applyFilter(aspectTagFilter, obj.aspect.tags) &&
+    applyFilter(statusFilter, obj.status);
 }
 
 function botEmit(nspComponents, obj) {
