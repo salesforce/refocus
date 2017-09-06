@@ -21,9 +21,10 @@ const assoc = {};
  * Replicated here from api/v1/helpers/verbs/utils.js
  */
 function whereClauseForNameInArr(arr) {
+  const SEQ_IN = '$in';
   const whr = {};
   whr.name = {};
-  whr.name['$in'] = arr;
+  whr.name[SEQ_IN] = arr;
   return whr;
 } // whereClauseForNameInArr
 
@@ -176,11 +177,19 @@ module.exports = function generator(seq, dataTypes) {
         const options = {};
         let collectors; // will be populate with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);
-        return new seq.Promise((resolve, reject) => {
-          return seq.models.Collector.findAll(options)
+        return new seq.Promise((resolve, reject) =>
+          seq.models.Collector.findAll(options)
           .then((_collectors) => {
             collectors = _collectors;
-            if (collectors.length === requestBody.collectors.length) {
+
+            /**
+             * If requestBody does not have a collectors field, OR
+             * if the number of collectors in requestBody MATCH the
+             * GET result, create the generator.
+             * Else throw error since there are collectors that don't exist.
+             */
+            if (!requestBody.collectors ||
+              (collectors.length === requestBody.collectors.length)) {
               return Generator.create(requestBody);
             }
 
@@ -192,8 +201,8 @@ module.exports = function generator(seq, dataTypes) {
           .then((createdGenerator) => createdGenerator.addCollectors(collectors))
           .then(() => Generator.findOne({ where: { name: requestBody.name } }))
           .then((findresult) => resolve(findresult.reload()))
-          .catch((err) => reject(err));
-        });
+          .catch((err) => reject(err))
+        );
       },
     },
 

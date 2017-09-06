@@ -40,7 +40,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     .then((collectors) => {
       collector1 = collectors[ZERO];
       collector2 = collectors[ONE];
-      return tu.createToken()
+      return tu.createToken();
     })
     .then((returnedToken) => {
       token = returnedToken;
