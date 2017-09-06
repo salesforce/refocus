@@ -180,13 +180,7 @@ module.exports = function generator(seq, dataTypes) {
           return seq.models.Collector.findAll(options)
           .then((_collectors) => {
             collectors = _collectors;
-
-            /**
-             * need to do this so the attached collectors are in the same
-             * order as the GET collectors result
-             */
-            collectors.reverse();
-            if (_collectors.length === requestBody.collectors.length) {
+            if (collectors.length === requestBody.collectors.length) {
               return Generator.create(requestBody);
             }
 

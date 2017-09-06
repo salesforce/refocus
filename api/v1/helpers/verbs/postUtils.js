@@ -55,7 +55,6 @@ function makePostPromise(params, props, req) {
 
     // cache is off and returnUser is false.
     if (props.modelName === 'Generator') {
-      console.log('in makePostPromise', toPost.collectors);
       return props.model.createWithCollectors(toPost);
     }
 

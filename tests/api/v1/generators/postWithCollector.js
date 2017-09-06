@@ -40,8 +40,6 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     .then((collectors) => {
       collector1 = collectors[ZERO];
       collector2 = collectors[ONE];
-      generator.collectors = [collector1.name, collector2.name];
-      console.log('generator collectors', generator.collectors)
       return tu.createToken()
     })
     .then((returnedToken) => {
@@ -55,13 +53,12 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('404 error for request body including a non-exitent collector');
-  it('404 error for request body including an unregistered collector');
-
   it('simple post returns collectors field', (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [collector1.name, collector2.name];
     api.post(path)
     .set('Authorization', token)
-    .send(generator)
+    .send(localGenerator)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
@@ -71,6 +68,44 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       expect(res.body.collectors.length).to.equal(TWO);
       expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
       expect(res.body.collectors[ONE].name).to.equal(collector2.name);
+      done();
+    });
+  });
+
+  it('404 error for request body with an non-exitent collector',
+    (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = ['iDontExist'];
+    api.post(path)
+    .set('Authorization', token)
+    .send(localGenerator)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+      expect(res.body.errors[0].source).to.equal('Generator');
+      done();
+    });
+  });
+
+  it('404 error for request body with an existing and a non-exitent collector',
+    (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [collector1.name, 'iDontExist'];
+    api.post(path)
+    .set('Authorization', token)
+    .send(localGenerator)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+      expect(res.body.errors[0].source).to.equal('Generator');
       done();
     });
   });
