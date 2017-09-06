@@ -16,6 +16,11 @@ const eventsQueue = require(
 );
 
 describe('tests/view/perspectives/eventsQueue.js, event queue >', () => {
+  before((done) => {
+    eventsQueue.queue = [];
+    done();
+  });
+
   after((done) => {
     eventsQueue.queue.splice(0, eventsQueue.queue.length);
     done();
