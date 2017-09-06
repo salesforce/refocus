@@ -58,18 +58,19 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   it('404 error for request body including a non-exitent collector');
   it('404 error for request body including an unregistered collector');
 
-  it.only('simple post returns collectors field', (done) => {
+  it('simple post returns collectors field', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generator)
-    // .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
-      console.log(res.body)
       if (err) {
         return done(err);
       }
 
-      // expect(res.body.collectors.length).to.equal(TWO);
+      expect(res.body.collectors.length).to.equal(TWO);
+      expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
+      expect(res.body.collectors[ONE].name).to.equal(collector2.name);
       done();
     });
   });

@@ -300,7 +300,7 @@ function whereClauseForNameInArr(arr) {
   whr.name = {};
   whr.name[constants.SEQ_IN] = arr;
   return whr;
-} // whereClauseForNameOrId
+} // whereClauseForNameInArr
 
 /**
  * A function that throws resource not found error if an array passed

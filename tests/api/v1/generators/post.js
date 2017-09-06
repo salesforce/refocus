@@ -41,7 +41,7 @@ describe('tests/api/v1/generators/post.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('simple post OK', (done) => {
+  it('simple post OK', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generator)

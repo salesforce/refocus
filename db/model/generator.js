@@ -10,13 +10,23 @@
  * db/model/generator.js
  */
 const common = require('../helpers/common');
-const u = require('../../api/v1/helpers/verbs/utils');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
+
+/**
+ * Replicated here from api/v1/helpers/verbs/utils.js
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+  whr.name = {};
+  whr.name['$in'] = arr;
+  return whr;
+} // whereClauseForNameInArr
+
 const generatorTemplateSchema = {
   properties: {
     name: {
@@ -137,6 +147,18 @@ module.exports = function generator(seq, dataTypes) {
               association: assoc.user,
               attributes: ['name', 'email'],
             },
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
           ],
           order: ['name'],
         }, {
@@ -153,13 +175,30 @@ module.exports = function generator(seq, dataTypes) {
       createWithCollectors(requestBody, user) {
         const options = {};
         let collectors; // will be populate with actual collectors
-        options.where = u.whereClauseForNameInArr(requestBody.collectors || []);
+        options.where = whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) => {
           return seq.models.Collector.findAll(options)
           .then((_collectors) => {
             collectors = _collectors;
-            resolve(Generator.create(requestBody));
-          });
+
+            /**
+             * need to do this so the attached collectors are in the same
+             * order as the GET collectors result
+             */
+            collectors.reverse();
+            if (_collectors.length === requestBody.collectors.length) {
+              return Generator.create(requestBody);
+            }
+
+            const err = new dbErrors.ResourceNotFoundError();
+            err.resourceType = 'Collector';
+            err.resourceKey = requestBody.collectors;
+            throw err;
+          }) // if successful create, add collectors
+          .then((createdGenerator) => createdGenerator.addCollectors(collectors))
+          .then(() => Generator.findOne({ where: { name: requestBody.name } }))
+          .then((findresult) => resolve(findresult.reload()))
+          .catch((err) => reject(err));
         });
       },
     },
