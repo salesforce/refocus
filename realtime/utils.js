@@ -41,16 +41,14 @@ function isThisSubject(obj) {
 }
 
 /**
- * A function to see if an object is a room object or not. It returns true
- * if an object passed has 'type' and 'settings' as its property.
+ * A function to see if an instance is an instance of a room
+ * Checks the name from the model
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has the property
- * "type" && "settings"
+ * @returns {Boolean} - returns true if the name singular is room
  */
-function isRoom(obj) {
-  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
+function isRoom(inst) {
+  return inst.$modelOptions.name.singular === 'Room';
 }
-
 /**
  * A function to see if an object is a sample object or not. It returns true
  * if an object passed has 'value' as one of its property.
@@ -195,6 +193,16 @@ function applyFilter(filterString, objValues) {
   return true;
 }
 
+/**
+ * The decision to emit an object over a namespace identified by the nspComponents
+ * variable happens here. The nspComponents are decoded to various filters and the
+ * filters are compared with the obj to decide whether this object should be
+ * emitted over the namespace identified by the nspComponents variable
+ * @param  {String} nspComponents - array of namespace strings for filtering
+ * @param  {Object} obj - Object that is to be emitted to the client
+ * @returns {Boolean} - true if this obj is to be emitted over this namespace
+ * identified by this namespace string.
+ */
 function perspectiveEmit(nspComponents, obj) {
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
@@ -225,6 +233,16 @@ function perspectiveEmit(nspComponents, obj) {
     applyFilter(statusFilter, obj.status);
 }
 
+/**
+ * The decision to emit an object over a namespace identified by the nspComponents
+ * variable happens here. The nspComponents are decoded to various filters and the
+ * filters are compared with the obj to decide whether this object should be
+ * emitted over the namespace identified by the nspComponents variable
+ * @param  {String} nspComponents - array of namespace strings for filtering
+ * @param  {Object} obj - Object that is to be emitted to the client
+ * @returns {Boolean} - true if this obj is to be emitted over this namespace
+ * identified by this namespace string.
+ */
 function botEmit(nspComponents, obj) {
   const room = nspComponents[constants.roomFilterIndex];
 
@@ -236,16 +254,14 @@ function botEmit(nspComponents, obj) {
 }
 
 /**
- * The decision to emit an object over a namespace identified by the nspString
- * variable happens here. The nspString is decoded to various filters and the
- * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspString variable
- * @param  {String} nspString - A namespace string, that identifies a
- * socketio namespace
- * @param  {Object} obj - Object that is to be emitted to the client
- * @returns {Boolean} - true if this obj is to be emitted over this namespace
- * identified by this namespace string.
- */
+  * Splits up the nspString into its components and decides if it is a bot
+  * or a perspective that needs to be emitted
+  * @param  {String} nspString - A namespace string, that identifies a
+  * socketio namespace
+  * @param  {Object} obj - Object that is to be emitted to the client
+  * @returns {Boolean} - true if this obj is to be emitted over this namespace
+  * identified by this namespace string.
+  */
 function shouldIEmitThisObj(nspString, obj) {
   // extract all the components that makes up a namespace.
   const nspComponents = nspString.split(constants.filterSeperator);
@@ -444,5 +460,6 @@ module.exports = {
   parseObject,
   shouldIEmitThisObj,
   isThisSample,
+  isRoom,
   attachAspectSubject,
 }; // exports
