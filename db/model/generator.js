@@ -136,6 +136,18 @@ module.exports = function generator(seq, dataTypes) {
               association: assoc.user,
               attributes: ['name', 'email'],
             },
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
           ],
           order: ['name'],
         }, {
