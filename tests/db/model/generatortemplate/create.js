@@ -17,7 +17,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
 describe('tests/db/model/generatortemplate/create.js >', () => {
-  const gt = JSON.parse(JSON.stringify(u.getGeneratorTemplate()));
+  const gt = u.getGeneratorTemplate();
   let userInst;
   beforeEach((done) => {
     tu.createUser('GTOwner')
@@ -90,7 +90,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('ok, no writers when createdBy is not specified', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     delete _gt.createdBy;
     GeneratorTemplate.create(_gt)
     .then((o) => {
@@ -107,11 +107,11 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('ok, create multiple generator templates', (done) => {
-    const gtSecond = JSON.parse(JSON.stringify(gt));
+    const gtSecond = u.getGeneratorTemplate();
     gtSecond.name = 'Second';
-    const gtThird = JSON.parse(JSON.stringify(gt));
+    const gtThird = u.getGeneratorTemplate();
     gtThird.name = 'Third';
-    const gtFourth = JSON.parse(JSON.stringify(gt));
+    const gtFourth = u.getGeneratorTemplate();
     gtFourth.name = 'Fourh';
     GeneratorTemplate.bulkCreate([gt, gtSecond, gtThird, gtFourth])
     .then(() => GeneratorTemplate.findAll())
@@ -124,7 +124,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
 
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.connection.randomAttribute = 'random';
     GeneratorTemplate.create(_gt)
     .then(() => {
@@ -155,7 +155,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('version not ok, when version = 11', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.version = '11';
     GeneratorTemplate.create(_gt)
     .then(() => {
@@ -169,7 +169,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('version not ok, when version = 1.1.2a', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.version = '1.1.2a';
     GeneratorTemplate.create(_gt)
     .then(() => {
@@ -183,7 +183,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, with bad name and helpEmail', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.name = 'Name$$$';
     _gt.helpEmail = 'email.com';
     GeneratorTemplate.create(_gt)
@@ -200,7 +200,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
 
   it('not ok, with really long author name, invalid url and ' +
     'email', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.author.name = 'Name'.repeat(constants.fieldlen.normalName);
     _gt.author.email = 'notanemail';
     _gt.author.url = 'invalid url';
@@ -219,7 +219,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, with invalid repository schema', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.repository.type = 'ty'.repeat(constants.fieldlen.normalName);
     GeneratorTemplate.create(_gt)
     .then(() => {
@@ -234,7 +234,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, with invalid connection method type', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.connection.method = 'SPY';
     GeneratorTemplate.create(_gt)
     .then(() => {
@@ -249,7 +249,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, with both toUrl and url present in connection schema', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.connection.url = 'http://example.com';
     _gt.connection.toUrl = function () {
       return 'http://example.com';
@@ -269,7 +269,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, when both toUrl and url are not in connection schema', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     delete _gt.connection.url;
     delete _gt.connection.toUrl;
     GeneratorTemplate.create(_gt)
@@ -286,7 +286,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
   });
 
   it('not ok, with contextDefinition key not having description', (done) => {
-    const _gt = JSON.parse(JSON.stringify(gt));
+    const _gt = u.getGeneratorTemplate();
     _gt.contextDefinition.pod = { required: true };
     GeneratorTemplate.create(_gt)
     .then(() => {
