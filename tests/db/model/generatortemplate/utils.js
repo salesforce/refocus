@@ -47,12 +47,12 @@ const GT_SIMPLE = {
     password: {
       required: false,
       description: 'password required to log in',
-      encrypted: true,
+      encrypted: false,
     },
     token: {
       required: false,
       description: 'token required to be passed on to the header',
-      encrypted: true,
+      encrypted: false,
     },
   },
   helpUrl: 'http://help.com',
@@ -64,7 +64,7 @@ const GT_SIMPLE = {
  * @returns {Object} - Generator Template object
  */
 function getGeneratorTemplate() {
-  return GT_SIMPLE;
+  return JSON.parse(JSON.stringify(GT_SIMPLE));
 } // getGeneratorTemplate
 
 module.exports = {
