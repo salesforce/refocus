@@ -13,7 +13,6 @@
  * to have their UI appended to the page.
  */
 
-import request from 'superagent';
 const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
@@ -21,59 +20,85 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[1];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
-const REQ_HEADERS = {
-  'X-Requested-With': 'XMLHttpRequest',
-  Expires: '-1',
-  'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',
-};
 const SPINNER_ID = 'loading_spinner';
+
+/**
+ * Creates headers for each bot added to the UI
+ *
+ * @param {Object} bots - Bot response with UI
+ */
+function createHeader(bot) {
+  const section = document.createElement('div');
+  section.className = 'slds-section slds-is-open';
+
+  const title = document.createElement('div');
+
+  const text = document.createElement('h3');
+  text.className =
+    'slds-section__title ' +
+    'slds-p-horizontal_small ' +
+    'slds-theme_shade ';
+  text.innerHTML = bot.name;
+
+  const url = document.createElement('p');
+  url.className =
+    'slds-text-body_small ' +
+    'slds-line-height_reset ' +
+    'slds-p-horizontal_small ' +
+    'slds-theme_shade';
+  url.innerHTML = bot.url;
+  url.setAttribute(
+    'style',
+    'padding:0px 12px 5px 12px;'
+  );
+
+  const circle = document.createElement('div');
+  if (bot.active) {
+    circle.setAttribute(
+      'style',
+      'background:#04844b;width:8px;height:8px;border-radius:50%;margin:5px;'
+    );
+  } else {
+    circle.setAttribute(
+      'style',
+      'background:#c23934;width:8px;height:8px;border-radius:50%;margin:5px;'
+    );
+  }
+  circle.className = 'slds-float_right';
+
+  title.appendChild(text);
+  title.appendChild(url);
+  text.appendChild(circle);
+  section.appendChild(title);
+
+  return section;
+}
 
 /**
  * Create DOM elements for each of the files in the bots zip.
  *
- * @param {Object} bots - The ui buffer saved in the bots ui
+ * @param {Object} bots - Bot response with UI
  */
 function parseBot(bot) {
   // Unzip bots
   const zip = new AdmZip(new Buffer(bot.ui.data));
   const zipEntries = zip.getEntries();
 
-  const i = document.createElement('div');
-  i.className = 'slds-section slds-is-open';
-
-  const p = document.createElement('div');
-
-  const q = document.createElement('h3');
-  q.className = 'slds-section__title slds-theme_shade';
-
-  const t = document.createElement('span');
-  t.className = 'slds-p-horizontal_small';
-  t.innerHTML = bot.name;
-
-  const r = document.createElement('p');
-  r.className = 'slds-text-body_small slds-line-height_reset';
-  r.innerHTML = bot.url;
-
-  const c = document.createElement('div');
-  c.className = 'slds-section__content';
-
-  p.appendChild(q);
-  q.appendChild(t);
-  q.appendChild(r);
-  i.appendChild(p);
-
   // Get the bots section of the page
+  const botScript = document.createElement('script');
   const botContainer = document.createElement('div');
   botContainer.className = 'slds-large-size--1-of-3';
-  const botScript = document.createElement('script');
+  const contentSection = document.createElement('div');
+  contentSection.className = 'slds-section__content';
+  const headerSection = createHeader(bot);
 
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
   const index = zipEntries.filter((entry) => entry.name === 'index.html');
   if (index.length > 0) {
-    c.innerHTML = zip.readAsText(index[0]);
-    i.appendChild(c);
-    botContainer.appendChild(i);
+    contentSection.innerHTML = zip.readAsText(index[0]);
+    headerSection.appendChild(contentSection);
+    botContainer.appendChild(headerSection);
     botsContainer.appendChild(botContainer);
   }
   // go through zipEntries that arent 'index.html'
