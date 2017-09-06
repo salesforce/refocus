@@ -10,6 +10,7 @@
  * db/model/generator.js
  */
 const common = require('../helpers/common');
+const u = require('../../api/v1/helpers/verbs/utils');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
@@ -104,17 +105,6 @@ module.exports = function generator(seq, dataTypes) {
     },
   }, {
     classMethods: {
-      /**
-       * 1. validate the collectors field: if succeed, save the collectors in temo var for
-       *  attaching to generator. if fail, abort the POST operation
-       * 2. create the generator
-       * 3. add the saved collectors (if any)
-       */
-      createWithCollectors(requestBody, user) {
-        let collectors = [];
-        return Generator.create(requestBody)
-      },
-
       getGeneratorAssociations() {
         return assoc;
       },
@@ -151,6 +141,25 @@ module.exports = function generator(seq, dataTypes) {
           order: ['name'],
         }, {
           override: true,
+        });
+      },
+
+      /**
+       * 1. validate the collectors field: if succeed, save the collectors in temo var for
+       *  attaching to generator. if fail, abort the POST operation
+       * 2. create the generator
+       * 3. add the saved collectors (if any)
+       */
+      createWithCollectors(requestBody, user) {
+        const options = {};
+        let collectors; // will be populate with actual collectors
+        options.where = u.whereClauseForNameInArr(requestBody.collectors || []);
+        return new seq.Promise((resolve, reject) => {
+          return seq.models.Collector.findAll(options)
+          .then((_collectors) => {
+            collectors = _collectors;
+            resolve(Generator.create(requestBody));
+          });
         });
       },
     },
