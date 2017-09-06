@@ -110,7 +110,6 @@ function handleError(err) {
  */
 function handleEvent(eventData, eventTypeName) {
   const j = JSON.parse(eventData);
-
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
