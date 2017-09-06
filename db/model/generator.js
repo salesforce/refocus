@@ -104,6 +104,17 @@ module.exports = function generator(seq, dataTypes) {
     },
   }, {
     classMethods: {
+      /**
+       * 1. validate the collectors field: if succeed, save the collectors in temo var for
+       *  attaching to generator. if fail, abort the POST operation
+       * 2. create the generator
+       * 3. add the saved collectors (if any)
+       */
+      createWithCollectors(requestBody, user) {
+        let collectors = [];
+        return Generator.create(requestBody)
+      },
+
       getGeneratorAssociations() {
         return assoc;
       },
@@ -135,18 +146,6 @@ module.exports = function generator(seq, dataTypes) {
             {
               association: assoc.user,
               attributes: ['name', 'email'],
-            },
-            {
-              association: assoc.collectors,
-              attributes: [
-                'id',
-                'name',
-                'registered',
-                'status',
-                'isDeleted',
-                'createdAt',
-                'updatedAt',
-              ],
             },
           ],
           order: ['name'],

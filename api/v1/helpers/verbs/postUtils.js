@@ -54,6 +54,11 @@ function makePostPromise(params, props, req) {
   } else {
 
     // cache is off and returnUser is false.
+    if (props.modelName === 'Generator') {
+      console.log('in makePostPromise', toPost.collectors);
+      return props.model.createWithCollectors(toPost);
+    }
+
     return (props.modelName === 'Sample') ?
       u.createSample(req, props) : props.model.create(toPost);
   }
@@ -79,7 +84,7 @@ function handlePostResult(o, resultObj, props, res, req) {
 
   // if response directly from sequelize, call reload to attach
   // the associations
-  if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
+  if (o.get) {
     o.reload()
     .then(() => res.status(constants.httpStatus.CREATED).json(
         u.responsify(o, props, req.method)));
