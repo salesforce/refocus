@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -13,45 +13,21 @@
  *
  */
 
-import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ListController from './ListController';
+const u = require('../../utils');
 const listContainer = document.getElementById('root');
 const GET_ROOMS = '/v1/rooms';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const REQ_HEADERS = {
-  'X-Requested-With': 'XMLHttpRequest',
-  Expires: '-1',
-  'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',
-};
-
-/**
- * @param {String} url The url to get from
- * @returns {Promise} For use in chaining.
- */
-function getPromiseWithUrl(url) {
-  return new Promise((resolve, reject) => {
-    request.get(url)
-    .set(REQ_HEADERS)
-    .end((error, response) => {
-      // reject if error is present, otherwise resolve request
-      if (error) {
-        reject(error);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-} // getPromiseWithUrl
 
 window.onload = () => {
   let rooms;
   let roomTypes;
-  getPromiseWithUrl(GET_ROOMS)
+  u.getPromiseWithUrl(GET_ROOMS)
   .then((res) => {
     rooms = res.body;
-    return getPromiseWithUrl(GET_ROOMTYPES);
+    return u.getPromiseWithUrl(GET_ROOMTYPES);
   })
   .then((res) => {
     roomTypes = res.body;

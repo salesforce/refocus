@@ -25,7 +25,10 @@ describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
     const listComponent = TestUtils.renderIntoDocument(
       <ListController />
     );
-    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(listComponent, 'td');
+    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'td'
+    );
     expect(renderedDOM.length).to.equal(0);
   });
 
@@ -38,8 +41,8 @@ describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
         active: true,
         createdAt: moment(),
         updatedAt: moment(),
-  	  },
-  	  {
+      },
+      {
         id: '2',
         name: 'TestRoom2',
         type: 'ID1',
@@ -56,13 +59,18 @@ describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
     ];
     const listComponent = TestUtils.renderIntoDocument(
       <ListController
-      	rooms={rooms}
-      	roomTypes={roomTypes}
+        rooms={rooms}
+        roomTypes={roomTypes}
       />
     );
-    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(listComponent, 'td');
-    const renderedDOM2 = TestUtils.findRenderedDOMComponentWithClass(listComponent, 'slds-text-body_small');
-
+    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'td'
+    );
+    const renderedDOM2 = TestUtils.findRenderedDOMComponentWithClass(
+      listComponent,
+      'slds-text-body_small'
+    );
     expect((renderedDOM.length)/numOfColumns).to.equal(rooms.length);
     expect(renderedDOM2.textContent).to.contain(rooms.length);
   });
