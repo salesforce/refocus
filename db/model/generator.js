@@ -12,7 +12,8 @@
 const common = require('../helpers/common');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
-const ValidationError = require('../dbErrors').ValidationError;
+const dbErrors = require('../dbErrors');
+const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
 const generatorTemplateSchema = {
@@ -156,7 +157,10 @@ module.exports = function generator(seq, dataTypes) {
             }
 
             return cryptUtils
-              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
+              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+              .catch(() => {
+                throw new dbErrors.SampleGeneratorContextEncryptionError();
+              });
           });
       }, // beforeCreate
 
@@ -171,12 +175,11 @@ module.exports = function generator(seq, dataTypes) {
                 `name: ${gtName} and version: ${gtVersion}`);
               }
 
-              if (inst.changed('context')) {
-                return cryptUtils
-                  .encryptSGContextValues(seq.models.GlobalConfig, inst, gt);
-              }
-
-              return inst;
+              return cryptUtils
+                .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                .catch(() => {
+                  throw new dbErrors.SampleGeneratorContextEncryptionError();
+                });
             });
         }
 

@@ -71,7 +71,7 @@ function getSGEncryptionKeyAndAlgorithm(globalConfigModel) {
     });
   })
   .then((gc) => {
-    sgObj.algorithm = gc && gc.value ? gc.value : null;
+    sgObj.algorithm = gc ? gc.value : null;
     return sgObj;
   });
 } // getSGEncryptionKeyAndAlgorithm
@@ -93,16 +93,20 @@ function encryptSGContextValues(globalConfigModel, sg, sgt) {
 
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
-    if (!config || !config.secretKey || !config.algorithm) {
-      return sg;
-    }
-
-    Object.keys(sgt.contextDefinition).forEach((key) => {
-      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
-        sg.context[key] = encrypt(sg.context[key],
-          config.secretKey, config.algorithm);
+    const isKeyAlgoConfigured =
+      config && config.secretKey && config.algorithm;
+    for (const key in sgt.contextDefinition) {
+      if (sgt.contextDefinition.hasOwnProperty(key) &&
+        sgt.contextDefinition[key].encrypted && sg.context[key]) {
+        if (isKeyAlgoConfigured) {
+          sg.context[key] = encrypt(sg.context[key], config.secretKey,
+            config.algorithm);
+        } else {
+          return Promise.reject('Cannot encrypt the text without the ' +
+            'secretKey and algorithm');
+        }
       }
-    });
+    }
 
     return sg;
   });
@@ -124,16 +128,20 @@ function decryptSGContextValues(globalConfigModel, sg, sgt) {
 
   return getSGEncryptionKeyAndAlgorithm(globalConfigModel)
   .then((config) => {
-    if (!config || !config.secretKey || !config.algorithm) {
-      return sg;
-    }
-
-    Object.keys(sgt.contextDefinition).forEach((key) => {
-      if (sgt.contextDefinition[key].encrypted && sg.context[key]) {
-        sg.context[key] = decrypt(sg.context[key],
-          config.secretKey, config.algorithm);
+    const isKeyAlgoConfigured =
+      config && config.secretKey && config.algorithm;
+    for (const key in sgt.contextDefinition) {
+      if (sgt.contextDefinition.hasOwnProperty(key) &&
+        sgt.contextDefinition[key].encrypted && sg.context[key]) {
+        if (isKeyAlgoConfigured) {
+          sg.context[key] = decrypt(sg.context[key], config.secretKey,
+            config.algorithm);
+        } else {
+          return Promise.reject('Cannot decrypt the text without the ' +
+            'secretKey and algorithm');
+        }
       }
-    });
+    }
 
     return sg;
   });

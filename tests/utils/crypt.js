@@ -143,14 +143,15 @@ describe('tests/utils/cryptUtils.js >', () => {
       GlobalConfig.destroy({ truncate: true, force: true })
       .then(() => generatorUtils.encryptSGContextValues(GlobalConfig,
         looksLikeSG, looksLikeSGT))
-      .then((sg) => {
-        expect(sg).to.not.equal(undefined);
-        expect(sg.context.otherNonSecretInformation).to
-          .equal(otherNonSecretInformation);
-        expect(sg.context.secretInformation).to.equal(secretInformation);
-        expect(sg.context.password).to.equal(password);
+      .then(() => {
+        done('Expecting unable to save this Sample Generator Error');
+      })
+      .catch((err) => {
+        expect(err).to.contain('Cannot encrypt the text without the ' +
+          'secretKey and algorithm');
         done();
-      }).catch(done);
+      })
+      ;
     });
 
     it('when SGEncryptionAlgorithm is not found, encryption should ' +
@@ -193,14 +194,14 @@ describe('tests/utils/cryptUtils.js >', () => {
       .then((o) => o.destroy())
       .then(() => generatorUtils.encryptSGContextValues(GlobalConfig,
         looksLikeSG, looksLikeSGT))
-      .then((sg) => {
-        expect(sg).to.not.equal(undefined);
-        expect(sg.context.otherNonSecretInformation).to
-          .equal(otherNonSecretInformation);
-        expect(sg.context.secretInformation).to.equal(secretInformation);
-        expect(sg.context.password).to.equal(password);
+      .then(() => {
+        done('Expecting unable to save this Sample Generator Error');
+      })
+      .catch((err) => {
+        expect(err).to.contain('Cannot encrypt the text without the ' +
+            'secretKey and algorithm');
         done();
-      }).catch(done);
+      });
     });
   });
 });
