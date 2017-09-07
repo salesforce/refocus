@@ -83,14 +83,8 @@ function handlePostResult(o, resultObj, props, res, req) {
 
   // if response directly from sequelize, call reload to attach
   // the associations
-  if (o.get) {
-    o.reload()
-    .then(() => res.status(constants.httpStatus.CREATED).json(
-        u.responsify(o, props, req.method)));
-  } else {
-    return res.status(constants.httpStatus.CREATED).json(
-      u.responsify(o, props, req.method));
-  }
+  return res.status(constants.httpStatus.CREATED).json(
+    u.responsify(o, props, req.method));
 }
 
 /**

@@ -37,21 +37,24 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   genWithOneCollector.name = 'refocus-info-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithOneCollector);
 
-  const genWithTwoCollectors = u.getGenerator();
-  genWithTwoCollectors.name = 'refocus-critical-generator';
-  u.createSGtoSGTMapping(generatorTemplate, genWithTwoCollectors);
+  const genWithThreeCollectors = u.getGenerator();
+  genWithThreeCollectors.name = 'refocus-critical-generator';
+  u.createSGtoSGTMapping(generatorTemplate, genWithThreeCollectors);
 
   let collector1 = { name: 'hello' };
-  let collector2 = { name: 'world' };
+  let collector2 = { name: 'beautiful' };
+  let collector3 = { name: 'world' };
 
   before((done) => {
     Promise.all([
       tu.db.Collector.create(collector1),
       tu.db.Collector.create(collector2),
+      tu.db.Collector.create(collector3),
     ])
     .then((collectors) => {
       collector1 = collectors[ZERO];
       collector2 = collectors[ONE];
+      collector3 = collectors[TWO];
     })
     .then(() => tu.createToken())
     .then((returnedToken) => {
@@ -67,10 +70,10 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       genWithOneCollector.id = gen.id;
       return gen.addCollectors([collector1]);
     })
-    .then(() => Generator.create(genWithTwoCollectors))
+    .then(() => Generator.create(genWithThreeCollectors))
     .then((gen) => {
-      genWithTwoCollectors.id = gen.id;
-      return gen.addCollectors([collector1, collector2]);
+      genWithThreeCollectors.id = gen.id;
+      return gen.addCollectors([collector1, collector2, collector3]);
     })
     .then(() => done())
     .catch(done);
@@ -90,11 +93,13 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
         return done(err);
       }
 
+      const firstGenerator = res.body[ZERO];
       expect(res.body).to.have.lengthOf(THREE);
-      expect(res.body[ZERO].collectors.length).to.equal(TWO);
-      expect(res.body[ZERO].collectors[ZERO].name).to.equal(collector1.name);
-      expect(res.body[ZERO].collectors[ONE].name).to.equal(collector2.name);
-      expect(res.body[ZERO].id).to.not.equal(undefined);
+      expect(firstGenerator.collectors.length).to.equal(THREE);
+      expect(firstGenerator.collectors[ZERO].name).to.equal(collector1.name);
+      expect(firstGenerator.collectors[ONE].name).to.equal(collector2.name);
+      expect(firstGenerator.collectors[TWO].name).to.equal(collector3.name);
+      expect(firstGenerator.id).to.not.equal(undefined);
       expect(res.body[ONE].collectors.length).to.equal(ONE);
       expect(res.body[ONE].collectors[ZERO].name).to.equal(collector1.name);
       expect(res.body[ONE].id).to.not.equal(undefined);
@@ -105,7 +110,7 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   });
 
   it('get individual generator yields non-empty collectors field', (done) => {
-    api.get(`${path}/${genWithTwoCollectors.id}`)
+    api.get(`${path}/${genWithThreeCollectors.id}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -113,9 +118,10 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
         return done(err);
       }
 
-      expect(res.body.collectors.length).to.equal(TWO);
+      expect(res.body.collectors.length).to.equal(THREE);
       expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
       expect(res.body.collectors[ONE].name).to.equal(collector2.name);
+      expect(res.body.collectors[TWO].name).to.equal(collector3.name);
       done();
     });
   });
