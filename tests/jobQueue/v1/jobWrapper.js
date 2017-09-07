@@ -17,6 +17,8 @@ const expect = require('chai').expect;
 const tu = require('../../testUtils');
 const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
+const sinon = require('sinon');
+
 
 describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   before(() => {
@@ -26,6 +28,12 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
+  });
+
+  it('jobQueue should be called', (done) => {
+    sinon.spy(jobQueue, 'watchStuckJob');
+    expect(jobQueue.watchStuckJobs).to.have.been.called;
+    done();
   });
 
   it('jobQueue should let you create any type of job', (done) => {

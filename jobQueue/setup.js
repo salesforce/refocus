@@ -27,6 +27,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+jobQueue.watchStuckJobs(conf.WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS);
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
