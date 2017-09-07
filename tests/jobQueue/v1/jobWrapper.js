@@ -19,7 +19,6 @@ const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
 const sinon = require('sinon');
 
-
 describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
@@ -30,7 +29,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
     tu.toggleOverride('enableWorkerProcess', false);
   });
 
-  it('jobQueue should be called', (done) => {
+  it('jobQueue.watchStuckJob should be called', (done) => {
     sinon.spy(jobQueue, 'watchStuckJob');
     expect(jobQueue.watchStuckJobs).to.have.been.called;
     done();
