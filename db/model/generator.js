@@ -13,6 +13,7 @@ const common = require('../helpers/common');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
+const utils = require('../utils');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
@@ -180,16 +181,17 @@ module.exports = function generator(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {
-            collectors = _collectors;
 
             /**
              * If requestBody does not have a collectors field, OR
              * if the number of collectors in requestBody MATCH the
-             * GET result, create the generator.
+             * GET result, order the collectors AND create the generator.
              * Else throw error since there are collectors that don't exist.
              */
             if (!requestBody.collectors ||
-              (collectors.length === requestBody.collectors.length)) {
+              (_collectors.length === requestBody.collectors.length)) {
+              collectors = utils
+                .sortArrayAccordingToAnotherArray(_collectors, requestBody.collectors);
               return Generator.create(requestBody);
             }
 

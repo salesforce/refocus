@@ -57,7 +57,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('simple post returns collectors field', (done) => {
+  it('simple post returns collectors field', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name,
       collector2.name, collector3.name];
@@ -71,10 +71,9 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       }
 
       expect(res.body.collectors.length).to.equal(THREE);
-      console.log(res.body.collectors)
-      // expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
-      // expect(res.body.collectors[ONE].name).to.equal(collector2.name);
-      // expect(res.body.collectors[TWO].name).to.equal(collector3.name);
+      expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
+      expect(res.body.collectors[ONE].name).to.equal(collector2.name);
+      expect(res.body.collectors[TWO].name).to.equal(collector3.name);
       done();
     });
   });
