@@ -32,11 +32,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
 
   const genWithNoCollector = u.getGenerator();
   u.createSGtoSGTMapping(generatorTemplate, genWithNoCollector);
-
   const genWithOneCollector = u.getGenerator();
   genWithOneCollector.name = 'refocus-info-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithOneCollector);
-
   const genWithThreeCollectors = u.getGenerator();
   genWithThreeCollectors.name = 'refocus-critical-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithThreeCollectors);
