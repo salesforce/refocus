@@ -68,25 +68,16 @@ function setupNamespace(io) {
     .then((objArr) => {
       if (objArr) {
         objArr.forEach((o) => rtUtils.initializePerspectiveNamespace(o, io));
-      } else {
-        const err = new ResourceNotFoundError();
-        err.resourceType = 'Perspective';
-        throw err;
       }
     })
-    .then(() => {
-      room.findAll()
+    .then(() => room.findAll()
       .then((rooms) => {
         if (rooms) {
           rooms.forEach((r) => rtUtils.initializeBotNamespace(r, io));
           resolve(io);
-        } else {
-          const err = new ResourceNotFoundError();
-          err.resourceType = 'Room';
-          throw err;
         }
-      });
-    })
+      })
+    )
     .catch(reject);
   });
 } // setupNamespace

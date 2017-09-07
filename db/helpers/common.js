@@ -13,12 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pubPerspective = require('../../cache/redisCache').client.pubPerspective;
-const pubBot = require('../../cache/redisCache').client.pubBot;
-
+const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
-const perspectiveChannelName = require('../../config').redis.perspectiveChannelName;
-const botChannelName = require('../../config').redis.botChannelName;
+const channelName = require('../../config').redis.perspectiveChannelName;
 const revalidator = require('revalidator');
 const ValidationError = require('../dbErrors').ValidationError;
 
@@ -140,16 +137,6 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
 }
 
 /**
- * A function to see if an instance is an instance of a room
- * Checks the name from the model
- * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the name singular is room
- */
-function isRoom(inst) {
-  return inst.$modelOptions.name.singular === 'Room';
-}
-
-/**
  * This function returns an object to be published via redis channel
  * @param  {Object} inst  -  Model instance
   @param  {[Array]} changedKeys - An array containing the fields of the model
@@ -201,11 +188,7 @@ function publishChange(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if (isRoom(inst)) {
-      pubBot.publish(botChannelName, JSON.stringify(obj));
-    } else {
-      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
-    }
+    pub.publish(channelName, JSON.stringify(obj));
   }
 
   return obj;

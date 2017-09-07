@@ -14,7 +14,7 @@
  */
 
 const constants = require('../constants');
-const common = require('../../realtime/redisPublisher');
+const realTime = require('../../realtime/redisPublisher');
 
 const assoc = {};
 const roomEventNames = {
@@ -82,7 +82,7 @@ module.exports = function room(seq, dataTypes) {
           instance.settings = roomType.settings;
           const changedKeys = Object.keys(instance._changed);
           const ignoreAttributes = ['isDeleted'];
-          return common.publishObject(instance, roomEventNames.add, changedKeys,
+          return realTime.publishObject(instance, roomEventNames.add, changedKeys,
               ignoreAttributes);
         });
       },
@@ -90,7 +90,7 @@ module.exports = function room(seq, dataTypes) {
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            common.publishObject(instance, roomEventNames.upd);
+            realTime.publishObject(instance, roomEventNames.upd);
           }
         }
 
@@ -99,7 +99,7 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          common.publishObject(instance, roomEventNames.del);
+          realTime.publishObject(instance, roomEventNames.del);
         }
       }, // hooks.afterDelete
     },
