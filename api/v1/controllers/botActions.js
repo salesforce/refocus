@@ -95,10 +95,9 @@ module.exports = {
         }
       })
       .then((bot) => {
-        console.log(bot);
         req.swagger.params.queryBody.value.botId = bot.id;
-        console.log(req.swagger.params.queryBody.value);
-        helper.model.create(req.swagger.params.queryBody.value);
+        doPost(req, res, next, helper);
+        //helper.model.create(req.swagger.params.queryBody.value);
       });
     }
   },

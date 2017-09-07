@@ -103,15 +103,20 @@ module.exports = function botAction(seq, dataTypes) {
             return null;
           })
           .then((dataFound) => {
-            if (inst.getDataValue('parameters') !== null) {
+            if ((inst.getDataValue('parameters') !== undefined) &&
+              (inst.getDataValue('parameters') !== null) &&
+              (dataFound !== null) &&
+              (dataFound.parameters !== null)) {
               if (inst.getDataValue('parameters').length !==
                 dataFound.parameters.length) {
                 throw new dbErrors.ValidationError({
                   message:
-                    'Not enough parameters were sent to run this action',
+                    'Wrong number of parameters sent to run this action',
                 });
               }
-            } else {
+            } else if ((dataFound !== null) &&
+              (dataFound.parameters !== null) &&
+              (dataFound.parameters.length > 0)) {
               throw new dbErrors.ValidationError({
                 message: 'Action must contain parameters',
               });
@@ -121,12 +126,13 @@ module.exports = function botAction(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
-    },
+    }, // hooks
     indexes: [
       {
-        name: 'BotActionUniqueNameisPending',
-        unique: true,
-        fields: [seq.fn('lower', seq.col('name')), 'isPending'],
+        name: 'BotActionsIdx',
+        fields: [
+          'name',
+        ],
       },
     ],
   });
