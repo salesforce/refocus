@@ -98,7 +98,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .catch(done);
   });
 
-  it('404 error for request body with an non-extant collector', (done) => {
+  it('404 error for request body with an non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
     Generator.createWithCollectors(localGenerator)
@@ -113,7 +113,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   });
 
   it('404 error for request body with an existing and a ' +
-    'non-extant collector', (done) => {
+    'non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
     Generator.createWithCollectors(localGenerator)

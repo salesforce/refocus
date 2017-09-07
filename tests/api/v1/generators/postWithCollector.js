@@ -81,7 +81,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     });
   });
 
-  it('404 error for request body with an non-extant collector',
+  it('404 error for request body with an non-existant collector',
     (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
@@ -100,7 +100,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     });
   });
 
-  it('404 error for request body with an existing and a non-extant collector',
+  it('404 error for request body with an existing and a non-existant collector',
     (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
