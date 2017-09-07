@@ -16,6 +16,7 @@ require('./config/toggles'); // Loads the feature toggles
 const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
+const collectorConfig = require('./config/collectorConfig');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
@@ -166,6 +167,7 @@ module.exports = {
     passwordHashSaltNumRounds: 8,
   },
   redis: redisConfig,
+  collector: collectorConfig,
 
   // When adding new environment, consider adding it to /config/migrationConfig
   // as well to enable database migraton in the environment.
