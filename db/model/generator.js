@@ -13,7 +13,6 @@ const common = require('../helpers/common');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
-const utils = require('../utils');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
@@ -166,7 +165,7 @@ module.exports = function generator(seq, dataTypes) {
       createWithCollectors(requestBody, user) {
         const options = {};
         let collectors; // will be populated with actual collectors
-        options.where = utils.whereClauseForNameInArr(requestBody.collectors || []);
+        options.where = common.whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {
@@ -179,7 +178,7 @@ module.exports = function generator(seq, dataTypes) {
              */
             if (!requestBody.collectors ||
               (_collectors.length === requestBody.collectors.length)) {
-              collectors = utils
+              collectors = common
                 .sortArrayAccordingToAnotherArray(_collectors, requestBody.collectors);
               return Generator.create(requestBody);
             }
