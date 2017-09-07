@@ -59,8 +59,11 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
   it('simple post returns collectors field', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [collector1.name,
-      collector2.name, collector3.name];
+    localGenerator.collectors = [
+      collector1.name,
+      collector2.name,
+      collector3.name,
+    ];
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)

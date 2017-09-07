@@ -14,9 +14,16 @@ const u = require('../../db/utils');
 const tu = require('../testUtils');
 
 describe.only('tests/db/utils.js, sortArrayAccordingToAnotherArray >', () => {
-  const sortedArr = [ 'before' ,  'middle' ,  'after' ];
-  const nonSortedArr = [{ name: 'after', extraField: 2222 },
-  { name: 'before' }, { name: 'middle' }];
+  const sortedArr = [
+    'before',
+    'middle',
+    'after',
+  ];
+  const nonSortedArr = [
+    { name: 'after', extraField: 2222 },
+    { name: 'before' },
+    { name: 'middle' },
+  ];
 
   it('input: two arrays of same size, sort the previous according to the latter',
   () => {

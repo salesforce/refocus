@@ -65,14 +65,16 @@ function sortArrayAccordingToAnotherArray(objArray, keyArray) {
 
   // Create a temporary hash table to store the objects
   let tempObj = {};
+
   // Key each object by their respective id values
-  for(let i = 0; i < objArray.length; i++) {
-      tempObj[objArray[i].name] = objArray[i];
+  for (let i = 0; i < objArray.length; i++) {
+    tempObj[objArray[i].name] = objArray[i];
   }
+
   // Rebuild the objArray based on the order listed in the keyArray
   const copyObjArray = [];
-  for(let i = 0; i < keyArray.length; i++) {
-      copyObjArray.push(tempObj[keyArray[i]]);
+  for (let i = 0; i < keyArray.length; i++) {
+    copyObjArray.push(tempObj[keyArray[i]]);
   }
 
   return copyObjArray;
