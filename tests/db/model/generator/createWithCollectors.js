@@ -9,7 +9,6 @@
 /**
  * tests/db/model/generator/createWithCollectors.js
  */
-
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
@@ -18,13 +17,11 @@ const gtUtil = u.gtUtil;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
-const GlobalConfig = tu.db.GlobalConfig;
-const cryptUtils = require('../../../../utils/cryptUtils');
-const dbConstants = require('../../../../db/constants');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const NOT_FOUND_STATUS_CODE = 404;
 
 describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello' };
@@ -37,11 +34,9 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   gtWithEncryption.contextDefinition.password.encrypted = true;
   gtWithEncryption.contextDefinition.token.encrypted = true;
 
-  let userInst;
   before((done) => {
     tu.createUser('GeneratorOwner')
     .then((user) => {
-      userInst = user;
       generator.createdBy = user.id;
       return GeneratorTemplate.create(generatorTemplate);
     })
@@ -78,7 +73,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
 
     Generator.createWithCollectors(localGenerator)
     .then((o) => {
-
       // collector field check
       expect(o.collectors.length).to.equal(THREE);
       expect(o.collectors[ZERO].name).to.equal(collector1.name);
@@ -104,30 +98,29 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .catch(done);
   });
 
-  it('404 error for request body with an non-exitent collector',
-    (done) => {
+  it('404 error for request body with an non-exitent collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
     Generator.createWithCollectors(localGenerator)
-    .then((o) => done(new Erro('Expected ResourceNotFoundError, received', o)))
+    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(404);
-      expect(err.name).to.equal('ResourceNotFoundError')
+      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
+      expect(err.name).to.equal('ResourceNotFoundError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
       done();
     });
   });
 
-  it('404 error for request body with an existing and a non-exitent collector',
-    (done) => {
+  it('404 error for request body with an existing and a ' +
+    'non-exitent collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
     Generator.createWithCollectors(localGenerator)
-    .then((o) => done(new Erro('Expected ResourceNotFoundError, received', o)))
+    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(404);
-      expect(err.name).to.equal('ResourceNotFoundError')
+      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
+      expect(err.name).to.equal('ResourceNotFoundError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
       done();
