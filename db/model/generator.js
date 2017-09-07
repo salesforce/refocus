@@ -18,17 +18,6 @@ const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
 
-/**
- * Replicated here from api/v1/helpers/verbs/utils.js
- */
-function whereClauseForNameInArr(arr) {
-  const SEQ_IN = '$in';
-  const whr = {};
-  whr.name = {};
-  whr.name[SEQ_IN] = arr;
-  return whr;
-} // whereClauseForNameInArr
-
 const generatorTemplateSchema = {
   properties: {
     name: {
@@ -177,7 +166,7 @@ module.exports = function generator(seq, dataTypes) {
       createWithCollectors(requestBody, user) {
         const options = {};
         let collectors; // will be populate with actual collectors
-        options.where = whereClauseForNameInArr(requestBody.collectors || []);
+        options.where = utils.whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {

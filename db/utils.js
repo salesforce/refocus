@@ -33,13 +33,27 @@ const ExitCodes = {
 };
 
 /**
+ * Replicated here from api/v1/helpers/verbs/utils.js
+ * Return the sequelize query { name: { $in: arr } }
+ * @param {Array} arr The array to return in the query.
+ * @returns {Object} the query object
+ */
+function whereClauseForNameInArr(arr) {
+  const SEQ_IN = '$in';
+  const whr = {};
+  whr.name = {};
+  whr.name[SEQ_IN] = arr;
+  return whr;
+} // whereClauseForNameInArr
+
+/**
  * IF given two equal length arrays, one with objects, another specifying the
  * order of the objects, return a copy of the first array ordered
  * by the second array. This sort is NOT in-place.
  * ELSE return empty array.
  *
- * @param {Array} objArray
- * @param {Array} keyArray
+ * @param {Array} objArray Array of objects, with key 'name'
+ * @param {Array} keyArray Array of strings specifying the order of names
  * @returns {Array} objArray with key name sorted according to keyArray,
  * or [] for err cases
  */
@@ -398,6 +412,7 @@ if (!Array.prototype.includes) {
 
 module.exports = {
   sortArrayAccordingToAnotherArray,
+  whereClauseForNameInArr,
   clog,
   createOrDropDb,
   dbConfigObjectFromDbURL,
