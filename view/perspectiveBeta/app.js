@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,7 +7,7 @@
  */
 
 /**
- * view/perspective/app.js
+ * view/perspectiveBeta/app.js
  *
  * When this page is loaded, we call "getPerspectiveNames" to load all the
  * perspective names to populate the dropdown.
@@ -76,11 +76,15 @@ const ERROR_INFO_DIV = document.getElementById('errorInfo');
 const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
 
-// Note: these are declared in perspective.pug:
-const _realtimeEventThrottleMilliseconds =
-  realtimeEventThrottleMilliseconds;  // eslint-disable-line no-undef
-const _transProtocol = transProtocol; // eslint-disable-line no-undef
-const _io = io; // eslint-disable-line no-undef
+let _realtimeEventThrottleMilliseconds;
+let _transProtocol;
+let _io;
+
+let minAspectTimeout;
+let minTimeoutCount;
+let maxAspectTimeout;
+let lastUpdateTime;
+let intervalId;
 
 /**
  * Add error message to the errorInfo div in the page.
@@ -117,6 +121,17 @@ function handleEvent(eventData, eventTypeName) {
   if (_realtimeEventThrottleMilliseconds === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
     eventsQueue.queue.length = ZERO;
+  }
+
+  if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
+    const sample = j[eventTypeName];
+    updateTimeoutValues(sample.aspect.timeout);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
+    const newSample = j[eventTypeName].new;
+    updateTimeoutValues(newSample.aspect.timeout);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
+    const sample = j[eventTypeName];
+    updateDeletedTimeoutValues(sample.aspect.timeout);
   }
 } // handleEvent
 
@@ -255,7 +270,8 @@ function getPromiseWithUrl(url) {
 } // getPromiseWithUrl
 
 /**
- * Dispatch hierarchyLoad event, if the lens is received.
+ * Setup the aspect timeout check, then dispatch
+ * hierarchyLoad event if the lens is received.
  * Return the hierarchyLoadEvent otherwise
  *
  * @param {Object} rootSubject
@@ -264,6 +280,7 @@ function getPromiseWithUrl(url) {
  * else return hierarchyLoadEvent.
  */
 function handleHierarchyEvent(rootSubject, gotLens) {
+  setupAspectTimeout(rootSubject);
   const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
     detail: rootSubject,
   });
@@ -280,6 +297,121 @@ function handleHierarchyEvent(rootSubject, gotLens) {
   // lens is not received yet. Return hierarchyLoadEvent
   // to be dispatched from getLens
   return hierarchyLoadEvent;
+}
+
+/**
+ * Traverse the hierarchy to initialize the aspect timeout values, then setup
+ * an interval to check that the page is still receiving events.
+ *
+ * @param {Object} rootSubject - the root of the hierarchy to traverse
+ */
+function setupAspectTimeout(rootSubject) {
+  lastUpdateTime = Date.now();
+  minAspectTimeout = Infinity;
+  minTimeoutCount = 0;
+  maxAspectTimeout = 0;
+
+  (function traverseHierarchy(subject) {
+    if (subject.samples) {
+      subject.samples.forEach((sample) => {
+        updateTimeoutValues(sample.aspect.timeout);
+      });
+    }
+
+    if (subject.children) {
+      subject.children.forEach((child) => {
+        traverseHierarchy(child);
+      });
+    }
+  })(rootSubject)
+
+  if (minAspectTimeout < Infinity) {
+    setupTimeoutInterval()
+  }
+}
+
+/**
+ * Setup an interval to check that the page is still receiving events. Do a
+ * reload if not. If there is an existing interval, clear it and set a new one
+ * based on the current value of minAspectTimeout
+ */
+function setupTimeoutInterval() {
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+
+  intervalId = setInterval(() => {
+    if (Date.now() - lastUpdateTime > minAspectTimeout * 2) {
+      window.location.reload();
+    }
+  }, minAspectTimeout);
+}
+
+/**
+ * Check if the aspect timeout values need to be updated when a sample is
+ * added or updated.
+ * @param {String} timeoutString - a timeout string from a sample
+ */
+function updateTimeoutValues(timeoutString) {
+  lastUpdateTime = Date.now();
+  const timeout = parseTimeout(timeoutString);
+
+  if (timeout === minAspectTimeout) {
+    minTimeoutCount++;
+  }
+
+  if (timeout < minAspectTimeout) {
+    minAspectTimeout = timeout;
+    minTimeoutCount = 1;
+    setupTimeoutInterval();
+  }
+
+  if (timeout > maxAspectTimeout) {
+    maxAspectTimeout = timeout;
+  }
+}
+
+/**
+ * Check if the aspect timeout values need to be updated when a sample is
+ * deleted.
+ * @param {String} timeoutString - a timeout string from a sample
+ */
+function updateDeletedTimeoutValues(timeoutString) {
+  lastUpdateTime = Date.now();
+  const timeout = parseTimeout(timeoutString);
+
+  if (timeout === minAspectTimeout) {
+    if (minTimeoutCount === 1) {
+      // reset. It will settle to the correct value as more events come in.
+      minAspectTimeout = maxAspectTimeout;
+      setupTimeoutInterval();
+    } else {
+      minTimeoutCount--;
+    }
+  }
+}
+
+/**
+ * Parse a timeout string and convert it into ms.
+ * @param {String} timeoutString - a timeout string from a sample
+ * @returns {Number} the sample timeout in ms
+ */
+function parseTimeout(timeoutString) {
+  let timeout = timeoutString.slice(0, -1) * 1000;
+  const unit = timeoutString.slice(-1).toLowerCase();
+  switch (unit) {
+    case 'm':
+      timeout *= 60;
+      break;
+    case 'h':
+      timeout *= 3600;
+      break;
+    case 'd':
+      timeout *= 86400;
+      break;
+  }
+
+  return timeout;
 }
 
 function removeSpinner() {
@@ -330,7 +462,7 @@ function getPerspectiveUrl() {
   let p = hsplit.pop();
 
   // named perspective
-  if (p && p !== 'perspectives') {
+  if (p && p !== 'perspectivesBeta') {
     document.title += ' - ' + p;
     return { url: '/v1/perspectives/' + p, named: true };
   } else {
@@ -341,6 +473,15 @@ function getPerspectiveUrl() {
 } // whichPerspective
 
 window.onload = () => {
+  // Note: these are declared in perspective.pug:
+  _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
+  _transProtocol = transProtocol;
+  _io = io;
+
+  if (_realtimeEventThrottleMilliseconds !== ZERO) {
+    eventsQueue.scheduleFlushQueue(LENS_DIV, _realtimeEventThrottleMilliseconds);
+  }
+
   const accumulatorObject = {
     getPromiseWithUrl,
     getPerspectiveUrl,
@@ -367,9 +508,6 @@ window.onload = () => {
   });
 };
 
-if (_realtimeEventThrottleMilliseconds !== ZERO) {
-  eventsQueue.scheduleFlushQueue(LENS_DIV, _realtimeEventThrottleMilliseconds);
-}
 
 /**
  * Passes data on to Controller to pass onto renderers.
@@ -385,3 +523,18 @@ function loadController(values) {
   );
 }
 
+//for testing
+function getTimeoutValues() {
+  return { minAspectTimeout, minTimeoutCount, maxAspectTimeout,
+           lastUpdateTime, intervalId };
+};
+
+
+//for testing
+module.exports = {
+  handleEvent,
+  setupAspectTimeout,
+  setupTimeoutInterval,
+  parseTimeout,
+  getTimeoutValues,
+}
