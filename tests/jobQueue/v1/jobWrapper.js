@@ -30,8 +30,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   });
 
   it('jobQueue.watchStuckJob should be called', (done) => {
-    sinon.spy(jobQueue, 'watchStuckJob');
+    sinon.spy(jobQueue, 'watchStuckJobs');
     expect(jobQueue.watchStuckJobs).to.have.been.called;
+    jobQueue.watchStuckJobs.restore();
     done();
   });
 

@@ -73,8 +73,8 @@ const replicaConfigLabel = 'REPLICAS';
 // an array of read-only data base URLs
 const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
-const WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS = 1000 ||
-  pe.WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS
+const WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS = Number.MAX_SAFE_INTEGER ||
+  pe.WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
