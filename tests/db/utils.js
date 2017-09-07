@@ -12,40 +12,6 @@
 const expect = require('chai').expect;
 const u = require('../../db/utils');
 const tu = require('../testUtils');
-
-describe('tests/db/utils.js, sortArrayAccordingToAnotherArray >', () => {
-  const sortedArr = [
-    'before',
-    'middle',
-    'after',
-  ];
-  const nonSortedArr = [
-    { name: 'after', extraField: 2222 },
-    { name: 'before' },
-    { name: 'middle' },
-  ];
-
-  it('input: two arrays of same size, sort the previous according to the latter',
-  () => {
-    const result = u.sortArrayAccordingToAnotherArray(nonSortedArr, sortedArr);
-    for (let i = result.length - 1; i >= 0; i--) {
-      expect(result[i].name).to.equal(sortedArr[i]);
-    }
-
-    expect(result[2].extraField).to.equal(nonSortedArr[0].extraField);
-  });
-
-  it('different length of array input, return empty arr', () => {
-    const result = u.sortArrayAccordingToAnotherArray(nonSortedArr, []);
-    expect(result).to.deep.equal([]);
-  });
-
-  it('both null input, return empty arr', () => {
-    const result = u.sortArrayAccordingToAnotherArray();
-    expect(result).to.deep.equal([]);
-  });
-});
-
 describe('tests/db/utils.js, db utils >', () => {
   it('pool', () => {
     expect(tu.db.sequelize.config.pool).to.have.property('min', 0);

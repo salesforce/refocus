@@ -165,13 +165,13 @@ module.exports = function generator(seq, dataTypes) {
        */
       createWithCollectors(requestBody, user) {
         const options = {};
-        let collectors; // will be populate with actual collectors
+        let collectors; // will be populated with actual collectors
         options.where = utils.whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {
 
-            /**
+            /*
              * If requestBody does not have a collectors field, OR
              * if the number of collectors in requestBody MATCH the
              * GET result, order the collectors AND create the generator.
@@ -192,7 +192,7 @@ module.exports = function generator(seq, dataTypes) {
           .then((createdGenerator) => createdGenerator.addCollectors(collectors))
           .then(() => Generator.findOne({ where: { name: requestBody.name } }))
           .then((findresult) => resolve(findresult.reload()))
-          .catch((err) => reject(err))
+          .catch(reject)
         );
       },
     },
