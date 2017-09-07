@@ -13,7 +13,7 @@ const expect = require('chai').expect;
 const u = require('../../db/utils');
 const tu = require('../testUtils');
 
-describe.only('tests/db/utils.js, sortArrayAccordingToAnotherArray >', () => {
+describe('tests/db/utils.js, sortArrayAccordingToAnotherArray >', () => {
   const sortedArr = [
     'before',
     'middle',
