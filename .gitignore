@@ -35,6 +35,7 @@ public/*
 !public/fonts/
 !public/icons/
 !public/images/
+!public/scripts/
 
 # Remove Redis dump
 dump.rdb
