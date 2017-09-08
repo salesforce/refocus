@@ -90,7 +90,7 @@ module.exports = function room(seq, dataTypes) {
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            realTime.publishObject(instance, roomEventNames.upd);
+            return realTime.publishObject(instance, roomEventNames.upd);
           }
         }
 
@@ -99,8 +99,9 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          realTime.publishObject(instance, roomEventNames.del);
+          return realTime.publishObject(instance, roomEventNames.del);
         }
+        return seq.Promise.resolve();
       }, // hooks.afterDelete
     },
   });

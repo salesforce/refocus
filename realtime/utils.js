@@ -46,8 +46,8 @@ function isThisSubject(obj) {
  * @param  {Object}  obj - An object instance
  * @returns {Boolean} - returns true if the name singular is room
  */
-function isRoom(inst) {
-  return inst.$modelOptions.name.singular === 'Room';
+function isRoom(obj) {
+  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
 }
 /**
  * A function to see if an object is a sample object or not. It returns true
