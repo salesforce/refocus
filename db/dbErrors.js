@@ -76,15 +76,32 @@ dbErrors.create({
   name: 'ParentSubjectNotMatch',
   parent: dbErrors.ValidationError,
   defaultMessage: 'The parentAbsolutePath and parentId do not match.',
-  explanation: 'If a subject specifies both a parentAbsolutePath and a parentId, the parent ' +
-    'specified by both fields need to have the same id.',
+  explanation: 'If a subject specifies both a parentAbsolutePath and a ' +
+    'parentId, the parent specified by both fields need to have the same id.',
 });
 dbErrors.create({
-  code: 10115,
+  code: 10116,
+  status: 400,
+  name: 'DuplicateBotError',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'You cannot have duplicate bots in a room.',
+});
+dbErrors.create({
+  code: 10117,
   status: 400,
   name: 'IllegalSelfParenting',
   parent: dbErrors.ValidationError,
   defaultMessage: 'A subject may not be its own parent.',
+});
+dbErrors.create({
+  code: 10118,
+  status: 400,
+  name: 'SampleGeneratorContextEncryptionError',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'Unable to save this Sample Generator with encrypted ' +
+  'context data. Please contact your Refocus administrator to set ' +
+  'up the encryption algorithm and key to protect any sensitive information ' +
+  'you may include in your Sample Generator\'s context',
 });
 
 // ----------------------------------------------------------------------------

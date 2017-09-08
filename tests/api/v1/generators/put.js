@@ -16,6 +16,8 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -24,17 +26,16 @@ describe('tests/api/v1/generators/put.js >', () => {
   let token;
   let generatorId = 0;
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
+
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    Generator.create(generatorToCreate)
+    .then(() => Generator.create(generatorToCreate))
     .then((gen) => {
       generatorId = gen.id;
       done();
@@ -45,13 +46,14 @@ describe('tests/api/v1/generators/put.js >', () => {
   });
 
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('simple put: ok', (done) => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
@@ -85,7 +87,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
@@ -118,7 +120,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],

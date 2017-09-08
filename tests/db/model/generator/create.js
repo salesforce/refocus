@@ -9,26 +9,44 @@
 /**
  * tests/db/model/generator/create.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const GlobalConfig = tu.db.GlobalConfig;
+const cryptUtils = require('../../../../utils/cryptUtils');
+const dbConstants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/create.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  const gtWithEncryption = gtUtil.getGeneratorTemplate();
+  gtWithEncryption.name = 'gtWithEncryption';
+  gtWithEncryption.contextDefinition.password.encrypted = true;
+  gtWithEncryption.contextDefinition.token.encrypted = true;
+
   let userInst;
-  beforeEach((done) => {
+  before((done) => {
     tu.createUser('GeneratorOwner')
     .then((user) => {
       userInst = user;
       generator.createdBy = user.id;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => GeneratorTemplate.create(gtWithEncryption))
+    .then(() => done())
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
+  after(gtUtil.forceDelete);
+
+  it('correct profile access field name', () => {
+    expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
+  });
 
   it('ok, create with all fields', (done) => {
     Generator.create(generator)
@@ -36,7 +54,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.id).to.not.equal(undefined);
       expect(o.name).to.equal(generator.name);
       expect(o.description).to.equal(generator.description);
-      expect(o.keywords).to.deep.equal(generator.keywords);
+      expect(o.tags).to.deep.equal(generator.tags);
       expect(o.context).to.deep.equal(generator.context);
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);
@@ -52,6 +70,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, create should set the creater as the sole writer ', (done) => {
+    generator.name += 'soleWriter';
     Generator.create(generator)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
@@ -70,6 +89,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, isWritableBy should return true for createdBy user', (done) => {
+    generator.name += 'isWritableBy';
     Generator.create(generator)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
@@ -84,6 +104,7 @@ describe('tests/db/model/generator/create.js >', () => {
 
   it('ok, no writers when createdBy is not specified', (done) => {
     const _g = JSON.parse(JSON.stringify(generator));
+    _g.name += 'withNoCreatedBy';
     delete _g.createdBy;
     Generator.create(_g)
     .then((o) => {
@@ -99,6 +120,7 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   it('ok, create multiple generators', (done) => {
+    generator.name = 'First';
     const gSecond = JSON.parse(JSON.stringify(generator));
     gSecond.name = 'Second';
     const gThird = JSON.parse(JSON.stringify(generator));
@@ -108,13 +130,14 @@ describe('tests/db/model/generator/create.js >', () => {
     Generator.bulkCreate([generator, gSecond, gThird, gFourth])
     .then(() => Generator.findAll())
     .then((o) => {
-      expect(o.length).to.equal(4);
+      expect(o.length).to.be.at.least(4);
       done();
     })
-    .catch();
+    .catch(done);
   });
 
   it('not ok, name should be unique', (done) => {
+    generator.name = 'Unique';
     Generator.create(generator)
     .then(() => Generator.create(generator))
     .then(() => {
@@ -131,6 +154,7 @@ describe('tests/db/model/generator/create.js >', () => {
 
   it('version not ok, when version = 1.1.a', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name += 'withVersionNotOK';
     _generator.generatorTemplate.version = '1.1.a';
     Generator.create(_generator)
     .then(() => {
@@ -149,6 +173,7 @@ describe('tests/db/model/generator/create.js >', () => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.subjects = ['Asia, America'];
     _generator.subjectQuery = '?subjects=A*';
+    _generator.name += 'bothSubSUbQPresent';
     Generator.create(_generator)
     .then(() => {
       done(' Error: Expecting validation error');
@@ -167,6 +192,7 @@ describe('tests/db/model/generator/create.js >', () => {
     const _generator = JSON.parse(JSON.stringify(generator));
     delete _generator.subjects;
     delete _generator.subjectQuery;
+    _generator.name += 'bothSubSubQNotPresent';
     Generator.create(_generator)
     .then(() => {
       done(' Error: Expecting validation error');
@@ -177,6 +203,148 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
       done();
+    });
+  });
+
+  it('not ok, cannot create a generator without a matching generator' +
+    ' template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.generatorTemplate.name = 'SomeRandomNameNotFoundInDb';
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.message).to.equal('No Generator Template matches ' +
+        'name: SomeRandomNameNotFoundInDb and version: 1.0.0');
+      done();
+    });
+  });
+
+  it('not ok, cannot create a generator with encrypted filed ' +
+    'when key/algo not found in global config', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.generatorTemplate.name = gtWithEncryption.name;
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('SampleGeneratorContextEncryptionError');
+      expect(err.message).to.equal('Unable to save this Sample Generator ' +
+        'with encrypted context data. Please contact your Refocus ' +
+        'administrator to set up the encryption algorithm and key to ' +
+        'protect any sensitive information you may include in ' +
+        'your Sample Generator\'s context');
+      done();
+    });
+  });
+
+  describe('with GlobalConfig rows with key and algorithm added', () => {
+    const secretKey = 'mySecretKey';
+    const algorithm = 'aes-256-cbc';
+    before((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: secretKey,
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    after((done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('ok, with globalConfig entry for SGKey and SGAlgorithm, context ' +
+      'values should be encrypted', (done) => {
+      const _g = JSON.parse(JSON.stringify(generator));
+      _g.name += 'withGolbalConfig';
+      _g.generatorTemplate.name = gtWithEncryption.name;
+      const password = _g.context.password;
+      const token = _g.context.token;
+
+      Generator.create(_g)
+      .then((o) => {
+        expect(o.id).to.not.equal(undefined);
+        expect(o.name).to.equal(_g.name);
+        expect(o.description).to.equal(_g.description);
+        expect(o.tags).to.deep.equal(_g.tags);
+        expect(o.helpUrl).to.equal(_g.helpUrl);
+        expect(o.helpEmail).to.equal(_g.helpEmail);
+        expect(o.createdBy).to.equal(_g.createdBy);
+        expect(o.isActive).to.equal(false);
+        expect(o.generatorTemplate.name).to.equal('gtWithEncryption');
+        expect(o.generatorTemplate.version).to.equal('1.0.0');
+        expect(typeof o.getWriters).to.equal('function');
+        expect(typeof o.getCollectors).to.equal('function');
+        return cryptUtils
+          .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
+      })
+      .then((o) => {
+        expect(o.context.password).to.equal(password);
+        expect(o.context.token).to.equal(token);
+        return o.update({ context: { password: 'newPassword' }, });
+      })
+      .then((o) => cryptUtils
+        .decryptSGContextValues(GlobalConfig, o, gtWithEncryption))
+      .then((o) => {
+        expect(o.context.token).to.equal(undefined);
+        expect(o.context.password).to.deep.equal('newPassword');
+        done();
+      })
+      .catch(done);
+    });
+  });
+
+  describe('GlobalConfig rows with wrong encrytion algorithm', () => {
+    const secretKey = 'mySecretKey';
+    const algorithm = 'aes-256-invalid-algorithm';
+    beforeEach((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: secretKey,
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach((done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('not ok, should throw an error when trying to encrypt with ' +
+      'wrong algorithm', (done) => {
+      const _g = JSON.parse(JSON.stringify(generator));
+      _g.name += 'withGolbalConfig';
+      _g.generatorTemplate.name = gtWithEncryption.name;
+
+      Generator.create(_g)
+      .then(() => {
+        done(' Error: Expecting GeneratorTemplate not found error');
+      })
+      .catch((err) => {
+        expect(err.name).to.equal('SampleGeneratorContextEncryptionError');
+        expect(err.message).to.equal('Unable to save this Sample Generator ' +
+          'with encrypted context data. Please contact your Refocus ' +
+          'administrator to set up the encryption algorithm and key to ' +
+          'protect any sensitive information you may include in ' +
+          'your Sample Generator\'s context');
+        done();
+      });
     });
   });
 });

@@ -16,23 +16,25 @@ const fs = require('fs');
 
 const testStartTime = new Date();
 const name = `${tu.namePrefix}testLensName`;
+const willSendthis = fs.readFileSync(
+  path.join(__dirname,
+    '../apiTestsUtils/lens.zip')
+);
+
+const lens = {
+  name,
+  sourceName: 'testSourceLensName',
+  description: 'test Description',
+  sourceDescription: 'test Source Description',
+  isPublished: true,
+  library: willSendthis,
+};
 
 module.exports = {
   name,
+  lens,
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const willSendthis = fs.readFileSync(
-        path.join(__dirname,
-        '../apiTestsUtils/lens.zip')
-      );
-      const lens = {
-        name,
-        sourceName: 'testSourceLensName',
-        description: 'test Description',
-        sourceDescription: 'test Source Description',
-        isPublished: true,
-        library: willSendthis,
-      };
       tu.db.Lens.create(lens)
       .then((createdLens) => resolve(createdLens))
       .catch((err) => reject(err));

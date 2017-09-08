@@ -10,6 +10,8 @@
  * tests/db/model/aspect/find.js
  */
 'use strict';
+
+const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
@@ -110,5 +112,10 @@ describe('tests/db/model/aspect/find.js >', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Aspect.getProfileAccessField()).to.equal('aspectAccess');
+    done();
   });
 });

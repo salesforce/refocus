@@ -43,4 +43,9 @@ describe('tests/db/model/bot/find.js >', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Bot.getProfileAccessField()).to.equal('botAccess');
+    done();
+  });
 });

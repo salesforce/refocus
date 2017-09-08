@@ -10,11 +10,12 @@
  * db/model/generator.js
  */
 const common = require('../helpers/common');
+const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
-const ValidationError = require('../dbErrors').ValidationError;
+const dbErrors = require('../dbErrors');
+const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
-
 const generatorTemplateSchema = {
   properties: {
     name: {
@@ -79,7 +80,7 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: false,
     },
-    keywords: {
+    tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
@@ -107,6 +108,10 @@ module.exports = function generator(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'generatorAccess';
+      },
+
       postImport(models) {
         assoc.user = Generator.belongsTo(models.User, {
           foreignKey: 'createdBy',
@@ -131,6 +136,18 @@ module.exports = function generator(seq, dataTypes) {
               association: assoc.user,
               attributes: ['name', 'email'],
             },
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
           ],
           order: ['name'],
         }, {
@@ -140,6 +157,47 @@ module.exports = function generator(seq, dataTypes) {
     },
 
     hooks: {
+
+      beforeCreate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+          .then((gt) => {
+            if (!gt) {
+              throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
+            }
+
+            return cryptUtils
+              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+              .catch(() => {
+                throw new dbErrors.SampleGeneratorContextEncryptionError();
+              });
+          });
+      }, // beforeCreate
+
+      beforeUpdate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        if (inst.changed('generatorTemplate') || inst.changed('context')) {
+          return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+            .then((gt) => {
+              if (!gt) {
+                throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
+              }
+
+              return cryptUtils
+                .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                .catch(() => {
+                  throw new dbErrors.SampleGeneratorContextEncryptionError();
+                });
+            });
+        }
+
+        return inst;
+      }, // beforeUpdate
+
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
       }, // beforeDestroy

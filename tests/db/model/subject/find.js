@@ -241,5 +241,10 @@ describe('tests/db/model/subject/find.js >', () => {
       })
       .catch(done);
     });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Subject.getProfileAccessField()).to.equal('subjectAccess');
+      done();
+    });
   });
 });
