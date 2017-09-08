@@ -52,6 +52,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .catch(done);
   });
 
+  // delete generator after each test
+  afterEach(() => tu.forceDelete(tu.db.Generator, new Date()));
   after(u.forceDelete);
   after(gtUtil.forceDelete);
 
@@ -96,7 +98,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .catch(done);
   });
 
-  it('404 error with duplicate collectors', (done) => {
+  it('404 error with duplicate collectors in request body', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, collector1.name];
     Generator.createWithCollectors(localGenerator)
