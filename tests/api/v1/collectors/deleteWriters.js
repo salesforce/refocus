@@ -86,14 +86,7 @@ describe('tests/api/v1/collectors/deleteWriters.js >', () => {
         .expect((res) => {
           expect(res.body).to.have.length(0);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
-        return null;
+        .end(done);
       });
     });
 
@@ -127,14 +120,7 @@ describe('tests/api/v1/collectors/deleteWriters.js >', () => {
         .expect((res) => {
           expect(res.body).to.have.length(1);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
-        return null;
+        .end(done);
       });
     });
 
@@ -154,14 +140,7 @@ describe('tests/api/v1/collectors/deleteWriters.js >', () => {
         .expect((res) => {
           expect(res.body).to.have.length(1);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
-        return null;
+        .end(done);
       });
     });
 
@@ -181,14 +160,7 @@ describe('tests/api/v1/collectors/deleteWriters.js >', () => {
         .expect((res) => {
           expect(res.body).to.have.length(2);
         })
-        .end((_err /* , res */) => {
-          if (_err) {
-            return done(_err);
-          }
-
-          return done();
-        });
-        return null;
+        .end(done);
       });
     });
 
