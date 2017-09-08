@@ -61,12 +61,16 @@ module.exports = function botAction(seq, dataTypes) {
 
       postImport(models) {
         assoc.room = BotAction.belongsTo(models.Room, {
-          foreignKey: 'roomId',
-          allowNull: false,
+          foreignKey: {
+            name: 'roomId',
+            allowNull: false,
+          }
         });
         assoc.bot = BotAction.belongsTo(models.Bot, {
-          foreignKey: 'botId',
-          allowNull: false,
+          foreignKey: {
+            name: 'botId',
+            allowNull: false,
+          }
         });
         assoc.user = BotAction.belongsTo(models.User, {
           foreignKey: 'userId',
@@ -103,23 +107,19 @@ module.exports = function botAction(seq, dataTypes) {
             return null;
           })
           .then((dataFound) => {
-            if ((inst.getDataValue('parameters') !== undefined) &&
-              (inst.getDataValue('parameters') !== null) &&
-              (dataFound !== null) &&
-              (dataFound.parameters !== null)) {
-              if (inst.getDataValue('parameters').length !==
-                dataFound.parameters.length) {
+            const params = inst.getDataValue('parameters');
+            if ((dataFound !== null) && (dataFound.parameters !== null)) {
+              if (params &&
+                (params.length !== dataFound.parameters.length)) {
                 throw new dbErrors.ValidationError({
                   message:
                     'Wrong number of parameters sent to run this action',
                 });
+              } else if (dataFound.parameters.length > 0) {
+                throw new dbErrors.ValidationError({
+                  message: 'Action must contain parameters',
+                });
               }
-            } else if ((dataFound !== null) &&
-              (dataFound.parameters !== null) &&
-              (dataFound.parameters.length > 0)) {
-              throw new dbErrors.ValidationError({
-                message: 'Action must contain parameters',
-              });
             }
           })
           .then(() => resolve(inst))
