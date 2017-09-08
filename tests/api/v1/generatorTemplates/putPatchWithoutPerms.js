@@ -56,39 +56,6 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('PUT without permission: should return 403', (done) => {
-    const toPut = {
-      name: 'template1',
-      description: 'this is template1...',
-      tags: [
-        'tag1',
-        'tag2',
-      ],
-      author: {
-        name: 'author1',
-        url: 'http://www.aaa.com',
-        email: 'a@a.com',
-      },
-      connection: {
-        method: 'GET',
-        url: 'http://www.bbb.com',
-      },
-      transform: 'function...',
-      isPublished: true,
-    };
-
-    api.put(`${path}/${generatorTemplate.id}`)
-    .set('Authorization', otherValidToken)
-     .send(toPut)
-    .expect(constants.httpStatus.FORBIDDEN)
-    .end((err, res) => {
-      const errorArray = JSON.parse(res.text).errors;
-      expect(errorArray.length).to.equal(1);
-      expect(errorArray[0].type).to.equal('ForbiddenError');
-      return done();
-    });
-  });
-
   it('PATCH without permission: should return 403', (done) => {
     api.patch(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
