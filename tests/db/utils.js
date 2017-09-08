@@ -12,6 +12,7 @@
 const expect = require('chai').expect;
 const u = require('../../db/utils');
 const tu = require('../testUtils');
+
 describe('tests/db/utils.js, db utils >', () => {
   it('pool', () => {
     expect(tu.db.sequelize.config.pool).to.have.property('min', 0);
