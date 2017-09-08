@@ -161,8 +161,11 @@ module.exports = function generator(seq, dataTypes) {
        *  attaching to generator. if fail, abort the POST operation
        * 2. create the generator
        * 3. add the saved collectors (if any)
+       *
+       * @param {Object} requestBody From API
+       * @returns {Promise} created generator with collectors (if any)
        */
-      createWithCollectors(requestBody, user) {
+      createWithCollectors(requestBody) {
         const options = {};
         let collectors; // will be populated with actual collectors
         options.where = common.whereClauseForNameInArr(requestBody.collectors || []);

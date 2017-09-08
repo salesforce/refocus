@@ -63,7 +63,7 @@ function sortArrayAccordingToAnotherArray(objArray, keyArray) {
   }
 
   // Create a temporary hash table to store the objects
-  let tempObj = {};
+  const tempObj = {};
 
   // Key each object by their respective id values
   for (let i = 0; i < objArray.length; i++) {

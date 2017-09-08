@@ -27,6 +27,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello' };
   let collector2 = { name: 'beautiful' };
   let collector3 = { name: 'world' };
+  let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
@@ -34,6 +35,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     tu.createUser('GeneratorOwner')
     .then((user) => {
       generator.createdBy = user.id;
+      userInst = user;
       return GeneratorTemplate.create(generatorTemplate);
     })
     .then(() => Promise.all([
@@ -75,6 +77,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.collectors[TWO].name).to.equal(collector3.name);
 
       // standard generator check
+      expect(o.user.name).to.equal(userInst.name);
       expect(o.id).to.not.equal(undefined);
       expect(o.name).to.equal(generator.name);
       expect(o.description).to.equal(generator.description);
@@ -91,6 +94,20 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('404 error with duplicate collectors', (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [collector1.name, collector1.name];
+    Generator.createWithCollectors(localGenerator)
+    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
+    .catch((err) => {
+      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
+      expect(err.name).to.equal('ResourceNotFoundError');
+      expect(err.resourceType).to.equal('Collector');
+      expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
+      done();
+    });
   });
 
   it('404 error for request body with an non-existant collector', (done) => {

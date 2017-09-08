@@ -21,7 +21,7 @@ const common = require('../../../db/helpers/common');
 describe('tests/db/helpers/common.js >', () => {
   after(u.forceDelete);
 
-  describe('tests/db/helpers/common.js, sortArrayAccordingToAnotherArray >', () => {
+  describe('sortArrayAccordingToAnotherArray >', () => {
     const sortedArr = [
       'before',
       'middle',
