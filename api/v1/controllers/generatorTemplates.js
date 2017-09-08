@@ -17,7 +17,6 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
-const doPut = require('../helpers/verbs/doPut');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 
@@ -73,19 +72,6 @@ module.exports = {
    */
   postGeneratorTemplate(req, res, next) {
     doPost(req, res, next, helper);
-  },
-
-  /**
-   * PUT /generatorTemplates/{key}
-   *
-   * Modifies the generatorTemplate  sends it back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  putGeneratorTemplate(req, res, next) {
-    doPut(req, res, next, helper);
   },
 
   /**
