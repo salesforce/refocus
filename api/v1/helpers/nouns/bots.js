@@ -24,5 +24,5 @@ module.exports = {
   },
   baseUrl: '/v1/bots',
   model: Bots,
-  modelName: 'bots',
+  modelName: 'Bots',
 }; // exports

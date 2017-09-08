@@ -45,11 +45,17 @@ function doFindAndCountAll(reqResNext, props, opts) {
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
+
     const retval = o.rows.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
       }
-
+      if ((props.modelName === 'Bots') &&
+        (row.dataValues.ui !== undefined) &&
+        (row.dataValues.ui !== null)) {
+        const uiSize = row.dataValues.ui.byteLength;
+        row.dataValues.ui = { size: uiSize };
+      }
       return u.responsify(row, props, reqResNext.req.method);
     });
     u.logAPI(reqResNext.req, resultObj, retval);
