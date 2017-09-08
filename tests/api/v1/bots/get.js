@@ -59,7 +59,7 @@ describe('tests/api/v1/bots/get.js >', () => {
       }
 
       expect(res.body.length).to.equal(ONE);
-      expect(res.body[ZERO].ui.size).to.equal(uiBlob.length);
+      expect(res.body).to.not.have.property('ui');
       done(err);
     });
   });

@@ -51,12 +51,12 @@ describe('tests/db/model/bot/update.js >', () => {
   });
 
   it('ok, bot ui updated', (done) => {
-    Bot.findOne({ where: { name: u.name } })
+    Bot.scope('botUI').findOne({ where: { name: u.name } })
     .then((o) => {
       expect(o.ui.length).to.equal(uiBlob.length);
       return o.update({ ui: uiBlob2 });
     })
-    .then(() => Bot.findOne({ where: { name: u.name } }))
+    .then(() => Bot.scope('botUI').findOne({ where: { name: u.name } }))
     .then((o) => {
       expect(o.ui.length).to.equal(uiBlob2.length);
       done();
