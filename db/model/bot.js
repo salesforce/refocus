@@ -104,6 +104,18 @@ module.exports = function bot(seq, dataTypes) {
           foreignKey: 'botId',
           through: 'RoomTypeBots',
         });
+
+        Bot.addScope('botUI', {
+          attributes: { include: ['ui'] },
+        }, {
+          override: true,
+        });
+
+        Bot.addScope('defaultScope', {
+          attributes: { exclude: ['ui'] },
+        }, {
+          override: true,
+        });
       },
     },
   });

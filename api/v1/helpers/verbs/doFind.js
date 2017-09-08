@@ -50,12 +50,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
       }
-      if ((props.modelName === 'Bots') &&
-        (row.dataValues.ui !== undefined) &&
-        (row.dataValues.ui !== null)) {
-        const uiSize = row.dataValues.ui.byteLength;
-        row.dataValues.ui = { size: uiSize };
-      }
+
       return u.responsify(row, props, reqResNext.req.method);
     });
     u.logAPI(reqResNext.req, resultObj, retval);
