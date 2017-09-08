@@ -32,6 +32,18 @@ const changeType = {
 };
 
 /**
+ * Given two flat arrays of strings that may overlap, compute what is
+ * IN the first array AND NOT IN the second array.
+ *
+ * @params {Array} array1 Array of strings
+ * @params {Array} array2 Array of strings
+ * @returns {Array} Array of strings
+ */
+function setDifference(arrayA, arrayB) {
+  return arrayA.filter((str) => arrayB.indexOf(str) < 0);
+}
+
+/**
  * Replicated here from api/v1/helpers/verbs/utils.js
  * Return the sequelize query { name: { $in: arr } }
  * @param {Array} arr The array to return in the query.
@@ -321,6 +333,7 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 module.exports = {
+  setDifference,
   sortArrayAccordingToAnotherArray,
   whereClauseForNameInArr,
   dbconf,
