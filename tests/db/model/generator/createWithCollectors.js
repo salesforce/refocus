@@ -29,10 +29,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector3 = { name: 'world' };
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
-  const gtWithEncryption = gtUtil.getGeneratorTemplate();
-  gtWithEncryption.name = 'gtWithEncryption';
-  gtWithEncryption.contextDefinition.password.encrypted = true;
-  gtWithEncryption.contextDefinition.token.encrypted = true;
 
   before((done) => {
     tu.createUser('GeneratorOwner')
@@ -40,7 +36,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       generator.createdBy = user.id;
       return GeneratorTemplate.create(generatorTemplate);
     })
-    .then(() => GeneratorTemplate.create(gtWithEncryption))
     .then(() => Promise.all([
       Collector.create(collector1),
       Collector.create(collector2),
