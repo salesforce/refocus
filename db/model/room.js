@@ -101,6 +101,7 @@ module.exports = function room(seq, dataTypes) {
         if (instance.getDataValue('active')) {
           return realTime.publishObject(instance, roomEventNames.del);
         }
+
         return seq.Promise.resolve();
       }, // hooks.afterDelete
     },
