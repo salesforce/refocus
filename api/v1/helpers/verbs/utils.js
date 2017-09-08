@@ -107,7 +107,7 @@ function handleAssociations(reqObj, inst, props, method) {
 
             /**
              * all the functions that upsert associated models are named
-             * handle{associateionName}. So, here we are getting the name of the
+             * handle{associationName}. So, here we are getting the name of the
              * function to upsert the association.
              */
             commonDbUtil[functionName](inst, reqObj[element], method)
