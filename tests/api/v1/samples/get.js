@@ -20,9 +20,9 @@ const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const pe = process.env;
+const featureToggles = require('feature-toggles');
 const cacheGetSamplesByNameWildcard =
-  pe.CACHE_GET_SAMPLES_BY_NAME_WILDCARD;
+  featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard');
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;

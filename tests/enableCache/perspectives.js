@@ -21,8 +21,9 @@ const expect = require('chai').expect;
 const redisCache = require('../../cache/redisCache').client.cache;
 const ZERO = 0;
 const ONE = 1;
-const pe = process.env;
-const enableApiActivityLogs = pe.ENABLE_API_ACTIVITY_LOGS;
+const featureToggles = require('feature-toggles');
+const enableApiActivityLogs =
+  featureToggles.isFeatureEnabled('enableApiActivityLogs');
 
 describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   let lensId;

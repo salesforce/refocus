@@ -18,9 +18,9 @@ const rtu = require('../redisTestUtil');
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const pe = process.env;
+const featureToggles = require('feature-toggles');
 const cacheGetSamplesByNameWildcard =
-  pe.CACHE_GET_SAMPLES_BY_NAME_WILDCARD;
+  featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard');
 
 describe('tests/cache/models/samples/get.js, ' +
 `api::redisEnabled::GET ${path}`, () => {
