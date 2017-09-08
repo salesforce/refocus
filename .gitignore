@@ -29,7 +29,7 @@ node_modules
 #Config Directory
 #conf
 
-# Ignore everything in the "wp-content" directory, except the "css, fonts, icons, and images" directories.
+# Ignore everything in the "wp-content" directory, except the "css, scripts, fonts, icons, and images" directories.
 public/*
 !public/css/
 !public/fonts/
