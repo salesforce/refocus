@@ -50,7 +50,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .then((createdPersp) => {
       lensId = createdPersp.lensId;
       perspectiveId = createdPersp.id;
-      done();
+      return done();
     })
     .catch(done);
   });
@@ -67,14 +67,13 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-
-      done();
+      return done();
     });
   });
 
@@ -84,7 +83,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       redisCache.get('/v1/perspectives', (cacheErr, reply) => {
@@ -93,10 +92,8 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           expect(jsonReply).to.have.length(ONE);
           expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
           expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
-
-          done();
+          return done();
         } else {
-          console.log(cacheErr);
           throw new Error('Expected response value in cache');
         }
       });
@@ -111,7 +108,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       redisCache.get('/v1/perspectives', (cacheErr, reply) => {
@@ -121,9 +118,8 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
           expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
           tu.toggleOverride('enableApiActivityLogs', enableApiActivityLogs);
-          done();
+          return done();
         } else {
-          console.log(cacheErr);
           throw new Error('Expected response value in cache');
         }
       });
@@ -136,14 +132,13 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
-
-      done();
+      return done();
     });
   });
 
@@ -153,13 +148,13 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       redisCache.get('{"order":["name"],"limit":10,"where":{}}',
       (cacheErr, reply) => {
         expect(reply).to.not.exist;
-        done();
+        return done();
       });
     });
   });
@@ -170,14 +165,13 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
       expect(res.body.lensId).to.equal(lensId);
-
-      done();
+      return done();
     });
   });
 
@@ -189,8 +183,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);
           expect(jsonReply.rootSubject).to.equal('myMainSubject');
           expect(jsonReply.lensId).to.equal(lensId);
-
-          done();
+          return done();
         } else {
           throw new Error('Expected response value in cache');
         }

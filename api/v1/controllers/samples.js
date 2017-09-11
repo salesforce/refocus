@@ -36,7 +36,7 @@ const getSamplesWildcardCacheInvalidation = require('../../../config')
 const redisCache = require('../../../cache/redisCache').client.cache;
 
 /**
- * Function for finding sample from samplestore. If cache is on then
+ * Find sample from samplestore. If cache is on then
  * cache the response as well.
  *
  * @param {IncomingMessage} req - The request object
@@ -48,24 +48,24 @@ const redisCache = require('../../../cache/redisCache').client.cache;
  */
 function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
   redisModelSample.findSamples(req, res, resultObj)
-    .then((response) => {
-      // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        for (let i = response.length - 1; i >= 0; i--) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
-        }
+  .then((response) => {
+    // loop through remove values to delete property
+    if (helper.fieldsToExclude) {
+      for (let i = response.length - 1; i >= 0; i--) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
       }
+    }
 
-      if (cacheKey) {
-        // cache the object by cacheKey.
-        const strObj = JSON.stringify(response);
-        redisCache.setex(cacheKey, cacheExpiry, strObj);
-      }
+    if (cacheKey) {
+      // cache the object by cacheKey.
+      const strObj = JSON.stringify(response);
+      redisCache.setex(cacheKey, cacheExpiry, strObj);
+    }
 
-      u.logAPI(req, resultObj, response); // audit log
-      res.status(httpStatus.OK).json(response);
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    u.logAPI(req, resultObj, response); // audit log
+    res.status(httpStatus.OK).json(response);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 }
 
 module.exports = {

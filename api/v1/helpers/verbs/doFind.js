@@ -67,8 +67,9 @@ function doFindAndCountAll(reqResNext, props, opts) {
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Object} opts - The "options" object to pass into the Sequelize
  * find command
- * @param {Object} cacheKey - Optional cache key used to cache the response in
+ * @param {String} cacheKey - Optional cache key used to cache the response in
  * redis
+ * @param {String} cacheExpiry - Optional Cache Expiry time in second
  */
 function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
   if (opts.limit || opts.offset) {

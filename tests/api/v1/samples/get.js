@@ -87,79 +87,6 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     .end(done);
   });
 
-  it('get with wildcard and with cacheGetSamplesWildcard flag on ' +
-    'shold cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
-    api.get(`${path}?name=${sampleName}*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          return done(cacheErr);
-        }
-
-        expect(JSON.parse(reply).length).to.be.above(ZERO);
-        expect(JSON.parse(reply)[0].name).to.equal(`${sampleName}`);
-        redisCache.del(`${sampleName}*`);
-
-        tu.toggleOverride('cacheGetSamplesByNameWildcard',
-          cacheGetSamplesByNameWildcard);
-        done();
-      });
-    });
-  });
-
-  it('get without wildcard and with cacheGetSamplesWildcard flag on ' +
-    'shold not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
-    api.get(`${path}?name=${sampleName}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.above(ZERO);
-
-          tu.toggleOverride('cacheGetSamplesByNameWildcard',
-          cacheGetSamplesByNameWildcard);
-          done();
-        }
-      });
-    });
-  });
-
-  it('get with wildcard and without cacheGetSamplesWildcard flag on ' +
-    'should not cache response', (done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-    api.get(`${path}?name=${sampleName}*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.above(ZERO);
-
-          tu.toggleOverride('cacheGetSamplesByNameWildcard',
-          cacheGetSamplesByNameWildcard);
-          done();
-        }
-      });
-    });
-  });
-
   it('basic get does not return id', (done) => {
     api.get(path)
     .set('Authorization', token)
@@ -218,6 +145,132 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
       expect(res.body.id).to.be.undefined;
       done();
+    });
+  });
+});
+
+describe(`tests/api/v1/samples/get.js, GET ${path} >` +
+  'GET with cacheGetSamplesWildcard flag on', () => {
+  let sampleName;
+  let token;
+
+  before((done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before((done) => {
+    u.doSetup()
+    .then((samp) => Sample.create(samp))
+    .then((samp) => {
+      sampleName = samp.name;
+      done();
+    })
+    .catch(done);
+  });
+
+  after(() => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard',
+      cacheGetSamplesByNameWildcard);
+  });
+
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('get with wildcard shold cache response', (done) => {
+    api.get(`${path}?name=${sampleName}*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          return done(cacheErr);
+        }
+
+        expect(JSON.parse(reply).length).to.be.above(ZERO);
+        expect(JSON.parse(reply)[0].name).to.equal(`${sampleName}`);
+        redisCache.del(`${sampleName}*`);
+        done();
+      });
+    });
+  });
+
+  it('get without wildcard shold not cache response', (done) => {
+    api.get(`${path}?name=${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get(`${sampleName}`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.above(ZERO);
+          done();
+        }
+      });
+    });
+  });
+});
+
+describe(`tests/api/v1/samples/get.js, GET ${path} >` +
+  'GET with cacheGetSamplesWildcard flag off', () => {
+  let sampleName;
+  let token;
+
+  before((done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before((done) => {
+    u.doSetup()
+    .then((samp) => Sample.create(samp))
+    .then((samp) => {
+      sampleName = samp.name;
+      done();
+    })
+    .catch(done);
+  });
+
+  after(() => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard',
+      cacheGetSamplesByNameWildcard);
+  });
+
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('get with wildcard should not cache response', (done) => {
+    api.get(`${path}?name=${sampleName}*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.above(ZERO);
+          done();
+        }
+      });
     });
   });
 });

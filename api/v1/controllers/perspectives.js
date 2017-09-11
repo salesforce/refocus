@@ -82,8 +82,7 @@ module.exports = {
    */
   findPerspectives(req, res, next) {
     // Caching perspective
-    if (featureToggles
-      .isFeatureEnabled('enableCachePerspective') &&
+    if (featureToggles.isFeatureEnabled('enableCachePerspective') &&
       Object.keys(req.query).length === 0) {
       helper.cacheEnabled = true;
       helper.cacheKey = req.url;
