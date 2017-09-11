@@ -75,6 +75,7 @@ const LENS_DIV = document.getElementById('lens');
 const ERROR_INFO_DIV = document.getElementById('errorInfo');
 const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
+const SPINNER_ID = 'lens_loading_spinner';
 
 // Note: these are declared in perspective.pug:
 const _realtimeEventThrottleMilliseconds =
@@ -95,7 +96,7 @@ function handleError(err) {
   }
 
   ERROR_INFO_DIV.innerHTML = msg;
-  removeSpinner();
+  u.removeSpinner(SPINNER_ID);
 } // handleError
 
 /**
@@ -283,11 +284,6 @@ function handleHierarchyEvent(rootSubject, gotLens) {
   return hierarchyLoadEvent;
 }
 
-function removeSpinner() {
-  const spinner = document.getElementById('lens_loading_spinner');
-  spinner.parentNode.removeChild(spinner);
-}
-
 /**
  * On receiving the lens, load the lens.
  * Load the hierarchy if hierarchy event is passed in.
@@ -300,7 +296,7 @@ function handleLensDomEvent(library, hierarchyLoadEvent) {
   // inject lens library files in perspective view.
   handleLibraryFiles(library);
 
-  removeSpinner();
+  u.removeSpinner(SPINNER_ID);
 
   // load lens
   const lensLoadEvent = new CustomEvent('refocus.lens.load');
@@ -349,7 +345,7 @@ window.onload = () => {
     handleLensDomEvent,
     customHandleError: (msg) => {
         ERROR_INFO_DIV.innerHTML = msg;
-      removeSpinner();
+      u.removeSpinner(SPINNER_ID);
     },
     setupSocketIOClient,
     redirectToUrl: (url) => window.location.href = url,

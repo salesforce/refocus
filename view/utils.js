@@ -11,12 +11,18 @@
  */
 'use strict'; // eslint-disable-line strict
 
+import request from 'superagent';
 const constants = require('./constants');
 const filters = ['aspectFilter',
                   'subjectTagFilter',
                   'aspectTagFilter',
                   'statusFilter',
                 ];
+const REQ_HEADERS = {
+  'X-Requested-With': 'XMLHttpRequest',
+  Expires: '-1',
+  'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',
+};
 
 /**
  * [Sets Cookie]
@@ -79,9 +85,39 @@ function getNamespaceString(inst) {
   return namespace;
 }
 
+/**
+ * Remove spinner from DOM
+ *
+ * @param  {String} spinnerID - Id of spinner
+ */
+function removeSpinner(spinnerID) {
+  const spinner = document.getElementById(spinnerID);
+  spinner.parentNode.removeChild(spinner);
+}
+
+/**
+ * @param {String} url The url to get from
+ * @returns {Promise} For use in chaining.
+ */
+function getPromiseWithUrl(url) {
+  return new Promise((resolve, reject) => {
+    request.get(url)
+    .set(REQ_HEADERS)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // getPromiseWithUrl
 
 module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
+  removeSpinner,
+  getPromiseWithUrl,
 };

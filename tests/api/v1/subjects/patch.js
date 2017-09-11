@@ -150,6 +150,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .catch(done);
   });
 
+  // n0 has 2 childern -> n1 and n2. Another subject - n0a
   beforeEach((done) => {
     Subject.create(n0)
     .then((subj) => {
@@ -390,10 +391,31 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .end(done);
   });
 
-  it('re-parent a subject, make sure its children get updated', (done) => {
+  it('re-parent a subject by parentId, make sure its children get updated',
+  (done) => {
     api.patch(`${path}/${i0}`)
     .set('Authorization', token)
     .send({ parentId: i0a })
+    .expect(constants.httpStatus.OK)
+    .expect(reparented)
+    .end(done);
+  });
+
+  it('re-parent a subject by absolutePath, make sure its children get updated',
+  (done) => {
+    api.patch(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({ parentAbsolutePath: n0a.name })
+    .expect(constants.httpStatus.OK)
+    .expect(reparented)
+    .end(done);
+  });
+
+  it('re-parent a subject by absolutePath lowercase, make sure its children' +
+  ' get updated', (done) => {
+    api.patch(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({ parentAbsolutePath: n0a.name.toLowerCase() })
     .expect(constants.httpStatus.OK)
     .expect(reparented)
     .end(done);
