@@ -216,5 +216,39 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       })
       .catch(done);
     });
+
+    it('error when key/algo is not present in GlobalConfig', (done) => {
+      GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => reEncryptSGContextValues(encryptedSG, authToken, timestamp))
+      .then(() => done(new Error('Validation error should be thrown!')))
+      .catch((err) => {
+        expect(err.name).to.equal('SampleGeneratorContextDecryptionError');
+        expect(err.message).to.equal('Unable to decrypt the Sample Generator ' +
+          'context data. Please contact your Refocus administrator to set up ' +
+          'the encryption algorithm and key which was used to protect the ' +
+          'sensitive information in your Sample Generator\'s context');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('cannot reencrypt SG context values when invalid algo present in ' +
+      'GlobalConfig', (done) => {
+      GlobalConfig.update(
+        { value: 'aes-256-invalid-algo' },
+        { where: { key: dbConstants.SGEncryptionAlgorithm } }
+      )
+      .then((gc) => reEncryptSGContextValues(encryptedSG, authToken, timestamp))
+      .then(() => done(new Error('Validation error should be thrown!')))
+      .catch((err) => {
+        expect(err.name).to.equal('SampleGeneratorContextDecryptionError');
+        expect(err.message).to.equal('Unable to decrypt the Sample Generator ' +
+          'context data. Please contact your Refocus administrator to set up ' +
+          'the encryption algorithm and key which was used to protect the ' +
+          'sensitive information in your Sample Generator\'s context');
+        done();
+      })
+      .catch(done);
+    });
   });
 });

@@ -128,6 +128,18 @@ apiErrors.create({
   defaultMessage: 'You are not allowed to create a resource that already exists.',
 });
 
+apiErrors.create({
+  code: 11111,
+  status: 400,
+  name: 'SampleGeneratorContextDecryptionError',
+  parent: apiErrors.ValidationError,
+  fields: [],
+  defaultMessage: 'Unable to decrypt the Sample Generator context data. ' +
+  'Please contact your Refocus administrator to set up the encryption ' +
+  'algorithm and key which was used to protect the sensitive information ' +
+  'in your Sample Generator\'s context',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
