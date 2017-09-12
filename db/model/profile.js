@@ -146,7 +146,7 @@ module.exports = function profile(seq, dataTypes) {
         return new Promise((resolve, reject) => {
           Profile.findById(profileId)
           .then((p) => resolve(p &&
-            p[accessModel] === 'rw'))
+            p[accessModel].toLowerCase() === 'rw'))
           .catch(reject);
         });
       }, // hasWriteAccess
