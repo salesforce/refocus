@@ -32,11 +32,11 @@ module.exports = function profile(seq, dataTypes) {
     },
     aspectAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     botAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     collectorAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -44,7 +44,7 @@ module.exports = function profile(seq, dataTypes) {
     },
     eventAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     generatorAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -61,11 +61,11 @@ module.exports = function profile(seq, dataTypes) {
     },
     lensAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     perspectiveAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     profileAccess: {
       type: dataTypes.ENUM('r', 'rw'),
@@ -77,19 +77,19 @@ module.exports = function profile(seq, dataTypes) {
     },
     roomTypeAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     sampleAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     subjectAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     userAccess: {
       type: dataTypes.ENUM('r', 'rw'),
-      defaultValue: 'r',
+      defaultValue: 'rw',
     },
     userCount: {
       type: dataTypes.INTEGER,
