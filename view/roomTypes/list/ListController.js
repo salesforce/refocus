@@ -61,8 +61,8 @@ class ListController extends React.Component {
             <tbody>
               {roomTypes.map((roomType) => {
                 return <tr>
-                  <td><a href={'/rooms/'+room.id}>{roomType.id}</a></td>
-                  <td><a href={'/rooms/'+room.id}>{roomType.name}</a></td>
+                  <td><a href={'/roomTypes/'+roomType.id}>{roomType.id}</a></td>
+                  <td><a href={'/roomTypes/'+roomType.id}>{roomType.name}</a></td>
                   <td>{roomType.isEnabled ? 'True' : 'False'}</td>
                   <td>{roomType.bots}</td>
                   <td>{moment(roomType.createdAt).format('LLL')}</td>

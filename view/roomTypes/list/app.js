@@ -21,11 +21,10 @@ const listContainer = document.getElementById('root');
 const GET_ROOMTYPES = '/v1/roomTypes';
 
 window.onload = () => {
-  let rooms;
   let roomTypes;
   u.getPromiseWithUrl(GET_ROOMTYPES)
   .then((res) => {
-    rooms = res.body;
+    roomTypes = res.body;
     loadController(roomTypes);
   })
 };
@@ -35,7 +34,7 @@ window.onload = () => {
  *
  * @param {Object} values Data returned from AJAX.
  */
-function loadController(rooms, roomTypes) {
+function loadController(roomTypes) {
   ReactDOM.render(
     <ListController
       roomTypes={ roomTypes }
