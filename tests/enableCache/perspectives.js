@@ -94,7 +94,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
           return done();
         } else {
-          throw new Error('Expected response value in cache');
+          return done(Error('Expected response value in cache'));
         }
       });
     });

@@ -550,14 +550,14 @@ describe('tests/cache/models/samples/get.js, ' +
       }
 
       redisCache.get('___Subj*', (cacheErr, reply) => {
-        if (cacheErr || !reply) {
+        if (cacheErr) {
           return done(cacheErr);
         }
 
         expect(JSON.parse(reply).length).to.be.equal(3);
         expect(JSON.parse(reply)[0].name).to.equal(s1s2a1);
         redisCache.del('___Subj*');
-        done();
+        return done();
       });
     });
   });
@@ -576,7 +576,7 @@ describe('tests/cache/models/samples/get.js, ' +
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.equal(1);
           expect(res.body[0].name).to.equal(s1s2a1);
-          done();
+          return done();
         }
       });
     });
@@ -624,7 +624,7 @@ describe('tests/cache/models/samples/get.js, ' +
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.equal(3);
           expect(res.body[0].name).to.equal(s1s2a1);
-          done();
+          return done();
         }
 
       });
