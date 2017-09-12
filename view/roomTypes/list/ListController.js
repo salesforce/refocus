@@ -7,10 +7,8 @@
  */
 
 /**
- * view/rooms/ListController.js
+ * view/roomTypes/ListController.js
  *
- * Manages perspective page state.
- * Passes on data to CreatePerspective
  */
 import React, { PropTypes } from 'react';
 import moment from 'moment';
@@ -21,21 +19,17 @@ class ListController extends React.Component {
   }
 
   render() {
-    const rooms = this.props.rooms !== undefined ? this.props.rooms : [];
-    rooms.sort((a, b) => {
-      return moment(b.updatedAt) - moment(a.updatedAt);
-    });
     const roomTypes = this.props.roomTypes !== undefined ? this.props.roomTypes : [];
     return (
       <div>
         <div className="slds-page-header">
           <div className="slds-media">
             <div className="slds-media__body">
-              <h1 className="slds-page-header__title slds-truncate slds-align-middle" title="Refocus Rooms">
-                Refocus Rooms
+              <h1 className="slds-page-header__title slds-truncate slds-align-middle" title="Refocus Room Types">
+                Refocus Room Types
               </h1>
               <p className="slds-text-body_small slds-line-height_reset">
-                Number of rooms: {rooms.length}
+                Number of Room Types: {roomTypes.length}
               </p>
             </div>
           </div>
@@ -45,16 +39,16 @@ class ListController extends React.Component {
             <thead>
               <tr className="slds-text-title--caps">
                 <th scope="col">
-                  <div className="slds-truncate" title="roomID">ID</div>
+                  <div className="slds-truncate" title="roomTypeID">ID</div>
                 </th>
                 <th scope="col">
-                  <div className="slds-truncate" title="roomName">Name</div>
+                  <div className="slds-truncate" title="roomTypeName">Name</div>
                 </th>
                 <th scope="col">
-                  <div className="slds-truncate" title="type">Type</div>
+                  <div className="slds-truncate" title="isEnabled">Enabled</div>
                 </th>
                 <th scope="col">
-                  <div className="slds-truncate" title="active">Active</div>
+                  <div className="slds-truncate" title="bots">Bots</div>
                 </th>
                 <th scope="col">
                   <div className="slds-truncate" title="create">Created At</div>
@@ -65,15 +59,14 @@ class ListController extends React.Component {
               </tr>
             </thead>
             <tbody>
-              {rooms.map((room) => {
-                const roomType = roomTypes.filter((rt) => rt.id === room.type);
+              {roomTypes.map((roomType) => {
                 return <tr>
-                  <td><a href={'/rooms/'+room.id}>{room.id}</a></td>
-                  <td><a href={'/rooms/'+room.id}>{room.name}</a></td>
-                  <td>{roomType[0].name}</td>
-                  <td>{room.active ? 'True' : 'False'}</td>
-                  <td>{moment(room.createdAt).format('LLL')}</td>
-                  <td>{moment(room.updatedAt).format('LLL')}</td>
+                  <td><a href={'/rooms/'+room.id}>{roomType.id}</a></td>
+                  <td><a href={'/rooms/'+room.id}>{roomType.name}</a></td>
+                  <td>{roomType.isEnabled ? 'True' : 'False'}</td>
+                  <td>{roomType.bots}</td>
+                  <td>{moment(roomType.createdAt).format('LLL')}</td>
+                  <td>{moment(roomType.updatedAt).format('LLL')}</td>
                 </tr>;
               })}
             </tbody>
@@ -85,8 +78,7 @@ class ListController extends React.Component {
 }
 
 ListController.PropTypes = {
-  rooms: PropTypes.object,
-  roomTypes: PropTypes.object,
+  roomTypes: PropTypes.object
 };
 
 export default ListController;
