@@ -27,7 +27,7 @@ describe('tests/db/model/profile/create.js >', () => {
       Profile.create({
         name: pname,
       })
-      .then((o) => { 
+      .then((o) => {
         expect(o).to.have.property('name').to.equal(pname);
         expect(o).to.have.property('aspectAccess').to.equal('rw');
         expect(o).to.have.property('botAccess').to.equal('rw');
