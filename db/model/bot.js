@@ -107,8 +107,6 @@ module.exports = function bot(seq, dataTypes) {
 
         Bot.addScope('botUI', {
           attributes: { include: ['ui'] },
-        }, {
-          override: true,
         });
 
         Bot.addScope('defaultScope', {
