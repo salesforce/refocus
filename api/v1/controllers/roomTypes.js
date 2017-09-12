@@ -18,6 +18,8 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const u = require('../helpers/verbs/utils');
+const authUtils = require('../helpers/authUtils');
 
 module.exports = {
 
@@ -31,7 +33,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteRoomTypes(req, res, next) {
-    doDelete(req, res, next, helper);
+    authUtils.profileHasWriteAccess(req, helper.model)
+    .then((ok) => {
+      if(ok) {
+        doDelete(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -70,7 +82,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchRoomType(req, res, next) {
-    doPatch(req, res, next, helper);
+    authUtils.profileHasWriteAccess(req, helper.model)
+    .then((ok) => {
+      if(ok) {
+        doPatch(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
   /**
@@ -83,7 +105,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postRoomTypes(req, res, next) {
-    doPost(req, res, next, helper);
+    authUtils.profileHasWriteAccess(req, helper.model)
+    .then((ok) => {
+      if(ok) {
+        doPost(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    })
+    .catch((err) => {
+      u.forbidden(next);
+    });
   },
 
 }; // exports
