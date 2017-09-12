@@ -136,7 +136,7 @@ apiErrors.create({
   fields: [],
   defaultMessage: 'Unable to decrypt the Sample Generator context data. ' +
   'Please contact your Refocus administrator to set up the encryption ' +
-  'algorithm and key which was used to protect the sensitive information ' +
+  'algorithm and key to protect the sensitive information ' +
   'in your Sample Generator\'s context',
 });
 

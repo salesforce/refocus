@@ -225,7 +225,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         expect(err.name).to.equal('SampleGeneratorContextDecryptionError');
         expect(err.message).to.equal('Unable to decrypt the Sample Generator ' +
           'context data. Please contact your Refocus administrator to set up ' +
-          'the encryption algorithm and key which was used to protect the ' +
+          'the encryption algorithm and key to protect the ' +
           'sensitive information in your Sample Generator\'s context');
         done();
       })
@@ -244,7 +244,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         expect(err.name).to.equal('SampleGeneratorContextDecryptionError');
         expect(err.message).to.equal('Unable to decrypt the Sample Generator ' +
           'context data. Please contact your Refocus administrator to set up ' +
-          'the encryption algorithm and key which was used to protect the ' +
+          'the encryption algorithm and key to protect the ' +
           'sensitive information in your Sample Generator\'s context');
         done();
       })
