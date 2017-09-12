@@ -118,9 +118,57 @@ describe('tests/db/model/collector/create.js >', () => {
     });
   });
 
-  it('Create collector, OK if missing host or ipAddress', (done) => {
+  it('Create collector, error if invalid processInfo', (done) => {
+    collectorObj.processInfo = {
+      execPath: 'testExecPath',
+      memoryUsage: {
+        heapTotal: 'should be a number',
+        external: 5678,
+      },
+      version: 'v1',
+      versions: { a: 'a', b: 'b' },
+    };
+    Collector.create(collectorObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('\\"heapTotal\\" must be a number');
+      done();
+    });
+  });
+
+  it('Create collector, error if invalid osInfo', (done) => {
+    collectorObj.osInfo = {
+      arch: 123,
+      hostname: 'testHostname',
+      username: 'testUsername',
+    };
+    Collector.create(collectorObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('\\"arch\\" must be a string');
+      done();
+    });
+  });
+
+  it('Create collector, error if invalid version', (done) => {
+    collectorObj.version = '1';
+    Collector.create(collectorObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('Validation error: Not a valid version.');
+      done();
+    });
+  });
+
+  it('Create collector, OK if missing host or ipAddress or osInfo or ' +
+    'processInfo', (done) => {
     delete collectorObj.host;
     delete collectorObj.ipAddress;
+    delete collectorObj.osInfo;
+    delete collectorObj.processInfo;
     Collector.create(collectorObj)
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
