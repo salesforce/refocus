@@ -15,7 +15,8 @@ const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
+const config = require('../../../../config');
+const cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -34,6 +35,12 @@ const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
  */
 function doFindAndCountAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: new Date() };
+
+  // enforce the default limit
+  if (!opts.limit || opts.limit > config.GET_REQUEST_DEFAULT_LIMIT) {
+    opts.limit = config.GET_REQUEST_DEFAULT_LIMIT;
+  }
+
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -50,65 +57,6 @@ function doFindAndCountAll(reqResNext, props, opts) {
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAndCountAll
-
-/**
- * Finds all matching records.
- *
- * NOTE : Sequelize is not able to generate the right postgres sql aggeragate
- * query for Subject and Aspect objects to count the samples associated with
- * them. So, these models are scoped before finding them and the length
- * of the associated sample array is used as the sample count.
- *
- * @param {Object} reqResNext - The object containing the request object, the
- *  response object and the next middleware function in the stack
- * @param {Object} props - The helpers/nouns module for the given DB model
- * @param {Object} opts - The "options" object to pass into the Sequelize
- *  find command
- * @returns {Array} of matching records
- */
-function doFindAll(reqResNext, props, opts) {
-  const resultObj = { reqStartTime: new Date() };
-  const { tags } = reqResNext.req.swagger.params;
-  const filterByTags = tags && tags.value && tags.value.length;
-  const excludeTagField = opts.attributes && opts.attributes.length
-    && !opts.attributes.includes('tags');
-
-  if (opts.where && opts.where.tags &&
-    opts.where.tags.$contains && opts.where.tags.$contains.length) {
-
-    // change to filter at the API level
-    opts.where.tags.$contains = [];
-  }
-
-  //if tags field is excluded, need to add it so we can filter by tags later
-  if (filterByTags && excludeTagField) {
-    opts.attributes.push('tags');
-  }
-
-  return u.getScopedModel(props, opts.attributes).findAll(opts)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    reqResNext.res.set(COUNT_HEADER_NAME, o.length);
-    let retval = o.map((row) => {
-      if (props.modelName === 'Lens') {
-        delete row.dataValues.library;
-      }
-
-      return u.responsify(row, props, reqResNext.req.method);
-    });
-
-    if (filterByTags) {
-      retval = fu.filterArrFromArr(retval, tags.value);
-      if (excludeTagField) {
-        retval.forEach(o => delete o.tags);
-      }
-    }
-
-    u.logAPI(reqResNext.req, resultObj, retval);
-    return retval;
-  })
-  .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
-} // doFindAll
 
 /**
  * Finds all matching records. This function is just a wrapper around
@@ -131,19 +79,8 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
     });
   }
 
-  /*
-   * If we're doing a "limit" query, we need to call findAndCountAll, but if
-   * we're not doing a "limit" query, just to findAll, avoiding the extra
-   * "SELECT count(*)... " database call.
-   */
-  let doFindPromise;
-  if (opts.limit) {
-    doFindPromise = doFindAndCountAll(reqResNext, props, opts);
-  } else {
-    doFindPromise = doFindAll(reqResNext, props, opts);
-  }
-
-  doFindPromise.then((retval) => {
+  doFindAndCountAll(reqResNext, props, opts)
+  .then((retval) => {
 
     // loop through remove values to delete property
     if (props.fieldsToExclude) {

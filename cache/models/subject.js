@@ -251,7 +251,7 @@ module.exports = {
     .then((subject) => {
       if (!subject) {
         throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Sample not found.',
+          explanation: 'Subject not found.',
         });
       }
 

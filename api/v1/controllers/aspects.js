@@ -40,8 +40,7 @@ function validateTags(requestBody, params) {
   if (requestBody) {
     tags = requestBody.tags;
   } else if (params) {
-    // params.tags.value is a comma delimited string, not empty.
-    tags = params.tags.value ? params.tags.value.split(',') : [];
+    tags = params.tags.value;
   }
 
   if (tags && tags.length) {

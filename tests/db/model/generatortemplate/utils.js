@@ -17,7 +17,7 @@ const testStartTime = new Date();
 const GT_SIMPLE = {
   name: 'refocus-ok-template',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
     'STATUS',
   ],
@@ -34,6 +34,7 @@ const GT_SIMPLE = {
     url: '{{baseTrustUrl}}/v1/instances/status/preview',
     method: 'GET',
     proxy: 'pro.xy.server.net',
+    bulk: false,
   },
   transform: 'return [{ name: "S1|A1", value: 10 }, ' +
     '{ name: "S2|A1", value: 2 }] ',
@@ -42,6 +43,16 @@ const GT_SIMPLE = {
       required: false,
       default: '0',
       description: 'An ok sample\'s value, e.g. \'0\'',
+    },
+    password: {
+      required: false,
+      description: 'password required to log in',
+      encrypted: false,
+    },
+    token: {
+      required: false,
+      description: 'token required to be passed on to the header',
+      encrypted: false,
     },
   },
   helpUrl: 'http://help.com',
@@ -53,7 +64,7 @@ const GT_SIMPLE = {
  * @returns {Object} - Generator Template object
  */
 function getGeneratorTemplate() {
-  return GT_SIMPLE;
+  return JSON.parse(JSON.stringify(GT_SIMPLE));
 } // getGeneratorTemplate
 
 module.exports = {

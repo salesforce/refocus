@@ -32,6 +32,8 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
 
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableApiActivityLogs', false);
+    tu.toggleOverride('enableWorkerActivityLogs', false);
     jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
@@ -83,6 +85,9 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '4',
+      }, {
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
         value: '4',
       },
@@ -105,6 +110,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   it('test logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
+    logger.on('logging', testLogMessage);
     let workerLogged = false;
     let apiLogged = false;
 
@@ -131,7 +137,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       //don't call done() yet, need to wait for data to be logged
     });
 
-    logger.on('logging', testLogMessage);
     function testLogMessage(transport, level, msg, meta) {
       const logObj = {};
       msg.split(' ').forEach((entry) => {

@@ -17,6 +17,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const gtUtil = u.gtUtil;
 const User = tu.db.User;
 const path = '/v1/generators';
 
@@ -24,18 +26,17 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
   let generator;
   let otherValidToken;
   const generatorToCreate = u.getGenerator();
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  u.createSGtoSGTMapping(generatorTemplate, generatorToCreate);
 
   before((done) => {
     tu.createToken()
-    .then(() => done())
-    .catch(done);
-  });
-
-  before((done) => {
-    Generator.create(generatorToCreate)
+    .then(() => GeneratorTemplate.create(generatorTemplate))
+    .then(() => Generator.create(generatorToCreate))
     .then((gen) => {
       generator = gen;
     })
+
     /*
      * tu.createToken creates a user and an admin user is already created so
      * use one of these.
@@ -50,20 +51,22 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
     })
     .catch(done);
   });
+
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('PUT without permission: should return 403', (done) => {
     const toPut =
     { name: 'refocus-ok-generator',
       description: 'Collect status data patched with name',
-      keywords: [
+      tags: [
         'status',
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {

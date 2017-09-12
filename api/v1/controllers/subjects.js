@@ -59,7 +59,9 @@ function validateParentFields(req, res, next, callback) {
    * to the same subject.
    */
   if (parentId && parentAbsolutePath) {
-    helper.model.findOne({ where: { absolutePath: parentAbsolutePath } })
+    helper.model.findOne(
+      { where: { absolutePath: { $iLike: parentAbsolutePath } } }
+    )
     .then((parent) => {
       if (parent && parent.id !== parentId) {
         // parentAbsolutePath does not match parentId
@@ -107,14 +109,11 @@ function validateFilterParams(filterParams) {
  * @param {Object} params Fields from url
  */
 function validateTags(requestBody, params) {
-  let absolutePath = '';
   let tags = [];
   if (requestBody) {
     tags = requestBody.tags;
-    absolutePath = requestBody.absolutePath;
   } else if (params) {
-    // params.tags.value is a comma delimited string, not empty.
-    tags = params.tags.value ? params.tags.value.split(',') : [];
+    tags = params.tags.value;
   }
 
   if (tags && tags.length) {

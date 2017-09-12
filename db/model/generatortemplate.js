@@ -12,6 +12,7 @@
 const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
+const semver = require('semver');
 
 const assoc = {};
 
@@ -65,7 +66,6 @@ const connectionSchema = {
       type: 'string',
     },
 
-    // TODO: revisit toUrl validation, while doing the api changes
     toUrl: {
       description: 'The string body of a function which returns the url ' +
       'to connect to. One of ["url", "toUrl"] is required.',
@@ -77,6 +77,15 @@ const connectionSchema = {
     headers: {
       description: 'Optional connection headers',
       type: 'object',
+    },
+    bulk: {
+      description: 'Set to false if you want to send one request for each of ' +
+      'the designated subjects. Set to true if you want to collect data for ' +
+      'all of the designated subjects in a single request. When set to true, ' +
+      'the url string or url function may only reference context attributes ' +
+      'with defaults.',
+      type: 'boolean',
+      defaultValue: false,
     },
   },
 };
@@ -120,11 +129,7 @@ module.exports = function user(seq, dataTypes) {
         is: constants.versionRegex,
       },
     },
-    bulk: {
-      type: dataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    keywords: {
+    tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
@@ -180,6 +185,41 @@ module.exports = function user(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'generatorTemplateAccess';
+      },
+
+      getSemverMatch(name, version) {
+        return GeneratorTemplate.findAll({
+          where: {
+            name,
+          },
+        }).then((templates) => {
+          if (!templates || !templates.length) {
+            return null;
+          }
+
+          let matchedTemplate = null;
+          templates.forEach((template) => {
+            if (matchedTemplate) {
+              /*
+               * ok is true when the current template version satisfies the
+               * given version and the current template version is greater
+               * than or equal(>=) to the version of the matched template
+               * that is returned finally.
+               */
+              const ok = semver.satisfies(template.version, version) &&
+               semver.gte(template.version, matchedTemplate.version);
+              matchedTemplate = ok ? template : matchedTemplate;
+            } else if (semver.satisfies(template.version, version)) {
+              matchedTemplate = template;
+            }
+          });
+
+          return matchedTemplate;
+        });
+      },
+
       postImport(models) {
         assoc.user = GeneratorTemplate.belongsTo(models.User, {
           foreignKey: 'createdBy',
@@ -199,7 +239,7 @@ module.exports = function user(seq, dataTypes) {
               attributes: ['name', 'email'],
             },
           ],
-          order: ['name'],
+          order: ['GeneratorTemplate.name'],
         }, {
           override: true,
         });

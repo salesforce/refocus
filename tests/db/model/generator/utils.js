@@ -11,13 +11,13 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
+const gtUtil = require('../generatortemplate/utils');
 const testStartTime = new Date();
 
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
   description: 'Collect status data',
-  keywords: [
+  tags: [
     'status',
     'STATUS',
   ],
@@ -27,10 +27,11 @@ const GENERATOR_SIMPLE = {
   },
   context: {
     okValue: {
-      required: false,
       default: '0',
       description: 'An ok sample\'s value, e.g. \'0\'',
     },
+    password: 'superlongandsupersecretpassword',
+    token: 'alphanumerictoken',
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
@@ -56,5 +57,13 @@ module.exports = {
     .catch(done);
   },
 
+  forceDeleteCollector(done) {
+    tu.forceDelete(tu.db.Collector, testStartTime)
+    .then(() => done())
+    .catch(done);
+  },
+
   getGenerator,
+
+  gtUtil,
 };

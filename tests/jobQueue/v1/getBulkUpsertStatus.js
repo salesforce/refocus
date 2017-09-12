@@ -86,7 +86,8 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      /* make sure that the jobId is returned as a part of the response. */
+
+      // make sure that the jobId is returned as a part of the response
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -110,7 +111,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(0);
           done();
         });
-      }, 500);
+      }, 400);
     });
   });
 
@@ -140,7 +141,8 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      /* make sure that the jobId is returned as a part of the response. */
+
+      // make sure that the jobId is returned as a part of the response.
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -171,13 +173,13 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     });
   });
 
-  it('Even when hundreds of upserts fail, the valid upsert should ' +
+  it('Even when lots of upserts fail, the valid upsert should ' +
     ' be successful', (done) => {
     let jobId;
     const toUpsert = [];
 
     // read-only field validation error
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 20; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
         value: '10',
@@ -186,7 +188,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     }
 
     // aspect not found
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 10; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect_Invalid`,
         value: '10',
@@ -194,7 +196,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     }
 
     // subject not found
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 10; i++) {
       toUpsert.push({
         name: `${tu.namePrefix}Subject_Invalid|${tu.namePrefix}Aspect1`,
         value: '10',
@@ -212,7 +214,8 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.status).to.contain('OK');
-      /* make sure that the jobId is returned as a part of the response. */
+
+      // make sure that the jobId is returned as a part of the response.
       expect(res.body.jobId).to.be.at.least(1);
       jobId = res.body.jobId;
     })
@@ -233,7 +236,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           }
 
           expect(res.body.status).to.equal('complete');
-          expect(res.body.errors.length).to.equal(100);
+          expect(res.body.errors.length).to.equal(40);
           return done();
         });
       }, 500);
