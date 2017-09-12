@@ -49,6 +49,7 @@ describe('tests/api/v1/profiles/post.js >', () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.name).to.equal(p0.name);
         expect(res.body.subjectAccess).to.equal('rw');
         done();

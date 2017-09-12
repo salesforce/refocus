@@ -58,10 +58,10 @@ describe('tests/api/v1/profiles/get.js >', () => {
       expect(res.body).to.have.property('eventAccess', 'rw');
       expect(res.body).to.have.property('lensAccess', 'rw');
       expect(res.body).to.have.property('perspectiveAccess', 'rw');
-      expect(res.body).to.have.property('profileAccess', 'r'); 
+      expect(res.body).to.have.property('profileAccess', 'r');
       expect(res.body).to.have.property('roomAccess', 'rw');
-      expect(res.body).to.have.property('roomTypeAccess', 'rw');  
-      expect(res.body).to.have.property('sampleAccess', 'rw'); 
+      expect(res.body).to.have.property('roomTypeAccess', 'rw');
+      expect(res.body).to.have.property('sampleAccess', 'rw');
       expect(res.body).to.have.property('subjectAccess', 'rw');
       expect(res.body).to.have.property('userAccess', 'rw');
       done();
