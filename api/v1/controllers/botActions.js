@@ -11,32 +11,13 @@
  */
 'use strict';
 
-const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/botActions');
-const bots = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-
-function mapBotNametoBotId (req) {
-  const botId = req.swagger.params.queryBody.value.botId;
-  if (u.looksLikeId(botId)){
-    return Promise.resolve(req);
-  }
-  return bots.model.findOne({
-    where: {
-      name: botId,
-    }
-  })
-  .then((bot) => {
-    req.swagger.params.queryBody.value.botId = bot.id;
-    return req;
-  })
-  .done();
-}
 
 module.exports = {
 
@@ -102,10 +83,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotActions(req, res, next) {
-    mapBotNametoBotId(req)
-    .then((request) => {
-      doPost(request, res, next, helper);
-    });
+    doPost(req, res, next, helper);
   },
 
   /**

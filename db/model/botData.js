@@ -17,6 +17,7 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
+const verbs = require('../../api/v1/helpers/verbs/utils');
 
 module.exports = function botData(seq, dataTypes) {
   const BotData = seq.define('BotData', {
@@ -60,6 +61,27 @@ module.exports = function botData(seq, dataTypes) {
       },
     },
     hooks: {
+      /**
+       * If the botId is a bot name is validates it and updates the
+       * botId with the actual ID.
+       *
+       * @param {Aspect} inst - The instance being validated
+       * @returns {undefined} - OK
+       */
+      beforeValidate(inst /* , opts */) {
+        const botId = inst.getDataValue('botId');
+        if (verbs.looksLikeId(botId)){
+          return seq.Promise.resolve(inst);
+        }
+        return seq.models.Bot.findOne({
+          where: {
+            name: botId,
+          }
+        })
+        .then((bot) => {
+          inst.botId = bot.id;
+        });
+      },
 
       /**
        * Restrict creating new data if one already exists.
