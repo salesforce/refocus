@@ -103,21 +103,25 @@ module.exports = function botAction(seq, dataTypes) {
                 return botFound.actions[i];
               }
             }
-
-            return null;
+            throw new dbErrors.ValidationError({
+              message:
+                'Action was not found',
+            });
           })
           .then((dataFound) => {
             const params = inst.getDataValue('parameters');
             if ((dataFound !== null) && (dataFound.parameters !== null)) {
-              if (params &&
-                (params.length !== dataFound.parameters.length)) {
+              if ((params !== undefined) && (params !== null)) {
+                if (params.length !== dataFound.parameters.length) {
+                  throw new dbErrors.ValidationError({
+                    message:
+                      'Wrong number of parameters sent to run this action',
+                  });
+                }
+              } else {
                 throw new dbErrors.ValidationError({
                   message:
                     'Wrong number of parameters sent to run this action',
-                });
-              } else if (dataFound.parameters.length > 0) {
-                throw new dbErrors.ValidationError({
-                  message: 'Action must contain parameters',
                 });
               }
             }

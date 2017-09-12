@@ -9,18 +9,52 @@
 'use strict'; // eslint-disable-line strict
 
 module.exports = {
-  up: function (qi, Sequelize) {
-    return qi.sequelize.query(
-	  'ALTER TABLE "BotActions" DROP CONSTRAINT IF EXISTS BotActionUniqueNameisPending;'
-	).then(function() {
-	  return qi.removeIndex('BotActions', 'BotActionUniqueNameisPending');
-	});
+  up(qi, Sequelize) {
+    let attr;
+    return qi.describeTable('Bots')
+    .then((attributes) => {
+      attr = attributes;
+      if (!attr.hasOwnProperty('settings')) {
+        return qi.addColumn('Bots', 'settings', {
+          type: Sequelize.BLOB,
+          defaultValue: null,
+        });
+      }
+
+      return true;
+    })
+    .then(() => {
+      return qi.sequelize.query(
+        'ALTER TABLE "BotActions"' +
+        'DROP CONSTRAINT IF EXISTS BotActionUniqueNameisPending;'
+      );
+    })
+    .then(() => {
+      return qi.removeIndex('BotActions', 'BotActionUniqueNameisPending');
+    });
   },
 
-  down: function (qi, Sequelize) {
-  	return qi.addIndex('BotActions', ['name','isPending'], {
-	  indexName: 'BotActionUniqueNameisPending',
-	  indicesType: 'UNIQUE'
-	});
+  down(qi) {
+    let attr;
+    return qi.sequelize.query(
+      'ALTER TABLE "BotActions" DROP CONSTRAINT IF EXISTS BotActionsIdx;'
+    )
+    .then(() => {
+      return qi.addIndex('BotActions', ['name', 'isPending'], {
+        indexName: 'BotActionUniqueNameisPending',
+        indicesType: 'UNIQUE'
+      });
+    })
+    .then(() => {
+      return qi.describeTable('Bots');
+    })
+    .then((attributes) => {
+      attr = attributes;
+      if (attr.hasOwnProperty('settings')) {
+        return qi.removeColumn('Bots', 'settings');
+      }
+
+      return true;
+    });
   },
 };

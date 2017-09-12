@@ -21,6 +21,23 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 
+function mapBotNametoBotId (req) {
+  const botId = req.swagger.params.queryBody.value.botId;
+  if (u.looksLikeId(botId)){
+    return Promise.resolve(req);
+  }
+  return bots.model.findOne({
+    where: {
+      name: botId,
+    }
+  })
+  .then((bot) => {
+    req.swagger.params.queryBody.value.botId = bot.id;
+    return req;
+  })
+  .done();
+}
+
 module.exports = {
 
   /**
@@ -85,21 +102,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotActions(req, res, next) {
-    const botId = req.swagger.params.queryBody.value.botId;
-    if (u.looksLikeId(botId)){
-      doPost(req, res, next, helper);
-    } else {
-      bots.model.findOne({
-        where: {
-          name: botId,
-        }
-      })
-      .then((bot) => {
-        req.swagger.params.queryBody.value.botId = bot.id;
-        doPost(req, res, next, helper);
-        //helper.model.create(req.swagger.params.queryBody.value);
-      });
-    }
+    mapBotNametoBotId(req)
+    .then((request) => {
+      doPost(request, res, next, helper);
+    });
   },
 
   /**
