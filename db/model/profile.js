@@ -142,11 +142,10 @@ module.exports = function profile(seq, dataTypes) {
       }, // isAdmin
 
       hasWriteAccess(profileId, model) {
-        const accessModel = model.getAccessField();
+        const accessModel = model.getProfileAccessField();
         return new Promise((resolve, reject) => {
           Profile.findById(profileId)
-          .then((p) => resolve(p &&
-            p[accessModel] === 'rw'.toLowerCase()))
+          .then((p) => resolve(p && p[accessModel] === 'rw'))
           .catch(reject);
         });
       }, // hasWriteAccess
