@@ -31,6 +31,42 @@ const utils = require('./utils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
+const getSamplesWildcardCacheInvalidation = require('../../../config')
+  .getSamplesWildcardCacheInvalidation;
+const redisCache = require('../../../cache/redisCache').client.cache;
+
+/**
+ * Find sample from samplestore. If cache is on then
+ * cache the response as well.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ * @param {Object} resultObj - DateTime object for logging
+ * @param {String} cacheKey - Cache Key
+ * @param {Integer} cacheExpiry -  Cache expiry time
+ */
+function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
+  redisModelSample.findSamples(req, res, resultObj)
+  .then((response) => {
+    // loop through remove values to delete property
+    if (helper.fieldsToExclude) {
+      for (let i = response.length - 1; i >= 0; i--) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
+      }
+    }
+
+    if (cacheKey) {
+      // cache the object by cacheKey.
+      const strObj = JSON.stringify(response);
+      redisCache.setex(cacheKey, cacheExpiry, strObj);
+    }
+
+    u.logAPI(req, resultObj, response); // audit log
+    res.status(httpStatus.OK).json(response);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+}
 
 module.exports = {
 
@@ -57,21 +93,32 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
+    // Check if Cache is on for Wildcard Sample query
+    if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
+      const query = req.query.name;
+      helper.cacheEnabled = query && (query.indexOf('*') > -1);
+      helper.cacheKey =  helper.cacheEnabled ? query : null;
+      helper.cacheExpiry = helper.cacheEnabled ?
+        parseInt(getSamplesWildcardCacheInvalidation) : null;
+    }
+
+    // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamples(req, res, resultObj)
-      .then((response) => {
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          for (let i = response.length - 1; i >= 0; i--) {
-            u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
+      if (helper.cacheEnabled) {
+        redisCache.get(helper.cacheKey, (cacheErr, reply) => {
+          if (cacheErr || !reply) {
+            doFindSampleStoreResponse(req, res,
+             next, resultObj, helper.cacheKey, helper.cacheExpiry);
+          } else {
+            u.logAPI(req, resultObj, reply); // audit log
+            res.status(httpStatus.OK).json(JSON.parse(reply));
           }
-        }
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+        });
+      } else {
+        doFindSampleStoreResponse(req, res,
+          next, resultObj);
+      }
     } else {
       doFind(req, res, next, helper);
     }
