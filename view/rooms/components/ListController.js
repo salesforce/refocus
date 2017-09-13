@@ -7,10 +7,10 @@
  */
 
 /**
- * view/rooms/ListController.js
+ * view/rooms/components/ListController.js
  *
- * Manages perspective page state.
- * Passes on data to CreatePerspective
+ * Manages List View page state.
+ * Receives parameters from Rooms and RoomTypes
  */
 import React, { PropTypes } from 'react';
 import moment from 'moment';

@@ -15,7 +15,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ListController from './ListController';
+import ListController from './../components/ListController';
 const u = require('../../utils');
 const listContainer = document.getElementById('root');
 const GET_ROOMS = '/v1/rooms';

@@ -15,10 +15,10 @@ import ReactDOM from 'react-dom';
 import TestUtils from 'react-addons-test-utils';
 import moment from 'moment';
 import { expect } from 'chai';
-import ListController from '../../../../view/rooms/list/ListController.js';
+import ListController from '../../../../view/rooms/components/ListController.js';
 
 
-describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
+describe('tests/view/rooms/components/ListController.js, List of Rooms', () => {
   const numOfColumns = 6;
 
   it('no rooms in list', () => {
