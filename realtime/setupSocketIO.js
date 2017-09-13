@@ -73,7 +73,7 @@ function setupNamespace(io) {
     .then(() => room.findAll()
       .then((rooms) => {
         if (rooms) {
-          rooms.forEach((r) => rtUtils.initializeBotNamespace(r, io));
+          rooms.forEach((r) => rtUtils.initializeBotNamespace(r.toJSON(), io));
           resolve(io);
         }
       })
