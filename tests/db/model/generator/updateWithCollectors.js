@@ -114,7 +114,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   it('400 error with duplicate collectors in request body', (done) => {
     const _collectors = [collector1.name, collector1.name];
     generatorDBInstance.updateWithCollectors({
-      collectors: _collectors
+      collectors: _collectors,
     }, u.whereClauseForNameInArr)
     .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
@@ -130,7 +130,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     'non-existant collector', (done) => {
     const _collectors = [collector1.name, 'iDontExist'];
     generatorDBInstance.updateWithCollectors({
-      collectors: _collectors
+      collectors: _collectors,
     }, u.whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {

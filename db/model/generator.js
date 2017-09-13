@@ -330,6 +330,7 @@ module.exports = function generator(seq, dataTypes) {
               collectors = _collectors;
               return this.update(requestBody);
             }
+
             const err = new dbErrors.ResourceNotFoundError();
             err.resourceType = 'Collector';
             err.resourceKey = requestBody.collectors;
