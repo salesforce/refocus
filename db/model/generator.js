@@ -176,6 +176,7 @@ module.exports = function generator(seq, dataTypes) {
         }
 
         const options = {};
+        let generatorId;
         let collectors; // will be populated with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
@@ -199,8 +200,11 @@ module.exports = function generator(seq, dataTypes) {
             err.resourceKey = requestBody.collectors;
             throw err;
           }) // if successful create, add collectors
-          .then((createdGenerator) => createdGenerator.addCollectors(collectors))
-          .then(() => Generator.findOne({ where: { name: requestBody.name } }))
+          .then((createdGenerator) => {
+            generatorId = createdGenerator.id;
+            return createdGenerator.addCollectors(collectors);
+          })
+          .then(() => Generator.findById(generatorId))
           .then((findresult) => resolve(findresult.reload()))
           .catch(reject)
         );
