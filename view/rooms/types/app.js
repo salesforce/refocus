@@ -7,7 +7,7 @@
  */
 
 /**
- * view/roomTypes/list/app.js
+ * view/room/types/app.js
  *
  * Create a list of all the Room Types in refocus
  *
@@ -15,7 +15,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ListController from './../../rooms/components/ListController';
+import ListController from './../list/ListController';
 const u = require('../../utils');
 const listContainer = document.getElementById('root');
 const GET_ROOMTYPES = '/v1/roomTypes';
@@ -26,7 +26,7 @@ window.onload = () => {
   .then((res) => {
     roomTypes = res.body;
     loadController(roomTypes);
-  })
+  });
 };
 
 /**
@@ -42,4 +42,3 @@ function loadController(roomTypes) {
     listContainer
   );
 }
-

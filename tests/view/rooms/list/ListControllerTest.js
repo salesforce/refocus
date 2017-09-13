@@ -15,10 +15,9 @@ import ReactDOM from 'react-dom';
 import TestUtils from 'react-addons-test-utils';
 import moment from 'moment';
 import { expect } from 'chai';
-import ListController from '../../../../view/rooms/components/ListController.js';
+import ListController from '../../../../view/rooms/list/ListController.js';
 
-
-describe('tests/view/rooms/components/ListController.js, List of Rooms', () => {
+describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
   const numOfColumns = 6;
 
   it('no rooms in list', () => {
@@ -55,7 +54,7 @@ describe('tests/view/rooms/components/ListController.js, List of Rooms', () => {
       {
         id: 'ID1',
         name: 'RoomType',
-      }
+      },
     ];
     const listComponent = TestUtils.renderIntoDocument(
       <ListController
@@ -71,7 +70,59 @@ describe('tests/view/rooms/components/ListController.js, List of Rooms', () => {
       listComponent,
       'slds-text-body_small'
     );
-    expect((renderedDOM.length)/numOfColumns).to.equal(rooms.length);
+    expect((renderedDOM.length) / numOfColumns).to.equal(rooms.length);
     expect(renderedDOM2.textContent).to.contain(rooms.length);
+  });
+});
+
+describe('tests/view/rooms/list/ListController.js, List of RoomTypes', () => {
+  const numOfColumns = 6;
+
+  it('no rooms types in list', () => {
+    const listComponent = TestUtils.renderIntoDocument(
+      <ListController />
+    );
+    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'td'
+    );
+    expect(renderedDOM.length).to.equal(0);
+  });
+
+  it('2 room types in list', () => {
+    const roomTypes = [
+      {
+        id: '1',
+        name: 'TestRoomType',
+        bots: ['bot1'],
+        isEnabled: true,
+        createdAt: moment(),
+        updatedAt: moment(),
+      },
+      {
+        id: '2',
+        name: 'TestRoomType2',
+        bots: ['bot1', 'bot2'],
+        isEnabled: true,
+        createdAt: moment(),
+        updatedAt: moment(),
+      },
+    ];
+
+    const listComponent = TestUtils.renderIntoDocument(
+      <ListController
+        roomTypes={ roomTypes }
+      />
+    );
+    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'td'
+    );
+    const renderedDOM2 = TestUtils.findRenderedDOMComponentWithClass(
+      listComponent,
+      'slds-text-body_small'
+    );
+    expect((renderedDOM.length) / numOfColumns).to.equal(roomTypes.length);
+    expect(renderedDOM2.textContent).to.contain(roomTypes.length);
   });
 });
