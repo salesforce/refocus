@@ -11,7 +11,7 @@
 module.exports = {
   up(qi) {
     return qi.sequelize.query(
-      'ALTER TABLE "BotActions"' +
+      'ALTER TABLE "BotActions" ' +
       'DROP CONSTRAINT IF EXISTS BotActionUniqueNameisPending;'
     )
     .then(() => {
