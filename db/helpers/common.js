@@ -40,6 +40,10 @@ const changeType = {
  * @returns {Array} Array of duplicate strings
  */
 function findDuplicatesInStringArray(arr) {
+  if (!arr || !arr.length) {
+    return [];
+  }
+
   const unique = arr.map((name) => ({ count: 1, name })
   ).reduce((a, b) => {
     a[b.name] = (a[b.name] || 0) + b.count;

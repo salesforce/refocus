@@ -21,6 +21,39 @@ const common = require('../../../db/helpers/common');
 describe('tests/db/helpers/common.js >', () => {
   after(u.forceDelete);
 
+  describe('findDuplicatesInStringArray >', () => {
+    it('empty input returns empty array', () => {
+      const result = common.findDuplicatesInStringArray();
+      expect(result.length).to.equal(0);
+    });
+
+    it('empty array returns empty array', () => {
+      const result = common.findDuplicatesInStringArray([]);
+      expect(result.length).to.equal(0);
+    });
+
+    it('all identical elements return an array of one element', () => {
+      const result = common.findDuplicatesInStringArray(['a', 'a', 'a']);
+      expect(result).to.deep.equal(['a']);
+    });
+
+    it('no duplicates return an empty array', () => {
+      const result = common.findDuplicatesInStringArray(['a', 'b', 'c']);
+      expect(result.length).to.equal(0);
+    });
+
+    it('multiple duplicates return array of multiple elements', () => {
+      const uniqueArray = ['a', 'b', 'c'];
+      const dupesArr = [];
+      dupesArr.push(...uniqueArray);
+      dupesArr.push(...uniqueArray);
+      dupesArr.push(...uniqueArray);
+      expect(dupesArr.length).to.equal(9);
+      const result = common.findDuplicatesInStringArray(dupesArr);
+      expect(result).to.deep.equal(uniqueArray);
+    });
+  });
+
   describe('setDifference >', () => {
     const array1 = [1, 2, 3, 4];
     const array2 = [3, 4];
