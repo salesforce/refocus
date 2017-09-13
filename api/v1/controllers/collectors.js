@@ -74,6 +74,9 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
     });
 
     return sampleGenerator; // reencrypted sample generator
+  })
+  .catch(() => {
+    throw new apiErrors.SampleGeneratorContextDecryptionError();
   });
 }
 
