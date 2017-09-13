@@ -27,11 +27,11 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
-                                .decryptSGContextValues;
+  .decryptSGContextValues;
 const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
-const encryptionAlgoForCollector = require('../../../config')
-                                    .encryptionAlgoForCollector;
+const config = require('../../../config');
+const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const ZERO = 0;
 
 /**
@@ -74,6 +74,9 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
     });
 
     return sampleGenerator; // reencrypted sample generator
+  })
+  .catch(() => {
+    throw new apiErrors.SampleGeneratorContextDecryptionError();
   });
 }
 
@@ -170,7 +173,7 @@ function deregisterCollector(req, res, next) {
 function heartbeat(req, res, next) {
   // TODO reject if caller's token is not a collector token
   const retval = {
-    collectorConfig: {},
+    collectorConfig: config.collector,
     generatorsAdded: [],
     generatorsDeleted: [],
     generatorsUpdated: [],

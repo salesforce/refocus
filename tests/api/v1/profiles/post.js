@@ -39,19 +39,21 @@ describe('tests/api/v1/profiles/post.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('Ok, user is admin', (done) => {
-    api.post(`${path}`)
-    .set('Authorization', predefinedAdminUserToken)
-    .send(p0)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+  describe('POST profile', () => {
+    it('Ok, user is admin', (done) => {
+      api.post(`${path}`)
+      .set('Authorization', predefinedAdminUserToken)
+      .send(p0)
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-      expect(res.body.name).to.equal(p0.name);
-      expect(res.body.botAccess).to.equal('r');
-      done();
+        expect(res.body.name).to.equal(p0.name);
+        expect(res.body.subjectAccess).to.equal('rw');
+        done();
+      });
     });
   });
 

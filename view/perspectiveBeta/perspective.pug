@@ -26,7 +26,7 @@ html(lang = 'en')
           .slds-spinner__dot-a
           .slds-spinner__dot-b
 
-  script(src='/static/scripts/socket.io.js')
+  script(src='/static/socket.io.js')
   script.
     var realtimeEventThrottleMilliseconds = #{eventThrottle};
   script.
@@ -34,7 +34,7 @@ html(lang = 'en')
   script
     if queryParams
       | var queryParams = !{queryParams}
-  script(src='/static/perspective/app.js')
+  script(src='/static/perspectiveBeta/app.js')
   script.
     var trackingId = '#{trackingId}';
   script(src='../static/analytics/app.js')

@@ -59,7 +59,9 @@ function validateParentFields(req, res, next, callback) {
    * to the same subject.
    */
   if (parentId && parentAbsolutePath) {
-    helper.model.findOne({ where: { absolutePath: parentAbsolutePath } })
+    helper.model.findOne(
+      { where: { absolutePath: { $iLike: parentAbsolutePath } } }
+    )
     .then((parent) => {
       if (parent && parent.id !== parentId) {
         // parentAbsolutePath does not match parentId

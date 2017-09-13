@@ -57,6 +57,12 @@ module.exports = {
     .catch(done);
   },
 
+  forceDeleteCollector(done) {
+    tu.forceDelete(tu.db.Collector, testStartTime)
+    .then(() => done())
+    .catch(done);
+  },
+
   getGenerator,
 
   gtUtil,
