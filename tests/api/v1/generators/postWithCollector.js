@@ -17,7 +17,6 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
 const path = '/v1/generators';
-const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -27,9 +26,9 @@ const THREE = 3;
 
 describe('tests/api/v1/generators/postWithCollector.js >', () => {
   let token;
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);

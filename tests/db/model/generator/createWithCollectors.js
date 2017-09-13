@@ -26,9 +26,9 @@ const BAD_REQUEST_STATUS_CODE = 400;
 const testStartTime = new Date();
 
 describe('tests/db/model/generator/createWithCollectors.js >', () => {
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
 
   let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));

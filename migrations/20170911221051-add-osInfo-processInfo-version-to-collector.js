@@ -14,6 +14,7 @@ module.exports = {
       }))
       .then(() => qi.addColumn(TBL, 'version', {
         type: Sequelize.STRING,
+        defaultValue: '0.0.0',
         allowNull: false,
       })));
   },
