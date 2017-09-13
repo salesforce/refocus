@@ -44,54 +44,6 @@ function setDifference(arrayA, arrayB) {
 }
 
 /**
- * Replicated here from api/v1/helpers/verbs/utils.js
- * Return the sequelize query { name: { $in: arr } }
- * @param {Array} arr The array to return in the query.
- * @returns {Object} the query object
- */
-function whereClauseForNameInArr(arr) {
-  const SEQ_IN = '$in';
-  const whr = {};
-  whr.name = {};
-  whr.name[SEQ_IN] = arr;
-  return whr;
-} // whereClauseForNameInArr
-
-/**
- * IF given two equal length arrays, one with objects, another specifying the
- * order of the objects, return a copy of the first array ordered
- * by the second array. This sort is NOT in-place.
- * ELSE return empty array.
- *
- * @param {Array} objArray Array of objects, with key 'name'
- * @param {Array} keyArray Array of strings specifying the order of names
- * @returns {Array} objArray with key name sorted according to keyArray,
- * or [] for err cases
- */
-function sortArrayAccordingToAnotherArray(objArray, keyArray) {
-  if (!objArray || !keyArray ||
-    (objArray.length != keyArray.length)) {
-    return [];
-  }
-
-  // Create a temporary hash table to store the objects
-  const tempObj = {};
-
-  // Key each object by their respective id values
-  for (let i = 0; i < objArray.length; i++) {
-    tempObj[objArray[i].name] = objArray[i];
-  }
-
-  // Rebuild the objArray based on the order listed in the keyArray
-  const copyObjArray = [];
-  for (let i = 0; i < keyArray.length; i++) {
-    copyObjArray.push(tempObj[keyArray[i]]);
-  }
-
-  return copyObjArray;
-}
-
-/**
  * Takes a sample instance and enhances it with the subject instance and
  * aspect instance
  * @param {Sequelize} seq - A reference to Sequelize to have access to the
@@ -334,8 +286,6 @@ function validateContextDef(contextDef, requiredProps) {
 
 module.exports = {
   setDifference,
-  sortArrayAccordingToAnotherArray,
-  whereClauseForNameInArr,
   dbconf,
   setIsDeleted,
   publishChange,

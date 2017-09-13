@@ -175,12 +175,13 @@ module.exports = function generator(seq, dataTypes) {
        * 3. add the saved collectors (if any)
        *
        * @param {Object} requestBody From API
+       * @param {Function} whereClauseForNameInArr Returns an object query
        * @returns {Promise} created generator with collectors (if any)
        */
-      createWithCollectors(requestBody) {
+      createWithCollectors(requestBody, whereClauseForNameInArr) {
         const options = {};
         let collectors; // will be populated with actual collectors
-        options.where = common.whereClauseForNameInArr(requestBody.collectors || []);
+        options.where = whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {

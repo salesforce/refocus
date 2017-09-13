@@ -42,39 +42,6 @@ describe('tests/db/helpers/common.js >', () => {
     });
   });
 
-  describe('sortArrayAccordingToAnotherArray >', () => {
-    const sortedArr = [
-      'before',
-      'middle',
-      'after',
-    ];
-    const nonSortedArr = [
-      { name: 'after', extraField: 2222 },
-      { name: 'before' },
-      { name: 'middle' },
-    ];
-
-    it('input: two arrays of same size, sort the previous according to the latter',
-    () => {
-      const result = common.sortArrayAccordingToAnotherArray(nonSortedArr, sortedArr);
-      for (let i = result.length - 1; i >= 0; i--) {
-        expect(result[i].name).to.equal(sortedArr[i]);
-      }
-
-      expect(result[2].extraField).to.equal(nonSortedArr[0].extraField);
-    });
-
-    it('different length of array input, return empty arr', () => {
-      const result = common.sortArrayAccordingToAnotherArray(nonSortedArr, []);
-      expect(result).to.deep.equal([]);
-    });
-
-    it('both null input, return empty arr', () => {
-      const result = common.sortArrayAccordingToAnotherArray();
-      expect(result).to.deep.equal([]);
-    });
-  });
-
   describe('publishChange function >', () => {
     it('create a model', (done) => {
       const par = { name: `${tu.namePrefix}Alpha`, isPublished: true };

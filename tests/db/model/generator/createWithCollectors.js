@@ -22,6 +22,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 const NOT_FOUND_STATUS_CODE = 404;
+const testStartTime = new Date();
 
 describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello' };
@@ -53,7 +54,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   });
 
   // delete generator after each test
-  afterEach(() => tu.forceDelete(tu.db.Generator, new Date()));
+  afterEach(() => tu.forceDelete(tu.db.Generator, testStartTime));
   after(u.forceDelete);
   after(gtUtil.forceDelete);
 
@@ -62,7 +63,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
   });
 
-  it('ok, create with all fields', (done) => {
+  it.only('ok, create with all fields', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [
       collector1.name,
