@@ -289,6 +289,58 @@ module.exports = function generator(seq, dataTypes) {
       },
     ],
     instanceMethods: {
+
+      /**
+       * 1. validate the collectors field: if succeed, save the collectors in temp var for
+       *  attaching to the generator. if fail, abort the POST operation
+       * 2. get the generator
+       * 2. update the generator
+       * 3. add the saved collectors (if any)
+       *
+       * @param {Object} requestBody From API
+       * @param {Function} whereClauseForNameInArr Returns an object query
+       * @returns {Promise} created generator with collectors (if any)
+       */
+      updateWithCollectors(requestBody, whereClauseForNameInArr) {
+
+        // reject the request if requestBody.collectors contain duplicate names
+        if (common.checkDuplicatesInStringArray(requestBody.collectors)) {
+          const err = new dbErrors.DuplicateCollectorError();
+          err.resourceType = 'Collector';
+          err.resourceKey = requestBody.collectors;
+          return Promise.reject(err);
+        }
+
+        const options = {};
+        let collectors; // will be populated with actual collectors
+        options.where = whereClauseForNameInArr(requestBody.collectors || []);
+        return new seq.Promise((resolve, reject) =>
+          seq.models.Collector.findAll(options)
+          .then((_collectors) => {
+
+            /*
+             * If requestBody does not have a collectors field, OR
+             * if the number of collectors in requestBody MATCH the
+             * GET result, order the collectors AND create the generator.
+             * Else throw error since there are collectors that don't exist.
+             */
+            if (!requestBody.collectors ||
+              (_collectors.length === requestBody.collectors.length)) {
+              collectors = _collectors;
+
+              return this.update(requestBody);
+            }
+            const err = new dbErrors.ResourceNotFoundError();
+            err.resourceType = 'Collector';
+            err.resourceKey = requestBody.collectors;
+            throw err;
+          }) // if successful upd, add collectors
+          .then(() => this.addCollectors(collectors))
+          .then(() => resolve(this.reload()))
+          .catch(reject)
+        );
+      },
+
       isWritableBy(who) {
         return new seq.Promise((resolve /* , reject */) =>
           this.getWriters()
