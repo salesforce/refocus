@@ -29,13 +29,18 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello' };
   let collector2 = { name: 'beautiful' };
   let collector3 = { name: 'world' };
-  const sortedNames = ['beautiful', 'hello', 'world'];
 
   let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   // copied from api/v1/helpers/verbs/utils.js
+  /**
+   * Returns a where clause object that uses the "IN" operator
+   * @param  {Array} arr - An array that needs to be
+   * assigned to the "IN" operator
+   * @returns {Object} - An where clause object
+   */
   function whereClauseForNameInArr(arr) {
     const whr = {};
     whr.name = {};
@@ -84,9 +89,11 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
 
     Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => {
-      o.collectors.forEach((collector, index) => {
-        expect(collector.name).to.equal(sortedNames[index]);
-      });
+      expect(o.collectors.length).to.equal(THREE);
+      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
 
       // standard generator check
       expect(o.user.name).to.equal(userInst.name);
