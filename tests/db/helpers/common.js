@@ -21,36 +21,31 @@ const common = require('../../../db/helpers/common');
 describe('tests/db/helpers/common.js >', () => {
   after(u.forceDelete);
 
-  describe('findDuplicatesInStringArray >', () => {
-    it('empty input returns empty array', () => {
-      const result = common.findDuplicatesInStringArray();
-      expect(result.length).to.equal(0);
+  describe('checkDuplicatesInStringArray >', () => {
+    it('empty input returns false', () => {
+      expect(common.checkDuplicatesInStringArray()).to.be.false;
     });
 
-    it('empty array returns empty array', () => {
-      const result = common.findDuplicatesInStringArray([]);
-      expect(result.length).to.equal(0);
+    it('false returns empty array', () => {
+      expect(common.checkDuplicatesInStringArray([])).to.be.false;
     });
 
-    it('all identical elements return an array of one element', () => {
-      const result = common.findDuplicatesInStringArray(['a', 'a', 'a']);
-      expect(result).to.deep.equal(['a']);
+    it('all identical elements returns true', () => {
+      expect(common.checkDuplicatesInStringArray(['a', 'a', 'a'])).to.be.true;
     });
 
-    it('no duplicates return an empty array', () => {
-      const result = common.findDuplicatesInStringArray(['a', 'b', 'c']);
-      expect(result.length).to.equal(0);
+    it('no duplicates return false', () => {
+      expect(common.checkDuplicatesInStringArray(['a', 'b', 'c'])).to.be.false;
     });
 
-    it('multiple duplicates return array of multiple elements', () => {
+    it('multiple duplicates return true', () => {
       const uniqueArray = ['a', 'b', 'c'];
       const dupesArr = [];
       dupesArr.push(...uniqueArray);
       dupesArr.push(...uniqueArray);
       dupesArr.push(...uniqueArray);
       expect(dupesArr.length).to.equal(9);
-      const result = common.findDuplicatesInStringArray(dupesArr);
-      expect(result).to.deep.equal(uniqueArray);
+      expect(common.checkDuplicatesInStringArray(dupesArr)).to.be.true;
     });
   });
 

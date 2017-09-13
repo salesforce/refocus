@@ -168,8 +168,7 @@ module.exports = function generator(seq, dataTypes) {
        */
       createWithCollectors(requestBody, whereClauseForNameInArr) {
         // reject the request if requestBody.collectors contain duplicate names
-        const duplicates = common.findDuplicatesInStringArray(requestBody.collectors);
-        if (duplicates.length) {
+        if (common.checkDuplicatesInStringArray(requestBody.collectors)) {
           const err = new dbErrors.DuplicateCollectorError();
           err.resourceType = 'Collector';
           err.resourceKey = requestBody.collectors;

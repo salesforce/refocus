@@ -32,25 +32,23 @@ const changeType = {
 };
 
 /**
- * Returns duplicate strings in an given flat array
+ * Returns whether there are duplicates in a given flat array
  *
- * ie. [a, b, c, c, a] => [a, c]
+ * ie. [a, b, c, c, a] => true
+ * ie. [a, b, c] => false
  *
  * @param {Array} arr Array of strings
- * @returns {Array} Array of duplicate strings
+ * @returns {Boolean} Does the input array contain duplicates
  */
-function findDuplicatesInStringArray(arr) {
+function checkDuplicatesInStringArray(arr) {
   if (!arr || !arr.length) {
-    return [];
+    return false;
   }
 
-  const unique = arr.map((name) => ({ count: 1, name })
-  ).reduce((a, b) => {
-    a[b.name] = (a[b.name] || 0) + b.count;
-    return a;
-  }, {});
-
-  return Object.keys(unique).filter((a) => unique[a] > 1);
+  // if all the elements are distinct,
+  // set size === arr.length
+  const _set = new Set(arr);
+  return _set.size !== arr.length;
 }
 
 /**
@@ -295,7 +293,7 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 module.exports = {
-  findDuplicatesInStringArray,
+  checkDuplicatesInStringArray,
   dbconf,
   setIsDeleted,
   publishChange,
