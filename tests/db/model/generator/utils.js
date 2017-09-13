@@ -40,6 +40,18 @@ const GENERATOR_SIMPLE = {
 };
 
 /**
+ * Given a sample generator template sgt and a sample generator sg, assign the
+ * sgt name and sgt version to sg.generatorTemplate.name and
+ * sg.generatorTemplate.version keys of sg.
+ * @param  {Object} sgt - Sample Generator Template object
+ * @param  {Object} sg  - Sample Generator oject
+ */
+function createSGtoSGTMapping(sgt, sg) {
+  sg.generatorTemplate.name = sgt.name;
+  sg.generatorTemplate.version = sgt.version;
+}
+
+/**
  * Function to get a simple generator
  * @returns {Object} - Generator object
  */
@@ -66,4 +78,6 @@ module.exports = {
   getGenerator,
 
   gtUtil,
+
+  createSGtoSGTMapping,
 };
