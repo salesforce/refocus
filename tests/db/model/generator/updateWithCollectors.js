@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/model/generator/updateWithCollector.js
+ * tests/db/model/generator/updateWithCollectors.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
@@ -26,7 +26,7 @@ const TWO = 2;
 const THREE = 3;
 const testStartTime = new Date();
 
-describe('tests/db/model/generator/updateWithCollector.js >', () => {
+describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
@@ -142,4 +142,3 @@ describe('tests/db/model/generator/updateWithCollector.js >', () => {
     });
   });
 });
-
