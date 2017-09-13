@@ -22,7 +22,11 @@ module.exports = {
     POST: `Create a new ${m}`,
     PUT: `Upgrade to this ${m}`,
   },
+  fieldScopeMap: {
+    botUI: 'botUI',
+  },
+  getScopes: ['botUI'],
   baseUrl: '/v1/bots',
   model: Bots,
-  modelName: 'bots',
+  modelName: 'Bots',
 }; // exports

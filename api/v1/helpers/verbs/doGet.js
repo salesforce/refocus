@@ -37,6 +37,7 @@ function doGet(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
   const reqParams = req.swagger.params;
   const fields = reqParams.fields ? reqParams.fields.value : null;
+  const scopes = props.getScopes ? props.getScopes : [];
 
   //only cache requests with no params
   if (props.cacheEnabled && !fields) {
@@ -45,7 +46,7 @@ function doGet(req, res, next, props) {
     redisCache.get(cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get from db and set redis cache
-        u.findByKey(props, req.swagger.params)
+        u.findByKey(props, req.swagger.params, scopes)
         .then((o) => {
           res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
 
@@ -71,7 +72,7 @@ function doGet(req, res, next, props) {
      props.modelName === 'Sample') {
       getPromise = redisModelSample.getSample(req.swagger.params);
     } else {
-      getPromise = u.findByKey(props, req.swagger.params);
+      getPromise = u.findByKey(props, req.swagger.params, scopes);
     }
 
     getPromise.then((o) => {

@@ -16,7 +16,6 @@ const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const config = require('../../../../config');
-const cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -45,6 +44,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
+
     const retval = o.rows.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
@@ -68,10 +68,11 @@ function doFindAndCountAll(reqResNext, props, opts) {
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Object} opts - The "options" object to pass into the Sequelize
  * find command
- * @param {Object} cacheKey - Optional cache key used to cache the response in
+ * @param {String} cacheKey - Optional cache key used to cache the response in
  * redis
+ * @param {String} cacheExpiry - Optional Cache Expiry time in second
  */
-function doFindResponse(reqResNext, props, opts, cacheKey) {
+function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
   if (opts.limit || opts.offset) {
     reqResNext.res.links({
       prev: reqResNext.req.originalUrl,
@@ -89,14 +90,13 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
       }
     }
 
-    reqResNext.res.status(httpStatus.OK).json(retval);
-
     if (cacheKey) {
-      // cache the object by cacheKey. Store the key-value pair in cache
-      // with an expiry of 1 minute (60s)
+      // cache the object by cacheKey.
       const strObj = JSON.stringify(retval);
       redisCache.setex(cacheKey, cacheExpiry, strObj);
     }
+
+    reqResNext.res.status(httpStatus.OK).json(retval);
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 }
@@ -112,15 +112,13 @@ function doFindResponse(reqResNext, props, opts, cacheKey) {
  */
 module.exports = function doFind(req, res, next, props) {
   const opts = fu.options(req.swagger.params, props);
-  const cacheKey = JSON.stringify(opts);
 
-  //only cache requests with no params
-  if (props.cacheEnabled && cacheKey === '{"where":{}}') {
-
-    redisCache.get(cacheKey, (cacheErr, reply) => {
+  // Check if Cache is on or not
+  if (props.cacheEnabled) {
+    redisCache.get(props.cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
-        doFindResponse({ req, res, next }, props, opts, cacheKey);
+        doFindResponse({ req, res, next }, props, opts, props.cacheKey, props.cacheExpiry);
       } else {
         // get from cache
         const dbObj = JSON.parse(reply);
