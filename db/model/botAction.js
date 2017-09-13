@@ -18,7 +18,7 @@ const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const u = require('../helpers/botUtils');
-const verbs = require('../../api/v1/helpers/verbs/utils');
+const v = require('../../api/v1/helpers/verbs/utils');
 
 module.exports = function botAction(seq, dataTypes) {
   const BotAction = seq.define('BotAction', {
@@ -95,7 +95,7 @@ module.exports = function botAction(seq, dataTypes) {
        */
       beforeValidate(inst /* , opts */) {
         const botId = inst.getDataValue('botId');
-        if (verbs.looksLikeId(botId)){
+        if (v.looksLikeId(botId)){
           return seq.Promise.resolve(inst);
         }
         return seq.models.Bot.findOne({
