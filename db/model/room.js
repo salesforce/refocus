@@ -82,7 +82,7 @@ module.exports = function room(seq, dataTypes) {
           instance.settings = roomType.settings;
           const changedKeys = Object.keys(instance._changed);
           const ignoreAttributes = ['isDeleted'];
-          return realTime.publishObject(instance, roomEventNames.add, changedKeys,
+          return realTime.publishObject(instance.toJSON(), roomEventNames.add, changedKeys,
               ignoreAttributes);
         });
       },
@@ -90,7 +90,7 @@ module.exports = function room(seq, dataTypes) {
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(instance, roomEventNames.upd);
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd);
           }
         }
 
@@ -99,7 +99,7 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          return realTime.publishObject(instance, roomEventNames.del);
+          return realTime.publishObject(instance.toJSON(), roomEventNames.del);
         }
 
         return seq.Promise.resolve();
