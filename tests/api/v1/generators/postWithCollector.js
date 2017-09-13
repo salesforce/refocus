@@ -74,9 +74,10 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       }
 
       expect(res.body.collectors.length).to.equal(THREE);
-      expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
-      expect(res.body.collectors[ONE].name).to.equal(collector2.name);
-      expect(res.body.collectors[TWO].name).to.equal(collector3.name);
+      const collectorNames = res.body.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
       done();
     });
   });

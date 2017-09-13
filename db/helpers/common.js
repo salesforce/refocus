@@ -45,8 +45,7 @@ function checkDuplicatesInStringArray(arr) {
     return false;
   }
 
-  // if all the elements are distinct,
-  // set size === arr.length
+  // if all the elements are distinct set size === arr.length
   const _set = new Set(arr);
   return _set.size !== arr.length;
 }

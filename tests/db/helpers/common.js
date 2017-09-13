@@ -26,7 +26,7 @@ describe('tests/db/helpers/common.js >', () => {
       expect(common.checkDuplicatesInStringArray()).to.be.false;
     });
 
-    it('false returns empty array', () => {
+    it('empty array input returns false', () => {
       expect(common.checkDuplicatesInStringArray([])).to.be.false;
     });
 
