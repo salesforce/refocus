@@ -182,6 +182,7 @@ module.exports = function generator(seq, dataTypes) {
         const options = {};
         let collectors; // will be populated with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);
+        options.order = [['name']];
         return new seq.Promise((resolve, reject) =>
           seq.models.Collector.findAll(options)
           .then((_collectors) => {
@@ -194,8 +195,7 @@ module.exports = function generator(seq, dataTypes) {
              */
             if (!requestBody.collectors ||
               (_collectors.length === requestBody.collectors.length)) {
-              collectors = common
-                .sortArrayAccordingToAnotherArray(_collectors, requestBody.collectors);
+              collectors = _collectors;
               return Generator.create(requestBody);
             }
 

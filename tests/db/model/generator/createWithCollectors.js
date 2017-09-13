@@ -28,9 +28,19 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello' };
   let collector2 = { name: 'beautiful' };
   let collector3 = { name: 'world' };
+  const sortedNames = ['beautiful', 'hello', 'world'];
+
   let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+
+  // copied from api/v1/helpers/verbs/utils.js
+  function whereClauseForNameInArr(arr) {
+    const whr = {};
+    whr.name = {};
+    whr.name['$in'] = arr;
+    return whr;
+  } // whereClauseForNameInArr
 
   before((done) => {
     tu.createUser('GeneratorOwner')
@@ -63,7 +73,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
   });
 
-  it.only('ok, create with all fields', (done) => {
+  it('ok, create with all fields', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [
       collector1.name,
@@ -71,13 +81,14 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector3.name,
     ];
 
-    Generator.createWithCollectors(localGenerator)
+    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => {
+
       // collector field check
       expect(o.collectors.length).to.equal(THREE);
-      expect(o.collectors[ZERO].name).to.equal(collector1.name);
-      expect(o.collectors[ONE].name).to.equal(collector2.name);
-      expect(o.collectors[TWO].name).to.equal(collector3.name);
+      o.collectors.forEach((collector, index) => {
+        expect(collector.name).to.equal(sortedNames[index]);
+      });
 
       // standard generator check
       expect(o.user.name).to.equal(userInst.name);
@@ -102,7 +113,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('404 error with duplicate collectors in request body', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, collector1.name];
-    Generator.createWithCollectors(localGenerator)
+    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
@@ -116,7 +127,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('404 error for request body with an non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
-    Generator.createWithCollectors(localGenerator)
+    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
@@ -131,7 +142,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     'non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
-    Generator.createWithCollectors(localGenerator)
+    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);

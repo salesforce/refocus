@@ -26,7 +26,6 @@ const featureToggles = require('feature-toggles');
  * @param {Object} req From express
  */
 function makePostPromise(params, props, req) {
-  console.log('in makePostPromise')
   const toPost = params.queryBody.value;
   const isCacheOnAndIsSample = featureToggles
     .isFeatureEnabled(sampleStore.constants.featureName) &&
@@ -56,7 +55,6 @@ function makePostPromise(params, props, req) {
 
     // cache is off and returnUser is false.
     if (props.modelName === 'Generator') {
-      console.log(u.whereClauseForNameInArr)
       return props.model.createWithCollectors(toPost, u.whereClauseForNameInArr);
     }
 
