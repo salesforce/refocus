@@ -158,18 +158,6 @@ module.exports = function generator(seq, dataTypes) {
 
       /**
        * 1. validate the collectors field: if succeed, save the collectors in temp var for
-       *  attaching to the generator. if fail, abort the PATCH operation
-       * 2. update the generator
-       * 3. add the saved collectors (if any)
-       *
-       * @param {Object} requestBody From API
-       * @returns {Promise} created generator with collectors (if any)
-       */
-      patchWithCollectors(requestBody) {
-      },
-
-      /**
-       * 1. validate the collectors field: if succeed, save the collectors in temp var for
        *  attaching to the generator. if fail, abort the POST operation
        * 2. create the generator
        * 3. add the saved collectors (if any)

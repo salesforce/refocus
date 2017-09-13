@@ -54,27 +54,6 @@ describe('tests/db/helpers/common.js >', () => {
     });
   });
 
-  describe('setDifference >', () => {
-    const array1 = [1, 2, 3, 4];
-    const array2 = [3, 4];
-    const array3 = [6, 7, 8];
-
-    it('non-overlap: return all of array A', () => {
-      const result = common.setDifference(array1, array3);
-      expect(result).to.deep.equal(array1);
-    });
-
-    it('some overlap: return the non-overlapping strings', () => {
-      const result = common.setDifference(array1, array2);
-      expect(result).to.deep.equal([1, 2]);
-    });
-
-    it('entirely overlap: return empty array', () => {
-      const result = common.setDifference(array1, array1);
-      expect(result.length).to.equal(0);
-    });
-  });
-
   describe('publishChange function >', () => {
     it('create a model', (done) => {
       const par = { name: `${tu.namePrefix}Alpha`, isPublished: true };

@@ -54,18 +54,6 @@ function findDuplicatesInStringArray(arr) {
 }
 
 /**
- * Given two flat arrays of strings that may overlap, compute what is
- * IN the first array AND NOT IN the second array.
- *
- * @params {Array} array1 Array of strings
- * @params {Array} array2 Array of strings
- * @returns {Array} Array of strings
- */
-function setDifference(arrayA, arrayB) {
-  return arrayA.filter((str) => arrayB.indexOf(str) < 0);
-}
-
-/**
  * Takes a sample instance and enhances it with the subject instance and
  * aspect instance
  * @param {Sequelize} seq - A reference to Sequelize to have access to the
@@ -308,7 +296,6 @@ function validateContextDef(contextDef, requiredProps) {
 
 module.exports = {
   findDuplicatesInStringArray,
-  setDifference,
   dbconf,
   setIsDeleted,
   publishChange,
