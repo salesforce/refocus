@@ -85,6 +85,7 @@ module.exports = function botAction(seq, dataTypes) {
       },
     },
     hooks: {
+
       /**
        * If the botId is a bot name is validates it and updates the
        * botId with the actual ID.
@@ -132,7 +133,7 @@ module.exports = function botAction(seq, dataTypes) {
           })
           .then((dataFound) => {
             const params = inst.getDataValue('parameters');
-            if ((dataFound !== null) && (dataFound.parameters !== null)) {
+            if (dataFound.parameters !== null) {
               if ((params !== undefined) && (params !== null)) {
                 if (params.length !== dataFound.parameters.length) {
                   throw new dbErrors.ValidationError({
@@ -143,7 +144,7 @@ module.exports = function botAction(seq, dataTypes) {
               } else {
                 throw new dbErrors.ValidationError({
                   message:
-                    'Wrong number of parameters sent to run this action',
+                    'Action must contain parameters',
                 });
               }
             }
