@@ -32,6 +32,25 @@ const changeType = {
 };
 
 /**
+ * Returns whether there are duplicates in a given flat array
+ *
+ * ie. [a, b, c, c, a] => true
+ * ie. [a, b, c] => false
+ *
+ * @param {Array} arr Array of strings
+ * @returns {Boolean} Does the input array contain duplicates
+ */
+function checkDuplicatesInStringArray(arr) {
+  if (!arr || !arr.length) {
+    return false;
+  }
+
+  // if all the elements are distinct set size === arr.length
+  const _set = new Set(arr);
+  return _set.size !== arr.length;
+}
+
+/**
  * Takes a sample instance and enhances it with the subject instance and
  * aspect instance
  * @param {Sequelize} seq - A reference to Sequelize to have access to the
@@ -273,6 +292,7 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 module.exports = {
+  checkDuplicatesInStringArray,
   dbconf,
   setIsDeleted,
   publishChange,
