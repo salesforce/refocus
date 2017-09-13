@@ -94,9 +94,12 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       const firstGenerator = res.body[ZERO];
       expect(res.body).to.have.lengthOf(THREE);
       expect(firstGenerator.collectors.length).to.equal(THREE);
-      expect(firstGenerator.collectors[ZERO].name).to.equal(collector1.name);
-      expect(firstGenerator.collectors[ONE].name).to.equal(collector2.name);
-      expect(firstGenerator.collectors[TWO].name).to.equal(collector3.name);
+
+      const collectorNames = firstGenerator.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
+
       expect(firstGenerator.id).to.not.equal(undefined);
       expect(res.body[ONE].collectors.length).to.equal(ONE);
       expect(res.body[ONE].collectors[ZERO].name).to.equal(collector1.name);
@@ -117,9 +120,10 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       }
 
       expect(res.body.collectors.length).to.equal(THREE);
-      expect(res.body.collectors[ZERO].name).to.equal(collector1.name);
-      expect(res.body.collectors[ONE].name).to.equal(collector2.name);
-      expect(res.body.collectors[TWO].name).to.equal(collector3.name);
+      const collectorNames = res.body.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
       done();
     });
   });
