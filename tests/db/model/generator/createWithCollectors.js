@@ -39,7 +39,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   function whereClauseForNameInArr(arr) {
     const whr = {};
     whr.name = {};
-    whr.name['$in'] = arr;
+    whr.name.$in = arr;
     return whr;
   } // whereClauseForNameInArr
 

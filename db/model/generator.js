@@ -187,6 +187,7 @@ module.exports = function generator(seq, dataTypes) {
           err.resourceKey = requestBody.collectors;
           return Promise.reject(err);
         }
+
         const options = {};
         let collectors; // will be populated with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);

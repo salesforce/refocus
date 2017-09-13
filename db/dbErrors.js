@@ -110,6 +110,7 @@ dbErrors.create({
   parent: dbErrors.ValidationError,
   defaultMessage: 'You cannot map duplicate Collectors to a Generator.',
 });
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
