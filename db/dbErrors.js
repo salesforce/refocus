@@ -103,7 +103,13 @@ dbErrors.create({
   'up the encryption algorithm and key to protect any sensitive information ' +
   'you may include in your Sample Generator\'s context',
 });
-
+dbErrors.create({
+  code: 10119,
+  status: 400,
+  name: 'DuplicateCollectorError',
+  parent: dbErrors.ValidationError,
+  defaultMessage: 'You cannot map duplicate Collectors to a Generator.',
+});
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

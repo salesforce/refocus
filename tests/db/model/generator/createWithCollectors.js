@@ -22,6 +22,7 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 const NOT_FOUND_STATUS_CODE = 404;
+const BAD_REQUEST_STATUS_CODE = 400;
 const testStartTime = new Date();
 
 describe('tests/db/model/generator/createWithCollectors.js >', () => {
@@ -83,9 +84,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
 
     Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => {
-
-      // collector field check
-      expect(o.collectors.length).to.equal(THREE);
       o.collectors.forEach((collector, index) => {
         expect(collector.name).to.equal(sortedNames[index]);
       });
@@ -110,14 +108,14 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .catch(done);
   });
 
-  it('404 error with duplicate collectors in request body', (done) => {
+  it('400 error with duplicate collectors in request body', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, collector1.name];
     Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
-      expect(err.name).to.equal('ResourceNotFoundError');
+      expect(err.status).to.equal(BAD_REQUEST_STATUS_CODE);
+      expect(err.name).to.equal('DuplicateCollectorError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
       done();

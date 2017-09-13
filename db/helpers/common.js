@@ -32,6 +32,27 @@ const changeType = {
 };
 
 /**
+ * Returns duplicate strings in an given flat array
+ *
+ * ie. [a, b, c, c, a] => [a, c]
+ *
+ * @param {Array} arr Array of strings
+ * @returns {Array} Array of duplicate strings
+ */
+function findDuplicatesInStringArray(arr) {
+  const unique = arr
+  .map((name) => {
+    return { count: 1, name }
+  })
+  .reduce((a, b) => {
+    a[b.name] = (a[b.name] || 0) + b.count
+    return a
+  }, {})
+
+  return Object.keys(unique).filter((a) => unique[a] > 1);
+}
+
+/**
  * Given two flat arrays of strings that may overlap, compute what is
  * IN the first array AND NOT IN the second array.
  *
@@ -285,6 +306,7 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 module.exports = {
+  findDuplicatesInStringArray,
   setDifference,
   dbconf,
   setIsDeleted,
