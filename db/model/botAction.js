@@ -87,8 +87,8 @@ module.exports = function botAction(seq, dataTypes) {
     hooks: {
 
       /**
-       * If the botId is a bot name is validates it and updates the
-       * botId with the actual ID.
+       * Check if the botId is a bot name then replace the
+       * botId with the bots' ID.
        *
        * @param {Aspect} inst - The instance being validated
        * @returns {undefined} - OK
