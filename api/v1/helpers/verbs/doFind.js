@@ -44,6 +44,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
+
     const retval = o.rows.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;

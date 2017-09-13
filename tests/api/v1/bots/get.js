@@ -59,7 +59,7 @@ describe('tests/api/v1/bots/get.js >', () => {
       }
 
       expect(res.body.length).to.equal(ONE);
-      expect(res.body[ZERO].ui.data.length).to.equal(uiBlob.length);
+      expect(res.body).to.not.have.property('ui');
       done(err);
     });
   });
@@ -139,6 +139,7 @@ describe('tests/api/v1/bots/get.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body.ui.data.length).to.equal(uiBlob.length);
       done();
     });
   });
