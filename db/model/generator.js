@@ -293,7 +293,6 @@ module.exports = function generator(seq, dataTypes) {
       /**
        * 1. validate the collectors field: if succeed, save the collectors in temp var for
        *  attaching to the generator. if fail, abort the POST operation
-       * 2. get the generator
        * 2. update the generator
        * 3. add the saved collectors (if any)
        *
