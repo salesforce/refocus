@@ -20,7 +20,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 
-describe('tests/db/model/generator/create.js >', () => {
+describe('tests/db/model/generator/withCollectors.js >', () => {
   let createdGenerator;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
@@ -48,7 +48,7 @@ describe('tests/db/model/generator/create.js >', () => {
     let relodedGenerator;
 
     before((done) => {
-      tu.db.Collector.create({ name: 'snow' })
+      tu.db.Collector.create({ name: 'snow', version: '1.0.0' })
       .then((_collector) => {
         collector = _collector;
         return createdGenerator.addCollectors([collector]);
@@ -85,8 +85,8 @@ describe('tests/db/model/generator/create.js >', () => {
   });
 
   describe('with two collectors', () => {
-    let collector1 = { name: 'hello' };
-    let collector2 = { name: 'world' };
+    let collector1 = { name: 'hello', version: '1.0.0' };
+    let collector2 = { name: 'world', version: '1.0.0' };
     let relodedGenerator;
 
     before((done) => {

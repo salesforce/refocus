@@ -33,9 +33,11 @@ describe('tests/db/model/generator/update.js >', () => {
   let sgtDBInstance;
   const collectorObj1 = {
     name: 'collector1',
+    version: '1.0.0',
   };
   const collectorObj2 = {
     name: 'collector2',
+    version: '1.0.0',
   };
   before((done) => {
     GeneratorTemplate.create(gtWithEncryption)
