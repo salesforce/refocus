@@ -201,4 +201,54 @@ describe('tests/db/model/collector/update.js >', () => {
     })
     .catch(done);
   });
+
+  it('Update osInfo', (done) => {
+    expect(collectorDb.osInfo).to.deep.equal(
+      { hostname: 'testHostname', username: 'testUsername' }
+    ); // before
+    const newOsInfo = {
+      platform: 'centos',
+      hostname: 'newHostname',
+      username: 'newUsername',
+    };
+    collectorDb.update({ osInfo: newOsInfo })
+    .then((obj) => {
+      expect(obj.osInfo).to.deep.equal(newOsInfo); // after
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update processInfo', (done) => {
+    expect(collectorDb.processInfo).to.deep.equal({
+      execPath: 'testExecPath',
+      memoryUsage: {
+        heapTotal: 1234,
+        external: 5678,
+      },
+      version: 'v1',
+      versions: { a: 'a', b: 'b' },
+    }); // before
+    const newProcessInfo = {
+      execPath: 'newExecPath',
+      version: 'v2',
+    };
+    collectorDb.update({ processInfo: newProcessInfo })
+    .then((obj) => {
+      expect(obj.processInfo).to.deep.equal(newProcessInfo); // after
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Update version', (done) => {
+    expect(collectorDb.version).to.be.equal('1.0.0'); // before
+    const newVersion = '1.1.1';
+    collectorDb.update({ version: newVersion })
+    .then((obj) => {
+      expect(obj.version).to.be.equal(newVersion); // after
+      done();
+    })
+    .catch(done);
+  });
 });
