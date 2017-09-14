@@ -184,19 +184,14 @@ module.exports = function generator(seq, dataTypes) {
        */
       createWithCollectors(requestBody, whereClauseForNameInArr) {
         // reject the request if requestBody.collectors contain duplicate names
-        if (common.checkDuplicatesInStringArray(requestBody.collectors)) {
-          const err = new dbErrors.DuplicateCollectorError();
-          err.resourceType = 'Collector';
-          err.resourceKey = requestBody.collectors;
-          return Promise.reject(err);
-        }
 
         const options = {};
         let generatorId;
         let collectors; // will be populated with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
-          seq.models.Collector.findAll(options)
+          validateCollectorNames(requestBody.collectors)
+          .then(() => seq.models.Collector.findAll(options))
           .then((_collectors) => {
 
             /*
