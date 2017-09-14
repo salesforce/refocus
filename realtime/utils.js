@@ -27,6 +27,8 @@ const filters = ['aspectFilter',
                   'statusFilter',
                 ];
 
+const botAbsolutePath = '/Bots';
+
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
@@ -38,6 +40,15 @@ function isThisSubject(obj) {
   return obj.hasOwnProperty('parentAbsolutePath');
 }
 
+/**
+ * A function to see if an instance is an instance of a room
+ * Checks the name from the model
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the name singular is room
+ */
+function isRoom(obj) {
+  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
+}
 /**
  * A function to see if an object is a sample object or not. It returns true
  * if an object passed has 'value' as one of its property.
@@ -183,51 +194,84 @@ function applyFilter(filterString, objValues) {
 }
 
 /**
- * The decision to emit an object over a namespace identified by the nspString
- * variable happens here. The nspString is decoded to various filters and the
+ * The decision to emit an object over a namespace identified by the nspComponents
+ * variable happens here. The nspComponents are decoded to various filters and the
  * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspString variable
- * @param  {String} nspString - A namespace string, that identifies a
- * socketio namespace
+ * emitted over the namespace identified by the nspComponents variable
+ * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
  * @returns {Boolean} - true if this obj is to be emitted over this namespace
  * identified by this namespace string.
  */
-function shouldIEmitThisObj(nspString, obj) {
-  // extract all the components that makes up a namespace.
-  const nspComponents = nspString.split(constants.filterSeperator);
-  const absPathNsp = nspComponents[constants.asbPathIndex];
+function perspectiveEmit(nspComponents, obj) {
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
 
-  // extract the subject absolute path from the message object
+  /*
+   * When none of the filters are set, the nspComponent just has the
+   * subjectAbsolutePath in it, so we do not have to check for the filter
+   * conditions and we just need to return true.
+  */
+  if (nspComponents.length < 2) {
+    return true;
+  }
+
+  /*
+   * if this is a subject object, just apply the subjectTagFilter and return
+   * the results
+   */
+  if (isThisSubject(obj)) {
+    return applyFilter(subjectTagFilter, obj.tags);
+  }
+
+  // apply all the filters and return the result
+  return applyFilter(aspectFilter, obj.aspect.name) &&
+    applyFilter(subjectTagFilter, obj.subject.tags) &&
+    applyFilter(aspectTagFilter, obj.aspect.tags) &&
+    applyFilter(statusFilter, obj.status);
+}
+
+/**
+ * The decision to emit an object over a namespace identified by the nspComponents
+ * variable happens here. The nspComponents are decoded to various filters and the
+ * filters are compared with the obj to decide whether this object should be
+ * emitted over the namespace identified by the nspComponents variable
+ * @param  {String} nspComponents - array of namespace strings for filtering
+ * @param  {Object} obj - Object that is to be emitted to the client
+ * @returns {Boolean} - true if this obj is to be emitted over this namespace
+ * identified by this namespace string.
+ */
+function botEmit(nspComponents, obj) {
+  const room = nspComponents[constants.roomFilterIndex];
+
+  if (isRoom(obj)) {
+    return applyFilter(room, obj.name);
+  }
+
+  return false;
+}
+
+/**
+  * Splits up the nspString into its components and decides if it is a bot
+  * or a perspective that needs to be emitted
+  * @param  {String} nspString - A namespace string, that identifies a
+  * socketio namespace
+  * @param  {Object} obj - Object that is to be emitted to the client
+  * @returns {Boolean} - true if this obj is to be emitted over this namespace
+  * identified by this namespace string.
+  */
+function shouldIEmitThisObj(nspString, obj) {
+  // extract all the components that makes up a namespace.
+  const nspComponents = nspString.split(constants.filterSeperator);
+  const absPathNsp = nspComponents[constants.asbPathIndex];
   const absolutePathObj = '/' + obj.absolutePath;
 
   if ((absolutePathObj).startsWith(absPathNsp)) {
-    /*
-     * When none of the filters are set, the nspComponent just has the
-     * subjectAbsolutePath in it, so we do not have to check for the filter
-     * conditions and we just need to return true.
-     */
-    if (nspComponents.length < 2) {
-      return true;
-    }
-
-    /*
-     * if this is a subject object, just apply the subjcTagFilter and return
-     * the results
-     */
-    if (isThisSubject(obj)) {
-      return applyFilter(subjectTagFilter, obj.tags);
-    }
-
-    // apply all the filters and return the result
-    return applyFilter(aspectFilter, obj.aspect.name) &&
-      applyFilter(subjectTagFilter, obj.subject.tags) &&
-      applyFilter(aspectTagFilter, obj.aspect.tags) &&
-      applyFilter(statusFilter, obj.status);
+    return perspectiveEmit(nspComponents, obj);
+  } else if (absPathNsp === botAbsolutePath) {
+    return botEmit(nspComponents, obj);
   }
 
   return false;
@@ -244,7 +288,7 @@ function shouldIEmitThisObj(nspString, obj) {
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
-function getNamespaceString(inst) {
+function getPerspectiveNamespaceString(inst) {
   let namespace = '/';
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
@@ -253,11 +297,27 @@ function getNamespaceString(inst) {
   for (let i = 0; i < filters.length; i++) {
     if (inst[filters[i]] && inst[filters[i]].length) {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
-                constants.fieldTypeFieldSeparator +
-                inst[filters[i]].join(constants.valuesSeparator);
+              constants.fieldTypeFieldSeparator +
+              inst[filters[i]].join(constants.valuesSeparator);
     } else {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
     }
+  }
+
+  return namespace;
+}
+
+/**
+ * When passed a room object, it returns a namespace string based on the
+ * fields set in the room object.
+ * @param  {Instance} inst - Perspective object
+ * @returns {String} - namespace string.
+ */
+function getBotsNamespaceString(inst) {
+  let namespace = botAbsolutePath;
+
+  if (isRoom(inst)) {
+    namespace += constants.filterSeperator + inst.name;
   }
 
   return namespace;
@@ -270,8 +330,21 @@ function getNamespaceString(inst) {
  * @returns {Set} - The socketio server side object with the namespaces
  * initialized
  */
-function initializeNamespace(inst, io) {
-  const nspString = getNamespaceString(inst);
+function initializePerspectiveNamespace(inst, io) {
+  const nspString = getPerspectiveNamespaceString(inst);
+  io.of(nspString);
+  return io;
+}
+
+/**
+ * Initializes a socketIO namespace based on the bot object.
+ * @param {Instance} inst - The perspective instance.
+ * @param {Socket.io} io - The socketio's server side object
+ * @returns {Set} - The socketio server side object with the namespaces
+ * initialized
+ */
+function initializeBotNamespace(inst, io) {
+  const nspString = getBotsNamespaceString(inst);
   io.of(nspString);
   return io;
 }
@@ -378,12 +451,15 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
 } // attachAspectSubject
 
 module.exports = {
-  getNamespaceString,
+  getPerspectiveNamespaceString,
+  getBotsNamespaceString,
   getNewObjAsString,
-  initializeNamespace,
+  initializePerspectiveNamespace,
+  initializeBotNamespace,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
   isThisSample,
+  isRoom,
   attachAspectSubject,
 }; // exports

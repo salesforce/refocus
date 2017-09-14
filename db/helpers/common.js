@@ -13,9 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../cache/redisCache').client.pub;
+const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
-const channelName = require('../../config').redis.channelName;
+const channelName = require('../../config').redis.perspectiveChannelName;
 const revalidator = require('revalidator');
 const ValidationError = require('../dbErrors').ValidationError;
 

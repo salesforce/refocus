@@ -136,6 +136,7 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
+
   const namespace = u.getNamespaceString(persBody) +
     `?p=${persBody.name}`;
 

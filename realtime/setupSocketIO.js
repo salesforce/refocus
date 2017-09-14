@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const ResourceNotFoundError = require('../db/dbErrors').ResourceNotFoundError;
 const perspective = require('../db/index').Perspective;
+const room = require('../db/index').Room;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
@@ -66,14 +67,17 @@ function setupNamespace(io) {
     perspective.findAll()
     .then((objArr) => {
       if (objArr) {
-        objArr.forEach((o) => rtUtils.initializeNamespace(o, io));
-        resolve(io);
-      } else {
-        const err = new ResourceNotFoundError();
-        err.resourceType = 'Perspective';
-        throw err;
+        objArr.forEach((o) => rtUtils.initializePerspectiveNamespace(o, io));
       }
     })
+    .then(() => room.findAll()
+      .then((rooms) => {
+        if (rooms) {
+          rooms.forEach((r) => rtUtils.initializeBotNamespace(r.toJSON(), io));
+          resolve(io);
+        }
+      })
+    )
     .catch(reject);
   });
 } // setupNamespace
