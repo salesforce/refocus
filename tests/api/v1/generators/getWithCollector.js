@@ -39,9 +39,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   genWithThreeCollectors.name = 'refocus-critical-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithThreeCollectors);
 
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
 
   before((done) => {
     Promise.all([

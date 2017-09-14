@@ -22,6 +22,20 @@ module.exports = {
     helpUrl: 'http://test.com',
     host: 'xxx-yyy-zzz.aaa.bbb.ccc.com',
     ipAddress: '123.456.789.012',
+    osInfo: {
+      hostname: 'testHostname',
+      username: 'testUsername',
+    },
+    processInfo: {
+      execPath: 'testExecPath',
+      memoryUsage: {
+        heapTotal: 1234,
+        external: 5678,
+      },
+      version: 'v1',
+      versions: { a: 'a', b: 'b' },
+    },
+    version: '1.0.0',
   },
 
   forceDelete(done) {

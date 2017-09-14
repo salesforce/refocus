@@ -27,5 +27,6 @@ module.exports = {
     helpUrl: 'a.bcd.com',
     host: 'a.bcd',
     ipAddress: '127.0.0.1',
+    version: '1.0.0',
   },
 };
