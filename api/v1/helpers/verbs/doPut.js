@@ -84,7 +84,9 @@ function doPut(req, res, next, props) {
       .then((o) => u.isWritable(req, o))
       .then((o) => {
         if (props.modelName === 'Generator') {
-          return props.model.validateCollectorNames(toPut.collectors);
+
+          // only updates the collectors field in generators
+          return props.model.putWithCollectors(toPut.collectors);
         }
 
         return updateInstance(o, puttableFields, toPut);

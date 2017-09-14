@@ -90,12 +90,13 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     });
   });
 
-  it('ok: PATCH to add new collectors', (done) => {
+  it.only('ok: PATCH to add new collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send({ collectors: [collector2.name] })
-    .expect(constants.httpStatus.OK)
+    // .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      console.log(res.body)
       if (err) {
         return done(err);
       }

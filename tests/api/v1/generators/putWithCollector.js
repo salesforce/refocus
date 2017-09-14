@@ -154,8 +154,9 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(requestBody)
-    .expect(constants.httpStatus.BAD_REQUEST)
+    // .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
+      console.log(res.body)
       if (err) {
         return done(err);
       }

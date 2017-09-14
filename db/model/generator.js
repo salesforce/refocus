@@ -15,6 +15,7 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
+const Collector = require('./Collector');
 const assoc = {};
 
 /**
@@ -31,6 +32,42 @@ function validateCollectorNames(collectorNames) {
   }
 
   return Promise.resolve();
+}
+
+/**
+ * If collectors exist, return an Array of collector objects
+ * If collector names are not supplied, return empty array
+ * If collector names are invalid, throw error
+ * @param {Array} collectorNames Array of Strings
+ * @param {Function} whereClauseForNameInArr Passed in from API
+ */
+function checkCollectorsExist(collectorNames, whereClauseForNameInArr) {
+  if (!collectorNames || !collectorNames.length) {
+    return [];
+  }
+
+  const options = {};
+  options.where = whereClauseForNameInArr(collectorNames || []);
+
+  // reject the request if collectorNames contain duplicate names
+  return Collector.findAll(options)
+  .then((_collectors) => {
+
+    /*
+     * If requestBody does not have a collectors field, OR
+     * if the number of collectors in requestBody MATCH the
+     * GET result, order the collectors AND create the generator.
+     * Else throw error since there are collectors that don't exist.
+     */
+    if (_collectors.length === collectorNames.length) {
+      return _collectors;
+    }
+
+    const err = new dbErrors.ResourceNotFoundError();
+    err.resourceType = 'Collector';
+    err.resourceKey = collectorNames;
+    throw err;
+  });
 }
 
 const generatorTemplateSchema = {
@@ -312,33 +349,16 @@ module.exports = function generator(seq, dataTypes) {
        * @returns {Promise} created generator with collectors (if any)
        */
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
-        const options = {};
         let collectors; // will be populated with actual collectors
-        options.where = whereClauseForNameInArr(requestBody.collectors || []);
 
         // reject the request if requestBody.collectors contain duplicate names
         return new seq.Promise((resolve, reject) =>
           validateCollectorNames(requestBody.collectors)
-          .then(() => seq.models.Collector.findAll(options))
+          .then(() => checkCollectorsExist(requestBody.collectors, whereClauseForNameInArr))
           .then((_collectors) => {
-
-            /*
-             * If requestBody does not have a collectors field, OR
-             * if the number of collectors in requestBody MATCH the
-             * GET result, order the collectors AND create the generator.
-             * Else throw error since there are collectors that don't exist.
-             */
-            if (!requestBody.collectors ||
-              (_collectors.length === requestBody.collectors.length)) {
-              collectors = _collectors;
-              return this.update(requestBody);
-            }
-
-            const err = new dbErrors.ResourceNotFoundError();
-            err.resourceType = 'Collector';
-            err.resourceKey = requestBody.collectors;
-            throw err;
-          }) // if successful upd, add collectors
+            collectors = _collectors;
+            return this.update(requestBody);
+          })
           .then(() => this.addCollectors(collectors))
           .then(() => resolve(this.reload()))
           .catch(reject)
