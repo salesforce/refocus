@@ -14,20 +14,17 @@ module.exports = {
       'ALTER TABLE "BotActions" ' +
       'DROP CONSTRAINT IF EXISTS BotActionUniqueNameisPending;'
     )
-    .then(() => {
-      return qi.removeIndex('BotActions', 'BotActionUniqueNameisPending');
-    });
+    .then(() => qi.removeIndex('BotActions', 'BotActionUniqueNameisPending'));
   },
 
   down(qi) {
     return qi.sequelize.query(
       'ALTER TABLE "BotActions" DROP CONSTRAINT IF EXISTS BotActionsIdx;'
     )
-    .then(() => {
-      return qi.addIndex('BotActions', ['name', 'isPending'], {
+    .then(() =>
+      qi.addIndex('BotActions', ['name', 'isPending'], {
         indexName: 'BotActionUniqueNameisPending',
-        indicesType: 'UNIQUE'
-      });
-    });
+        indicesType: 'UNIQUE',
+      }));
   },
 };

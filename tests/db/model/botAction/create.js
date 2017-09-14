@@ -138,9 +138,7 @@ describe('db/model/botAction/create.js >', () => {
     .then((o) => {
       expect(o).to.have.property('name');
     })
-    .then(() => {
-      return BotAction.create(testBotAction);
-    })
+    .then(() => BotAction.create(testBotAction))
     .then((o) => {
       expect(o).to.have.property('name');
       done();

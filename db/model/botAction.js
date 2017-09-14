@@ -65,13 +65,13 @@ module.exports = function botAction(seq, dataTypes) {
           foreignKey: {
             name: 'roomId',
             allowNull: false,
-          }
+          },
         });
         assoc.bot = BotAction.belongsTo(models.Bot, {
           foreignKey: {
             name: 'botId',
             allowNull: false,
-          }
+          },
         });
         assoc.user = BotAction.belongsTo(models.User, {
           foreignKey: 'userId',
@@ -95,13 +95,14 @@ module.exports = function botAction(seq, dataTypes) {
        */
       beforeValidate(inst /* , opts */) {
         const botId = inst.getDataValue('botId');
-        if (v.looksLikeId(botId)){
+        if (v.looksLikeId(botId)) {
           return seq.Promise.resolve(inst);
         }
+
         return seq.models.Bot.findOne({
           where: {
             name: botId,
-          }
+          },
         })
         .then((bot) => {
           inst.botId = bot.id;
@@ -126,6 +127,7 @@ module.exports = function botAction(seq, dataTypes) {
                 return botFound.actions[i];
               }
             }
+
             throw new dbErrors.ValidationError({
               message:
                 'Action was not found',
