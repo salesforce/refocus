@@ -67,7 +67,6 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);

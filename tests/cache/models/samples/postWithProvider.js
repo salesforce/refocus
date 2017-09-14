@@ -73,7 +73,6 @@ describe('tests/cache/models/samples/postWithProvider.js, ' +
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('returnUser', false));
 

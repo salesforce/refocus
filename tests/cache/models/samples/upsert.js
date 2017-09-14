@@ -67,7 +67,6 @@ describe('tests/cache/models/samples/upsert.js, ' +
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('when subject not present >', () => {
