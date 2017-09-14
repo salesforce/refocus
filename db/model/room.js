@@ -14,9 +14,14 @@
  */
 
 const constants = require('../constants');
-const u = require('../helpers/roomTypeUtils');
+const realTime = require('../../realtime/redisPublisher');
 
 const assoc = {};
+const roomEventNames = {
+  add: 'refocus.internal.realtime.bot.namespace.initialize',
+  upd: 'refocus.internal.realtime.room.settingsChanged',
+  del: 'refocus.internal.realtime.room.remove',
+};
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
@@ -75,8 +80,30 @@ module.exports = function room(seq, dataTypes) {
         return RoomType.findById(instance.type)
         .then((roomType) => {
           instance.settings = roomType.settings;
+          const changedKeys = Object.keys(instance._changed);
+          const ignoreAttributes = ['isDeleted'];
+          return realTime.publishObject(instance.toJSON(), roomEventNames.add, changedKeys,
+              ignoreAttributes);
         });
       },
+
+      afterUpdate(instance /* , opts */) {
+        if (instance.changed('settings')) {
+          if (instance.active) {
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd);
+          }
+        }
+
+        return seq.Promise.resolve();
+      }, // hooks.afterUpdate
+
+      afterDelete(instance /* , opts */) {
+        if (instance.getDataValue('active')) {
+          return realTime.publishObject(instance.toJSON(), roomEventNames.del);
+        }
+
+        return seq.Promise.resolve();
+      }, // hooks.afterDelete
     },
   });
   return Room;

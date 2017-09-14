@@ -11,8 +11,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
-const pub = require('../cache/redisCache').client.pub;
-const channelName = require('../config').redis.channelName;
+const pubPerspective = require('../cache/redisCache').client.pubPerspective;
+const pubBot = require('../cache/redisCache').client.pubBot;
+const perspectiveChannelName = require('../config').redis.perspectiveChannelName;
+const botChannelName = require('../config').redis.botChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
 
@@ -70,7 +72,6 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 function publishObject(inst, event, changedKeys, ignoreAttributes) {
   const obj = {};
   obj[event] = inst;
-
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -82,8 +83,11 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    const objectAsString = JSON.stringify(obj);
-    return pub.publish(channelName, objectAsString);
+    if (rtUtils.isRoom(inst)) {
+      pubBot.publish(botChannelName, JSON.stringify(obj));
+    } else {
+      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
+    }
   }
 
   return obj;

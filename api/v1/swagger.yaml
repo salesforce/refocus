@@ -9488,7 +9488,7 @@ paths:
           name: key
           in: path
           description: >-
-            The id the event to retrieve
+            The id the event to retrieve
           required: true
           type: string
         -
