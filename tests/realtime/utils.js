@@ -14,6 +14,80 @@ const tu = require('../testUtils');
 const path = require('path');
 const fs = require('fs');
 const testStartTime = new Date();
+const rt = `${tu.namePrefix}TestRoomType`;
+const r = `${tu.namePrefix}TestRoom`;
+
+const standardRoom = {
+  name: r,
+  active: true,
+  type: '23',
+};
+
+const standardRoomType = {
+  name: rt,
+  isEnabled: true,
+  settings: {
+    Key1: 'Value1',
+    Key2: 'Value2',
+  },
+  rules: [
+    {
+      rule: {
+        and: [
+          { '>': [1, 2] },
+          { '<': [3, 4] },
+        ],
+      },
+      action: {
+        name: 'Action1',
+        parameters: [
+          {
+            name: 'Parameter1',
+            value: 'Value1',
+          },
+          {
+            name: 'Parameter2',
+            value: 'Value2',
+          },
+          {
+            name: 'Parameter3',
+            value: 'Value3',
+          },
+        ],
+      },
+    },
+    {
+      rule: {
+        or: [
+          { '>': [5, 6] },
+          {
+            and: [
+              { '>': [7, 8] },
+              { '<': [9, 10] },
+            ],
+          },
+        ],
+      },
+      action: {
+        name: 'Action2',
+        parameters: [
+          {
+            name: 'Parameter1',
+            value: 'Value1',
+          },
+          {
+            name: 'Parameter2',
+            value: 'Value2',
+          },
+          {
+            name: 'Parameter3',
+            value: 'Value3',
+          },
+        ],
+      },
+    },
+  ],
+};
 
 module.exports = {
   doSetup() {
@@ -36,12 +110,21 @@ module.exports = {
     });
   },
 
+  getStandardRoomType() {
+    return JSON.parse(JSON.stringify(standardRoomType));
+  },
+
+  getStandardRoom() {
+    return JSON.parse(JSON.stringify(standardRoom));
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
   },
