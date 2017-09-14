@@ -76,7 +76,7 @@ describe('tests/api/v1/botActions/post.js >', () => {
     });
   });
 
-  it('Fail, duplicate botAction', (done) => {
+  it('Pass, duplicate botAction', (done) => {
     BotAction.create(testBotAction)
     .then(() => {
       api.post(`${path}`)
@@ -88,8 +88,7 @@ describe('tests/api/v1/botActions/post.js >', () => {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain('SequelizeUniqueConstraintError');
+        expect(res.body.name).to.equal(u.name);
         done();
       });
     })
