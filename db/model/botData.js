@@ -61,6 +61,7 @@ module.exports = function botData(seq, dataTypes) {
       },
     },
     hooks: {
+
       /**
        * If the botId is a bot name is validates it and updates the
        * botId with the actual ID.

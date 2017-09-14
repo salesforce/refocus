@@ -82,7 +82,7 @@ describe('tests/api/v1/botActions/post.js >', () => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotAction)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           return done(err);

@@ -52,7 +52,7 @@ const viewmap = {
  * after setting redirect url query parameter.
  */
 function ensureAuthenticated(req, res, next) {
-  if (true) {//req.isAuthenticated()) {
+  if (req.isAuthenticated()) {
     return next();
   }
 
