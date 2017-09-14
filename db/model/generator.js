@@ -35,13 +35,18 @@ function validateCollectorNames(collectorNames) {
 }
 
 /**
- * If collectors exist, return an Array of collector objects
- * If collector names are not supplied, return empty array
- * If collector names are invalid, throw error
+ * If collectors exist, return a Promise with an
+ * Array of collector objects referenced by collectorNames.
+ * If collector names are not supplied, return a Promise
+ * with an empty array
+ * If collector names are invalid, reject with error.
+
+ * @param {Object} seq The sequelize object
  * @param {Array} collectorNames Array of Strings
  * @param {Function} whereClauseForNameInArr Passed in from API
+ * @returns {Promise} with an array if check passed, error otherwise
  */
-function checkCollectorsExist(collectorNames, whereClauseForNameInArr) {
+function checkCollectorsExist(seq, collectorNames, whereClauseForNameInArr) {
   if (!collectorNames || !collectorNames.length) {
     return [];
   }
@@ -50,24 +55,26 @@ function checkCollectorsExist(collectorNames, whereClauseForNameInArr) {
   options.where = whereClauseForNameInArr(collectorNames || []);
 
   // reject the request if collectorNames contain duplicate names
-  return Collector.findAll(options)
-  .then((_collectors) => {
+  return new Promise((resolve, reject) =>
+    seq.models.Collector.findAll(options)
+    .then((_collectors) => {
 
-    /*
-     * If requestBody does not have a collectors field, OR
-     * if the number of collectors in requestBody MATCH the
-     * GET result, order the collectors AND create the generator.
-     * Else throw error since there are collectors that don't exist.
-     */
-    if (_collectors.length === collectorNames.length) {
-      return _collectors;
-    }
+      /*
+       * If requestBody does not have a collectors field, OR
+       * if the number of collectors in requestBody MATCH the
+       * GET result, order the collectors AND create the generator.
+       * Else throw error since there are collectors that don't exist.
+       */
+      if (_collectors.length === collectorNames.length) {
+        resolve(_collectors);
+      }
 
-    const err = new dbErrors.ResourceNotFoundError();
-    err.resourceType = 'Collector';
-    err.resourceKey = collectorNames;
-    throw err;
-  });
+      const err = new dbErrors.ResourceNotFoundError();
+      err.resourceType = 'Collector';
+      err.resourceKey = collectorNames;
+      reject(err);
+    })
+  );
 }
 
 const generatorTemplateSchema = {
@@ -220,34 +227,16 @@ module.exports = function generator(seq, dataTypes) {
        * @returns {Promise} created generator with collectors (if any)
        */
       createWithCollectors(requestBody, whereClauseForNameInArr) {
-        // reject the request if requestBody.collectors contain duplicate names
-
-        const options = {};
         let generatorId;
         let collectors; // will be populated with actual collectors
-        options.where = whereClauseForNameInArr(requestBody.collectors || []);
         return new seq.Promise((resolve, reject) =>
           validateCollectorNames(requestBody.collectors)
-          .then(() => seq.models.Collector.findAll(options))
+          .then(() => checkCollectorsExist(
+            seq, requestBody.collectors, whereClauseForNameInArr))
           .then((_collectors) => {
-
-            /*
-             * If requestBody does not have a collectors field, OR
-             * if the number of collectors in requestBody MATCH the
-             * GET result, order the collectors AND create the generator.
-             * Else throw error since there are collectors that don't exist.
-             */
-            if (!requestBody.collectors ||
-              (_collectors.length === requestBody.collectors.length)) {
-              collectors = _collectors;
-              return Generator.create(requestBody);
-            }
-
-            const err = new dbErrors.ResourceNotFoundError();
-            err.resourceType = 'Collector';
-            err.resourceKey = requestBody.collectors;
-            throw err;
-          }) // if successful create, add collectors
+            collectors = _collectors;
+            return Generator.create(requestBody);
+          })
           .then((createdGenerator) => {
             generatorId = createdGenerator.id;
             return createdGenerator.addCollectors(collectors);
@@ -350,11 +339,10 @@ module.exports = function generator(seq, dataTypes) {
        */
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
         let collectors; // will be populated with actual collectors
-
-        // reject the request if requestBody.collectors contain duplicate names
         return new seq.Promise((resolve, reject) =>
           validateCollectorNames(requestBody.collectors)
-          .then(() => checkCollectorsExist(requestBody.collectors, whereClauseForNameInArr))
+          .then(() => checkCollectorsExist(
+            seq, requestBody.collectors, whereClauseForNameInArr))
           .then((_collectors) => {
             collectors = _collectors;
             return this.update(requestBody);
