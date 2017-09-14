@@ -17,6 +17,22 @@ const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
 
+/**
+ * Reject the request if collectorNames contain duplicate names
+ * @param {Array} collectorNames Array of strings
+ * @returns {Promise} empty if validation passed, reject otherwise
+ */
+function validateCollectorNames(collectorNames) {
+  if (common.checkDuplicatesInStringArray(collectorNames)) {
+    const err = new dbErrors.DuplicateCollectorError();
+    err.resourceType = 'Collector';
+    err.resourceKey = collectorNames;
+    return Promise.reject(err);
+  }
+
+  return Promise.resolve();
+}
+
 const generatorTemplateSchema = {
   properties: {
     name: {
@@ -301,21 +317,14 @@ module.exports = function generator(seq, dataTypes) {
        * @returns {Promise} created generator with collectors (if any)
        */
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
-
-        // reject the request if requestBody.collectors contain duplicate names
-        if (common.checkDuplicatesInStringArray(requestBody.collectors)) {
-          const err = new dbErrors.DuplicateCollectorError();
-          err.resourceType = 'Collector';
-          err.resourceKey = requestBody.collectors;
-          return Promise.reject(err);
-        }
-
         const options = {};
         let collectors; // will be populated with actual collectors
         options.where = whereClauseForNameInArr(requestBody.collectors || []);
 
+        // reject the request if requestBody.collectors contain duplicate names
         return new seq.Promise((resolve, reject) =>
-          seq.models.Collector.findAll(options)
+          validateCollectorNames(requestBody.collectors)
+          .then(() => seq.models.Collector.findAll(options))
           .then((_collectors) => {
 
             /*
