@@ -18,6 +18,7 @@ const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const u = require('../helpers/botUtils');
+const v = require('../../api/v1/helpers/verbs/utils');
 
 module.exports = function botAction(seq, dataTypes) {
   const BotAction = seq.define('BotAction', {
@@ -61,12 +62,16 @@ module.exports = function botAction(seq, dataTypes) {
 
       postImport(models) {
         assoc.room = BotAction.belongsTo(models.Room, {
-          foreignKey: 'roomId',
-          allowNull: false,
+          foreignKey: {
+            name: 'roomId',
+            allowNull: false,
+          },
         });
         assoc.bot = BotAction.belongsTo(models.Bot, {
-          foreignKey: 'botId',
-          allowNull: false,
+          foreignKey: {
+            name: 'botId',
+            allowNull: false,
+          },
         });
         assoc.user = BotAction.belongsTo(models.User, {
           foreignKey: 'userId',
@@ -80,6 +85,29 @@ module.exports = function botAction(seq, dataTypes) {
       },
     },
     hooks: {
+
+      /**
+       * Check if the botId is a bot name then replace the
+       * botId with the bots' ID.
+       *
+       * @param {Aspect} inst - The instance being validated
+       * @returns {undefined} - OK
+       */
+      beforeValidate(inst /* , opts */) {
+        const botId = inst.getDataValue('botId');
+        if (v.looksLikeId(botId)) {
+          return seq.Promise.resolve(inst);
+        }
+
+        return seq.models.Bot.findOne({
+          where: {
+            name: botId,
+          },
+        })
+        .then((bot) => {
+          inst.botId = bot.id;
+        });
+      },
 
       /**
        * Check if the paramaters required are being passed.
@@ -100,33 +128,40 @@ module.exports = function botAction(seq, dataTypes) {
               }
             }
 
-            return null;
+            throw new dbErrors.ValidationError({
+              message:
+                'Action was not found',
+            });
           })
           .then((dataFound) => {
-            if (inst.getDataValue('parameters') !== null) {
-              if (inst.getDataValue('parameters').length !==
-                dataFound.parameters.length) {
+            const params = inst.getDataValue('parameters');
+            if (dataFound.parameters !== null) {
+              if ((params !== undefined) && (params !== null)) {
+                if (params.length !== dataFound.parameters.length) {
+                  throw new dbErrors.ValidationError({
+                    message:
+                      'Wrong number of parameters sent to run this action',
+                  });
+                }
+              } else {
                 throw new dbErrors.ValidationError({
                   message:
-                    'Not enough parameters were sent to run this action',
+                    'Action must contain parameters',
                 });
               }
-            } else {
-              throw new dbErrors.ValidationError({
-                message: 'Action must contain parameters',
-              });
             }
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
-    },
+    }, // hooks
     indexes: [
       {
-        name: 'BotActionUniqueNameisPending',
-        unique: true,
-        fields: [seq.fn('lower', seq.col('name')), 'isPending'],
+        name: 'BotActionsIdx',
+        fields: [
+          'name',
+        ],
       },
     ],
   });

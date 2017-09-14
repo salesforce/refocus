@@ -165,7 +165,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     Bot.create(bot)
     .then((newBot) => {
       testBotData2.name = 'TestData2';
-      testBotData2.botId = newBot.botId;
+      testBotData2.botId = newBot.id;
       testBotData2.roomId = testBotData.id;
       return BotData.create(testBotData2);
     })
@@ -216,7 +216,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     Bot.create(bot)
     .then((newBot) => {
       testBotData2.name = 'TestData2';
-      testBotData2.botId = newBot.botId;
+      testBotData2.botId = newBot.id;
       testBotData2.roomId = testBotData.id;
       return BotData.create(testBotData2);
     })
