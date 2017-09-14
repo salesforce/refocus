@@ -126,10 +126,7 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    const promises = res.body.bots.map(botName => {
-      botname = u.getPromiseWithUrl(GET_BOTS + '/' + botName);
-      return botname;
-    });
+    const promises = res.body.bots.map(botName => u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
   .then((res) => {
