@@ -463,10 +463,6 @@ module.exports = function subject(seq, dataTypes) {
       afterDelete(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.del);
-
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            subjectUtils.removeFromRedis(inst.absolutePath);
-          }
         }
 
         return new seq.Promise((resolve, reject) =>
@@ -474,6 +470,11 @@ module.exports = function subject(seq, dataTypes) {
           .then((par) => {
             if (par) {
               par.decrement('childCount');
+            }
+
+            // if cache is on, remove reference to subjects in the cache
+            if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+              return subjectUtils.removeFromRedis(inst.absolutePath);
             }
           })
           .then(() => resolve(inst))
