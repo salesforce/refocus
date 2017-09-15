@@ -83,7 +83,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('time fields should have the expected format', (done) => {

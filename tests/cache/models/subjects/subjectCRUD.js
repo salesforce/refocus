@@ -78,7 +78,6 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('on unpublish, a subject should still be found', (done) => {

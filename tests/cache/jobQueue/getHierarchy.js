@@ -132,7 +132,6 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
     });
 
     after(rtu.forceDelete);
-    after(rtu.flushRedis);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     function requestAndExpectNJobs(n, done) {
