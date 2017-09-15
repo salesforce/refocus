@@ -17,7 +17,7 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
-const v = require('../../utils/common');
+const commonUtils = require('../../utils/common');
 
 module.exports = function botData(seq, dataTypes) {
   const BotData = seq.define('BotData', {
@@ -71,7 +71,7 @@ module.exports = function botData(seq, dataTypes) {
        */
       beforeValidate(inst /* , opts */) {
         const botId = inst.getDataValue('botId');
-        if (v.looksLikeId(botId)) {
+        if (commonUtils.looksLikeId(botId)) {
           return seq.Promise.resolve(inst);
         }
 
