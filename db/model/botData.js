@@ -17,8 +17,7 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
-const looksLikeId =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const v = require('../../utils/common');
 
 module.exports = function botData(seq, dataTypes) {
   const BotData = seq.define('BotData', {
@@ -72,13 +71,13 @@ module.exports = function botData(seq, dataTypes) {
        */
       beforeValidate(inst /* , opts */) {
         const botId = inst.getDataValue('botId');
-        if (looksLikeId.test(botId)) {
+        if (v.looksLikeId(botId)) {
           return seq.Promise.resolve(inst);
         }
 
         return seq.models.Bot.findOne({
           where: {
-            name: botId,
+            name: { $iLike: botId },
           },
         })
         .then((bot) => {
