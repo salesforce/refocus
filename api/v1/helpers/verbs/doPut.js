@@ -81,6 +81,7 @@ function doPut(req, res, next, props) {
     putPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.putSample(req.swagger.params, user));
   } else {
+    let instance;
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
     putPromise = u.findByKey(
@@ -89,6 +90,7 @@ function doPut(req, res, next, props) {
       .then((o) => u.isWritable(req, o))
       .then((o) => {
         if (props.modelName === 'Generator') {
+          let collectors = [];
 
           /*
            * Will throw error if there are duplicate
@@ -96,8 +98,15 @@ function doPut(req, res, next, props) {
            */
           return props.model.validateCollectors(
             toPut.collectors, u.whereClauseForNameInArr)
-          .then((collectors) => o.setCollectors(collectors))
-          .then(() => updateInstance(o, puttableFields, toPut))
+          .then((_collectors) => {
+            collectors = _collectors;
+            return updateInstance(o, puttableFields, toPut);
+          })
+          .then((o) => {
+            instance = o;
+            return o.setCollectors(collectors);
+          })
+          .then(() => instance.reload());
         }
 
         return updateInstance(o, puttableFields, toPut);

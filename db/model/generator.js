@@ -157,6 +157,14 @@ module.exports = function generator(seq, dataTypes) {
         });
       },
 
+      validateCollectors(collectorNames, whereClauseForNameInArr) {
+        return new seq.Promise((resolve, reject) =>
+          utils.validateCollectors(seq, collectorNames,
+            whereClauseForNameInArr)
+            .then(resolve)
+            .catch(reject)
+          )
+      },
 
       /**
        * 1. validate the collectors field: if succeed, save the collectors in temp var for

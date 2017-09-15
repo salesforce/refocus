@@ -92,21 +92,12 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-/*
-failing with error
-{ errors:
-   [ { message: 'Only one of ["subjects", "subjectQuery"] is required',
-       source: 'eitherSubjectsORsubjectQuery',
-       value: [Object],
-       type: 'SequelizeValidationError' } ] }
-*/
-  it.skip('ok: wipes out collectors', (done) => {
-    api.patch(`${path}/${generatorId}`)
+  it('ok: wipes out collectors', (done) => {
+    api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      console.log(res.body)
       if (err) {
         return done(err);
       }
@@ -118,12 +109,13 @@ failing with error
     });
   });
 
-// failing due to having 3 collectors instead of 2
-  it.only('ok: replace collector with more collectors', (done) => {
-    api.patch(`${path}/${generatorId}`)
+  it('ok: replace collector with more collectors', (done) => {
+    const withCollectors = JSON.parse(JSON.stringify(toPut));
+    withCollectors.collectors = [collector2.name, collector3.name];
+    api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector2.name, collector3.name] })
-    // .expect(constants.httpStatus.OK)
+    .send(withCollectors)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -131,9 +123,8 @@ failing with error
 
       const { collectors } = res.body;
       expect(Array.isArray(collectors)).to.be.true;
-      // expect(collectors.length).to.equal(TWO);
+      expect(collectors.length).to.equal(TWO);
       const collectorNames = collectors.map((collector) => collector.name);
-      console.log(collectorNames)
       expect(collectorNames).to.contain(collector2.name);
       expect(collectorNames).to.contain(collector3.name);
       done();
@@ -141,9 +132,11 @@ failing with error
   });
 
   it('ok: attach identical collector does alter collector', (done) => {
-    api.patch(`${path}/${generatorId}`)
+    const withCollectors = JSON.parse(JSON.stringify(toPut));
+    withCollectors.collectors = [collector1.name];
+    api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector1.name] })
+    .send(withCollectors)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
