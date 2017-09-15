@@ -157,13 +157,17 @@ module.exports = function generator(seq, dataTypes) {
         });
       },
 
+      /**
+       * Accessed by API. if pass, return a Promise with the collectors.
+       * If fail, return a rejected Promise
+       *
+       * @param {Array} collectorNames Array of strings
+       * @param {Function} whereClauseForNameInArr Returns an object query
+       * @returns {Promise} with collectors if pass, error if fail
+       */
       validateCollectors(collectorNames, whereClauseForNameInArr) {
-        return new seq.Promise((resolve, reject) =>
-          utils.validateCollectors(seq, collectorNames,
-            whereClauseForNameInArr)
-            .then(resolve)
-            .catch(reject)
-          );
+        return utils.validateCollectors(seq, collectorNames,
+          whereClauseForNameInArr);
       },
 
       /**
@@ -177,7 +181,7 @@ module.exports = function generator(seq, dataTypes) {
        * @returns {Promise} created generator with collectors (if any)
        */
       createWithCollectors(requestBody, whereClauseForNameInArr) {
-        let generatorId;
+        let createdGenerator;
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
           utils.validateCollectors(seq, requestBody.collectors,
@@ -186,12 +190,12 @@ module.exports = function generator(seq, dataTypes) {
             collectors = _collectors;
             return Generator.create(requestBody);
           })
-          .then((createdGenerator) => {
-            generatorId = createdGenerator.id;
-            return createdGenerator.addCollectors(collectors);
+          .then((_createdGenerator) => {
+            createdGenerator = _createdGenerator;
+            generatorId = _createdGenerator.id;
+            return _createdGenerator.addCollectors(collectors);
           })
-          .then(() => Generator.findById(generatorId))
-          .then((findresult) => resolve(findresult.reload()))
+          .then(() => resolve(createdGenerator.reload()))
           .catch(reject)
         );
       },
