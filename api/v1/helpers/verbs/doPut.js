@@ -20,7 +20,11 @@ const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
 
-
+/**
+ * @paran {Object} o Sequelize instance
+ * @paran {Object} puttableFields from API
+ * @paran {Object} toPut from request.body
+ */
 function updateInstance(o, puttableFields, toPut) {
   const keys = Object.keys(puttableFields);
   for (let i = 0; i < keys.length; i++) {
@@ -49,6 +53,7 @@ function updateInstance(o, puttableFields, toPut) {
 
   return o.save();
 }
+
 /**
  * Updates a record and sends the udpated record back in the json response
  * with status code 200.
@@ -85,8 +90,13 @@ function doPut(req, res, next, props) {
       .then((o) => {
         if (props.modelName === 'Generator') {
 
-          // only updates the collectors field in generators
-          return props.model.putWithCollectors(toPut.collectors);
+          /*
+           * Will throw error if there are duplicate
+           * or non-existent collectors in request
+           */
+          return props.model.validateCollectors(
+            toPut.collectors, u.whereClauseForNameInArr)
+          .then((collectors) => updateInstance(o, puttableFields, toPut));
         }
 
         return updateInstance(o, puttableFields, toPut);

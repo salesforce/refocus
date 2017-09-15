@@ -92,11 +92,10 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.skip('ok: PATCH to a collector that is already attached to the generator', (done) => {
-    const _name = 'hello';
+  it.skip('ok: wipes out collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ name: _name })
+    .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -104,14 +103,13 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       }
 
       const { name, collectors } = res.body;
-      expect(name).to.equal(_name);
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
+      expect(name).to.equal(toPut.name);
+      expect(collectors.length).to.equal(ZERO);
       done();
     });
   });
 
-  it.skip('ok: PATCH to add new collectors', (done) => {
+  it.skip('ok: replace collector with more collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send({ collectors: [collector2.name] })
@@ -131,7 +129,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     });
   });
 
-  it.skip('ok: PATCH to a collector that is already attached to the generator', (done) => {
+  it.skip('ok: attach identical collector', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send({ collectors: [collector1.name] })
@@ -154,9 +152,8 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(requestBody)
-    // .expect(constants.httpStatus.BAD_REQUEST)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      console.log(res.body)
       if (err) {
         return done(err);
       }
@@ -167,7 +164,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     });
   });
 
-  it('404 error for request body with an existing and a ' +
+  it.only('404 error for request body with an existing and a ' +
     'non-existant collector', (done) => {
     const requestBody = JSON.parse(JSON.stringify(toPut));
     requestBody.collectors = [collector1.name, 'iDontExist'];
