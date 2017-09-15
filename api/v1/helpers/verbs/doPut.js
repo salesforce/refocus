@@ -96,7 +96,8 @@ function doPut(req, res, next, props) {
            */
           return props.model.validateCollectors(
             toPut.collectors, u.whereClauseForNameInArr)
-          .then((collectors) => updateInstance(o, puttableFields, toPut));
+          .then((collectors) => o.setCollectors(collectors))
+          .then(() => updateInstance(o, puttableFields, toPut))
         }
 
         return updateInstance(o, puttableFields, toPut);

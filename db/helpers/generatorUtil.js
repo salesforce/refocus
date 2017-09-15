@@ -72,7 +72,25 @@ function checkCollectorsExist(seq,
   );
 }
 
+/**
+ * Used by API
+ * Validate the collectors field: if succeed, return a promise with
+ * the collectors.
+ * If fail, reject Promise with the appropriate error
+ */
+function validateCollectors(seq, collectorNames,
+  whereClauseForNameInArr) {
+  return new seq.Promise((resolve, reject) =>
+    validateCollectorNames(collectorNames)
+    .then(() => checkCollectorsExist(
+      seq, collectorNames, whereClauseForNameInArr))
+    .then(resolve)
+    .catch(reject)
+  );
+}
+
 module.exports = {
   validateCollectorNames,
   checkCollectorsExist,
+  validateCollectors,
 };

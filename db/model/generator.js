@@ -16,7 +16,6 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
-const Collector = require('./Collector');
 const assoc = {};
 
 const generatorTemplateSchema = {
@@ -158,25 +157,10 @@ module.exports = function generator(seq, dataTypes) {
         });
       },
 
-      /**
-       * Used by API
-       * Validate the collectors field: if succeed, return a promise with
-       * the collectors.
-       * If fail, reject Promise with the appropriate error
-       */
-      validateCollectors(collectorNames, whereClauseForNameInArr) {
-        return new seq.Promise((resolve, reject) =>
-          utils.validateCollectorNames(collectorNames)
-          .then(() => utils.checkCollectorsExist(
-            seq, collectorNames, whereClauseForNameInArr))
-          .then(resolve)
-          .catch(reject)
-        );
-      },
 
       /**
        * 1. validate the collectors field: if succeed, save the collectors in temp var for
-       *  attaching to the generator. if fail, abort the POST operation
+       *  attaching to the generator. if fail, abort the operation
        * 2. create the generator
        * 3. add the saved collectors (if any)
        *
@@ -188,7 +172,7 @@ module.exports = function generator(seq, dataTypes) {
         let generatorId;
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
-          utils.validateCollectors(requestBody.collectors,
+          utils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
           .then((_collectors) => {
             collectors = _collectors;
@@ -286,7 +270,7 @@ module.exports = function generator(seq, dataTypes) {
 
       /**
        * 1. validate the collectors field: if succeed, save the collectors in temp var for
-       *  attaching to the generator. if fail, abort the POST operation
+       *  attaching to the generator. if fail, abort the operation
        * 2. update the generator
        * 3. add the saved collectors (if any)
        *
@@ -297,7 +281,7 @@ module.exports = function generator(seq, dataTypes) {
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
-          utils.validateCollectors(requestBody.collectors,
+          utils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
           .then((_collectors) => {
             collectors = _collectors;
