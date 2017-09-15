@@ -21,6 +21,51 @@ const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
+ * Generic helper to update a resource.
+ * If no value was provided for an field, clears that field by setting its
+ * value to null (or false for boolean fields).
+ *
+ * @param {Object} req From Express
+ * @param {Object} props From Express
+ * @param {Array} puttableFields From req
+ */
+function getPutPromise(req, props, puttableFields) {
+  const toPut = req.swagger.params.queryBody.value;
+  return u.findByKey(
+    props, req.swagger.params
+  )
+  .then((o) => u.isWritable(req, o))
+  .then((o) => {
+    const keys = Object.keys(puttableFields);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (toPut[key] === undefined) {
+        let nullish = null;
+        if (puttableFields[key].type === 'boolean') {
+          nullish = false;
+        } else if (puttableFields[key].enum) {
+          nullish = puttableFields[key].default;
+        }
+
+        o.set(key, nullish);
+
+        // take nullified fields out of changed fields
+        o.changed(key, false);
+      } else {
+        /**
+         * value may have changed. set changed to true to
+         * trigger checks in the model
+         */
+        o.changed(key, true);
+        o.set(key, toPut[key]);
+      }
+    }
+
+    return o.save();
+  });
+}
+
+/**
  * Updates a record and sends the udpated record back in the json response
  * with status code 200.
  *
@@ -35,55 +80,10 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  */
 function doPut(req, res, next, props) {
   const resultObj = { reqStartTime: new Date() };
-  const toPut = req.swagger.params.queryBody.value;
-  let putPromise;
-  if (featureToggles.isFeatureEnabled(constants.featureName) &&
-   props.modelName === 'Sample') {
-    const rLinks = toPut.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
+  const puttableFields =
+    req.swagger.params.queryBody.schema.schema.properties;
 
-    putPromise = u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.putSample(req.swagger.params, user));
-  } else {
-    const puttableFields =
-      req.swagger.params.queryBody.schema.schema.properties;
-    putPromise = u.findByKey(
-        props, req.swagger.params
-      )
-      .then((o) => u.isWritable(req, o))
-      .then((o) => {
-        const keys = Object.keys(puttableFields);
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if (toPut[key] === undefined) {
-            let nullish = null;
-            if (puttableFields[key].type === 'boolean') {
-              nullish = false;
-            } else if (puttableFields[key].enum) {
-              nullish = puttableFields[key].default;
-            }
-
-            o.set(key, nullish);
-
-            // take nullified fields out of changed fields
-            o.changed(key, false);
-          } else {
-            /**
-             * value may have changed. set changed to true to
-             * trigger checks in the model
-             */
-            o.changed(key, true);
-            o.set(key, toPut[key]);
-          }
-        }
-
-        return o.save();
-      });
-  }
-
-  putPromise.then((o) => {
+  getPutPromise(req, props, puttableFields).then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, o);
 

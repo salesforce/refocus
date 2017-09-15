@@ -209,7 +209,18 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPut(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
+     props.modelName === 'Sample') {
+      const rLinks = toPut.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      putPromise = u.getUserNameFromToken(req)
+        .then((user) => redisModelSample.putSample(req.swagger.params, user));
+    } else {
+      doPut(req, res, next, helper);
+    }
   },
 
   /**
