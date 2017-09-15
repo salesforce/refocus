@@ -29,9 +29,9 @@ const testStartTime = new Date();
 describe('tests/api/v1/generators/putWithCollector.js >', () => {
   let token;
   let generatorId;
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);

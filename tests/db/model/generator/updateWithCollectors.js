@@ -32,9 +32,9 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   let generatorDBInstance;
   let sgtDBInstance;
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
 
   before((done) => {
     GeneratorTemplate.create(generatorTemplate)
