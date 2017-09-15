@@ -12,7 +12,7 @@
 const common = require('./common');
 const dbErrors = require('../dbErrors');
 
- /**
+/**
  * Reject the request if collectorNames contain duplicate names
  * @param {Array} collectorNames Array of strings
  * @returns {Promise} empty if validation passed, reject otherwise
@@ -49,7 +49,7 @@ function checkCollectorsExist(seq,
   const options = {};
   options.where = whereClauseForNameInArr(collectorNames || []);
 
-  // reject the request if collectorNames contain duplicate names
+  //reject the request if collectorNames contain duplicate names
   return new Promise((resolve, reject) =>
     seq.models.Collector.findAll(options)
     .then((_collectors) => {

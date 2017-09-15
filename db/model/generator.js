@@ -163,7 +163,7 @@ module.exports = function generator(seq, dataTypes) {
             whereClauseForNameInArr)
             .then(resolve)
             .catch(reject)
-          )
+          );
       },
 
       /**
