@@ -22,6 +22,7 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const putUtils = require('../helpers/verbs/putUtils');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const sampleStore = require('../../../cache/sampleStore');
@@ -210,14 +211,22 @@ module.exports = {
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-     props.modelName === 'Sample') {
+     helper.modelName === 'Sample') {
+
+      // for logging
+      const resultObj = { reqStartTime: new Date() };
+      const toPut = req.swagger.params.queryBody.value;
       const rLinks = toPut.relatedLinks;
       if (rLinks) {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      putPromise = u.getUserNameFromToken(req)
-        .then((user) => redisModelSample.putSample(req.swagger.params, user));
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.putSample(req.swagger.params, user))
+      .then((o) => putUtils.handlePutResponse(o, resultObj, req, res, helper))
+      .catch((err) => // user does not have write permission for the sample
+        u.handleError(next, err, helper.modelName)
+      );
     } else {
       doPut(req, res, next, helper);
     }
