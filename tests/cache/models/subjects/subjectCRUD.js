@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
+const subjectUtils = require('../../../../db/helpers/subjectUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
 const redisStore = rtu.sampleStore;
@@ -281,24 +282,27 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .catch(done);
   });
 
+  it('removeFromRedis removes all the related samples ' +
+    'from the samplestore', (done) => {
+    // of the form samsto:samples:
+    subjectUtils.removeFromRedis(parentName)
+    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((members) => {
+      expect(members.length).to.equal(0);
+      done();
+    })
+    .catch(done);
+  });
+
   it('once a subject is destroyed all the related samples should be ' +
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
     Subject.findById(ipar)
     .then((s) => s.destroy())
-    .then((subj) => {
-      subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);
-      return Aspect.findById(aspTempId);
-    })
-    .then((a) => a.destroy())
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
-      members.forEach((member) => {
-        const nameParts = member.split('|');
-        /* all the samples related to the subject should be deleted */
-        expect(nameParts[0]).not.equal(subjectWithPrefix);
-      });
+      expect(members.length).to.equal(0);
       done();
     })
     .catch(done);
