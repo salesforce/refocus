@@ -100,5 +100,8 @@ module.exports = (job, done) => {
        * to be stored in redis
        */
       return done(null, objToReturn);
+    })
+    .catch((err) => {
+      return done(err);
     });
 };
