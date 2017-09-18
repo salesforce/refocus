@@ -180,7 +180,20 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  const resultObj = { reqStartTime: new Date() };
+  const requestBody = req.swagger.params.queryBody.value;
+  if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+    const rLinks = requestBody.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    u.getUserNameFromToken(req)
+    .then((user) => redisModelSample.patchSample(req.swagger.params, user));
+  } else {
     doPatch(req, res, next, helper);
+  }
+
   },
 
   /**
