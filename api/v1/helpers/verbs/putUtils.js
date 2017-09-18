@@ -23,8 +23,9 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  * value to null (or false for boolean fields).
  *
  * @param {Object} req From Express
- * @param {Object} props From Express
+ * @param {Object} props Model on which the update operation is performed.
  * @param {Array} puttableFields From req
+ * @param {Promise} The PUT promise
  */
 function getPutPromise(req, props, puttableFields) {
   const toPut = req.swagger.params.queryBody.value;
@@ -70,7 +71,7 @@ function getPutPromise(req, props, puttableFields) {
  * @param {Object} resultObj For logging
  * @param {Object} req From Express
  * @param {Object} res From Express
- * @param {Object} props From Express
+ * @param {Object} props Model on which the update operation is performed.
  */
 function handlePutResponse(o, resultObj, req, res, props) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;

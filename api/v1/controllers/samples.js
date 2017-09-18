@@ -210,8 +210,7 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-     helper.modelName === 'Sample') {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
 
       // for logging
       const resultObj = { reqStartTime: new Date() };
