@@ -73,8 +73,8 @@ const replicaConfigLabel = 'REPLICAS';
 // an array of read-only data base URLs
 const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
-const WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS =
-  pe.WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS || Number.MAX_SAFE_INTEGER;
+const WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS =
+  pe.WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS || Number.MAX_SAFE_INTEGER;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
@@ -266,5 +266,5 @@ module.exports = {
   corsRoutes,
   GET_REQUEST_DEFAULT_LIMIT,
   encryptionAlgoForCollector,
-  WATCH_STUCK_JOBS_INTERVAL_MILLI_SECONDS,
+  WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS,
 };
