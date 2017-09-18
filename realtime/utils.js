@@ -401,9 +401,10 @@ function isIpWhitelisted(addr, whitelist) {
  */
 function attachAspectSubject(sample, useSampleStore, subjectModel,
   aspectModel) {
+  let nameParts;
   // if name has not '|' then throw error
   try {
-    const nameParts = sample.name.split('|');  
+    nameParts = sample.name.split('|');  
   } catch(err) {
     handleUpsertError(err, true);
   }
