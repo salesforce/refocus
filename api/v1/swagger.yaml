@@ -1216,8 +1216,18 @@ paths:
                 type: string
                 description: Access restricted to Refocus Collector only.
                 maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
             required:
               - name
+              - version
       responses:
         201:
           description: Success.
@@ -1264,6 +1274,7 @@ paths:
               - helpUrl
               - host
               - ipAddress
+              - version
               - -name
               - -status
               - -isRegistered
@@ -1275,6 +1286,7 @@ paths:
               - -helpUrl
               - -host
               - -ipAddress
+              - -version
         -
           $ref: "#/parameters/limitParam"
         -
@@ -1319,6 +1331,13 @@ paths:
           in: query
           description: >-
             Filter by host; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: version
+          in: query
+          description: >-
+            Filter by version; asterisk (*) wildcards ok.
           required: false
           type: string
       responses:
@@ -1409,6 +1428,15 @@ paths:
                 type: string
                 description: Access restricted to Refocus Collector only.
                 maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
       responses:
         403:
           $ref: "#/responses/403"
@@ -11344,6 +11372,9 @@ parameters:
         - helpUrl
         - host
         - ipAddress
+        - osInfo
+        - processInfo
+        - version
 
   limitParam:
     name: limit
