@@ -9,6 +9,7 @@
 /**
  * /worker/jobs/bulkUpsertSamplesJob.js
  */
+const logger = require('winston');
 const helper = require('../../api/v1/helpers/nouns/samples');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
@@ -100,5 +101,9 @@ module.exports = (job, done) => {
        * to be stored in redis
        */
       return done(null, objToReturn);
+    })
+    .catch((err) => {
+      logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      return done(err);
     });
 };
