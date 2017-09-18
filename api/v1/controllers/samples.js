@@ -181,9 +181,9 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    const resultObj = { reqStartTime: new Date() };
-    const requestBody = req.swagger.params.queryBody.value;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: new Date() };
+      const requestBody = req.swagger.params.queryBody.value;
       const rLinks = requestBody.relatedLinks;
       if (rLinks) {
         u.checkDuplicateRLinks(rLinks);
@@ -191,12 +191,11 @@ module.exports = {
 
       u.getUserNameFromToken(req)
       .then((user) => redisModelSample.patchSample(req.swagger.params, user))
-      .then((retVal) => {
-        return patchUtils.handlePatchPromise(resultObj, req, retVal, helper, res)
-      })
+      .then((retVal) => patchUtils
+        .handlePatchPromise(resultObj, req, retVal, helper, res))
       .catch((err) => // the sample is write protected
         u.handleError(next, err, helper.modelName)
-      )
+      );
     } else {
       doPatch(req, res, next, helper);
     }

@@ -24,11 +24,13 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
 /**
  * Sends the udpated record back in the json response
  * with status code 200.
+ *
  * @param {Object} resultObj For logging
  * @param {Object} req From Express
  * @param {Object} retVal The updated instance
- * @param {Object} props From API controller
+ * @param {Object} props From db model
  * @param {Object} res From Express
+ * @returns {Object} JSON succcessful response
  */
 function handlePatchPromise(resultObj, req, retVal, props, res) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
