@@ -47,7 +47,7 @@ function checkCollectorsExist(seq,
   }
 
   const options = {};
-  options.where = whereClauseForNameInArr(collectorNames || []);
+  options.where = whereClauseForNameInArr(collectorNames);
 
   //reject the request if collectorNames contain duplicate names
   return new Promise((resolve, reject) =>

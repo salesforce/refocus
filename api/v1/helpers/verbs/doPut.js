@@ -43,7 +43,8 @@ function updateInstance(o, puttableFields, toPut) {
       // take nullified fields out of changed fields
       o.changed(key, false);
     } else {
-      /**
+
+      /*
        * value may have changed. set changed to true to
        * trigger checks in the model
        */
