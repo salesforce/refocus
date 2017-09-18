@@ -180,20 +180,19 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-  const resultObj = { reqStartTime: new Date() };
-  const requestBody = req.swagger.params.queryBody.value;
-  if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-    const rLinks = requestBody.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
+    const resultObj = { reqStartTime: new Date() };
+    const requestBody = req.swagger.params.queryBody.value;
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const rLinks = requestBody.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.patchSample(req.swagger.params, user));
+    } else {
+      doPatch(req, res, next, helper);
     }
-
-    u.getUserNameFromToken(req)
-    .then((user) => redisModelSample.patchSample(req.swagger.params, user));
-  } else {
-    doPatch(req, res, next, helper);
-  }
-
   },
 
   /**
@@ -240,8 +239,8 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     // make the name post-able
-    const readOnlyFields = helper.readOnlyFields.filter((field) =>
-      field !== 'name');
+    const readOnlyFields = helper
+      .readOnlyFields.filter((field) => field !== 'name');
     utils.noReadOnlyFieldsInReq(req, readOnlyFields);
     const resultObj = { reqStartTime: new Date() };
     const sampleQueryBody = req.swagger.params.queryBody.value;
@@ -416,8 +415,7 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const params = req.swagger.params;
     let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-     helper.modelName === 'Sample') {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       delRlinksPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {

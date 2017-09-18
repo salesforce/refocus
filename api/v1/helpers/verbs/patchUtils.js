@@ -31,24 +31,24 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  * @param {Object} res From Express
  */
 function handlePatchPromise(resultObj, req, retVal, props, res) {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    u.logAPI(req, resultObj, retVal);
+  resultObj.dbTime = new Date() - resultObj.reqStartTime;
+  u.logAPI(req, resultObj, retVal);
 
-    // publish the update event to the redis channel
-    if (props.publishEvents) {
-      publisher.publishSample(retVal,
-        props.associatedModels.subject, event.sample.upd);
-    }
+  // publish the update event to the redis channel
+  if (props.publishEvents) {
+    publisher.publishSample(
+      retVal, props.associatedModels.subject, event.sample.upd);
+  }
 
-    // update the cache
-    if (props.cacheEnabled) {
-      const getCacheKey = req.swagger.params.key.value;
-      const findCacheKey = '{"where":{}}';
-      redisCache.del(getCacheKey);
-      redisCache.del(findCacheKey);
-    }
+  // update the cache
+  if (props.cacheEnabled) {
+    const getCacheKey = req.swagger.params.key.value;
+    const findCacheKey = '{"where":{}}';
+    redisCache.del(getCacheKey);
+    redisCache.del(findCacheKey);
+  }
 
-    return res.status(httpStatus.OK)
+  return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));
 }
 
