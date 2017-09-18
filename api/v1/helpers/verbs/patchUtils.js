@@ -51,3 +51,7 @@ function handlePatchPromise(resultObj, req, retVal, props, res) {
     return res.status(httpStatus.OK)
     .json(u.responsify(retVal, props, req.method));
 }
+
+module.exports = {
+  handlePatchPromise,
+};
