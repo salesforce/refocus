@@ -30,8 +30,7 @@ const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const ZERO = 0;
-
-const fieldsWritableByCollectorOnly = ['osInfo', 'processInfo', 'version'];
+const MINUS_ONE = -1;
 
 /**
  * Decrypt sample generator context values marked as 'encrypted' in sample
@@ -146,10 +145,14 @@ function getCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function patchCollector(req, res, next) {
+  // verify controller token if atleast one field is writable by collector
   let verifyCtrToken = false;
-  for (let i = 0; i < fieldsWritableByCollectorOnly.length; i++) {
-    const fieldName = fieldsWritableByCollectorOnly[i];
-    if (req.body.hasOwnProperty(fieldName)) {
+  const reqBodyKeys = Object.keys(req.body);
+  const cltrWritableFields = helper.fieldsWritableByCollectorOnly;
+
+  for (let i = 0; i < cltrWritableFields.length; i++) {
+    const fieldName = cltrWritableFields[i];
+    if (reqBodyKeys.indexOf(fieldName) > MINUS_ONE) {
       verifyCtrToken = true;
       break;
     }
@@ -159,9 +162,9 @@ function patchCollector(req, res, next) {
     return jwtUtil.verifyCollectorToken(req)
     .then(() => doPatch(req, res, next, helper))
     .catch((err) => u.handleError(next, err, helper.modelName));
-  } else {
-    return doPatch(req, res, next, helper);
   }
+
+  return doPatch(req, res, next, helper);
 } // patchCollector
 
 /**
