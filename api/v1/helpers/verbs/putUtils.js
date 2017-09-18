@@ -50,13 +50,14 @@ function getPutPromise(req, props, puttableFields) {
         // take nullified fields out of changed fields
         o.changed(key, false);
       } else {
-        /**
+
+        /*
          * value may have changed. set changed to true to
          * trigger checks in the model
          */
         o.changed(key, true);
         o.set(key, toPut[key]);
-      }
+       }
     }
 
     return o.save();
