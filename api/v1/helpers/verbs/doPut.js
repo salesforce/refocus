@@ -21,9 +21,10 @@ const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
- * @paran {Object} o Sequelize instance
- * @paran {Object} puttableFields from API
- * @paran {Object} toPut from request.body
+ * @param {Object} o Sequelize instance
+ * @param {Object} puttableFields from API
+ * @param {Object} toPut from request.body
+ * @returns {Promise} the updated instance
  */
 function updateInstance(o, puttableFields, toPut) {
   const keys = Object.keys(puttableFields);

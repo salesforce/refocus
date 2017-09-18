@@ -9,6 +9,7 @@
 /**
  * db/model/generator.js
  */
+'use strict'; // eslint-disable-line strict
 const common = require('../helpers/common');
 const utils = require('../helpers/generatorUtil');
 const cryptUtils = require('../../utils/cryptUtils');
@@ -192,7 +193,6 @@ module.exports = function generator(seq, dataTypes) {
           })
           .then((_createdGenerator) => {
             createdGenerator = _createdGenerator;
-            generatorId = _createdGenerator.id;
             return _createdGenerator.addCollectors(collectors);
           })
           .then(() => resolve(createdGenerator.reload()))

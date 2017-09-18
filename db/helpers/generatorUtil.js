@@ -73,10 +73,16 @@ function checkCollectorsExist(seq,
 }
 
 /**
- * Used by API
+ * Used by db model.
  * Validate the collectors field: if succeed, return a promise with
  * the collectors.
  * If fail, reject Promise with the appropriate error
+ *
+ * @param {Object} seq the Sequelize object
+ * @param {Array} collectorNames Array of strings
+ * @param {Function} whereClauseForNameInArr Passed in from API
+ * @returns {Promise} with collectors if validation and check pass,
+ * rejected promise with the appropriate error otherwise.
  */
 function validateCollectors(seq, collectorNames,
   whereClauseForNameInArr) {
