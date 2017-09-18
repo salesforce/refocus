@@ -12,8 +12,10 @@
  * Manages List View page state.
  * Receives parameters from Rooms and RoomTypes
  */
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types'
 import moment from 'moment';
+import camelCase from 'camelcase';
 
 class ListController extends React.Component {
   constructor(props) {
@@ -21,16 +23,63 @@ class ListController extends React.Component {
   }
 
   render() {
-    const rooms = this.props.rooms !== undefined ? this.props.rooms : [];
-    const roomTypes = this.props.roomTypes !== undefined ? this.props.roomTypes : [];
+    const {
+      pageTitle,
+      pageDescription,
+      tableHeaders,
+      tableRows,
+      rooms,
+      roomTypes
+    } = this.props;
 
-    rooms.sort((a, b) => moment(b.updatedAt) - moment(a.updatedAt));
+    const objectCount = rooms.length > 0 ? rooms.length : roomTypes.length;
 
-    if (rooms.length > 0) {
-      return this.renderRooms(rooms, roomTypes);
-    } else {
-      return this.renderRoomTypes(roomTypes);
-    }
+    // rooms.sort((a, b) => moment(b.updatedAt) - moment(a.updatedAt));
+
+    // if (rooms.length > 0) {
+    //   return this.renderRooms(rooms, roomTypes);
+    // } else {
+    //   return this.renderRoomTypes(roomTypes);
+    // }
+
+    return (
+      <div>
+        <div className="slds-page-header">
+          <div className="slds-media">
+            <div className="slds-media__body">
+              <h1 className="slds-page-header__title slds-truncate slds-align-middle"
+                title={camelCase(pageTitle)}>
+                {pageTitle}
+              </h1>
+              <p className="slds-text-body_small slds-line-height_reset">
+                {pageDescription}{objectCount}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <table className="slds-table slds-table--bordered slds-table-cell-buffer">
+            <thead>
+              <tr className="slds-text-title--caps">
+                {tableHeaders.map(header => {
+                  const key = camelCase(header);
+                  return <th scope="col" key={key}>
+                    <div className="slds-truncate" title={key}>{header}</div>
+                  </th>;
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map(row => {
+                return <tr key={row.id}>
+                    <td>{row.name}</td>
+                  </tr>
+                })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   renderRooms(rooms, roomTypes) {
@@ -51,34 +100,13 @@ class ListController extends React.Component {
         </div>
         <div>
           <table className="slds-table slds-table--bordered slds-table-cell-buffer">
-            <thead>
-              <tr className="slds-text-title--caps">
-                <th scope="col">
-                  <div className="slds-truncate" title="roomID">ID</div>
-                </th>
-                <th scope="col">
-                  <div className="slds-truncate" title="roomName">Name</div>
-                </th>
-                <th scope="col">
-                  <div className="slds-truncate" title="type">Type</div>
-                </th>
-                <th scope="col">
-                  <div className="slds-truncate" title="active">Active</div>
-                </th>
-                <th scope="col">
-                  <div className="slds-truncate" title="create">Created At</div>
-                </th>
-                <th scope="col">
-                  <div className="slds-truncate" title="updated">Updated At</div>
-                </th>
-              </tr>
-            </thead>
             <tbody>
               {rooms.map((room) => {
                 const roomType = roomTypes.filter((rt) => rt.id === room.type);
+                const { id } = room;
                 return <tr>
-                  <td><a href={'/rooms/' + room.id}>{room.id}</a></td>
-                  <td><a href={'/rooms/' + room.id}>{room.name}</a></td>
+                  <td><a href={'/rooms/' + id}>{id}</a></td>
+                  <td><a href={'/rooms/' + id}>{room.name}</a></td>
                   <td>{roomType[0].name}</td>
                   <td>{room.active ? 'True' : 'False'}</td>
                   <td>{moment(room.createdAt).format('LLL')}</td>
@@ -153,8 +181,21 @@ class ListController extends React.Component {
 }
 
 ListController.PropTypes = {
+  pageTitle: PropTypes.string,
+  pageDescription: PropTypes.string,
+  tableHeaders: PropTypes.array,
+  tableRows: PropTypes.array,
   rooms: PropTypes.object,
   roomTypes: PropTypes.object,
 };
+
+ListController.defaultProps = {
+  pageTitle: 'List View',
+  pageDescription: 'Number of rows: ',
+  tableHeaders: [],
+  tableRows: [],
+  rooms: [],
+  roomTypes: []
+}
 
 export default ListController;

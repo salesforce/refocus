@@ -35,8 +35,12 @@ window.onload = () => {
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(roomTypes) {
+  const headers = ['ID', 'Name', 'Enabled', 'Bots', 'Created At', 'Updated At'];
   ReactDOM.render(
     <ListController
+      pageTitle='Refocus Room Types'
+      pageDescription='Number of room types: '
+      tableHeaders={ headers }
       roomTypes={ roomTypes }
     />,
     listContainer
