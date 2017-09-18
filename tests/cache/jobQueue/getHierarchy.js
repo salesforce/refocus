@@ -127,50 +127,14 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
         }
 
         nonWorkerResponse = res.body;
+        tu.toggleOverride('enableWorkerProcess', true);
+        tu.toggleOverride('enqueueHierarchy', true);
         done();
       });
     });
 
     after(rtu.forceDelete);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
-
-    function requestAndExpectNJobs(n, done) {
-      api.get(path.replace('{key}', ipar))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(jobQueue.testMode.jobs.length).to.equal(n);
-        done();
-      });
-    }
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', false);
-      tu.toggleOverride('enqueueHierarchy', false);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', true);
-      tu.toggleOverride('enqueueHierarchy', false);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', false);
-      tu.toggleOverride('enqueueHierarchy', true);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', true);
-      tu.toggleOverride('enqueueHierarchy', true);
-      requestAndExpectNJobs(1, done);
-    });
 
     it('examine enqueued data', (done) => {
       api.get(path.replace('{key}', ipar))
