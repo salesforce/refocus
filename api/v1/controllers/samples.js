@@ -28,6 +28,7 @@ const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
+const patchUtils = require('../helpers/verbs/patchUtils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
@@ -189,7 +190,13 @@ module.exports = {
       }
 
       u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.patchSample(req.swagger.params, user));
+      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
+      .then((retVal) => {
+        return patchUtils.handlePatchPromise(resultObj, req, retVal, helper, res)
+      })
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      )
     } else {
       doPatch(req, res, next, helper);
     }
