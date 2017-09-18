@@ -60,7 +60,6 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('Lists >', () => {

@@ -70,7 +70,6 @@ describe('tests/cache/models/subjects/getHierarchyWithoutSamples.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('subject hierarchy without samples >', () => {

@@ -59,7 +59,6 @@ describe('tests/cache/models/samples/deleteWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('deleting sample without permission should return 403', (done) => {

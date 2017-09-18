@@ -47,7 +47,6 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('exiting sample: different case name should NOT modify sample name',
