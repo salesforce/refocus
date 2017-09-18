@@ -14,7 +14,6 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
-const handleUpsertError = require('../cache/models/samples').handleUpsertError;
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -407,7 +406,8 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
   try {
     nameParts = sample.name.split('|');
   } catch (err) {
-    handleUpsertError(err, true);
+    return Promise.resolve({ isFailed: true,
+      explanation: { sample: sample, message: err }, });
   }
 
   const subName = nameParts[0];

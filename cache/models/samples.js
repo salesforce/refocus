@@ -887,6 +887,4 @@ module.exports = {
 
     return Promise.all(promises);
   },
-
-  handleUpsertError,
 };
