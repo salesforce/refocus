@@ -76,7 +76,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSSOConfig(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -116,7 +116,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSSOConfig(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     helper.model.findOne()
     .then((o) => {
       if (o) {
@@ -148,7 +148,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchSSOConfig(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -198,7 +198,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSSOConfig(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -232,7 +232,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putSSOConfig(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {

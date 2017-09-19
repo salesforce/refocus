@@ -31,7 +31,7 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  *  resource type to delete.
  */
 function doDelete(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() }; // for logging
+  const resultObj = { reqStartTime: req.timestamp }; // for logging
   let delPromise;
   let obj;
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
