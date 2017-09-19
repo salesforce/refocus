@@ -76,20 +76,19 @@ describe('tests/api/v1/botActions/post.js >', () => {
     });
   });
 
-  it('Fail, duplicate botAction', (done) => {
+  it('Pass, duplicate botAction', (done) => {
     BotAction.create(testBotAction)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotAction)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-        .to.contain('SequelizeUniqueConstraintError');
+        expect(res.body.name).to.equal(u.name);
         done();
       });
     })

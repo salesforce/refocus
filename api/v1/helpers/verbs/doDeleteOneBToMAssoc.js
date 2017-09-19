@@ -31,7 +31,7 @@ const featureToggles = require('feature-toggles');
  */
 function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName, nameOrId) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   const options = {};
   options.where = u.whereClauseForNameOrId(nameOrId);

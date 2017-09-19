@@ -64,7 +64,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteUserToken(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const user = req.swagger.params.key.value;
     const tokenName = req.swagger.params.tokenName.value;
     const whr = whereClauseForUserAndTokenName(user, tokenName);
@@ -141,7 +141,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getUserToken(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const user = req.swagger.params.key.value;
     const tokenName = req.swagger.params.tokenName.value;
     const whr = whereClauseForUserAndTokenName(user, tokenName);
@@ -172,7 +172,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getUserTokens(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const user = req.swagger.params.key.value;
     const whr = whereClauseForUser(user);
     helper.model.findAll(whr)
@@ -197,7 +197,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenByName(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -245,7 +245,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenByName(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {

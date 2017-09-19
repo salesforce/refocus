@@ -25,7 +25,7 @@ const pu = require('./postUtils');
  *  resource type to post.
  */
 function doPost(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   u.mergeDuplicateArrayElements(params.queryBody.value, props);
   pu.makePostPromise(params, props, req)

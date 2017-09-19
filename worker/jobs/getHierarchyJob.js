@@ -16,7 +16,6 @@ const errors = require('errors');
 
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
-
   doGetHierarchy(job.data)
   .then((resultObj) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
@@ -47,5 +46,4 @@ module.exports = (job, done) => {
       done(errString);
     }
   });
-
 };

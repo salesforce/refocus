@@ -9,6 +9,7 @@
 /**
  * /worker/jobs/sampleTimeoutJob.js
  */
+const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
@@ -48,5 +49,9 @@ module.exports = (job, done) => {
     }
 
     return done();
+  })
+  .catch((err) => {
+    logger.error('Caught error from /worker/jobs/sampleTimeoutJob:', err);
+    return done(err);
   });
 };
