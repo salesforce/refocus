@@ -26,7 +26,7 @@ const ZERO = 0;
  *  resource type to delete.
  */
 function getWriter(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   const options = {
     where: u.whereClauseForNameOrId(params.userNameOrId.value),
@@ -59,7 +59,7 @@ function getWriter(req, res, next, props) {
  *  resource type to delete.
  */
 function getWriters(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   u.findAssociatedInstances(props, params, props.belongsToManyAssoc.users, {})
   .then((o) => {

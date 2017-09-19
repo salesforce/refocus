@@ -105,7 +105,7 @@ module.exports = {
 
     // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
+      const resultObj = { reqStartTime: req.timestamp }; // for logging
       if (helper.cacheEnabled) {
         redisCache.get(helper.cacheKey, (cacheErr, reply) => {
           if (cacheErr || !reply) {
@@ -248,7 +248,7 @@ module.exports = {
     const readOnlyFields = helper
       .readOnlyFields.filter((field) => field !== 'name');
     utils.noReadOnlyFieldsInReq(req, readOnlyFields);
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
     /**
@@ -329,7 +329,7 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
@@ -418,7 +418,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSampleRelatedLinks(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {

@@ -158,7 +158,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectHierarchy(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.findByKey(helper, params, ['hierarchy'])
     .then((o) => o.deleteHierarchy())
@@ -211,7 +211,7 @@ module.exports = {
     validateTags(null, req.swagger.params);
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
       featureToggles.isFeatureEnabled('getSubjectFromCache')) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
+      const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
 
@@ -236,7 +236,7 @@ module.exports = {
   getSubject(req, res, next) {
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
     featureToggles.isFeatureEnabled('getSubjectFromCache')) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
+      const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
       .then((response) => {
 
@@ -494,7 +494,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectTags(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o))
@@ -528,7 +528,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectRelatedLinks(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o))
