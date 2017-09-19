@@ -43,15 +43,21 @@ function doPatch(req, res, next, props) {
   )
   .then((o) => u.isWritable(req, o))
   .then((o) => {
-    // To avoid timeouts when patching samples; force the update, even if
-    // the value has not changed. Adding this to the "before update hook"
-    // does give the needed effect; so adding it here!!!.
+
+    /*
+     * To avoid timeouts when patching samples; force the update, even if
+     * the value has not changed. Adding this to the "before update hook"
+     * does give the needed effect; so adding it here!!!.
+     */
     if (props.modelName === 'Sample') {
       o.changed('value', true);
     } else if (props.modelName === 'Perspective') {
-      // clone the object so that we can copy the new request object values
-      // in memory and validate them, instead of updating the db object in
-      // memory (which will prevent updating the object in db).
+
+      /*
+       * Clone the object so that we can copy the new request object values
+       * in memory and validate them, instead of updating the db object in
+       * memory (which will prevent updating the object in db).
+       */
       const clonedObj = JSON.parse(JSON.stringify(o.get()));
 
       // check the updated version of the perspective
@@ -62,7 +68,10 @@ function doPatch(req, res, next, props) {
 
     u.patchJsonArrayFields(o, requestBody, props);
     u.patchArrayFields(o, requestBody, props);
-    return o.update(requestBody);
+
+    return (props.modelName === 'Generator') ?
+      o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
+      o.update(requestBody);
   });
 
   patchPromise
