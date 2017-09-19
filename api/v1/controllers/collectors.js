@@ -87,7 +87,7 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
  */
 function postCollector(req, res, next) {
   const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
