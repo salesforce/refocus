@@ -14,6 +14,7 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const logger = require('winston');
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -402,12 +403,11 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
   aspectModel) {
   let nameParts;
 
-  // if name has not '|' then throw error
-  try {
+  // check if sample object contains name
+  if (sample.name) {
     nameParts = sample.name.split('|');
-  } catch (err) {
-    return Promise.resolve({ isFailed: true,
-      explanation: { sample: sample, message: err }, });
+  } else {
+    logger.error('sample object does not contain name', sample);
   }
 
   const subName = nameParts[0];
