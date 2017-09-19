@@ -13,7 +13,6 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
-const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
 const collectorConfig = require('./config/collectorConfig');
@@ -74,6 +73,8 @@ const replicaConfigLabel = 'REPLICAS';
 // an array of read-only data base URLs
 const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
+const WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS =
+  pe.WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS || Number.MAX_SAFE_INTEGER;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
@@ -265,4 +266,5 @@ module.exports = {
   corsRoutes,
   GET_REQUEST_DEFAULT_LIMIT,
   encryptionAlgoForCollector,
+  WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS,
 };
