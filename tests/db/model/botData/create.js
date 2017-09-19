@@ -49,6 +49,29 @@ describe('tests/db/model/botData/create.js >', () => {
     .catch(done);
   });
 
+  it('ok, bot data created with name', (done) => {
+    const testBotData = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.name;
+      return BotData.create(testBotData);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
+
   it('ok, bot data created room different', (done) => {
     const testBotData = u.getStandard();
     const testBotData2 = u.getStandard();
