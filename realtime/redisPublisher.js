@@ -17,6 +17,7 @@ const perspectiveChannelName = require('../config').redis.perspectiveChannelName
 const botChannelName = require('../config').redis.botChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
+const logger = require('winston');
 
 /**
  * When passed an sample object, either a sequelize sample object or
