@@ -10,17 +10,16 @@
  * tests/view/rooms/list/ListController.js
  */
 
- 'use strict';
-
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 import moment from 'moment';
 import { expect } from 'chai';
 import ListController from '../../../../view/rooms/list/ListController.js';
 
-describe('tests/view/rooms/list/ListController.js, Configurable Parts of List View =>', () => {
+const ZERO = 0;
+const ONE = 1;
 
+describe('tests/view/rooms/list/ListController.js, List View =>', () => {
   it('no table headers', () => {
     const listComponent = ReactTestUtils.renderIntoDocument(
       <ListController />
@@ -29,7 +28,7 @@ describe('tests/view/rooms/list/ListController.js, Configurable Parts of List Vi
       listComponent,
       'th'
     );
-    expect(renderedDOM.length).to.equal(0);
+    expect(renderedDOM.length).to.equal(ZERO);
   });
 
   it('2 table headers', () => {
@@ -42,8 +41,8 @@ describe('tests/view/rooms/list/ListController.js, Configurable Parts of List Vi
       'th'
     );
     expect(renderedDOM.length).to.equal(headers.length);
-    expect(ReactTestUtils.isDOMComponent(renderedDOM[0])).to.be.true;
-    expect(ReactTestUtils.isDOMComponent(renderedDOM[1])).to.be.true;
+    expect(ReactTestUtils.isDOMComponent(renderedDOM[ZERO])).to.be.true;
+    expect(ReactTestUtils.isDOMComponent(renderedDOM[ONE])).to.be.true;
   });
 
   it('no table rows', () => {
@@ -54,31 +53,34 @@ describe('tests/view/rooms/list/ListController.js, Configurable Parts of List Vi
       listComponent,
       'td'
     );
-    expect(renderedDOM.length).to.equal(0);
+    expect(renderedDOM.length).to.equal(ZERO);
   });
 
   it('2 table rows', () => {
+    const headers = ['ID', 'Name', 'Type', 'Active',
+      'Created At', 'Updated At'];
     const rows = [
       {
         id: '1',
         name: 'TestRoom',
         type: 'ID1',
-        active: true,
-        createdAt: moment(),
-        updatedAt: moment(),
+        active: 'true',
+        createdAt: moment().format(),
+        updatedAt: moment().format(),
       },
       {
         id: '2',
         name: 'TestRoom2',
         type: 'ID1',
-        active: true,
-        createdAt: moment(),
-        updatedAt: moment(),
+        active: 'true',
+        createdAt: moment().format(),
+        updatedAt: moment().format(),
       },
     ];
 
     const listComponent = ReactTestUtils.renderIntoDocument(
       <ListController
+        tableHeaders={headers}
         tableRows={rows}
       />
     );
@@ -90,59 +92,7 @@ describe('tests/view/rooms/list/ListController.js, Configurable Parts of List Vi
       listComponent,
       'slds-text-body_small'
     );
-    expect(renderedDOM.length).to.equal(rows.length);
+    expect(renderedDOM.length).to.equal(rows.length * headers.length);
     expect(renderedDOM2.textContent).to.contain(rows.length);
   });
 });
-
-// describe('tests/view/rooms/list/ListController.js, List of RoomTypes', () => {
-//   const numOfColumns = 6;
-
-//   it('no rooms types in list', () => {
-//     const listComponent = TestUtils.renderIntoDocument(
-//       <ListController />
-//     );
-//     const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
-//       listComponent,
-//       'td'
-//     );
-//     expect(renderedDOM.length).to.equal(0);
-//   });
-
-//   it('2 room types in list', () => {
-//     const roomTypes = [
-//       {
-//         id: '1',
-//         name: 'TestRoomType',
-//         bots: ['bot1'],
-//         isEnabled: true,
-//         createdAt: moment(),
-//         updatedAt: moment(),
-//       },
-//       {
-//         id: '2',
-//         name: 'TestRoomType2',
-//         bots: ['bot1', 'bot2'],
-//         isEnabled: true,
-//         createdAt: moment(),
-//         updatedAt: moment(),
-//       },
-//     ];
-
-//     const listComponent = TestUtils.renderIntoDocument(
-//       <ListController
-//         roomTypes={ roomTypes }
-//       />
-//     );
-//     const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
-//       listComponent,
-//       'td'
-//     );
-//     const renderedDOM2 = TestUtils.findRenderedDOMComponentWithClass(
-//       listComponent,
-//       'slds-text-body_small'
-//     );
-//     expect((renderedDOM.length) / numOfColumns).to.equal(roomTypes.length);
-//     expect(renderedDOM2.textContent).to.contain(roomTypes.length);
-//   });
-// });

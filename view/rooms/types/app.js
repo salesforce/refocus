@@ -16,6 +16,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ListController from './../list/ListController';
+import moment from 'moment';
+
 const u = require('../../utils');
 const listContainer = document.getElementById('root');
 const GET_ROOMTYPES = '/v1/roomTypes';
@@ -36,12 +38,23 @@ window.onload = () => {
  */
 function loadController(roomTypes) {
   const headers = ['ID', 'Name', 'Enabled', 'Bots', 'Created At', 'Updated At'];
+  const rows = roomTypes.map(roomType => {
+    const { id } = roomType;
+    roomType.id = `<a href=/roomTypes/${id}>${id}</a>`;
+    roomType.name = `<a href=/roomTypes/${id}>${roomType.name}</a>`;
+    roomType.bots = String(roomType.bots);
+    roomType.enabled = roomType.isEnabled ? 'True' : 'False';
+    delete roomType.isEnabled;
+    roomType.createdAt = moment(roomType.createdAt).format('LLL');
+    roomType.updatedAt = moment(roomType.updatedAt).format('LLL');
+    return roomType;
+  });
   ReactDOM.render(
     <ListController
       pageTitle='Refocus Room Types'
       pageDescription='Number of room types: '
       tableHeaders={ headers }
-      roomTypes={ roomTypes }
+      tableRows={ rows }
     />,
     listContainer
   );
