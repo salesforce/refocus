@@ -17,7 +17,6 @@ const perspectiveChannelName = require('../config').redis.perspectiveChannelName
 const botChannelName = require('../config').redis.botChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
-const logger = require('winston');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -131,16 +130,13 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const useSampleStore =
     featureToggles.isFeatureEnabled('enableRedisSampleStore');
 
-  if (!sampleInst.name || sampleInst.name.indexOf('|') < 0) {
-    logger.error('sample object does not contain name', sampleInst);
-    return Promise.resolve(null);
-  }
-
   return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
     aspectModel)
   .then((sample) => {
-    publishObject(sample, eventType);
-    return sample;
+    if (sample) {
+      publishObject(sample, eventType);
+      return sample;
+    }
   });
 } // publishSample
 
