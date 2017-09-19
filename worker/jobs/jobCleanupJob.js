@@ -9,6 +9,7 @@
 /**
  * /worker/jobs/jobCleanupJob.js
  */
+const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
@@ -40,6 +41,9 @@ module.exports = (job, done) => {
     }
 
     return done();
+  })
+  .catch((err) => {
+    logger.error('Caught error from /worker/jobs/jobCleanupJob:', err);
+    return done(err);
   });
-
 };

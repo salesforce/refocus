@@ -14,6 +14,9 @@ const tu = require('../../../testUtils');
 const gtUtil = require('../generatortemplate/utils');
 const testStartTime = new Date();
 
+const NOT_FOUND_STATUS_CODE = 404;
+const BAD_REQUEST_STATUS_CODE = 400;
+
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
   description: 'Collect status data',
@@ -38,6 +41,20 @@ const GENERATOR_SIMPLE = {
   subjectQuery: '?subjects',
   aspects: ['Temperature', 'Weather'],
 };
+
+/**
+ * Copied from api/v1/helpers/verbs/utils.js
+ * Returns a where clause object that uses the "IN" operator
+ * @param  {Array} arr - An array that needs to be
+ * assigned to the "IN" operator
+ * @returns {Object} - An where clause object
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+  whr.name = {};
+  whr.name.$in = arr;
+  return whr;
+} // whereClauseForNameInArr
 
 /**
  * Given a sample generator template sgt and a sample generator sg, assign the
@@ -74,6 +91,12 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
+  BAD_REQUEST_STATUS_CODE,
+
+  NOT_FOUND_STATUS_CODE,
+
+  whereClauseForNameInArr,
 
   getGenerator,
 

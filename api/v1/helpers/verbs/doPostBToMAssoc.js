@@ -32,7 +32,7 @@ const featureToggles = require('feature-toggles');
  */
 function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
               props, assocName, assocArray) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   u.findByKey(props, params)
   .then((o) => u.isWritable(req, o))
