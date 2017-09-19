@@ -74,7 +74,6 @@ describe('tests/cache/models/samples/post.js >', () => {
     });
 
     afterEach(rtu.forceDelete);
-    afterEach(rtu.flushRedis);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     describe('unpublished subject/aspect fails >', () => {

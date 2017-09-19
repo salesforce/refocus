@@ -10,12 +10,10 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const utils = require('./utils');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
-const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
@@ -23,7 +21,6 @@ const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
@@ -33,6 +30,7 @@ const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const ZERO = 0;
+const MINUS_ONE = -1;
 
 /**
  * Decrypt sample generator context values marked as 'encrypted' in sample
@@ -138,13 +136,35 @@ function getCollector(req, res, next) {
 /**
  * Update the specified collector's config data. If a field is not included in
  * the querybody, that field will not be updated.
+ * Some fields are only writable by the collector itself. So, if any of those
+ * fields are being updated, check that the token provided in request belongs to
+ * a collector.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
 function patchCollector(req, res, next) {
-  doPatch(req, res, next, helper);
+  // verify controller token if atleast one field is writable by collector
+  let verifyCtrToken = false;
+  const reqBodyKeys = Object.keys(req.body);
+  const cltrWritableFields = helper.fieldsWritableByCollectorOnly;
+
+  for (let i = 0; i < cltrWritableFields.length; i++) {
+    const fieldName = cltrWritableFields[i];
+    if (reqBodyKeys.indexOf(fieldName) > MINUS_ONE) {
+      verifyCtrToken = true;
+      break;
+    }
+  }
+
+  if (verifyCtrToken) { // verify that token belongs to collector
+    return jwtUtil.verifyCollectorToken(req)
+    .then(() => doPatch(req, res, next, helper))
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }
+
+  return doPatch(req, res, next, helper);
 } // patchCollector
 
 /**
