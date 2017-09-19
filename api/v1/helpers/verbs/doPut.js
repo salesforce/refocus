@@ -70,7 +70,7 @@ function updateInstance(o, puttableFields, toPut) {
  *  resource type to put.
  */
 function doPut(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const toPut = req.swagger.params.queryBody.value;
   let putPromise;
   if (featureToggles.isFeatureEnabled(constants.featureName) &&

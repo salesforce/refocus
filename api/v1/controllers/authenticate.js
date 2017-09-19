@@ -29,7 +29,7 @@ module.exports = {
    *
    */
   authenticateUser(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     configuredPassport.authenticate('local-login', (err, user/* , info */) => {
       if (err) {
         return u.handleError(next, err, resourceName);

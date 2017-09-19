@@ -85,7 +85,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postToken(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     let tokenValue;
 
     // get user details from req
@@ -124,7 +124,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   restoreTokenById(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
@@ -163,7 +163,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   revokeTokenById(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     authUtils.isAdmin(req)
     .then((ok) => {
       if (ok) {
