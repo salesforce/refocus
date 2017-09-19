@@ -29,7 +29,7 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     configuredPassport.authenticate('local-signup', (err, user) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (err) {

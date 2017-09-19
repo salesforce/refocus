@@ -264,7 +264,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getLens(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
 
     // try to get cached entry
     redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
@@ -322,7 +322,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchLens(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
@@ -366,7 +366,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postLens(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
     const seqObj = {};
     try {
@@ -446,7 +446,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putLens(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))

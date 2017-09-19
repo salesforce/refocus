@@ -9,6 +9,7 @@
 /**
  * /worker/jobs/persistSampleStoreJob.js
  */
+const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob =
   require('../../clock/scheduledJobs/persistSampleStoreJob');
@@ -49,5 +50,9 @@ module.exports = (job, done) => {
     }
 
     return done();
+  })
+  .catch((err) => {
+    logger.error('Caught error from /worker/jobs/persistSampleStoreJob:', err);
+    return done(err);
   });
 };

@@ -35,7 +35,7 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  *  resource type to patch.
  */
 function doPatch(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
   let patchPromise;
   if (featureToggles.isFeatureEnabled(constants.featureName) &&
@@ -72,7 +72,9 @@ function doPatch(req, res, next, props) {
 
         u.patchJsonArrayFields(o, requestBody, props);
         u.patchArrayFields(o, requestBody, props);
-        return o.update(requestBody);
+        return (props.modelName === 'Generator') ?
+          o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
+          o.update(requestBody);
       });
   }
 

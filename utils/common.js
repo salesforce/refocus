@@ -10,6 +10,7 @@
  * utils/common.js
  */
 const apiErrors = require('../api/v1/apiErrors');
+const constants = require('../api/v1/constants');
 
 /**
  * Given an array, return true if there
@@ -55,6 +56,20 @@ function noReadOnlyFieldsInReq(req, readOnlyFields) {
   }
 } // noReadOnlyFieldsInReq
 
+/**
+ * Performs a regex test on the key to determine whether it looks like a
+ * postgres uuid. This helps us determine whether to try finding a record by
+ * id first then failing over to searching by name, or if the key doesn't meet
+ * the criteria to be a postgres uuid, just skip straight to searching by name.
+ *
+ * @param {String} key - The key to test
+ * @returns {Boolean} - True if the key looks like an id
+ */
+function looksLikeId(key) {
+  return constants.POSTGRES_UUID_RE.test(key);
+}
+
 module.exports = {
+  looksLikeId,
   noReadOnlyFieldsInReq,
 };
