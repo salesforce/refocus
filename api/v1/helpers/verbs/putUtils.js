@@ -22,9 +22,9 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  * If no value was provided for an field, clears that field by setting its
  * value to null (or false for boolean fields).
  *
- * @param {Object} req From Express
- * @param {Object} props Model on which the update operation is performed.
- * @param {Array} puttableFields From req
+ * @param {Object} req - The request object
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Array} puttableFields - From swagger
  * @param {Promise} The PUT promise
  */
 function getPutPromise(req, props, puttableFields) {
@@ -57,7 +57,7 @@ function getPutPromise(req, props, puttableFields) {
          */
         o.changed(key, true);
         o.set(key, toPut[key]);
-       }
+      }
     }
 
     return o.save();
@@ -68,11 +68,11 @@ function getPutPromise(req, props, puttableFields) {
  * Sends the udpated record back in the json response
  * with status code 200.
  *
- * @param {Object} o The updated sequelize instance
+ * @param {Object} o - The updated sequelize instance
  * @param {Object} resultObj For logging
- * @param {Object} req From Express
- * @param {Object} res From Express
- * @param {Object} props Model on which the update operation is performed.
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @param {Object} props - The helpers/nouns module for the given DB model
  */
 function handlePutResponse(o, resultObj, req, res, props) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;

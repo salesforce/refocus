@@ -15,9 +15,9 @@ const u = require('./utils');
 const putUtils = require('./putUtils');
 
 /**
- * @param {Object} o Sequelize instance
- * @param {Object} puttableFields from API
- * @param {Object} toPut from request.body
+ * @param {Object} o - The Sequelize instance
+ * @param {Object} puttableFields - From swagger
+ * @param {Object} toPut - From request.body
  * @returns {Promise} the updated instance
  */
 function updateInstance(o, puttableFields, toPut) {
