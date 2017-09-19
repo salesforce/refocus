@@ -22,10 +22,15 @@ const constants = require('../../../api/v1/constants');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
+const featureToggles = require('feature-toggles');
+let enableWorkerProcessInitial;
+let enqueueHierarchyInitial;
 
 describe('tests/jobQueue/v1/getHierarchy.js, ' +
 `api: GET using worker process ${path} >`, () => {
   before(() => {
+    enableWorkerProcessInitial = featureToggles.isFeatureEnabled('enableWorkerProcess');
+    enqueueHierarchyInitial = featureToggles.isFeatureEnabled('enqueueHierarchy');
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
     jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
@@ -284,7 +289,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
   });
 
   after(() => {
-    tu.toggleOverride('enableWorkerProcess', false);
-    tu.toggleOverride('enqueueHierarchy', false);
+    tu.toggleOverride('enableWorkerProcess', enableWorkerProcessInitial);
+    tu.toggleOverride('enqueueHierarchy', enqueueHierarchyInitial);
   });
 });
