@@ -49,6 +49,53 @@ describe('db/model/botAction/create.js >', () => {
     .catch(done);
   });
 
+  it('fail, bot action name not found', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      testBotAction.name = 'actionNotFound';
+      return BotAction.create(testBotAction);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.equal('Action was not found');
+      done();
+    });
+  });
+
+  it('ok, bot action created by botName', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.name;
+      return BotAction.create(testBotAction);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
+
   it('ok, bot action response created', (done) => {
     const testBotAction = u.getResponse();
     RoomType.create(rt.getStandard())
@@ -65,6 +112,33 @@ describe('db/model/botAction/create.js >', () => {
       testBotAction.botId = bot.id;
       return BotAction.create(testBotAction);
     })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, multiple of the same bot action created', (done) => {
+    const testBotAction = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotAction.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotAction.botId = bot.id;
+      return BotAction.create(testBotAction);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+    })
+    .then(() => BotAction.create(testBotAction))
     .then((o) => {
       expect(o).to.have.property('name');
       done();
@@ -129,7 +203,7 @@ describe('db/model/botAction/create.js >', () => {
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.message).to.equal(
-        'Not enough parameters were sent to run this action'
+        'Wrong number of parameters sent to run this action'
       );
       done();
     });
