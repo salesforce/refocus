@@ -25,7 +25,7 @@ module.exports = {
    * @returns {Object} JSON object with status
    */
   logoutUser(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     if (req.isAuthenticated()) {
       req.session.destroy((err) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;

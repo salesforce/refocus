@@ -165,6 +165,11 @@ function start() { // eslint-disable-line max-statements
   }
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
+    app.use((req, res, next) => { // add timestamp to request
+      req.timestamp = Date.now();
+      next();
+    });
+
     app.use('/static', express.static(path.join(__dirname, 'public')));
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
