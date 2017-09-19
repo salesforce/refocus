@@ -92,6 +92,20 @@ describe('tests/db/model/collector/find.js >', () => {
       expect(obj.helpUrl).to.be.equal('http://test.com');
       expect(obj.host).to.be.equal('xxx-yyy-zzz.aaa.bbb.ccc.com');
       expect(obj.ipAddress).to.be.equal('123.456.789.012');
+      expect(obj.osInfo).to.deep.equal({
+        hostname: 'testHostname',
+        username: 'testUsername',
+      });
+      expect(obj.processInfo).to.deep.equal({
+        execPath: 'testExecPath',
+        memoryUsage: {
+          heapTotal: 1234,
+          external: 5678,
+        },
+        version: 'v1',
+        versions: { a: 'a', b: 'b' },
+      });
+      expect(obj.version).to.be.equal('1.0.0');
       expect(obj.createdBy).to.be.equal(userId);
       expect(obj.updatedAt).to.not.be.null;
       expect(obj.createdAt).to.not.be.null;

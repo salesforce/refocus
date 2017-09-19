@@ -21,32 +21,16 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
-const NOT_FOUND_STATUS_CODE = 404;
-const BAD_REQUEST_STATUS_CODE = 400;
 const testStartTime = new Date();
 
 describe('tests/db/model/generator/createWithCollectors.js >', () => {
-  let collector1 = { name: 'hello' };
-  let collector2 = { name: 'beautiful' };
-  let collector3 = { name: 'world' };
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
 
   let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
-
-  // copied from api/v1/helpers/verbs/utils.js
-  /**
-   * Returns a where clause object that uses the "IN" operator
-   * @param  {Array} arr - An array that needs to be
-   * assigned to the "IN" operator
-   * @returns {Object} - An where clause object
-   */
-  function whereClauseForNameInArr(arr) {
-    const whr = {};
-    whr.name = {};
-    whr.name.$in = arr;
-    return whr;
-  } // whereClauseForNameInArr
 
   before((done) => {
     tu.createUser('GeneratorOwner')
@@ -87,7 +71,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector3.name,
     ];
 
-    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => {
       expect(o.collectors.length).to.equal(THREE);
       const collectorNames = o.collectors.map((collector) => collector.name);
@@ -118,10 +102,10 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('400 error with duplicate collectors in request body', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, collector1.name];
-    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(BAD_REQUEST_STATUS_CODE);
+      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
       expect(err.name).to.equal('DuplicateCollectorError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
@@ -132,10 +116,10 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('404 error for request body with an non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
-    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
+      expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
       expect(err.name).to.equal('ResourceNotFoundError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
@@ -147,10 +131,10 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     'non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
-    Generator.createWithCollectors(localGenerator, whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(NOT_FOUND_STATUS_CODE);
+      expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
       expect(err.name).to.equal('ResourceNotFoundError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);

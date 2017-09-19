@@ -34,7 +34,7 @@ const redisModelSample = require('../../../../cache/models/samples');
  *  resource type to retrieve.
  */
 function doGet(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const reqParams = req.swagger.params;
   const fields = reqParams.fields ? reqParams.fields.value : null;
   const scopes = props.getScopes ? props.getScopes : [];

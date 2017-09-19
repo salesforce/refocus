@@ -17,7 +17,6 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = rtu.samstoinit;
-const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 
@@ -52,7 +51,6 @@ describe('tests/cache/models/subjects/post.js >', () => {
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
   after(() => tu.toggleOverride('fastFailDuplicateSubject', false));

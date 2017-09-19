@@ -59,7 +59,6 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('unpublished subject/aspect fails >', () => {

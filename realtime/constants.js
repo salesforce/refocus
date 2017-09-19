@@ -22,6 +22,8 @@ module.exports = {
 
   statusFilterIndex: 4,
 
+  roomFilterIndex: 0,
+
   filterSeperator: '&',
 
   valuesSeparator: ';',
@@ -35,6 +37,12 @@ module.exports = {
       add: 'refocus.internal.realtime.subject.add',
       upd: 'refocus.internal.realtime.subject.update',
       del: 'refocus.internal.realtime.subject.remove',
+    },
+
+    room: {
+      add: 'refocus.internal.realtime.room.add',
+      upd: 'refocus.internal.realtime.room.settingsChanged',
+      del: 'refocus.internal.realtime.room.remove',
     },
 
     sample: {

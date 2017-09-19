@@ -33,7 +33,7 @@ const config = require('../../../../config');
  *  find command
  */
 function doFindAndCountAll(reqResNext, props, opts) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: reqResNext.req.timestamp };
 
   // enforce the default limit
   if (!opts.limit || opts.limit > config.GET_REQUEST_DEFAULT_LIMIT) {

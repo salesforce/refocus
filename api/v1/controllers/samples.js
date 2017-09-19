@@ -28,6 +28,7 @@ const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
+const patchUtils = require('../helpers/verbs/patchUtils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
@@ -104,7 +105,7 @@ module.exports = {
 
     // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
+      const resultObj = { reqStartTime: req.timestamp }; // for logging
       if (helper.cacheEnabled) {
         redisCache.get(helper.cacheKey, (cacheErr, reply) => {
           if (cacheErr || !reply) {
@@ -180,7 +181,24 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPatch(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: new Date() };
+      const requestBody = req.swagger.params.queryBody.value;
+      const rLinks = requestBody.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
+      .then((retVal) => patchUtils
+        .handlePatchPromise(resultObj, req, retVal, helper, res))
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      );
+    } else {
+      doPatch(req, res, next, helper);
+    }
   },
 
   /**
@@ -227,10 +245,10 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     // make the name post-able
-    const readOnlyFields = helper.readOnlyFields.filter((field) =>
-      field !== 'name');
+    const readOnlyFields = helper
+      .readOnlyFields.filter((field) => field !== 'name');
     utils.noReadOnlyFieldsInReq(req, readOnlyFields);
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
     /**
@@ -311,7 +329,7 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
@@ -400,11 +418,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSampleRelatedLinks(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-     helper.modelName === 'Sample') {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       delRlinksPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {
