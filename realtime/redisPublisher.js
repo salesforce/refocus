@@ -129,6 +129,12 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
   const useSampleStore =
     featureToggles.isFeatureEnabled('enableRedisSampleStore');
+
+  if (!sampleInst.name || sampleInst.name.indexOf('|') < 0) {
+    logger.error('sample object does not contain name', sampleInst);
+    return Promise.resolve(null);
+  }
+
   return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
     aspectModel)
   .then((sample) => {

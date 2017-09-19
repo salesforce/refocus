@@ -65,6 +65,11 @@ module.exports = (job, done) => {
             .isFeatureEnabled('publishPartialSample')) {
             publisher.publishPartialSample(results[i]);
           } else {
+            if (!results[i].name || results[i].name.indexOf('|') < 0) {
+              logger.error('sample object does not contain name', results[i]);
+              return done(results[i]);
+            }
+
             publisher.publishSample(results[i], subHelper.model);
           }
         }
