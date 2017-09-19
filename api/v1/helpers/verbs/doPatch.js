@@ -72,7 +72,9 @@ function doPatch(req, res, next, props) {
 
         u.patchJsonArrayFields(o, requestBody, props);
         u.patchArrayFields(o, requestBody, props);
-        return o.update(requestBody);
+        return (props.modelName === 'Generator') ?
+          o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
+          o.update(requestBody);
       });
   }
 

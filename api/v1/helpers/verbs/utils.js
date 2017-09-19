@@ -16,6 +16,7 @@ const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
 const jwtUtil = require('../../../../utils/jwtUtil');
+const common = require('../../../../utils/common');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
@@ -261,19 +262,6 @@ function getApiLinks(key, props, method) {
 } // getApiLinks
 
 /**
- * Performs a regex test on the key to determine whether it looks like a
- * postgres uuid. This helps us determine whether to try finding a record by
- * id first then failing over to searching by name, or if the key doesn't meet
- * the criteria to be a postgres uuid, just skip straight to searching by name.
- *
- * @param {String} key - The key to test
- * @returns {Boolean} - True if the key looks like an id
- */
-function looksLikeId(key) {
-  return constants.POSTGRES_UUID_RE.test(key);
-}
-
-/**
  * Returns a where clause object that can be used to query the model.
  * @param  {String} nameOrId - Name or id of the record that the where clause
  * has to find
@@ -281,7 +269,7 @@ function looksLikeId(key) {
  */
 function whereClauseForNameOrId(nameOrId) {
   const whr = {};
-  if (looksLikeId(nameOrId)) {
+  if (common.looksLikeId(nameOrId)) {
     whr.id = nameOrId;
   } else {
     whr.name = nameOrId;
@@ -621,7 +609,7 @@ function findByKey(props, params, extraAttributes) {
   // If the key is a UUID then find the records by ID or name.
   // If the models key auto-increments then the key will be an
   // integer and still should find records by ID.
-  if (looksLikeId(key)) {
+  if (common.looksLikeId(key)) {
     return findByIdThenName(scopedModel, key, opts);
   } else if ((typeof key === 'number') && (key % 1 === 0)) {
     return findByIdThenName(scopedModel, key, opts);
@@ -836,7 +824,7 @@ module.exports = {
 
   deleteAllAssociations,
 
-  looksLikeId,
+  looksLikeId: common.looksLikeId,
 
   whereClauseForNameOrId,
 
