@@ -9,7 +9,6 @@
 /**
  * /worker/jobs/getHierarchyJob.js
  */
-const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const doGetHierarchy = require('../../api/v1/helpers/verbs/doGetHierarchy');
