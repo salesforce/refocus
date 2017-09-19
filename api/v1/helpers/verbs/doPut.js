@@ -15,6 +15,42 @@ const u = require('./utils');
 const putUtils = require('./putUtils');
 
 /**
+ * @param {Object} o Sequelize instance
+ * @param {Object} puttableFields from API
+ * @param {Object} toPut from request.body
+ * @returns {Promise} the updated instance
+ */
+function updateInstance(o, puttableFields, toPut) {
+  const keys = Object.keys(puttableFields);
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (toPut[key] === undefined) {
+      let nullish = null;
+      if (puttableFields[key].type === 'boolean') {
+        nullish = false;
+      } else if (puttableFields[key].enum) {
+        nullish = puttableFields[key].default;
+      }
+
+      o.set(key, nullish);
+
+      // take nullified fields out of changed fields
+      o.changed(key, false);
+    } else {
+
+      /*
+       * value may have changed. set changed to true to
+       * trigger checks in the model
+       */
+      o.changed(key, true);
+      o.set(key, toPut[key]);
+    }
+  }
+
+  return o.save();
+}
+
+/**
  * Updates a record and sends the udpated record back in the json response
  * with status code 200.
  *
