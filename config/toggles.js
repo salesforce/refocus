@@ -68,6 +68,10 @@ const longTermToggles = {
   enableRealtimeActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
 
+  // Enable redis client connection logging.
+  enableRedisConnectionLogging: environmentVariableTrue(pe,
+    'ENABLE_REDIS_CONNECTION_LOGGING'),
+
   // Use redis sampleStore with postgres db backup.
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
@@ -109,6 +113,10 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+
+  // Cache the GET request for samples with wildcard by name
+  cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
+    'CACHE_GET_SAMPLES_BY_NAME_WILDCARD'),
 
   // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
   getSubjectFromCache: environmentVariableTrue(pe,

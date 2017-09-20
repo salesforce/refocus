@@ -138,7 +138,6 @@ describe('tests/cache/models/subjects/getHierarchyAspectAndTagsFilters.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('SubjectTag filter on hierarchy >', () => {

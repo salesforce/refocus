@@ -9,9 +9,13 @@
 /**
  * db/model/generator.js
  */
+'use strict'; // eslint-disable-line strict
 const common = require('../helpers/common');
+const utils = require('../helpers/generatorUtil');
+const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
-const ValidationError = require('../dbErrors').ValidationError;
+const dbErrors = require('../dbErrors');
+const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
 
@@ -79,7 +83,7 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: false,
     },
-    keywords: {
+    tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: true,
       defaultValue: constants.defaultArrayValue,
@@ -107,6 +111,10 @@ module.exports = function generator(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'generatorAccess';
+      },
+
       postImport(models) {
         assoc.user = Generator.belongsTo(models.User, {
           foreignKey: 'createdBy',
@@ -131,15 +139,110 @@ module.exports = function generator(seq, dataTypes) {
               association: assoc.user,
               attributes: ['name', 'email'],
             },
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
           ],
           order: ['name'],
         }, {
           override: true,
         });
       },
+
+      /**
+       * Accessed by API. if pass, return a Promise with the collectors.
+       * If fail, return a rejected Promise
+       *
+       * @param {Array} collectorNames Array of strings
+       * @param {Function} whereClauseForNameInArr Returns an object query
+       * @returns {Promise} with collectors if pass, error if fail
+       */
+      validateCollectors(collectorNames, whereClauseForNameInArr) {
+        return utils.validateCollectors(seq, collectorNames,
+          whereClauseForNameInArr);
+      },
+
+      /**
+       * 1. validate the collectors field: if succeed, save the collectors in temp var for
+       *  attaching to the generator. if fail, abort the operation
+       * 2. create the generator
+       * 3. add the saved collectors (if any)
+       *
+       * @param {Object} requestBody From API
+       * @param {Function} whereClauseForNameInArr Returns an object query
+       * @returns {Promise} created generator with collectors (if any)
+       */
+      createWithCollectors(requestBody, whereClauseForNameInArr) {
+        let createdGenerator;
+        let collectors; // will be populated with actual collectors
+        return new seq.Promise((resolve, reject) =>
+          utils.validateCollectors(seq, requestBody.collectors,
+            whereClauseForNameInArr)
+          .then((_collectors) => {
+            collectors = _collectors;
+            return Generator.create(requestBody);
+          })
+          .then((_createdGenerator) => {
+            createdGenerator = _createdGenerator;
+            return _createdGenerator.addCollectors(collectors);
+          })
+          .then(() => resolve(createdGenerator.reload()))
+          .catch(reject)
+        );
+      },
     },
 
     hooks: {
+
+      beforeCreate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+          .then((gt) => {
+            if (!gt) {
+              throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
+            }
+
+            return cryptUtils
+              .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+              .catch(() => {
+                throw new dbErrors.SampleGeneratorContextEncryptionError();
+              });
+          });
+      }, // beforeCreate
+
+      beforeUpdate(inst /* , opts */) {
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+        if (inst.changed('generatorTemplate') || inst.changed('context')) {
+          return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+            .then((gt) => {
+              if (!gt) {
+                throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
+              }
+
+              return cryptUtils
+                .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                .catch(() => {
+                  throw new dbErrors.SampleGeneratorContextEncryptionError();
+                });
+            });
+        }
+
+        return inst;
+      }, // beforeUpdate
+
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
       }, // beforeDestroy
@@ -176,6 +279,32 @@ module.exports = function generator(seq, dataTypes) {
       },
     ],
     instanceMethods: {
+
+      /**
+       * 1. validate the collectors field: if succeed, save the collectors in temp var for
+       *  attaching to the generator. if fail, abort the operation
+       * 2. update the generator
+       * 3. add the saved collectors (if any)
+       *
+       * @param {Object} requestBody From API
+       * @param {Function} whereClauseForNameInArr Returns an object query
+       * @returns {Promise} created generator with collectors (if any)
+       */
+      updateWithCollectors(requestBody, whereClauseForNameInArr) {
+        let collectors; // will be populated with actual collectors
+        return new seq.Promise((resolve, reject) =>
+          utils.validateCollectors(seq, requestBody.collectors,
+            whereClauseForNameInArr)
+          .then((_collectors) => {
+            collectors = _collectors;
+            return this.update(requestBody);
+          })
+          .then(() => this.addCollectors(collectors))
+          .then(() => resolve(this.reload()))
+          .catch(reject)
+        );
+      },
+
       isWritableBy(who) {
         return new seq.Promise((resolve /* , reject */) =>
           this.getWriters()

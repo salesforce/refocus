@@ -36,8 +36,14 @@ const subAspMapType = redisOps.subAspMapType;
  * @returns {Promise} contains parent subject
  */
 function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
-  return Subject.scope({ method: [fieldName, parentFieldVal] })
-  .find()
+  const whereObj = { where: {} };
+  if (fieldName === 'absolutePath') {
+    whereObj.where[fieldName] = { $iLike: parentFieldVal };
+  } else {
+    whereObj.where[fieldName] = parentFieldVal;
+  }
+
+  return Subject.find(whereObj)
   .then((parent) => {
     if (!parent) {
       throw new ParentSubjectNotFound({
@@ -104,11 +110,14 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
  * redis sample store.
  *
  * @param {String} absolutePath - The absolutePath of the subject
+ * @returns {Promise}
  */
 function removeFromRedis(absolutePath) {
-  redisOps.deleteKey(subjectType, absolutePath);
-  redisOps.deleteKeys(sampleType, subjectType, absolutePath);
-  redisOps.deleteKey(subAspMapType, absolutePath);
+  return Promise.all([
+    redisOps.deleteKey(subjectType, absolutePath),
+    redisOps.deleteKeys(sampleType, subjectType, absolutePath),
+    redisOps.deleteKey(subAspMapType, absolutePath),
+  ]);
 } // removeFromRedis
 
 module.exports = {

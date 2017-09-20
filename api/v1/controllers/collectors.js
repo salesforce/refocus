@@ -10,12 +10,10 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const utils = require('./utils');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
-const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
@@ -23,10 +21,62 @@ const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const decryptSGContextValues = require('../../../utils/cryptUtils')
+  .decryptSGContextValues;
+const encrypt = require('../../../utils/cryptUtils').encrypt;
+const GlobalConfig = require('../helpers/nouns/globalconfig').model;
+const config = require('../../../config');
+const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const ZERO = 0;
+const MINUS_ONE = -1;
+
+/**
+ * Decrypt sample generator context values marked as 'encrypted' in sample
+ * generator template. Then, encrypt the values again with secret key, which is
+ * a combination of collector auth token and timestamp.
+ * @param  {Object}   sg - Sample generator having generator template as an
+ * attribute.
+ * @param  {String}   authToken - Collector authentication token
+ * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
+ * @return {Object} Sample generator with reencrypted context values.
+ */
+function reEncryptSGContextValues(sg, authToken, timestamp) {
+  if (!authToken || !timestamp) {
+    const err = new apiErrors.ValidationError({
+      explanation: 'Collector authentication token or timestamp not ' +
+      'available to encrypt the context values',
+    });
+    return Promise.reject(err);
+  }
+
+  if (!sg.generatorTemplate) {
+    const err = new apiErrors.ValidationError({
+      explanation: 'Sample generator template not found in sample generator.',
+    });
+    return Promise.reject(err);
+  }
+
+  const sgt = sg.generatorTemplate;
+  return decryptSGContextValues(GlobalConfig, sg, sgt)
+  .then((sampleGenerator) => { // sample generator with decrypted context values
+    const secretKey = authToken + timestamp;
+
+    Object.keys(sgt.contextDefinition).forEach((key) => {
+      if (sgt.contextDefinition[key].encrypted) {
+        // encrypt context values in sample generator
+        sampleGenerator.context[key] = encrypt(sampleGenerator.context[key],
+          secretKey, encryptionAlgoForCollector);
+      }
+    });
+
+    return sampleGenerator; // reencrypted sample generator
+  })
+  .catch(() => {
+    throw new apiErrors.SampleGeneratorContextDecryptionError();
+  });
+}
 
 /**
  * Register a collector. Access restricted to Refocus Collector only.
@@ -37,7 +87,7 @@ const ZERO = 0;
  */
 function postCollector(req, res, next) {
   const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
@@ -86,13 +136,35 @@ function getCollector(req, res, next) {
 /**
  * Update the specified collector's config data. If a field is not included in
  * the querybody, that field will not be updated.
+ * Some fields are only writable by the collector itself. So, if any of those
+ * fields are being updated, check that the token provided in request belongs to
+ * a collector.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
 function patchCollector(req, res, next) {
-  doPatch(req, res, next, helper);
+  // verify controller token if atleast one field is writable by collector
+  let verifyCtrToken = false;
+  const reqBodyKeys = Object.keys(req.body);
+  const cltrWritableFields = helper.fieldsWritableByCollectorOnly;
+
+  for (let i = 0; i < cltrWritableFields.length; i++) {
+    const fieldName = cltrWritableFields[i];
+    if (reqBodyKeys.indexOf(fieldName) > MINUS_ONE) {
+      verifyCtrToken = true;
+      break;
+    }
+  }
+
+  if (verifyCtrToken) { // verify that token belongs to collector
+    return jwtUtil.verifyCollectorToken(req)
+    .then(() => doPatch(req, res, next, helper))
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }
+
+  return doPatch(req, res, next, helper);
 } // patchCollector
 
 /**
@@ -121,7 +193,7 @@ function deregisterCollector(req, res, next) {
 function heartbeat(req, res, next) {
   // TODO reject if caller's token is not a collector token
   const retval = {
-    collectorConfig: {},
+    collectorConfig: config.collector,
     generatorsAdded: [],
     generatorsDeleted: [],
     generatorsUpdated: [],
@@ -140,6 +212,7 @@ function heartbeat(req, res, next) {
    * TODO populate generatorsAdded
    * - look up any new generators assigned to this collector since the last
    *   heartbeat
+   * - reEncrypt context values using reEncryptSGContextValues function
    */
 
   /*
@@ -152,6 +225,7 @@ function heartbeat(req, res, next) {
    * TODO populate generatorsUpdated
    * - for generators which were already assigned to this collector, look up
    *   any changes made to the generator since the last heartbeat
+   * - reEncrypt context values using reEncryptSGContextValues function
    */
 
   res.status(httpStatus.OK).json(retval);
@@ -295,4 +369,5 @@ module.exports = {
   getCollectorWriter,
   deleteCollectorWriter,
   deleteCollectorWriters,
+  reEncryptSGContextValues, // exporting for testing purposes only
 };

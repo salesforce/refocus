@@ -85,7 +85,8 @@ function checkTokenRecord(t) {
 /**
  * Function to verify if a collector token is valid or not.
  * @param  {object} req - request object
- * @param  {Function} cb - callback function
+ * @param  {Function} cb - callback function - Optional
+ * @returns {Function|undefined} - Callback function or undefined
  * @throws {ForbiddenError} If a collector record matching the username is
  *   not found
  */
@@ -102,7 +103,16 @@ function verifyCollectorToken(req, cb) {
       });
     }
 
-    return cb();
+    if (cb) {
+      return cb();
+    }
+
+    return undefined;
+  })
+  .catch(() => {
+    throw new apiErrors.ForbiddenError({
+      explanation: 'Invalid/No Token provided.',
+    });
   });
 } // verifyCollectorToken
 
@@ -256,4 +266,5 @@ module.exports = {
   createToken,
   getTokenDetailsFromRequest,
   getTokenDetailsFromTokenString,
+  verifyCollectorToken,
 };

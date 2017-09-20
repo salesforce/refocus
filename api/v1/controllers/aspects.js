@@ -40,8 +40,7 @@ function validateTags(requestBody, params) {
   if (requestBody) {
     tags = requestBody.tags;
   } else if (params) {
-    // params.tags.value is a comma delimited string, not empty.
-    tags = params.tags.value ? params.tags.value.split(',') : [];
+    tags = params.tags.value;
   }
 
   if (tags && tags.length) {
@@ -325,7 +324,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectTags(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>
@@ -360,7 +359,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectRelatedLinks(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) =>

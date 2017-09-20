@@ -16,6 +16,7 @@
  * tables and indexes, and does "pseudo-migrations" to bring the migration
  * table up to date.
  */
+const u = require('./utils');
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
@@ -24,7 +25,6 @@ const seq = new Sequelize(env.dbUrl, {
   logging: env.dbLogging,
 });
 const pgtools = require('pgtools');
-const u = require('./utils');
 
 /**
  * Create the database, run resetdb to create the tables and indexes, and do

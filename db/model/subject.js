@@ -130,6 +130,10 @@ module.exports = function subject(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'subjectAccess';
+      },
+
       postImport(models) {
         assoc.user = Subject.belongsTo(models.User, {
           foreignKey: 'createdBy',
@@ -457,19 +461,20 @@ module.exports = function subject(seq, dataTypes) {
        *  if an error was encountered
        */
       afterDelete(inst /* , opts */) {
-        if (inst.getDataValue('isPublished')) {
-          common.publishChange(inst, eventName.del);
-
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            subjectUtils.removeFromRedis(inst.absolutePath);
-          }
-        }
-
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
           .then((par) => {
             if (par) {
               par.decrement('childCount');
+            }
+
+            if (inst.getDataValue('isPublished')) {
+              common.publishChange(inst, eventName.del);
+
+              // if cache is on, remove reference to subjects in the cache
+              if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+                return subjectUtils.removeFromRedis(inst.absolutePath);
+              }
             }
           })
           .then(() => resolve(inst))
@@ -517,7 +522,6 @@ module.exports = function subject(seq, dataTypes) {
        * rejects if an error was encountered
        */
       beforeUpdate(inst /* ,  opts */) { // eslint-disable-line max-statements
-
         /*
          * If a subject is getting unpublished, check to see if its children are
          * unpublished too. If any of the children are published, throw a
@@ -590,7 +594,7 @@ module.exports = function subject(seq, dataTypes) {
               // if match, update
               parent.increment('childCount');
               return updateParentFields(
-                Subject, inst.parentId, inst.parentAbsolutePath, inst);
+                Subject, inst.parentId, parent.absolutePath, inst);
             });
           } else if (pidChanged && !pidEmpty) {
             let parentAbsolutePath;
@@ -610,7 +614,7 @@ module.exports = function subject(seq, dataTypes) {
               // since parentId field did not change, use parent.id
               parent.increment('childCount');
               return updateParentFields(
-                Subject, parent.id, inst.parentAbsolutePath, inst);
+                Subject, parent.id, parent.absolutePath, inst);
             });
           } else {
             return inst;

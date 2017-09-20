@@ -13,9 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../cache/redisCache').client.pub;
+const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
-const channelName = require('../../config').redis.channelName;
+const channelName = require('../../config').redis.perspectiveChannelName;
 const revalidator = require('revalidator');
 const ValidationError = require('../dbErrors').ValidationError;
 
@@ -30,6 +30,25 @@ const changeType = {
   upd: 'UPDATE',
   del: 'DELETE',
 };
+
+/**
+ * Returns whether there are duplicates in a given flat array
+ *
+ * ie. [a, b, c, c, a] => true
+ * ie. [a, b, c] => false
+ *
+ * @param {Array} arr Array of strings
+ * @returns {Boolean} Does the input array contain duplicates
+ */
+function checkDuplicatesInStringArray(arr) {
+  if (!arr || !arr.length) {
+    return false;
+  }
+
+  // if all the elements are distinct set size === arr.length
+  const _set = new Set(arr);
+  return _set.size !== arr.length;
+}
 
 /**
  * Takes a sample instance and enhances it with the subject instance and
@@ -214,7 +233,7 @@ function validateJsonSchema(value) {
     }
 
     if (relLinkNameSet.has(relLink.name)) {
-      throw new Error('Name of the relatedlinks should be unique');
+      throw new Error('Name of the relatedlinks should be unique.');
     } else {
       relLinkNameSet.add(relLink.name);
     }
@@ -273,6 +292,7 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 module.exports = {
+  checkDuplicatesInStringArray,
   dbconf,
   setIsDeleted,
   publishChange,

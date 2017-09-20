@@ -13,6 +13,7 @@
 const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
+const u = require('../helpers/collectorUtils');
 const assoc = {};
 
 module.exports = function collector(seq, dataTypes) {
@@ -67,13 +68,46 @@ module.exports = function collector(seq, dataTypes) {
       defaultValue: 0,
       allowNull: false,
     },
+    osInfo: {
+      type: dataTypes.JSONB,
+      allowNull: true,
+      validate: {
+        contains: u.validateOsInfo,
+      },
+    },
+    processInfo: {
+      type: dataTypes.JSONB,
+      allowNull: true,
+      validate: {
+        contains: u.validateProcessInfo,
+      },
+    },
+    version: {
+      type: dataTypes.STRING,
+      allowNull: false,
+      validate: {
+        validateObject(value) {
+          u.validateVersion(value);
+        },
+      },
+    },
   }, {
     classMethods: {
       getCollectorAssociations() {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'collectorAccess';
+      },
+
       postImport(models) {
+        assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
+          as: 'currentGenerators',
+          through: 'GeneratorCollectors',
+          foreignKey: 'collectorId',
+        });
+
         assoc.createdBy = Collector.belongsTo(models.User, {
           foreignKey: 'createdBy',
         });

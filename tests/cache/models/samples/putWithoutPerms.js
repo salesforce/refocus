@@ -56,7 +56,6 @@ describe('tests/cache/models/samples/putWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('Putting without permission should fail and return 403', (done) => {

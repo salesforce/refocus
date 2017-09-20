@@ -108,4 +108,9 @@ describe('tests/db/model/lens/update.js >', () => {
     })
     .catch(done);
   });
+
+  it('returns correct profile access field name', (done) => {
+    expect(Lens.getProfileAccessField()).to.equal('lensAccess');
+    done();
+  });
 }); // db: lens: update: permission:

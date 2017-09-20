@@ -77,7 +77,6 @@ describe('tests/cache/models/samples/postWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(tu.forceDeleteUser);
 

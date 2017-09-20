@@ -59,8 +59,40 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
   });
 
   afterEach(rtu.forceDelete);
-  afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  describe('unpublished subject/aspect fails >', () => {
+    it('on unpublish subject, sample is removed from cache', (done) => {
+      tu.db.Subject.findById(subjectId).then((subject) =>
+        subject.update({ isPublished: false }))
+      .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
+      .then((sample) => {
+        expect(sample).to.be.null;
+        done();
+      });
+    });
+
+    it('update to unpublished aspect fails', (done) => {
+      tu.db.Aspect.findById(aspectId).then((aspect) =>
+        aspect.update({ isPublished: false }))
+      .then(() => {
+        api.put(`${path}/${sampleName}`)
+        .set('Authorization', token)
+        .send({ aspectId, subjectId })
+        .expect(constants.httpStatus.NOT_FOUND)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const _err = res.body.errors[ZERO];
+          expect(_err.type).to.equal('ResourceNotFoundError');
+          expect(_err.description).to.equal('Aspect not found.');
+          done();
+        });
+      });
+    });
+  });
 
   describe('Lists >', () => {
     it('reject if name is in request body', (done) => {

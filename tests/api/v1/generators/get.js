@@ -9,41 +9,50 @@
 /**
  * tests/api/v1/generators/get.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generators';
 const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const FOUR = 4;
 
 describe('tests/api/v1/generators/get.js >', () => {
   let token;
+
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+
   const generatorOk = u.getGenerator();
-  const generatorInfo = JSON.parse(JSON.stringify(u.getGenerator()));
+  u.createSGtoSGTMapping(generatorTemplate, generatorOk);
+
+  const generatorInfo = u.getGenerator();
   generatorInfo.name = 'refocus-info-generator';
-  const generatorCritical = JSON.parse(JSON.stringify(u.getGenerator()));
+  u.createSGtoSGTMapping(generatorTemplate, generatorInfo);
+
+  const generatorCritical = u.getGenerator();
   generatorCritical.name = 'refocus-critical-generator';
-  const generatorWarning = JSON.parse(JSON.stringify(u.getGenerator()));
+  u.createSGtoSGTMapping(generatorTemplate, generatorCritical);
+
+  const generatorWarning = u.getGenerator();
   generatorWarning.name = 'refocus-warning-generator';
+  u.createSGtoSGTMapping(generatorTemplate, generatorWarning);
 
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return GeneratorTemplate.create(generatorTemplate);
     })
-    .catch(done);
-  });
-
-  before((done) => {
-    Generator.create(generatorOk)
+    .then(() => Generator.create(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
       return Generator.create(generatorInfo);
@@ -64,6 +73,7 @@ describe('tests/api/v1/generators/get.js >', () => {
   });
 
   after(u.forceDelete);
+  after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
   it('simple GET OK', (done) => {
@@ -179,6 +189,34 @@ describe('tests/api/v1/generators/get.js >', () => {
 
   it('find by name wildcard, not found', (done) => {
     api.get(`${path}?name=*ok`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(ZERO);
+      done();
+    });
+  });
+
+  it('find by tags, found', (done) => {
+    api.get(`${path}?tags=status`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.length(FOUR);
+      done();
+    });
+  });
+
+  it('find by tags, not found', (done) => {
+    api.get(`${path}?tags=blah`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {

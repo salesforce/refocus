@@ -172,7 +172,7 @@ function createOrDropDb(cmd) {
   .then((res) => `${res.command} "${dbConfig.name}"... OK`)
   .catch((err) => {
     throw new Error(
-      `${err.pgErr.routine} "${dbConfig.name}"... FAILED (${err.name})`);
+      `${err.pgErr.routine} "${dbConfig.name}"... FAILED (${err.pgErr})`);
   });
 } // createOrDropDb
 

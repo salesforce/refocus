@@ -28,9 +28,46 @@ const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
+const patchUtils = require('../helpers/verbs/patchUtils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
+const getSamplesWildcardCacheInvalidation = require('../../../config')
+  .getSamplesWildcardCacheInvalidation;
+const redisCache = require('../../../cache/redisCache').client.cache;
+
+/**
+ * Find sample from samplestore. If cache is on then
+ * cache the response as well.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ * @param {Object} resultObj - DateTime object for logging
+ * @param {String} cacheKey - Cache Key
+ * @param {Integer} cacheExpiry -  Cache expiry time
+ */
+function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
+  redisModelSample.findSamples(req, res, resultObj)
+  .then((response) => {
+    // loop through remove values to delete property
+    if (helper.fieldsToExclude) {
+      for (let i = response.length - 1; i >= 0; i--) {
+        u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
+      }
+    }
+
+    if (cacheKey) {
+      // cache the object by cacheKey.
+      const strObj = JSON.stringify(response);
+      redisCache.setex(cacheKey, cacheExpiry, strObj);
+    }
+
+    u.logAPI(req, resultObj, response); // audit log
+    res.status(httpStatus.OK).json(response);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+}
 
 module.exports = {
 
@@ -57,21 +94,32 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() }; // for logging
-      redisModelSample.findSamples(req, res, resultObj)
-      .then((response) => {
-        // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          for (let i = response.length - 1; i >= 0; i--) {
-            u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
-          }
-        }
+    // Check if Cache is on for Wildcard Sample query
+    if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
+      const query = req.query.name;
+      helper.cacheEnabled = query && (query.indexOf('*') > -1);
+      helper.cacheKey =  helper.cacheEnabled ? query : null;
+      helper.cacheExpiry = helper.cacheEnabled ?
+        parseInt(getSamplesWildcardCacheInvalidation) : null;
+    }
 
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+    // Check if Sample Store is on or not
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: req.timestamp }; // for logging
+      if (helper.cacheEnabled) {
+        redisCache.get(helper.cacheKey, (cacheErr, reply) => {
+          if (cacheErr || !reply) {
+            doFindSampleStoreResponse(req, res,
+             next, resultObj, helper.cacheKey, helper.cacheExpiry);
+          } else {
+            u.logAPI(req, resultObj, reply); // audit log
+            res.status(httpStatus.OK).json(JSON.parse(reply));
+          }
+        });
+      } else {
+        doFindSampleStoreResponse(req, res,
+          next, resultObj);
+      }
     } else {
       doFind(req, res, next, helper);
     }
@@ -133,7 +181,24 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPatch(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: new Date() };
+      const requestBody = req.swagger.params.queryBody.value;
+      const rLinks = requestBody.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
+      .then((retVal) => patchUtils
+        .handlePatchPromise(resultObj, req, retVal, helper, res))
+      .catch((err) => // the sample is write protected
+        u.handleError(next, err, helper.modelName)
+      );
+    } else {
+      doPatch(req, res, next, helper);
+    }
   },
 
   /**
@@ -180,10 +245,10 @@ module.exports = {
    */
   upsertSample(req, res, next) {
     // make the name post-able
-    const readOnlyFields = helper.readOnlyFields.filter((field) =>
-      field !== 'name');
+    const readOnlyFields = helper
+      .readOnlyFields.filter((field) => field !== 'name');
     utils.noReadOnlyFieldsInReq(req, readOnlyFields);
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const sampleQueryBody = req.swagger.params.queryBody.value;
 
     /**
@@ -264,7 +329,7 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
@@ -353,11 +418,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSampleRelatedLinks(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-     helper.modelName === 'Sample') {
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
       delRlinksPromise = u.getUserNameFromToken(req)
       .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
     } else {

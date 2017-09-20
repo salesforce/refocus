@@ -9,6 +9,7 @@
 /**
  * /worker/jobs/bulkUpsertSamplesJob.js
  */
+const logger = require('winston');
 const helper = require('../../api/v1/helpers/nouns/samples');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
@@ -60,7 +61,12 @@ module.exports = (job, done) => {
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
         } else {
-          publisher.publishSample(results[i], subHelper.model);
+          if (featureToggles // eslint-disable-line  no-lonely-if
+            .isFeatureEnabled('publishPartialSample')) {
+            publisher.publishPartialSample(results[i]);
+          } else {
+            publisher.publishSample(results[i], subHelper.model);
+          }
         }
       }
 
@@ -95,5 +101,9 @@ module.exports = (job, done) => {
        * to be stored in redis
        */
       return done(null, objToReturn);
+    })
+    .catch((err) => {
+      logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      return done(err);
     });
 };

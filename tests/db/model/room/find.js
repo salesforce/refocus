@@ -31,12 +31,19 @@ describe('tests/db/model/room/find.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('ok, room active', (done) => {
-    Room.findOne({ where: { active: true } })
-    .then((o) => {
-      expect(o).to.have.property('name').to.equal(u.name);
+  describe('Find room', () => {
+    it('ok, room active', (done) => {
+      Room.findOne({ where: { active: true } })
+      .then((o) => {
+        expect(o).to.have.property('name').to.equal(u.name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('returns correct profile access field name', (done) => {
+      expect(Room.getProfileAccessField()).to.equal('roomAccess');
       done();
-    })
-    .catch(done);
+    });
   });
 });

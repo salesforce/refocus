@@ -12,6 +12,7 @@
  * Used by the RoomType model.
  */
 
+const dbErrors = require('../dbErrors');
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
 const MAX_ARGUMENTS = 2;
@@ -147,7 +148,43 @@ function validateRulesArray(arr) {
   }
 } // validateDataArray
 
+function validateBotsArray(inst, seq) {
+  const bots = inst.dataValues.bots;
+
+  return new seq.Promise((resolve, reject) => {
+    if (!bots || !inst.changed('bots') || !bots.length) {
+      resolve(inst);
+    }
+
+    if (bots.length > new Set(bots).size) {
+      reject(new dbErrors.DuplicateBotError());
+    }
+
+    bots.forEach((botName, index) => {
+      seq.models.Bot.findOne({
+        where: {
+          name: {
+            $iLike: botName,
+          },
+        },
+      })
+      .then((o) => {
+        if (!o) {
+          reject(new dbErrors.ResourceNotFoundError({
+            message: `Bot ${botName} not found`,
+          }));
+        }
+
+        if (index === bots.length - 1) {
+          resolve(inst);
+        }
+      });
+    });
+  });
+} // validateBotsArray
+
 module.exports = {
   validateSettingsArray,
   validateRulesArray,
+  validateBotsArray,
 }; // exports

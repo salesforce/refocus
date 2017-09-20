@@ -26,6 +26,9 @@ const sampleStore = require('./cache/sampleStoreInit');
  * Entry point for each clustered process.
  */
 function start() { // eslint-disable-line max-statements
+  const SegfaultHandler = require('segfault-handler');
+  SegfaultHandler.registerHandler('crash.log');
+
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
   if (conf.newRelicKey) {
@@ -44,6 +47,7 @@ function start() { // eslint-disable-line max-statements
   const env = conf.environment[conf.nodeEnv];
   const ENCODING = 'utf8';
   const compress = require('compression');
+  const cors = require('cors');
 
   // set up server side socket.io and redis publisher
   const express = require('express');
@@ -161,10 +165,22 @@ function start() { // eslint-disable-line max-statements
   }
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
+    app.use((req, res, next) => { // add timestamp to request
+      req.timestamp = Date.now();
+      next();
+    });
+
     app.use('/static', express.static(path.join(__dirname, 'public')));
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
+
+    /*
+     * Allow specified routes to be accessed from Javascript outside of Refocus
+     * through cross-origin resource sharing
+     * e.g. A bot that needs to get current botData from Refocus
+     */
+    conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
 
     // Only let me be framed by people of the same origin
     app.use(helmet.frameguard());  // Same-origin by default

@@ -90,11 +90,29 @@ module.exports = function bot(seq, dataTypes) {
         return assoc;
       },
 
+      getProfileAccessField() {
+        return 'botAccess';
+      },
+
       postImport(models) {
         assoc.writers = Bot.belongsToMany(models.User, {
           as: 'writers',
           through: 'BotWriters',
           foreignKey: 'botId',
+        });
+        assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
+          foreignKey: 'botId',
+          through: 'RoomTypeBots',
+        });
+
+        Bot.addScope('botUI', {
+          attributes: { include: ['ui'] },
+        });
+
+        Bot.addScope('defaultScope', {
+          attributes: { exclude: ['ui'] },
+        }, {
+          override: true,
         });
       },
     },

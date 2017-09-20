@@ -38,7 +38,6 @@ describe('tests/cache/models/subjects/getAll.js, ' +
 
   before(rtu.populateRedis);
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
 

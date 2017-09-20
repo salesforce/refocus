@@ -13,9 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
-const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
+const collectorConfig = require('./config/collectorConfig');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
@@ -38,6 +38,8 @@ const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
 };
 const hiddenRoutes = pe.HIDDEN_ROUTES ?
   pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
+const corsRoutes = pe.CORS_ROUTES ?
+  pe.CORS_ROUTES.split(',') : ['']; // Routes to allow CORS
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 
@@ -47,6 +49,9 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 
 // Check for timed-out samples every 30 seconds if not specified in env var
 const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
+
+// GET Samples Cache invalidation default time
+const DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION = 5;
 
 // Expiry time used for redis cache
 const CACHE_EXPIRY_IN_SECS = 60;
@@ -68,6 +73,8 @@ const replicaConfigLabel = 'REPLICAS';
 // an array of read-only data base URLs
 const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 
+const WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS =
+  pe.WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS || Number.MAX_SAFE_INTEGER;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
@@ -108,6 +115,12 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
+
+const GET_REQUEST_DEFAULT_LIMIT = +pe.GET_REQUEST_DEFAULT_LIMIT || 10000;
+
+// encryption/decryption algorithm used for securing the context variables when
+// sent to collector.
+const encryptionAlgoForCollector = 'aes-256-cbc';
 
 module.exports = {
   api: {
@@ -155,6 +168,7 @@ module.exports = {
     passwordHashSaltNumRounds: 8,
   },
   redis: redisConfig,
+  collector: collectorConfig,
 
   // When adding new environment, consider adding it to /config/migrationConfig
   // as well to enable database migraton in the environment.
@@ -221,6 +235,9 @@ module.exports = {
   DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
+  getSamplesWildcardCacheInvalidation:
+    pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
+    DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,
@@ -246,4 +263,8 @@ module.exports = {
   rateWindow,
   readReplicas,
   hiddenRoutes,
+  corsRoutes,
+  GET_REQUEST_DEFAULT_LIMIT,
+  encryptionAlgoForCollector,
+  WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS,
 };
