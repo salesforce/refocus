@@ -225,7 +225,21 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPut(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: req.timestamp };
+      const toPut = req.swagger.params.queryBody.value;
+      const rLinks = toPut.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.putSample(req.swagger.params, user))
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doPut(req, res, next, helper);
+    }
   },
 
   /**
