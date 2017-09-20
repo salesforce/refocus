@@ -22,10 +22,15 @@ const constants = require('../../../api/v1/constants');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
+const featureToggles = require('feature-toggles');
+let enableWorkerProcessInitial;
+let enqueueHierarchyInitial;
 
 describe('tests/jobQueue/v1/getHierarchy.js, ' +
 `api: GET using worker process ${path} >`, () => {
   before(() => {
+    enableWorkerProcessInitial = featureToggles.isFeatureEnabled('enableWorkerProcess');
+    enqueueHierarchyInitial = featureToggles.isFeatureEnabled('enqueueHierarchy');
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
     jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
@@ -113,50 +118,14 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
         }
 
         nonWorkerResponse = res.body;
+        tu.toggleOverride('enableWorkerProcess', true);
+        tu.toggleOverride('enqueueHierarchy', true);
         done();
       });
     });
 
     after(u.forceDelete);
     after(tu.forceDeleteUser);
-
-    function requestAndExpectNJobs(n, done) {
-      api.get(path.replace('{key}', ipar))
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(jobQueue.testMode.jobs.length).to.equal(n);
-        done();
-      });
-    }
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', false);
-      tu.toggleOverride('enqueueHierarchy', false);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', true);
-      tu.toggleOverride('enqueueHierarchy', false);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', false);
-      tu.toggleOverride('enqueueHierarchy', true);
-      requestAndExpectNJobs(0, done);
-    });
-
-    it('request should only be enqueued if both toggles are set', (done) => {
-      tu.toggleOverride('enableWorkerProcess', true);
-      tu.toggleOverride('enqueueHierarchy', true);
-      requestAndExpectNJobs(1, done);
-    });
 
     it('examine enqueued data', (done) => {
       api.get(path.replace('{key}', ipar))
@@ -320,7 +289,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
   });
 
   after(() => {
-    tu.toggleOverride('enableWorkerProcess', false);
-    tu.toggleOverride('enqueueHierarchy', false);
+    tu.toggleOverride('enableWorkerProcess', enableWorkerProcessInitial);
+    tu.toggleOverride('enqueueHierarchy', enqueueHierarchyInitial);
   });
 });
