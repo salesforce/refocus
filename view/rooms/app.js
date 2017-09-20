@@ -105,7 +105,7 @@ function parseBot(bot) {
 
   // go through zipEntries that arent 'index.html'
   const zipEntriesNoIndex = zipEntries.filter(
-    (entry) => entry.name !== 'index.html'
+    entry => entry.name !== 'index.html'
   );
   for (let i = 0; i < zipEntriesNoIndex.length; i++) {
     botScript.appendChild(

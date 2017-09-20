@@ -49,7 +49,7 @@ function loadController(rooms, roomTypes) {
     const { id } = room;
     room.id = `<a href=/rooms/${id}>${id}</a>`;
     room.name = `<a href=/rooms/${id}>${room.name}</a>`;
-    room.type = `<a href=/roomTypes/${roomType[0].id}>${roomType[0].name}</a>`;
+    room.type = `<a href=/rooms/types/${roomType[0].id}>${roomType[0].name}</a>`;
     room.active = room.active ? 'True' : 'False';
     room.createdAt = moment(room.createdAt).format('LLL');
     room.updatedAt = moment(room.updatedAt).format('LLL');

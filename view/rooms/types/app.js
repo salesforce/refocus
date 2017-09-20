@@ -40,8 +40,8 @@ function loadController(roomTypes) {
   const headers = ['ID', 'Name', 'Enabled', 'Bots', 'Created At', 'Updated At'];
   const rows = roomTypes.map(roomType => {
     const { id } = roomType;
-    roomType.id = `<a href=/roomTypes/${id}>${id}</a>`;
-    roomType.name = `<a href=/roomTypes/${id}>${roomType.name}</a>`;
+    roomType.id = `<a href=/rooms/types/${id}>${id}</a>`;
+    roomType.name = `<a href=/rooms/types/${id}>${roomType.name}</a>`;
     roomType.bots = String(roomType.bots);
     roomType.enabled = roomType.isEnabled ? 'True' : 'False';
     delete roomType.isEnabled;
