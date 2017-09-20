@@ -13,13 +13,13 @@ const common = require('./common');
 const dbErrors = require('../dbErrors');
 
 /**
- * Function to validate the context filed of the sample generator based on the
+ * Function to validate the context field of the sample generator based on the
  * contextDefinition field of its related generator template.
  * @param  {Object} sgCtx - The generator context object     [description]
  * @param  {Object} sgtCtxDef - The related sample generator template context
  * definition object
  * @throws {MissingRequiredFieldrror} If the generator context field does not
- * have the attributes that are requred by the context definiton field of the
+ * have the attributes that are required by the context definiton field of the
  * sample generator template
  */
 function validateGeneratorCtx(sgCtx, sgtCtxDef) {
