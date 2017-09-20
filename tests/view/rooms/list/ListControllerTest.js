@@ -11,67 +11,88 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import TestUtils from 'react-addons-test-utils';
+import ReactTestUtils from 'react-dom/test-utils';
 import moment from 'moment';
 import { expect } from 'chai';
 import ListController from '../../../../view/rooms/list/ListController.js';
 
+const ZERO = 0;
+const ONE = 1;
 
-describe('tests/view/rooms/list/ListController.js, List of Rooms', () => {
-  const numOfColumns = 6;
-
-  it('no rooms in list', () => {
-    const listComponent = TestUtils.renderIntoDocument(
+describe('tests/view/rooms/list/ListController.js, List View =>', () => {
+  it('no table headers', () => {
+    const listComponent = ReactTestUtils.renderIntoDocument(
       <ListController />
     );
-    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+    const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'th'
+    );
+    expect(renderedDOM.length).to.equal(ZERO);
+  });
+
+  it('2 table headers', () => {
+    const headers = ['id', 'name'];
+    const listComponent = ReactTestUtils.renderIntoDocument(
+      <ListController tableHeaders={ headers } />
+    );
+    const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
+      listComponent,
+      'th'
+    );
+    expect(renderedDOM.length).to.equal(headers.length);
+    expect(ReactTestUtils.isDOMComponent(renderedDOM[ZERO])).to.be.true;
+    expect(ReactTestUtils.isDOMComponent(renderedDOM[ONE])).to.be.true;
+  });
+
+  it('no table rows', () => {
+    const listComponent = ReactTestUtils.renderIntoDocument(
+      <ListController />
+    );
+    const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
       listComponent,
       'td'
     );
-    expect(renderedDOM.length).to.equal(0);
+    expect(renderedDOM.length).to.equal(ZERO);
   });
 
-  it('2 rooms in list', () => {
-    const rooms = [
+  it('2 table rows', () => {
+    const headers = ['ID', 'Name', 'Type', 'Active',
+      'Created At', 'Updated At'];
+    const rows = [
       {
         id: '1',
         name: 'TestRoom',
         type: 'ID1',
-        active: true,
-        createdAt: moment(),
-        updatedAt: moment(),
+        active: 'true',
+        createdAt: moment().format(),
+        updatedAt: moment().format(),
       },
       {
         id: '2',
         name: 'TestRoom2',
         type: 'ID1',
-        active: true,
-        createdAt: moment(),
-        updatedAt: moment(),
+        active: 'true',
+        createdAt: moment().format(),
+        updatedAt: moment().format(),
       },
     ];
-    const roomTypes = [
-      {
-        id: 'ID1',
-        name: 'RoomType',
-      }
-    ];
-    const listComponent = TestUtils.renderIntoDocument(
+
+    const listComponent = ReactTestUtils.renderIntoDocument(
       <ListController
-        rooms={rooms}
-        roomTypes={roomTypes}
+        tableHeaders={headers}
+        tableRows={rows}
       />
     );
-    const renderedDOM = TestUtils.scryRenderedDOMComponentsWithTag(
+    const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
       listComponent,
       'td'
     );
-    const renderedDOM2 = TestUtils.findRenderedDOMComponentWithClass(
+    const renderedDOM2 = ReactTestUtils.findRenderedDOMComponentWithClass(
       listComponent,
       'slds-text-body_small'
     );
-    expect((renderedDOM.length)/numOfColumns).to.equal(rooms.length);
-    expect(renderedDOM2.textContent).to.contain(rooms.length);
+    expect(renderedDOM.length).to.equal(rows.length * headers.length);
+    expect(renderedDOM2.textContent).to.contain(rows.length);
   });
 });
