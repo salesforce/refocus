@@ -88,7 +88,41 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putGenerator(req, res, next) {
-    doPut(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const toPut = req.swagger.params.queryBody.value;
+    let instance;
+    const puttableFields =
+      req.swagger.params.queryBody.schema.schema.properties;
+
+    // find the instance, then update it
+    u.findByKey(
+        helper, req.swagger.params
+      )
+    .then((o) => u.isWritable(req, o))
+    .then((o) => {
+      let collectors = [];
+
+      /*
+       * Will throw error if there are duplicate
+       * or non-existent collectors in request
+       */
+      return helper.model.validateCollectors(
+        toPut.collectors, u.whereClauseForNameInArr)
+      .then((_collectors) => {
+        collectors = _collectors;
+        return u.updateInstance(o, puttableFields, toPut);
+      })
+      .then((o) => {
+        instance = o;
+        return o.setCollectors(collectors);
+      })
+      .then(() => instance.reload());
+
+      return u.updateInstance(o, puttableFields, toPut);
+    })
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .catch((err) => u.handleError(next, err, helper.modelName));
+    // doPut(req, res, next, helper);
   },
 
   /**
