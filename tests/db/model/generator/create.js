@@ -222,6 +222,74 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
+  it('not ok, cannot create a generator without a providing fields required' +
+    'by the generator template contextDefinition ', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'ExtraRequiredField';
+    _generatorTemplate.contextDefinition.newRequireField = {
+      required: true,
+      description: 'New field for contextDefinition',
+    };
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.message).to.equal('An unexpected MissingRequiredFieldError' +
+        ' occurred.');
+      done();
+    });
+  });
+
+  it('not ok, cannot create a generator with null context when context fields' +
+    'are marked required by the contextDefinition in the template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithNoContext';
+    _generator.context = undefined;
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'GTMAppedtoSGWithoutContext';
+    _generatorTemplate.contextDefinition.newRequireField = {
+      required: true,
+      description: 'New field for contextDefinition',
+    };
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.message).to.equal('An unexpected MissingRequiredFieldError' +
+        ' occurred.');
+      done();
+    });
+  });
+
+  it('ok, can create generator with generatorTemplate that does not ' +
+    'have contextDefinition', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'SGMappedToSGTWithoutCtxDef';
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'TemplateWithoutContextDef';
+    delete _generatorTemplate.contextDefinition;
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then((o) => {
+      expect(o.name).to.equal(_generator.name);
+      done();
+    })
+    .catch(done);
+  });
+
   it('not ok, cannot create a generator with encrypted filed ' +
     'when key/algo not found in global config', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
