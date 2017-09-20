@@ -122,7 +122,6 @@ module.exports = {
     })
     .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
-    // doPut(req, res, next, helper);
   },
 
   /**
