@@ -129,11 +129,14 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
   const useSampleStore =
     featureToggles.isFeatureEnabled('enableRedisSampleStore');
+
   return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
     aspectModel)
   .then((sample) => {
-    publishObject(sample, eventType);
-    return sample;
+    if (sample) {
+      publishObject(sample, eventType);
+      return sample;
+    }
   });
 } // publishSample
 
