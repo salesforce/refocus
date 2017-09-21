@@ -21,13 +21,21 @@ const dbErrors = require('../dbErrors');
  * @throws {MissingRequiredFieldrror} If the generator context field does not
  * have the attributes that are required by the context definiton field of the
  * sample generator template
+ * @throws {ValidationError} If the number of keys in the generator context do
+ * not match the number of keys in the generator template context.
  */
 function validateGeneratorCtx(sgCtx, sgtCtxDef) {
-  if (!sgtCtxDef) {
-    return;
+  const sgtCtxDefKeys = sgtCtxDef ? Object.keys(sgtCtxDef) : [];
+  const sgCtxKeys = sgCtx ? Object.keys(sgCtx) : [];
+
+  if (sgCtxKeys.length > sgtCtxDefKeys.length) {
+    throw new dbErrors.ValidationError(
+      { explanation: 'The keys in the generator context and the ' +
+      'generator template contextDefinition do not match',
+    });
   }
 
-  Object.keys(sgtCtxDef).forEach((key) => {
+  sgtCtxDefKeys.forEach((key) => {
     if (sgtCtxDef[key].required && (!sgCtx || !sgCtx[key])) {
       const err = new dbErrors.MissingRequiredFieldError(
       { explanation: `Missing the required generator context field ${key}` }

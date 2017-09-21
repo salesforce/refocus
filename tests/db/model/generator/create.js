@@ -249,8 +249,8 @@ describe('tests/db/model/generator/create.js >', () => {
   it('not ok, cannot create a generator with null context when context fields' +
     'are marked required by the contextDefinition in the template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
-    _generator.name = 'WithNoContext';
-    _generator.context = undefined;
+    _generator.name = 'WithoutContextField';
+    delete _generator.context;
     const _generatorTemplate = gtUtil.getGeneratorTemplate();
     _generatorTemplate.name = 'GTMAppedtoSGWithoutContext';
     _generatorTemplate.contextDefinition.newRequireField = {
@@ -272,8 +272,8 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('ok, can create generator with generatorTemplate that does not ' +
-    'have contextDefinition', (done) => {
+  it('not ok, can cannot create generator with context field when no ' +
+    'contextDefinition field is specified in the template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.name = 'SGMappedToSGTWithoutCtxDef';
     const _generatorTemplate = gtUtil.getGeneratorTemplate();
@@ -287,7 +287,12 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.name).to.equal(_generator.name);
       done();
     })
-    .catch(done);
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('The keys in the generator context ' +
+        'and the generator template contextDefinition do not match');
+      done();
+    });
   });
 
   it('not ok, cannot create a generator with encrypted filed ' +
@@ -305,6 +310,23 @@ describe('tests/db/model/generator/create.js >', () => {
         'administrator to set up the encryption algorithm and key to ' +
         'protect any sensitive information you may include in ' +
         'your Sample Generator\'s context');
+      done();
+    });
+  });
+
+  it('not ok, cannot create generator with context keys that do not ' +
+    'match the template contextDefinition keys', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithExtraContextFields';
+    _generator.context.field = 'name';
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting Generator to throw a validation error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('The keys in the generator context ' +
+        'and the generator template contextDefinition do not match');
       done();
     });
   });
