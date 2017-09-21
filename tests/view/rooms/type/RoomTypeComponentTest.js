@@ -39,7 +39,7 @@ describe('tests/view/rooms/type/RoomTypeComponentTest.js, Rendering =>', () => {
       isEnabled: true,
       bots: ['bot1', 'bot2'],
       createdAt: moment(),
-      updatedAt: moment()
+      updatedAt: moment(),
     };
     const roomTypeComponent = ReactTestUtils.renderIntoDocument(
       <RoomTypeComponent roomType={ roomType } />
