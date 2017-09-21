@@ -179,9 +179,11 @@ module.exports = function generator(seq, dataTypes) {
        *
        * @param {Object} requestBody From API
        * @param {Function} whereClauseForNameInArr Returns an object query
+       * @param {Function} sortArrayObjectsByField Returns an sorted array
        * @returns {Promise} created generator with collectors (if any)
        */
-      createWithCollectors(requestBody, whereClauseForNameInArr) {
+      createWithCollectors(requestBody,
+        whereClauseForNameInArr, sortArrayObjectsByField) {
         let createdGenerator;
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
@@ -196,6 +198,16 @@ module.exports = function generator(seq, dataTypes) {
             return _createdGenerator.addCollectors(collectors);
           })
           .then(() => resolve(createdGenerator.reload()))
+          .then((_generator) => {
+            const { collectors } = _generator;
+
+            // order collectors by name
+            if (collectors) {
+              collectors = sortArrayObjectsByField(collectors, 'name');
+            }
+
+            resolve(_generator);
+          })
           .catch(reject)
         );
       },
