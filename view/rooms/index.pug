@@ -30,16 +30,16 @@ html
                     span.slds-r8
                     span.slds-r9
               span.slds-context-bar__label-action.slds-context-bar__app-name
-                span.slds-truncate(title='App Name') Refocus Rooms
-      block page-navigation
-        nav.slds-context-bar__secondary(role='navigation')
-          ul.slds-grid
-            li.slds-context-bar__item
-              a(href='/rooms').slds-context-bar__label-action(title="All Rooms")
-                span.slds-truncate(title='All Rooms') All Rooms
-            li.slds-context-bar__item
-              a(href='/rooms/types').slds-context-bar__label-action(title="Room Types")
-                span.slds-truncate(title='Room Types') Room Types
+                span.slds-truncate(title='Refocus') Refocus
+        block page-navigation
+          nav.slds-context-bar__secondary(role='navigation')
+            ul.slds-grid
+              li.slds-context-bar__item
+                a(href='/rooms', title='Rooms').slds-context-bar__label-action
+                  span.slds-truncate(title='Rooms') Rooms
+              li.slds-context-bar__item
+                a(href='/rooms/types', title='Room Types').slds-context-bar__label-action
+                  span.slds-truncate(title='Room Types') Room Types
     block page-header
       div.slds-page-header.slds-page-header_vertical
         div.slds-grid
