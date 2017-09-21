@@ -14,6 +14,7 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const logger = require('winston');
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -400,7 +401,15 @@ function isIpWhitelisted(addr, whitelist) {
  */
 function attachAspectSubject(sample, useSampleStore, subjectModel,
   aspectModel) {
-  const nameParts = sample.name.split('|');
+  let nameParts;
+
+  // check if sample object contains name
+  if (!sample.name || sample.name.indexOf('|') < 0) {
+    logger.error('sample object does not contain name', sample);
+    return Promise.resolve(null);
+  }
+
+  nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];

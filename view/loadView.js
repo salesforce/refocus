@@ -40,6 +40,7 @@ const viewmap = {
   '/perspectivesBeta/:key': 'perspectiveBeta/perspective',
   '/tokens/new': 'tokens/new',
   '/rooms': 'rooms/list',
+  '/rooms/types': 'rooms/types',
   '/rooms/:key': 'rooms',
 };
 
