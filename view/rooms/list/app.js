@@ -60,6 +60,7 @@ function loadController(rooms, roomTypes) {
     room.updatedAt = moment(room.updatedAt).format('LLL');
     return room;
   });
+
   uPage.removeSpinner();
   ReactDOM.render(
     <ListController
