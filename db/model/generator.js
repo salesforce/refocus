@@ -199,11 +199,11 @@ module.exports = function generator(seq, dataTypes) {
           })
           .then(() => resolve(createdGenerator.reload()))
           .then((_generator) => {
-            const { collectors } = _generator;
 
             // order collectors by name
             if (collectors) {
-              collectors = sortArrayObjectsByField(collectors, 'name');
+              _generator.collectors = sortArrayObjectsByField(
+                _generator.collectors, 'name');
             }
 
             resolve(_generator);

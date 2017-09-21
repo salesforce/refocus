@@ -27,7 +27,9 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
-
+  const sortedNames = [collector1, collector2, collector3]
+    .map((col) => col.name)
+    .sort();
   let userInst;
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
@@ -75,9 +77,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .then((o) => {
       expect(o.collectors.length).to.equal(THREE);
       const collectorNames = o.collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
-      expect(collectorNames).to.contain(collector3.name);
+      expect(collectorNames).to.deep.equal(sortedNames);
 
       // standard generator check
       expect(o.user.name).to.equal(userInst.name);
