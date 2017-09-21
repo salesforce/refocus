@@ -28,11 +28,6 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 
 const jobQueue = kue.createQueue(redisOptions);
 
-/*
- * calling watchStuckJobs as per Kue's recommendation, here
- * https://github.com/Automattic/kue#unstable-redis-connections
- */
-jobQueue.watchStuckJobs(conf.WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS);
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
