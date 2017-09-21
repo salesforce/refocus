@@ -27,11 +27,13 @@ const dbErrors = require('../dbErrors');
 function validateGeneratorCtx(sgCtx, sgtCtxDef) {
   const sgtCtxDefKeys = sgtCtxDef ? Object.keys(sgtCtxDef) : [];
   const sgCtxKeys = sgCtx ? Object.keys(sgCtx) : [];
+  const sgtCtxDefKeysSet = new Set(sgtCtxDefKeys);
 
-  if (sgCtxKeys.length > sgtCtxDefKeys.length) {
+  const invalidKeys = sgCtxKeys.filter((key) => !sgtCtxDefKeysSet.has(key));
+  if (invalidKeys.length) {
     throw new dbErrors.ValidationError(
-      { explanation: 'The keys in the generator context and the ' +
-      'generator template contextDefinition do not match',
+      { explanation: 'Sample generator context contains invalid ' +
+      `keys: ${invalidKeys}`,
     });
   }
 

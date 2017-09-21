@@ -272,7 +272,7 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, can cannot create generator with context field when no ' +
+  it('not ok, cannot create generator with context field when no ' +
     'contextDefinition field is specified in the template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.name = 'SGMappedToSGTWithoutCtxDef';
@@ -289,8 +289,8 @@ describe('tests/db/model/generator/create.js >', () => {
     })
     .catch((err) => {
       expect(err.name).to.equal('ValidationError');
-      expect(err.explanation).to.equal('The keys in the generator context ' +
-        'and the generator template contextDefinition do not match');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: okValue,password,token');
       done();
     });
   });
@@ -325,8 +325,29 @@ describe('tests/db/model/generator/create.js >', () => {
     })
     .catch((err) => {
       expect(err.name).to.equal('ValidationError');
-      expect(err.explanation).to.equal('The keys in the generator context ' +
-        'and the generator template contextDefinition do not match');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: field');
+      done();
+    });
+  });
+
+  it('not ok, cannot create generator with invalid context keys', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithInvalidContextFields';
+    _generator.context = {
+      invalidField1: 'not valid',
+      invalidField2: 'not valid',
+      invalidField3: 'not valid',
+    };
+
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting Generator to throw a validation error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: invalidField1,invalidField2,invalidField3');
       done();
     });
   });
