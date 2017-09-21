@@ -31,8 +31,10 @@ window.onload = () => {
     uPage.setSubTitle(`Room Type Id: ${ROOM_TYPE_ID}`);
     uPage.removeSpinner();
     ReactDOM.render(
-      <RoomTypeComponent />,
+      <RoomTypeComponent
+        roomType={ res.body }
+      />,
       roomTypeContainer
     );
-  })
+  });
 };

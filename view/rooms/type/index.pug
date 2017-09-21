@@ -8,7 +8,8 @@ extends ./../index.pug
 
 block container
   div.slds-align_absolute-center(style='width: 300px')
-    div#roomTypeContainer.slds-grid.slds-grid_vertical
+    div.slds-grid(style='margin-top: 0.15rem; background: rgb(244, 246, 249); padding: 1rem;')
+      div#roomTypeContainer.slds-panel.slds-grid.slds-grid_vertical.slds-nowrap
 
 block dynamic-content
   script(src='/static/rooms/type/app.js')

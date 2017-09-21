@@ -12,8 +12,36 @@ html
     link(rel='shortcut icon', href='favicon.ico')
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.min.css')
   body
+    block navigation
+      div.slds-context-bar
+        block app-logo
+          div.slds-context-bar__primary
+            div.slds-context-bar__item.slds-context-bar__dropdown-trigger.slds-dropdown-trigger.slds-dropdown-trigger_click.slds-no-hover
+              div.slds-context-bar__icon-action
+                button.slds-button.slds-icon-waffle_container.slds-context-bar__button(title='Refocus Rooms')
+                  span.slds-icon-waffle
+                    span.slds-r1
+                    span.slds-r2
+                    span.slds-r3
+                    span.slds-r4
+                    span.slds-r5
+                    span.slds-r6
+                    span.slds-r7
+                    span.slds-r8
+                    span.slds-r9
+              span.slds-context-bar__label-action.slds-context-bar__app-name
+                span.slds-truncate(title='App Name') Refocus Rooms
+      block page-navigation
+        nav.slds-context-bar__secondary(role='navigation')
+          ul.slds-grid
+            li.slds-context-bar__item
+              a(href='/rooms').slds-context-bar__label-action(title="All Rooms")
+                span.slds-truncate(title='All Rooms') All Rooms
+            li.slds-context-bar__item
+              a(href='/rooms/types').slds-context-bar__label-action(title="Room Types")
+                span.slds-truncate(title='Room Types') Room Types
     block page-header
-      div.slds-page-header
+      div.slds-page-header.slds-page-header_vertical
         div.slds-grid
           div.slds-cols.slds-has-flexi-truncate
             div.slds-media.slds-no-space.slds-grow

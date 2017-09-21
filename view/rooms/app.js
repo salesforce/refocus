@@ -113,6 +113,7 @@ function parseBot(bot) {
     );
     document.body.appendChild(botScript);
   }
+
   uPage.removeSpinner();
 } // parseBots
 
