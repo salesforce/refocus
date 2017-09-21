@@ -256,7 +256,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     // if sample exists, just update sample.
     if (sample) {
-
       // to avoid updating sample name
       delete sampleQueryBodyObj.name;
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);

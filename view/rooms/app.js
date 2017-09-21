@@ -64,6 +64,7 @@ function createHeader(bot) {
       'background:#c23934;width:8px;height:8px;border-radius:50%;margin:5px;'
     );
   }
+
   circle.className = 'slds-float_right';
 
   title.appendChild(text);
@@ -101,6 +102,7 @@ function parseBot(bot) {
     botContainer.appendChild(headerSection);
     botsContainer.appendChild(botContainer);
   }
+
   // go through zipEntries that arent 'index.html'
   const zipEntriesNoIndex = zipEntries.filter(
     (entry) => entry.name !== 'index.html'
@@ -121,12 +123,10 @@ window.onload = () => {
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     document.getElementById('subTitle').innerHTML = res.body.name;
-    return u.getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    const promises = res.body.bots.map((botName) => {
-      return u.getPromiseWithUrl(GET_BOTS + '/' + botName);
-    });
+    const promises = res.body.bots.map(botName => u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
   .then((res) => {
