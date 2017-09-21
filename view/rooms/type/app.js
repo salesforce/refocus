@@ -27,12 +27,13 @@ const GET_ROOMTYPE = '/v1/roomTypes';
 window.onload = () => {
   u.getPromiseWithUrl(`${GET_ROOMTYPE}/${ROOM_TYPE_ID}`)
   .then((res) => {
-    uPage.setTitle(res.body.name);
+    const roomType = res.body;
+    uPage.setTitle(roomType.name);
     uPage.setSubTitle(`Room Type Id: ${ROOM_TYPE_ID}`);
     uPage.removeSpinner();
     ReactDOM.render(
       <RoomTypeComponent
-        roomType={ res.body }
+        roomType={ roomType }
       />,
       roomTypeContainer
     );

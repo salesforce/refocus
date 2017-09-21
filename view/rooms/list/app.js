@@ -27,6 +27,7 @@ const GET_ROOMTYPES = '/v1/roomTypes';
 window.onload = () => {
   let rooms;
   let roomTypes;
+  uPage.setRoomsTab();
   u.getPromiseWithUrl(GET_ROOMS)
   .then((res) => {
     rooms = res.body;
@@ -44,7 +45,6 @@ window.onload = () => {
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(rooms, roomTypes) {
-
   uPage.setTitle('Refocus Rooms');
   uPage.setSubTitle(`Number of rooms: ${rooms.length}`);
 

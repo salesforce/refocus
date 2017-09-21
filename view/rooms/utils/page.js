@@ -16,6 +16,8 @@ const u = require('./../../utils');
 const TITLE_ELEM_ID = 'title';
 const SUBTITLE_ELEM_ID = 'subTitle';
 const SPINNER_ID = 'loading_spinner';
+const ROOMS_TAB = 'roomsTab';
+const ROOM_TYPES_TAB = 'roomTypesTab';
 
 module.exports = {
 
@@ -44,5 +46,21 @@ module.exports = {
    */
   removeSpinner() {
     u.removeSpinner(SPINNER_ID);
+  },
+
+  /**
+   * Activates Room nav tab.
+   */
+  setRoomsTab() {
+    let roomsTab = document.getElementById(ROOMS_TAB);
+    roomsTab.className += ' slds-is-active';
+  },
+
+  /**
+   * Activates Room Types nav tab.
+   */
+  setRoomTypesTab() {
+    let roomTypesTab = document.getElementById(ROOM_TYPES_TAB);
+    roomTypesTab.className += ' slds-is-active';
   },
 };

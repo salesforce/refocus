@@ -13,7 +13,7 @@ html
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.min.css')
   body
     block navigation
-      div.slds-context-bar
+      div.slds-context-bar(style='margin-top: 0.75rem')
         block app-logo
           div.slds-context-bar__primary
             div.slds-context-bar__item.slds-context-bar__dropdown-trigger.slds-dropdown-trigger.slds-dropdown-trigger_click.slds-no-hover
@@ -34,10 +34,10 @@ html
         block page-navigation
           nav.slds-context-bar__secondary(role='navigation')
             ul.slds-grid
-              li.slds-context-bar__item
+              li.slds-context-bar__item#roomsTab
                 a(href='/rooms', title='Rooms').slds-context-bar__label-action
                   span.slds-truncate(title='Rooms') Rooms
-              li.slds-context-bar__item
+              li.slds-context-bar__item#roomTypesTab
                 a(href='/rooms/types', title='Room Types').slds-context-bar__label-action
                   span.slds-truncate(title='Room Types') Room Types
     block page-header
