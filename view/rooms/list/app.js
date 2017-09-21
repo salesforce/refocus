@@ -19,7 +19,8 @@ import ListController from './ListController';
 import moment from 'moment';
 
 const u = require('../../utils');
-const listContainer = document.getElementById('root');
+const uPage = require('./../utils/page');
+const roomsListContainer = document.getElementById('roomsListContainer');
 const GET_ROOMS = '/v1/rooms';
 const GET_ROOMTYPES = '/v1/roomTypes';
 
@@ -43,6 +44,10 @@ window.onload = () => {
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(rooms, roomTypes) {
+
+  uPage.setTitle('Refocus Rooms');
+  uPage.setSubTitle(`Number of rooms: ${rooms.length}`);
+
   const headers = ['ID', 'Name', 'Type', 'Active', 'Created At', 'Updated At'];
   const rows = rooms.map(room => {
     const roomType = roomTypes.filter(rt => rt.id === room.type);
@@ -55,14 +60,13 @@ function loadController(rooms, roomTypes) {
     room.updatedAt = moment(room.updatedAt).format('LLL');
     return room;
   });
+  uPage.removeSpinner();
   ReactDOM.render(
     <ListController
-      pageTitle='Refocus Rooms'
-      pageDescription='Number of rooms: '
       tableHeaders={ headers }
       tableRows={ rows }
     />,
-    listContainer
+    roomsListContainer
   );
 }
 

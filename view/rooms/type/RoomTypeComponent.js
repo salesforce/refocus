@@ -21,11 +21,6 @@ class RoomTypeComponent extends React.Component {
   }
 
   render() {
-    const {
-      pageTitle,
-      pageDescription,
-    } = this.props;
-
     return (
       <div className='slds-has-divider_bottom-space'>
         <div className='slds-button-group slds-m-left_none slds-m-top_x-small' role='group'>
@@ -38,13 +33,9 @@ class RoomTypeComponent extends React.Component {
 }
 
 RoomTypeComponent.propTypes = {
-  pageTitle: PropTypes.string,
-  pageDescription: PropTypes.string,
 };
 
 RoomTypeComponent.defaultProps = {
-  pageTitle: 'List View',
-  pageDescription: 'Number of rows: ',
 };
 
 export default RoomTypeComponent;

@@ -13,14 +13,14 @@
  * to have their UI appended to the page.
  */
 
-const botsContainer = document.getElementById('botsContainer');
+const botsContainer = document.getElementById('roomsContainer');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
+const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[1];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
-const SPINNER_ID = 'loading_spinner';
 
 /**
  * Creates headers for each bot added to the UI
@@ -113,16 +113,15 @@ function parseBot(bot) {
     );
     document.body.appendChild(botScript);
   }
-
-  u.removeSpinner(SPINNER_ID);
+  uPage.removeSpinner();
 } // parseBots
 
 window.onload = () => {
-  document.getElementById('title').innerHTML = 'Room #' + ROOM_ID;
+  uPage.setTitle(`Room # ${ROOM_ID}`);
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    document.getElementById('subTitle').innerHTML = res.body.name;
+    uPage.setSubTitle(res.body.name);
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {

@@ -13,29 +13,26 @@
  * to have their UI appended to the page.
  */
 
-const roomTypeContainer = document.getElementById('roomTypeContainer');
 const u = require('../../utils');
+const uPage = require('./../utils/page');
+const roomTypeContainer = document.getElementById('roomTypeContainer');
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import RoomTypeComponent from './RoomTypeComponent';
 
 const ROOM_TYPE_ID = window.location.pathname.split('/rooms/types/')[1];
 const GET_ROOMTYPE = '/v1/roomTypes';
-const SPINNER_ID = 'loading_spinner';
 
 window.onload = () => {
-
   u.getPromiseWithUrl(`${GET_ROOMTYPE}/${ROOM_TYPE_ID}`)
   .then((res) => {
-    u.removeSpinner(SPINNER_ID);
-    document.getElementById('title').innerHTML = res.body.name;
-    document.getElementById('subTitle').innerHTML = 'Room Type Id: ' + ROOM_TYPE_ID;
+    uPage.setTitle(res.body.name);
+    uPage.setSubTitle(`Room Type Id: ${ROOM_TYPE_ID}`);
+    uPage.removeSpinner();
     ReactDOM.render(
       <RoomTypeComponent />,
       roomTypeContainer
     );
-  })
-  .catch(error => {
-    console.log(`error ${error}`);
   })
 };
