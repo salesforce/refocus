@@ -20,6 +20,7 @@ const common = require('../../../../utils/common');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * @param {Object} o Sequelize instance

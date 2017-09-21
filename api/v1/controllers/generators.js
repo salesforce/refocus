@@ -90,36 +90,32 @@ module.exports = {
   putGenerator(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const toPut = req.swagger.params.queryBody.value;
-    let instance;
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
+    let instance;
+    let collectors = [];
 
-    // find the instance, then update it
-    u.findByKey(
-        helper, req.swagger.params
-      )
+    /*
+     * Find the instance, then update it.
+     * Will throw error if there are duplicate
+     * or non-existent collectors in request
+     */
+    u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
-      let collectors = [];
-
-      /*
-       * Will throw error if there are duplicate
-       * or non-existent collectors in request
-       */
+      instance = o;
       return helper.model.validateCollectors(
-        toPut.collectors, u.whereClauseForNameInArr)
-      .then((_collectors) => {
-        collectors = _collectors;
-        return u.updateInstance(o, puttableFields, toPut);
-      })
-      .then((o) => {
-        instance = o;
-        return o.setCollectors(collectors);
-      })
-      .then(() => instance.reload());
-
-      return u.updateInstance(o, puttableFields, toPut);
+        toPut.collectors, u.whereClauseForNameInArr);
     })
+    .then((_collectors) => {
+      collectors = _collectors;
+      return u.updateInstance(instance, puttableFields, toPut);
+    })
+    .then((_updatedInstance) => {
+      instance = _updatedInstance;
+      return instance.setCollectors(collectors);
+    }) // need reload instance to attach associations
+    .then(() => instance.reload())
     .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

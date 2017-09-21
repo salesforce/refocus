@@ -11,14 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const featureToggles = require('feature-toggles');
 const u = require('./utils');
-const publisher = u.publisher;
-const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
-const redisModelSample = require('../../../../cache/models/samples');
-const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -41,9 +34,7 @@ function doPut(req, res, next, props) {
     req.swagger.params.queryBody.schema.schema.properties;
 
   // find the instance, then update it
-  u.findByKey(
-      props, req.swagger.params
-    )
+  u.findByKey(props, req.swagger.params)
   .then((o) => u.isWritable(req, o))
   .then((o) => u.updateInstance(o, puttableFields, toPut))
   .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
