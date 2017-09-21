@@ -22,6 +22,7 @@ class RoomTypeComponent extends React.Component {
 
   render() {
     const { roomType } = this.props;
+    if (!roomType) return (null);
     const buttons = (
       <div className='slds-panel__section slds-border_bottom'>
         <div className='slds-media__body'>
@@ -48,7 +49,7 @@ class RoomTypeComponent extends React.Component {
       </div>
     );
     return (
-      <div class='slds-form slds-form_stacked slds-grow slds-scrollable_y'>
+      <div className='slds-form slds-form_stacked slds-grow slds-scrollable_y'>
         {buttons}
         {panel}
       </div>
