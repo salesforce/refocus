@@ -42,6 +42,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+  const sortedNames = [collector1, collector2, collector3]
+    .map((col) => col.name)
+    .sort();
 
   before((done) => {
     Promise.all([
@@ -81,12 +84,13 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('simple GET ALL returns the expected number of collectors ' +
+  it.only('simple GET ALL returns the expected number of collectors ' +
     'per generator', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    // .expect(constants.httpStatus.OK)
     .end((err, res) => {
+      // console.log(res.body)
       if (err) {
         return done(err);
       }
@@ -96,9 +100,7 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       expect(firstGenerator.collectors.length).to.equal(THREE);
 
       const collectorNames = firstGenerator.collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
-      expect(collectorNames).to.contain(collector3.name);
+      expect(collectorNames).to.deep.equal(sortedNames);
 
       expect(firstGenerator.id).to.not.equal(undefined);
       expect(res.body[ONE].collectors.length).to.equal(ONE);

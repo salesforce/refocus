@@ -83,6 +83,16 @@ function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
   doFindAndCountAll(reqResNext, props, opts)
   .then((retval) => {
 
+    // order collectors by name
+    if (props.modelName === 'Generator') {
+      for (let i = retval.length - 1; i >= 0; i--) {
+        const { collectors } = retval[i];
+        if (collectors) {
+          retval[i].collectors = collectors.sort((a, b) => a.name.localeCompare(b.name));
+        }
+      }
+    }
+
     // loop through remove values to delete property
     if (props.fieldsToExclude) {
       for (let i = retval.length - 1; i >= 0; i--) {
