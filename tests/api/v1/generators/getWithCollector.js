@@ -84,13 +84,12 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it.only('simple GET ALL returns the expected number of collectors ' +
+  it('simple GET ALL returns the expected number of collectors ' +
     'per generator', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
-    // .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      // console.log(res.body)
       if (err) {
         return done(err);
       }
