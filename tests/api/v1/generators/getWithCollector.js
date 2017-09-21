@@ -122,9 +122,7 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
 
       expect(res.body.collectors.length).to.equal(THREE);
       const collectorNames = res.body.collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
-      expect(collectorNames).to.contain(collector3.name);
+      expect(collectorNames).to.deep.equal(sortedNames);
       done();
     });
   });

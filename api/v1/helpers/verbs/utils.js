@@ -22,6 +22,17 @@ const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 
 /**
+ * @param {Array} arr Array of objects
+ * @param {String} fieldName The field to sort by
+ * @returns {Array} Array sorted by field
+ */
+function sortArrayObjectsByField(arr, fieldName) {
+  const arrCopy = JSON.parse(JSON.stringify(arr));
+  arrCopy.sort((a, b) => a.name.localeCompare(b.name));
+  return arrCopy;
+}
+
+/**
  * In-place removal of certain keys from the input object
  *
  * @oaram {Array} fieldsArr The fields to remove from the following obj
@@ -757,6 +768,7 @@ function createSample(req, props) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
+  sortArrayObjectsByField,
 
   realtimeEvents,
 

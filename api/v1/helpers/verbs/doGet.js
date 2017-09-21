@@ -76,10 +76,11 @@ function doGet(req, res, next, props) {
     }
 
     getPromise.then((o) => {
+
       // order collectors by name
       if (props.modelName === 'Generator') {
         if (o.collectors) {
-          o.collectors = o.collectors.sort((a, b) => a.name.localeCompare(b.name));
+          o.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
         }
       }
 

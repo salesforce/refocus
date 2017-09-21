@@ -88,7 +88,7 @@ function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
       for (let i = retval.length - 1; i >= 0; i--) {
         const { collectors } = retval[i];
         if (collectors) {
-          retval[i].collectors = collectors.sort((a, b) => a.name.localeCompare(b.name));
+          retval[i].collectors = u.sortArrayObjectsByField(collectors, 'name');
         }
       }
     }
