@@ -77,17 +77,20 @@ function doGet(req, res, next, props) {
 
     getPromise.then((o) => {
 
+      // o is read only.
+      const returnObj = JSON.parse(JSON.stringify(o.get()));
+
       // order collectors by name
       if (props.modelName === 'Generator') {
-        if (o.collectors) {
-          o.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
+        if (returnObj.collectors) {
+          returnObj.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
         }
       }
 
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      u.logAPI(req, resultObj, o);
-      res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+      u.logAPI(req, resultObj, returnObj);
+      res.status(httpStatus.OK).json(u.responsify(returnObj, props, req.method));
     })
     .catch((err) => u.handleError(next, err, props.modelName));
   }
