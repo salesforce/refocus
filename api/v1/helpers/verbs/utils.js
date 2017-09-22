@@ -82,7 +82,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
   // publish the update event to the redis channel
   if (props.publishEvents) {
     publisher.publishSample(
-      returnObj, props.associatedModels.subject, event.sample.upd);
+      returnObj, props.associatedModels.subject, realtimeEvents.sample.upd);
   }
 
   // update the cache
@@ -96,7 +96,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, returnObj);
 
-  return res.status(httpStatus.OK)
+  return res.status(constants.httpStatus.OK)
     .json(responsify(returnObj, props, req.method));
 }
 
@@ -879,15 +879,13 @@ function responsify(rec, props, method) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
-<<<<<<< HEAD
   sortArrayObjectsByField,
-=======
+
   updateInstance,
 
   responsify,
 
   handleUpdatePromise,
->>>>>>> origin/refactorDoPut
 
   realtimeEvents,
 
