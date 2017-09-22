@@ -134,9 +134,6 @@ const shortTermToggles = {
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
-  fastFailDuplicateSubject: environmentVariableTrue(pe,
-    'FAST_FAIL_DUPLICATE_SUBJECT'),
-
   // publish partial sample to the subscribers
   publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 

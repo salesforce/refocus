@@ -415,7 +415,6 @@ module.exports = {
      */
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
       featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      featureToggles.isFeatureEnabled('fastFailDuplicateSubject') &&
       !u.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
