@@ -76,7 +76,10 @@ function doPatch(req, res, next, props) {
   });
 
   patchPromise
-  .then((retVal) => patchUtils.handlePatchPromise(resultObj, req, retVal, props, res))
+  .then((retVal) => {
+    console.log(retVal.collectors.map((col) => col.name))
+    return patchUtils.handlePatchPromise(resultObj, req, retVal, props, res)
+  })
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 
