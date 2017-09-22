@@ -179,11 +179,9 @@ module.exports = function generator(seq, dataTypes) {
        *
        * @param {Object} requestBody From API
        * @param {Function} whereClauseForNameInArr Returns an object query
-       * @param {Function} sortArrayObjectsByField From API. Sorts collectors by name.
        * @returns {Promise} created generator with collectors (if any)
        */
-      createWithCollectors(requestBody,
-        whereClauseForNameInArr, sortArrayObjectsByField) {
+      createWithCollectors(requestBody, whereClauseForNameInArr) {
         let createdGenerator;
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
@@ -197,8 +195,7 @@ module.exports = function generator(seq, dataTypes) {
             createdGenerator = _createdGenerator;
             return _createdGenerator.addCollectors(collectors);
           })
-          .then(() => resolve(
-            utils.reloadAndOrderCollectors(createdGenerator, sortArrayObjectsByField)))
+          .then(() => resolve(createdGenerator.reload()))
           .catch(reject)
         );
       },
@@ -291,11 +288,9 @@ module.exports = function generator(seq, dataTypes) {
        *
        * @param {Object} requestBody From API
        * @param {Function} whereClauseForNameInArr Returns an object query
-       * @param {Function} sortArrayObjectsByField Returns an sorted array
        * @returns {Promise} created generator with collectors (if any)
        */
-      updateWithCollectors(requestBody,
-        whereClauseForNameInArr, sortArrayObjectsByField) {
+      updateWithCollectors(requestBody, whereClauseForNameInArr) {
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
           utils.validateCollectors(seq, requestBody.collectors,
@@ -305,9 +300,7 @@ module.exports = function generator(seq, dataTypes) {
             return this.update(requestBody);
           })
           .then(() => this.addCollectors(collectors))
-          .then(() => this.reload())
-          .then(() => resolve(utils
-            .reloadAndOrderCollectors(this, sortArrayObjectsByField)))
+          .then(() => resolve(this.reload()))
           .catch(reject)
         );
       },

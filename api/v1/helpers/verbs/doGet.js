@@ -78,13 +78,12 @@ function doGet(req, res, next, props) {
     getPromise.then((o) => {
 
       // o is read only.
-      const returnObj = JSON.parse(JSON.stringify(o.get()));
+      let returnObj = o;
 
       // order collectors by name
-      if (props.modelName === 'Generator') {
-        if (returnObj.collectors) {
-          returnObj.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
-        }
+      if (props.modelName === 'Generator' && o.collectors) {
+        returnObj = JSON.parse(JSON.stringify(o.get()));
+        returnObj.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
       }
 
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

@@ -13,6 +13,7 @@
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
+const patchUtils = require('./patchUtils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
@@ -115,26 +116,7 @@ function doPut(req, res, next, props) {
       });
   }
 
-  putPromise.then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    u.logAPI(req, resultObj, o);
-
-    // publish the update event to the redis channel
-    if (props.publishEvents) {
-      publisher.publishSample(o, props.associatedModels.subject,
-       event.sample.upd);
-    }
-
-    // update the cache
-    if (props.cacheEnabled) {
-      const getCacheKey = req.swagger.params.key.value;
-      const findCacheKey = '{"where":{}}';
-      redisCache.del(getCacheKey);
-      redisCache.del(findCacheKey);
-    }
-
-    res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
-  })
+  putPromise.then((o) => patchUtils.handlePatchPromise(resultObj, req, o, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

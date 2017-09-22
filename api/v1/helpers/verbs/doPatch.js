@@ -70,16 +70,12 @@ function doPatch(req, res, next, props) {
     u.patchArrayFields(o, requestBody, props);
 
     return (props.modelName === 'Generator') ?
-      o.updateWithCollectors(requestBody,
-        u.whereClauseForNameInArr, u.sortArrayObjectsByField) :
+      o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
       o.update(requestBody);
   });
 
   patchPromise
-  .then((retVal) => {
-    console.log(retVal.collectors.map((col) => col.name))
-    return patchUtils.handlePatchPromise(resultObj, req, retVal, props, res)
-  })
+  .then((retVal) => patchUtils.handlePatchPromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

@@ -82,6 +82,14 @@ function handlePostResult(o, resultObj, props, res, req) {
       realtimeEvents.sample.add, props.associatedModels.aspect);
   }
 
+  // order collectors by name
+  if (props.modelName === 'Generator' && o.collectors) {
+    const returnObj = JSON.parse(JSON.stringify(o.get ? o.get() : o));
+    returnObj.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
+    return res.status(constants.httpStatus.CREATED).json(
+      u.responsify(returnObj, props, req.method));
+  }
+
   // if response directly from sequelize, call reload to attach
   // the associations
   if (featureToggles.isFeatureEnabled('returnUser') && o.get) {

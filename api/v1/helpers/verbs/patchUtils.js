@@ -29,13 +29,19 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  * @returns {Object} JSON succcessful response
  */
 function handlePatchPromise(resultObj, req, retVal, props, res) {
-  resultObj.dbTime = new Date() - resultObj.reqStartTime;
-  u.logAPI(req, resultObj, retVal);
+  // retVal is read only.
+  let returnObj = retVal;
+
+  // order collectors by name
+  if (props.modelName === 'Generator' && retVal.collectors) {
+    returnObj = JSON.parse(JSON.stringify(retVal.get()));
+    returnObj.collectors = u.sortArrayObjectsByField(retVal.collectors, 'name');
+  }
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
     publisher.publishSample(
-      retVal, props.associatedModels.subject, event.sample.upd);
+      returnObj, props.associatedModels.subject, event.sample.upd);
   }
 
   // update the cache
@@ -46,8 +52,11 @@ function handlePatchPromise(resultObj, req, retVal, props, res) {
     redisCache.del(findCacheKey);
   }
 
+  resultObj.dbTime = new Date() - resultObj.reqStartTime;
+  u.logAPI(req, resultObj, returnObj);
+
   return res.status(httpStatus.OK)
-    .json(u.responsify(retVal, props, req.method));
+    .json(u.responsify(returnObj, props, req.method));
 }
 
 module.exports = {

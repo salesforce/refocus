@@ -93,7 +93,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     });
   });
 
-  it.only('ok: PATCH to add new collectors', (done) => {
+  it('ok: PATCH to add new collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send({ collectors: [collector2.name, collector3.name] })
