@@ -50,8 +50,8 @@ function loadController(roomTypes) {
     roomType.bots = String(roomType.bots);
     roomType.enabled = roomType.isEnabled ? 'True' : 'False';
     delete roomType.isEnabled;
-    roomType.createdAt = moment(roomType.createdAt).format('LLL');
-    roomType.updatedAt = moment(roomType.updatedAt).format('LLL');
+    roomType.createdAt = moment(roomType.createdAt).format('lll');
+    roomType.updatedAt = moment(roomType.updatedAt).format('lll');
     return roomType;
   });
   uPage.removeSpinner();

@@ -24,7 +24,7 @@ class RoomTypeComponent extends React.Component {
     const { roomType } = this.props;
     if (!roomType) return (null);
     const buttons = (
-      <div className='slds-panel__section slds-border_bottom'>
+      <div className='slds-panel__section slds-border_bottom slds-border_top'>
         <div className='slds-media__body'>
           <div className='slds-button-group slds-m-top_small' role='group'>
             <button
