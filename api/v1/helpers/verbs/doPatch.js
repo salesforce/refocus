@@ -70,7 +70,8 @@ function doPatch(req, res, next, props) {
     u.patchArrayFields(o, requestBody, props);
 
     return (props.modelName === 'Generator') ?
-      o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
+      o.updateWithCollectors(requestBody,
+        u.whereClauseForNameInArr, u.sortArrayObjectsByField) :
       o.update(requestBody);
   });
 

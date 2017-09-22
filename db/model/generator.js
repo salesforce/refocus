@@ -179,7 +179,7 @@ module.exports = function generator(seq, dataTypes) {
        *
        * @param {Object} requestBody From API
        * @param {Function} whereClauseForNameInArr Returns an object query
-       * @param {Function} sortArrayObjectsByField Returns an sorted array
+       * @param {Function} sortArrayObjectsByField From API. Sorts collectors by name.
        * @returns {Promise} created generator with collectors (if any)
        */
       createWithCollectors(requestBody,
@@ -197,17 +197,8 @@ module.exports = function generator(seq, dataTypes) {
             createdGenerator = _createdGenerator;
             return _createdGenerator.addCollectors(collectors);
           })
-          .then(() => resolve(createdGenerator.reload()))
-          .then((_generator) => {
-
-            // order collectors by name
-            if (collectors) {
-              _generator.collectors = sortArrayObjectsByField(
-                _generator.collectors, 'name');
-            }
-
-            resolve(_generator);
-          })
+          .then(() => resolve(
+            utils.reloadAndOrderCollectors(createdGenerator, sortArrayObjectsByField)))
           .catch(reject)
         );
       },
@@ -300,9 +291,11 @@ module.exports = function generator(seq, dataTypes) {
        *
        * @param {Object} requestBody From API
        * @param {Function} whereClauseForNameInArr Returns an object query
+       * @param {Function} sortArrayObjectsByField Returns an sorted array
        * @returns {Promise} created generator with collectors (if any)
        */
-      updateWithCollectors(requestBody, whereClauseForNameInArr) {
+      updateWithCollectors(requestBody,
+        whereClauseForNameInArr, sortArrayObjectsByField) {
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
           utils.validateCollectors(seq, requestBody.collectors,
@@ -312,7 +305,8 @@ module.exports = function generator(seq, dataTypes) {
             return this.update(requestBody);
           })
           .then(() => this.addCollectors(collectors))
-          .then(() => resolve(this.reload()))
+          .then(() => this.reload())
+          .then(() => resolve(utils.reloadAndOrderCollectors(this)))
           .catch(reject)
         );
       },

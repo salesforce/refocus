@@ -13,6 +13,26 @@ const common = require('./common');
 const dbErrors = require('../dbErrors');
 
 /**
+ * @param {Object} createdGenerator A sequelize instance
+ * @param {Function} sortArrayObjectsByField From API. Sorts collectors by name.
+ * @returns {Promise} Generator with collectors field
+ *  ordered by collector name.
+ */
+function reloadAndOrderCollectors(createdGenerator,
+  sortArrayObjectsByField) {
+  return createdGenerator.reload()
+  .then((_generator) => {
+    // order collectors by name
+    if (_generator.collectors) {
+      _generator.collectors = sortArrayObjectsByField(
+        _generator.collectors, 'name');
+    }
+
+    return _generator;
+  });
+}
+
+/**
  * Reject the request if collectorNames contain duplicate names
  * @param {Array} collectorNames Array of strings
  * @returns {Promise} empty if validation passed, reject otherwise
@@ -96,6 +116,7 @@ function validateCollectors(seq, collectorNames,
 }
 
 module.exports = {
+  reloadAndOrderCollectors,
   validateCollectorNames,
   checkCollectorsExist,
   validateCollectors,
