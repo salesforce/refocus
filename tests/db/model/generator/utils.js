@@ -44,19 +44,6 @@ const GENERATOR_SIMPLE = {
 
 /**
  * Copied from api/v1/helpers/verbs/utils.js
- *
- * @param {Array} arr Array of objects
- * @param {String} fieldName The field to sort by
- * @returns {Array} Array sorted by field
- */
-function sortArrayObjectsByField(arr, fieldName) {
-  const arrCopy = JSON.parse(JSON.stringify(arr));
-  arrCopy.sort((a, b) => a.name.localeCompare(b.name));
-  return arrCopy;
-}
-
-/**
- * Copied from api/v1/helpers/verbs/utils.js
  * Returns a where clause object that uses the "IN" operator
  * @param  {Array} arr - An array that needs to be
  * assigned to the "IN" operator
@@ -110,8 +97,6 @@ module.exports = {
   NOT_FOUND_STATUS_CODE,
 
   whereClauseForNameInArr,
-
-  sortArrayObjectsByField,
 
   getGenerator,
 
