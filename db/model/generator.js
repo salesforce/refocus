@@ -306,7 +306,8 @@ module.exports = function generator(seq, dataTypes) {
           })
           .then(() => this.addCollectors(collectors))
           .then(() => this.reload())
-          .then(() => resolve(utils.reloadAndOrderCollectors(this)))
+          .then(() => resolve(utils
+            .reloadAndOrderCollectors(this, sortArrayObjectsByField)))
           .catch(reject)
         );
       },

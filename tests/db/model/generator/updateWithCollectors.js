@@ -72,7 +72,8 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   after(u.forceDelete);
   after(gtUtil.forceDelete);
 
-  it('update without collectors field should preserve the collectors', (done) => {
+  it('update without collectors field should ' +
+    'preserve the collectors', (done) => {
     generatorDBInstance
     .updateWithCollectors({ name: 'New_Name' },
       u.whereClauseForNameInArr, u.sortArrayObjectsByField)
@@ -87,9 +88,11 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     .catch(done);
   });
 
-  it('ok: update to a collector that is already attached to the generator', (done) => {
+  it('ok: update to a collector that is already ' +
+    'attached to the generator', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector1.name] }, u.whereClauseForNameInArr, u.sortArrayObjectsByField)
+    .updateWithCollectors({ collectors: [collector1.name] },
+      u.whereClauseForNameInArr, u.sortArrayObjectsByField)
     .then((o) => {
       expect(Array.isArray(o.collectors)).to.be.true;
       expect(o.collectors.length).to.equal(ONE);
@@ -100,12 +103,14 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to add new collectors', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector2.name, collector3.name] },
+    .updateWithCollectors(
+      { collectors: [collector2.name, collector3.name] },
       u.whereClauseForNameInArr, u.sortArrayObjectsByField)
     .then((o) => {
       expect(Array.isArray(o.collectors)).to.be.true;
       expect(o.collectors.length).to.equal(THREE);
-      const collectorNames = o.collectors.map((collector) => collector.name);
+      const collectorNames = o
+        .collectors.map((collector) => collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       done();
     })
@@ -117,7 +122,8 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     generatorDBInstance.updateWithCollectors({
       collectors: _collectors,
     }, u.whereClauseForNameInArr, u.sortArrayObjectsByField)
-    .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
+    .then((o) => done(
+      new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
       expect(err.name).to.equal('DuplicateCollectorError');
@@ -133,7 +139,8 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     generatorDBInstance.updateWithCollectors({
       collectors: _collectors,
     }, u.whereClauseForNameInArr, u.sortArrayObjectsByField)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
+    .then((o) => done(
+      new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
       expect(err.name).to.equal('ResourceNotFoundError');
