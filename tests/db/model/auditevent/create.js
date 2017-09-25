@@ -41,6 +41,56 @@ describe('tests/db/model/auditevent/create', () => {
     .catch(done);
   });
 
+  it('Create auditEvent, additional fields in eventLog, OK', (done) => {
+    auditEventObj.eventLog.additionalInfo = 'some info';
+    AuditEvent.create(auditEventObj)
+    .then((ae) => {
+      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
+      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
+      expect(ae.eventLog.resourceName)
+        .to.be.equal(u.auditEventObj.eventLog.resourceName);
+      expect(ae.eventLog.resourceType)
+        .to.be.equal(u.auditEventObj.eventLog.resourceType);
+      expect(ae.eventLog.additionalInfo)
+        .to.be.equal('some info');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Error, create auditEvent, no resourceName in eventLog', (done) => {
+    delete auditEventObj.eventLog.resourceName;
+    AuditEvent.create(auditEventObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('\\"resourceName\\" is required');
+      done();
+    });
+  });
+
+  it('Error, create auditEvent, no resourceType in eventLog', (done) => {
+    delete auditEventObj.eventLog.resourceType;
+    AuditEvent.create(auditEventObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('\\"resourceType\\" is required');
+      done();
+    });
+  });
+
+  it('Error, create auditEvent, no isError in eventLog', (done) => {
+    delete auditEventObj.eventLog.isError;
+    AuditEvent.create(auditEventObj)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal('SequelizeValidationError');
+      expect(err.message).to.contain('\\"isError\\" is required');
+      done();
+    });
+  });
+
   it('Error, create auditEvent, null loggedAt', (done) => {
     delete auditEventObj.loggedAt;
     AuditEvent.create(auditEventObj)

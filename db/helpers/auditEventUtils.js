@@ -18,9 +18,11 @@ const ValidationError = require('../dbErrors').ValidationError;
 
 const eventLogSchema = Joi.object().keys({
   // example, "trust1-collector", "avgpagetime", "Salesforce.SFDC_CORE.NA1”
-  resourceName: Joi.string(),
-  resourceType: Joi.string(), // example, "Collector", "Subject", "Aspect"
-  isError: Joi.boolean(),
+  resourceName: Joi.string().required(),
+
+  // example, "Collector", "Subject", "Aspect"
+  resourceType: Joi.string().required(),
+  isError: Joi.boolean().required(),
 });
 
 /**
@@ -29,7 +31,9 @@ const eventLogSchema = Joi.object().keys({
  * @throws {ValidationError} If eventLog does not contain valid attributes
  */
 function validateEventLog(eventLog) {
-  const result = Joi.validate(eventLog, eventLogSchema);
+  // allowUnknown option allows additional fields in eventLogSchema which
+  // are ignored by joi validation
+  const result = Joi.validate(eventLog, eventLogSchema, { allowUnknown: true });
   if (result.error !== null) {
     throw new ValidationError({
       message: JSON.stringify(result.error.details),
