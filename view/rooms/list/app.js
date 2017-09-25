@@ -52,8 +52,8 @@ function loadController(rooms, roomTypes) {
   const rows = rooms.map(room => {
     const roomType = roomTypes.filter(rt => rt.id === room.type);
     const { id } = room;
-    room.id = `<a href=/rooms/${id}>${id}</a>`;
-    room.name = `<a href=/rooms/${id}>${room.name}</a>`;
+    room.id = `<a href=/rooms/${id} target='_blank'>${id}</a>`;
+    room.name = `<a href=/rooms/${id} target='_blank'>${room.name}</a>`;
     room.type = `<a href=/rooms/types/${roomType[0].id}>${roomType[0].name}</a>`;
     room.active = room.active ? 'True' : 'False';
     room.createdAt = moment(room.createdAt).format('lll');

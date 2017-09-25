@@ -11,58 +11,27 @@ html
     title Refocus Room
     link(rel='shortcut icon', href='favicon.ico')
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
-  body.slds-theme_shade
-    div.slds-container--center.slds-container--large.slds-theme_default(style='box-shadow: 0px 0px 0.5rem #888888; height: 98vh')
-      block navigation
-        div.slds-context-bar(style='border-top:1rem; margin-top: 0.5rem')
-          block app-logo
-            div.slds-context-bar__primary
-              div.slds-context-bar__item.slds-context-bar__dropdown-trigger.slds-dropdown-trigger.slds-dropdown-trigger_click.slds-no-hover
-                div.slds-context-bar__icon-action
-                  button.slds-button.slds-icon-waffle_container.slds-context-bar__button(title='Refocus Rooms')
-                    span.slds-icon-waffle
-                      span.slds-r1
-                      span.slds-r2
-                      span.slds-r3
-                      span.slds-r4
-                      span.slds-r5
-                      span.slds-r6
-                      span.slds-r7
-                      span.slds-r8
-                      span.slds-r9
-                span.slds-context-bar__label-action.slds-context-bar__app-name
-                  span.slds-truncate(title='Refocus') Refocus
-          block page-navigation
-            nav.slds-context-bar__secondary(role='navigation')
-              ul.slds-grid
-                li.slds-context-bar__item#roomsTab
-                  a(href='/rooms', title='Rooms').slds-context-bar__label-action
-                    span.slds-truncate(title='Rooms') Rooms
-                li.slds-context-bar__item#roomTypesTab
-                  a(href='/rooms/types', title='Room Types').slds-context-bar__label-action
-                    span.slds-truncate(title='Room Types') Room Types
-      block page-header
-        div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem')
-          div.slds-grid
-            div.slds-cols.slds-has-flexi-truncate
-              div.slds-media.slds-no-space.slds-grow
-                div.slds-media__body
-                  h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
-                  p#subTitle.slds-text-body_small.slds-line-height_reset
-      block container
-        div#roomsContainer.slds-grid.slds-grid_align-space.slds-wrap
-      block spinner
-        div#loading_spinner
-          .slds-spinner_container
-            .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
-              span.slds-assistive-text Loading
-              .slds-spinner__dot-a
-              .slds-spinner__dot-b
+    block page-header
+      div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem')
+        div.slds-grid
+          div.slds-cols.slds-has-flexi-truncate
+            div.slds-media.slds-no-space.slds-grow
+              div.slds-media__body
+                h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
+                p#subTitle.slds-text-body_small.slds-line-height_reset
+    block container
+      div#roomsContainer.slds-grid.slds-grid_align-space.slds-wrap
+    block spinner
+      div#loading_spinner
+        .slds-spinner_container
+          .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
+            span.slds-assistive-text Loading
+            .slds-spinner__dot-a
+            .slds-spinner__dot-b
 
   script(src='/static/scripts/jquery-1.11.1.min.js')
   script(src='/static/scripts/moment.min.js')
   script.
     var trackingId = '#{trackingId}';
   script(src='/static/analytics/app.js')
-  block dynamic-content
-    script(src='/static/rooms/app.js')
+  script(src='/static/rooms/app.js')
