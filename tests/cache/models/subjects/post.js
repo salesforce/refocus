@@ -27,7 +27,6 @@ describe('tests/cache/models/subjects/post.js >', () => {
   let token;
 
   before((done) => {
-    tu.toggleOverride('fastFailDuplicateSubject', true);
     tu.toggleOverride('getSubjectFromCache', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
@@ -53,7 +52,6 @@ describe('tests/cache/models/subjects/post.js >', () => {
   afterEach(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
-  after(() => tu.toggleOverride('fastFailDuplicateSubject', false));
 
   it('no parent: duplicate name should fail from the cache', (done) => {
     api.post(path)
