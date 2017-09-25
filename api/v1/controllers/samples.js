@@ -28,7 +28,6 @@ const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
-const patchUtils = require('../helpers/verbs/patchUtils');
 const publisher = u.publisher;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
@@ -191,8 +190,7 @@ module.exports = {
 
       u.getUserNameFromToken(req)
       .then((user) => redisModelSample.patchSample(req.swagger.params, user))
-      .then((retVal) => patchUtils
-        .handlePatchPromise(resultObj, req, retVal, helper, res))
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
       .catch((err) => // the sample is write protected
         u.handleError(next, err, helper.modelName)
       );
@@ -227,7 +225,21 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPut(req, res, next, helper);
+    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
+      const resultObj = { reqStartTime: req.timestamp };
+      const toPut = req.swagger.params.queryBody.value;
+      const rLinks = toPut.relatedLinks;
+      if (rLinks) {
+        u.checkDuplicateRLinks(rLinks);
+      }
+
+      u.getUserNameFromToken(req)
+      .then((user) => redisModelSample.putSample(req.swagger.params, user))
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
+      doPut(req, res, next, helper);
+    }
   },
 
   /**
