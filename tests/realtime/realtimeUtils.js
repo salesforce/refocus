@@ -251,7 +251,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
           done();
         })
-        .catch(done)
+        .catch(done);
       });
 
       it('useSampleStore = false', (done) => {
@@ -263,7 +263,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
           done();
         })
-        .catch(done)
+        .catch(done);
       });
     });
   });
