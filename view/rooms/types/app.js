@@ -40,7 +40,7 @@ window.onload = () => {
  */
 function loadController(roomTypes) {
   uPage.setTitle('Refocus Room Types');
-  uPage.setSubTitle(`Number of room types: ${roomTypes.length}`);
+  uPage.setSubtitle(`Number of room types: ${roomTypes.length}`);
 
   const headers = ['ID', 'Name', 'Enabled', 'Bots', 'Created At', 'Updated At'];
   const rows = roomTypes.map(roomType => {

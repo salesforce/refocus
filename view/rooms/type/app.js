@@ -29,7 +29,7 @@ window.onload = () => {
   .then((res) => {
     const roomType = res.body;
     uPage.setTitle(roomType.name);
-    uPage.setSubTitle(`Room Type Id: ${ROOM_TYPE_ID}`);
+    uPage.setSubtitle(`Room Type Id: ${ROOM_TYPE_ID}`);
     uPage.removeSpinner();
     ReactDOM.render(
       <RoomTypeComponent

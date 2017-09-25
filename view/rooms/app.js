@@ -13,7 +13,7 @@
  * to have their UI appended to the page.
  */
 
-const botsContainer = document.getElementById('roomsContainer');
+const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -122,7 +122,7 @@ window.onload = () => {
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    uPage.setSubTitle(res.body.name);
+    uPage.setSubtitle(res.body.name);
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
