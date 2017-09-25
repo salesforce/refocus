@@ -13,7 +13,6 @@
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
-const patchUtils = require('./patchUtils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
@@ -75,7 +74,7 @@ function doPatch(req, res, next, props) {
   });
 
   patchPromise
-  .then((retVal) => patchUtils.handlePatchPromise(resultObj, req, retVal, props, res))
+  .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 
