@@ -12,9 +12,8 @@
  */
 
 const u = require('../helpers/auditEventUtils');
-const assoc = {};
 
-module.exports = function bot(seq, dataTypes) {
+module.exports = function auditevent(seq, dataTypes) {
   const AuditEvent = seq.define('AuditEvent', {
     id: {
       type: dataTypes.UUID,
@@ -33,11 +32,6 @@ module.exports = function bot(seq, dataTypes) {
       },
     },
   }, {
-    classMethods: {
-      getTagAssociations() {
-        return assoc;
-      },
-    },
     indexes: [
       {
         name: 'loggedAtNotUnique',
