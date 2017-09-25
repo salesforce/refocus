@@ -391,7 +391,7 @@ function isIpWhitelisted(addr, whitelist) {
  * When passed in a sample, its related subject and aspect is attached to the
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
- * @param {Object} sample - The sample instance.
+ * @param {Object} _sample - The sample instance. Could be from db directly
  * @param {Boolen} useSampleStore - The sample store flag, the subject and the
  *   aspect is fetched from the cache if this is set.
  * @param {Model} subjectModel - The database subject model.
@@ -399,8 +399,9 @@ function isIpWhitelisted(addr, whitelist) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, useSampleStore, subjectModel,
+function attachAspectSubject(_sample, useSampleStore, subjectModel,
   aspectModel) {
+  const sample = _sample.get ? _sample.get() : _sample;
   let nameParts;
 
   // check if sample object contains name
