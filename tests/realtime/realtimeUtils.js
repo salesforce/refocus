@@ -243,19 +243,27 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
     });
 
+    // need done in these tests, otherwise tests pass before promise returns
     describe('attachAspectSubject tests', () => {
-      it('useSampleStore = true', () => {
+      it('useSampleStore = true', (done) => {
         realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, true)
         .then((sample) => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
-        });
+          done();
+        })
+        .catch(done);
       });
 
-      it('useSampleStore = false', () => {
-        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, false)
+      it('useSampleStore = false', (done) => {
+        let sampleFromDb = {
+          get: () => looksLikeSampleObjNA,
+        };
+        realtimeUtils.attachAspectSubject(sampleFromDb, false)
         .then((sample) => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
-        });
+          done();
+        })
+        .catch(done);
       });
     });
   });

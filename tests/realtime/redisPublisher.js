@@ -114,6 +114,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         // check subject is still there
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectName);
+        expect(pubObj.subject.writers).to.be.undefined;
         expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
         expect(pubObj.subject.helpEmail).to.be.undefined;
         done();

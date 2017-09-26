@@ -70,6 +70,7 @@ function updateInstance(o, puttableFields, toPut) {
  * @returns {Object} JSON succcessful response
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
+
   // retVal is read only.
   const returnObj = retVal.get ? retVal.get() : retVal;
 
@@ -104,7 +105,6 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
  *
  * @param {Array} arr Array of objects
  * @param {String} fieldName The field to sort by
- * @returns {Array} Array sorted by field
  */
 function sortArrayObjectsByField(arr, fieldName) {
   arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
@@ -878,6 +878,7 @@ function responsify(rec, props, method) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
   sortArrayObjectsByField,
 
   updateInstance,
