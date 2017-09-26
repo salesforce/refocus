@@ -84,8 +84,8 @@ function handlePostResult(o, resultObj, props, res, req) {
 
   // order collectors by name
   if (props.modelName === 'Generator' && o.collectors) {
-    const returnObj = JSON.parse(JSON.stringify(o.get ? o.get() : o));
-    returnObj.collectors = u.sortArrayObjectsByField(o.collectors, 'name');
+    const returnObj = o.get();
+    u.sortArrayObjectsByField(returnObj.collectors, 'name');
     return res.status(constants.httpStatus.CREATED).json(
       u.responsify(returnObj, props, req.method));
   }

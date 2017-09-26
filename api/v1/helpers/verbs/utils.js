@@ -71,12 +71,11 @@ function updateInstance(o, puttableFields, toPut) {
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
   // retVal is read only.
-  let returnObj = retVal;
+  const returnObj = retVal.get();
 
   // order collectors by name
   if (props.modelName === 'Generator' && retVal.collectors) {
-    returnObj = JSON.parse(JSON.stringify(retVal.get()));
-    returnObj.collectors = sortArrayObjectsByField(retVal.collectors, 'name');
+    sortArrayObjectsByField(returnObj.collectors, 'name');
   }
 
   // publish the update event to the redis channel
@@ -101,14 +100,14 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 }
 
 /**
+ * Sorts an array in-place.
+ *
  * @param {Array} arr Array of objects
  * @param {String} fieldName The field to sort by
  * @returns {Array} Array sorted by field
  */
 function sortArrayObjectsByField(arr, fieldName) {
-  const arrCopy = JSON.parse(JSON.stringify(arr));
-  arrCopy.sort((a, b) => a.name.localeCompare(b.name));
-  return arrCopy;
+  arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
 }
 
 /**

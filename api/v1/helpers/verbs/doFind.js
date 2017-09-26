@@ -88,7 +88,7 @@ function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
       for (let j = retval.length - 1; j >= 0; j--) {
         const { collectors } = retval[j];
         if (collectors) {
-          retval[j].collectors = u.sortArrayObjectsByField(collectors, 'name');
+          u.sortArrayObjectsByField(collectors, 'name');
         }
       }
     }
