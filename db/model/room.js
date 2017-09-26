@@ -82,7 +82,7 @@ module.exports = function room(seq, dataTypes) {
     hooks: {
 
       /**
-       * Ensures room gets default values from roomType, and puslishes
+       * Ensures room gets default values from roomType, and publishes
        * room updates to redis.
        *
        * @param {Instance} instance - The instance being created
