@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const featureToggles = require('feature-toggles');
 const redisStore = require('./sampleStore');
 const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
@@ -39,6 +40,12 @@ function capitalizeFirstLetter(str) {
  * @returns {Promise} - which resolves to true
  */
 function hmSet(objectName, name, value) {
+  if (featureToggles.isFeatureEnabled('hmsetWithoutKeyError') &&
+    (!objectName || !name)) {
+    throw new Error('Found hmset object without key. Object is' +
+      JSON.stringify(value));
+  }
+
   const cleanobj =
           redisStore['clean' + capitalizeFirstLetter(objectName)](value);
   const nameKey = redisStore.toKey(objectName, name);
@@ -399,6 +406,12 @@ module.exports = {
    * @returns {array} - Command array
    */
   setHashMultiCmd(type, name, kvObj) {
+    if (featureToggles.isFeatureEnabled('hmsetWithoutKeyError') &&
+      (!type || !name)) {
+      throw new Error('Found hmset object without key. Object is' +
+        JSON.stringify(kvObj));
+    }
+
     if (!Object.keys(kvObj).length) {
       return [];
     }

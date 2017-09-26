@@ -254,6 +254,12 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
 
+    if (featureToggles.isFeatureEnabled('hmsetWithoutKeyError') &&
+      !sampleKey) {
+      throw new Error('Found hmset object without key. Object is' +
+        JSON.stringify(sampleQueryBodyObj));
+    }
+
     // if sample exists, just update sample.
     if (sample) {
       // to avoid updating sample name

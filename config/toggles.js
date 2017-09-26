@@ -113,6 +113,9 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  // Enable api activity logging
+  hmsetWithoutKeyError:
+    environmentVariableTrue(pe, 'HMSET_WITHOUT_KEY_ERROR'),
 
   // Cache the GET request for samples with wildcard by name
   cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
