@@ -13,6 +13,41 @@ const common = require('./common');
 const dbErrors = require('../dbErrors');
 
 /**
+ * Function to validate the context field of the sample generator based on the
+ * contextDefinition field of its related generator template.
+ * @param  {Object} sgCtx - The generator context object     [description]
+ * @param  {Object} sgtCtxDef - The related sample generator template context
+ * definition object
+ * @throws {MissingRequiredFieldrror} If the generator context field does not
+ * have the attributes that are required by the context definiton field of the
+ * sample generator template
+ * @throws {ValidationError} If the number of keys in the generator context do
+ * not match the number of keys in the generator template context.
+ */
+function validateGeneratorCtx(sgCtx, sgtCtxDef) {
+  const sgtCtxDefKeys = sgtCtxDef ? Object.keys(sgtCtxDef) : [];
+  const sgCtxKeys = sgCtx ? Object.keys(sgCtx) : [];
+  const sgtCtxDefKeysSet = new Set(sgtCtxDefKeys);
+
+  const invalidKeys = sgCtxKeys.filter((key) => !sgtCtxDefKeysSet.has(key));
+  if (invalidKeys.length) {
+    throw new dbErrors.ValidationError(
+      { explanation: 'Sample generator context contains invalid ' +
+      `keys: ${invalidKeys}`,
+    });
+  }
+
+  sgtCtxDefKeys.forEach((key) => {
+    if (sgtCtxDef[key].required && (!sgCtx || !sgCtx[key])) {
+      const err = new dbErrors.MissingRequiredFieldError(
+      { explanation: `Missing the required generator context field ${key}` }
+      );
+      throw err;
+    }
+  });
+} // validateCtxRequiredFields
+
+/**
  * Reject the request if collectorNames contain duplicate names
  * @param {Array} collectorNames Array of strings
  * @returns {Promise} empty if validation passed, reject otherwise
@@ -49,11 +84,10 @@ function checkCollectorsExist(seq,
   const options = {};
   options.where = whereClauseForNameInArr(collectorNames);
 
-  //reject the request if collectorNames contain duplicate names
+  // reject the request if collectorNames contain duplicate names
   return new Promise((resolve, reject) =>
     seq.models.Collector.findAll(options)
     .then((_collectors) => {
-
       /*
        * If requestBody does not have a collectors field, OR
        * if the number of collectors in requestBody MATCH the
@@ -99,4 +133,5 @@ module.exports = {
   validateCollectorNames,
   checkCollectorsExist,
   validateCollectors,
+  validateGeneratorCtx,
 };
