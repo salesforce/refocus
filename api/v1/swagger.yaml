@@ -2722,64 +2722,6 @@ paths:
             type: object
             description: A generatorTemplate configuration object.
             properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >-
-                  A description of the generatorTemplate.
-              helpEmail:
-                type: string
-                description: >-
-                  The email address where a user can go to get more help about
-                  the generatorTemplate.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: >-
-                  The url where a user can go to get more help about the
-                  generatorTemplate.
-              name:
-                type: string
-                readOnly: true
-                description: >-
-                  The generatorTemplate's name.
-              version:
-                type: string
-                description: >-
-                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-              tags:
-                type: array
-                items:
-                  type: string
-                  maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
-                description: >
-                  Array of tag names. Tag name: Max 60 characters; case
-                  insensitive; allows alpha-numeric characters, underscore (_)
-                  and dash (-). Tag names cannot start with a dash (-).
-              author:
-                type: object
-                description: >-
-                  The author of this generatorTemplate.
-              repository:
-                type: object
-                description: >-
-                  The repository where this generatorTemplate is located.
-              connection:
-                type: object
-                description: >-
-                  Information about the connection.
-              contextDefinition:
-                type: object
-                description: >-
-                  Variables available to connection.url, connection.toUrl, and
-                  the transform function.
-              transform:
-                type: string
-                description: >-
-                  The body of a javascript function which transforms some data into
-                  an array of samples
               isPublished:
                 type: boolean
                 description: >-
