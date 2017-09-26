@@ -52,7 +52,7 @@ module.exports = function room(seq, dataTypes) {
     bots: {
       type: dataTypes.ARRAY(dataTypes.STRING),
       allowNull: true,
-      comment: 'Bots to be used in rooms',
+      comment: 'Bot names to be used in rooms',
     },
   }, {
     classMethods: {
@@ -82,7 +82,7 @@ module.exports = function room(seq, dataTypes) {
     hooks: {
 
       /**
-       * Ensures room gets default values from roomType, and puslish
+       * Ensures room gets default values from roomType, and puslishes
        * room updates to redis.
        *
        * @param {Instance} instance - The instance being created

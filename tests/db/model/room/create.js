@@ -84,9 +84,9 @@ describe('tests/db/model/room/create.js >', () => {
       room.type = roomType.id;
       return Room.create(room);
     })
-    .then((o) => {
-      expect(o).to.have.property('bots');
-      expect(o.bots[0]).to.equal(botName);
+    .then((room) => {
+      expect(room).to.have.property('bots');
+      expect(room.bots[0]).to.equal(botName);
       done();
     })
     .catch(done);
