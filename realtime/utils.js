@@ -446,15 +446,8 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
     let sub = response[1];
     asp = asp.get ? asp.get() : asp;
     sub = sub.get ? sub.get() : sub;
-
-    // if asp or sub from redis, writers field == [] instead of undefined
-    if (asp.writers === '[]') {
-      delete asp.writers;
-    }
-
-    if (sub.writers === '[]') {
-      delete sub.writers;
-    }
+    delete asp.writers;
+    delete sub.writers;
 
     sample.aspect = redisStore.arrayStringsToJson(asp,
          redisStore.constants.fieldsToStringify.aspect);
