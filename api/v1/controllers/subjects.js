@@ -408,14 +408,13 @@ module.exports = {
       req.swagger.params.queryBody.value;
 
     /*
-     * Fast fail: if cache is on AND parentId
+     * if cache is on AND parentId
      * is not provided, check whether the subject exists in cache.
      * Else if parentId is provided OR cache is off,
      * do normal post.
      */
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
       featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      featureToggles.isFeatureEnabled('fastFailDuplicateSubject') &&
       !u.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
