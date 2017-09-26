@@ -1180,7 +1180,7 @@ paths:
       security:
         - jwt: []
       summary: Find auditEvents
-      tags: [ aspects ]
+      tags: [ auditEvents ]
       description: >-
         Find auditEvents. You may query using field filters with asterisk (*)
         wildcards. You may also optionally specify sort, limit, offset, and a
@@ -1286,11 +1286,11 @@ paths:
     post:
       security:
         - jwt: []
-      summary: Create a new auditEvent
-      tags: [ aspects ]
+      summary: Create new auditEvents
+      tags: [ auditEvents ]
       description: >-
-        Create a new auditEvent.
-      operationId: postAuditEvent
+        Create new auditEvents.
+      operationId: postAuditEvents
       parameters:
         -
           name: queryBody
@@ -1298,44 +1298,47 @@ paths:
           in: body
           required: true
           schema:
-            type: object
-            description: An auditable Refocus event.
-            properties:
-              details:
-                type: object
-                description: >
-                  A JSON object with additional event details.
-              loggedAt:
-                type: string
-                description: >
-                  The timestamp when the event was logged.
-              isError:
-                type: boolean
-                default: false
-                description: >
-                  True if this auditEvent represents an error.
-              resourceName:
-                type: string
-                maxLength: 4096
-                description: >
-                  The name of the resource associated with this event.
-              resourceType:
-                type: string
-                maxLength: 4096
-                description: >
-                  The type of the resource associated with this event, e.g.
-                  "Collector", "Subject", etc.
-            required:
-              - details
-              - loggedAt
-              - resourceType
-              - resourceName
+            type: array
+            items:
+              type: object
+              description: >
+                An auditable Refocus event.
+              properties:
+                details:
+                  type: object
+                  description: >
+                    A JSON object with additional event details.
+                loggedAt:
+                  type: string
+                  description: >
+                    The timestamp when the event was logged.
+                isError:
+                  type: boolean
+                  default: false
+                  description: >
+                    True if this auditEvent represents an error.
+                resourceName:
+                  type: string
+                  maxLength: 4096
+                  description: >
+                    The name of the resource associated with this event.
+                resourceType:
+                  type: string
+                  maxLength: 4096
+                  description: >
+                    The type of the resource associated with this event, e.g.
+                    "Collector", "Subject", etc.
+              required:
+                - details
+                - loggedAt
+                - resourceType
+                - resourceName
       responses:
-        201:
+        200:
           description: >-
             Created.
           schema:
-            $ref: "#/definitions/AuditEventsResponse"
+            $ref: "#/definitions/BulkUpsertResponse"
         400:
           $ref: "#/responses/400"
         401:
