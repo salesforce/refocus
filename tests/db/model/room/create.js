@@ -22,6 +22,7 @@ const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/room/create.js >', () => {
   afterEach(u.forceDelete);
+  after(b.forceDelete);
 
   it('ok, room created', (done) => {
     RoomType.create(v.getStandard())
