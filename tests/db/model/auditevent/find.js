@@ -20,10 +20,11 @@ describe('tests/db/model/auditevent/find', () => {
   let auditEventDb;
   const aeObjAnother = {
     loggedAt: Date.parse('Sept 23, 2017'),
-    eventLog: {
-      resourceName: 'abc-collector2',
-      resourceType: 'Collector2',
-      isError: false,
+    resourceName: 'abc-collector2',
+    resourceType: 'Collector2',
+    isError: false,
+    details: {
+      d1: 'detail one',
     },
   };
   before((done) => {
@@ -43,11 +44,9 @@ describe('tests/db/model/auditevent/find', () => {
     AuditEvent.findById(auditEventDb.id)
     .then((ae) => {
       expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
       done();
     })
     .catch(done);
@@ -57,48 +56,9 @@ describe('tests/db/model/auditevent/find', () => {
     AuditEvent.findOne({ where: { loggedAt: u.auditEventObj.loggedAt } })
     .then((ae) => {
       expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
-      done();
-    })
-    .catch(done);
-  });
-
-  it('Find, using AND in where clause', (done) => {
-    AuditEvent.findOne({ where:
-        { loggedAt: u.auditEventObj.loggedAt,
-          'eventLog.resourceName': 'abc-collector',
-        },
-    })
-    .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
-      done();
-    })
-    .catch(done);
-  });
-
-  it('Find, using OR in where clause', (done) => {
-    AuditEvent.findAll({
-      where: {
-        $or: [
-          { loggedAt: u.auditEventObj.loggedAt },
-          { 'eventLog.resourceName': 'abc-collector2' },
-        ],
-      },
-    })
-    .then((objs) => {
-      expect(objs.length).to.be.equal(2);
-      expect(objs[0].loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(objs[1].eventLog.resourceName)
-        .to.be.equal(aeObjAnother.eventLog.resourceName);
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
       done();
     })
     .catch(done);
@@ -109,11 +69,9 @@ describe('tests/db/model/auditevent/find', () => {
     .then((objs) => {
       expect(objs.length).to.be.equal(2);
       const ae = objs[0];
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
 
       // verify loggedAt order
       expect(objs[0].loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());

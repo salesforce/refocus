@@ -10,8 +10,7 @@
  * db/model/auditevent.js
  *
  */
-
-const u = require('../helpers/auditEventUtils');
+const constants = require('../constants');
 
 module.exports = function auditevent(seq, dataTypes) {
   const AuditEvent = seq.define('AuditEvent', {
@@ -24,12 +23,21 @@ module.exports = function auditevent(seq, dataTypes) {
       type: dataTypes.BIGINT,
       allowNull: false,
     },
-    eventLog: {
+    resourceName: {
+      type: dataTypes.STRING(constants.fieldlen.longish),
+      allowNull: false,
+    },
+    resourceType: {
+      type: dataTypes.STRING(constants.fieldlen.longish),
+      allowNull: false,
+    },
+    isError: {
+      type: dataTypes.BOOLEAN,
+      allowNull: false,
+    },
+    details: {
       type: dataTypes.JSONB,
       allowNull: false,
-      validate: {
-        contains: u.validateEventLog,
-      },
     },
   }, {
     defaultScope: {

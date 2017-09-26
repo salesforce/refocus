@@ -31,62 +31,58 @@ describe('tests/db/model/auditevent/create', () => {
     AuditEvent.create(auditEventObj)
     .then((ae) => {
       expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.details).to.deep.equal(u.auditEventObj.details);
       done();
     })
     .catch(done);
   });
 
-  it('Create auditEvent, additional fields in eventLog, OK', (done) => {
-    auditEventObj.eventLog.additionalInfo = 'some info';
+  it('Create auditEvent, additional fields in details, OK', (done) => {
+    auditEventObj.details.additionalInfo = 'some info';
     AuditEvent.create(auditEventObj)
     .then((ae) => {
       expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.eventLog.isError).to.be.equal(u.auditEventObj.eventLog.isError);
-      expect(ae.eventLog.resourceName)
-        .to.be.equal(u.auditEventObj.eventLog.resourceName);
-      expect(ae.eventLog.resourceType)
-        .to.be.equal(u.auditEventObj.eventLog.resourceType);
-      expect(ae.eventLog.additionalInfo)
-        .to.be.equal('some info');
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.details.additionalInfo).to.deep.equal('some info');
       done();
     })
     .catch(done);
   });
 
-  it('Error, create auditEvent, no resourceName in eventLog', (done) => {
-    delete auditEventObj.eventLog.resourceName;
+  it('Error, create auditEvent, no resourceName', (done) => {
+    delete auditEventObj.resourceName;
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"resourceName\\" is required');
+      expect(err.message).to.contain('resourceName cannot be null');
       done();
     });
   });
 
-  it('Error, create auditEvent, no resourceType in eventLog', (done) => {
-    delete auditEventObj.eventLog.resourceType;
+  it('Error, create auditEvent, no resourceType', (done) => {
+    delete auditEventObj.resourceType;
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"resourceType\\" is required');
+      expect(err.message).to.contain('resourceType cannot be null');
       done();
     });
   });
 
-  it('Error, create auditEvent, no isError in eventLog', (done) => {
-    delete auditEventObj.eventLog.isError;
+  it('Error, create auditEvent, no isError', (done) => {
+    delete auditEventObj.isError;
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"isError\\" is required');
+      expect(err.message).to.contain('isError cannot be null');
       done();
     });
   });
@@ -102,46 +98,50 @@ describe('tests/db/model/auditevent/create', () => {
     });
   });
 
-  it('Error, create auditEvent, null eventLog', (done) => {
-    delete auditEventObj.eventLog;
+  it('Error, create auditEvent, null details', (done) => {
+    delete auditEventObj.details;
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('eventLog cannot be null');
+      expect(err.message).to.contain('details cannot be null');
       done();
     });
   });
 
-  it('Error, create auditEvent, invalid eventLog resourceName', (done) => {
-    auditEventObj.eventLog.resourceName = 123;
+  it('Error, create auditEvent, invalid resourceName', (done) => {
+    // passes with value=123, converts 123 => '123'
+    auditEventObj.resourceName = { a: 'a' };
     AuditEvent.create(auditEventObj)
-    .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"resourceName\\" must be a string');
+      expect(err.message).to.contain(
+        'resourceName cannot be an array or an object'
+      );
       done();
     });
   });
 
-  it('Error, create auditEvent, invalid eventLog resourceType', (done) => {
-    auditEventObj.eventLog.resourceType = 567;
+  it('Error, create auditEvent, invalid resourceType', (done) => {
+    auditEventObj.resourceType = { a: 'a' };
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"resourceType\\" must be a string');
+      expect(err.message).to.contain(
+        'resourceType cannot be an array or an object'
+      );
       done();
     });
   });
 
-  it('Error, create auditEvent, invalid eventLog isError', (done) => {
-    auditEventObj.eventLog.isError = 'yes';
+  it('Error, create auditEvent, invalid isError', (done) => {
+    auditEventObj.isError = 'a string';
     AuditEvent.create(auditEventObj)
     .then(() => done(tu.valError))
     .catch((err) => {
-      expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('\\"isError\\" must be a boolean');
+      expect(err.name).to.equal('SequelizeDatabaseError');
+      expect(err.message).to.contain('invalid input syntax for type boolean');
       done();
     });
   });

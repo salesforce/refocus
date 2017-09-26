@@ -15,10 +15,12 @@ const tu = require('../../../testUtils');
 module.exports = {
   auditEventObj: {
     loggedAt: Date.parse('Sept 22, 2017'),
-    eventLog: {
-      resourceName: 'abc-collector',
-      resourceType: 'Collector',
-      isError: false,
+    resourceName: 'abc-collector',
+    resourceType: 'Collector',
+    isError: false,
+    details: {
+      detailOne: 'some details one',
+      detailTwo: 1234,
     },
   },
 
