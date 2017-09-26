@@ -49,6 +49,11 @@ module.exports = function room(seq, dataTypes) {
       defaultValue: false,
       comment: 'Determines if room is still active',
     },
+    bots: {
+      type: dataTypes.ARRAY(dataTypes.STRING),
+      allowNull: true,
+      comment: 'Bots to be used in rooms',
+    },
   }, {
     classMethods: {
       getRoomAssociations() {
@@ -75,22 +80,33 @@ module.exports = function room(seq, dataTypes) {
       },
     },
     hooks: {
-      afterCreate: (instance) => {
+
+      /**
+       * Ensures room gets default values from roomType, and puslish
+       * room updates to redis.
+       *
+       * @param {Instance} instance - The instance being created
+       * @returns {Promise} which resolves to the instance
+       */
+      beforeCreate: (instance) => {
         const RoomType = seq.models.RoomType;
         return RoomType.findById(instance.type)
         .then((roomType) => {
           instance.settings = roomType.settings;
+          instance.bots = roomType.bots;
           const changedKeys = Object.keys(instance._changed);
           const ignoreAttributes = ['isDeleted'];
-          return realTime.publishObject(instance.toJSON(), roomEventNames.add, changedKeys,
-              ignoreAttributes);
+          return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+            changedKeys, ignoreAttributes);
         });
       },
 
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.upd);
+            return realTime.publishObject(
+              instance.toJSON(), roomEventNames.upd
+            );
           }
         }
 
