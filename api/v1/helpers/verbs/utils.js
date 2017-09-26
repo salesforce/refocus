@@ -71,7 +71,7 @@ function updateInstance(o, puttableFields, toPut) {
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
   // retVal is read only.
-  const returnObj = retVal.get();
+  const returnObj = retVal.get ? retVal.get() : retVal;
 
   // order collectors by name
   if (props.modelName === 'Generator' && retVal.collectors) {

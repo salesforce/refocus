@@ -78,7 +78,7 @@ function doGet(req, res, next, props) {
     getPromise.then((o) => {
 
       // o is read only.
-      const returnObj = o.get();
+      const returnObj = o.get ? o.get() : o;
 
       // order collectors by name
       if (props.modelName === 'Generator' && o.collectors) {
