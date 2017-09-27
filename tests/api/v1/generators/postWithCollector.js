@@ -29,6 +29,9 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+  const sortedNames = [collector1, collector2, collector3]
+    .map((col) => col.name)
+    .sort();
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
@@ -74,9 +77,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
       expect(res.body.collectors.length).to.equal(THREE);
       const collectorNames = res.body.collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
-      expect(collectorNames).to.contain(collector3.name);
+      expect(collectorNames).to.deep.equal(sortedNames);
       done();
     });
   });
