@@ -23,7 +23,7 @@ const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
-
+const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 /**
  * Deletes the previousStatuskey (that stores the previous value of the
  * "enableRedisSampleStore" flag).
@@ -140,7 +140,9 @@ function populateAspects() {
       });
       const key = samsto.toKey(constants.objectType.aspect, a.name);
       aspectIdx.push(key);
-      cmds.push(['hmset', key, samsto.cleanAspect(a)]);
+      const cleanedAspect = samsto.cleanAspect(a);
+      logInvalidHmsetValues(key, cleanedAspect);
+      cmds.push(['hmset', key, cleanedAspect]);
     }
 
     cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
@@ -177,7 +179,9 @@ function populateSubjects() {
       cmds.push(['sadd', constants.indexKey.subject, key]);
 
       // create a mapping of subject absolutePath to subject object
-      cmds.push(['hmset', key, samsto.cleanSubject(s)]);
+      const cleanedSubject = samsto.cleanSubject(s);
+      logInvalidHmsetValues(key, cleanedSubject);
+      cmds.push(['hmset', key, cleanedSubject]);
     });
 
     return redisClient.batch(cmds).execAsync()
@@ -248,7 +252,10 @@ function populateSamples() {
 
     // Batch of commands to create each individal sample hash...
     const sampleCmds = Object.keys(sampleHashes)
-      .map((key) => ['hmset', key, sampleHashes[key]]);
+      .map((key) => {
+        logInvalidHmsetValues(key, sampleHashes[key]);
+        return ['hmset', key, sampleHashes[key]];
+      });
     batchPromises.push(redisClient.batch(sampleCmds).execAsync());
 
     // Return once all batches have completed.
