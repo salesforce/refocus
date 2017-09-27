@@ -82,8 +82,7 @@ module.exports = function room(seq, dataTypes) {
     hooks: {
 
       /**
-       * Ensures room gets default values from roomType, and publishes
-       * room updates to redis.
+       * Ensures room gets default values from roomType
        *
        * @param {Instance} instance - The instance being created
        * @returns {Promise} which resolves to the instance
@@ -94,11 +93,20 @@ module.exports = function room(seq, dataTypes) {
         .then((roomType) => {
           instance.settings = roomType.settings;
           instance.bots = roomType.bots;
-          const changedKeys = Object.keys(instance._changed);
-          const ignoreAttributes = ['isDeleted'];
-          return realTime.publishObject(instance.toJSON(), roomEventNames.add,
-            changedKeys, ignoreAttributes);
         });
+      },
+
+      /**
+       * Publishes room updates to redis.
+       *
+       * @param {Instance} instance - The instance being created
+       * @returns {Promise} which resolves to the instance
+       */
+      afterCreate: (instance) => {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+          changedKeys, ignoreAttributes);
       },
 
       afterUpdate(instance /* , opts */) {
