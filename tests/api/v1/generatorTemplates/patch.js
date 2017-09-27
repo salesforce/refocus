@@ -19,7 +19,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generatorTemplates';
 const expect = require('chai').expect;
 
-describe.only('tests/api/v1/generatorTemplates/patch.js > ', () => {
+describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
   let i = 0;
   const sgt = u.getGeneratorTemplate();
   let token;
