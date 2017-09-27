@@ -59,7 +59,7 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
   it('PATCH without permission: should return 403', (done) => {
     api.patch(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
-    .send({ name: 'template2' })
+    .send({ isPublished: false })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       const errorArray = JSON.parse(res.text).errors;
