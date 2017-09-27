@@ -21,7 +21,7 @@ module.exports = function auditevent(seq, dataTypes) {
     },
     loggedAt: {
       type: dataTypes.BIGINT,
-      allowNull: false,
+      defaultValue: Date.now(),
     },
     resourceName: {
       type: dataTypes.STRING(constants.fieldlen.longish),
@@ -33,7 +33,7 @@ module.exports = function auditevent(seq, dataTypes) {
     },
     isError: {
       type: dataTypes.BOOLEAN,
-      allowNull: false,
+      defaultValue: false,
     },
     details: {
       type: dataTypes.JSONB,

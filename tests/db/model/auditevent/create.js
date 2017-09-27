@@ -76,26 +76,31 @@ describe('tests/db/model/auditevent/create', () => {
     });
   });
 
-  it('Error, create auditEvent, no isError', (done) => {
+  it('Ok, Create auditEvent with null isError, default to false', (done) => {
     delete auditEventObj.isError;
     AuditEvent.create(auditEventObj)
-    .then(() => done(tu.valError))
-    .catch((err) => {
-      expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('isError cannot be null');
+    .then((ae) => {
+      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
+      expect(ae.isError).to.be.equal(false);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
       done();
-    });
+    })
+    .catch(done);
   });
 
-  it('Error, create auditEvent, null loggedAt', (done) => {
+  it('Ok, Create auditEvent with null loggedAt, default to current time',
+  (done) => {
     delete auditEventObj.loggedAt;
     AuditEvent.create(auditEventObj)
-    .then(() => done(tu.valError))
-    .catch((err) => {
-      expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('loggedAt cannot be null');
+    .then((ae) => {
+      expect(ae.loggedAt).to.not.be.equal(undefined);
+      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('Error, create auditEvent, null details', (done) => {

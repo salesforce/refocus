@@ -22,7 +22,6 @@ describe('tests/db/model/auditevent/find', () => {
     loggedAt: Date.parse('Sept 23, 2017'),
     resourceName: 'abc-collector2',
     resourceType: 'Collector2',
-    isError: false,
     details: {
       d1: 'detail one',
     },
