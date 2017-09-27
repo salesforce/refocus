@@ -23,6 +23,7 @@
     }
   },
   "scripts": {
+    "UItest" : "node uitest.js",
     "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "checkdb": "node db/createOrUpdateDb.js",
     "cleanup": "npm run dropdb && npm run initdb && npm run checkdb",
