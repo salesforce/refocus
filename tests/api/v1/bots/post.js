@@ -46,10 +46,11 @@ describe('tests/api/v1/bots/post.js >', () => {
       if (err) {
         return done(err);
       }
+
       const botToken = jwtUtil
         .createToken(u.name, u.name);
       const fakeToken = jwtUtil
-        .createToken(u.name+'Fail', u.name+'Fail');
+        .createToken(u.name + 'Fail', u.name + 'Fail');
       expect(res.body.token).to.equal(botToken);
       expect(res.body.token).to.not.equal(fakeToken);
       expect(res.body.name).to.equal(u.name);
