@@ -23,7 +23,7 @@ describe('tests/db/model/auditevent/create', () => {
     done();
   });
 
-  afterEach((done) => {
+  after((done) => {
     u.forceDelete(done);
   });
 
@@ -149,5 +149,21 @@ describe('tests/db/model/auditevent/create', () => {
       expect(err.message).to.contain('invalid input syntax for type boolean');
       done();
     });
+  });
+
+  it('OK, use bulkCreate to create multiple auditEvents', (done) => {
+    let totalRows;
+    AuditEvent.findAll()
+    .then((o) => {
+      totalRows = o.length;
+      return AuditEvent.bulkCreate([auditEventObj,
+        auditEventObj, auditEventObj]);
+    })
+    .then(() => AuditEvent.findAll())
+    .then((o) => {
+      expect(o).to.have.lengthOf(totalRows + 3);
+      done();
+    })
+    .catch(done);
   });
 });
