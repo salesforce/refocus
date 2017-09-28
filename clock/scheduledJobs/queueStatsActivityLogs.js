@@ -11,7 +11,7 @@
  *
  * This file is for queue stats activity logs.
  */
-
+const logInvalidHmsetValues = require('../../utils/common').logInvalidHmsetValues;
 const activityLogUtil = require('../../utils/activityLog');
 const queueTime95thMillis = require('../../config').queueTime95thMillis;
 const redis = require('../../cache/redisCache');
@@ -158,33 +158,34 @@ function update(rc, qt) {
   const _timestamp = createTimeStamp();
   const key = 'queueStats.' + _timestamp;
   const mainKey = 'queueStats';
+  let obj;
 
   // get main key that containes array of timestamp keys
   client.hgetallAsync(key).then((reply) => {
     if (reply) {
-      client.hmset(key, {
+      obj = {
         jobCount: Number(reply.jobCount) + ONE,
         recordCount: Number(reply.recordCount) + rc,
         queueTimeArray: addToArray(reply.queueTimeArray, qt),
-      });
+      };
+      logInvalidHmsetValues(key, obj);
+      client.hmset(key, obj);
     } else {
-      client.hmset(key, {
+      obj = {
         jobCount: ONE,
         recordCount: rc,
         queueTimeArray: addToArray('', qt),
         timestamp: _timestamp,
-      });
+      };
+      logInvalidHmsetValues(key, obj);
+      client.hmset(key, obj);
 
       client.hgetallAsync(mainKey).then((_reply) => {
-        if (_reply) {
-          client.hmset(mainKey, {
-            keyArray: addToArray(_reply.keyArray, key),
-          });
-        } else {
-          client.hmset(mainKey, {
-            keyArray: addToArray('', key),
-          });
-        }
+        const hmsetObj = {
+          keyArray: addToArray(_reply ? _reply.keyArray : '', key),
+        };
+        logInvalidHmsetValues(mainKey, hmsetObj);
+        client.hmset(mainKey, hmsetObj);
       });
     }
   })
@@ -236,9 +237,11 @@ function execute() {
         }
       }
 
-      client.hmset(mainKey, {
+      const hmsetObj = {
         keyArray: addToArray('', keyArray),
-      });
+      };
+      logInvalidHmsetValues(mainKey, hmsetObj);
+      client.hmset(mainKey, hmsetObj);
     }
   })
   .catch((_err) => {
