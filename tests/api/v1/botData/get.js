@@ -158,7 +158,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .catch(done);
   });
 
-  it('Pass, get data by room and bot', (done) => {
+  it('Pass, get data by room and bot Id', (done) => {
     const testBotData2 = u.getStandard();
     const bot = b.getStandard();
     bot.name = 'NewBot';
@@ -187,6 +187,37 @@ describe('tests/api/v1/botData/get.js >', () => {
     })
     .catch(done);
   });
+
+  it('Pass, get data by room and bot name', (done) => {
+    const testBotData2 = u.getStandard();
+    const bot = b.getStandard();
+    bot.name = 'NewBot';
+    Bot.create(bot)
+    .then((newBot) => {
+      testBotData2.name = 'TestData2';
+      testBotData2.botId = newBot.id;
+      testBotData2.roomId = testBotData.id;
+      return BotData.create(testBotData2);
+    })
+    .then(() => {
+      api.get(
+        `/v1/rooms/${testBotData.roomId}/bots/${testBotData.botId}/data`
+      )
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].name).to.equal(u.name);
+        done();
+      });
+    })
+    .catch(done);
+  });
+
 
   it('Pass, get by id', (done) => {
     api.get(`${path}/${saveBotData.id}`)

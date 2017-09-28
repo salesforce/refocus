@@ -12,11 +12,13 @@
 'use strict';
 
 const helper = require('../helpers/nouns/botData');
+const Bot = require('../../../db').Bot;
 const doPost = require('../helpers/verbs/doPost');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
+const u = require('../helpers/verbs/utils');
 
 module.exports = {
 
@@ -56,7 +58,21 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findBotData(req, res, next) {
-    doFind(req, res, next, helper);
+    if(req.swagger.params.botId) {
+      Bot.findOne({
+        where: { 
+          name: { $iLike: req.swagger.params.botId.value },
+        }, 
+      })
+      .then((o) => {
+        if(o) {
+          req.swagger.params.botId.value = o.dataValues;
+        }
+        doFind(req, res, next, helper);
+      });
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
