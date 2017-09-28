@@ -19,9 +19,10 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
+const u = require('../helpers/verbs/utils');
+const apiErrors = require('../apiErrors');
 
 module.exports = {
-
   /**
    * GET /generatorTemplates
    *
@@ -58,6 +59,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGeneratorTemplate(req, res, next) {
+    const allowedToPatch = ['isPublished'];
+    const illegal = Object.keys(req.body)
+    .filter((f) => !allowedToPatch.includes(f));
+    if (illegal.length) {
+      const verr = new apiErrors.ValidationError(
+        { explanation: `You cannot modify these attributes: ${illegal}` }
+      );
+      return u.handleError(next, verr, helper.modelName);
+    }
+
     doPatch(req, res, next, helper);
   },
 

@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const common = require('../helpers/common');
-const utils = require('../helpers/generatorUtil');
+const sgUtils = require('../helpers/generatorUtil');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
@@ -167,7 +167,7 @@ module.exports = function generator(seq, dataTypes) {
        * @returns {Promise} with collectors if pass, error if fail
        */
       validateCollectors(collectorNames, whereClauseForNameInArr) {
-        return utils.validateCollectors(seq, collectorNames,
+        return sgUtils.validateCollectors(seq, collectorNames,
           whereClauseForNameInArr);
       },
 
@@ -185,7 +185,7 @@ module.exports = function generator(seq, dataTypes) {
         let createdGenerator;
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
-          utils.validateCollectors(seq, requestBody.collectors,
+         sgUtils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
           .then((_collectors) => {
             collectors = _collectors;
@@ -213,6 +213,7 @@ module.exports = function generator(seq, dataTypes) {
                 `name: ${gtName} and version: ${gtVersion}`);
             }
 
+            sgUtils.validateGeneratorCtx(inst.context, gt.contextDefinition);
             return cryptUtils
               .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
               .catch(() => {
@@ -232,6 +233,7 @@ module.exports = function generator(seq, dataTypes) {
                 `name: ${gtName} and version: ${gtVersion}`);
               }
 
+              sgUtils.validateGeneratorCtx(inst.context, gt.contextDefinition);
               return cryptUtils
                 .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
                 .catch(() => {
@@ -281,8 +283,8 @@ module.exports = function generator(seq, dataTypes) {
     instanceMethods: {
 
       /**
-       * 1. validate the collectors field: if succeed, save the collectors in temp var for
-       *  attaching to the generator. if fail, abort the operation
+       * 1. validate the collectors field: if succeed, save the collectors in
+       *  temp var for attaching to the generator. if fail, abort the operation
        * 2. update the generator
        * 3. add the saved collectors (if any)
        *
@@ -293,7 +295,7 @@ module.exports = function generator(seq, dataTypes) {
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
         let collectors; // will be populated with actual collectors
         return new seq.Promise((resolve, reject) =>
-          utils.validateCollectors(seq, requestBody.collectors,
+         sgUtils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
           .then((_collectors) => {
             collectors = _collectors;

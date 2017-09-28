@@ -7,7 +7,9 @@
 extends ./../common/index.pug
 
 block container
-  div#roomsListContainer
+  div.slds-align_left
+    div.slds-grid.slds-size_1-of-1
+      div#roomTypeContainer.slds-panel.slds-grid.slds-grid_vertical.slds-nowrap
 
 block dynamic-content
-  script(src='/static/rooms/list/app.js')
+  script(src='/static/rooms/type/app.js')
