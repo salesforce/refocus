@@ -18,7 +18,6 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
-const u = require('../helpers/verbs/utils');
 
 module.exports = {
 
