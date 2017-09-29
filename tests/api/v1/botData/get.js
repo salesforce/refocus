@@ -201,7 +201,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     })
     .then(() => {
       api.get(
-        `/v1/rooms/${testBotData.roomId}/bots/${testBotData.botId}/data`
+        `/v1/rooms/${testBotData.roomId}/bots/${bot.name}/data`
       )
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
