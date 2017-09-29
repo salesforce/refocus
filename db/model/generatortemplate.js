@@ -189,35 +189,61 @@ module.exports = function user(seq, dataTypes) {
         return 'generatorTemplateAccess';
       },
 
+      /**
+       * Returns the SGT with the highest version number which matches the
+       * semantic version string passed in.
+       *
+       * @param {String} name - the SGT name as specified by the SG
+       * @param {String} version - the semantic version string as specified by
+       *  the SG
+       * @returns {Object} the matching sample generator template with the
+       *  highest version number
+       */
       getSemverMatch(name, version) {
+        return this.getSemverMatches(name, version)
+        .then((templates) => {
+          if (!templates.length) {
+            return null;
+          }
+
+          let max = null;
+          templates.forEach((t) => {
+            if (max) {
+              if (semver.gte(t.version, max.version)) {
+                max = t;
+              }
+            } else {
+              max = t;
+            }
+          });
+
+          return max;
+        });
+      },
+
+      /**
+       * Returns the SGTs which match the semantic version string passed in.
+       *
+       * @param {String} name - the SGT name as specified by the SG
+       * @param {String} version - the semantic version string as specified by
+       *  the SG
+       * @returns {Array} of templates (or empty array)
+       */
+      getSemverMatches(name, version) {
         return GeneratorTemplate.findAll({
           where: {
             name,
           },
-        }).then((templates) => {
-          if (!templates || !templates.length) {
-            return null;
+        })
+        .then((templates) => {
+          if (!templates || !Array.isArray(templates) || !templates.length) {
+            return [];
           }
 
-          let matchedTemplate = null;
-          templates.forEach((template) => {
-            if (matchedTemplate) {
-              /*
-               * ok is true when the current template version satisfies the
-               * given version and the current template version is greater
-               * than or equal(>=) to the version of the matched template
-               * that is returned finally.
-               */
-              const ok = semver.satisfies(template.version, version) &&
-               semver.gte(template.version, matchedTemplate.version);
-              matchedTemplate = ok ? template : matchedTemplate;
-            } else if (semver.satisfies(template.version, version)) {
-              matchedTemplate = template;
-            }
-          });
-
-          return matchedTemplate;
-        });
+          return templates.filter((t) =>
+            semver.satisfies(t.version, version));
+        })
+        .catch(() => []);
       },
 
       postImport(models) {
