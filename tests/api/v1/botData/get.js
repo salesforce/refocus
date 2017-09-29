@@ -239,7 +239,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .end(() => done());
   });
 
-  it('Fail, get data by room that does not exist', (done) => {
+  it('Fail, get data by a room that does not exist', (done) => {
     const testBotData2 = u.getStandard();
     const bot = b.getStandard();
     bot.name = 'NewBot';
@@ -259,7 +259,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .catch(done);
   });
 
-  it('Fail, get data by room with a bot that does not exist', (done) => {
+  it('Fail, get data by a room with a bot that does not exist', (done) => {
     const testBotData2 = u.getStandard();
     const bot = b.getStandard();
     bot.name = 'NewBot';
