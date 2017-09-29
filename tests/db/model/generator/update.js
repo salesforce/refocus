@@ -29,6 +29,13 @@ describe('tests/db/model/generator/update.js >', () => {
   gtWithEncryption.contextDefinition.password.encrypted = true;
   gtWithEncryption.contextDefinition.token.encrypted = true;
 
+  const gtWithRequiredContextDef = gtUtil.getGeneratorTemplate();
+  gtWithRequiredContextDef.name = 'gtWithRequiredContextDef';
+  gtWithRequiredContextDef.contextDefinition.newRequireField = {
+    required: true,
+    description: 'New field for contextDefinition',
+  };
+
   let generatorDBInstance;
   let sgtDBInstance;
   const collectorObj1 = {
@@ -41,6 +48,7 @@ describe('tests/db/model/generator/update.js >', () => {
   };
   before((done) => {
     GeneratorTemplate.create(gtWithEncryption)
+    .then(() => GeneratorTemplate.create(gtWithRequiredContextDef))
     .then(() => GeneratorTemplate.create(generatorTemplate))
     .then((o) => {
       sgtDBInstance = o;
@@ -100,6 +108,26 @@ describe('tests/db/model/generator/update.js >', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('not ok, generator cannot be updated without the required context ' +
+    'definition attribute defined in the generator template', (done) => {
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: gtWithRequiredContextDef.name,
+        version: '1.0.0',
+      },
+    })
+    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => {
+      done('Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.explanation).to.equal('Missing the required generator ' +
+        'context field newRequireField');
+      done();
+    });
   });
 
   it('not ok, generator cannot be updated when generator template ' +

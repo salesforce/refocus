@@ -24,8 +24,6 @@ class ListController extends React.Component {
 
   render() {
     const {
-      pageTitle,
-      pageDescription,
       tableHeaders,
       tableRows,
     } = this.props;
@@ -33,59 +31,40 @@ class ListController extends React.Component {
 
     return (
       <div>
-        <div className="slds-page-header">
-          <div className="slds-media">
-            <div className="slds-media__body">
-              <h1 className="slds-page-header__title slds-truncate slds-align-middle"
-                title={camelCase(pageTitle)}>
-                {pageTitle}
-              </h1>
-              <p className="slds-text-body_small slds-line-height_reset">
-                {pageDescription}{tableRows.length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <table className="slds-table slds-table--bordered slds-table-cell-buffer">
-            <thead>
-              <tr className="slds-text-title--caps">
-                {tableHeaders.map(header => {
-                  const key = camelCase(header);
-                  return <th scope="col" key={key}>
-                    <div className="slds-truncate" title={key}>{header}</div>
-                  </th>;
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {tableRows.map(row => {
-                const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
-                return <tr key={row.id}>
-                  {camelCaseHeaders.map(header =>
-                    <td key={row.id + header}>
-                      {Parser(row[header])}
-                    </td>)}
-                </tr>;
+        <table className='slds-table slds-table--bordered slds-table-cell-buffer'>
+          <thead>
+            <tr className='slds-text-title--caps'>
+              {tableHeaders.map(header => {
+                const key = camelCase(header);
+                return <th scope='col' key={key}>
+                  <div className='slds-truncate' title={key}>{header}</div>
+                </th>;
               })}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {tableRows.map(row => {
+              const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
+              return <tr key={row.id}>
+                {camelCaseHeaders.map(header =>
+                  <td key={row.id + header}>
+                    {Parser(row[header])}
+                  </td>)}
+              </tr>;
+            })}
+          </tbody>
+        </table>
       </div>
     );
   }
 }
 
 ListController.propTypes = {
-  pageTitle: PropTypes.string,
-  pageDescription: PropTypes.string,
   tableHeaders: PropTypes.array,
   tableRows: PropTypes.array,
 };
 
 ListController.defaultProps = {
-  pageTitle: 'List View',
-  pageDescription: 'Number of rows: ',
   tableHeaders: [],
   tableRows: [],
 };

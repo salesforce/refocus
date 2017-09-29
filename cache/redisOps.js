@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const redisStore = require('./sampleStore');
+const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
@@ -42,6 +43,7 @@ function hmSet(objectName, name, value) {
   const cleanobj =
           redisStore['clean' + capitalizeFirstLetter(objectName)](value);
   const nameKey = redisStore.toKey(objectName, name);
+  logInvalidHmsetValues(nameKey, cleanobj);
   return redisClient.hmsetAsync(nameKey, cleanobj)
   .then((ok) => Promise.resolve(ok))
   .catch((err) => Promise.reject(err));
@@ -403,9 +405,11 @@ module.exports = {
       return [];
     }
 
+    const key = redisStore.toKey(type, name);
+    logInvalidHmsetValues(key, kvObj);
     return [
       'hmset',
-      redisStore.toKey(type, name),
+      key,
       kvObj,
     ];
   },
@@ -422,7 +426,9 @@ module.exports = {
       return Promise.resolve();
     }
 
-    return redisClient.hmsetAsync(redisStore.toKey(type, name), kvObj);
+    const key = redisStore.toKey(type, name);
+    logInvalidHmsetValues(key, kvObj);
+    return redisClient.hmsetAsync(key, kvObj);
   },
 
   /**

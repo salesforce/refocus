@@ -32,6 +32,9 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+  const sortedNames = [collector1, collector2, collector3]
+    .map((col) => col.name)
+    .sort();
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
@@ -93,7 +96,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   it('ok: PATCH to add new collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector2.name] })
+    .send({ collectors: [collector2.name, collector3.name] })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -102,10 +105,9 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
 
       const { collectors } = res.body;
       expect(Array.isArray(collectors)).to.be.true;
-      expect(collectors.length).to.equal(TWO);
+      expect(collectors.length).to.equal(THREE);
       const collectorNames = collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.deep.equal(sortedNames);
       done();
     });
   });
