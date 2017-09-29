@@ -218,7 +218,6 @@ describe('tests/api/v1/botData/get.js >', () => {
     .catch(done);
   });
 
-
   it('Pass, get by id', (done) => {
     api.get(`${path}/${saveBotData.id}`)
     .set('Authorization', token)

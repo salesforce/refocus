@@ -57,16 +57,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findBotData(req, res, next) {
-    if(req.swagger.params.botId) {
+    if (req.swagger.params.botId) {
       Bot.findOne({
-        where: { 
+        where: {
           name: { $iLike: req.swagger.params.botId.value },
-        }, 
+        },
       })
       .then((o) => {
-        if(o) {
+        if (o) {
           req.swagger.params.botId.value = o.dataValues;
         }
+        
         doFind(req, res, next, helper);
       });
     } else {
