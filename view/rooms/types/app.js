@@ -19,11 +19,13 @@ import ListController from './../list/ListController';
 import moment from 'moment';
 
 const u = require('../../utils');
-const listContainer = document.getElementById('root');
+const uPage = require('./../utils/page');
+const listContainer = document.getElementById('roomsTypesContainer');
 const GET_ROOMTYPES = '/v1/roomTypes';
 
 window.onload = () => {
   let roomTypes;
+  uPage.setRoomTypesTab();
   u.getPromiseWithUrl(GET_ROOMTYPES)
   .then((res) => {
     roomTypes = res.body;
@@ -37,22 +39,24 @@ window.onload = () => {
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(roomTypes) {
+  uPage.setTitle('Refocus Room Types');
+  uPage.setSubtitle(`Number of room types: ${roomTypes.length}`);
+
   const headers = ['ID', 'Name', 'Enabled', 'Bots', 'Created At', 'Updated At'];
   const rows = roomTypes.map(roomType => {
     const { id } = roomType;
-    roomType.id = `<a href=/roomTypes/${id}>${id}</a>`;
-    roomType.name = `<a href=/roomTypes/${id}>${roomType.name}</a>`;
+    roomType.id = `<a href=/rooms/types/${id}>${id}</a>`;
+    roomType.name = `<a href=/rooms/types/${id}>${roomType.name}</a>`;
     roomType.bots = String(roomType.bots);
     roomType.enabled = roomType.isEnabled ? 'True' : 'False';
     delete roomType.isEnabled;
-    roomType.createdAt = moment(roomType.createdAt).format('LLL');
-    roomType.updatedAt = moment(roomType.updatedAt).format('LLL');
+    roomType.createdAt = moment(roomType.createdAt).format('lll');
+    roomType.updatedAt = moment(roomType.updatedAt).format('lll');
     return roomType;
   });
+  uPage.removeSpinner();
   ReactDOM.render(
     <ListController
-      pageTitle='Refocus Room Types'
-      pageDescription='Number of room types: '
       tableHeaders={ headers }
       tableRows={ rows }
     />,

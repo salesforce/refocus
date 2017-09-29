@@ -222,6 +222,79 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
+  it('not ok, cannot create a generator without a providing fields required' +
+    'by the generator template contextDefinition ', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'ExtraRequiredField';
+    _generatorTemplate.contextDefinition.newRequireField = {
+      required: true,
+      description: 'New field for contextDefinition',
+    };
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.message).to.equal('An unexpected MissingRequiredFieldError' +
+        ' occurred.');
+      done();
+    });
+  });
+
+  it('not ok, cannot create a generator with null context when context fields' +
+    'are marked required by the contextDefinition in the template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithoutContextField';
+    delete _generator.context;
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'GTMAppedtoSGWithoutContext';
+    _generatorTemplate.contextDefinition.newRequireField = {
+      required: true,
+      description: 'New field for contextDefinition',
+    };
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then(() => {
+      done(' Error: Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.message).to.equal('An unexpected MissingRequiredFieldError' +
+        ' occurred.');
+      done();
+    });
+  });
+
+  it('not ok, cannot create generator with context field when no ' +
+    'contextDefinition field is specified in the template', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'SGMappedToSGTWithoutCtxDef';
+    const _generatorTemplate = gtUtil.getGeneratorTemplate();
+    _generatorTemplate.name = 'TemplateWithoutContextDef';
+    delete _generatorTemplate.contextDefinition;
+    _generator.generatorTemplate.name = _generatorTemplate.name;
+
+    GeneratorTemplate.create(_generatorTemplate)
+    .then(() => Generator.create(_generator))
+    .then((o) => {
+      expect(o.name).to.equal(_generator.name);
+      done();
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: okValue,password,token');
+      done();
+    });
+  });
+
   it('not ok, cannot create a generator with encrypted filed ' +
     'when key/algo not found in global config', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
@@ -237,6 +310,44 @@ describe('tests/db/model/generator/create.js >', () => {
         'administrator to set up the encryption algorithm and key to ' +
         'protect any sensitive information you may include in ' +
         'your Sample Generator\'s context');
+      done();
+    });
+  });
+
+  it('not ok, cannot create generator with context keys that do not ' +
+    'match the template contextDefinition keys', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithExtraContextFields';
+    _generator.context.field = 'name';
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting Generator to throw a validation error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: field');
+      done();
+    });
+  });
+
+  it('not ok, cannot create generator with invalid context keys', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'WithInvalidContextFields';
+    _generator.context = {
+      invalidField1: 'not valid',
+      invalidField2: 'not valid',
+      invalidField3: 'not valid',
+    };
+
+    Generator.create(_generator)
+    .then(() => {
+      done(' Error: Expecting Generator to throw a validation error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('ValidationError');
+      expect(err.explanation).to.equal('Sample generator context contains ' +
+        'invalid keys: invalidField1,invalidField2,invalidField3');
       done();
     });
   });

@@ -88,11 +88,6 @@ describe('tests/view/rooms/list/ListController.js, List View =>', () => {
       listComponent,
       'td'
     );
-    const renderedDOM2 = ReactTestUtils.findRenderedDOMComponentWithClass(
-      listComponent,
-      'slds-text-body_small'
-    );
     expect(renderedDOM.length).to.equal(rows.length * headers.length);
-    expect(renderedDOM2.textContent).to.contain(rows.length);
   });
 });

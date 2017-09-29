@@ -10,23 +10,24 @@ html
   head
     title Refocus Room
     link(rel='shortcut icon', href='favicon.ico')
-    link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
-  body
-    div.slds-page-header
-      div.slds-grid
-        div.slds-cols.slds-has-flexi-truncate
-          div.slds-media.slds-no-space.slds-grow
-            div.slds-media__body
-              h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
-              p#subTitle.slds-text-body_small.slds-line-height_reset
-    div
+    link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
+    block page-header
+      div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem')
+        div.slds-grid
+          div.slds-cols.slds-has-flexi-truncate
+            div.slds-media.slds-no-space.slds-grow
+              div.slds-media__body
+                h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
+                p#subTitle.slds-text-body_small.slds-line-height_reset
+    block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
-    div#loading_spinner
-      .slds-spinner_container
-        .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
-          span.slds-assistive-text Loading
-          .slds-spinner__dot-a
-          .slds-spinner__dot-b
+    block spinner
+      div#loading_spinner
+        .slds-spinner_container
+          .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
+            span.slds-assistive-text Loading
+            .slds-spinner__dot-a
+            .slds-spinner__dot-b
 
   script(src='/static/scripts/jquery-1.11.1.min.js')
   script(src='/static/scripts/moment.min.js')

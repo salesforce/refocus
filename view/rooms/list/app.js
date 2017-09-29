@@ -19,13 +19,15 @@ import ListController from './ListController';
 import moment from 'moment';
 
 const u = require('../../utils');
-const listContainer = document.getElementById('root');
+const uPage = require('./../utils/page');
+const roomsListContainer = document.getElementById('roomsListContainer');
 const GET_ROOMS = '/v1/rooms';
 const GET_ROOMTYPES = '/v1/roomTypes';
 
 window.onload = () => {
   let rooms;
   let roomTypes;
+  uPage.setRoomsTab();
   u.getPromiseWithUrl(GET_ROOMS)
   .then((res) => {
     rooms = res.body;
@@ -43,26 +45,29 @@ window.onload = () => {
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(rooms, roomTypes) {
+  uPage.setTitle('Refocus Rooms');
+  uPage.setSubtitle(`Number of rooms: ${rooms.length}`);
+
   const headers = ['ID', 'Name', 'Type', 'Active', 'Created At', 'Updated At'];
   const rows = rooms.map(room => {
     const roomType = roomTypes.filter(rt => rt.id === room.type);
     const { id } = room;
-    room.id = `<a href=/rooms/${id}>${id}</a>`;
-    room.name = `<a href=/rooms/${id}>${room.name}</a>`;
-    room.type = `<a href=/roomTypes/${roomType[0].id}>${roomType[0].name}</a>`;
+    room.id = `<a href=/rooms/${id} target='_blank'>${id}</a>`;
+    room.name = `<a href=/rooms/${id} target='_blank'>${room.name}</a>`;
+    room.type = `<a href=/rooms/types/${roomType[0].id}>${roomType[0].name}</a>`;
     room.active = room.active ? 'True' : 'False';
-    room.createdAt = moment(room.createdAt).format('LLL');
-    room.updatedAt = moment(room.updatedAt).format('LLL');
+    room.createdAt = moment(room.createdAt).format('lll');
+    room.updatedAt = moment(room.updatedAt).format('lll');
     return room;
   });
+
+  uPage.removeSpinner();
   ReactDOM.render(
     <ListController
-      pageTitle='Refocus Rooms'
-      pageDescription='Number of rooms: '
       tableHeaders={ headers }
       tableRows={ rows }
     />,
-    listContainer
+    roomsListContainer
   );
 }
 

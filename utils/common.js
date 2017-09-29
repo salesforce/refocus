@@ -11,15 +11,27 @@
  */
 const apiErrors = require('../api/v1/apiErrors');
 const constants = require('../api/v1/constants');
+const featureToggles = require('feature-toggles');
 
 /**
- * Given an array, return true if there
- * are duplicates. False otherwise.
+ * Logs with stack trace if toggle is on and
+ *  there are invalid values in hmset object.
+ * Otherwise has no effect.
  *
- * @param {Array} tagsArr The input array
- * @returns {Boolean} whether input array
- * contains duplicates
+ * @param {String} key The redis key to hmset the object
+ * @param {Object} obj The object from hmset
  */
+function logInvalidHmsetValues(key, obj) {
+  if (featureToggles.isFeatureEnabled('logInvalidHmsetValues')) {
+    for (let _key in obj) {
+      if ((obj[_key] === undefined) || Array.isArray(obj[_key])) {
+        console.trace('Invalid hmset params found when setting ' + key +
+          ', received' + JSON.stringify(obj));
+        break;
+      }
+    }
+  }
+}
 
 /**
  * Check if read only field exists in given object
@@ -70,6 +82,7 @@ function looksLikeId(key) {
 }
 
 module.exports = {
+  logInvalidHmsetValues,
   looksLikeId,
   noReadOnlyFieldsInReq,
 };

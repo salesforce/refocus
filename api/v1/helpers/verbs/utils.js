@@ -70,13 +70,19 @@ function updateInstance(o, puttableFields, toPut) {
  * @returns {Object} JSON succcessful response
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
-  resultObj.dbTime = new Date() - resultObj.reqStartTime;
-  logAPI(req, resultObj, retVal);
+
+  // retVal is read only.
+  const returnObj = retVal.get ? retVal.get() : retVal;
+
+  // order collectors by name
+  if (props.modelName === 'Generator' && retVal.collectors) {
+    sortArrayObjectsByField(returnObj.collectors, 'name');
+  }
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
     publisher.publishSample(
-      retVal, props.associatedModels.subject, realtimeEvents.sample.upd);
+      returnObj, props.associatedModels.subject, realtimeEvents.sample.upd);
   }
 
   // update the cache
@@ -87,8 +93,21 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
     redisCache.del(findCacheKey);
   }
 
+  resultObj.dbTime = new Date() - resultObj.reqStartTime;
+  logAPI(req, resultObj, returnObj);
+
   return res.status(constants.httpStatus.OK)
-    .json(responsify(retVal, props, req.method));
+    .json(responsify(returnObj, props, req.method));
+}
+
+/**
+ * Sorts an array in-place.
+ *
+ * @param {Array} arr Array of objects
+ * @param {String} fieldName The field to sort by
+ */
+function sortArrayObjectsByField(arr, fieldName) {
+  arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
 }
 
 /**
@@ -859,6 +878,9 @@ function responsify(rec, props, method) {
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
+  sortArrayObjectsByField,
+
   updateInstance,
 
   responsify,

@@ -1,20 +1,13 @@
-//
+//-
   Copyright (c) 2017, salesforce.com, inc.
   All rights reserved.
   Licensed under the BSD 3-Clause license.
   For full license text, see LICENSE.txt file in the repo root or
   https://opensource.org/licenses/BSD-3-Clause
+extends ./../common/index.pug
 
-doctype html
-html
-  head
-    title Refocus RoomTypes
-    meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    link(rel='shortcut icon', href='favicon.ico')
-    link(rel='stylesheet', type='text/css', href='../../static/css/salesforce-lightning-design-system.min.css')
-  body
-    div#root
-  script.
-    var trackingId = '#{trackingId}';
-  script(src='/static/analytics/app.js')
+block container
+  div#roomsTypesContainer
+
+block dynamic-content
   script(src='/static/rooms/types/app.js')
