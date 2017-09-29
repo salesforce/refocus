@@ -52,7 +52,6 @@ module.exports = {
       .catch((err) => u.handleError(next, err, helper.modelName));
     }
 
-    console.log('audit Events logged ----------', auditEvents);
     helper.model.bulkCreate(auditEvents);
     u.logAPI(req, resultObj, body, auditEvents.length);
     return Promise.resolve(res.status(httpStatus.OK).json(body));
