@@ -18,6 +18,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
+const u = require('../../../utils/common');
 
 module.exports = {
 
@@ -57,7 +58,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findBotData(req, res, next) {
-    if (req.swagger.params.botId) {
+    const botId = req.swagger.params.botId;
+    if (botId && !u.looksLikeId(botId)) {
       Bot.findOne({
         where: {
           name: { $iLike: req.swagger.params.botId.value },
