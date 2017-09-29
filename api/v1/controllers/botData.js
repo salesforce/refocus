@@ -67,7 +67,7 @@ module.exports = {
         if (o) {
           req.swagger.params.botId.value = o.dataValues;
         }
-        
+
         doFind(req, res, next, helper);
       });
     } else {
