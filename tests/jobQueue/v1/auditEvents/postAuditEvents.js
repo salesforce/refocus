@@ -21,6 +21,8 @@ const u = require('./utils');
 const path = '/v1/auditEvents';
 const createAuditEventsJob =
   require('../../../../worker/jobs/createAuditEventsJob');
+const logger = require('../../../../utils/activityLog').logger;
+
 describe('tests/api/v1/auditEvents/post.js >', () => {
   let token;
   before((done) => {
@@ -43,8 +45,7 @@ describe('tests/api/v1/auditEvents/post.js >', () => {
   const ae2 = u.getAuditEventObject();
   const ae3 = u.getAuditEventObject();
 
-  it('bulkUpsert processed without errors should be in complete state ' +
-    'without any error list', (done) => {
+  it('OK, bulkCreate auditevents using worker process', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -69,6 +70,70 @@ describe('tests/api/v1/auditEvents/post.js >', () => {
           done();
         }).catch(done);
       }, 200);
+    });
+  });
+
+  describe('with logging turned On', () => {
+    before((done) => {
+      tu.toggleOverride('enableWorkerActivityLogs', true);
+      done();
+    });
+    after((done) => {
+      tu.toggleOverride('enableWorkerActivityLogs', false);
+      done();
+    });
+
+    it('worker activity logs should be logged correctly', (done) => {
+
+      /**
+       * An callback passed to the logging event to set the worker activity
+       * logging
+       * @param  {Object} transport - Information on where the log messages are
+       * logged
+       * @param  {String} level - Logging level
+       * @param  {String} msg - The actual log message
+       */
+      function testLogMessage(transport, level, msg) {
+        const logObj = {};
+        msg.split(' ').forEach((entry) => {
+          logObj[entry.split('=')[0]] = entry.split('=')[1];
+        });
+
+        if (logObj.activity === 'worker') {
+          try {
+            expect(logObj.totalTime).to.match(/\d+ms/);
+            expect(logObj.queueTime).to.match(/\d+ms/);
+            expect(logObj.queueResponseTime).to.match(/\d+ms/);
+            expect(logObj.workTime).to.match(/\d+ms/);
+            expect(logObj.dbTime).to.match(/\d+ms/);
+            expect(logObj.recordCount).to.equal('3');
+            done();
+          } catch (err) {
+            done(err);
+          }
+        }
+      }
+
+      logger.on('logging', testLogMessage);
+      api.post(path)
+      .set('Authorization', token)
+      .send([
+        ae1,
+        ae2,
+        ae3,
+      ])
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.status).to.contain('OK');
+        expect(res.body.jobId).to.be.at.least(1);
+      })
+      .then(() => {
+        // call the worker
+        jobQueue.process(jobSetup.jobType.BULKCREATE_AUDITEVENTS,
+          createAuditEventsJob);
+
+        // done is called in the call back passed to the "logging" event
+      });
     });
   });
 });
