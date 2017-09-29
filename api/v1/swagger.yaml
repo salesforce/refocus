@@ -1330,7 +1330,6 @@ paths:
                     "Collector", "Subject", etc.
               required:
                 - details
-                - loggedAt
                 - resourceType
                 - resourceName
       responses:

@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 describe('tests/db/model/auditevent/create', () => {
   let auditEventObj;
   beforeEach((done) => {
-    auditEventObj = JSON.parse(JSON.stringify(u.auditEventObj));
+    auditEventObj = u.getAuditEventObj();
     done();
   });
 
@@ -30,11 +30,11 @@ describe('tests/db/model/auditevent/create', () => {
   it('Create auditEvent, OK', (done) => {
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
-      expect(ae.details).to.deep.equal(u.auditEventObj.details);
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
+      expect(ae.details).to.deep.equal(auditEventObj.details);
       done();
     })
     .catch(done);
@@ -44,10 +44,10 @@ describe('tests/db/model/auditevent/create', () => {
     auditEventObj.details.additionalInfo = 'some info';
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       expect(ae.details.additionalInfo).to.deep.equal('some info');
       done();
     })
@@ -80,10 +80,10 @@ describe('tests/db/model/auditevent/create', () => {
     delete auditEventObj.isError;
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
       expect(ae.isError).to.be.equal(false);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       done();
     })
     .catch(done);
@@ -95,9 +95,9 @@ describe('tests/db/model/auditevent/create', () => {
     AuditEvent.create(auditEventObj)
     .then((ae) => {
       expect(ae.loggedAt).to.not.be.equal(undefined);
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       done();
     })
     .catch(done);
@@ -157,7 +157,9 @@ describe('tests/db/model/auditevent/create', () => {
     .then((o) => {
       totalRows = o.length;
       return AuditEvent.bulkCreate([auditEventObj,
-        auditEventObj, auditEventObj]);
+        auditEventObj,
+        auditEventObj,
+        ]);
     })
     .then(() => AuditEvent.findAll())
     .then((o) => {
