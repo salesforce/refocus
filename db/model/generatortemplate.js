@@ -233,6 +233,7 @@ module.exports = function user(seq, dataTypes) {
         return GeneratorTemplate.findAll({
           where: {
             name,
+            isPublished: true,
           },
         })
         .then((templates) => {
@@ -288,6 +289,53 @@ module.exports = function user(seq, dataTypes) {
 
         return inst;
       }, // afterCreate
+
+      beforeUpdate(inst /*, opts */) {
+        /*
+         * Cannot unpublish this SGT if it has an SG with no other valid SGT
+         * choices.
+         */
+        if (inst.changed('isPublished') && inst.isPublished === false) {
+          // Find all the sample generators which use this SGT.
+          const Gen = inst.$modelOptions.sequelize.models.Generator;
+          const generatorsWithNoOtherMatches = [];
+          return new seq.Promise((resolve, reject) => Gen.findAll({
+            where: {
+              'generatorTemplate.name': inst.name,
+              isActive: true,
+            },
+          })
+          /*
+           * Check whether there are other valid SGT semver matches for each
+           * one.
+           */
+          .each((sg) =>
+            this.getSemverMatches(inst.name, sg.generatorTemplate.version)
+            .then((matches) => {
+              /*
+               * If there is only one match, this it's *this* one, so we can't
+               * unpublish it.
+               */
+              if (!matches || matches.length < 2) {
+                generatorsWithNoOtherMatches.push(sg.name);
+              }
+            }))
+          .then(() => {
+            if (generatorsWithNoOtherMatches.length) {
+              const names = generatorsWithNoOtherMatches.join(', ');
+              const message = 'This Sample Generator Template is still ' +
+                `being used by these Sample Generators: ${names}. At this ` +
+                'time, there are are no other Sample Generator Templates ' +
+                'installed and published which satisfy the Sample ' +
+                'Generator version requirements, so you cannot unpublish ' +
+                'this Sample Generator Template.';
+              reject(new ValidationError({ message }));
+            };
+
+            resolve(true);
+          }));
+        }
+      }, // hooks.beforeUpdate
     },
     validate: {
       eitherUrlORtoUrl() {
