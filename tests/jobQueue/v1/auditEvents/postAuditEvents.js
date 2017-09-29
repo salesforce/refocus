@@ -23,7 +23,7 @@ const createAuditEventsJob =
   require('../../../../worker/jobs/createAuditEventsJob');
 const logger = require('../../../../utils/activityLog').logger;
 
-describe('tests/api/v1/auditEvents/post.js >', () => {
+describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
   let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
@@ -107,6 +107,8 @@ describe('tests/api/v1/auditEvents/post.js >', () => {
             expect(logObj.workTime).to.match(/\d+ms/);
             expect(logObj.dbTime).to.match(/\d+ms/);
             expect(logObj.recordCount).to.equal('3');
+            expect(logObj.jobType).to.equal('BULKCREATE_AUDITEVENTS');
+            logger.removeListener('logging', testLogMessage);
             done();
           } catch (err) {
             done(err);
