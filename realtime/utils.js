@@ -14,6 +14,7 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const logger = require('winston');
 
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -390,7 +391,7 @@ function isIpWhitelisted(addr, whitelist) {
  * When passed in a sample, its related subject and aspect is attached to the
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
- * @param {Object} sample - The sample instance.
+ * @param {Object} _sample - The sample instance. Could be from db directly
  * @param {Boolen} useSampleStore - The sample store flag, the subject and the
  *   aspect is fetched from the cache if this is set.
  * @param {Model} subjectModel - The database subject model.
@@ -398,9 +399,18 @@ function isIpWhitelisted(addr, whitelist) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, useSampleStore, subjectModel,
+function attachAspectSubject(_sample, useSampleStore, subjectModel,
   aspectModel) {
-  const nameParts = sample.name.split('|');
+  const sample = _sample.get ? _sample.get() : _sample;
+  let nameParts;
+
+  // check if sample object contains name
+  if (!sample.name || sample.name.indexOf('|') < 0) {
+    logger.error('sample object does not contain name', sample);
+    return Promise.resolve(null);
+  }
+
+  nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
@@ -436,8 +446,12 @@ function attachAspectSubject(sample, useSampleStore, subjectModel,
     let sub = response[1];
     asp = asp.get ? asp.get() : asp;
     sub = sub.get ? sub.get() : sub;
+    delete asp.writers;
+    delete sub.writers;
+
     sample.aspect = redisStore.arrayStringsToJson(asp,
          redisStore.constants.fieldsToStringify.aspect);
+
     sample.subject = redisStore.arrayStringsToJson(sub,
          redisStore.constants.fieldsToStringify.subject);
 

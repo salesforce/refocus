@@ -10,15 +10,28 @@
  * utils/common.js
  */
 const apiErrors = require('../api/v1/apiErrors');
+const constants = require('../api/v1/constants');
+const featureToggles = require('feature-toggles');
 
 /**
- * Given an array, return true if there
- * are duplicates. False otherwise.
+ * Logs with stack trace if toggle is on and
+ *  there are invalid values in hmset object.
+ * Otherwise has no effect.
  *
- * @param {Array} tagsArr The input array
- * @returns {Boolean} whether input array
- * contains duplicates
+ * @param {String} key The redis key to hmset the object
+ * @param {Object} obj The object from hmset
  */
+function logInvalidHmsetValues(key, obj) {
+  if (featureToggles.isFeatureEnabled('logInvalidHmsetValues')) {
+    for (let _key in obj) {
+      if ((obj[_key] === undefined) || Array.isArray(obj[_key])) {
+        console.trace('Invalid hmset params found when setting ' + key +
+          ', received' + JSON.stringify(obj));
+        break;
+      }
+    }
+  }
+}
 
 /**
  * Check if read only field exists in given object
@@ -55,6 +68,21 @@ function noReadOnlyFieldsInReq(req, readOnlyFields) {
   }
 } // noReadOnlyFieldsInReq
 
+/**
+ * Performs a regex test on the key to determine whether it looks like a
+ * postgres uuid. This helps us determine whether to try finding a record by
+ * id first then failing over to searching by name, or if the key doesn't meet
+ * the criteria to be a postgres uuid, just skip straight to searching by name.
+ *
+ * @param {String} key - The key to test
+ * @returns {Boolean} - True if the key looks like an id
+ */
+function looksLikeId(key) {
+  return constants.POSTGRES_UUID_RE.test(key);
+}
+
 module.exports = {
+  logInvalidHmsetValues,
+  looksLikeId,
   noReadOnlyFieldsInReq,
 };

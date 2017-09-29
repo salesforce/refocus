@@ -13,7 +13,6 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
-const featureToggles = require('feature-toggles');
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
 const collectorConfig = require('./config/collectorConfig');

@@ -11,14 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const featureToggles = require('feature-toggles');
 const u = require('./utils');
-const publisher = u.publisher;
-const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
-const redisModelSample = require('../../../../cache/models/samples');
-const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -34,75 +27,17 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  *  resource type to put.
  */
 function doPut(req, res, next, props) {
-  const resultObj = { reqStartTime: new Date() };
+  const resultObj = { reqStartTime: req.timestamp };
   const toPut = req.swagger.params.queryBody.value;
-  let putPromise;
-  if (featureToggles.isFeatureEnabled(constants.featureName) &&
-   props.modelName === 'Sample') {
-    const rLinks = toPut.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
+  let instance;
+  const puttableFields =
+    req.swagger.params.queryBody.schema.schema.properties;
 
-    putPromise = u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.putSample(req.swagger.params, user));
-  } else {
-    const puttableFields =
-      req.swagger.params.queryBody.schema.schema.properties;
-    putPromise = u.findByKey(
-        props, req.swagger.params
-      )
-      .then((o) => u.isWritable(req, o))
-      .then((o) => {
-        const keys = Object.keys(puttableFields);
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if (toPut[key] === undefined) {
-            let nullish = null;
-            if (puttableFields[key].type === 'boolean') {
-              nullish = false;
-            } else if (puttableFields[key].enum) {
-              nullish = puttableFields[key].default;
-            }
-
-            o.set(key, nullish);
-
-            // take nullified fields out of changed fields
-            o.changed(key, false);
-          } else {
-            /**
-             * value may have changed. set changed to true to
-             * trigger checks in the model
-             */
-            o.changed(key, true);
-            o.set(key, toPut[key]);
-          }
-        }
-
-        return o.save();
-      });
-  }
-
-  putPromise.then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    u.logAPI(req, resultObj, o);
-
-    // publish the update event to the redis channel
-    if (props.publishEvents) {
-      publisher.publishSample(o, props.associatedModels.subject,
-       event.sample.upd);
-    }
-
-    // update the cache
-    if (props.cacheEnabled) {
-      const getCacheKey = req.swagger.params.key.value;
-      const findCacheKey = '{"where":{}}';
-      redisCache.del(getCacheKey);
-      redisCache.del(findCacheKey);
-    }
-
-    res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
-  })
+  // find the instance, then update it
+  u.findByKey(props, req.swagger.params)
+  .then((o) => u.isWritable(req, o))
+  .then((o) => u.updateInstance(o, puttableFields, toPut))
+  .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

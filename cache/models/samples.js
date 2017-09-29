@@ -10,7 +10,7 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
-
+const logInvalidHmsetValues = require('../../utils/common').logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
 const u = require('../../api/v1/helpers/verbs/utils');
 const modelUtils = require('./utils');
@@ -256,9 +256,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     // if sample exists, just update sample.
     if (sample) {
-
       // to avoid updating sample name
       delete sampleQueryBodyObj.name;
+      logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     }
 
@@ -281,6 +281,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     // add aspect name to subject set, add sample key to sample set,
     // create/update hash of sample
+    logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
     return redisClient.batch([
       ['sadd', subaspMapKey, aspectName],
       ['sadd', constants.indexKey.sample, sampleKey],

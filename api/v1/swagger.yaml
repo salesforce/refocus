@@ -1174,6 +1174,216 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /auditEvents:
+    x-swagger-router-controller: auditEvents
+    get:
+      security:
+        - jwt: []
+      summary: Find auditEvents
+      tags: [ auditEvents ]
+      description: >-
+        Find auditEvents. You may query using field filters with asterisk (*)
+        wildcards. You may also optionally specify sort, limit, offset, and a
+        list of fields to include in the response.
+      externalDocs:
+        description: >-
+          GET /auditEvents
+        url: http://focus.salesforce.com/docs/api/auditEvents
+      operationId: findAuditEvents
+      parameters:
+        -
+          $ref: "#/parameters/AuditEventsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g.
+            '...?sort=loggedAt'. Prepend the field name with a minus sign
+            to specify descending order, e.g. '...?sort=-loggedAt'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - createdAt
+              - id
+              - isError
+              - loggedAt
+              - resourceName
+              - resourceType
+              - -createdAt
+              - -id
+              - -isError
+              - -loggedAt
+              - -resourceName
+              - -resourceType
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: startAt
+          in: query
+          description: >-
+            Filter by auditEvent loggedAt timestamp range
+            (https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14).
+            Cannot combine startAt/endAt with relativeDateTime.
+          required: false
+          type: string
+        -
+          name: endAt
+          in: query
+          description: >-
+            Filter by auditEvent loggedAt timestamp range
+            (https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14).
+            Cannot combine startAt/endAt with relativeDateTime.
+          required: false
+          type: string
+        -
+          name: relativeDateTime
+          in: query
+          description: >-
+            Filter by auditEvent loggedAt timestamp using relative date/time,
+            e.g. "-12h" for the last twelve hours, "-15m" for the last fifteen
+            minutes, etc. Cannot combine startAt/endAt with relativeDateTime.
+          required: false
+          type: string
+        -
+          name: resourceType
+          in: query
+          description: >-
+            Filter by auditEvent resourceType; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: resourceName
+          in: query
+          description: >-
+            Filter by auditEvent resourceName; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: isError
+          in: query
+          description: >-
+            Filter by auditEvent isError.
+          required: false
+          type: boolean
+      responses:
+        200:
+          description: >-
+            Success, returns a list of auditEvents.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AuditEventsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Create new auditEvents
+      tags: [ auditEvents ]
+      description: >-
+        Create new auditEvents.
+      operationId: postAuditEvents
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              description: >
+                An auditable Refocus event.
+              properties:
+                details:
+                  type: object
+                  description: >
+                    A JSON object with additional event details.
+                loggedAt:
+                  type: string
+                  description: >
+                    The timestamp when the event was logged.
+                isError:
+                  type: boolean
+                  default: false
+                  description: >
+                    True if this auditEvent represents an error.
+                resourceName:
+                  type: string
+                  maxLength: 4096
+                  description: >
+                    The name of the resource associated with this event.
+                resourceType:
+                  type: string
+                  maxLength: 4096
+                  description: >
+                    The type of the resource associated with this event, e.g.
+                    "Collector", "Subject", etc.
+              required:
+                - details
+                - loggedAt
+                - resourceType
+                - resourceName
+      responses:
+        200:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/BulkUpsertResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /auditEvents/{key}:
+    x-swagger-router-controller: auditEvents
+    get:
+      security:
+        - jwt: []
+      summary: Retrieve the specified auditEvent
+      tags: [ auditEvents ]
+      description: >-
+        Retrieve the specified auditEvent by its id. You may also optionally
+        specify a list of fields to include in the response.
+      operationId: getAuditEvent
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id of the auditEvent to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/AuditEventsFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified auditEvent.
+          schema:
+            $ref: "#/definitions/AuditEventsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
     post:
@@ -1216,8 +1426,18 @@ paths:
                 type: string
                 description: Access restricted to Refocus Collector only.
                 maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
             required:
               - name
+              - version
       responses:
         201:
           description: Success.
@@ -1264,6 +1484,7 @@ paths:
               - helpUrl
               - host
               - ipAddress
+              - version
               - -name
               - -status
               - -isRegistered
@@ -1275,6 +1496,7 @@ paths:
               - -helpUrl
               - -host
               - -ipAddress
+              - -version
         -
           $ref: "#/parameters/limitParam"
         -
@@ -1319,6 +1541,13 @@ paths:
           in: query
           description: >-
             Filter by host; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: version
+          in: query
+          description: >-
+            Filter by version; asterisk (*) wildcards ok.
           required: false
           type: string
       responses:
@@ -1409,6 +1638,15 @@ paths:
                 type: string
                 description: Access restricted to Refocus Collector only.
                 maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
       responses:
         403:
           $ref: "#/responses/403"
@@ -2694,64 +2932,6 @@ paths:
             type: object
             description: A generatorTemplate configuration object.
             properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >-
-                  A description of the generatorTemplate.
-              helpEmail:
-                type: string
-                description: >-
-                  The email address where a user can go to get more help about
-                  the generatorTemplate.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: >-
-                  The url where a user can go to get more help about the
-                  generatorTemplate.
-              name:
-                type: string
-                readOnly: true
-                description: >-
-                  The generatorTemplate's name.
-              version:
-                type: string
-                description: >-
-                  The version, in semantic versioning format ( MAJOR.MINOR.PATCH )
-              tags:
-                type: array
-                items:
-                  type: string
-                  maxLength: 60
-                  pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
-                description: >
-                  Array of tag names. Tag name: Max 60 characters; case
-                  insensitive; allows alpha-numeric characters, underscore (_)
-                  and dash (-). Tag names cannot start with a dash (-).
-              author:
-                type: object
-                description: >-
-                  The author of this generatorTemplate.
-              repository:
-                type: object
-                description: >-
-                  The repository where this generatorTemplate is located.
-              connection:
-                type: object
-                description: >-
-                  Information about the connection.
-              contextDefinition:
-                type: object
-                description: >-
-                  Variables available to connection.url, connection.toUrl, and
-                  the transform function.
-              transform:
-                type: string
-                description: >-
-                  The body of a javascript function which transforms some data into
-                  an array of samples
               isPublished:
                 type: boolean
                 description: >-
@@ -9818,6 +9998,65 @@ definitions:
         description: >
           Hypertext As The Engine Of Application State.
 
+  AuditEventsResponse:
+    type: object
+    description: >
+      An auditable Refocus event.
+    properties:
+      details:
+        type: object
+        readOnly: true
+        description: >
+          A JSON object with additional event details.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The auditEvent id.
+      loggedAt:
+        type: string
+        readOnly: true
+        description: >
+          The timestamp when the event was logged.
+      isError:
+        type: boolean
+        readOnly: true
+        default: false
+        description: >
+          True if this audit event represents an error.
+      resourceName:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The name of the resource associated with this event.
+      resourceType:
+        type: string
+        readOnly: true
+        maxLength: 4096
+        description: >
+          The type of the resource associated with this event, e.g.
+          "Collector", "Subject", etc.
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User/Collector who created this auditEvent.
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp when the record was saved to Refocus. Due to latency and
+          queuing, this value is expected to be greater than the loggedAt
+          timestamp.
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
   GlobalConfigResponse:
     type: object
     description: >
@@ -11344,6 +11583,9 @@ parameters:
         - helpUrl
         - host
         - ipAddress
+        - osInfo
+        - processInfo
+        - version
 
   limitParam:
     name: limit
@@ -11392,6 +11634,24 @@ parameters:
         - valueLabel
         - valueType
         - warningRange
+
+  AuditEventsFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - createdAt
+        - details
+        - isError
+        - loggedAt
+        - resourceName
+        - resourceType
 
   GeneratorFieldsParam:
     name: fields

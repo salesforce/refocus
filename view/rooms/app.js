@@ -16,11 +16,11 @@
 const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
+const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[1];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
-const SPINNER_ID = 'loading_spinner';
 
 /**
  * Creates headers for each bot added to the UI
@@ -64,6 +64,7 @@ function createHeader(bot) {
       'background:#c23934;width:8px;height:8px;border-radius:50%;margin:5px;'
     );
   }
+
   circle.className = 'slds-float_right';
 
   title.appendChild(text);
@@ -101,9 +102,10 @@ function parseBot(bot) {
     botContainer.appendChild(headerSection);
     botsContainer.appendChild(botContainer);
   }
+
   // go through zipEntries that arent 'index.html'
   const zipEntriesNoIndex = zipEntries.filter(
-    (entry) => entry.name !== 'index.html'
+    entry => entry.name !== 'index.html'
   );
   for (let i = 0; i < zipEntriesNoIndex.length; i++) {
     botScript.appendChild(
@@ -112,21 +114,19 @@ function parseBot(bot) {
     document.body.appendChild(botScript);
   }
 
-  u.removeSpinner(SPINNER_ID);
+  uPage.removeSpinner();
 } // parseBots
 
 window.onload = () => {
-  document.getElementById('title').innerHTML = 'Room #' + ROOM_ID;
+  uPage.setTitle(`Room # ${ROOM_ID}`);
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    document.getElementById('subTitle').innerHTML = res.body.name;
-    return u.getPromiseWithUrl(GET_ROOMTYPES+'/'+res.body.type);
+    uPage.setSubtitle(res.body.name);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    const promises = res.body.bots.map((botName) => {
-      return u.getPromiseWithUrl(GET_BOTS + '/' + botName);
-    });
+    const promises = res.body.bots.map(botName => u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
   .then((res) => {

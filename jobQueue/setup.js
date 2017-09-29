@@ -27,6 +27,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });

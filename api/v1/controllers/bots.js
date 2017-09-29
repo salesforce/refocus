@@ -84,7 +84,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
     const seqObj = {};
     const uiObj = {};
@@ -134,7 +134,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putBots(req, res, next) {
-    const resultObj = { reqStartTime: new Date() };
+    const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
     const uiObj = {};
     u.findByKey(helper, req.swagger.params)

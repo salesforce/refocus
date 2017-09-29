@@ -77,7 +77,10 @@ describe('tests/api/v1/generators/put.js >', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      expect(res.body.subjectQuery).to.equal(undefined);
+
+      // subjectQuery is ?subjects after reload
+      expect(res.body.subjectQuery)
+        .to.equal(generatorToCreate.subjectQuery);
       expect(res.body.subjects).to.deep.equal(toPut.subjects);
     })
     .end(done);

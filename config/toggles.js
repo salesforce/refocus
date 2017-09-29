@@ -113,6 +113,9 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  // turn on logging to log invalid hmset values
+  logInvalidHmsetValues: environmentVariableTrue(pe,
+    'LOG_INVALID_HMSET_VALUES'),
 
   // Cache the GET request for samples with wildcard by name
   cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
@@ -133,9 +136,6 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
-
-  fastFailDuplicateSubject: environmentVariableTrue(pe,
-    'FAST_FAIL_DUPLICATE_SUBJECT'),
 
   // publish partial sample to the subscribers
   publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
