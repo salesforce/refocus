@@ -332,3 +332,40 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   });
 });
 
+describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
+() => {
+  beforeEach((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
+    done();
+  });
+
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  it('post subject with isPublished false, check tags and related links',
+  (done) => {
+    Subject.create({ name: `${tu.namePrefix}s4`, isPublished: false })
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.relatedLinks).to.deep.equal([]);
+      expect(subj.tags).to.deep.equal([]);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('post subject with isPublished true, check tags and related links',
+  (done) => {
+    Subject.create({ name: `${tu.namePrefix}s4`, isPublished: true })
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.relatedLinks).to.deep.equal([]);
+      expect(subj.tags).to.deep.equal([]);
+      done();
+    })
+    .catch(done);
+  });
+});
+

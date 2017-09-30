@@ -188,9 +188,12 @@ module.exports = function aspect(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // Prevent any changes to original inst object
+            const instDuplicate = JSON.parse(JSON.stringify(inst));
+
             // create an entry in aspectStore
             redisOps.addKey(aspectType, inst.getDataValue('name'));
-            redisOps.hmSet(aspectType, inst.name, inst);
+            redisOps.hmSet(aspectType, inst.name, instDuplicate);
           }
         }
       }, // hooks.afterCreate

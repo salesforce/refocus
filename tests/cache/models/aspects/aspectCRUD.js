@@ -334,4 +334,36 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     })
     .catch(done);
   });
+
+  it('Create, isPublished false, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME1`,
+      isPublished: false,
+      timeout: '110s',
+    })
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.relatedLinks).to.deep.equal([]);
+      expect(asp.tags).to.deep.equal([]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Create, isPublished true, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME1`,
+      isPublished: true,
+      timeout: '110s',
+    })
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.relatedLinks).to.deep.equal([]);
+      expect(asp.tags).to.deep.equal([]);
+      return done();
+    })
+    .catch(done);
+  });
 });
