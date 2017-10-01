@@ -60,7 +60,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKCREATE_AUDITEVENTS,
+      jobQueue.process(jobSetup.jobType.BULK_CREATE_AUDIT_EVENTS,
         createAuditEventsJob);
 
       setTimeout(() => {
@@ -106,8 +106,8 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
             expect(logObj.queueResponseTime).to.match(/\d+ms/);
             expect(logObj.workTime).to.match(/\d+ms/);
             expect(logObj.dbTime).to.match(/\d+ms/);
+            expect(logObj.jobType).to.equal('BULK_CREATE_AUDIT_EVENTS');
             expect(logObj.recordCount).to.equal('3');
-            expect(logObj.jobType).to.equal('BULKCREATE_AUDITEVENTS');
             logger.removeListener('logging', testLogMessage);
             done();
           } catch (err) {
@@ -131,7 +131,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
       })
       .then(() => {
         // call the worker
-        jobQueue.process(jobSetup.jobType.BULKCREATE_AUDITEVENTS,
+        jobQueue.process(jobSetup.jobType.BULK_CREATE_AUDIT_EVENTS,
           createAuditEventsJob);
 
         // done is called in the call back passed to the "logging" event

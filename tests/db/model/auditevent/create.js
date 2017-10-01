@@ -103,7 +103,7 @@ describe('tests/db/model/auditevent/create', () => {
     .catch(done);
   });
 
-  it('Ok, create auditEvent with no details, details must defaul ' +
+  it('Ok, create auditEvent with no details, details must default ' +
     'to an empty object', (done) => {
     delete auditEventObj.details;
     AuditEvent.create(auditEventObj)

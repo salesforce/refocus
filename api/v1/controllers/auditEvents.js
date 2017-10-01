@@ -32,17 +32,16 @@ module.exports = {
     const auditEvents = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-
       const jobType = require('../../../jobQueue/setup').jobType;
       const jobWrapper = require('../../../jobQueue/jobWrapper');
 
-      const payLoad = {};
-      payLoad.auditEvents = auditEvents;
-      payLoad.reqStartTime = reqStartTime;
+      const payload = {};
+      payload.auditEvents = auditEvents;
+      payload.reqStartTime = reqStartTime;
 
       const jobPromise = jobWrapper
-        .createPromisifiedJob(jobType.BULKCREATE_AUDITEVENTS,
-          payLoad, req);
+        .createPromisifiedJob(jobType.BULK_CREATE_AUDIT_EVENTS,
+          payload, req);
       return jobPromise.then((job) => {
         // set the job id in the response object before it is returned
         body.jobId = job.id;

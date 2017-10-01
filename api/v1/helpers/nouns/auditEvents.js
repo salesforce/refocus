@@ -16,7 +16,7 @@ const m = 'auditevent';
 
 module.exports = {
   apiLinks: {
-    POST: `Update selected attributes of this ${m}`,
+    POST: `Create a new ${m}`,
   },
   baseUrl: '/v1/AuditEvents',
   model: AuditEvent,

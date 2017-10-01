@@ -44,5 +44,5 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, jobConcurrency.SAMPLE_TIMEOUT,
   sampleTimeoutJob);
 jobQueue.process(jobType.PERSIST_SAMPLE_STORE,
   jobConcurrency.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
-jobQueue.process(jobType.BULKCREATE_AUDITEVENTS,
-  jobConcurrency.BULKCREATE_AUDITEVENTS, createAuditEventJob);
+jobQueue.process(jobType.BULK_CREATE_AUDIT_EVENTS,
+  jobConcurrency.BULK_CREATE_AUDIT_EVENTS, createAuditEventJob);
