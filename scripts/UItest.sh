@@ -1,6 +1,8 @@
 #!/bin/bash
+#
+# Populate the db with data for UI test
 
-# populate the db with data for UI test
+# clones the client to send data to refocus
 cd ..
 if [ ! -d ./refocus-client-example ]; then
   rm -rf
@@ -12,7 +14,7 @@ else
   cd refocus
 fi
 
-# need to send server to the background, to run additional commands
+# starts and sends server to the background, to run additional commands
 node . &
 TASK_PID=$!
 sleep 5 # for the server process
