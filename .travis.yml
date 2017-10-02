@@ -41,4 +41,7 @@ services:
   - redis-server
 
 script:
+  - npm run jscs-enforce
+  - npm run checkdb
+  - npm test
   - npm run e2eTest
