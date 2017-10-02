@@ -16,6 +16,6 @@ fi
 node . &
 TASK_PID=$!
 sleep 5 # for the server process
-. loadResources.sh
+. ./loadResources.sh # calls the client code
 sleep 10 # for the server process
 kill $TASK_PID
