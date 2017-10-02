@@ -5,7 +5,7 @@ module.exports = {
      *
      * If there were failures or errors, exit 1, else exit 0.
      *
-     * @param results
+     * @param {Object} results
      */
     reporter: function(results) {
         if ((typeof(results.failed) === 'undefined' || results.failed === 0) &&

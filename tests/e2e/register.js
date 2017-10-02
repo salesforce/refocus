@@ -7,26 +7,28 @@
  */
 
 /**
- * tests/e2e/login.js
+ * tests/e2e/register.js
  */
 const server = require('../../index').httpServer;
 
 // TODO: get this from config
-const baseUrl = 'http://localhost:3000/';
+const baseUrl = 'http://localhost:3000/register';
 module.exports = {
   before : function(browser) {
     app = server.listen(3000);
   },
+  // after each: delete the
   after : function(browser, done) {
     // for httpserver. express server does not have a .close()
     app.close();
     done();
   },
 
-  'Test default perspective loads after login':  (browser) => {
+  // if the test failed, cause include user already exists
+  'Default perspective loads after register':  (browser) => {
     browser
       .url(baseUrl)
-      .login("email", "email")
+      .register("email", "email")
       .pause(1000)
       .assert.elementPresent('.slds-lookup__search-input')
       .end();
