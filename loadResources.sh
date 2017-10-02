@@ -1,4 +1,6 @@
-cd ../refocus-client-example
+# run from refocus dir
+cd $refocusClientDir
+echo $refocusClientDir
 node subjectsAndAspects.js
 node perspectiveAndLens.js
-cd ../refocus
+cd $refocusDir
