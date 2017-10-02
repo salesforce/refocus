@@ -21,10 +21,11 @@ echo $refocusClientDir
 cd $refocusDir
 # starts and sends server to the background, to run additional commands
 node . &
-TASK_PID=$!
+serverPID=$!
+selenium . &
+seleniumPID=$!
 sleep 5 # for the server process
 
-# run from refocus dir
 cd $refocusClientDir
 echo 'populating subjects, aspects, lens, and perspective'
 node subjectsAndAspects.js
@@ -32,5 +33,6 @@ node perspectiveAndLens.js
 cd $refocusDir
 
 sleep 10 # for the server process
-kill $TASK_PID
+kill $serverPID
+kill $seleniumPID
 

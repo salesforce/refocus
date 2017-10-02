@@ -253,7 +253,7 @@ function start() { // eslint-disable-line max-statements
   // create app routes
   require('./view/loadView')(app, passportModule, '/v1');
 
-  module.exports = { app, passportModule };
+  module.exports = { app, passportModule, httpServer };
 }
 
 const isProd = (process.env.NODE_ENV === 'production');
