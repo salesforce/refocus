@@ -6,9 +6,6 @@
 node . &
 TASK_PID=$!
 sleep 5 # for the server process
-cd ../refocus-client-example
-node subjectsAndAspects.js &
-node perspectiveAndLens.js &
-
+source loadResources.sh
 sleep 10 # for the server process
 kill $TASK_PID
