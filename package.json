@@ -23,7 +23,7 @@
     }
   },
   "scripts": {
-    "e2eTest" : "npm run checkdb && npm run cleanup && . setupClient.sh && . UItest.sh",
+    "e2eTest" : "npm run checkdb && npm run cleanup && . UItest.sh",
     "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "checkdb": "node db/createOrUpdateDb.js",
     "cleanup": "npm run dropdb && npm run initdb && npm run checkdb",
