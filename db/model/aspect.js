@@ -188,9 +188,12 @@ module.exports = function aspect(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // Prevent any changes to original inst dataValues object
+            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+
             // create an entry in aspectStore
             redisOps.addKey(aspectType, inst.getDataValue('name'));
-            redisOps.hmSet(aspectType, inst.name, inst);
+            redisOps.hmSet(aspectType, inst.name, instDataObj);
           }
         }
       }, // hooks.afterCreate
@@ -301,9 +304,11 @@ module.exports = function aspect(seq, dataTypes) {
             redisOps.deleteKeys(sampleType, aspectType, inst.name);
           } else if (inst.changed('isPublished')) {
             if (inst.isPublished) {
+              // Prevent any changes to original inst dataValues object
+              const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
               redisOps.addKey(aspectType, inst.name);
-              redisOps.hmSet(aspectType, inst.name, inst.get());
+              redisOps.hmSet(aspectType, inst.name, instDataObj);
             } else {
 
               // delete the entry in the subject store
