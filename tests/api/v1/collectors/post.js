@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe('tests/api/v1/collectors/post.js >', () => {
-   let token;
+  let token;
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
