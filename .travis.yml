@@ -41,4 +41,4 @@ services:
   - redis-server
 
 script:
-  - source ./UItest.sh
+  - npm run e2eTest
