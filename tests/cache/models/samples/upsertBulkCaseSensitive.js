@@ -16,13 +16,7 @@ const api = supertest(require('../../../../index').app);
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const rcli = require('../../../../cache/redisCache').client.sampleStore;
-const u = require('./utils');
-const Aspect = tu.db.Aspect;
-const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
-const sampleName = '___Subject1.___Subject2|___Aspect1';
 
 describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
 `api: POST ${path} >`, () => {
