@@ -20,7 +20,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
 
   after(u.forceDelete);
 
-  describe('getAssociation test', () => {
+  describe('getAssociation >', () => {
     it('should return all the associations', (done) => {
       const associations = GeneratorTemplate.getGeneratortemplateAssociations();
       expect(associations).to.all.keys('writers', 'user');
@@ -28,7 +28,73 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
     });
   });
 
-  describe('getSemverMatch tests', () => {
+  describe('getSemverMatches >', () => {
+    it('no match', (done) => {
+      const gt = u.getGeneratorTemplate();
+      gt.version = '6.0.0';
+      gt.name += '6';
+      const gt1 = JSON.parse(JSON.stringify(gt));
+      gt1.version = '6.0.1';
+      const gt2 = JSON.parse(JSON.stringify(gt));
+      gt2.version = '6.1.1';
+      const gt3 = JSON.parse(JSON.stringify(gt));
+      gt3.version = '6.9.0';
+
+      GeneratorTemplate.bulkCreate([gt, gt1, gt2, gt3])
+      .then(() => GeneratorTemplate.getSemverMatches('NO_MATCH', '^6.0.0'))
+      .then((arr) => {
+        if (!Array.isArray(arr) || arr.length > 0) {
+          throw new Error('Expecting a zero-length array of GeneratorTemplate ' +
+            'objects');
+        }
+      })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('one match', (done) => {
+      const gt = u.getGeneratorTemplate();
+      gt.version = '6.0.0';
+      gt.name += 'ONE_MATCH';
+      const gt1 = JSON.parse(JSON.stringify(gt));
+      gt1.version = '6.0.1';
+      const gt2 = JSON.parse(JSON.stringify(gt));
+      gt2.version = '6.1.1';
+      const gt3 = JSON.parse(JSON.stringify(gt));
+      gt3.version = '6.9.0';
+
+      GeneratorTemplate.bulkCreate([gt, gt1, gt2, gt3])
+      .then(() => GeneratorTemplate.getSemverMatches(gt.name, '^6.8.0'))
+      .then((arr) => {
+        expect(arr).to.have.lengthOf(1);
+        expect(arr[0]).to.have.property('version', '6.9.0');
+      })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('multiple matches', (done) => {
+      const gt = u.getGeneratorTemplate();
+      gt.version = '6.0.0';
+      gt.name += 'MANY_MATCHES';
+      const gt1 = JSON.parse(JSON.stringify(gt));
+      gt1.version = '6.0.1';
+      const gt2 = JSON.parse(JSON.stringify(gt));
+      gt2.version = '6.1.1';
+      const gt3 = JSON.parse(JSON.stringify(gt));
+      gt3.version = '6.9.0';
+
+      GeneratorTemplate.bulkCreate([gt, gt1, gt2, gt3])
+      .then(() => GeneratorTemplate.getSemverMatches(gt.name, '^6.1.0'))
+      .then((arr) => {
+        expect(arr).to.have.lengthOf(2);
+      })
+      .then(() => done())
+      .catch(done);
+    });
+  });
+
+  describe('getSemverMatch >', () => {
     it('exact version match when GT version = 1.0.0 and test ' +
       'version = 1.0.0', (done) => {
       let createdGT;
@@ -41,7 +107,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       })
       .then((o) => {
         if (!o) {
-          return done('Expection a GeneratorTemplate object');
+          return done('Expecting a GeneratorTemplate object');
         }
 
         expect(o.dataValues.version).to.equal(createdGT.dataValues.version);
@@ -62,7 +128,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       })
       .then((o) => {
         if (!o) {
-          return done('Expection a GeneratorTemplate object');
+          return done('Expecting a GeneratorTemplate object');
         }
 
         expect(o.dataValues.version).to.equal(createdGT.dataValues.version);
@@ -83,7 +149,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
       })
       .then((o) => {
         if (!o) {
-          return done('Expection a GeneratorTemplate object');
+          return done('Expecting a GeneratorTemplate object');
         }
 
         expect(o.dataValues.version).to.equal(createdGT.dataValues.version);
@@ -154,7 +220,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
         .getSemverMatch(gt.name, '^6.0.0'))
       .then((o) => {
         if (!o) {
-          return done('Expection a GeneratorTemplate object');
+          return done('Expecting a GeneratorTemplate object');
         }
 
         expect(o.dataValues.name).to.equal(gt3.name);

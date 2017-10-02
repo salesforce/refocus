@@ -21,8 +21,8 @@ module.exports = (job, done) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const jobEndTime = Date.now();
       const tempObj = {
-        jobStartTime: jobStartTime,
-        jobEndTime: jobEndTime,
+        jobStartTime,
+        jobEndTime,
         reqStartTime: resultObj.reqStartTime,
         dbStartTime: resultObj.dbStartTime,
         dbEndTime: resultObj.dbEndTime,
