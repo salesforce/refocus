@@ -6,6 +6,6 @@
 node . &
 TASK_PID=$!
 sleep 5 # for the server process
-source loadResources.sh
+. loadResources.sh
 sleep 10 # for the server process
 kill $TASK_PID
