@@ -40,7 +40,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     GeneratorTemplate.create(gt)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
-      expect(o.isPublished).to.equal(false);
+      expect(o.isPublished).to.equal(true);
       expect(o.version).to.equal('1.0.0');
       expect(o.name).to.equal(gt.name);
       expect(o.description).to.equal(gt.description);

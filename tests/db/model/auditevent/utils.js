@@ -11,18 +11,28 @@
  */
 'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
+const auditEventObj = {
+  loggedAt: new Date('2017-09-30'),
+  resourceName: 'abc-collector',
+  resourceType: 'Collector',
+  isError: false,
+  details: {
+    detailOne: 'some details one',
+    detailTwo: 1234,
+  },
+};
+
+/**
+ * Function to return a new copy of the auditEventObject.
+ * @returns {Object} AuditEvent Object
+ */
+function getAuditEventObj() {
+  return JSON.parse(JSON.stringify(auditEventObj));
+} // getAuditEventObj
 
 module.exports = {
-  auditEventObj: {
-    loggedAt: Date.parse('Sept 22, 2017'),
-    resourceName: 'abc-collector',
-    resourceType: 'Collector',
-    isError: false,
-    details: {
-      detailOne: 'some details one',
-      detailTwo: 1234,
-    },
-  },
+
+  getAuditEventObj,
 
   forceDelete(done) {
     tu.db.AuditEvent.destroy({ where: {}, force: true })
