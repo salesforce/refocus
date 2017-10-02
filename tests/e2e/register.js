@@ -14,14 +14,13 @@ const server = require('../../index').httpServer;
 // TODO: get this from config
 const baseUrl = 'http://localhost:3000/register';
 module.exports = {
-  before : function(browser) {
+  before : function() {
     app = server.listen(3000);
   },
   // after each: delete the
-  after : function(browser, done) {
+  after : function() {
     // for httpserver. express server does not have a .close()
     app.close();
-    done();
   },
 
   // if the test failed, cause include user already exists
@@ -29,7 +28,7 @@ module.exports = {
     browser
       .url(baseUrl)
       .register("email", "email")
-      .pause(1000)
+      .pause(3000)
       .assert.elementPresent('.slds-lookup__search-input')
       .end();
   }

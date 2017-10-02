@@ -14,20 +14,19 @@ const server = require('../../index').httpServer;
 // TODO: get this from config
 const baseUrl = 'http://localhost:3000/';
 module.exports = {
-  before : function(browser) {
+  before : function() {
     app = server.listen(3000);
   },
-  after : function(browser, done) {
+  after : function() {
     // for httpserver. express server does not have a .close()
     app.close();
-    done();
   },
 
   'Test default perspective loads after login':  (browser) => {
     browser
       .url(baseUrl)
       .login("email", "email")
-      .pause(1000)
+      .pause(3000)
       .assert.elementPresent('.slds-lookup__search-input')
       .end();
   }

@@ -14,8 +14,4 @@ exports.command = function register(username, password) {
     .setValue('input[name=password]', password)
     .setValue('input[name=repassword]', password)
     .click('button[type=submit]')
-    .pause(1000)
-    .waitForElementVisible('.slds-lookup__search-input', 1000)
-
-    return this;
 };
