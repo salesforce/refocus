@@ -337,15 +337,23 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
   it('Create, isPublished false, check tags and related links', (done) => {
     Aspect.create({
-      name: `${tu.namePrefix}ASPECTNAME1`,
+      name: `${tu.namePrefix}ASPECTNAME`,
       isPublished: false,
       timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
     })
     .then((asp) => {
       expect(Array.isArray(asp.tags)).to.be.equal(true);
       expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
-      expect(asp.relatedLinks).to.deep.equal([]);
-      expect(asp.tags).to.deep.equal([]);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
       return done();
     })
     .catch(done);
@@ -353,15 +361,73 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
   it('Create, isPublished true, check tags and related links', (done) => {
     Aspect.create({
-      name: `${tu.namePrefix}ASPECTNAME1`,
+      name: `${tu.namePrefix}ASPECTNAME`,
       isPublished: true,
       timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
     })
     .then((asp) => {
       expect(Array.isArray(asp.tags)).to.be.equal(true);
       expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
-      expect(asp.relatedLinks).to.deep.equal([]);
-      expect(asp.tags).to.deep.equal([]);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Update, isPublished false, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: true,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => asp.update({ isPublished: false }))
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Update, isPublished true, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: false,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => asp.update({ isPublished: true }))
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
       return done();
     })
     .catch(done);
