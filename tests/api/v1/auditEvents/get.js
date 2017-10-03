@@ -120,7 +120,6 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       if (err) {
         return done(err);
       }
-
       expect(res.body.length).to.equal(1);
       expect(res.body[0].resourceType).to.equal('Refocus');
       expect(res.body[0].resourceName).to.equal('Subject');
