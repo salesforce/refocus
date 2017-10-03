@@ -11,6 +11,8 @@
  */
 const commonUtils = require('../../../utils/common');
 const noReadOnlyFieldsInReq = commonUtils.noReadOnlyFieldsInReq;
+const validateAtleastOneFieldPresent = commonUtils
+                                          .validateAtleastOneFieldPresent;
 
 const ZERO = 0;
 const ONE = 1;
@@ -50,4 +52,5 @@ function hasDuplicates(tagsArr) {
 module.exports = {
   hasDuplicates,
   noReadOnlyFieldsInReq,
+  validateAtleastOneFieldPresent,
 };

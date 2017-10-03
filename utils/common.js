@@ -82,8 +82,27 @@ function looksLikeId(key) {
   return constants.POSTGRES_UUID_RE.test(key);
 }
 
+/**
+ * Validates that atleast one of the given fields is present in object.
+ * @param  {Object} reqBody - Request body
+ * @param  {Array} fieldsArr - Fields array
+ * @throws {ValidationError} - If none of the given fields are presnt in object
+ */
+function validateAtleastOneFieldPresent(reqBody, fieldsArr) {
+  for (let i = 0; i < fieldsArr.length; i++) {
+    if (reqBody[fieldsArr[i]]) {
+      return;
+    }
+  }
+
+  throw new apiErrors.ValidationError(
+    { explanation: `Atleast one these attributes are required: ${fieldsArr}` }
+  );
+}
+
 module.exports = {
   logInvalidHmsetValues,
   looksLikeId,
   noReadOnlyFieldsInReq,
+  validateAtleastOneFieldPresent,
 };

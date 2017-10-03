@@ -13,13 +13,9 @@
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
-const publisher = u.publisher;
-const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
-const redisModelSample = require('../../../../cache/models/samples');
 const helper = require('../nouns/perspectives');
-const redisCache = require('../../../../cache/redisCache').client.cache;
+const validateAtleastOneFieldPresent = require('../../../../utils/common')
+                                          .validateAtleastOneFieldPresent;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -63,6 +59,17 @@ function doPatch(req, res, next, props) {
       helper.validateFilterAndThrowError(
         Object.assign(clonedObj, requestBody)
       );
+    }
+
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl') &&
+      props.requireAtleastOneFields) {
+      try {
+        // check if atleast one field present in db
+        validateAtleastOneFieldPresent(o.get(), props.requireAtleastOneFields);
+      } catch (err) {
+        // No field in db, check if ateast one field present in request
+        validateAtleastOneFieldPresent(req.body, props.requireAtleastOneFields);
+      }
     }
 
     u.patchJsonArrayFields(o, requestBody, props);
