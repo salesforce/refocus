@@ -23,6 +23,28 @@ const auditEventObj = {
 };
 
 /**
+ * Creates an auditEvent object and returns it to the caller.
+ * @param  {String} resourceType - Type of the resource that is sending in the
+ * audit logs. Example: "Refocus" or "Collector"
+ * @param  {String} resourceName - Name of the resource that is being audited,
+ * i.e. table name in refocus(Sample, Subject..) or
+ * @param  {String} loggedAt - The time at which this aduit was created
+ * @param {Boolen} isError - True when the audit event is an error
+ * @param  {Object} details  - Optional description about the aduit log
+ * @returns {Object}  - a complete auditevent object.
+ */
+function createAuditEventObject(resourceType,  // eslint-disable-line max-params
+  resourceName, loggedAt, isError, details) {
+  return {
+    resourceName,
+    resourceType,
+    loggedAt: new Date(loggedAt),
+    isError: isError || false,
+    details: details || {},
+  };
+}
+
+/**
  * Function to return a new copy of the auditEventObject.
  * @returns {Object} AuditEvent Object
  */
@@ -31,6 +53,8 @@ function getAuditEventObject() {
 } // getAuditEventObject
 
 module.exports = {
+  createAuditEventObject,
+
   getAuditEventObject,
 
   forceDelete(done) {

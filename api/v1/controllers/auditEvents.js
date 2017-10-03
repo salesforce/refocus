@@ -9,14 +9,27 @@
 /**
  * api/v1/controllers/auditEvents.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/auditEvents');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-
+const doFind = require('../helpers/verbs/doFind');
 module.exports = {
+  /**
+   * GET /auditEvents
+   *
+   * Finds zero or more auditEvents and sends them back in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  findAuditEvents(req, res, next) {
+    doFind(req, res, next, helper);
+  },
+
   /**
    * POST /auditevents
    *
