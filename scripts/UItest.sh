@@ -22,8 +22,6 @@ cd $refocusDir
 # starts and sends server to the background, to run additional commands
 node . &
 serverPID=$!
-selenium . &
-seleniumPID=$!
 sleep 5 # for the server process
 
 cd $refocusClientDir
@@ -34,5 +32,4 @@ cd $refocusDir
 
 sleep 10 # for the server process
 kill $serverPID
-kill $seleniumPID
 
