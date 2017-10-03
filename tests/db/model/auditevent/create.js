@@ -103,15 +103,19 @@ describe('tests/db/model/auditevent/create', () => {
     .catch(done);
   });
 
-  it('Error, create auditEvent, null details', (done) => {
+  it('Ok, create auditEvent with no details, details must default ' +
+    'to an empty object', (done) => {
     delete auditEventObj.details;
     AuditEvent.create(auditEventObj)
-    .then(() => done(tu.valError))
-    .catch((err) => {
-      expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('details cannot be null');
+    .then((ae) => {
+      expect(ae.loggedAt).to.not.be.equal(undefined);
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
+      expect(ae.details).to.deep.equal({});
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('Error, create auditEvent, invalid resourceName', (done) => {
