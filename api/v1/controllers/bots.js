@@ -13,6 +13,7 @@
 
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const jwtUtil = require('../../../utils/jwtUtil');
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -103,12 +104,16 @@ module.exports = {
 
       helper.model.create(seqObj)
         .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
           o.dataValues.ui = uiObj;
-          u.logAPI(req, resultObj, o.dataValues);
-          res.status(httpStatus.CREATED).json(
-            u.responsify(o, helper, req.method)
-          );
+          if (helper.loggingEnabled) {
+            resultObj.dbTime = new Date() - resultObj.reqStartTime;
+            u.logAPI(req, resultObj, o.dataValues);
+          }
+
+          o.dataValues.token = jwtUtil
+            .createToken(seqObj.name, seqObj.name);
+          return res.status(httpStatus.CREATED)
+            .json(u.responsify(o, helper, req.method));
         })
         .catch((err) => {
           u.handleError(next, err, helper.modelName);
