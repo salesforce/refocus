@@ -22,17 +22,17 @@ const path = '/v1/auditEvents';
 describe('tests/api/v1/auditEvents/get.js >', () => {
   let token;
   const auditEvent1 = u.createAuditEventObject('Collector', 'Generator',
-    '2017-01-01', 'true');
+    '2017-01-01T01:00:00.000Z', 'true');
   const auditEvent2 = u.createAuditEventObject('Refocus', 'Aspect',
-    '2017-02-02');
+    '2017-02-02T02:00:00.000Z');
   const auditEvent3 = u.createAuditEventObject('Refocus', 'Subject',
-    '2017-03-03');
+    '2017-03-03T03:00:00.000Z');
   const auditEvent4 = u.createAuditEventObject('Refocus', 'Sample',
-    '2017-04-04');
+    '2017-04-04T04:00:00.000Z');
   const auditEvent5 = u.createAuditEventObject('Collector', 'GeneratorTemplate',
-    '2017-05-05');
+    '2017-05-05T05:00:00.000Z');
   const auditEvent6 = u.createAuditEventObject('Collector', 'Generator',
-    '2017-06-06');
+    '2017-06-06T06:00:00.000Z');
 
   before((done) => {
     tu.createToken()
@@ -100,13 +100,13 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       if (err) {
         return done(err);
       }
-
       expect(res.body.length).to.equal(1);
       expect(res.body[0].resourceType).to.equal('Refocus');
       expect(res.body[0].resourceName).to.equal('Subject');
       expect(new Date(res.body[0].loggedAt)).to
         .eql(new Date(auditEvent3.loggedAt));
       return done();
+
     });
   });
 

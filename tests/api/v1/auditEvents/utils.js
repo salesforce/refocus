@@ -28,7 +28,7 @@ const auditEventObj = {
  * audit logs. Example: "Refocus" or "Collector"
  * @param  {String} resourceName - Name of the resource that is being audited,
  * i.e. table name in refocus(Sample, Subject..) or
- * @param  {String} loggedAt - The time at which this aduit was created
+ * @param  {String} loggedAt - The time at which this audit was created
  * @param {Boolen} isError - True when the audit event is an error
  * @param  {Object} details  - Optional description about the aduit log
  * @returns {Object}  - a complete auditevent object.
