@@ -76,7 +76,7 @@ describe('tests/cache/models/samples/get.js, ' +
 
       res.body.forEach((sample) => {
         expect(sample.statusChangedAt).to.be.an('string');
-      })
+      });
       done();
     });
   });
@@ -92,7 +92,7 @@ describe('tests/cache/models/samples/get.js, ' +
 
       res.body.forEach((sample) => {
         expect(sample.aspect.statusChangedAt).to.be.undefined;
-      })
+      });
       done();
     });
   });

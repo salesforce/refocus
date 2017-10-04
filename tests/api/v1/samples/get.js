@@ -113,7 +113,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
       res.body.forEach((sample) => {
         expect(sample.statusChangedAt).to.be.an('string');
-      })
+      });
       done();
     });
   });
@@ -129,7 +129,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
       res.body.forEach((sample) => {
         expect(sample.aspect.statusChangedAt).to.be.undefined;
-      })
+      });
       done();
     });
   });
