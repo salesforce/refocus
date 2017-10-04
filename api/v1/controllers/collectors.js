@@ -324,7 +324,6 @@ function deleteCollectorWriters(req, res, next) {
 } // deleteCollectorWriters
 
 module.exports = {
-  postCollector,
   findCollectors,
   getCollector,
   patchCollector,
