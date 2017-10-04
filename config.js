@@ -42,6 +42,7 @@ const corsRoutes = pe.CORS_ROUTES ?
   pe.CORS_ROUTES.split(',') : ['']; // Routes to allow CORS
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
+const DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY = 1;
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -231,6 +232,9 @@ module.exports = {
     DEFAULT_BULK_UPSERT_JOB_CONCURRENCY,
   getHierarchyJobConcurrency: pe.GET_HIERARCHY_JOB_CONCURRENCY ||
   DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
+  getBulkCreateAuditEventJobConcurrency:
+    pe.BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY ||
+      DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   getSamplesWildcardCacheInvalidation:
