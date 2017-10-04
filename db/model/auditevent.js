@@ -37,6 +37,7 @@ module.exports = function auditevent(seq, dataTypes) {
     },
     details: {
       type: dataTypes.JSONB,
+      defaultValue: constants.defaultJSONValue,
       allowNull: false,
     },
   }, {
