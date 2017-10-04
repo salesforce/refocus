@@ -271,6 +271,7 @@ module.exports = {
       if (reply) {
         // reply is responsified lens object as string.
         const lensObject = JSON.parse(reply);
+        console.log('in', lensObject.installedBy)
 
         // add api links to the object and return response.
         lensObject.apiLinks = u.getApiLinks(

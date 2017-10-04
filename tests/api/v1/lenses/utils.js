@@ -33,8 +33,11 @@ const lens = {
 module.exports = {
   name,
   lens,
-  doSetup() {
+  doSetup(userId) {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
+      if (userId) {
+        lens.installedBy = userId;
+      }
       tu.db.Lens.create(lens)
       .then((createdLens) => resolve(createdLens))
       .catch((err) => reject(err));

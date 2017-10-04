@@ -154,9 +154,21 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterCreate(inst /* , opts */) {
-        const lensObj = lensUtil.cleanAndCreateLensJson(inst);
-        redisCache.set(lensObj.id, JSON.stringify(lensObj));
-        redisCache.set(lensObj.name, JSON.stringify(lensObj));
+        if (inst.installedBy) {
+          const library = inst.library; // reload removes the library
+          inst.reload()
+          .then((reloadedVersion) => {
+            reloadedVersion.library = library;
+            console.log(reloadedVersion.library)
+            const lensObj = lensUtil.cleanAndCreateLensJson(inst);
+            redisCache.set(lensObj.id, JSON.stringify(lensObj));
+            redisCache.set(lensObj.name, JSON.stringify(lensObj));
+          });
+        } else {
+          const lensObj = lensUtil.cleanAndCreateLensJson(inst);
+          redisCache.set(lensObj.id, JSON.stringify(lensObj));
+          redisCache.set(lensObj.name, JSON.stringify(lensObj));
+        }
       },
 
       afterUpdate(inst /* , opts */) {
