@@ -35,7 +35,8 @@ function makePostPromise(params, props, req) {
   if (isCacheOnAndIsSample ||
     featureToggles.isFeatureEnabled('returnUser')) {
     return authUtils.getUser(req)
-    .then((user) => makePostPromiseWithUser(user, params, isCacheOnAndIsSample, props))
+    .then((user) => makePostPromiseWithUser(user, params, isCacheOnAndIsSample,
+      props))
     .catch((err) => {
 
       // if no user found, proceed with post sample
@@ -46,7 +47,7 @@ function makePostPromise(params, props, req) {
       }
 
       /*
-       *non FORBIDDEN error. Throw it to be caught by the latter .catch.
+       * non FORBIDDEN error. Throw it to be caught by the latter .catch.
        * this bypasses the postPromise.then function
        */
       throw err;

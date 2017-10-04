@@ -157,6 +157,46 @@ module.exports = function sample(seq, dataTypes) {
       },
 
       /**
+       * Upsert multiple samples concurrently.
+       * @param  {Array} toUpsert - An array of sample objects to upsert
+       * @param {Object} user - The user performing the write operation
+       * @param {Array} readOnlyFields - An array of read-only-fields
+       * @returns {Array} - Resolves to an array of resolved promises
+      */
+      createSample(toCreate, user) {
+        const options = {};
+        options.where = { id: toCreate.aspectId };
+
+        // find the aspect related to the sample being created
+        return seq.models.Aspect.findOne(options)
+        .then((aspect) => {
+          if (!aspect) {
+            throw new dbErrors.ResourceNotFoundError({
+              explanation: 'Aspect not found.',
+            });
+          }
+
+          // check if the user has permission to create the sample
+          return aspect.isWritableBy(user);
+        })
+        .then((ok) => {
+          if (!ok) {
+            throw new dbErrors.ForbiddenError({
+              explanation: `The user: ${user}, does not have write permission` +
+                  'on the sample',
+            });
+          }
+
+          if (user) {
+            toCreate.provider = user.id;
+            toCreate.user = { name: user.name, email: user.email };
+          }
+
+          // create the sample if the user has write permission
+          return Sample.create(toCreate);
+        });
+      }, // bulkUpsertByName
+      /**
        * NOTE:
        * This sequelize method also has a check to make sure that the user
        * performing the upsert operation is authorized to do so.

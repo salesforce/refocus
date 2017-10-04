@@ -209,8 +209,32 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
+    const isSampleStoreEnabled = featureToggles
+      .isFeatureEnabled(sampleStoreConstants.featureName);
+    const reqParams = req.swagger.params;
+    const toPost = reqParams.queryBody.value;
+    const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPost(req, res, next, helper);
+    let createdSample;
+    u.mergeDuplicateArrayElements(reqParams.queryBody.value, helper);
+    authUtils.getUser(req)
+    .then((user) => {
+      return isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
+        !isReturnUserEnabled || user) :
+      helper.model.createSample(toPost, !isReturnUserEnabled || user);
+    })
+    .catch((err) => {
+      // no user found
+      return isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
+        false) : helper.model.createSample(toPost, false);
+    })
+    .then((sample) => {
+      createdSample = sample;
+      return isReturnUserEnabled && sample.get ? sample.reload() : sample;
+    })
+    .then(() => res.status(httpStatus.CREATED).json(
+        u.responsify(createdSample, helper, req.method)))
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
