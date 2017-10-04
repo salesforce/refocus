@@ -17,8 +17,6 @@ const tu = require('../../../testUtils');
 const path = '/v1/samples';
 const rtu = require('../redisTestUtil');
 const redisOps = require('../../../../cache/redisOps');
-const objectType = require('../../../../cache/sampleStore')
-  .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -34,6 +32,7 @@ describe('tests/cache/models/samples/post.js >', () => {
     `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
 
     before((done) => {
+      tu.toggleOverride('enableRedisSampleStore', true);
       tu.toggleOverride('enableRedisSampleStore', true);
       tu.createToken()
       .then((returnedToken) => {
