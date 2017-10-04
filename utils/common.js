@@ -25,8 +25,9 @@ function logInvalidHmsetValues(key, obj) {
   if (featureToggles.isFeatureEnabled('logInvalidHmsetValues')) {
     for (let _key in obj) {
       if ((obj[_key] === undefined) || Array.isArray(obj[_key])) {
-        console.trace('Invalid hmset params found when setting: ' + _key +
-          ', received: ' + JSON.stringify(obj));
+        console.trace('Invalid hmset params found when setting: key ' + key +
+          ' with undefined field: ' + _key + ', received: ' +
+          JSON.stringify(obj));
         break;
       }
     }
