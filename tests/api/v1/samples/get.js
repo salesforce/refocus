@@ -214,7 +214,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('get with wildcard shold cache response', (done) => {
+  it('get with wildcard should cache response', (done) => {
     api.get(`${path}?name=${sampleName}*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

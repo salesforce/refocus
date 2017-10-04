@@ -41,6 +41,18 @@ describe('tests/api/v1/auditEvents/post.js >', () => {
     .end(done);
   });
 
+  /*
+   * Swagger converts the object to an array if swagger.yaml expects the
+   * schema type of the request payload to be an array.
+   */
+  it('OK, posting an object that is not an array', (done) => {
+    api.post(path)
+    .set('Authorization', token)
+    .send(auditEventObj)
+    .expect(constants.httpStatus.OK)
+    .end(done);
+  });
+
   it('OK, multiple auditevents', (done) => {
     const auditEvent1 = u.getAuditEventObject();
     auditEvent1.resourceName = 'collector';
