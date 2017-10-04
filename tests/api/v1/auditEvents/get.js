@@ -45,7 +45,10 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       auditEvent5,
       auditEvent6,
       ]))
-    .then(() => done())
+    .then((aes) => {
+      auditEvent1.id = aes[0].id;
+      done();
+    })
     .catch(done);
   });
 
@@ -68,7 +71,24 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       expect(res.body[3].resourceName).to.equal('Sample');
       expect(res.body[4].resourceName).to.equal('GeneratorTemplate');
       expect(res.body[5].resourceName).to.equal('Generator');
-      done();
+      return done();
+    });
+  });
+
+  it('OK, Get a specific auditEvent object with id', (done) => {
+    api.get(`${path}/${auditEvent1.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.id).to.equal(auditEvent1.id);
+      expect(res.body.resourceName).to.equal('Generator');
+      expect(res.body.resourceType).to.equal('Collector');
+      expect(res.body.apiLinks.length).to.equal(2);
+      return done();
     });
   });
 
@@ -100,6 +120,7 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.length).to.equal(1);
       expect(res.body[0].resourceType).to.equal('Refocus');
       expect(res.body[0].resourceName).to.equal('Subject');
