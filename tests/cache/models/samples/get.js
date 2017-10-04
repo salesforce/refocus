@@ -65,6 +65,38 @@ describe('tests/cache/models/samples/get.js, ' +
     });
   });
 
+  it('basic get: samples have statusChangedAt field', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      res.body.forEach((sample) => {
+        expect(sample.statusChangedAt).to.be.an('string');
+      })
+      done();
+    });
+  });
+
+  it('basic get: aspect does not have statusChangedAt', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      res.body.forEach((sample) => {
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
+      })
+      done();
+    });
+  });
+
   it('returns aspectId, subjectId, and NO aspect object', (done) => {
     api.get(path)
     .set('Authorization', token)
