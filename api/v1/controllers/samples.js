@@ -97,7 +97,7 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
       const query = req.query.name;
       helper.cacheEnabled = query && (query.indexOf('*') > -1);
-      helper.cacheKey =  helper.cacheEnabled ? query : null;
+      helper.cacheKey = helper.cacheEnabled ? query : null;
       helper.cacheExpiry = helper.cacheEnabled ?
         parseInt(getSamplesWildcardCacheInvalidation) : null;
     }
@@ -219,15 +219,19 @@ module.exports = {
     u.mergeDuplicateArrayElements(reqParams.queryBody.value, helper);
     authUtils.getUser(req)
     .then((user) => {
-      return isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
-        !isReturnUserEnabled || user) :
-      helper.model.createSample(toPost, !isReturnUserEnabled || user);
-    })
-    .catch((err) => {
-      // no user found
-      return isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
-        false) : helper.model.createSample(toPost, false);
-    })
+      if (isSampleStoreEnabled) {
+        return isReturnUserEnabled ? redisModelSample.postSample(reqParams,
+         user) : redisModelSample.postSample(reqParams, false);
+      }
+
+      return isReturnUserEnabled ? helper.model.createSample(toPost, user) :
+        helper.model.createSample(toPost, false);
+    })/*
+       * if an error is throw by the getUser promise, create the sample
+       * without the user
+       */
+    .catch(() => isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
+        false) : helper.model.createSample(toPost, false))
     .then((sample) => {
       createdSample = sample;
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
