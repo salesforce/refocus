@@ -35,7 +35,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
     })
     .catch(done);
   });
-
   after(tu.forceDeleteUser);
 
   describe('with returnUser toggle on, user object should be returned: ', () => {
