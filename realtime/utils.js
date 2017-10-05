@@ -50,6 +50,17 @@ function isThisSubject(obj) {
 function isRoom(obj) {
   return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
 }
+
+/**
+ * A function to see if an instance is an instance of a room
+ * Checks the name from the model
+ * @param  {Object}  obj - An object instance
+ * @returns {Boolean} - returns true if the name singular is room
+ */
+function isBotAction(obj) {
+  return obj.hasOwnProperty('parameters') && obj.hasOwnProperty('response');
+}
+
 /**
  * A function to see if an object is a sample object or not. It returns true
  * if an object passed has 'value' as one of its property.
@@ -475,5 +486,6 @@ module.exports = {
   shouldIEmitThisObj,
   isThisSample,
   isRoom,
+  isBotAction,
   attachAspectSubject,
 }; // exports

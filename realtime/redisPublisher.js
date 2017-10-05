@@ -83,7 +83,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if (rtUtils.isRoom(inst)) {
+    if (rtUtils.isRoom(inst) || rtUtils.isBotAction(inst)) {
       pubBot.publish(botChannelName, JSON.stringify(obj));
     } else {
       pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
