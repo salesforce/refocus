@@ -37,8 +37,10 @@ describe('tests/api/v1/lenses/put.js >', () => {
   describe('with returnUser toggle on, user object should be returned: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
-      u.doSetup(userId)
+      const lens = u.getLens({ installedBy: userId });
+      u.doSetup(lens)
       .then((lens) => {
+        expect(lens.installedBy).to.equal(userId);
         lensId = lens.id;
         done();
       })

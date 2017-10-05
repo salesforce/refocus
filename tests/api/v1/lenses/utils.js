@@ -22,28 +22,25 @@ const willSendthis = fs.readFileSync(
 );
 
 /**
- * @param {Object} an input to Lens.create
+ * @param {Object} overWriteObject - to replace select key values.
+ * @returns {Object} - an input to Lens.create
  */
-function getLens() {
-  return { name,
+function getLens(overWriteObject) {
+  return Object.assign(overWriteObject || {}, { name,
     sourceName: 'testSourceLensName',
     description: 'test Description',
     sourceDescription: 'test Source Description',
     isPublished: true,
     library: willSendthis,
-  }
+  });
 };
 
 module.exports = {
   name,
   getLens,
-  doSetup(userId) {
+  doSetup(_lens) {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const lens = getLens();
-      if (userId) {
-        lens.installedBy = userId;
-      }
-      tu.db.Lens.create(lens)
+      tu.db.Lens.create(_lens || getLens())
       .then((createdLens) => resolve(createdLens))
       .catch((err) => reject(err));
     });
