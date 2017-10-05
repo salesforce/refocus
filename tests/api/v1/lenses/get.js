@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/lenses/get.js
+ *
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
@@ -52,7 +52,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
     after(u.forceDelete);
     after(() => tu.toggleOverride('returnUser', false));
 
-    it('basic get', (done) => {
+    it('get all', (done) => {
       api.get(path)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -62,15 +62,17 @@ describe('tests/api/v1/lenses/get.js >', () => {
         }
 
         expect(res.body).to.have.length(ONE);
-        expect(res.body[0].id).to.be.an('string');
-        expect(res.body[0].name).to.equal(`${tu.namePrefix}testLensName`);
-        expect(res.body[0].library).to.be.defined;
-        expect(res.body[0].user).to.be.an('object');
+        const obj = res.body[0];
+        expect(obj.id).to.be.an('string');
+        expect(obj.name).to.equal(`${tu.namePrefix}testLensName`);
+        expect(obj.library).to.be.defined;
+        expect(obj.user).to.be.an('object');
+        expect(obj.installedBy).to.equal(userId);
         done();
       });
     });
 
-    it('basic get by id', (done) => {
+    it('get by id', (done) => {
       api.get(`${path}/${lensId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -79,11 +81,13 @@ describe('tests/api/v1/lenses/get.js >', () => {
           return done(err);
         }
 
-        expect(res.body.user).to.be.an('object');
-        expect(res.body.name).to.equal(`${tu.namePrefix}testLensName`);
-        expect(res.body.sourceName).to.equal('testSourceLensName');
-        expect(res.body.library['lens.js']).to.exist;
-        expect(res.body.library['lens.json']).to.exist;
+        const obj = res.body;
+        expect(obj.name).to.equal(`${tu.namePrefix}testLensName`);
+        expect(obj.sourceName).to.equal('testSourceLensName');
+        expect(obj.library['lens.js']).to.exist;
+        expect(obj.library['lens.json']).to.exist;
+        expect(obj.user).to.be.an('object');
+        expect(obj.installedBy).to.equal(userId);
         done();
       });
     });
@@ -115,6 +119,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(res.body[0].name).to.equal(`${tu.namePrefix}testLensName`);
         expect(res.body[0].library).to.be.defined;
         expect(res.body[0].user).to.not.be.defined;
+        expect(res.body[0].installedBy).to.not.be.defined;
         done();
       });
     });
@@ -133,6 +138,8 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(res.body.sourceName).to.equal('testSourceLensName');
         expect(res.body.library['lens.js']).to.exist;
         expect(res.body.library['lens.json']).to.exist;
+        expect(res.body.user).to.not.be.defined;
+        expect(res.body.installedBy).to.not.be.defined;
         done();
       });
     });
@@ -148,6 +155,8 @@ describe('tests/api/v1/lenses/get.js >', () => {
 
         expect(res.body.user).to.be.undefined;
         expect(res.body.sourceName).to.equal('testSourceLensName');
+        expect(res.body.user).to.not.be.defined;
+        expect(res.body.installedBy).to.not.be.defined;
         done();
       });
     });
@@ -162,6 +171,8 @@ describe('tests/api/v1/lenses/get.js >', () => {
         }
 
         expect(res.body.sourceName).to.equal('testSourceLensName');
+        expect(res.body.user).to.not.be.defined;
+        expect(res.body.installedBy).to.not.be.defined;
         done();
       });
     });
@@ -185,6 +196,8 @@ describe('tests/api/v1/lenses/get.js >', () => {
 
           expect(res.body.errors[ZERO].description)
             .to.equal('Lens is not published. Please contact Refocus admin.');
+          expect(res.body.user).to.not.be.defined;
+          expect(res.body.installedBy).to.not.be.defined;
           done();
         });
       });

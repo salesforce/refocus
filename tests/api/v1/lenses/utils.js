@@ -21,6 +21,9 @@ const willSendthis = fs.readFileSync(
     '../apiTestsUtils/lens.zip')
 );
 
+/**
+ * @param {Object} an input to Lens.create
+ */
 function getLens() {
   return { name,
     sourceName: 'testSourceLensName',
@@ -38,10 +41,7 @@ module.exports = {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       const lens = getLens();
       if (userId) {
-        console.log('userId provided')
         lens.installedBy = userId;
-      } else {
-        console.log('not provided', lens.installedBy)
       }
       tu.db.Lens.create(lens)
       .then((createdLens) => resolve(createdLens))
