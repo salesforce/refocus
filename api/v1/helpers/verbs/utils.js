@@ -786,15 +786,18 @@ function forbidden(next, modelName) {
  * @throws {Error} If duplcate related link is found
  */
 function checkDuplicateRLinks(rLinkArr) {
-  const uniqlinks = [];
+  if (!rLinkArr) {
+    return;
+  }
+  const uniqlinks = new Set();
   rLinkArr.forEach((rLinkObj) => {
-    if (rLinkObj.name && uniqlinks.includes(rLinkObj.name.toLowerCase())) {
+    if (rLinkObj.name && uniqlinks.has(rLinkObj.name.toLowerCase())) {
       throw new apiErrors.ValidationError({
         explanation: 'Name of the relatedlinks should be unique.',
       });
     }
 
-    uniqlinks.push(rLinkObj.name.toLowerCase());
+    uniqlinks.add(rLinkObj.name.toLowerCase());
   });
 } // checkDuplicateRLinks
 

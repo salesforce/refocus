@@ -216,7 +216,8 @@ module.exports = {
     const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     let createdSample;
-    u.mergeDuplicateArrayElements(reqParams.queryBody.value, helper);
+    const rLinks = reqParams.queryBody.value.relatedLinks;
+    u.checkDuplicateRLinks(rLinks);
     authUtils.getUser(req)
     .then((user) => {
       if (isSampleStoreEnabled) {
