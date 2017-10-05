@@ -59,6 +59,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
 
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
+        expect(res.body.installedBy).to.equal(userId);
         done();
       });
     });
@@ -85,9 +86,9 @@ describe('tests/api/v1/lenses/patch.js >', () => {
           return done(err);
         }
 
-        expect(res.body.name).to.equal('changedName');
         expect(res.body.user).to.be.undefined;
         expect(res.body.installedBy).to.be.undefined;
+        expect(res.body.name).to.equal('changedName');
         done();
       });
     });
@@ -102,6 +103,8 @@ describe('tests/api/v1/lenses/patch.js >', () => {
           return done(err);
         }
 
+        expect(res.body.user).to.be.undefined;
+        expect(res.body.installedBy).to.be.undefined;
         expect(res.body.description).to.equal('changed description');
         done();
       });
@@ -117,6 +120,8 @@ describe('tests/api/v1/lenses/patch.js >', () => {
           return done(err);
         }
 
+        expect(res.body.user).to.be.undefined;
+        expect(res.body.installedBy).to.be.undefined;
         expect(res.body.sourceDescription).to.equal('test Source Description');
         done();
       });
@@ -132,6 +137,8 @@ describe('tests/api/v1/lenses/patch.js >', () => {
           return done(err);
         }
 
+        expect(res.body.user).to.be.undefined;
+        expect(res.body.installedBy).to.be.undefined;
         expect(res.body.isPublished).to.equal(false);
         done();
       });
