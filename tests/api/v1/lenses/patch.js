@@ -58,6 +58,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
         }
 
         expect(res.body.description).to.equal('changed description');
+        expect(res.body.user).to.be.an('object');
         done();
       });
     });
