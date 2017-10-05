@@ -19,7 +19,10 @@ const PFX = 'samsto';
 const SEP = ':';
 const ONE = 1;
 const constants = {
-  ISOfields: ['updatedAt', 'createdAt', 'statusChangedAt'],
+  ISOfields: {
+    sample: ['updatedAt', 'createdAt', 'statusChangedAt'],
+    aspect: ['updatedAt', 'createdAt'],
+  },
   featureName: 'enableRedisSampleStore',
   fieldsToStringify: {
     aspect: [
@@ -115,13 +118,13 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
  * output value: 2017-03-14T02:22:42.255Z
  *
  * @param {Object} obj - Contains keys whose values need be converted
+ * @param {String} resourceType - Ie. sample, aspect.
  * If value is provided, return the ISO formatted date.
  * If no value, return the ISO formatted date with now time.
  * @returns {String} The date string in ISO format.
-
  */
-function convertToISO(obj) {
-  constants.ISOfields.forEach((field) => {
+function convertToISO(obj, resourceType) {
+  constants.ISOfields[resourceType].forEach((field) => {
     if (!obj[field]) {
       obj[field] = new Date().toISOString();
     } else if (obj[field] && obj[field].toISOString) {
@@ -158,7 +161,7 @@ function cleanAspect(a) {
     constants.fieldsToStringify.aspect);
 
   // convert date time fields to proper format
-  convertToISO(retval);
+  convertToISO(retval, 'aspect');
 
   return retval;
 } // cleanAspect
@@ -177,7 +180,7 @@ function cleanSample(s) {
     constants.fieldsToStringify.sample);
 
   // convert date time fields to proper format
-  convertToISO(retval);
+  convertToISO(retval, 'sample');
 
   return retval;
 } // cleanSample

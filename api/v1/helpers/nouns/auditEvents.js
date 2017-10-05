@@ -17,6 +17,7 @@ const m = 'auditevent';
 module.exports = {
   apiLinks: {
     POST: `Create a new ${m}`,
+    GET: `Retrieve this ${m}`,
   },
   baseUrl: '/v1/AuditEvents',
   model: AuditEvent,
