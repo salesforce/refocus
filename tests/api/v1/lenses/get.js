@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/lenses/delete.js
+ * tests/api/v1/lenses/get.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');

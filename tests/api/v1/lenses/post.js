@@ -77,28 +77,6 @@ describe('tests/api/v1/lenses/post.js >', () => {
     });
   });
 
-  describe('when returnUser toggle is on', () => {
-    before(() => tu.toggleOverride('returnUser', true));
-    after(() => tu.toggleOverride('returnUser', false));
-
-    it('include user when returnUser toggle is turned on', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .field('name', 'testLens')
-      .field('description', 'test description')
-      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.an('object');
-        done();
-      });
-    });
-  });
-
   it('OK', (done) => {
     api.post(path)
     .set('Authorization', token)
