@@ -22,6 +22,7 @@ const featureToggles = require('feature-toggles');
  * @param {Object} params From swagger
  * @param {Object} props The helpers/nouns module for the given DB model
  * @param {Object} req From express
+ * @returns {Promise} - which resolves to a created instance of the model
  */
 function makePostPromise(params, props, req) {
   const toPost = params.queryBody.value;
@@ -52,6 +53,7 @@ function makePostPromise(params, props, req) {
  * @param {Object} props The helpers/nouns module for the given DB model
  * @param {Object} res From express
  * @param {Object} req From express
+ * @returns {Object} - the response returned from the server
  */
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;

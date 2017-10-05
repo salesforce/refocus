@@ -157,11 +157,10 @@ module.exports = function sample(seq, dataTypes) {
       },
 
       /**
-       * Upsert multiple samples concurrently.
-       * @param  {Array} toUpsert - An array of sample objects to upsert
-       * @param {Object} user - The user performing the write operation
-       * @param {Array} readOnlyFields - An array of read-only-fields
-       * @returns {Array} - Resolves to an array of resolved promises
+       * Custom class method to create a sample.
+       * @param  {Object} toCreate - Sample object that needs to be created.
+       * @param {Object} user - The user performing the write operation.
+       * @returns {Promise} which resolves to the created sample instance.
       */
       createSample(toCreate, user) {
         const options = {};
@@ -195,7 +194,7 @@ module.exports = function sample(seq, dataTypes) {
           // create the sample if the user has write permission
           return Sample.create(toCreate);
         });
-      }, // bulkUpsertByName
+      }, // createSample
       /**
        * NOTE:
        * This sequelize method also has a check to make sure that the user

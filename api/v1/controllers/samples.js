@@ -20,7 +20,6 @@ const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -216,8 +215,7 @@ module.exports = {
     const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     let createdSample;
-    const rLinks = reqParams.queryBody.value.relatedLinks;
-    u.checkDuplicateRLinks(rLinks);
+    u.checkDuplicateRLinks(toPost.relatedLinks);
     authUtils.getUser(req)
     .then((user) => {
       if (isSampleStoreEnabled) {
