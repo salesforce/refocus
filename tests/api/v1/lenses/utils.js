@@ -36,7 +36,10 @@ module.exports = {
   doSetup(userId) {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
       if (userId) {
+        console.log('userId provided')
         lens.installedBy = userId;
+      } else {
+        console.log('not provided', lens.installedBy)
       }
       tu.db.Lens.create(lens)
       .then((createdLens) => resolve(createdLens))

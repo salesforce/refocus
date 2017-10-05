@@ -21,85 +21,118 @@ const expect = require('chai').expect;
 describe('tests/api/v1/lenses/patch.js >', () => {
   let lensId;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
-
-  before((done) => {
-    u.doSetup()
-    .then((lens) => {
-      lensId = lens.id;
-      done();
-    })
-    .catch(done);
-  });
-
-  after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('patch name', (done) => {
-    api.patch(`${path}/${lensId}`)
-    .set('Authorization', token)
-    .send({ name: 'changedName' })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+  describe('with returnUser toggle on, user object should be returned: ', () => {
+    before((done) => {
+      tu.toggleOverride('returnUser', true);
+      u.doSetup(userId)
+      .then((lens) => {
+        lensId = lens.id;
+        done();
+      })
+      .catch(done);
+    });
+    after(u.forceDelete);
+    after(() => tu.toggleOverride('returnUser', false));
 
-      expect(res.body.name).to.equal('changedName');
-      done();
+    it('update description', (done) => {
+      api.patch(`${path}/${lensId}`)
+      .set('Authorization', token)
+      .send({ description: 'changed description' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.description).to.equal('changed description');
+        done();
+      });
     });
   });
 
-  it('update description', (done) => {
-    api.patch(`${path}/${lensId}`)
-    .set('Authorization', token)
-    .send({ description: 'changed description' })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.description).to.equal('changed description');
-      done();
+  describe('with returnUser toggle off, should not be returned', () => {
+    before((done) => {
+      u.doSetup()
+      .then((lens) => {
+        lensId = lens.id;
+        done();
+      })
+      .catch(done);
     });
-  });
+    after(u.forceDelete);
 
-  it('overwrite description if empty', (done) => {
-    api.get(`${path}/${lensId}`)
-    .set('Authorization', token)
-    .send({ description: '' })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+    it('patch name', (done) => {
+      api.patch(`${path}/${lensId}`)
+      .set('Authorization', token)
+      .send({ name: 'changedName' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-      expect(res.body.sourceDescription).to.equal('test Source Description');
-      done();
+        expect(res.body.name).to.equal('changedName');
+        done();
+      });
     });
-  });
 
-  it('patch isPublished', (done) => {
-    api.patch(`${path}/${lensId}`)
-    .set('Authorization', token)
-    .send({ isPublished: false })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+    it('update description', (done) => {
+      api.patch(`${path}/${lensId}`)
+      .set('Authorization', token)
+      .send({ description: 'changed description' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-      expect(res.body.isPublished).to.equal(false);
-      done();
+        expect(res.body.description).to.equal('changed description');
+        done();
+      });
+    });
+
+    it('overwrite description if empty', (done) => {
+      api.get(`${path}/${lensId}`)
+      .set('Authorization', token)
+      .send({ description: '' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.sourceDescription).to.equal('test Source Description');
+        done();
+      });
+    });
+
+    it('patch isPublished', (done) => {
+      api.patch(`${path}/${lensId}`)
+      .set('Authorization', token)
+      .send({ isPublished: false })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.isPublished).to.equal(false);
+        done();
+      });
     });
   });
 });
+

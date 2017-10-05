@@ -36,16 +36,11 @@ describe('tests/api/v1/lenses/get.js >', () => {
     .catch(done);
   });
 
-  after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('with returnUser toggle on, user object should be returned', () => {
+  describe('with returnUser toggle on, user object should be returned: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
-
-      // deep copy
-      // const lensObject = JSON.parse(JSON.stringify(u.lens));
-      // lensObject.installedBy = userId; // attach user to lens
       u.doSetup(userId)
       .then((lens) => {
         lensId = lens.id;
@@ -54,9 +49,9 @@ describe('tests/api/v1/lenses/get.js >', () => {
       })
       .catch(done);
     });
+    after(u.forceDelete);
     after(() => tu.toggleOverride('returnUser', false));
 
-    // failing
     it('basic get', (done) => {
       api.get(path)
       .set('Authorization', token)
@@ -94,7 +89,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
     });
   });
 
-  describe('returnUser toggle off, user object should NOT be returned', () => {
+  describe('returnUser toggle off, user object should NOT be returned: ', () => {
     before((done) => {
       u.doSetup()
       .then((lens) => {
@@ -104,8 +99,9 @@ describe('tests/api/v1/lenses/get.js >', () => {
       })
       .catch(done);
     });
+    after(u.forceDelete);
 
-    it('basic get should not include user', (done) => {
+    it('basic get', (done) => {
       api.get(path)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -118,6 +114,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(res.body[0].id).to.be.an('string');
         expect(res.body[0].name).to.equal(`${tu.namePrefix}testLensName`);
         expect(res.body[0].library).to.be.defined;
+        expect(res.body[0].user).to.not.be.defined;
         done();
       });
     });
@@ -136,7 +133,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(res.body.sourceName).to.equal('testSourceLensName');
         expect(res.body.library['lens.js']).to.exist;
         expect(res.body.library['lens.json']).to.exist;
-
         done();
       });
     });
@@ -150,6 +146,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
           return done(err);
         }
 
+        expect(res.body.user).to.be.undefined;
         expect(res.body.sourceName).to.equal('testSourceLensName');
         done();
       });
