@@ -64,7 +64,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
     });
   });
 
-  describe('with returnUser toggle off, should not be returned', () => {
+  describe('with returnUser toggle off, user should not be returned', () => {
     before((done) => {
       u.doSetup()
       .then((lens) => {
@@ -86,6 +86,8 @@ describe('tests/api/v1/lenses/patch.js >', () => {
         }
 
         expect(res.body.name).to.equal('changedName');
+        expect(res.body.user).to.be.undefined;
+        expect(res.body.installedBy).to.be.undefined;
         done();
       });
     });

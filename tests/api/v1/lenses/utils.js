@@ -21,20 +21,22 @@ const willSendthis = fs.readFileSync(
     '../apiTestsUtils/lens.zip')
 );
 
-const lens = {
-  name,
-  sourceName: 'testSourceLensName',
-  description: 'test Description',
-  sourceDescription: 'test Source Description',
-  isPublished: true,
-  library: willSendthis,
+function getLens() {
+  return { name,
+    sourceName: 'testSourceLensName',
+    description: 'test Description',
+    sourceDescription: 'test Source Description',
+    isPublished: true,
+    library: willSendthis,
+  }
 };
 
 module.exports = {
   name,
-  lens,
+  getLens,
   doSetup(userId) {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
+      const lens = getLens();
       if (userId) {
         console.log('userId provided')
         lens.installedBy = userId;
