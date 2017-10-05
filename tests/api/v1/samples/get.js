@@ -41,7 +41,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   after(tu.forceDeleteUser);
 
   describe('with returnUser toggle on, should return user object with ' +
-    'profile field', () => {
+    'profile field: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
       u.doSetup()
@@ -99,7 +99,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     });
   });
 
-  describe('with returnUser off, should not receive user or profile field', () => {
+  describe('with returnUser off: ', () => {
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
@@ -128,6 +128,19 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
               expect(href).to.equal(path);
             }
           }
+        }
+      })
+      .end(done);
+    });
+
+    it('get all does not return user or profile field', (done) => {
+      api.get(path)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        for (let i = res.body.length - 1; i >= 0; i--) {
+          expect(res.body[i].user).to.not.be.defined;
+          expect(res.body[i].installedBy).to.not.be.defined;
         }
       })
       .end(done);
@@ -208,6 +221,17 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         if (res.body.status !== constants.statuses.Critical) {
           throw new Error('Incorrect Status Value');
         }
+      })
+      .end(done);
+    });
+
+    it('get by id does not return the user or provider field', (done) => {
+      api.get(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.user).to.not.be.defined;
+        expect(res.body.installedBy).to.not.be.defined;
       })
       .end(done);
     });
