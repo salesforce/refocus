@@ -139,7 +139,6 @@
     "redux": "^3.0.5",
     "redux-logger": "^2.0.2",
     "redux-thunk": "^0.1.0",
-    "revalidator": "^0.3.1",
     "segfault-handler": "^1.0.0",
     "semver-regex": "^1.0.0",
     "sequelize": "^3.5.1",
