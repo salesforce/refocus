@@ -102,6 +102,38 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     });
   });
 
+  it('basic get: samples have statusChangedAt field', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      res.body.forEach((sample) => {
+        expect(sample.statusChangedAt).to.be.an('string');
+      });
+      done();
+    });
+  });
+
+  it('basic get: aspect does not have statusChangedAt', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      res.body.forEach((sample) => {
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
+      });
+      done();
+    });
+  });
+
   it('basic get by id', (done) => {
     api.get(`${path}/${sampleName}`)
     .set('Authorization', token)
@@ -182,7 +214,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('get with wildcard shold cache response', (done) => {
+  it('get with wildcard should cache response', (done) => {
     api.get(`${path}?name=${sampleName}*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
