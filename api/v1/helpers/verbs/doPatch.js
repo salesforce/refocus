@@ -14,8 +14,8 @@
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const helper = require('../nouns/perspectives');
-const validateAtleastOneFieldPresent = require('../../../../utils/common')
-                                          .validateAtleastOneFieldPresent;
+const validateAtLeastOneFieldPresent = require('../../../../utils/common')
+                                          .validateAtLeastOneFieldPresent;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -62,13 +62,13 @@ function doPatch(req, res, next, props) {
     }
 
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl') &&
-      props.requireAtleastOneFields) {
+      props.requireAtLeastOneFields) {
       try {
-        // check if atleast one field present in db
-        validateAtleastOneFieldPresent(o.get(), props.requireAtleastOneFields);
+        // check if at least one field present in db
+        validateAtLeastOneFieldPresent(o.get(), props.requireAtLeastOneFields);
       } catch (err) {
-        // No field in db, check if ateast one field present in request
-        validateAtleastOneFieldPresent(req.body, props.requireAtleastOneFields);
+        // No field in db, check if at least one field present in request
+        validateAtLeastOneFieldPresent(req.body, props.requireAtLeastOneFields);
       }
     }
 

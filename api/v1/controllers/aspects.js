@@ -208,10 +208,10 @@ module.exports = {
   postAspect(req, res, next) {
     validateRequest(req);
 
-    // check that atleast one of the given fields is present in request
+    // check that at least one of the given fields is present in request
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
-      utils.validateAtleastOneFieldPresent(
-        req.body, helper.requireAtleastOneFields
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
       );
     }
 
@@ -231,10 +231,10 @@ module.exports = {
   putAspect(req, res, next) {
     validateRequest(req);
 
-    // check that atleast one of the given fields is present in request
+    // check that at least one of the given fields is present in request
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
-      utils.validateAtleastOneFieldPresent(
-        req.body, helper.requireAtleastOneFields
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
       );
     }
 

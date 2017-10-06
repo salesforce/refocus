@@ -15,6 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const featureToggles = require('feature-toggles');
 const Aspect = tu.db.Aspect;
 const path = '/v1/aspects';
 const expect = require('chai').expect;
@@ -331,8 +332,13 @@ describe('tests/api/v1/aspects/put.js >', () => {
   });
 
   describe('validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
     before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
-    after(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', false));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
 
     it('NOT OK, put aspect with no helpEmail or helpUrl', (done) => {
       const aspectToPut = {
@@ -350,7 +356,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
 
         expect(res.body.errors[0].type).to.equal('ValidationError');
         expect(res.body.errors[0].description).to.equal(
-          'Atleast one these attributes are required: helpEmail,helpUrl'
+          'At least one these attributes are required: helpEmail,helpUrl'
         );
         done();
       });
@@ -373,7 +379,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
 
         expect(res.body.errors[0].type).to.equal('ValidationError');
         expect(res.body.errors[0].description).to.equal(
-          'Atleast one these attributes are required: helpEmail,helpUrl'
+          'At least one these attributes are required: helpEmail,helpUrl'
         );
         done();
       });

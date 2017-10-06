@@ -43,5 +43,5 @@ module.exports = {
   fieldsWithEnum,
   tagFilterName: 'tags',
   readOnlyFields: ['id', 'isDeleted'],
-  requireAtleastOneFields: ['helpEmail', 'helpUrl'],
+  requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
 }; // exports

@@ -83,12 +83,32 @@ function looksLikeId(key) {
 }
 
 /**
- * Validates that atleast one of the given fields is present in object.
+ * Validates that at least one of the given fields is present in object.
  * @param  {Object} reqBody - Request body
  * @param  {Array} fieldsArr - Fields array
- * @throws {ValidationError} - If none of the given fields are presnt in object
+ * @throws {ValidationError} - If none of the given fields are present in object
  */
-function validateAtleastOneFieldPresent(reqBody, fieldsArr) {
+function validateAtLeastOneFieldPresent(reqBody, fieldsArr) {
+  if (!reqBody || !fieldsArr) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'The arguments cannot be null or undefined' }
+    );
+  }
+
+  // reqBody should be object and fieldsArr should be a list
+  if ((typeof reqBody !== 'object' || Array.isArray(reqBody))  ||
+   !Array.isArray(fieldsArr)) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'Invalid argument type' }
+    );
+  }
+
+  if (fieldsArr.length === 0) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'Fields array cannot be empty' }
+    );
+  }
+
   for (let i = 0; i < fieldsArr.length; i++) {
     if (reqBody[fieldsArr[i]]) {
       return;
@@ -96,7 +116,7 @@ function validateAtleastOneFieldPresent(reqBody, fieldsArr) {
   }
 
   throw new apiErrors.ValidationError(
-    { explanation: `Atleast one these attributes are required: ${fieldsArr}` }
+    { explanation: `At least one these attributes are required: ${fieldsArr}` }
   );
 }
 
@@ -104,5 +124,5 @@ module.exports = {
   logInvalidHmsetValues,
   looksLikeId,
   noReadOnlyFieldsInReq,
-  validateAtleastOneFieldPresent,
+  validateAtLeastOneFieldPresent,
 };

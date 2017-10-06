@@ -19,6 +19,7 @@ const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const path = '/v1/aspects';
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 
 describe('tests/api/v1/aspects/patch.js >', () => {
   describe(`PATCH ${path} >`, () => {
@@ -176,8 +177,13 @@ describe('tests/api/v1/aspects/patch.js >', () => {
     });
 
     describe(`PATCH ${path} helpEmail, helpUrl not set in db >`, () => {
+      const toggleOrigValue = featureToggles.isFeatureEnabled(
+        'requireHelpEmailOrHelpUrl'
+      );
       before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
-      after(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', false));
+      after(() => tu.toggleOverride(
+        'requireHelpEmailOrHelpUrl', toggleOrigValue)
+      );
 
       it('NOT OK, no helpEmail or helpUrl in db or request body', (done) => {
         api.patch(`${path}/${i}`)
@@ -191,7 +197,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
 
           expect(res.body.errors[0].type).to.equal('ValidationError');
           expect(res.body.errors[0].description).to.equal(
-            'Atleast one these attributes are required: helpEmail,helpUrl'
+            'At least one these attributes are required: helpEmail,helpUrl'
           );
           return done();
         });
@@ -210,7 +216,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
 
           expect(res.body.errors[0].type).to.equal('ValidationError');
           expect(res.body.errors[0].description).to.equal(
-            'Atleast one these attributes are required: helpEmail,helpUrl'
+            'At least one these attributes are required: helpEmail,helpUrl'
           );
           return done();
         });
@@ -274,6 +280,9 @@ describe('tests/api/v1/aspects/patch.js >', () => {
 
   describe(`PATCH ${path} helpEmail or helpUrl set in db >`, () => {
     let token;
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
 
     before((done) => {
       tu.toggleOverride('requireHelpEmailOrHelpUrl', true);
@@ -287,7 +296,9 @@ describe('tests/api/v1/aspects/patch.js >', () => {
 
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
-    after(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', false));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
 
     it('OK, valid helpUrl in db, no helpEmail/helpUrl in request body',
     (done) => {

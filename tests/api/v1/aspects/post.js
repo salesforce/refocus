@@ -18,6 +18,7 @@ const u = require('./utils');
 const path = '/v1/aspects';
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const ZERO = 0;
 const ONE = 1;
 
@@ -209,8 +210,13 @@ describe('tests/api/v1/aspects/post.js >', () => {
   });
 
   describe('validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
     before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
-    after(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', false));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
 
     it('NOT OK, post aspect with no helpEmail or helpUrl', (done) => {
       const aspectToPost = {
@@ -228,7 +234,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
 
         expect(res.body.errors[0].type).to.equal('ValidationError');
         expect(res.body.errors[0].description).to.equal(
-          'Atleast one these attributes are required: helpEmail,helpUrl'
+          'At least one these attributes are required: helpEmail,helpUrl'
         );
         done();
       });
@@ -251,7 +257,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
 
         expect(res.body.errors[0].type).to.equal('ValidationError');
         expect(res.body.errors[0].description).to.equal(
-          'Atleast one these attributes are required: helpEmail,helpUrl'
+          'At least one these attributes are required: helpEmail,helpUrl'
         );
         done();
       });
