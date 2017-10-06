@@ -128,14 +128,7 @@ function verifyBotToken(token) {
   return jwtVerifyAsync(token, secret, {})
   .then((decodedData) => Bot.findOne({
     where: { name: decodedData.username },
-  }))
-  .then((bot) => {
-    if (!bot) {
-      return false;
-    }
-
-    return true;
-  });
+  })).then((bot) => bot);
 } // verifyBotToken
 
 /**
