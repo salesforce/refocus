@@ -18,6 +18,7 @@ const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
+const Bot = require('../db/index').Bot;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
 
@@ -114,6 +115,27 @@ function verifyCollectorToken(req, cb) {
       explanation: 'Invalid/No Token provided.',
     });
   });
+} // verifyCollectorToken
+
+/**
+ * Function to verify if a bot token is valid or not.
+ * @param  {object} req - request object
+ * @param  {Function} cb - callback function - Optional
+ * @returns {Function|undefined} - Callback function or undefined
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
+ */
+function verifyBotToken(token) {
+  return jwtVerifyAsync(token, secret, {})
+  .then((decodedData) => Bot.findOne({
+    where: { name: decodedData.username },
+  }))
+  .then((bot) => {
+    if (!bot) {
+      return false;
+    }
+    return true;
+  })
 } // verifyCollectorToken
 
 /**
@@ -267,4 +289,5 @@ module.exports = {
   getTokenDetailsFromRequest,
   getTokenDetailsFromTokenString,
   verifyCollectorToken,
+  verifyBotToken,
 };
