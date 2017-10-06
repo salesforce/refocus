@@ -21,21 +21,26 @@ const willSendthis = fs.readFileSync(
     '../apiTestsUtils/lens.zip')
 );
 
-const lens = {
-  name,
-  sourceName: 'testSourceLensName',
-  description: 'test Description',
-  sourceDescription: 'test Source Description',
-  isPublished: true,
-  library: willSendthis,
+/**
+ * @param {Object} overWriteObject - to replace select key values.
+ * @returns {Object} - an input to Lens.create
+ */
+function getLens(overWriteObject) {
+  return Object.assign(overWriteObject || {}, { name,
+    sourceName: 'testSourceLensName',
+    description: 'test Description',
+    sourceDescription: 'test Source Description',
+    isPublished: true,
+    library: willSendthis,
+  });
 };
 
 module.exports = {
   name,
-  lens,
-  doSetup() {
+  getLens,
+  doSetup(_lens) {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
-      tu.db.Lens.create(lens)
+      tu.db.Lens.create(_lens || getLens())
       .then((createdLens) => resolve(createdLens))
       .catch((err) => reject(err));
     });
