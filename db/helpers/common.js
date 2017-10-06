@@ -264,7 +264,6 @@ function setIsDeleted(Promise, inst) {
  * @throws {ValidationError} If the object does not conform to the schema
  */
 function validateObject(object, schema) {
-  const options = { additionalProperties: false };
   const result = joi.validate(object, schema);
   if (result.error) {
     throw new ValidationError(result.error.message);
