@@ -28,7 +28,7 @@ info:
   #   url: http://focus.salesforce.com/license
 
 # =============================================================================
-host: localhost:10010
+# host: localhost:10010
 
 # =============================================================================
 basePath: /v1
@@ -40,9 +40,9 @@ basePath: /v1
 #   url: http://focus.salesforce.com/docs/api/
 
 # =============================================================================
-schemes:
-  - https
-  - http
+# schemes:
+#   - https
+#   - http
 
 # =============================================================================
 securityDefinitions:
@@ -1329,7 +1329,6 @@ paths:
                     The type of the resource associated with this event, e.g.
                     "Collector", "Subject", etc.
               required:
-                - details
                 - resourceType
                 - resourceName
       responses:
@@ -1385,67 +1384,6 @@ paths:
   # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
-    post:
-      security:
-        - jwt: []
-      tags: [ collectors ]
-      summary: Access restricted to Refocus Collector only.
-      description: Access restricted to Refocus Collector only.
-      operationId: postCollector
-      parameters:
-        -
-          name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Access restricted to Refocus Collector only.
-            properties:
-              name:
-                type: string
-                description: Access restricted to Refocus Collector only.
-              description:
-                type: string
-                maxLength: 4096
-                description: Access restricted to Refocus Collector only.
-              helpEmail:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: Access restricted to Refocus Collector only.
-              host:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 4096
-              ipAddress:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 60
-              osInfo:
-                type: object
-                description: Access restricted to Refocus Collector only.
-              processInfo:
-                type: object
-                description: Access restricted to Refocus Collector only.
-              version:
-                type: string
-                description: Access restricted to Refocus Collector only.
-            required:
-              - name
-              - version
-      responses:
-        201:
-          description: Success.
-          schema:
-            $ref: "#/definitions/CollectorResponse"
-        400:
-          $ref: "#/responses/400"
-        403:
-          $ref: "#/responses/403"
     get:
       security:
         - jwt: []

@@ -26,6 +26,7 @@ module.exports = {
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
+  defaultJSONValue: {},
   statuses: {
     Critical: 'Critical',
     Invalid: 'Invalid',
