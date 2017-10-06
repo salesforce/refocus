@@ -120,7 +120,6 @@ function verifyCollectorToken(req, cb) {
 /**
  * Function to verify if a bot token is valid or not.
  * @param  {object} req - request object
- * @param  {Function} cb - callback function - Optional
  * @returns {Function|undefined} - Callback function or undefined
  * @throws {ForbiddenError} If a collector record matching the username is
  *   not found
@@ -134,9 +133,10 @@ function verifyBotToken(token) {
     if (!bot) {
       return false;
     }
+
     return true;
-  })
-} // verifyCollectorToken
+  });
+} // verifyBotToken
 
 /**
  * Function to verify if an user token is valid or not. If verification is
