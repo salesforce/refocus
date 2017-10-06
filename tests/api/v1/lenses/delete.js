@@ -67,7 +67,8 @@ describe('tests/api/v1/lenses/delete.js >', () => {
     });
   });
 
-  describe('with returnUser toggle off, user object should be returned: ', () => {
+  describe('with returnUser toggle off, user object should not  ' +
+    'be returned: ', () => {
     beforeEach((done) => {
       u.doSetup()
       .then((lens) => {
@@ -104,7 +105,7 @@ describe('tests/api/v1/lenses/delete.js >', () => {
         }
 
         expect(res.body.isDeleted).to.not.equal(ZERO);
-        expect(res.body.installedBy).to.not.be.defined;
+        expect(res.body.user).to.not.be.defined;
         expect(res.body.installedBy).to.not.be.defined;
         done();
       });
