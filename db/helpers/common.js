@@ -17,6 +17,7 @@ const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.perspectiveChannelName;
 const revalidator = require('revalidator');
+const joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 
 // jsonSchema keys for relatedLink
@@ -265,10 +266,9 @@ function setIsDeleted(Promise, inst) {
  */
 function validateObject(object, schema) {
   const options = { additionalProperties: false };
-  const result = revalidator.validate(object, schema, options);
-  if (!result.valid) {
-    // convert the error message to a readable string before throwing the error
-    throw new ValidationError(JSON.stringify(result.errors));
+  const result = joi.validate(object, schema);
+  if (result.error) {
+    throw new ValidationError(result.error.message);
   }
 } // validateObject
 
