@@ -16,7 +16,6 @@
 const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.perspectiveChannelName;
-const revalidator = require('revalidator');
 const joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 

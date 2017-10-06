@@ -31,7 +31,7 @@ const GT_SIMPLE = {
     url: 'git+https://github.com/templates/template-generators.git',
   },
   connection: {
-    url: 'baseTrustUrl/v1/instances/status/preview',
+    url: '{{baseTrustUrl}}/v1/instances/status/preview',
     method: 'GET',
     proxy: 'pro.xy.server.net',
     bulk: false,

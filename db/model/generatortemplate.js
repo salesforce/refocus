@@ -35,7 +35,7 @@ const repositorySchema = joi.object().keys({
 const connectionSchema = joi.object().keys({
   method: joi.string().valid(['DELETE', 'GET', 'PATCH', 'POST', 'PUT'])
     .required().description('The http method'),
-  url: joi.string().uri({ allowRelative: true })
+  url: joi.string()
     .description('The url to connect to. Specify variables for variable' +
       'expansion using double curly braces. One of ' +
       '["url", "toUrl"] is required.'),

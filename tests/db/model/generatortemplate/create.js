@@ -205,9 +205,8 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     _gt.author.email = 'notanemail';
     _gt.author.url = 'invalid url';
     GeneratorTemplate.create(_gt)
-    .then((x) => {
-      console.log(x);
-      done(' Error: Expecting validation error');
+    .then(() => {
+      done('Error: Expecting validation error');
     })
     .catch((err) => {
       expect(err.message).to.contain('url');
