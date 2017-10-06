@@ -28,6 +28,7 @@ const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
+const realtimeEvents = u.realtimeEvents;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
@@ -235,8 +236,12 @@ module.exports = {
       createdSample = sample;
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
     })
-    .then(() => res.status(httpStatus.CREATED).json(
-        u.responsify(createdSample, helper, req.method)))
+    .then(() => {
+      publisher.publishSample(createdSample, helper.associatedModels.subject,
+      realtimeEvents.sample.add, helper.associatedModels.aspect);
+      return res.status(httpStatus.CREATED).json(
+        u.responsify(createdSample, helper, req.method));
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
