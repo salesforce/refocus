@@ -94,9 +94,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
-      expect(err.message).to.contain('is not a valid email');
-      expect(err.message).to.contain('is not a valid url');
+      expect(err.message).to.contain('url');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('author');
       done();
@@ -113,7 +111,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
+      expect(err.message).to.contain('60 characters');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('repository');
       done();
@@ -129,7 +127,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('must be present in given enumerator');
+      expect(err.message).to.contain('[DELETE, GET, PATCH, POST, PUT]');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('connection');
       done();

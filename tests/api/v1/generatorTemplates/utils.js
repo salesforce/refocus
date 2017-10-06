@@ -36,7 +36,7 @@ const GENERATOR_TEMPLATE_SIMPLE = {
   helpEmail: 'a@aaa.com',
   helpUrl: 'aaa.com',
   repository: {
-    url: 'aaa.com',
+    url: 'http://aaa.com',
     type: 'GitHub',
   },
   contextDefinition: {

@@ -18,25 +18,37 @@ const dbErrors = require('../dbErrors');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
+const joi = require('joi');
 
-const generatorTemplateSchema = {
-  properties: {
-    name: {
-      description: 'GeneratorTemplate name associated with this generator',
-      type: 'string',
-      maxLength: constants.fieldlen.normalName,
-      pattern: constants.nameRegex,
-      required: true,
-    },
-    version: {
-      description: 'Generator template version or version range',
-      type: 'string',
-      require: true,
-      conform: (thisVersion) => semverRegex().test(thisVersion),
-      message: 'The version must match the semantic version format',
-    },
+const customVersionValidationSchema = joi.extend((joi) => ({
+  base: joi.string(),
+  name: 'version',
+  language: {
+    validateVersion: 'provide proper version',
   },
-};
+  rules: [
+    {
+      name: 'validateVersion',
+      validate(params, value, state, options) {
+        const versionValidate = semverRegex().test(value);
+        if (!versionValidate) {
+          return this.createError('version.validateVersion',
+            { value }, state, options);
+        }
+
+        return value;
+      },
+    },
+  ],
+}));
+
+const generatorTemplateSchema = joi.object().keys({
+  name: joi.string().regex(constants.nameRegex)
+    .max(constants.fieldlen.normalName).required()
+    .description('GeneratorTemplate name associated with this generator'),
+  version: customVersionValidationSchema.version().validateVersion()
+    .required().description('Generator template version or version range'),
+});
 
 module.exports = function generator(seq, dataTypes) {
   const Generator = seq.define('Generator', {
