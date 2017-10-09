@@ -13,82 +13,44 @@ const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semver = require('semver');
-
+const joi = require('joi');
 const assoc = {};
 
-const authorSchema = {
-  properties: {
-    url: {
-      description: 'Optional Url given by the author',
-      type: 'string',
-      format: 'url',
-    },
-    name: {
-      description: 'Name of the author',
-      type: 'string',
-      maxLength: constants.fieldlen.normalName,
-      required: true,
-    },
-    email: {
-      description: 'Author\'s email address',
-      type: 'string',
-      format: 'email',
-      require: true,
-    },
-  },
-};
+const authorSchema = joi.object().keys({
+  url: joi.string().uri().description('Optional Url given by the author')
+    .optional(),
+  name: joi.string().max(constants.fieldlen.normalName).required()
+    .description('Name of the author'),
+  email: joi.string().email().required()
+    .description('Author\'s email address'),
+});
 
-const repositorySchema = {
-  properties: {
-    url: {
-      description: 'Url repository',
-      type: 'string',
-    },
-    type: {
-      description: 'Type of the version control system',
-      type: 'string',
-      maxLength: constants.fieldlen.normalName,
-    },
-  },
-};
+const repositorySchema = joi.object().keys({
+  url: joi.string().uri({ scheme: ['git', /git\+https?/, 'https', 'http'], })
+    .description('Url repository'),
+  type: joi.string().max(constants.fieldlen.normalName)
+    .description('Type of the version control system'),
+});
 
-const connectionSchema = {
-  properties: {
-    method: {
-      description: 'The http method',
-      enum: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'],
-      required: true,
-    },
-    url: {
-      description: 'The url to connect to. Specify variables for variable ' +
+const connectionSchema = joi.object().keys({
+  method: joi.string().valid(['DELETE', 'GET', 'PATCH', 'POST', 'PUT'])
+    .required().description('The http method'),
+  url: joi.string()
+    .description('The url to connect to. Specify variables for variable' +
       'expansion using double curly braces. One of ' +
-      '["url", "toUrl"] is required.',
-      type: 'string',
-    },
-
-    toUrl: {
-      description: 'The string body of a function which returns the url ' +
-      'to connect to. One of ["url", "toUrl"] is required.',
-    },
-    proxy: {
-      description: ' The Proxy server for the http request, if needed',
-      type: 'string',
-    },
-    headers: {
-      description: 'Optional connection headers',
-      type: 'object',
-    },
-    bulk: {
-      description: 'Set to false if you want to send one request for each of ' +
-      'the designated subjects. Set to true if you want to collect data for ' +
-      'all of the designated subjects in a single request. When set to true, ' +
-      'the url string or url function may only reference context attributes ' +
-      'with defaults.',
-      type: 'boolean',
-      defaultValue: false,
-    },
-  },
-};
+      '["url", "toUrl"] is required.'),
+  toUrl: joi.any().description('The string body of a function which returns ' +
+    'the url to connect to. One of ["url", "toUrl"] is required'),
+  proxy: joi.string()
+    .description('The Proxy server for the http request, if needed'),
+  headers: joi.object().description('Optional connection headers'),
+  bulk: joi.boolean().default(false)
+    .description('Set to false if you want to send one request for each of' +
+    'the designated subjects. Set to true if you want to collect data for ' +
+    'all of the designated subjects in a single request. When set to true, ' +
+    'the url string or url function may only reference context attributes ' +
+    'with defaults.'),
+});
 
 const ctxDefRequiredProps = ['description'];
 
@@ -189,35 +151,62 @@ module.exports = function user(seq, dataTypes) {
         return 'generatorTemplateAccess';
       },
 
+      /**
+       * Returns the SGT with the highest version number which matches the
+       * semantic version string passed in.
+       *
+       * @param {String} name - the SGT name as specified by the SG
+       * @param {String} version - the semantic version string as specified by
+       *  the SG
+       * @returns {Object} the matching sample generator template with the
+       *  highest version number
+       */
       getSemverMatch(name, version) {
-        return GeneratorTemplate.findAll({
-          where: {
-            name,
-          },
-        }).then((templates) => {
-          if (!templates || !templates.length) {
+        return this.getSemverMatches(name, version)
+        .then((templates) => {
+          if (!templates.length) {
             return null;
           }
 
-          let matchedTemplate = null;
-          templates.forEach((template) => {
-            if (matchedTemplate) {
-              /*
-               * ok is true when the current template version satisfies the
-               * given version and the current template version is greater
-               * than or equal(>=) to the version of the matched template
-               * that is returned finally.
-               */
-              const ok = semver.satisfies(template.version, version) &&
-               semver.gte(template.version, matchedTemplate.version);
-              matchedTemplate = ok ? template : matchedTemplate;
-            } else if (semver.satisfies(template.version, version)) {
-              matchedTemplate = template;
+          let max = null;
+          templates.forEach((t) => {
+            if (max) {
+              if (semver.gte(t.version, max.version)) {
+                max = t;
+              }
+            } else {
+              max = t;
             }
           });
 
-          return matchedTemplate;
+          return max;
         });
+      },
+
+      /**
+       * Returns the SGTs which match the semantic version string passed in.
+       *
+       * @param {String} name - the SGT name as specified by the SG
+       * @param {String} version - the semantic version string as specified by
+       *  the SG
+       * @returns {Array} of templates (or empty array)
+       */
+      getSemverMatches(name, version) {
+        return GeneratorTemplate.findAll({
+          where: {
+            name,
+            isPublished: true,
+          },
+        })
+        .then((templates) => {
+          if (!templates || !Array.isArray(templates) || !templates.length) {
+            return [];
+          }
+
+          return templates.filter((t) =>
+            semver.satisfies(t.version, version));
+        })
+        .catch(() => []);
       },
 
       postImport(models) {
@@ -262,6 +251,53 @@ module.exports = function user(seq, dataTypes) {
 
         return inst;
       }, // afterCreate
+
+      beforeUpdate(inst /*, opts */) {
+        /*
+         * Cannot unpublish this SGT if it has an SG with no other valid SGT
+         * choices.
+         */
+        if (inst.changed('isPublished') && inst.isPublished === false) {
+          // Find all the sample generators which use this SGT.
+          const Gen = inst.$modelOptions.sequelize.models.Generator;
+          const generatorsWithNoOtherMatches = [];
+          return new seq.Promise((resolve, reject) => Gen.findAll({
+            where: {
+              'generatorTemplate.name': inst.name,
+              isActive: true,
+            },
+          })
+          /*
+           * Check whether there are other valid SGT semver matches for each
+           * one.
+           */
+          .each((sg) =>
+            this.getSemverMatches(inst.name, sg.generatorTemplate.version)
+            .then((matches) => {
+              /*
+               * If there is only one match, this it's *this* one, so we can't
+               * unpublish it.
+               */
+              if (!matches || matches.length < 2) {
+                generatorsWithNoOtherMatches.push(sg.name);
+              }
+            }))
+          .then(() => {
+            if (generatorsWithNoOtherMatches.length) {
+              const names = generatorsWithNoOtherMatches.join(', ');
+              const message = 'This Sample Generator Template is still ' +
+                `being used by these Sample Generators: ${names}. At this ` +
+                'time, there are are no other Sample Generator Templates ' +
+                'installed and published which satisfy the Sample ' +
+                'Generator version requirements, so you cannot unpublish ' +
+                'this Sample Generator Template.';
+              reject(new ValidationError({ message }));
+            };
+
+            resolve(true);
+          }));
+        }
+      }, // hooks.beforeUpdate
     },
     validate: {
       eitherUrlORtoUrl() {

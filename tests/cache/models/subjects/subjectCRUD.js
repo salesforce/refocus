@@ -332,3 +332,112 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   });
 });
 
+describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
+() => {
+  beforeEach((done) => {
+    tu.toggleOverride('enableRedisSampleStore', true);
+    done();
+  });
+
+  afterEach(rtu.forceDelete);
+  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  it('create subject with isPublished false, check tags and related links',
+  (done) => {
+    Subject.create({
+      name: `${tu.namePrefix}s4`,
+      isPublished: false,
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(subj.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('create subject with isPublished true, check tags and related links',
+  (done) => {
+    Subject.create({
+      name: `${tu.namePrefix}s4`,
+      isPublished: false,
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(subj.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('update subject with isPublished false, check tags and related links',
+  (done) => {
+    Subject.create({
+      name: `${tu.namePrefix}s4`,
+      isPublished: true,
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((subj) => subj.update({ isPublished: false }))
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(subj.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('update subject with isPublished true, check tags and related links',
+  (done) => {
+    Subject.create({
+      name: `${tu.namePrefix}s4`,
+      isPublished: false,
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((subj) => subj.update({ isPublished: true }))
+    .then((subj) => {
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(subj.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      done();
+    })
+    .catch(done);
+  });
+});
+

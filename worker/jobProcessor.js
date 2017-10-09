@@ -17,9 +17,10 @@
 'use strict'; // eslint-disable-line strict
 const conf = require('../config');
 if (conf.newRelicKey) {
-  require('newrelic');
+  require('newrelic'); // eslint-disable-line global-require
 }
 
+const logger = require('winston');
 const jobSetup = require('../jobQueue/setup');
 const jobConcurrency = jobSetup.jobConcurrency;
 const jobType = jobSetup.jobType;
@@ -29,8 +30,9 @@ const getHierarchyJob = require('./jobs/getHierarchyJob');
 const jobCleanupJob = require('./jobs/jobCleanupJob');
 const sampleTimeoutJob = require('./jobs/sampleTimeoutJob');
 const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
+const createAuditEventJob = require('./jobs/createAuditEventsJob');
 const workerStarted = 'Worker Process Started';
-console.log(workerStarted); // eslint-disable-line no-console
+logger.info(workerStarted);
 
 jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
   bulkUpsertSamplesJob);
@@ -42,3 +44,5 @@ jobQueue.process(jobType.SAMPLE_TIMEOUT, jobConcurrency.SAMPLE_TIMEOUT,
   sampleTimeoutJob);
 jobQueue.process(jobType.PERSIST_SAMPLE_STORE,
   jobConcurrency.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
+jobQueue.process(jobType.BULK_CREATE_AUDIT_EVENTS,
+  jobConcurrency.BULK_CREATE_AUDIT_EVENTS, createAuditEventJob);

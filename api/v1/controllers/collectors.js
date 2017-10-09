@@ -79,36 +79,6 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
 }
 
 /**
- * Register a collector. Access restricted to Refocus Collector only.
- *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function postCollector(req, res, next) {
-  const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: req.timestamp };
-  const toPost = req.swagger.params.queryBody.value;
-  helper.model.create(toPost)
-  .then((o) => {
-    if (helper.loggingEnabled) {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      utils.logAPI(req, resultObj, o);
-    }
-
-    /*
-     * When a collector registers itself with Refocus, Refocus sends back a
-     * special token for that collector to use for all further communication
-     */
-    o.dataValues.token = jwtUtil
-      .createToken(collectorToPost.name, collectorToPost.name);
-    return res.status(httpStatus.CREATED)
-      .json(u.responsify(o, helper, req.method));
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-} // postCollector
-
-/**
  * Find a collector or collectors. You may query using field filters with
  * asterisk (*) wildcards. You may also optionally specify sort, limit, offset,
  * and a list of fields to include in the response.
@@ -354,7 +324,6 @@ function deleteCollectorWriters(req, res, next) {
 } // deleteCollectorWriters
 
 module.exports = {
-  postCollector,
   findCollectors,
   getCollector,
   patchCollector,

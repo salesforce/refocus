@@ -13,6 +13,8 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const genu = require('../generator/utils');
+const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const constants = require('../../../../db/constants');
 
@@ -92,9 +94,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
-      expect(err.message).to.contain('is not a valid email');
-      expect(err.message).to.contain('is not a valid url');
+      expect(err.message).to.contain('url');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('author');
       done();
@@ -111,7 +111,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
+      expect(err.message).to.contain('60 characters');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('repository');
       done();
@@ -127,7 +127,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('must be present in given enumerator');
+      expect(err.message).to.contain('[DELETE, GET, PATCH, POST, PUT]');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('connection');
       done();
@@ -147,6 +147,113 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('contextDefinition');
       done();
+    });
+  });
+
+  describe('beforeUpdate unpublish >', () => {
+    afterEach(u.forceDelete);
+
+    it('unpublish ok if no SGs', (done) => {
+      const gt = u.getGeneratorTemplate();
+      gt.name += 'uoins';
+      gt.isPublished = true;
+      GeneratorTemplate.create(gt)
+      .then((created) => created.update({ isPublished: false }))
+      .then((updated) => {
+        expect(updated).to.have.property('isPublished', false);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('unpublish ok if SG can semver match with another published version ' +
+    'of this SGT', (done) => {
+      const gt1 = u.getGeneratorTemplate();
+      gt1.name += 'uoiscsmwapvots';
+      gt1.version = '1.0.0';
+      gt1.isPublished = true;
+      const gt2 = u.getGeneratorTemplate();
+      gt2.name += 'uoiscsmwapvots';
+      gt2.version = '1.1.0';
+      gt2.isPublished = true;
+      const g = JSON.parse(JSON.stringify(genu.getGenerator()));
+      g.name = 'sg-uoiscsmwapvots';
+      g.generatorTemplate.name = gt1.name;
+      g.generatorTemplate.version = '^1.0.0';
+      g.isActive = true;
+      let gtid;
+      GeneratorTemplate.bulkCreate([gt1, gt2])
+      .then((gtscreated) => {
+        gtid = gtscreated[0].id;
+        return Generator.create(g);
+      })
+      .then(() => GeneratorTemplate.findById(gtid))
+      .then((gt) => gt.update({ isPublished: false }))
+      .then((updated) => {
+        expect(updated).to.have.property('isPublished', false);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('unpublish fail if SG can semver match with another version of this ' +
+    'SGT but it is unpublished', (done) => {
+      const gt1 = u.getGeneratorTemplate();
+      gt1.name += 'uoiscsmwapvots';
+      gt1.version = '1.0.0';
+      gt1.isPublished = true;
+      const gt2 = u.getGeneratorTemplate();
+      gt2.name += 'uoiscsmwapvots';
+      gt2.version = '1.1.0';
+      gt2.isPublished = false;
+      const g = JSON.parse(JSON.stringify(genu.getGenerator()));
+      g.name = 'sg-uoiscsmwapvots';
+      g.generatorTemplate.name = gt1.name;
+      g.generatorTemplate.version = '^1.0.0';
+      g.isActive = true;
+      let gtid;
+      GeneratorTemplate.bulkCreate([gt1, gt2])
+      .then((gtscreated) => {
+        gtid = gtscreated[0].id;
+        return Generator.create(g);
+      })
+      .then(() => GeneratorTemplate.findById(gtid))
+      .then((gt) => gt.update({ isPublished: false }))
+      .then(() => done('uh oh... should have failed'))
+      .catch((err) => {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      });
+    });
+
+    it('unpublish fail if SG cannot semver match with another version of ' +
+    'this SGT', (done) => {
+      const gt1 = u.getGeneratorTemplate();
+      gt1.name += 'uoiscsmwapvots';
+      gt1.version = '1.0.0';
+      gt1.isPublished = true;
+      const gt2 = u.getGeneratorTemplate();
+      gt2.name += 'uoiscsmwapvots';
+      gt2.version = '1.1.0';
+      gt2.isPublished = true;
+      const g = JSON.parse(JSON.stringify(genu.getGenerator()));
+      g.name = 'sg-uoiscsmwapvots';
+      g.generatorTemplate.name = gt1.name;
+      g.generatorTemplate.version = '^2.0.0';
+      g.isActive = true;
+      let gtid;
+      GeneratorTemplate.bulkCreate([gt1, gt2])
+      .then((gtscreated) => {
+        gtid = gtscreated[0].id;
+        return Generator.create(g);
+      })
+      .then(() => GeneratorTemplate.findById(gtid))
+      .then((gt) => gt.update({ isPublished: false }))
+      .then(() => done('uh oh... should have failed'))
+      .catch((err) => {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      });
     });
   });
 });
