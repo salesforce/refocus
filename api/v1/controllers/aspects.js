@@ -207,6 +207,14 @@ module.exports = {
    */
   postAspect(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     doPost(req, res, next, helper);
   },
 
@@ -222,6 +230,14 @@ module.exports = {
    */
   putAspect(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     doPut(req, res, next, helper);
   },
 
