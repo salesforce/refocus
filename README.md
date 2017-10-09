@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus) 
-[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master) 
+[![Build Status](https://travis-ci.org/salesforce/refocus.svg?branch=master)](https://travis-ci.org/salesforce/refocus)
+[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus?branch=master)
 [![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/iamigo/refocus)
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Salesforce/refocus)
@@ -15,13 +15,14 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 
 
 - [Features](#features)
-- [Quickstart](#Quickstart)
-- [Perspective Debugging](#perspective-debugging)
-- [API Documentation](#api-documentation)
+- [Quickstart](#quickstart)
 - [Securing Refocus](#securing-refocus)
   - [IP Restrictions](#ip-restrictions)
   - [Authentication](#authentication)
   - [Using API Access Tokens](#using-api-access-tokens)
+  - [Dummy SSO Password](#dummy-sso-password)
+- [Perspective Debugging](#perspective-debugging)
+- [API Documentation](#api-documentation)
 - [Useful Resources](#useful-resources)
 - [Contributing](#contributing)
 
@@ -61,6 +62,9 @@ If Single Sign On (SSO) is configured in Refocus, SSO users can login using 'SSO
 
 ### Using API Access Tokens
 See [docs](https://salesforce.github.io/refocus/docs/10-security.html#api-tokens).
+
+### Dummy SSO Password
+When using SSO, a placeholder user record is created and added to the database. Specify a dummy password string for these dummy records. This dummy password is never used for authentication.
 
 ## Perspective Debugging
 If you are troubleshooting realtime event handling in a perspective, add query parameter `debug=REALTIME` to any perspective URL. This turns on console logging in the browser for all the realtime subject and sample events the perspective receives.
