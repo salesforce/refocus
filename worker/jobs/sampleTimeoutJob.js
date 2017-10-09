@@ -30,7 +30,7 @@ module.exports = (job, done) => {
       const jobEndTime = Date.now();
       const objToReturn = {};
 
-      // recordCount = number of successul timeouts
+      // recordCount = number of successful timeouts
       objToReturn.recordCount = dbRes.numberTimedOut;
 
       // errorCount = number of samples that did not time out

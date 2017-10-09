@@ -19,22 +19,22 @@ const expect = require('chai').expect;
 describe('tests/db/model/auditevent/create', () => {
   let auditEventObj;
   beforeEach((done) => {
-    auditEventObj = JSON.parse(JSON.stringify(u.auditEventObj));
+    auditEventObj = u.getAuditEventObj();
     done();
   });
 
-  afterEach((done) => {
+  after((done) => {
     u.forceDelete(done);
   });
 
   it('Create auditEvent, OK', (done) => {
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
-      expect(ae.details).to.deep.equal(u.auditEventObj.details);
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
+      expect(ae.details).to.deep.equal(auditEventObj.details);
       done();
     })
     .catch(done);
@@ -44,10 +44,10 @@ describe('tests/db/model/auditevent/create', () => {
     auditEventObj.details.additionalInfo = 'some info';
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       expect(ae.details.additionalInfo).to.deep.equal('some info');
       done();
     })
@@ -80,10 +80,10 @@ describe('tests/db/model/auditevent/create', () => {
     delete auditEventObj.isError;
     AuditEvent.create(auditEventObj)
     .then((ae) => {
-      expect(ae.loggedAt).to.be.equal(u.auditEventObj.loggedAt.toString());
+      expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
       expect(ae.isError).to.be.equal(false);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       done();
     })
     .catch(done);
@@ -95,23 +95,27 @@ describe('tests/db/model/auditevent/create', () => {
     AuditEvent.create(auditEventObj)
     .then((ae) => {
       expect(ae.loggedAt).to.not.be.equal(undefined);
-      expect(ae.isError).to.be.equal(u.auditEventObj.isError);
-      expect(ae.resourceName).to.be.equal(u.auditEventObj.resourceName);
-      expect(ae.resourceType).to.be.equal(u.auditEventObj.resourceType);
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
       done();
     })
     .catch(done);
   });
 
-  it('Error, create auditEvent, null details', (done) => {
+  it('Ok, create auditEvent with no details, details must default ' +
+    'to an empty object', (done) => {
     delete auditEventObj.details;
     AuditEvent.create(auditEventObj)
-    .then(() => done(tu.valError))
-    .catch((err) => {
-      expect(err.name).to.equal('SequelizeValidationError');
-      expect(err.message).to.contain('details cannot be null');
+    .then((ae) => {
+      expect(ae.loggedAt).to.not.be.equal(undefined);
+      expect(ae.isError).to.be.equal(auditEventObj.isError);
+      expect(ae.resourceName).to.be.equal(auditEventObj.resourceName);
+      expect(ae.resourceType).to.be.equal(auditEventObj.resourceType);
+      expect(ae.details).to.deep.equal({});
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('Error, create auditEvent, invalid resourceName', (done) => {
@@ -149,5 +153,23 @@ describe('tests/db/model/auditevent/create', () => {
       expect(err.message).to.contain('invalid input syntax for type boolean');
       done();
     });
+  });
+
+  it('OK, use bulkCreate to create multiple auditEvents', (done) => {
+    let totalRows;
+    AuditEvent.findAll()
+    .then((o) => {
+      totalRows = o.length;
+      return AuditEvent.bulkCreate([auditEventObj,
+        auditEventObj,
+        auditEventObj,
+        ]);
+    })
+    .then(() => AuditEvent.findAll())
+    .then((o) => {
+      expect(o).to.have.lengthOf(totalRows + 3);
+      done();
+    })
+    .catch(done);
   });
 });

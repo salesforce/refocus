@@ -17,6 +17,15 @@ const lensUtil = require('../../utils/lensUtil');
 const featureToggles = require('feature-toggles');
 const assoc = {};
 
+/**
+ * @param {Object} _inst - a sequelize Lens instance.
+ */
+function setLensObjectInCache(_inst) {
+  const lensObj = lensUtil.cleanAndCreateLensJson(_inst);
+  redisCache.set(lensObj.id, JSON.stringify(lensObj));
+  redisCache.set(lensObj.name, JSON.stringify(lensObj));
+}
+
 module.exports = function lens(seq, dataTypes) {
   const Lens = seq.define('Lens', {
     description: {
@@ -154,9 +163,18 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterCreate(inst /* , opts */) {
-        const lensObj = lensUtil.cleanAndCreateLensJson(inst);
-        redisCache.set(lensObj.id, JSON.stringify(lensObj));
-        redisCache.set(lensObj.name, JSON.stringify(lensObj));
+
+        // if installedBy is valid, reload to attach user object
+        if (inst.installedBy) {
+          const library = inst.library; // reload removes the library
+          inst.reload()
+          .then((reloadedInstance) => {
+            reloadedInstance.library = library;
+            setLensObjectInCache(reloadedInstance);
+          });
+        } else {
+          setLensObjectInCache(inst);
+        }
       },
 
       afterUpdate(inst /* , opts */) {

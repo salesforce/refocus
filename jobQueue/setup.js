@@ -40,6 +40,7 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 
 module.exports = {
   jobConcurrency: {
+    BULK_CREATE_AUDIT_EVENTS: conf.getBulkCreateAuditEventJobConcurrency,
     BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
     GET_HIERARCHY: conf.getHierarchyJobConcurrency,
     JOB_CLEANUP: 1,
@@ -48,6 +49,7 @@ module.exports = {
   },
   jobQueue,
   jobType: {
+    BULK_CREATE_AUDIT_EVENTS: 'BULK_CREATE_AUDIT_EVENTS',
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',
     GET_HIERARCHY: 'GET_HIERARCHY',
     JOB_CLEANUP: 'JOB_CLEANUP',

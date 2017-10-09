@@ -315,8 +315,14 @@ module.exports = function subject(seq, dataTypes) {
            * is published and the sampleStoreFeature is enabled
            */
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+            // Prevent any changes to original inst dataValues object
+            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
             redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
-            redisOps.hmSet(subjectType, inst.getDataValue('absolutePath'), inst.get());
+            redisOps.hmSet(
+              subjectType,
+              inst.getDataValue('absolutePath'),
+              instDataObj
+            );
           }
         }
 
@@ -357,7 +363,6 @@ module.exports = function subject(seq, dataTypes) {
             const oldAbsPath = inst._previousDataValues.absolutePath;
 
             if (inst.changed('absolutePath')) {
-
               // rename entry in subject store
               redisOps.renameKey(subjectType, oldAbsPath, newAbsPath);
             }
@@ -371,8 +376,11 @@ module.exports = function subject(seq, dataTypes) {
             redisOps.deleteKey(subAspMapType, oldAbsPath);
           }
 
+          // Prevent any changes to original inst dataValues object
+          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+
           //  update subject
-          redisOps.hmSet(subjectType, inst.absolutePath, inst.get());
+          redisOps.hmSet(subjectType, inst.absolutePath, instDataObj);
         }
 
         if (inst.changed('parentAbsolutePath') ||

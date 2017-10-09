@@ -20,7 +20,7 @@ module.exports = function auditevent(seq, dataTypes) {
       defaultValue: dataTypes.UUIDV4,
     },
     loggedAt: {
-      type: dataTypes.BIGINT,
+      type: dataTypes.DATE,
       defaultValue: Date.now(),
     },
     resourceName: {
@@ -37,6 +37,7 @@ module.exports = function auditevent(seq, dataTypes) {
     },
     details: {
       type: dataTypes.JSONB,
+      defaultValue: constants.defaultJSONValue,
       allowNull: false,
     },
   }, {
