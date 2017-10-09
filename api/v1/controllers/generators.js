@@ -77,44 +77,40 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGenerator(req, res, next) {
-    // doPost(req, res, next, helper);
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.mergeDuplicateArrayElements(params.queryBody.value, helper);
 
-    // returns the request body
-    function getToPost() {
-      if (featureToggles.isFeatureEnabled('returnUser')) {
-        const toPost = params.queryBody.value;
-        return authUtils.getUser(req)
-        .then((user) => {
-          if (user) {
-            toPost.createdBy = user.id;
-          }
+    /*
+     * @returns {Promise} - Contains the request body
+     */
+    function getPostBody() {
+      return new Promise((resolve, reject) => {
+        const postBody = params.queryBody.value;
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          return authUtils.getUser(req)
+          .then((user) => {
+            if (user) {
+              postBody.createdBy = user.id;
+            }
 
-          return toPost;
-        }) // if no user found, create the model without the createdBy
-        .catch(() => toPost);
-      } else {
-        return toPost;
-      }
+            resolve(postBody);
+          }) // if no user found, create the model without the createdBy
+          .catch(() => resolve(postBody));
+        } else {
+          resolve(postBody);
+        }
+      });
     }
 
-    getToPost()
+    getPostBody()
     .then((_toPost) => helper.model.createWithCollectors(_toPost,
       u.whereClauseForNameInArr, u.sortArrayObjectsByField))
-    .then((o) => {
-      return featureToggles.isFeatureEnabled('returnUser') ?
-        o.reload() : o })
+    .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
+        o.reload() : o)
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o);
-
-      // publish the update event to the redis channel
-      if (helper.publishEvents) {
-        publisher.publishSample(o, helper.associatedModels.subject,
-          realtimeEvents.sample.add, helper.associatedModels.aspect);
-      }
 
       // order collectors by name
       if (o.collectors) {
