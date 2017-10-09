@@ -180,10 +180,8 @@ describe('tests/api/v1/samples/post.js >', () => {
       .send(sampleToPost)
       .expect((res) => {
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].message)
+        expect(res.body.errors[ZERO].description)
           .to.contain('Name of the relatedlinks should be unique');
-        expect(res.body.errors[ZERO].source)
-          .to.contain('relatedLinks');
       })
       .end(done);
     });
