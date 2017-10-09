@@ -19,10 +19,12 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
+const featureToggles = require('feature-toggles');
 const httpStatus = require('../constants').httpStatus;
+const authUtils = require('../helpers/authUtils');
+const constants = require('../constants');
 
 module.exports = {
 
@@ -75,7 +77,54 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGenerator(req, res, next) {
-    doPost(req, res, next, helper);
+    // doPost(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const params = req.swagger.params;
+    u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+    // returns the request body
+    function getToPost() {
+      if (featureToggles.isFeatureEnabled('returnUser')) {
+        const toPost = params.queryBody.value;
+        return authUtils.getUser(req)
+        .then((user) => {
+          if (user) {
+            toPost.createdBy = user.id;
+          }
+
+          return toPost;
+        }) // if no user found, create the model without the createdBy
+        .catch(() => toPost);
+      } else {
+        return toPost;
+      }
+    }
+
+    getToPost()
+    .then((_toPost) => helper.model.createWithCollectors(_toPost,
+      u.whereClauseForNameInArr, u.sortArrayObjectsByField))
+    .then((o) => {
+      return featureToggles.isFeatureEnabled('returnUser') ?
+        o.reload() : o })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o);
+
+      // publish the update event to the redis channel
+      if (helper.publishEvents) {
+        publisher.publishSample(o, helper.associatedModels.subject,
+          realtimeEvents.sample.add, helper.associatedModels.aspect);
+      }
+
+      // order collectors by name
+      if (o.collectors) {
+        u.sortArrayObjectsByField(o.collectors, 'name');
+      }
+
+      res.status(constants.httpStatus.CREATED).json(
+          u.responsify(o, helper, req.method));
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
