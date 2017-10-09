@@ -30,6 +30,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
   let aspect;
   let subject;
   let token;
+  let userId;
   const URL1 = 'https://samples.com';
   const URL2 = 'https://updatedsamples.com';
   const relatedLinks = [
@@ -43,9 +44,10 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
@@ -68,6 +70,34 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
   afterEach(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  describe('with returnUser toggle on >', () => {
+    before(() => tu.toggleOverride('returnUser', true));
+    after(() => tu.toggleOverride('returnUser', false));
+    it('return user and profile objects', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+        provider: userId,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const { user } = res.body;
+        expect(user).to.be.an('object');
+        expect(user.name).to.be.an('string');
+        expect(user.email).to.be.an('string');
+        expect(user.profile).to.be.an('object');
+        expect(user.profile.name).to.be.an('string');
+        done();
+      });
+    });
+  });
 
   describe('when subject not present >', () => {
     // unpublish the subjects
