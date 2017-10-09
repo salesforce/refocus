@@ -47,7 +47,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       u.doSetup()
       .then((samp) => {
         samp.provider = userId;
-        return Sample.create(samp)
+        return Sample.create(samp);
       })
       .then((samp) => {
         sampleName = samp.name;
@@ -95,7 +95,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         expect(user.email).to.be.an('string');
         expect(user.profile.name).to.be.an('string');
         done();
-      })
+      });
     });
   });
 
