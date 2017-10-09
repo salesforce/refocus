@@ -47,6 +47,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     .send(generator)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
+      console.log(res.body)
       if (err) {
         return done(err);
       }

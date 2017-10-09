@@ -38,11 +38,6 @@ function makePostPromise(params, props, req) {
     .catch(() => props.model.create(toPost));
   }
 
-  if (props.modelName === 'Generator') {
-    return props.model.createWithCollectors(toPost,
-      u.whereClauseForNameInArr, u.sortArrayObjectsByField);
-  }
-
   return props.model.create(toPost);
 }
 
@@ -63,14 +58,6 @@ function handlePostResult(o, resultObj, props, res, req) {
   if (props.publishEvents) {
     publisher.publishSample(o, props.associatedModels.subject,
       realtimeEvents.sample.add, props.associatedModels.aspect);
-  }
-
-  // order collectors by name
-  if (props.modelName === 'Generator' && o.collectors) {
-    const returnObj = o.get ? o.get() : o;
-    u.sortArrayObjectsByField(returnObj.collectors, 'name');
-    return res.status(constants.httpStatus.CREATED).json(
-      u.responsify(returnObj, props, req.method));
   }
 
   /*
