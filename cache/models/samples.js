@@ -271,6 +271,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       sampleQueryBodyObj.provider = user.id;
       sampleQueryBodyObj.user = JSON.stringify({
         name: user.name, email: user.email,
+        profile: { name: user.profile.name },
       });
     }
 
