@@ -27,6 +27,7 @@ const doPut = require('../helpers/verbs/doPut');
 const featureToggles = require('feature-toggles');
 const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
+const redisCache = require('../../../cache/redisCache').client.cache;
 
 module.exports = {
 
@@ -160,6 +161,11 @@ module.exports = {
    */
   patchPerspective(req, res, next) {
     doPatch(req, res, next, helper);
+
+    // Remove from cache after successfull PATCH
+    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
+      redisCache.del('/v1/perspectives');
+    }
   },
 
   /**
@@ -190,6 +196,11 @@ module.exports = {
   putPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPut(req, res, next, helper);
+
+    // Remove from cache after successfull PUT
+    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
+      redisCache.del('/v1/perspectives');
+    }
   },
 
 }; // exports
