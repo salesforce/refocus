@@ -15,6 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const featureToggles = require('feature-toggles');
 const Aspect = tu.db.Aspect;
 const path = '/v1/aspects';
 const expect = require('chai').expect;
@@ -327,6 +328,111 @@ describe('tests/api/v1/aspects/put.js >', () => {
         });
         done();
       });
+    });
+  });
+
+  describe('validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
+    before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
+
+    it('NOT OK, put aspect with no helpEmail or helpUrl', (done) => {
+      const aspectToPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '110s',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPut)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('NOT OK, put aspect with empty helpEmail or helpUrl', (done) => {
+      const aspectToPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '110s',
+        helpEmail: '',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPut)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('OK, put aspect with only helpEmail', (done) => {
+      const aspectToPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '110s',
+        helpEmail: 'abc@xyz.com',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, put aspect with only helpUrl', (done) => {
+      const aspectToPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '110s',
+        helpUrl: 'http://abc.com',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://abc.com');
+      })
+      .end(done);
+    });
+
+    it('OK, put aspect with both helpUrl and helpEmail', (done) => {
+      const aspectToPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '110s',
+        helpUrl: 'http://abc.com',
+        helpEmail: 'abc@xyz.com',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectToPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://abc.com');
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
     });
   });
 });

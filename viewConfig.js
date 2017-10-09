@@ -28,6 +28,9 @@ const realtimeEventThrottleMilliseconds =
 
 const socketIOtransportProtocol = pe.SOCKETIO_TRANSPORT_PROTOCOL || null;
 module.exports = {
+  // Password stored in the db for SSO users (never used for authentication).
+  dummySsoPassword: pe.DUMMY_SSO_PASSWORD || 'ssopassword',
+
   // Make the Google Analytics trackingId available in /view.
   trackingId: pe.GOOGLE_ANALYTICS_ID || 'N/A',
 
