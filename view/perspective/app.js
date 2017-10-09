@@ -238,25 +238,6 @@ function handleLibraryFiles(lib) {
 } // handleLibraryFiles
 
 /**
- * @param {String} url The url to get from
- * @returns {Promise} For use in chaining.
- */
-function getPromiseWithUrl(url) {
-  return new Promise((resolve, reject) => {
-    request.get(url)
-    .set(REQ_HEADERS)
-    .end((error, response) => {
-      // reject if error is present, otherwise resolve request
-      if (error) {
-        reject(error);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-} // getPromiseWithUrl
-
-/**
  * Dispatch hierarchyLoad event, if the lens is received.
  * Return the hierarchyLoadEvent otherwise
  *
@@ -339,7 +320,7 @@ function getPerspectiveUrl() {
 
 window.onload = () => {
   const accumulatorObject = {
-    getPromiseWithUrl,
+    getPromiseWithUrl: u.getPromiseWithUrl,
     getPerspectiveUrl,
     handleHierarchyEvent,
     handleLensDomEvent,
