@@ -108,11 +108,9 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
  * @param {String} fieldName The field to sort by
  */
 function sortArrayObjectsByField(arr, fieldName) {
-  if (!arr || !Array.isArray(arr) || !arr.length) {
-    return;
+  if (arr && Array.isArray(arr) && arr.length) {
+    arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
   }
-
-  arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
 }
 
 /**
