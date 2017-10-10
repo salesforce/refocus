@@ -100,6 +100,70 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
+  it('After PATCH on perspective, response should not be present in cache',
+    (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.patch(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .send({ rootSubject: 'changedMainSubject' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+          expect(reply).to.not.exist;
+          return done();
+        });
+      });
+    });
+  });
+
+  it('After PUT on perspective, response should not be present in cache',
+    (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.put(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .send({
+        name: '___testPersp',
+        lensId: lensId,
+        rootSubject: 'myMainSubject',
+        aspectFilter: ['temperature', 'humidity'],
+        aspectTagFilter: ['temp', 'hum'],
+        subjectTagFilter: ['ea', 'na'],
+        aspectFilterType: 'INCLUDE',
+        aspectTagFilterType: 'INCLUDE',
+        subjectTagFilterType: 'INCLUDE',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+          expect(reply).to.not.exist;
+          return done();
+        });
+      });
+    });
+  });
+
   it('basic get, response present in cache with enableApiActivityLogs',
     (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
