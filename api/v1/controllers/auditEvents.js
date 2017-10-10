@@ -17,7 +17,10 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
+const apiErrors = require('../apiErrors');
+
 module.exports = {
+
   /**
    * GET /auditEvents
    *
@@ -28,6 +31,24 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findAuditEvents(req, res, next) {
+    const err = new apiErrors.ValidationError({
+      explanation: 'Only one of relativeDateTime or startAt/endAt ' +
+        'combination can be specified',
+    });
+    const params = req.swagger.params;
+
+    /*
+     * Only one of relativeDateTime filter or startAt/endAt filter can be
+     * present
+     */
+    const exclusivityCheckOnDateFilters = params.relativeDateTime &&
+      params.relativeDateTime.value && (params.startAt && params.startAt.value
+        || params.endAt && params.endAt.value);
+
+    if (exclusivityCheckOnDateFilters) {
+      throw err;
+    }
+
     doFind(req, res, next, helper);
   },
 

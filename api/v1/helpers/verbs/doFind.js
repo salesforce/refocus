@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/doFind.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
@@ -128,7 +128,8 @@ module.exports = function doFind(req, res, next, props) {
     redisCache.get(props.cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
-        doFindResponse({ req, res, next }, props, opts, props.cacheKey, props.cacheExpiry);
+        doFindResponse({ req, res, next }, props, opts, props.cacheKey,
+          props.cacheExpiry);
       } else {
         // get from cache
         const dbObj = JSON.parse(reply);

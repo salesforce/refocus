@@ -29,7 +29,6 @@ const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
-const ZERO = 0;
 const MINUS_ONE = -1;
 
 /**
