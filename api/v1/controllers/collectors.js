@@ -10,7 +10,6 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const utils = require('./utils');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -39,7 +38,7 @@ const MINUS_ONE = -1;
  * attribute.
  * @param  {String}   authToken - Collector authentication token
  * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
- * @return {Object} Sample generator with reencrypted context values.
+ * @returns {Object} Sample generator with reencrypted context values.
  */
 function reEncryptSGContextValues(sg, authToken, timestamp) {
   if (!authToken || !timestamp) {

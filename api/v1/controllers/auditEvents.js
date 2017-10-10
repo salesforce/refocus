@@ -14,10 +14,45 @@
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/auditEvents');
 const u = require('../helpers/verbs/utils');
-const httpStatus = require('../constants').httpStatus;
+const constants = require('../constants');
+const httpStatus = constants.httpStatus;
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const apiErrors = require('../apiErrors');
+
+/**
+ * Function to validate the query parameters in the request
+ * @param  {Object} params  - The request params
+ */
+function validateQueryParams(params) {
+  /*
+   * Only one of relativeDateTime filter or startAt/endAt filter combinations
+   * can be present
+   */
+  const exclusivityCheckOnDateFilters = params.relativeDateTime.value &&
+    (params.startAt.value || params.endAt.value);
+
+  if (exclusivityCheckOnDateFilters) {
+    throw new apiErrors.ValidationError({
+      explanation: 'Only one of relativeDateTime or startAt/endAt ' +
+        'combination can be specified',
+    });
+  }
+
+  if (params.relativeDateTime.value) {
+    const relativeDateTime = params.relativeDateTime.value;
+    const lastChar = relativeDateTime[relativeDateTime.length - 1];
+    const firstChar = relativeDateTime[0];
+    if (firstChar !== constants.FILTER_NEGATION ||
+      !helper.timeUnits.has(lastChar)) {
+      throw new apiErrors.ValidationError({
+        explanation: 'RelativeDateTime should start with a negation (-) and ' +
+        'end with a valid time unit. The valid time units ' +
+        `are ${[...helper.timeUnits]}`,
+      });
+    }
+  }
+} // validateQueryParams
 
 module.exports = {
 
@@ -31,24 +66,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findAuditEvents(req, res, next) {
-    const err = new apiErrors.ValidationError({
-      explanation: 'Only one of relativeDateTime or startAt/endAt ' +
-        'combination can be specified',
-    });
-    const params = req.swagger.params;
-
-    /*
-     * Only one of relativeDateTime filter or startAt/endAt filter can be
-     * present
-     */
-    const exclusivityCheckOnDateFilters = params.relativeDateTime &&
-      params.relativeDateTime.value && (params.startAt && params.startAt.value
-        || params.endAt && params.endAt.value);
-
-    if (exclusivityCheckOnDateFilters) {
-      throw err;
-    }
-
+    validateQueryParams(req.swagger.params);
     doFind(req, res, next, helper);
   },
 
