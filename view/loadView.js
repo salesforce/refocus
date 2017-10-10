@@ -85,7 +85,7 @@ function samlAuthentication(userProfile, done) {
       email: userProfile.email,
       profileId: profile.id,
       name: userProfile.email,
-      password: 'ssopassword',
+      password: viewConfig.dummySsoPassword,
       sso: true,
     })
   )
