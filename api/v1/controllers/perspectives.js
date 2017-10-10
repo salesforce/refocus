@@ -162,7 +162,7 @@ module.exports = {
   patchPerspective(req, res, next) {
     doPatch(req, res, next, helper);
 
-    // Remove from cache after successfull PATCH
+    // Remove from cache after successful PATCH
     if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       redisCache.del('/v1/perspectives');
     }
@@ -197,7 +197,7 @@ module.exports = {
     helper.validateFilterAndThrowError(req.body);
     doPut(req, res, next, helper);
 
-    // Remove from cache after successfull PUT
+    // Remove from cache after successful PUT
     if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       redisCache.del('/v1/perspectives');
     }

@@ -100,7 +100,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it('After PATCH on perspective, response should not present in cache',
+  it('After PATCH on perspective, response should not be present in cache',
     (done) => {
     api.get(path)
     .set('Authorization', token)
@@ -127,7 +127,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it('After PUT on perspective, response should not present in cache',
+  it('After PUT on perspective, response should not be present in cache',
     (done) => {
     api.get(path)
     .set('Authorization', token)
