@@ -479,7 +479,7 @@ window.onload = () => {
   }
 
   const accumulatorObject = {
-    getPromiseWithUrl,
+    getPromiseWithUrl: u.getPromiseWithUrl,
     getPerspectiveUrl,
     handleHierarchyEvent,
     handleLensDomEvent,
