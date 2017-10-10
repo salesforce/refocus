@@ -102,11 +102,16 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
 /**
  * Sorts an array in-place.
+ * If given invalid input, do nothing.
  *
  * @param {Array} arr Array of objects
  * @param {String} fieldName The field to sort by
  */
 function sortArrayObjectsByField(arr, fieldName) {
+  if (!arr || !Array.isArray(arr) || !arr.length) {
+    return;
+  }
+
   arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
 }
 

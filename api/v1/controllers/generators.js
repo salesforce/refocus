@@ -105,7 +105,7 @@ module.exports = {
 
     getPostBody()
     .then((_toPost) => helper.model.createWithCollectors(_toPost,
-      u.whereClauseForNameInArr, u.sortArrayObjectsByField))
+      u.whereClauseForNameInArr))
     .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
         o.reload() : o)
     .then((o) => {
@@ -113,9 +113,7 @@ module.exports = {
       u.logAPI(req, resultObj, o);
 
       // order collectors by name
-      if (o.collectors) {
-        u.sortArrayObjectsByField(o.collectors, 'name');
-      }
+      u.sortArrayObjectsByField(o.collectors, 'name');
 
       res.status(constants.httpStatus.CREATED).json(
           u.responsify(o, helper, req.method));

@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const constants = require('../../constants');
 const logAPI = require('../../../../utils/apiLog').logAPI;
-const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const authUtils = require('../authUtils');
 const u = require('./utils');
@@ -53,12 +52,6 @@ function makePostPromise(params, props, req) {
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, o);
-
-  // publish the update event to the redis channel
-  if (props.publishEvents) {
-    publisher.publishSample(o, props.associatedModels.subject,
-      realtimeEvents.sample.add, props.associatedModels.aspect);
-  }
 
   /*
    * if response directly from sequelize, call reload to attach
