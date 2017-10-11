@@ -189,7 +189,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
         api.patch(`${path}/${i}`)
         .set('Authorization', token)
         .send({ name: 'name_change' })
-       .expect(constants.httpStatus.BAD_REQUEST)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
