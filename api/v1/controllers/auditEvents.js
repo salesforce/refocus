@@ -21,7 +21,7 @@ const doGet = require('../helpers/verbs/doGet');
 const apiErrors = require('../apiErrors');
 
 /**
- * Function to validate the query parameters in the request
+ * Validate the query parameters in the request
  * @param  {Object} params  - The request params
  */
 function validateQueryParams(params) {
@@ -36,6 +36,14 @@ function validateQueryParams(params) {
     throw new apiErrors.ValidationError({
       explanation: 'Only one of relativeDateTime or startAt/endAt ' +
         'combination can be specified',
+    });
+  }
+
+  if (params.startAt.value && params.endAt.value &&
+    params.startAt.value >= params.endAt.value) {
+    throw new apiErrors.ValidationError({
+      explanation: `The startAt date: ${params.startAt.value} should be ` +
+      `less than the endAt date: ${params.endAt.value}`,
     });
   }
 

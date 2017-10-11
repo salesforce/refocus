@@ -49,7 +49,7 @@ function getDateTimeFromOffSet(offset) {
 /**
  * Function to modify the where clause passed to the database model. The
  * startAt and endAt keys are replaced with the loggedAt key and assigned to the
- * corresponding comparision operator
+ * corresponding comparison operator
  * @param  {Object} params  - The request params
  * @param  {Object} options - The options object that will be passed to the
  * Sequelize find function

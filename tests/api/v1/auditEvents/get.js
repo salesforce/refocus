@@ -185,7 +185,7 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
   describe('date filtering with startAt and endAt', () => {
     it('Not Ok, should throw an error when the date ' +
       'format is wrong', (done) => {
-      api.get(`${path}?startAt='invalidStart'&endAt='invalidEnd'`)
+      api.get(`${path}?startAt='invalidDate1'&endAt='invalidDate2'`)
       .set('Authorization', token)
       .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
@@ -194,6 +194,21 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
         }
 
         expect(res.body.errors[0].message).to.include('Invalid date');
+        return done();
+      });
+    });
+
+    it('Not Ok, if startAt date is greater than endAt date', (done) => {
+      api.get(`${path}?startAt=2017-01-03&endAt=2017-01-01`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to.include('The startAt date: ' +
+         '2017-01-03 should be less than the endAt date: 2017-01-01');
         return done();
       });
     });
