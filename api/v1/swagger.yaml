@@ -1603,9 +1603,7 @@ paths:
           description: >-
             Success, returns specified botAction
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotActionResponse"
+            $ref: "#/definitions/BotActionResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -1793,9 +1791,7 @@ paths:
           description: >-
             Success, returns specified botData
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotDataResponse"
+            $ref: "#/definitions/BotDataResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2023,9 +2019,7 @@ paths:
           description: >-
             Success, Deleted Bot
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotResponse"
+            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2068,9 +2062,7 @@ paths:
           description: >-
             Success, returns specified bot
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotResponse"
+            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2968,9 +2960,7 @@ paths:
           description: >-
             Success, returns specified event
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/EventResponse"
+            $ref: "#/definitions/EventResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6297,9 +6287,7 @@ paths:
           description: >-
             Success, Deleted RoomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomResponse"
+            $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6336,9 +6324,7 @@ paths:
           description: >-
             Success, returns specified room
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomResponse"
+            $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6522,9 +6508,7 @@ paths:
           description: >-
             Success, Deleted RoomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomTypeResponse"
+            $ref: "#/definitions/RoomTypeResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6561,9 +6545,7 @@ paths:
           description: >-
             Success, returns specified roomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomTypeResponse"
+            $ref: "#/definitions/RoomTypeResponse"
         400:
           $ref: "#/responses/400"
         401:
