@@ -13,7 +13,6 @@
 const featureToggles = require('feature-toggles');
 const utils = require('./utils');
 const helper = require('../helpers/nouns/subjects');
-const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
@@ -31,7 +30,6 @@ const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
 const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreConstants = sampleStore.constants;
-const sampleStoreFeature = sampleStoreConstants.featureName;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
@@ -404,6 +402,14 @@ module.exports = {
    */
   postSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     const { name, parentId, parentAbsolutePath } =
       req.swagger.params.queryBody.value;
 
@@ -475,6 +481,14 @@ module.exports = {
    */
   putSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     validateParentFields(req, res, next,
     () => {
       doPut(req, res, next, helper);
