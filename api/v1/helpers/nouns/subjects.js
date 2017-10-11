@@ -176,4 +176,5 @@ module.exports = {
   readOnlyFields: [
     'hierarchyLevel', 'absolutePath', 'childCount', 'id', 'isDeleted',
   ],
+  requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
 }; // exports
