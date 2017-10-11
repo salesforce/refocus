@@ -78,4 +78,4 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 - Node.js [token-based authentication](https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-tokens)
 
 ## Contributing
-Guidelines on contributing to Refocus are available [here](https://salesforce.github.io/refocus/docs/95-contributing.html).
+Guidelines on contributing to Refocus are available [here](https://salesforce.github.io/refocus/docs/95-contributing.html). 
