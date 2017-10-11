@@ -162,7 +162,7 @@ describe('tests/db/model/generator/create.js >', () => {
     })
     .catch((err) => {
       expect(err.errors[0].message)
-      .to.contain('The version must match the semantic version format');
+      .to.contain('version');
       expect(err.name).to.contain('SequelizeValidationError');
       done();
     });

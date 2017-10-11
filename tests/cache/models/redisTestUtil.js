@@ -98,6 +98,27 @@ module.exports = {
     .catch(done);
   },
 
+  forceDeleteAspSampSubj(done) {
+    tu.forceDelete(tu.db.Sample, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(done())
+    .catch(done);
+  },
+
+  forceDeleteUserAndProf(done) {
+    tu.forceDelete(tu.db.Profile, testStartTime)
+    .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => done())
+    .catch(done);
+  },
+
+  flushRedis(done) {
+    rcli.flushallAsync()
+    .then(() => done())
+    .catch(done);
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
@@ -105,12 +126,6 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => rcli.flushallAsync())
-    .then(() => done())
-    .catch(done);
-  },
-
-  flushRedis(done) {
-    rcli.flushallAsync()
     .then(() => done())
     .catch(done);
   },

@@ -19,6 +19,7 @@ const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const path = '/v1/aspects';
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 
 describe('tests/api/v1/aspects/patch.js >', () => {
   describe(`PATCH ${path} >`, () => {
@@ -173,6 +174,250 @@ describe('tests/api/v1/aspects/patch.js >', () => {
         .to.contain('You cannot modify the read-only field: id');
         return done();
       });
+    });
+
+    describe(`PATCH ${path} helpEmail, helpUrl not set in db >`, () => {
+      const toggleOrigValue = featureToggles.isFeatureEnabled(
+        'requireHelpEmailOrHelpUrl'
+      );
+      before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
+      after(() => tu.toggleOverride(
+        'requireHelpEmailOrHelpUrl', toggleOrigValue)
+      );
+
+      it('NOT OK, no helpEmail or helpUrl in db or request body', (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ name: 'name_change' })
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.errors[0].type).to.equal('ValidationError');
+          expect(res.body.errors[0].description).to.equal(
+            'At least one these attributes are required: helpEmail,helpUrl'
+          );
+          return done();
+        });
+      });
+
+      it('NOT OK, no helpEmail/helpUrl in db, empty helpEmail in request body',
+      (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ helpEmail: '' })
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.errors[0].type).to.equal('ValidationError');
+          expect(res.body.errors[0].description).to.equal(
+            'At least one these attributes are required: helpEmail,helpUrl'
+          );
+          return done();
+        });
+      });
+
+      it('OK, no helpEmail/helpUrl in db, valid helpEmail in request body',
+      (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ helpEmail: 'abc@xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal(undefined);
+          done();
+        });
+      });
+
+      it('OK, no helpEmail/helpUrl in db, valid helpUrl in request body',
+      (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ helpUrl: 'https://xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal(undefined);
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          done();
+        });
+      });
+
+      it('OK, no helpEmail/helpUrl in db, valid helpUrl and helpEmail in ' +
+        'request body', (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({
+          helpUrl: 'https://xyz.com',
+          helpEmail: 'abc@xyz.com',
+        })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          return done();
+        });
+      });
+    });
+  });
+
+  describe(`PATCH ${path} helpEmail or helpUrl set in db >`, () => {
+    let token;
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
+
+    before((done) => {
+      tu.toggleOverride('requireHelpEmailOrHelpUrl', true);
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
+
+    it('OK, valid helpUrl in db, no helpEmail/helpUrl in request body',
+    (done) => {
+      const aspToCreate = JSON.parse(JSON.stringify(u.toCreate));
+      aspToCreate.helpUrl = 'https://xyz.com';
+      Aspect.create(aspToCreate)
+      .then((asp) => {
+        api.patch(`${path}/${asp.id}`)
+        .set('Authorization', token)
+        .send({ name: 'name_change' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          expect(res.body.helpEmail).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, no helpEmail/helpUrl in request body',
+    (done) => {
+      const aspToCreate = JSON.parse(JSON.stringify(u.toCreate));
+      aspToCreate.helpEmail = 'abc@xyz.com';
+      Aspect.create(aspToCreate)
+      .then((asp) => {
+        api.patch(`${path}/${asp.id}`)
+        .set('Authorization', token)
+        .send({ name: 'name_change' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, valid helpUrl in request body',
+    (done) => {
+      const aspToCreate = JSON.parse(JSON.stringify(u.toCreate));
+      aspToCreate.helpEmail = 'abc@xyz.com';
+      Aspect.create(aspToCreate)
+      .then((asp) => {
+        api.patch(`${path}/${asp.id}`)
+        .set('Authorization', token)
+        .send({ helpUrl: 'https://xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, change helpEmail in request body',
+    (done) => {
+      const aspToCreate = JSON.parse(JSON.stringify(u.toCreate));
+      aspToCreate.helpEmail = 'abc@xyz.com';
+      Aspect.create(aspToCreate)
+      .then((asp) => {
+        api.patch(`${path}/${asp.id}`)
+        .set('Authorization', token)
+        .send({ helpEmail: 'changedAbc@xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('changedAbc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail and helpUrl in db, change helpEmail and ' +
+      'helpUrl in request body',
+    (done) => {
+      const aspToCreate = JSON.parse(JSON.stringify(u.toCreate));
+      aspToCreate.helpEmail = 'abc@xyz.com';
+      aspToCreate.helpUrl = 'https://xyz.com';
+      Aspect.create(aspToCreate)
+      .then((asp) => {
+        api.patch(`${path}/${asp.id}`)
+        .set('Authorization', token)
+        .send({
+          helpEmail: 'changedAbc@xyz.com',
+          helpUrl: 'https://changedXyz.com',
+        })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('changedAbc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal('https://changedXyz.com');
+          return done();
+        });
+      })
+      .catch(done);
     });
   });
 

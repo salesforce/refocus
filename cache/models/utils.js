@@ -13,8 +13,6 @@ const apiConstants = require('../../api/v1/constants');
 const defaults = require('../../config').api.defaults;
 const sampleStore = require('../sampleStore');
 const u = require('../../api/v1/helpers/verbs/utils');
-const featureToggles = require('feature-toggles');
-const redisErrors = require('../redisErrors');
 const MINUS_ONE = -1;
 const ONE = 1;
 const ZERO = 0;
@@ -142,7 +140,6 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
  * @returns {Array} - Filtered array
  */
 function filterByFieldWildCardExpr(arr, prop, propExpr, getNameFunc) {
-
   // regex to match wildcard expr, i option means case insensitive
   const escapedExp = propExpr.split('_').join('\\_')
                       .split('|').join('\\|').split('.').join('\\.');
@@ -176,7 +173,6 @@ function sortByOrder(arr, propArr) {
     let strA = '';
     let strB = '';
     propArr.forEach((field) => {
-
       // remove leading minus sign
       const _field = isDescending ? field.substr(1) : field;
       strA += a[_field];
