@@ -16,7 +16,7 @@
   "environments": {
     "test": {
       "scripts": {
-        "test": "echo hello"
+        "test": "npm run cleanup && npm run test-db"
       },
       "env": {
         "NODE_ENV": "production"
