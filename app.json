@@ -12,5 +12,15 @@
       "description": "A secret key for creating jwt token used for authentication.",
       "generator": "secret"
     }
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test": "echo hello"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
   }
 }
