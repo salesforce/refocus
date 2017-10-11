@@ -152,7 +152,7 @@
     "stats-webpack-plugin": "^0.2.1",
     "superagent": "^1.4.0",
     "supertest": "^1.1.0",
-    "swagger-tools": "^0.10.1",
+    "swagger-tools": "0.10.1",
     "throng": "^1.0.1",
     "uglifyify": "^3.0.4",
     "underscore": "^1.8.3",
