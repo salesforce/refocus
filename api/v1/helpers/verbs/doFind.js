@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/doFind.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
@@ -68,11 +68,8 @@ function doFindAndCountAll(reqResNext, props, opts) {
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Object} opts - The "options" object to pass into the Sequelize
  * find command
- * @param {String} cacheKey - Optional cache key used to cache the response in
- * redis
- * @param {String} cacheExpiry - Optional Cache Expiry time in second
  */
-function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
+function doFindResponse(reqResNext, props, opts) {
   if (opts.limit || opts.offset) {
     reqResNext.res.links({
       prev: reqResNext.req.originalUrl,
@@ -100,10 +97,10 @@ function doFindResponse(reqResNext, props, opts, cacheKey, cacheExpiry) {
       }
     }
 
-    if (cacheKey) {
+    if (props.cacheKey) {
       // cache the object by cacheKey.
       const strObj = JSON.stringify(retval);
-      redisCache.setex(cacheKey, cacheExpiry, strObj);
+      redisCache.setex(props.cacheKey, props.cacheExpiry, strObj);
     }
 
     reqResNext.res.status(httpStatus.OK).json(retval);
@@ -128,7 +125,7 @@ module.exports = function doFind(req, res, next, props) {
     redisCache.get(props.cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
-        doFindResponse({ req, res, next }, props, opts, props.cacheKey, props.cacheExpiry);
+        doFindResponse({ req, res, next }, props, opts);
       } else {
         // get from cache
         const dbObj = JSON.parse(reply);
