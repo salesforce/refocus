@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
@@ -45,7 +45,6 @@ function updateInstance(o, puttableFields, toPut) {
       // take nullified fields out of changed fields
       o.changed(key, false);
     } else {
-
       /*
        * value may have changed. set changed to true to
        * trigger checks in the model
@@ -59,6 +58,28 @@ function updateInstance(o, puttableFields, toPut) {
 }
 
 /**
+ * Sorts the array field of an object or an array of objects alphabetically.
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param  {Object|Array} instArrayOrObject  - The instance object or an array
+ *   of instance object with fields containing an array of objects that needs
+ *   to be sorted alphabetically.
+ */
+function sortArrayObjectsByField(props, instArrayOrObject) {
+  if (props.sortArrayObjects) {
+    const instArray = Array.isArray(instArrayOrObject) ? instArrayOrObject :
+     [instArrayOrObject];
+    instArray.forEach((inst) => {
+      Object.keys(props.sortArrayObjects).forEach((key) => {
+        if (Array.isArray(inst[key])) {
+          const fieldName = props.sortArrayObjects[key];
+          inst[key].sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
+        }
+      });
+    });
+  }
+} // sortArrayObjectsByField
+
+/**
  * Sends the udpated record back in the json response
  * with status code 200.
  *
@@ -70,14 +91,9 @@ function updateInstance(o, puttableFields, toPut) {
  * @returns {Object} JSON succcessful response
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
-
-  // retVal is read only.
   const returnObj = retVal.get ? retVal.get() : retVal;
 
-  // order collectors by name
-  if (props.modelName === 'Generator' && retVal.collectors) {
-    sortArrayObjectsByField(returnObj.collectors, 'name');
-  }
+  sortArrayObjectsByField(props, returnObj);
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
@@ -101,30 +117,18 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 }
 
 /**
- * Sorts an array in-place.
- * If given invalid input, do nothing.
- *
- * @param {Array} arr Array of objects
- * @param {String} fieldName The field to sort by
- */
-function sortArrayObjectsByField(arr, fieldName) {
-  if (arr && Array.isArray(arr) && arr.length) {
-    arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
-  }
-}
-
-/**
  * In-place removal of certain keys from the input object
  *
- * @oaram {Array} fieldsArr The fields to remove from the following obj
- * @oaram {Object} responseObj The dataValues object, may have fields for removal
- * @oaram {Object} The input object without the keys in fieldsArr
+ * @param {Array} fieldsToExclude - The fields to remove from the following obj
+ * @param {Object} responseObj - The dataValues object, may have fields for
+ * removal
+ * @param {Object} The input object without the keys in fieldsArr
  */
 function removeFieldsFromResponse(fieldsToExclude, responseObj) {
   for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
     delete responseObj[fieldsToExclude[i]];
   }
-}
+} // removeFieldsFromResponse
 
 /**
  * This function adds the association scope name to the as the to all
@@ -298,7 +302,7 @@ function isWritable(req, modelInst) {
       .catch(reject);
     }
   });
-}
+} // isWritable
 
 /**
  * This is a wrapper for the function with the same name in jwtUtil.

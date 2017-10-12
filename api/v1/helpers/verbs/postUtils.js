@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const constants = require('../../constants');
 const logAPI = require('../../../../utils/apiLog').logAPI;
-const realtimeEvents = require('../../../../realtime/constants').events;
 const authUtils = require('../authUtils');
 const u = require('./utils');
 const featureToggles = require('feature-toggles');
