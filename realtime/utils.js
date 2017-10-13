@@ -257,9 +257,14 @@ function perspectiveEmit(nspComponents, obj) {
  */
 function botEmit(nspComponents, obj) {
   const room = nspComponents[constants.roomFilterIndex];
+  const botActionFilter = nspComponents[constants.botActionFilterIndex];
 
   if (isRoom(obj)) {
     return applyFilter(room, obj.name);
+  }
+
+  if (isBotAction(obj)) {
+    return applyFilter(botActionFilter, obj.name);
   }
 
   return false;
@@ -330,6 +335,10 @@ function getBotsNamespaceString(inst) {
 
   if (isRoom(inst)) {
     namespace += constants.filterSeperator + inst.name;
+  }
+
+  if (isBotAction(inst)) {
+    namespace += constants.filterSeperator + inst.roomId;
   }
 
   return namespace;

@@ -66,6 +66,9 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let persRootNA;
   let persRootNAUSCA;
   let roomTest;
+  let roomID;
+  let botID;
+  let botActionTest;
 
   let createdLensId;
   before((done) => {
@@ -114,7 +117,22 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       return tu.db.Room.create(room);
     })
     .then((room) => {
+      roomID = room.id;
       roomTest = room.toJSON();
+    })
+    .then(() => {
+      const bot = u.getStandardBot();
+      return tu.db.Bot.create(bot);
+    })
+    .then((bot) => {
+      botID = bot.id;
+      const botAction = u.getStandardBotAction();
+      botAction.roomId = roomID;
+      botAction.botId = botID;
+      return tu.db.BotAction.create(botAction);
+    })
+    .then((ba) => {
+      botActionTest = ba.toJSON();
     }).then(() => done())
     .catch(done);
   });
@@ -145,6 +163,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for should return true for roomTest', () => {
         const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
         expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest, true))
+        .to.equal(true);
+      });
+
+      it('for should return true for botActionTest', () => {
+        const nspString = realtimeUtils.getBotsNamespaceString(botActionTest);
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, botActionTest, true))
         .to.equal(true);
       });
 
