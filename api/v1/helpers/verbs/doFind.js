@@ -79,16 +79,7 @@ function doFindResponse(reqResNext, props, opts) {
 
   doFindAndCountAll(reqResNext, props, opts)
   .then((retval) => {
-
-    // order collectors by name
-    if (props.modelName === 'Generator') {
-      for (let j = retval.length - 1; j >= 0; j--) {
-        const { collectors } = retval[j];
-        if (collectors) {
-          u.sortArrayObjectsByField(collectors, 'name');
-        }
-      }
-    }
+    u.sortArrayObjectsByField(props, retval);
 
     // loop through remove values to delete property
     if (props.fieldsToExclude) {
