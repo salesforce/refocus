@@ -303,16 +303,13 @@ module.exports = function aspect(seq, dataTypes) {
              */
             redisOps.deleteKeys(sampleType, aspectType, inst.name);
           } else if (inst.changed('isPublished')) {
+
+            // Prevent any changes to original inst dataValues object
+            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+            redisOps.hmSet(aspectType, inst.name, instDataObj);
             if (inst.isPublished) {
-              // Prevent any changes to original inst dataValues object
-              const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
               redisOps.addKey(aspectType, inst.name);
-              redisOps.hmSet(aspectType, inst.name, instDataObj);
             } else {
-
-              // delete the entry in the subject store
-              redisOps.deleteKey(aspectType, inst.name);
 
               /*
                * Delete multiple possible entries in the sample master list of
