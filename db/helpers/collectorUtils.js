@@ -34,7 +34,7 @@ const processInfoSchema = Joi.object().keys({
     heapUsed: Joi.number().integer(),
     external: Joi.number().integer(),
   }),
-  uptime: Joi.number().integer(),
+  uptime: Joi.number(),
   version: Joi.string(),
   versions: Joi.object(),
 });
