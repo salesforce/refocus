@@ -485,7 +485,7 @@ module.exports = {
       return redisOps.getHashPromise(aspectType, aspectName);
     })
     .then((aspObj) => {
-      if (!aspObj) {
+      if (!aspObj || (aspObj.isPublished == 'false')) {
         throw new redisErrors.ResourceNotFoundError({
           explanation: 'Aspect not found.',
         });
@@ -666,7 +666,7 @@ module.exports = {
       return redisOps.getHashPromise(aspectType, aspectName);
     })
     .then((aspObj) => {
-      if (!aspObj) {
+      if (!aspObj || (aspObj.isPublished == 'false')) {
         throw new redisErrors.ResourceNotFoundError({
           explanation: 'Aspect not found.',
         });

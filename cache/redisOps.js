@@ -142,15 +142,16 @@ function deleteKey(type, name) {
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param {String} name - Name of the key to be deleted
+ * @param {String} _name - The name of the key to be deleted
  * @returns {Promise} - which resolves to the values returned by the redis batch
  * command
  */
-function deleteKeys(type, objectName, name) {
+function deleteKeys(type, objectName, _name) {
   if (type !== sampleType) {
     return Promise.reject(false);
   }
 
+  const name = _name.toLowerCase();
   const nameKey = redisStore.toKey(type, name);
   const indexName = redisStore.constants.indexKey[type];
   const cmds = [];

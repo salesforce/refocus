@@ -31,6 +31,8 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
   let sampUpdatedAt;
   let sampleValue;
   let token;
+  let subjectId;
+  let aspectId;
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
@@ -46,6 +48,8 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
     u.doSetup()
     .then((sampObj) => Sample.create(sampObj))
     .then((sample) => {
+      subjectId = sample.subjectId;
+      aspectId = sample.aspectId;
       sampleName = sample.name;
       return samstoinit.eradicate();
     })
@@ -61,6 +65,40 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
 
   afterEach(rtu.forceDelete);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  describe('unpublished subject/aspect fails >', () => {
+    it('on unpublish aspect, sample is removed from cache', (done) => {
+      tu.db.Aspect.findById(aspectId).then((aspect) =>
+        aspect.update({ isPublished: false }))
+      .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
+      .then((sample) => {
+        expect(sample).to.be.null;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('update to unpublished aspect fails', (done) => {
+      tu.db.Aspect.findById(aspectId).then((aspect) =>
+        aspect.update({ isPublished: false }))
+      .then(() => {
+        api.patch(`${path}/${sampleName}`)
+        .set('Authorization', token)
+        .send({ aspectId, subjectId })
+        .expect(constants.httpStatus.NOT_FOUND)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const _err = res.body.errors[ZERO];
+          expect(_err.type).to.equal('ResourceNotFoundError');
+          expect(_err.description).to.equal('Sample not found.');
+          done();
+        });
+      });
+    });
+  });
 
   describe('Lists >', () => {
     it('reject if name is in request body', (done) => {
