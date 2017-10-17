@@ -31,7 +31,7 @@ describe('tests/api/v1/bots/delete.js >', () => {
     .catch(done);
   });
 
-  beforeEach((done) => {
+  before((done) => {
     u.createStandard()
     .then((newBot) => {
       testBot = newBot;
@@ -40,8 +40,8 @@ describe('tests/api/v1/bots/delete.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
-  afterEach(tu.forceDeleteUser);
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('Pass, delete bot', (done) => {
     api.delete(`${path}/${testBot.id}`)
