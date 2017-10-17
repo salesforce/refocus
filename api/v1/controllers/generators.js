@@ -18,6 +18,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
+const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const featureToggles = require('feature-toggles');
 const authUtils = require('../helpers/authUtils');
 const constants = require('../constants');
@@ -72,7 +73,7 @@ module.exports = {
     })
     .then((retVal) => {
       const newCollectors = retVal.collectors.map(collector => collector.name);
-      u.trackGeneratorChanges(retVal, oldCollectors, newCollectors);
+      heartbeatUtils.trackGeneratorChanges(retVal, oldCollectors, newCollectors);
       return u.handleUpdatePromise(resultObj, req, retVal, helper, res);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -125,7 +126,7 @@ module.exports = {
 
       const oldCollectors = [];
       const newCollectors = o.collectors.map(collector => collector.name);
-      u.trackGeneratorChanges(o, oldCollectors, newCollectors);
+      heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
 
       // order collectors by name
       u.sortArrayObjectsByField(helper, o);
@@ -173,7 +174,7 @@ module.exports = {
       instance = _updatedInstance;
       const oldCollectors = instance.collectors.map(c => c.name);
       const newCollectors = collectors.map(c => c.name);
-      u.trackGeneratorChanges(instance, oldCollectors, newCollectors);
+      heartbeatUtils.trackGeneratorChanges(instance, oldCollectors, newCollectors);
       return instance.setCollectors(collectors);
     }) // need reload instance to attach associations
     .then(() => instance.reload())

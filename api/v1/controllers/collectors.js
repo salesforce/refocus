@@ -21,6 +21,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const u = require('../helpers/verbs/utils');
+const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const httpStatus = require('../constants').httpStatus;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
   .decryptSGContextValues;
@@ -246,11 +247,11 @@ function heartbeat(req, res, next) {
     }
 
     //setup retval
-    if (u.collectorMap[o.name]) {
-      retval.generatorsAdded = u.collectorMap[o.name].added;
-      retval.generatorsDeleted = u.collectorMap[o.name].deleted;
-      retval.generatorsUpdated = u.collectorMap[o.name].updated;
-      delete u.collectorMap[o.name];
+    if (heartbeatUtils.collectorMap[o.name]) {
+      retval.generatorsAdded = heartbeatUtils.collectorMap[o.name].added;
+      retval.generatorsDeleted = heartbeatUtils.collectorMap[o.name].deleted;
+      retval.generatorsUpdated = heartbeatUtils.collectorMap[o.name].updated;
+      delete heartbeatUtils.collectorMap[o.name];
     }
 
     //set lastHeartbeat
