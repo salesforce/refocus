@@ -12,15 +12,15 @@
 
 const Bots = require('../../../../db/index').Bot;
 
-const m = 'Bots';
+const m = 'Bot';
 
 module.exports = {
   apiLinks: {
-    DELETE: `Delete ${m}`,
-    GET: `Retrieve ${m}`,
-    PATCH: `Update selected attributes of ${m}`,
+    DELETE: `Delete this ${m}`,
+    GET: `Retrieve this ${m}`,
+    PATCH: `Update selected attributes of this ${m}`,
     POST: `Create a new ${m}`,
-    PUT: `Upgrade to this ${m}`,
+    PUT: `Upgrade this ${m}`,
   },
   fieldScopeMap: {
     botUI: 'botUI',

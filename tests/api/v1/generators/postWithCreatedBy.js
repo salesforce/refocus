@@ -51,7 +51,7 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('if token provided, createdBy and user fields are returned', (done) => {
+  it('token OK, createdBy and user fields are returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generatorToCreate)
@@ -68,8 +68,7 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
     });
   });
 
-  it('if token is NOT provided, createdBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('token NOT provided, createdBy and user fields NOT returned', (done) => {
     api.post(path)
     .send(generatorToCreate)
     .expect(constants.httpStatus.CREATED)
@@ -84,8 +83,7 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
     });
   });
 
-  it('on invalid token, createdBy and user fields are NOT' +
-    ' returned', (done) => {
+  it('invalid token, createdBy and user fields NOT returned', (done) => {
     api.post(path)
     .set('Authorization', 'iDoNotExist')
     .send(generatorToCreate)
@@ -101,7 +99,7 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
     });
   });
 
-  it('on revoked token, createdBy and user fields are returned', (done) => {
+  it('revoked token, createdBy and user fields are returned', (done) => {
     api.post(tokenPath)
     .set('Authorization', token)
     .send({ name: 'newToken' })
