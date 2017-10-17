@@ -20,7 +20,7 @@ module.exports = {
     GET: `Retrieve this ${m}`,
     PATCH: `Update selected attributes of this ${m}`,
     POST: `Create a new ${m}`,
-    PUT: `Update this ${m}`,
+    PUT: `Upgrade this ${m}`,
   },
   fieldScopeMap: {
     botUI: 'botUI',
