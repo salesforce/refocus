@@ -841,7 +841,6 @@ function responsify(rec, props, method) {
   return o;
 } // responsify
 
-
 // ----------------------------------------------------------------------------
 
 module.exports = {
