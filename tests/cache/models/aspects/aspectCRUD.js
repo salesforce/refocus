@@ -317,9 +317,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     samstoinit.populate()
     .then(() => Aspect.findById(aspHumdId))
     .then((a) => a.update({ isPublished: false }))
-    .then((a) => {
-      return rcli.sismemberAsync(aspectIndexName, aspectKey);
-    })
+    .then((a) => rcli.sismemberAsync(aspectIndexName, aspectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
       return rcli.hgetallAsync(aspectKey);
