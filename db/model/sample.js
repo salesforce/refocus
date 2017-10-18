@@ -384,7 +384,7 @@ module.exports = function sample(seq, dataTypes) {
               return inst.getAspect();
             }
 
-             throw new dbErrors.ResourceNotFoundError({
+            throw new dbErrors.ResourceNotFoundError({
               explanation: 'Subject not found.',
               resourceType: 'Subject',
               resourceKey: inst.getDataValue('subjectId'),
@@ -394,17 +394,17 @@ module.exports = function sample(seq, dataTypes) {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;
               inst.status = u.computeStatus(a, inst.value);
-              resolve(inst);
+              return resolve(inst);
             }
 
-             throw new dbErrors.ResourceNotFoundError({
+            throw new dbErrors.ResourceNotFoundError({
               explanation: 'Aspect not found.',
               resourceType: 'Aspect',
               resourceKey: inst.getDataValue('aspectId'),
             });
           })
           .then(() => resolve(inst))
-          .catch((err) => reject(err))
+          .catch(reject)
         );
       }, // hooks.beforeCreate
 

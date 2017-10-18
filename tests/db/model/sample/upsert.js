@@ -69,7 +69,87 @@ describe('tests/db/model/sample/upsert.js >', () => {
     .catch(done);
   });
 
-  describe.only('unpublished tests:', () => {
+  describe('published tests:', () => {
+    it('when sample is new and when it already exists', (done) => {
+      Sample.upsertByName({
+        name: subjectName + `|` + aspectName,
+        value: '1',
+      })
+      .then((samp) => {
+        expect(samp.value).to.equal('1');
+        return Sample.upsertByName({
+          name: subjectName + `|` + aspectName,
+          value: '2',
+        });
+      })
+      .then((samp) => {
+        expect(samp.value).to.equal('2');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('When subject name changed then the related samples should be deleted',
+    (done) => {
+      const updatedSubjectName = subjectName + 1;
+      let newSample;
+      Sample.upsertByName({
+        name: subjectName + `|` + aspectName,
+        value: '1',
+      })
+      .then((samp) => {
+        newSample = samp;
+      })
+      .then(() => Subject.scope({
+        method: ['absolutePath', subjectName],
+      }).find())
+      .then((subject) => subject.update({ name: updatedSubjectName }))
+      .then(() => {
+        // use delay for getting updated version of sample because it
+        // gets updated in afterUpdate. So we receive the change in subject
+        // as soon as it gets updated but sample update / heirarchy update
+        // it does in background.
+        setTimeout(() => {
+          Sample.findOne({
+            where: {
+              name: {
+                $iLike: updatedSubjectName + '|' + aspectName,
+              },
+            },
+          })
+          .then((sample) => {
+            expect(sample).to.equal(null);
+            done();
+          });
+        }, 500);
+      })
+      .catch(done);
+    });
+
+    it('updateAt timestamp should change', (done) => {
+      let newSample;
+      Sample.upsertByName({
+        name: subjectName + '|' + aspectName,
+        value: '1',
+      })
+      .then((samp) => {
+        newSample = samp;
+      })
+      .then(() => Sample.upsertByName({
+        name: subjectName + '|' + aspectName,
+        value: '1',
+      }))
+      .then((s) => {
+        const newSampleUpdateTime = newSample.dataValues.updatedAt.getTime();
+        const updatedSampleUpdateTime = s.dataValues.updatedAt.getTime();
+        expect(updatedSampleUpdateTime).to.be.above(newSampleUpdateTime);
+      })
+      .then(() => done())
+      .catch(done);
+    });
+  });
+
+  describe('unpublished tests:', () => {
     it('unpublished subject cannot be used to CREATE sample', (done) => {
       Subject.findById(publishedSubjectId)
       .then((s) => s.update({ isPublished: false }))
@@ -149,80 +229,6 @@ describe('tests/db/model/sample/upsert.js >', () => {
       })
       .catch(done);
     });
-  });
-
-  it('when sample is new and when it already exists', (done) => {
-    Sample.upsertByName({
-      name: subjectName + `|` + aspectName,
-      value: '1',
-    })
-    .should.eventually.have.deep.property('value', '1')
-    .then(() => Sample.upsertByName({
-      name: subjectName + `|` + aspectName,
-      value: '2',
-    }))
-    .should.eventually.have.deep.property('value', '2')
-    .then(() => done())
-    .catch(done);
-  });
-
-  it('When subject name changed then the related samples should be deleted',
-  (done) => {
-    const updatedSubjectName = subjectName + 1;
-    let newSample;
-    Sample.upsertByName({
-      name: subjectName + `|` + aspectName,
-      value: '1',
-    })
-    .then((samp) => {
-      newSample = samp;
-    })
-    .then(() => Subject.scope({
-      method: ['absolutePath', subjectName],
-    }).find())
-    .then((subject) => subject.update({ name: updatedSubjectName }))
-    .then(() => {
-      // use delay for getting updated version of sample because it
-      // gets updated in afterUpdate. So we receive the change in subject
-      // as soon as it gets updated but sample update / heirarchy update
-      // it does in background.
-      setTimeout(() => {
-        Sample.findOne({
-          where: {
-            name: {
-              $iLike: updatedSubjectName + '|' + aspectName,
-            },
-          },
-        })
-        .then((sample) => {
-          expect(sample).to.equal(null);
-          done();
-        });
-      }, 500);
-    })
-    .catch(done);
-  });
-
-  it('updateAt timestamp should change', (done) => {
-    let newSample;
-    Sample.upsertByName({
-      name: subjectName + '|' + aspectName,
-      value: '1',
-    })
-    .then((samp) => {
-      newSample = samp;
-    })
-    .then(() => Sample.upsertByName({
-      name: subjectName + '|' + aspectName,
-      value: '1',
-    }))
-    .then((s) => {
-      const newSampleUpdateTime = newSample.dataValues.updatedAt.getTime();
-      const updatedSampleUpdateTime = s.dataValues.updatedAt.getTime();
-      expect(updatedSampleUpdateTime).to.be.above(newSampleUpdateTime);
-    })
-    .then(() => done())
-    .catch(done);
   });
 
   it('subject does not exist', (done) => {
