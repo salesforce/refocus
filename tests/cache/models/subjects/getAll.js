@@ -33,7 +33,7 @@ describe('tests/cache/models/subjects/getAll.js, ' +
       token = returnedToken;
       done();
     })
-    .catch(err=>console.log(err) && done(err));
+    .catch(done);
   });
 
   before(rtu.populateRedis);
