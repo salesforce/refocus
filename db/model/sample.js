@@ -172,6 +172,7 @@ module.exports = function sample(seq, dataTypes) {
           if (!aspect) {
             throw new dbErrors.ResourceNotFoundError({
               explanation: 'Aspect not found.',
+              resourceType: 'Aspect',
               resourceKey: toCreate.aspectId,
             });
           }
@@ -227,6 +228,7 @@ module.exports = function sample(seq, dataTypes) {
             if (sa && sa.subject && !sa.subject.isPublished) {
               throw new dbErrors.ResourceNotFoundError({
                 explanation: 'Subject not found.',
+                resourceType: 'Subject',
                 resourceKey: sa.subject.id,
               });
             }
@@ -384,6 +386,7 @@ module.exports = function sample(seq, dataTypes) {
 
              throw new dbErrors.ResourceNotFoundError({
               explanation: 'Subject not found.',
+              resourceType: 'Subject',
               resourceKey: inst.getDataValue('subjectId'),
             });
           })
@@ -396,6 +399,7 @@ module.exports = function sample(seq, dataTypes) {
 
              throw new dbErrors.ResourceNotFoundError({
               explanation: 'Aspect not found.',
+              resourceType: 'Aspect',
               resourceKey: inst.getDataValue('aspectId'),
             });
           })
@@ -421,6 +425,7 @@ module.exports = function sample(seq, dataTypes) {
 
             throw new dbErrors.ResourceNotFoundError({
               explanation: 'Subject not found.',
+              resourceType: 'Subject',
               resourceKey: inst.getDataValue('subjectId'),
             });
           })
@@ -432,6 +437,7 @@ module.exports = function sample(seq, dataTypes) {
             } else {
               throw new dbErrors.ResourceNotFoundError({
                 explanation: 'Aspect not found.',
+                resourceType: 'Aspect',
                 resourceKey: inst.getDataValue('aspectId'),
               });
 

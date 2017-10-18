@@ -69,7 +69,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
     .catch(done);
   });
 
-  describe('unpublished tests:', () => {
+  describe.only('unpublished tests:', () => {
     it('unpublished subject cannot be used to CREATE sample', (done) => {
       Subject.findById(publishedSubjectId)
       .then((s) => s.update({ isPublished: false }))
@@ -79,12 +79,13 @@ describe('tests/db/model/sample/upsert.js >', () => {
       }))
       .then(() => done('expecting to throw ResourceNotFoundError'))
       .catch((err) => {
-        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        expect(err.explanation).to.equal('Subject not found.');
         expect(err.name).to.equal('ResourceNotFoundError');
         expect(err.resourceType).to.equal('Subject');
         expect(err.resourceKey).to.equal(publishedSubjectId);
         done();
-      });
+      })
+      .catch(done); // catch expectation failures
     });
 
     it('when referenced subject is unpublished, CREATE sample should fail',
@@ -95,12 +96,13 @@ describe('tests/db/model/sample/upsert.js >', () => {
       })
       .then(() => done('expecting to throw ResourceNotFoundError'))
       .catch((err) => {
-        expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
+        expect(err.explanation).to.equal('Subject not found.');
         expect(err.name).to.equal('ResourceNotFoundError');
         expect(err.resourceType).to.equal('Subject');
         expect(err.resourceKey).to.equal(unPublishedSubjectId);
         done();
-      });
+      })
+      .catch(done); // catch expectation failures
     });
 
     it('when referenced aspect is unpublished, CREATE sample should fail',
@@ -111,11 +113,13 @@ describe('tests/db/model/sample/upsert.js >', () => {
       })
       .then(() => done('expecting to throw ResourceNotFoundError'))
       .catch((err) => {
+        expect(err.explanation).to.equal('Aspect not found.');
         expect(err.name).to.equal('ResourceNotFoundError');
         expect(err.resourceType).to.equal('Aspect');
         expect(err.resourceKey).to.equal(unPublishedAspectId);
         done();
-      });
+      })
+      .catch(done);
     });
 
     it('when referenced aspect is unpublished, UPSERT sample should fail',
@@ -128,7 +132,8 @@ describe('tests/db/model/sample/upsert.js >', () => {
       .catch((err) => {
         expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
         done();
-      });
+      })
+      .catch(done);
     });
 
     it('when referenced subject is unpublished, UPSERT sample should fail',
@@ -141,11 +146,12 @@ describe('tests/db/model/sample/upsert.js >', () => {
       .catch((err) => {
         expect(err).to.have.property('name').to.equal('ResourceNotFoundError');
         done();
-      });
+      })
+      .catch(done);
     });
   });
 
-  it.only('when sample is new and when it already exists', (done) => {
+  it('when sample is new and when it already exists', (done) => {
     Sample.upsertByName({
       name: subjectName + `|` + aspectName,
       value: '1',
