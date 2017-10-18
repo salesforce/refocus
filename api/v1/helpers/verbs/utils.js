@@ -420,7 +420,7 @@ function findByName(model, key, opts) {
         resolve(o);
       } else {
         throw new apiErrors.ResourceNotFoundError({
-          explanation: 'Sample not found.',
+          explanation: model.name + ' not found.',
         });
       }
     })
@@ -768,7 +768,6 @@ function deleteAllAssociations(modelInst, assocNames) {
  */
 function handleError(next, err, modelName) {
   err.resource = modelName;
-  console.log('in handleError', err.description)
   next(err);
 }
 

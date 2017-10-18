@@ -448,7 +448,6 @@ module.exports = function subject(seq, dataTypes) {
             common.publishChange(inst, eventName.add);
           }
         } else if (inst.previous('isPublished')) {
-            console.log('delete keys')
 
           // Treat unpublishing a subject as a "delete" event.
           common.publishChange(inst, eventName.del);
