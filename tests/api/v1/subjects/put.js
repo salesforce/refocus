@@ -17,6 +17,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const ZERO = 0;
@@ -633,6 +634,116 @@ describe('tests/api/v1/subjects/put.js >', () => {
         });
         done();
       });
+    });
+  });
+
+  describe('api: PUT subjects, validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
+
+    let token;
+    let subjectId = ZERO;
+
+    before((done) => {
+      tu.toggleOverride('requireHelpEmailOrHelpUrl', true);
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    before((done) => {
+      Subject.create({ name: `${tu.namePrefix}s1` })
+      .then((subject) => {
+        subjectId = subject.id;
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
+
+    after(u.forceDelete);
+    after(tu.forceDeleteUser);
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
+
+    it('NOT OK, put subject with no helpEmail or helpUrl', (done) => {
+      api.put(`${path}/${subjectId}`)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}newName` })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        return done();
+      });
+    });
+
+    it('NOT OK, put subject with empty helpEmail or helpUrl', (done) => {
+      api.put(`${path}/${subjectId}`)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpEmail: '' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('OK, put subject with only helpEmail', (done) => {
+      api.put(`${path}/${subjectId}`)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpEmail: 'abc@xyz.com' })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, put subject with only helpUrl', (done) => {
+      api.put(`${path}/${subjectId}`)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpUrl: 'http://xyz.com' })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, put subject with both helpUrl and helpEmail', (done) => {
+      api.put(`${path}/${subjectId}`)
+      .set('Authorization', token)
+      .send({
+        name: `${tu.namePrefix}s1`,
+        helpUrl: 'http://xyz.com',
+        helpEmail: 'abc@xyz.com',
+      })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://xyz.com');
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
     });
   });
 });

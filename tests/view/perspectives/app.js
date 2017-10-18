@@ -14,7 +14,7 @@ const chai = require('chai');
 const expect = chai.expect;
 import { getFilterQuery,
   getTagsFromArrays } from '../../../view/perspective/utils.js';
-const app = require('../../../view/perspectiveBeta/app.js');
+const app = require('../../../view/perspective/app.js');
 const eventsQueue = require('../../../view/perspective/eventsQueue.js');
 
 describe('tests/view/perspectives/app.js >', () => {

@@ -18,6 +18,7 @@ const u = require('./utils');
 const path = '/v1/aspects';
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const ZERO = 0;
 const ONE = 1;
 
@@ -203,6 +204,111 @@ describe('tests/api/v1/aspects/post.js >', () => {
       .expect(constants.httpStatus.CREATED)
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
+      })
+      .end(done);
+    });
+  });
+
+  describe('validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
+    before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
+
+    it('NOT OK, post aspect with no helpEmail or helpUrl', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('NOT OK, post aspect with empty helpEmail or helpUrl', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+        helpEmail: '',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('OK, post aspect with only helpEmail', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+        helpEmail: 'abc@xyz.com',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, post aspect with only helpUrl', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+        helpUrl: 'http://abc.com',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://abc.com');
+      })
+      .end(done);
+    });
+
+    it('OK, post aspect with both helpUrl and helpEmail', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+        helpUrl: 'http://abc.com',
+        helpEmail: 'abc@xyz.com',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://abc.com');
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
       })
       .end(done);
     });
