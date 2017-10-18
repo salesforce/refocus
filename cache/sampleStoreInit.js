@@ -107,11 +107,7 @@ function eradicate() {
  */
 function populateAspects() {
   let aspects;
-  return Aspect.findAll({
-    where: {
-      isPublished: true,
-    },
-  })
+  return Aspect.findAll()
   .then((allAspects) => {
     if (infoLoggingEnabled) {
       const msg = `Starting to load ${allAspects.length} aspects to cache :|`;

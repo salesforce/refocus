@@ -45,7 +45,7 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
   afterEach(rtu.flushRedis);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('exiting sample: different case name should NOT modify sample name',
+  it('existing sample: different case name should NOT modify sample name',
   (done) => {
     const path = '/v1/samples/upsert/bulk';
     const sampleName = '___Subject1.___Subject2|___Aspect1';

@@ -99,14 +99,14 @@ describe('tests/api/v1/aspects/deleteWriters.js >', () => {
       });
     });
 
-    it('return 403 when a token is not passed to the header', (done) => {
+    it('403 when no token in header', (done) => {
       api.delete(writersPath.replace('{key}', aspect.id))
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
 
-    it('return 403 when deleteting writers using a token generated for ' +
-      'a user not already in the list of writers', (done) => {
+    it('403 deleting writers using a token generated for a user not already ' +
+    ' in the list of writers', (done) => {
       api.delete(writersPath.replace('{key}', aspect.id))
       .set('Authorization', otherValidToken)
       .expect(constants.httpStatus.FORBIDDEN)
@@ -173,8 +173,8 @@ describe('tests/api/v1/aspects/deleteWriters.js >', () => {
       });
     });
 
-    it('return 403 when deleteting a writer using a token ' +
-      'generated for a user not already in the list of writers', (done) => {
+    it('403 deleting a writer using a token generated for a user not ' +
+    'already in the list of writers', (done) => {
       api.delete(writerPath.replace('{key}', aspect.id)
         .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)
