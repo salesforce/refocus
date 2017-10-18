@@ -24,6 +24,7 @@ const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamplesJob');
+const timeoutMillis = 500;
 
 describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
@@ -97,11 +98,12 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
         bulkUpsertSamplesJob);
 
       /*
-       * the bulk api is asynchronous. The delay is used to give sometime for
-       * the upsert operation to complete
+       * Bulk API is asynchronous. The delay is used to give time for upsert
+       * operation to complete.
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -111,7 +113,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(0);
           done();
         });
-      }, 400);
+      }, timeoutMillis);
     });
   });
 
@@ -157,6 +159,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -169,12 +172,11 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 
           return done();
         });
-      }, 500);
+      }, timeoutMillis);
     });
   });
 
-  it('Even when lots of upserts fail, the valid upsert should ' +
-    ' be successful', (done) => {
+  it('Partial success', (done) => {
     let jobId;
     const toUpsert = [];
 
@@ -230,6 +232,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -239,7 +242,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(40);
           return done();
         });
-      }, 500);
+      }, timeoutMillis);
     });
   });
 
@@ -247,7 +250,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
    * NOTE: this is an api test and it does not matter if cache is enabled or
    * not. So, this test does not need to be carried over to test/cache/jobQueue
    */
-  it('return 400 when getting a job not found', (done) => {
+  it('return 400 when job not found', (done) => {
     const someReallyLargeJobId = 99999;
     api.get(getStatusPath.replace('{jobId}', someReallyLargeJobId))
     .set('Authorization', token)

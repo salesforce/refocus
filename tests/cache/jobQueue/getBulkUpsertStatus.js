@@ -67,6 +67,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);
@@ -105,6 +106,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -159,6 +161,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -230,6 +233,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

@@ -37,7 +37,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     .then(() => done())
     .catch(done);
   });
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -59,13 +59,13 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
-  it('simple post without requred fields', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    delete _generator.name;
-    delete _generator.aspects;
+  it('simple post without required fields', (done) => {
+    const g = JSON.parse(JSON.stringify(generator));
+    delete g.name;
+    delete g.aspects;
     api.post(path)
     .set('Authorization', token)
-    .send(_generator)
+    .send(g)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (!err) {
@@ -80,8 +80,11 @@ describe('tests/api/v1/generators/post.js >', () => {
   });
 
   describe('post duplicate fails >', () => {
-    beforeEach((done) => {
-      Generator.create(generator)
+    const gen = JSON.parse(JSON.stringify(generator));
+    gen.name += 'pdf';
+
+    before((done) => {
+      Generator.create(gen)
       .then(() => done())
       .catch(done);
     });
@@ -89,7 +92,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     it('with identical name', (done) => {
       api.post(path)
       .set('Authorization', token)
-      .send(generator)
+      .send(gen)
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
@@ -102,10 +105,11 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
 
     it('with case different name', (done) => {
-      generator.name = generator.name.toLowerCase();
+      const g = JSON.parse(JSON.stringify(gen));
+      g.name = g.name.toLowerCase();
       api.post(path)
       .set('Authorization', token)
-      .send(generator)
+      .send(g)
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {

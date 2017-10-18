@@ -93,9 +93,6 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
-  // Enforce that all API requests have valid API token
-  requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
-
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
 

@@ -31,6 +31,8 @@ describe('tests/api/v1/samples/patch.js >', () => {
     .catch(done);
   });
 
+  after(tu.forceDeleteUser);
+
   describe(`PATCH ${path} >`, () => {
     let sampleName;
     let sampUpdatedAt;
@@ -49,7 +51,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
 
     it('reject if name field in request', (done) => {
       api.patch(`${path}/${sampleName}`)
@@ -66,8 +67,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       });
     });
 
-    it('apiLinks"s href ends with sample name' +
-      'updatedAt', (done) => {
+    it('apiLinks"s href ends with sample name updatedAt', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({})
@@ -94,8 +94,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     describe('UpdatedAt tests >', () => {
-      it('without value does not increment ' +
-        'updatedAt', (done) => {
+      it('without value does not increment updatedAt', (done) => {
         api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
         .send({})
@@ -112,8 +111,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
         });
       });
 
-      it('with only identical value increments ' +
-        'updatedAt', (done) => {
+      it('with only identical value increments updatedAt', (done) => {
         api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
         .send({ value: sampleValue })
@@ -329,6 +327,18 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
+    let token2;
+
+    before((done) => {
+      tu.createSecondUser()
+      .then((u) => tu.createTokenFromUserName(u.name))
+      .then((returnedToken) => {
+        token2 = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
@@ -337,7 +347,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
         samp.getSubject()
         .then((sub) => {
           sub.update({ isPublished: false });
-          done();
+          return done();
         })
         .catch((err) => {
           throw err;
@@ -346,12 +356,11 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
+    after(u.forceDelete);
 
     it('cannot patch sample if subject not published', (done) => {
       api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
+      .set('Authorization', token2)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
@@ -360,6 +369,18 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
+    let token3;
+
+    before((done) => {
+      tu.createThirdUser()
+      .then((u) => tu.createTokenFromUserName(u.name))
+      .then((returnedToken) => {
+        token3 = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
@@ -368,7 +389,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
         samp.getAspect()
         .then((asp) => {
           asp.update({ isPublished: false });
-          done();
+          return done();
         })
         .catch((err) => {
           throw err;
@@ -377,12 +398,11 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
+    after(u.forceDelete);
 
     it('cannot patch sample if aspect not published', (done) => {
       api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
+      .set('Authorization', token3)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
