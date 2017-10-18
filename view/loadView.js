@@ -36,8 +36,6 @@ const viewmap = {
   '/samples/:key/edit': 'admin',
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
-  '/perspectivesBeta': 'perspectiveBeta/perspective',
-  '/perspectivesBeta/:key': 'perspectiveBeta/perspective',
   '/tokens/new': 'tokens/new',
   '/rooms': 'rooms/list',
   '/rooms/types': 'rooms/types',
@@ -85,7 +83,7 @@ function samlAuthentication(userProfile, done) {
       email: userProfile.email,
       profileId: profile.id,
       name: userProfile.email,
-      password: 'ssopassword',
+      password: viewConfig.dummySsoPassword,
       sso: true,
     })
   )
@@ -139,9 +137,6 @@ module.exports = function loadView(app, passport) {
         // updates
         if ((key === '/perspectives' && Object.keys(req.query).length) ||
         key === '/perspectives/:key') {
-          res.render(viewmap[key], templateVars);
-        } else if ((key === '/perspectivesBeta' && Object.keys(req.query).length) ||
-        key === '/perspectivesBeta/:key') {
           res.render(viewmap[key], templateVars);
         } else {
           res.render(viewmap[key], trackObj);

@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
@@ -45,7 +45,6 @@ function updateInstance(o, puttableFields, toPut) {
       // take nullified fields out of changed fields
       o.changed(key, false);
     } else {
-
       /*
        * value may have changed. set changed to true to
        * trigger checks in the model
@@ -59,6 +58,28 @@ function updateInstance(o, puttableFields, toPut) {
 }
 
 /**
+ * Sorts the array field of an object or an array of objects alphabetically.
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param  {Object|Array} instArrayOrObject  - The instance object or an array
+ *   of instance object with fields containing an array of objects that needs
+ *   to be sorted alphabetically.
+ */
+function sortArrayObjectsByField(props, instArrayOrObject) {
+  if (props.sortArrayObjects) {
+    const instArray = Array.isArray(instArrayOrObject) ? instArrayOrObject :
+     [instArrayOrObject];
+    instArray.forEach((inst) => {
+      Object.keys(props.sortArrayObjects).forEach((key) => {
+        if (Array.isArray(inst[key])) {
+          const fieldName = props.sortArrayObjects[key];
+          inst[key].sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
+        }
+      });
+    });
+  }
+} // sortArrayObjectsByField
+
+/**
  * Sends the udpated record back in the json response
  * with status code 200.
  *
@@ -70,14 +91,9 @@ function updateInstance(o, puttableFields, toPut) {
  * @returns {Object} JSON succcessful response
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
-
-  // retVal is read only.
   const returnObj = retVal.get ? retVal.get() : retVal;
 
-  // order collectors by name
-  if (props.modelName === 'Generator' && retVal.collectors) {
-    sortArrayObjectsByField(returnObj.collectors, 'name');
-  }
+  sortArrayObjectsByField(props, returnObj);
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
@@ -101,27 +117,18 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 }
 
 /**
- * Sorts an array in-place.
- *
- * @param {Array} arr Array of objects
- * @param {String} fieldName The field to sort by
- */
-function sortArrayObjectsByField(arr, fieldName) {
-  arr.sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
-}
-
-/**
  * In-place removal of certain keys from the input object
  *
- * @oaram {Array} fieldsArr The fields to remove from the following obj
- * @oaram {Object} responseObj The dataValues object, may have fields for removal
- * @oaram {Object} The input object without the keys in fieldsArr
+ * @param {Array} fieldsToExclude - The fields to remove from the following obj
+ * @param {Object} responseObj - The dataValues object, may have fields for
+ * removal
+ * @param {Object} The input object without the keys in fieldsArr
  */
 function removeFieldsFromResponse(fieldsToExclude, responseObj) {
   for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
     delete responseObj[fieldsToExclude[i]];
   }
-}
+} // removeFieldsFromResponse
 
 /**
  * This function adds the association scope name to the as the to all
@@ -295,7 +302,7 @@ function isWritable(req, modelInst) {
       .catch(reject);
     }
   });
-}
+} // isWritable
 
 /**
  * This is a wrapper for the function with the same name in jwtUtil.
@@ -786,62 +793,21 @@ function forbidden(next, modelName) {
  * @throws {Error} If duplcate related link is found
  */
 function checkDuplicateRLinks(rLinkArr) {
-  const uniqlinks = [];
+  if (!rLinkArr) {
+    return;
+  }
+
+  const uniqlinks = new Set();
   rLinkArr.forEach((rLinkObj) => {
-    if (rLinkObj.name && uniqlinks.includes(rLinkObj.name.toLowerCase())) {
+    if (rLinkObj.name && uniqlinks.has(rLinkObj.name.toLowerCase())) {
       throw new apiErrors.ValidationError({
         explanation: 'Name of the relatedlinks should be unique.',
       });
     }
 
-    uniqlinks.push(rLinkObj.name.toLowerCase());
+    uniqlinks.add(rLinkObj.name.toLowerCase());
   });
 } // checkDuplicateRLinks
-
-/**
- * Checks if the user has the permission to create the sample and creates the
- * sample if so.
- * @param  {Object} req  - The request object
- * @param {Object} props - The helpers/nouns module for the given DB model
- * @returns {Promise}  which resolves to the created sample instance
- */
-function createSample(req, props) {
-  const toCreate = req.swagger.params.queryBody.value;
-  const aspectModel = props.associatedModels.aspect;
-  const options = {};
-  options.where = whereClauseForNameOrId(toCreate.aspectId);
-  let user;
-
-  // get the user name from the request object
-  return getUserNameFromToken(req)
-  .then((usr) => {
-    user = usr;
-
-    // find the aspect related to the sample being created
-    return aspectModel.findOne(options);
-  })
-  .then((aspect) => {
-    if (!aspect) {
-      throw new apiErrors.ResourceNotFoundError({
-        explanation: 'Aspect not found.',
-      });
-    }
-
-    // check if the user has permission to create the sample
-    return aspect.isWritableBy(user);
-  })
-  .then((ok) => {
-    if (!ok) {
-      throw new apiErrors.ForbiddenError({
-        explanation: `The user: ${user}, does not have write permission` +
-            'on the sample',
-      });
-    }
-
-    // create the sample if the user has write permission
-    return props.model.create(toCreate);
-  });
-}
 
 /**
  * Prepares the object to be sent back in the response ("cleans" the object,
@@ -942,7 +908,5 @@ module.exports = {
   removeFieldsFromResponse,
 
   checkDuplicateRLinks,
-
-  createSample,
 
 }; // exports

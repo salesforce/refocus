@@ -20,7 +20,6 @@ const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -29,6 +28,7 @@ const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
+const realtimeEvents = u.realtimeEvents;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
@@ -97,7 +97,7 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
       const query = req.query.name;
       helper.cacheEnabled = query && (query.indexOf('*') > -1);
-      helper.cacheKey =  helper.cacheEnabled ? query : null;
+      helper.cacheKey = helper.cacheEnabled ? query : null;
       helper.cacheExpiry = helper.cacheEnabled ?
         parseInt(getSamplesWildcardCacheInvalidation) : null;
     }
@@ -209,8 +209,40 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
+    const isSampleStoreEnabled = featureToggles
+      .isFeatureEnabled(sampleStoreConstants.featureName);
+    const reqParams = req.swagger.params;
+    const toPost = reqParams.queryBody.value;
+    const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPost(req, res, next, helper);
+    let createdSample;
+    u.checkDuplicateRLinks(toPost.relatedLinks);
+    authUtils.getUser(req)
+    .then((user) => {
+      if (isSampleStoreEnabled) {
+        return isReturnUserEnabled ? redisModelSample.postSample(reqParams,
+         user) : redisModelSample.postSample(reqParams, false);
+      }
+
+      return isReturnUserEnabled ? helper.model.createSample(toPost, user) :
+        helper.model.createSample(toPost, false);
+    })/*
+       * if an error is throw by the getUser promise, create the sample
+       * without the user
+       */
+    .catch(() => isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
+        false) : helper.model.createSample(toPost, false))
+    .then((sample) => {
+      createdSample = sample;
+      return isReturnUserEnabled && sample.get ? sample.reload() : sample;
+    })
+    .then(() => {
+      publisher.publishSample(createdSample, helper.associatedModels.subject,
+      realtimeEvents.sample.add, helper.associatedModels.aspect);
+      return res.status(httpStatus.CREATED).json(
+        u.responsify(createdSample, helper, req.method));
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

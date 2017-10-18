@@ -10,7 +10,6 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const utils = require('./utils');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -29,7 +28,6 @@ const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
-const ZERO = 0;
 const MINUS_ONE = -1;
 
 /**
@@ -40,7 +38,7 @@ const MINUS_ONE = -1;
  * attribute.
  * @param  {String}   authToken - Collector authentication token
  * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
- * @return {Object} Sample generator with reencrypted context values.
+ * @returns {Object} Sample generator with reencrypted context values.
  */
 function reEncryptSGContextValues(sg, authToken, timestamp) {
   if (!authToken || !timestamp) {
@@ -77,36 +75,6 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
     throw new apiErrors.SampleGeneratorContextDecryptionError();
   });
 }
-
-/**
- * Register a collector. Access restricted to Refocus Collector only.
- *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function postCollector(req, res, next) {
-  const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: req.timestamp };
-  const toPost = req.swagger.params.queryBody.value;
-  helper.model.create(toPost)
-  .then((o) => {
-    if (helper.loggingEnabled) {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      utils.logAPI(req, resultObj, o);
-    }
-
-    /*
-     * When a collector registers itself with Refocus, Refocus sends back a
-     * special token for that collector to use for all further communication
-     */
-    o.dataValues.token = jwtUtil
-      .createToken(collectorToPost.name, collectorToPost.name);
-    return res.status(httpStatus.CREATED)
-      .json(u.responsify(o, helper, req.method));
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-} // postCollector
 
 /**
  * Find a collector or collectors. You may query using field filters with
@@ -354,7 +322,6 @@ function deleteCollectorWriters(req, res, next) {
 } // deleteCollectorWriters
 
 module.exports = {
-  postCollector,
   findCollectors,
   getCollector,
   patchCollector,

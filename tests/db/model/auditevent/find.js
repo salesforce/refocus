@@ -137,7 +137,7 @@ describe('tests/db/model/auditevent/find', () => {
       .catch(done);
     });
 
-    it('greater than a specific date', (done) => {
+    it('between a specific date range', (done) => {
       AuditEvent.findAll(
         { where: {
           loggedAt: {
@@ -158,7 +158,7 @@ describe('tests/db/model/auditevent/find', () => {
       .catch(done);
     });
 
-    it('between a specific date range', (done) => {
+    it('greater than a specific date', (done) => {
       AuditEvent.findAll(
         { where: {
           loggedAt: {

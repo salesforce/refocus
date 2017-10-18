@@ -21,7 +21,7 @@ describe('tests/api/v1/lenses/getWithLimit.js >', () => {
 
   before((done) => {
     for (let i = 0; i < 10; i++) {
-      const toCreate = JSON.parse(JSON.stringify(u.lens));
+      const toCreate = u.getLens();
       toCreate.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
       modelList.push(toCreate);
     }

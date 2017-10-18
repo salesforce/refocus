@@ -19,10 +19,10 @@ sudo: false
 git:
   depth: 2
 
-cache:
-  timeout: 3600
-  directories:
-    - node_modules
+# cache:
+#   timeout: 3600
+#   directories:
+#     - node_modules
 
 env:
   global:

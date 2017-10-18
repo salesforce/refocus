@@ -12,17 +12,15 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/generators');
-const userProps = require('../helpers/nouns/users');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
-const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
-const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
-const httpStatus = require('../constants').httpStatus;
+const featureToggles = require('feature-toggles');
+const authUtils = require('../helpers/authUtils');
+const constants = require('../constants');
 
 module.exports = {
 
@@ -62,7 +60,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGenerator(req, res, next) {
-    doPatch(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const requestBody = req.swagger.params.queryBody.value;
+    u.findByKey(helper, req.swagger.params)
+    .then((o) => u.isWritable(req, o))
+    .then((o) => {
+      u.patchArrayFields(o, requestBody, helper);
+      return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
+    })
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -75,7 +83,48 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGenerator(req, res, next) {
-    doPost(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const params = req.swagger.params;
+    u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+    /*
+     * @returns {Promise} - Contains the request body
+     */
+    function getPostBody() {
+      return new Promise((resolve) => {
+        const postBody = params.queryBody.value;
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          return authUtils.getUser(req)
+          .then((user) => {
+            if (user) {
+              postBody.createdBy = user.id;
+            }
+
+            return resolve(postBody);
+          }) // if no user found, create the model without the createdBy
+          .catch(() => resolve(postBody));
+        }
+
+        return resolve(postBody);
+      });
+    }
+
+    getPostBody()
+    .then((_toPost) => helper.model.createWithCollectors(_toPost,
+      u.whereClauseForNameInArr))
+    .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
+        o.reload() : o)
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o);
+
+      // order collectors by name
+      u.sortArrayObjectsByField(helper, o);
+
+      res.status(constants.httpStatus.CREATED).json(
+          u.responsify(o, helper, req.method));
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

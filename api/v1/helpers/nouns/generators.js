@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/nouns/generators.js
  */
-'use strict';
+'use strict';  // eslint-disable-line strict
 
 const Generator = require('../../../../db/index').Generator;
 
@@ -33,4 +33,13 @@ module.exports = {
   },
   fieldsWithArrayType: ['tags'],
   tagFilterName: 'tags',
+
+  /*
+   * list the fields containing an array of objects to be sorted here. The value
+   * defines the field that will be used for comparision
+   */
+  sortArrayObjects: {
+    collectors: 'name',
+  },
+
 }; // exports

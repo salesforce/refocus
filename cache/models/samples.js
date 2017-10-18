@@ -10,15 +10,14 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
-const logInvalidHmsetValues = require('../../utils/common').logInvalidHmsetValues;
+const logInvalidHmsetValues = require('../../utils/common')
+  .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
 const u = require('../../api/v1/helpers/verbs/utils');
 const modelUtils = require('./utils');
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
-const apiConstants = require('../../api/v1/constants');
-const defaults = require('../../config').api.defaults;
 const redisErrors = require('../redisErrors');
 const sampleUtils = require('../../db/helpers/sampleUtils');
 const dbConstants = require('../../db/constants');
@@ -272,6 +271,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       sampleQueryBodyObj.provider = user.id;
       sampleQueryBodyObj.user = JSON.stringify({
         name: user.name, email: user.email,
+        profile: { name: user.profile.name },
       });
     }
 

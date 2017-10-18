@@ -286,6 +286,9 @@ function options(params, props) {
 
   if (filter) {
     opts.where = toSequelizeWhere(filter, props);
+    if (props.modifyWhereClause) {
+      props.modifyWhereClause(params, opts);
+    }
   }
 
   return opts;
