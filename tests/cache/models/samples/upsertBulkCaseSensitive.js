@@ -82,7 +82,7 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
     api.post(path)
     .set('Authorization', token)
     .send([{ name: sampleName.toLowerCase(), value: '6' }])
-    .then((err, res) => {
+    .then(() => {
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
@@ -90,13 +90,13 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
         .set('Authorization', token)
-        .end((_err, _res) => {
-          if (_err) {
-            return done(_err);
+        .end((err, res) => {
+          if (err) {
+            return done(err);
           }
 
-          expect(_res.body).to.have.length(1);
-          expect(_res.body[0].name).to.equal(sampleName);
+          expect(res.body).to.have.length(1);
+          expect(res.body[0].name).to.equal(sampleName);
           done();
         });
       }, 100);
