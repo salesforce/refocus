@@ -419,11 +419,11 @@ function findByName(model, key, opts) {
       if (o) {
         resolve(o);
       } else {
-        throw new apiErrors.ResourceNotFoundError({
-          explanation: model.name + ' not found.',
-          resource: model.name,
-          key: key,
-        });
+        const err = new apiErrors.ResourceNotFoundError();
+        err.resource = model.name;
+        err.description = model.name + ' not found.';
+        err.key = key;
+        throw err;
       }
     })
     .catch((err) => reject(err));
