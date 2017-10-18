@@ -114,9 +114,9 @@ function attachSamples(res) {
       if (sample && asp) {
 
         // parse the array fields to JSON before adding them to the sample list
-        sampleStore.arrayStringsToJson(sample,
+        sampleStore.arrayObjsStringsToJson(sample,
                                     constants.fieldsToStringify.sample);
-        sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
+        sampleStore.arrayObjsStringsToJson(asp, constants.fieldsToStringify.aspect);
 
         sample.aspect = asp;
         res.samples.push(sample);
@@ -272,7 +272,7 @@ module.exports = {
         subject.name, helper, req.method
       );
 
-      const result = sampleStore.arrayStringsToJson(
+      const result = sampleStore.arrayObjsStringsToJson(
         subject, constants.fieldsToStringify.subject
       );
 
