@@ -31,10 +31,10 @@ describe('tests/logging/jwtUtil.js, jwtUtil getTokenDetailsFromTokenString ' +
 
   after(tu.forceDeleteUser);
 
-  it('works with valid token', () => {
+  it('works with valid token', (done) => {
     jwtUtil.getTokenDetailsFromTokenString(token).then((res) => {
       expect(res.tokenname).to.equal(tu.userName);
-      expect(res.usernname).to.equal(tu.userName);
+      expect(res.username).to.equal(tu.userName);
       done();
     })
     .catch(done);

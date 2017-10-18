@@ -52,7 +52,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
     });
   });
 
-  it('simple post without requred fields', (done) => {
+  it('simple post without required fields', (done) => {
     const _generatorTemplate = JSON.parse(JSON.stringify(generatorTemplate));
 
     delete _generatorTemplate.name;
