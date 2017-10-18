@@ -419,10 +419,9 @@ function findByName(model, key, opts) {
       if (o) {
         resolve(o);
       } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.resource = model.name;
-        err.key = key;
-        throw err;
+        throw new apiErrors.ResourceNotFoundError({
+          explanation: model.name + ' not found.',
+        });
       }
     })
     .catch((err) => reject(err));
@@ -769,6 +768,7 @@ function deleteAllAssociations(modelInst, assocNames) {
  */
 function handleError(next, err, modelName) {
   err.resource = modelName;
+  console.log('in handleError', err.description)
   next(err);
 }
 

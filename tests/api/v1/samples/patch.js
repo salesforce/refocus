@@ -354,7 +354,17 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const _err = res.body.errors[ZERO];
+        expect(_err.type).to.equal('ResourceNotFoundError');
+        expect(_err.source).to.equal('Sample');
+        expect(_err.description).to.equal('Sample not found.');
+        done();
+      });
     });
   });
 
@@ -385,7 +395,18 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const _err = res.body.errors[ZERO];
+        console.log(_err)
+        expect(_err.type).to.equal('ResourceNotFoundError');
+        expect(_err.source).to.equal('Sample');
+        expect(_err.description).to.equal('Sample not found.');
+        done();
+      });
     });
   });
 });

@@ -172,6 +172,7 @@ module.exports = function sample(seq, dataTypes) {
           if (!aspect) {
             throw new dbErrors.ResourceNotFoundError({
               explanation: 'Aspect not found.',
+              resourceKey: toCreate.aspectId,
             });
           }
 
@@ -224,10 +225,10 @@ module.exports = function sample(seq, dataTypes) {
           u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
           .then((sa) => {
             if (sa && sa.subject && !sa.subject.isPublished) {
-              const err = new dbErrors.ResourceNotFoundError();
-              err.resourceType = 'Subject';
-              err.resourceKey = sa.subject.id;
-              throw err;
+              throw new dbErrors.ResourceNotFoundError({
+                explanation: 'Subject not found.',
+                resourceKey: sa.subject.id,
+              });
             }
 
             subjasp = sa;
@@ -379,10 +380,10 @@ module.exports = function sample(seq, dataTypes) {
             if (s && s.getDataValue('isPublished')) {
               inst.name = s.absolutePath + constants.sampleNameSeparator;
             } else {
-              const err = new dbErrors.ResourceNotFoundError();
-              err.resourceType = 'Subject';
-              err.resourceKey = s.id;
-              throw err;
+              throw new dbErrors.ResourceNotFoundError({
+                explanation: 'Subject not found.',
+                resourceKey: s.id,
+              });
             }
 
             return inst.getAspect();
@@ -392,10 +393,10 @@ module.exports = function sample(seq, dataTypes) {
               inst.name += a.name;
               inst.status = u.computeStatus(a, inst.value);
             } else {
-              const err = new dbErrors.ResourceNotFoundError();
-              err.resourceType = 'Aspect';
-              err.resourceKey = inst.getDataValue('aspectId');
-              throw err;
+              throw new dbErrors.ResourceNotFoundError({
+                explanation: 'Aspect not found.',
+                resourceKey: inst.getDataValue('aspectId'),
+              });
             }
           })
           .then(() => resolve(inst))
@@ -418,10 +419,10 @@ module.exports = function sample(seq, dataTypes) {
               return inst.aspect ? inst.aspect : inst.getAspect();
             }
 
-            const err = new dbErrors.ResourceNotFoundError();
-            err.resourceType = 'Subject';
-            err.resourceKey = inst.getDataValue('subjectId');
-            throw err;
+            throw new dbErrors.ResourceNotFoundError({
+              explanation: 'Subject not found.',
+              resourceKey: inst.getDataValue('subjectId'),
+            });
           })
           .then((aspect) => {
             if (aspect && aspect.getDataValue('isPublished')) {
@@ -429,14 +430,12 @@ module.exports = function sample(seq, dataTypes) {
               inst.calculateStatus();
               inst.setStatusChangedAt();
             } else {
-              const err = new dbErrors.ResourceNotFoundError();
-              err.resourceType = 'Aspect';
-              err.resourceKey = inst.getDataValue('aspectId');
-              throw err;
+              throw new dbErrors.ResourceNotFoundError({
+                explanation: 'Aspect not found.',
+                resourceKey: inst.getDataValue('aspectId'),
+              });
+
             }
-          })
-          .catch((err) => {
-            throw err;
           });
         }
       }, // hooks.beforeUpdate

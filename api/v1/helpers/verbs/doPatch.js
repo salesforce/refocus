@@ -78,7 +78,10 @@ function doPatch(req, res, next, props) {
 
   patchPromise
   .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
-  .catch((err) => u.handleError(next, err, props.modelName));
+  .catch((err) => {
+    console.log(err.description)
+    return u.handleError(next, err, props.modelName)
+  });
 }
 
 module.exports = doPatch;
