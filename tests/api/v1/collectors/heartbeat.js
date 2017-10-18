@@ -81,7 +81,18 @@ generator1.name += '1';
 generator2.name += '2';
 generator3.name += '3';
 
+let userToken;
+
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
+
+  before((done) => {
+    tu.createToken()
+    .then((returnedToken) => {
+      userToken = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
   before((done) => {
     GeneratorTemplate.create(sgt)
@@ -125,7 +136,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       it('no token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(400)
         .end(done);
       });
 
@@ -133,7 +144,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', 'aaa')
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(400)
         .end(done);
       });
 
@@ -1100,10 +1111,14 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 */
 function postCollector(collector) {
   return api.post('/v1/collectors')
+  .set('Authorization', userToken)
   .send(collector)
   .expect(201)
   .endAsync()
-  .then((res) => collectorTokens[res.body.name] = res.body.token)
+  .then((res) => {
+    collectorTokens[res.body.name] = res.body.token;
+    collector.id = res.body.id;
+  })
   .then(() => startCollector(collector));
 }
 
@@ -1136,6 +1151,7 @@ function postGenerator(gen, collectors, statusCode) {
   }
 
   return api.post('/v1/generators')
+  .set('Authorization', userToken)
   .send(gen)
   .expect(statusCode)
   .endAsync();
@@ -1149,6 +1165,7 @@ function patchGenerator(gen, collectors, statusCode) {
   }
 
   return api.patch(`/v1/generators/${gen.name}`)
+  .set('Authorization', userToken)
   .send(patchData)
   .expect(statusCode)
   .endAsync();
@@ -1164,6 +1181,7 @@ function putGenerator(gen, collectors, statusCode) {
   }
 
   return api.put(`/v1/generators/${gen.name}`)
+  .set('Authorization', userToken)
   .send(gen)
   .expect(statusCode)
   .endAsync();
