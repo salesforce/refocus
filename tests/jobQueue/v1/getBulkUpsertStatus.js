@@ -24,7 +24,7 @@ const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamplesJob');
-const timeoutMillis = 600;
+const timeoutMillis = 500;
 
 describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
@@ -103,6 +103,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -158,6 +159,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -230,6 +232,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
