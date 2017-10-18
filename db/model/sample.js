@@ -379,25 +379,25 @@ module.exports = function sample(seq, dataTypes) {
           .then((s) => {
             if (s && s.getDataValue('isPublished')) {
               inst.name = s.absolutePath + constants.sampleNameSeparator;
-            } else {
-              throw new dbErrors.ResourceNotFoundError({
-                explanation: 'Subject not found.',
-                resourceKey: s.id,
-              });
+              return inst.getAspect();
             }
 
-            return inst.getAspect();
+             throw new dbErrors.ResourceNotFoundError({
+              explanation: 'Subject not found.',
+              resourceKey: inst.getDataValue('subjectId'),
+            });
           })
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;
               inst.status = u.computeStatus(a, inst.value);
-            } else {
-              throw new dbErrors.ResourceNotFoundError({
-                explanation: 'Aspect not found.',
-                resourceKey: inst.getDataValue('aspectId'),
-              });
+              resolve(inst);
             }
+
+             throw new dbErrors.ResourceNotFoundError({
+              explanation: 'Aspect not found.',
+              resourceKey: inst.getDataValue('aspectId'),
+            });
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))

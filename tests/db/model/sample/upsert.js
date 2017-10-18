@@ -145,7 +145,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
     });
   });
 
-  it('when sample is new and when it already exists', (done) => {
+  it.only('when sample is new and when it already exists', (done) => {
     Sample.upsertByName({
       name: subjectName + `|` + aspectName,
       value: '1',

@@ -367,7 +367,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         sampleName = samp.name;
-        return samp.getSubject()
+        return samp.getSubject();
       })
       .then((sub) => sub.update({ isPublished: false }))
       .then(() => done())
