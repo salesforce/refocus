@@ -61,6 +61,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('time fields have the expected format, after delete tags', (done) => {

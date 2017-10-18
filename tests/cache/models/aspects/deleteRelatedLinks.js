@@ -26,8 +26,7 @@ const samstoinit = rtu.samstoinit;
 const ZERO = 0;
 const ONE = 1;
 
-describe('tests/cache/models/aspects/deleteRelatedLinks.js, ' +
-'api: aspects: DELETE RelatedLinks >', () => {
+describe('tests/cache/models/aspects/deleteRelatedLinks.js >', () => {
   let token;
   let i;
   let name;
@@ -63,7 +62,9 @@ describe('tests/cache/models/aspects/deleteRelatedLinks.js, ' +
     .then(() => done())
     .catch(done);
   });
+
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('time fields have the expected format, after delete all related links',

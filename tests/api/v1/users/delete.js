@@ -56,6 +56,7 @@ describe(`tests/api/v1/users/delete.js, DELETE ${path}/:id >`, () => {
 
   it('deletion of user does not return default token', (done) => {
     api.delete(`${path}/${uname}`)
+    .set('Authorization', testUserToken)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {

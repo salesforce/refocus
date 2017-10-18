@@ -64,6 +64,7 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('unpublished subject/aspect fails >', () => {

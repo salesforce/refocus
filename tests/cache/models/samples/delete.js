@@ -44,6 +44,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
 
     beforeEach(rtu.populateRedis);
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('basic delete', (done) => {
@@ -191,6 +192,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
     });
 
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('delete all related links', (done) => {

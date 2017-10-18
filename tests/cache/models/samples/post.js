@@ -72,6 +72,7 @@ describe('tests/cache/models/samples/post.js >', () => {
     });
 
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     describe('unpublished subject/aspect fails >', () => {
@@ -263,23 +264,8 @@ describe('tests/cache/models/samples/post.js >', () => {
       api.post(path)
       .set('Authorization', 'invalidtoken')
       .send(sampleToPost)
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        if (!res.body) {
-          throw new Error('expecting sample');
-        }
-
-        if (res.body.status !== constants.statuses.Critical) {
-          throw new Error('Incorrect Status Value');
-        }
-
-        expect(res.body.name).to.be.equal(sampleName);
-        return done();
-      });
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end(done);
     });
 
     it('createdAt and updatedAt fields have the expected format', (done) => {
