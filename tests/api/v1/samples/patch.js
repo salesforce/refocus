@@ -327,7 +327,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe.only(`PATCH ${path} aspect isPublished false >`, () => {
+  describe(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
     before((done) => {
       u.doSetupAspectNotPublished()
@@ -360,22 +360,17 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe.only(`PATCH ${path} subject isPublished false >`, () => {
+  describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         sampleName = samp.name;
-        samp.getSubject()
-        .then((sub) => {
-          sub.update({ isPublished: false });
-          done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+        return samp.getSubject()
       })
+      .then((sub) => sub.update({ isPublished: false }))
+      .then(() => done())
       .catch(done);
     });
 
