@@ -327,29 +327,21 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe(`PATCH ${path} subject isPublished false >`, () => {
+  describe.only(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.doSetupAspectNotPublished()
       .then((samp) => {
         sampleName = samp.name;
-        samp.getSubject()
-        .then((sub) => {
-          sub.update({ isPublished: false });
-          done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+        done();
       })
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
+    after(u.forceDelete);
     after(tu.forceDeleteUser);
 
-    it('cannot patch sample if subject not published', (done) => {
+    it('cannot patch sample if aspect not published', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: '3' })
@@ -368,16 +360,16 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe(`PATCH ${path} aspect isPublished false >`, () => {
+  describe.only(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
     before((done) => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         sampleName = samp.name;
-        samp.getAspect()
-        .then((asp) => {
-          asp.update({ isPublished: false });
+        samp.getSubject()
+        .then((sub) => {
+          sub.update({ isPublished: false });
           done();
         })
         .catch((err) => {
@@ -387,10 +379,10 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
+    after(u.forceDelete);
     after(tu.forceDeleteUser);
 
-    it('cannot patch sample if aspect not published', (done) => {
+    it('cannot patch sample if subject not published', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({ value: '3' })
@@ -401,7 +393,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
         }
 
         const _err = res.body.errors[ZERO];
-        console.log(_err)
         expect(_err.type).to.equal('ResourceNotFoundError');
         expect(_err.source).to.equal('Sample');
         expect(_err.description).to.equal('Sample not found.');
