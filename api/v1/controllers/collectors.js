@@ -90,7 +90,6 @@ function attachTemplate(sg) {
   return GeneratorTemplate.getSemverMatch(name, version)
   .then((gt) => {
     if (sg.context && gt.contextDefinition) {
-      sg = JSON.parse(JSON.stringify(sg));
       sg.generatorTemplate = gt;
       return sg;
     }

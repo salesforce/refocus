@@ -28,7 +28,7 @@ const NOCHANGE = 4;
  * generators added, deleted, and updated since the last heartbeat from that
  * collector.
  *
- * @param {Object} inst - The Generator that has been changed
+ * @param {Object} generator - The Generator that has been changed
  * @param {Array} oldCollectors - The names of the collectors that were associated
  *  with this generator before the update.
  * @param {Array} newCollectors - The names of the collectors that are associated
@@ -40,6 +40,9 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
   propsToSend.forEach(key => generator[key] = gen[key]);
   const allCollectors = new Set([...oldCollectors, ...newCollectors]);
   allCollectors.forEach((collectorName) => {
+
+    //make sure the generator object is unique for each collector
+    generator = JSON.parse(JSON.stringify(generator));
 
     //initialize the collectorMap for this collector
     if (!collectorMap[collectorName]) {
