@@ -136,7 +136,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       it('no token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .send({ timestamp: Date.now() })
-        .expect(400)
+        .expect(403)
         .end(done);
       });
 
@@ -144,7 +144,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', 'aaa')
         .send({ timestamp: Date.now() })
-        .expect(400)
+        .expect(403)
         .end(done);
       });
 
