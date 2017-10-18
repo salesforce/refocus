@@ -123,8 +123,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .catch(done);
   });
 
-  it('unpublished aspect should not be found but should be found after it ' +
-  'is published', (done) => {
+  it('unpublished aspect should be found', (done) => {
     let aspect;
     let aspectKey;
     Aspect.findById(aspWCId)
@@ -134,7 +133,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return rcli.sismemberAsync(aspectIndexName, aspectKey);
     })
     .then((ok) => {
-      expect(ok).to.equal(0);
+      expect(ok).to.equal(1);
       return aspect.update({ isPublished: true });
     })
     .then(() => rcli.sismemberAsync(aspectIndexName, aspectKey))

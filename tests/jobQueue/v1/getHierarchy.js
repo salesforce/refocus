@@ -241,7 +241,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
       };
     });
 
-    it('Error handling - Not Found', (done) => {
+    it.only('Error handling - Not Found', (done) => {
       api.get(path.replace('{key}', invalidKey))
       .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)

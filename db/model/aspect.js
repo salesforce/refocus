@@ -180,21 +180,19 @@ module.exports = function aspect(seq, dataTypes) {
     hooks: {
 
       /**
-       * When a publihsed aspect is deleted. Delete its entry in the aspectStore
+       * When an aspect is created. Add its entry in the aspectStore
        * and the sampleStore if any.
        *
        * @param {Aspect} inst - The deleted instance
        */
       afterCreate(inst /* , opts */) {
-        if (inst.getDataValue('isPublished')) {
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            // Prevent any changes to original inst dataValues object
-            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+          // Prevent any changes to original inst dataValues object
+          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-            // create an entry in aspectStore
-            redisOps.addKey(aspectType, inst.getDataValue('name'));
-            redisOps.hmSet(aspectType, inst.name, instDataObj);
-          }
+          // create an entry in aspectStore
+          redisOps.addKey(aspectType, inst.getDataValue('name'));
+          redisOps.hmSet(aspectType, inst.name, instDataObj);
         }
       }, // hooks.afterCreate
 
@@ -307,9 +305,10 @@ module.exports = function aspect(seq, dataTypes) {
             // Prevent any changes to original inst dataValues object
             const instDataObj = JSON.parse(JSON.stringify(inst.get()));
             redisOps.hmSet(aspectType, inst.name, instDataObj);
-            if (inst.isPublished) {
-              redisOps.addKey(aspectType, inst.name);
-            } else {
+
+            // add the aspect to the aspect master list regardless of isPublished
+            redisOps.addKey(aspectType, inst.name);
+            if (!inst.isPublished) {
 
               /*
                * Delete multiple possible entries in the sample master list of
