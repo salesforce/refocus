@@ -420,7 +420,7 @@ function findByName(model, key, opts) {
         resolve(o);
       } else {
         throw new apiErrors.ResourceNotFoundError({
-          explanation: model.name + ' not found.',
+          explanation: 'Sample not found.',
         });
       }
     })

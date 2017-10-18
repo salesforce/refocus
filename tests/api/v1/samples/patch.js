@@ -327,39 +327,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
   });
 
-  describe(`PATCH ${path} aspect isPublished false >`, () => {
-    let sampleName;
-    before((done) => {
-      u.doSetupAspectNotPublished()
-      .then((samp) => {
-        sampleName = samp.name;
-        done();
-      })
-      .catch(done);
-    });
-
-    after(u.forceDelete);
-    after(tu.forceDeleteUser);
-
-    it('cannot patch sample if aspect not published', (done) => {
-      api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .send({ value: '3' })
-      .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        const _err = res.body.errors[ZERO];
-        expect(_err.type).to.equal('ResourceNotFoundError');
-        expect(_err.source).to.equal('Sample');
-        expect(_err.description).to.equal('Sample not found.');
-        done();
-      });
-    });
-  });
-
   describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
     before((done) => {
@@ -367,14 +334,19 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         sampleName = samp.name;
-        return samp.getSubject();
+        samp.getSubject()
+        .then((sub) => {
+          sub.update({ isPublished: false });
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
       })
-      .then((sub) => sub.update({ isPublished: false }))
-      .then(() => done())
       .catch(done);
     });
 
-    after(u.forceDelete);
+    afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
     it('cannot patch sample if subject not published', (done) => {
@@ -382,17 +354,38 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .set('Authorization', token)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+      .end(done);
+    });
+  });
 
-        const _err = res.body.errors[ZERO];
-        expect(_err.type).to.equal('ResourceNotFoundError');
-        expect(_err.source).to.equal('Sample');
-        expect(_err.description).to.equal('Sample not found.');
-        done();
-      });
+  describe(`PATCH ${path} aspect isPublished false >`, () => {
+    let sampleName;
+    before((done) => {
+      u.doSetup()
+      .then((samp) => Sample.create(samp))
+      .then((samp) => {
+        sampleName = samp.name;
+        samp.getAspect()
+        .then((asp) => {
+          asp.update({ isPublished: false });
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
+      })
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('cannot patch sample if aspect not published', (done) => {
+      api.patch(`${path}/${sampleName}`)
+      .set('Authorization', token)
+      .send({ value: '3' })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
     });
   });
 });
