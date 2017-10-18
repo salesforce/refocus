@@ -139,6 +139,7 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
     });
 
     after(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('examine enqueued data', (done) => {

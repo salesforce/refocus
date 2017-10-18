@@ -446,7 +446,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
         value: '2',
       })
       .then(() => {
-        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        api.get(`/v1/samples?name=${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

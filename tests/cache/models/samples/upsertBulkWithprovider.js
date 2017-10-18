@@ -70,6 +70,7 @@ describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('returnUser', false));
 
@@ -92,6 +93,7 @@ describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
     .end((err /* , res */) => {
       setTimeout(() => {
         api.get('/v1/samples/' + samp1Name)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -101,69 +103,6 @@ describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
           expect(res.body.user).to.be.an('object');
           expect(res.body.user.email).to.be.an('string');
           expect(res.body.user.name).to.be.an('string');
-          done();
-        });
-      }, 100);
-    });
-  });
-
-  it('bulk upsert without token should still be succesful, ' +
-    'and without user and provider fields', (done) => {
-    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
-    api.post(path)
-    .send([
-      {
-        name: samp1Name,
-        value: '0',
-      }, {
-        name: samp2Name,
-        value: '20',
-      },
-    ])
-    .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      setTimeout(() => {
-        api.get('/v1/samples/' + samp1Name)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.provider).to.be.undefined;
-          expect(res.body.user).to.be.undefined;
-          done();
-        });
-      }, 100);
-    });
-  });
-
-  it('bulk upsert with INVALID token should still be succesful, ' +
-    'and without user and provider fields', (done) => {
-    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
-    api.post(path)
-    .set('Authorization', 'iDontExist')
-    .send([
-      {
-        name: samp1Name,
-        value: '0',
-      }, {
-        name: samp2Name,
-        value: '20',
-      },
-    ])
-    .expect(constants.httpStatus.OK)
-    .end((err /* , res */) => {
-      setTimeout(() => {
-        api.get('/v1/samples/' + samp1Name)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.provider).to.be.undefined;
-          expect(res.body.user).to.be.undefined;
           done();
         });
       }, 100);

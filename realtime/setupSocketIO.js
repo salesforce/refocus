@@ -31,26 +31,21 @@ const SID_REX = /connect.sid=s%3A([^\.]*)\./;
  *
  * @param {String} sid - The session id from the cookie
  * @param {Object} redisStore - The RedisStore object
- * @param {String} username, or empty string if requireAccessToken is turned
- *  off
+ * @param {String} username
  * @throws {Error} missing session or user name
  */
 function getUserFromSession(sid, redisStore) {
   return new Promise((resolve, reject) => {
-    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
-      redisStore.get(sid, (err, sessionData) => {
-        if (err) {
-          reject(err);
-        } else if (sessionData && sessionData.passport &&
-        sessionData.passport.user && sessionData.passport.user.name) {
-          resolve(sessionData.passport.user.name);
-        } else {
-          reject(new Error('Expecting valid session'));
-        }
-      });
-    } else {
-      resolve('');
-    }
+    redisStore.get(sid, (err, sessionData) => {
+      if (err) {
+        reject(err);
+      } else if (sessionData && sessionData.passport &&
+      sessionData.passport.user && sessionData.passport.user.name) {
+        resolve(sessionData.passport.user.name);
+      } else {
+        reject(new Error('Expecting valid session'));
+      }
+    });
   });
 } // getUserFromSession
 

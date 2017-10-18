@@ -58,6 +58,7 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('patching without permission should return 403 status', (done) => {
