@@ -32,17 +32,17 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
     .catch(done);
   });
 
-  beforeEach(rtu.populateRedis);
-  beforeEach((done) => {
+  before(rtu.populateRedis);
+  before((done) => {
     samstoinit.eradicate()
     .then(() => samstoinit.init())
     .then(() => done())
     .catch(done);
   });
 
-  afterEach(rtu.forceDeleteAspSampSubj);
-  afterEach(rtu.forceDeleteUserAndProf);
-  afterEach(rtu.flushRedis);
+  after(rtu.forceDeleteAspSampSubj);
+  after(rtu.flushRedis);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('existing sample: different case name should NOT modify sample name',
@@ -60,6 +60,7 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -73,27 +74,29 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
     });
   });
 
-  it('new sample: different case name should NOT modify sample name', (done) => {
+  it('new sample: different case name should NOT modify sample name',
+  (done) => {
     const path = '/v1/samples/upsert/bulk';
     const sampleName = '___Subject1|___Aspect2';
 
     api.post(path)
     .set('Authorization', token)
     .send([{ name: sampleName.toLowerCase(), value: '6' }])
-    .then(() => {
+    .then((err, res) => {
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
+        .set('Authorization', token)
+        .end((_err, _res) => {
+          if (_err) {
+            return done(_err);
           }
 
-          expect(res.body).to.have.length(1);
-          expect(res.body[0].name).to.equal(sampleName);
+          expect(_res.body).to.have.length(1);
+          expect(_res.body[0].name).to.equal(sampleName);
           done();
         });
       }, 100);

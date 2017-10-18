@@ -68,6 +68,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('name field is required', (done) => {

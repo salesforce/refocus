@@ -81,6 +81,7 @@ describe(`tests/cache/models/subjects/getHierarchy.js, api: GET ${path} >`,
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('subject hierarchy with samples >', () => {

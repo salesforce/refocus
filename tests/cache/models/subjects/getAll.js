@@ -33,11 +33,12 @@ describe('tests/cache/models/subjects/getAll.js, ' +
       token = returnedToken;
       done();
     })
-    .catch(done);
+    .catch(err=>console.log(err) && done(err));
   });
 
   before(rtu.populateRedis);
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
 

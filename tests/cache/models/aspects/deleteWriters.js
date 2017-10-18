@@ -124,6 +124,7 @@ describe('tests/cache/models/aspects/deleteWriters.js, ' +
     it('return 404 deleting writers for an aspect not in the system',
     (done) => {
       api.delete(writersPath.replace('{key}', 'InvalidAspect'))
+      .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
     });
