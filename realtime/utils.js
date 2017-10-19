@@ -449,10 +449,10 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
     delete asp.writers;
     delete sub.writers;
 
-    sample.aspect = redisStore.arrayStringsToJson(asp,
+    sample.aspect = redisStore.arrayObjsStringsToJson(asp,
          redisStore.constants.fieldsToStringify.aspect);
 
-    sample.subject = redisStore.arrayStringsToJson(sub,
+    sample.subject = redisStore.arrayObjsStringsToJson(sub,
          redisStore.constants.fieldsToStringify.subject);
 
     /*
