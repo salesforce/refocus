@@ -148,7 +148,30 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid token, doesnt match collector', (done) => {
+      it('invalid path, no token', (done) => {
+        api.post(`/v1/collectors/AAA/heartbeat`)
+        .send({ timestamp: Date.now() })
+        .expect(403)
+        .end(done);
+      });
+
+      it('invalid path, valid token', (done) => {
+        api.post(`/v1/collectors/AAA/heartbeat`)
+        .set('Authorization', collectorTokens[collector1.name])
+        .send({ timestamp: Date.now() })
+        .expect(404)
+        .end(done);
+      });
+
+      it('valid user token', (done) => {
+        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+        .set('Authorization', userToken)
+        .send({ timestamp: Date.now() })
+        .expect(403)
+        .end(done);
+      });
+
+      it('valid collector token, doesnt match collector - by name', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
@@ -156,7 +179,15 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid token, matches collector, collector stopped', (done) => {
+      it('valid collector token, doesnt match collector - by id', (done) => {
+        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
+        .set('Authorization', collectorTokens[collector2.name])
+        .send({ timestamp: Date.now() })
+        .expect(403)
+        .end(done);
+      });
+
+      it('valid token, matches collector, collector stopped - by name', (done) => {
         stopCollector(collector1)
         .then(() => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
@@ -167,7 +198,18 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      it('valid token, matches collector, collector running', (done) => {
+      it('valid token, matches collector, collector stopped - by id', (done) => {
+        stopCollector(collector1)
+        .then(() => {
+          api.post(`/v1/collectors/${collector1.id}/heartbeat`)
+          .set('Authorization', collectorTokens[collector1.name])
+          .send({ timestamp: Date.now() })
+          .expect(403)
+          .end(done);
+        });
+      });
+
+      it('valid token, matches collector, collector running - by name', (done) => {
         startCollector(collector1)
         .then(() => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
@@ -177,6 +219,18 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .end(done);
         });
       });
+
+      it('valid token, matches collector, collector running - by id', (done) => {
+        startCollector(collector1)
+        .then(() => {
+          api.post(`/v1/collectors/${collector1.id}/heartbeat`)
+          .set('Authorization', collectorTokens[collector1.name])
+          .send({ timestamp: Date.now() })
+          .expect(200)
+          .end(done);
+        });
+      });
+
     });
 
     describe('generator changes', () => {
@@ -1124,21 +1178,21 @@ function postCollector(collector) {
 
 function startCollector(collector) {
   return api.post(`/v1/collectors/${collector.name}/start`)
-  .set('Authorization', collectorTokens[collector1.name])
+  .set('Authorization', collectorTokens[collector.name])
   .send({})
   .endAsync();
 }
 
 function stopCollector(collector) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
-  .set('Authorization', collectorTokens[collector1.name])
+  .set('Authorization', collectorTokens[collector.name])
   .send({})
   .endAsync();
 }
 
 function getCollector(collector) {
-  return api.get(`/v1/collectors/${collector1.name}`)
-  .set('Authorization', collectorTokens[collector1.name])
+  return api.get(`/v1/collectors/${collector.name}`)
+  .set('Authorization', userToken)
   .endAsync();
 }
 

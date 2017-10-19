@@ -224,6 +224,7 @@ function heartbeat(req, res, next) {
     generatorsUpdated: [],
   };
 
+  //TODO: remove token verification once it's set up in middleware for collectors
   //verify token
   jwtUtil.verifyCollectorToken(req)
   .then(() => jwtUtil.getTokenDetailsFromRequest(req))
@@ -235,6 +236,7 @@ function heartbeat(req, res, next) {
     keyName = o.name;
 
     //validate collector
+    //TODO: remove token verification once it's set up in middleware for collectors
     if (keyName !== tokenName) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Token does not match the specified collector',
