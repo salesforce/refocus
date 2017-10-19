@@ -19,8 +19,20 @@ const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
 const Bot = require('../db/index').Bot;
+const Profile = require('../db/index').Profile;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
+
+/**
+ * Adds a key and its value to the passed in object.
+ * @param  {Object} object - The object to which the key value pair needs to be
+ * assgined
+ * @param  {String} key - The key that will be added to the object
+ * @param  {String} value  - The value that will be assigned to the key
+ */
+function assignKeyValue(object, key, value) {
+  object[key] = value;
+} // assignKeyValue
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -93,16 +105,22 @@ function checkTokenRecord(t) {
  */
 function verifyCollectorToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
+  let decodedData;
   return jwtVerifyAsync(token, secret, {})
-  .then((decodedData) => Collector.findOne({
-    where: { name: decodedData.username },
-  }))
+  .then((_decodedData) => {
+    decodedData = _decodedData;
+    return Collector.findOne({ where: { name: decodedData.username }, });
+  })
   .then((collector) => {
     if (!collector) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Invalid Token.',
       });
     }
+
+    assignKeyValue(req.headers, 'userName', decodedData.username);
+    assignKeyValue(req.headers, 'tokenName', decodedData.tokenname);
+    assignKeyValue(req.headers, 'isCollector', true);
 
     if (cb) {
       return cb();
@@ -156,7 +174,14 @@ function verifyUserToken(req, cb) {
       });
     }
 
-    req.user = user;
+    req.user = user.get();
+    return Profile.isAdmin(req.user.profileId);
+  })
+  .then((isAdmin) => {
+    assignKeyValue(req.headers, 'userName', req.user.name);
+    assignKeyValue(req.headers, 'tokenName', decodedData.tokenname);
+    assignKeyValue(req.headers, 'profileName', req.user.profile.name);
+    assignKeyValue(req.headers, 'isAdmin', isAdmin);
 
     /*
      * No need to check the token record if this is the default UI
@@ -169,7 +194,7 @@ function verifyUserToken(req, cb) {
     return Token.findOne({
       where: {
         name: decodedData.tokenname,
-        createdBy: user.id,
+        createdBy: req.user.id,
       },
     })
     .then(checkTokenRecord)
@@ -189,9 +214,8 @@ function verifyUserToken(req, cb) {
  */
 function verifyToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
-
   if (token) {
-    verifyUserToken(req, cb)
+    return verifyUserToken(req, cb)
     .then((ret) => ret)
     .catch((err) => {
       if (err.explanation &&
@@ -203,12 +227,12 @@ function verifyToken(req, cb) {
       .then((_ret) => _ret)
       .catch(() => handleInvalidToken(cb));
     });
-  } else {
-    const err = new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found.',
-    });
-    handleError(cb, err, 'ApiToken');
   }
+
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'No authorization token was found.',
+  });
+  return handleError(cb, err, 'ApiToken');
 } // verifyToken
 
 /**
