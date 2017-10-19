@@ -162,57 +162,55 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   });
 
   describe('normal user >', () => {
-    it('cannot change its profileId',
-      (done) => {
-        const normalUserToken = jwtUtil.createToken(
-          userFive, userFive
-        );
-        const newName = `${tu.namePrefix}` + userFive;
-        api.put(path + '/' + userFive)
-        .set('Authorization', normalUserToken)
-        .send({
-          profileId: profileOneId,
-          name: newName,
-          email: newName,
-          password: newName,
-        })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
+    it('cannot change its profileId', (done) => {
+      const normalUserToken = jwtUtil.createToken(
+        userFive, userFive
+      );
+      const newName = `${tu.namePrefix}` + userFive;
+      api.put(path + '/' + userFive)
+      .set('Authorization', normalUserToken)
+      .send({
+        profileId: profileOneId,
+        name: newName,
+        email: newName,
+        password: newName,
+      })
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-          expect(res.body.errors).to.have.length(1);
-          expect(res.body.errors)
-          .to.have.deep.property('[0].type', 'ForbiddenError');
-          return done();
-        });
+        expect(res.body.errors).to.have.length(1);
+        expect(res.body.errors)
+        .to.have.deep.property('[0].type', 'ForbiddenError');
+        return done();
       });
+    });
 
-    it('can PUT, when its new profileId === old profileId',
-      (done) => {
-        const normalUserToken = jwtUtil.createToken(
-          userThree, userThree
-        );
-        const newName = `${tu.namePrefix}` + userThree;
-        api.put(path + '/' + userThree)
-        .set('Authorization', normalUserToken)
-        .send({
-          profileId: profileTwoId, // identical to original profileId
-          name: newName,
-          email: newName,
-          password: newName,
-        })
-        .expect(constants.httpStatus.OK)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
+    it('can PUT, when its new profileId === old profileId', (done) => {
+      const normalUserToken = jwtUtil.createToken(
+        userThree, userThree
+      );
+      const newName = `${tu.namePrefix}` + userThree;
+      api.put(path + '/' + userThree)
+      .set('Authorization', normalUserToken)
+      .send({
+        profileId: profileTwoId, // identical to original profileId
+        name: newName,
+        email: newName,
+        password: newName,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-          expect(res.body.profileId).to.equal(profileTwoId);
-          return done();
-        });
+        expect(res.body.profileId).to.equal(profileTwoId);
+        return done();
       });
+    });
 
     it('FORBIDDEN from changing another user\'s profileId', (done) => {
       const userOneToken = jwtUtil.createToken(

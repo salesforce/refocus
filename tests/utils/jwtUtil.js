@@ -37,7 +37,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       adminUser.name, adminUser.name
   );
 
-  // dummpy callback that returns a promise.
+  // dummy callback that returns a promise.
   const dummyCallback = function dummy () {
     return new Promise((resolve) => {
       resolve(true);
@@ -89,108 +89,92 @@ describe('tests/utils/jwtUtil.js >', () => {
       jwtUtil.verifyBotToken(token).then((check) => {
         expect(check).to.not.equal(undefined);
       });
-    }).then(() => tu.forceDelete(tu.db.Bot, testStartTime))
+    })
+    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => done())
     .catch(done);
   });
 
   it('ok, bot failed', (done) => {
     const randomToken = jwtUtil.createToken('failure', 'failure');
-    jwtUtil.verifyBotToken(randomToken).then((check) => {
+    jwtUtil.verifyBotToken(randomToken)
+    .then((check) => {
       expect(check).to.equal(null);
-    }).then(() => done());
+    })
+    .then(() => done());
+  });
 
-    describe('verifyToken tests', () => {
-      it('verifyUserToken and make sure the request header has ' +
-        'info attached', (done) => {
-        const request = {
-          headers: { },
-          session: { },
-        };
-        request.headers.authorization = userToken;
-        jwtUtil.verifyToken(request, dummyCallback)
-        .then(() => {
-          expect(request.headers.userName).to.equal(userInst.name);
-          expect(request.headers.profileName).to.equal('___myProfile');
-          expect(request.headers.tokenName).to.equal('___myRefocusUser');
-          expect(request.headers.isAdmin).to.equal(false);
-          expect(request.headers.isBot).to.be.not.ok;
-          expect(request.headers.isCollector).to.be.not.ok;
-          return done();
-        }).catch(done);
-      });
+  describe('verifyToken tests', () => {
+    it('verifyCollectorToken and make sure the request header has ' +
+      'info attached', (done) => {
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = collectorToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.userName).to.equal(collectorInst.name);
+        expect(request.headers.profileName).to.equal(undefined);
+        expect(request.headers.tokenName).to.equal(collectorInst.name);
+        expect(request.headers.isAdmin).to.equal(false);
+        expect(request.headers.isBot).to.equal(false);
+        expect(request.headers.isCollector).to.equal(true);
+        return done();
+      }).catch(done);
+    });
 
-      it('verifyCollectorToken and make sure the request header has ' +
-        'info attached', (done) => {
-        const request = {
-          headers: { },
-          session: { },
-        };
-        request.headers.authorization = collectorToken;
-        jwtUtil.verifyToken(request, dummyCallback)
-        .then(() => {
-          expect(request.headers.userName).to.equal(collectorInst.name);
-          expect(request.headers.profileName).to.equal(undefined);
-          expect(request.headers.tokenName).to.equal(collectorInst.name);
-          expect(request.headers.isAdmin).to.be.not.ok;
-          expect(request.headers.isBot).to.be.not.ok;
-          expect(request.headers.isCollector).to.equal(true);
-          return done();
-        }).catch(done);
-      });
+    it('verifyUserToken with admin user and make sure the request header has ' +
+      'info attached', (done) => {
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = predefinedAdminUserToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.userName).to.equal(adminUser.name);
+        expect(request.headers.profileName).to.equal('Admin');
+        expect(request.headers.tokenName).to.equal(adminUser.name);
+        expect(request.headers.isAdmin).to.equal(true);
+        expect(request.headers.isBot).to.equal(false);
+        expect(request.headers.isCollector).to.equal(false);
+        return done();
+      }).catch(done);
+    });
 
-      it('verifyUserToken with admin user and make sure the request header has ' +
-        'info attached', (done) => {
-        const request = {
-          headers: { },
-          session: { },
-        };
-        request.headers.authorization = predefinedAdminUserToken;
-        jwtUtil.verifyToken(request, dummyCallback)
-        .then(() => {
-          expect(request.headers.userName).to.equal(adminUser.name);
-          expect(request.headers.profileName).to.equal('Admin');
-          expect(request.headers.tokenName).to.equal(adminUser.name);
-          expect(request.headers.isAdmin).to.equal(true);
-          expect(request.headers.isBot).to.be.not.ok;
-          expect(request.headers.isCollector).to.be.not.ok;
-          return done();
-        }).catch(done);
-      });
+    it('verifyToken with token added to session object', (done) => {
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.session.token = userToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.userName).to.equal(userInst.name);
+        expect(request.headers.profileName).to.equal('___myProfile');
+        expect(request.headers.tokenName).to.equal('___myRefocusUser');
+        expect(request.headers.isAdmin).to.equal(false);
+        expect(request.headers.isBot).to.equal(false);
+        expect(request.headers.isCollector).to.equal(false);
+        return done();
+      }).catch(done);
+    });
 
-      it('verifyToken with token added to session object', (done) => {
-        const request = {
-          headers: { },
-          session: { },
-        };
-        request.session.token = userToken;
-        jwtUtil.verifyToken(request, dummyCallback)
-        .then(() => {
-          expect(request.headers.userName).to.equal(userInst.name);
-          expect(request.headers.profileName).to.equal('___myProfile');
-          expect(request.headers.tokenName).to.equal('___myRefocusUser');
-          expect(request.headers.isAdmin).to.equal(false);
-          expect(request.headers.isBot).to.be.not.ok;
-          expect(request.headers.isCollector).to.be.not.ok;
-          return done();
-        }).catch(done);
-      });
-
-      it('verifyToken with invalid token', (done) => {
-        const request = {
-          headers: { },
-          session: { },
-        };
-        request.headers.authorization = 'invalid';
-        jwtUtil.verifyToken(request, dummyCallback)
-        .then(() => {
-          expect(Object.keys(request.headers)).to.deep.equal(['authorization']);
-          expect(request.headers.userName).to.equal(undefined);
-          expect(request.headers.profileName).to.equal(undefined);
-          expect(request.headers.tokenName).to.equal(undefined);
-          return done();
-        }).catch(done);
-      });
+    it('verifyToken with invalid token', (done) => {
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = 'invalid';
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(Object.keys(request.headers)).to.deep.equal(['authorization']);
+        expect(request.headers.userName).to.equal(undefined);
+        expect(request.headers.profileName).to.equal(undefined);
+        expect(request.headers.tokenName).to.equal(undefined);
+        return done();
+      }).catch(done);
     });
   });
 });

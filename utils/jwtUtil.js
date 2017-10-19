@@ -35,6 +35,36 @@ function assignKeyValue(object, key, value) {
 } // assignKeyValue
 
 /**
+ * Assigns user related information to the request header.
+ * @param  {Object}  req  - The request object
+ * @param  {String}  tokenName - Token name parsed from the token
+ * @param  {Boolean} isAdmin  - Flag to indicate if the request was made by an
+ * Admin user
+ */
+function assignUserHeaders(req, tokenName, isAdmin) {
+  assignKeyValue(req.headers, 'userName', req.user.name);
+  assignKeyValue(req.headers, 'tokenName', tokenName);
+  assignKeyValue(req.headers, 'profileName', req.user.profile.name);
+  assignKeyValue(req.headers, 'isAdmin', isAdmin);
+  assignKeyValue(req.headers, 'isCollector', false);
+  assignKeyValue(req.headers, 'isBot', false);
+} // assignUserHeaders
+
+/**
+ * Assigns collector related information to the request header
+ * @param  {Object} req - The request object
+ * @param  {String} userName  - The username parsed from the token
+ * @param  {String} tokenName - The tokenname parsed from the token
+ */
+function assignCollectorHeaders(req, userName, tokenName) {
+  assignKeyValue(req.headers, 'userName', userName);
+  assignKeyValue(req.headers, 'tokenName', tokenName);
+  assignKeyValue(req.headers, 'isCollector', true);
+  assignKeyValue(req.headers, 'isAdmin', false);
+  assignKeyValue(req.headers, 'isBot', false);
+} // assignCollectorHeaders
+
+/**
  * Attaches the resource type to the error and passes it on to the next
  * handler.
  *
@@ -118,10 +148,7 @@ function verifyCollectorToken(req, cb) {
       });
     }
 
-    assignKeyValue(req.headers, 'userName', decodedData.username);
-    assignKeyValue(req.headers, 'tokenName', decodedData.tokenname);
-    assignKeyValue(req.headers, 'isCollector', true);
-
+    assignCollectorHeaders(req, decodedData.username, decodedData.tokenname);
     if (cb) {
       return cb();
     }
@@ -178,11 +205,7 @@ function verifyUserToken(req, cb) {
     return Profile.isAdmin(req.user.profileId);
   })
   .then((isAdmin) => {
-    assignKeyValue(req.headers, 'userName', req.user.name);
-    assignKeyValue(req.headers, 'tokenName', decodedData.tokenname);
-    assignKeyValue(req.headers, 'profileName', req.user.profile.name);
-    assignKeyValue(req.headers, 'isAdmin', isAdmin);
-
+    assignUserHeaders(req, decodedData.tokenname, isAdmin);
     /*
      * No need to check the token record if this is the default UI
      * token.
