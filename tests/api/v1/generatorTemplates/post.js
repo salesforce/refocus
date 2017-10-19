@@ -31,13 +31,15 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
     })
     .catch(done);
   });
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(tu.forceDeleteUser);
 
   it('simple post OK', (done) => {
+    const gt = JSON.parse(JSON.stringify(generatorTemplate));
+    gt.name += 'spo';
     api.post(path)
     .set('Authorization', token)
-    .send(generatorTemplate)
+    .send(gt)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
@@ -45,25 +47,24 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       }
 
       expect(res.body.apiLinks).to.be.an('Array');
-      expect(res.body.name).to.include(generatorTemplate.name);
+      expect(res.body.name).to.include(gt.name);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generatorTemplate));
       return done();
     });
   });
 
-  it('simple post without requred fields', (done) => {
-    const _generatorTemplate = JSON.parse(JSON.stringify(generatorTemplate));
-
-    delete _generatorTemplate.name;
-    delete _generatorTemplate.author;
-    delete _generatorTemplate.connection;
-    delete _generatorTemplate.transform;
-    delete _generatorTemplate.version;
+  it('simple post without required fields', (done) => {
+    const gt = JSON.parse(JSON.stringify(generatorTemplate));
+    delete gt.name;
+    delete gt.author;
+    delete gt.connection;
+    delete gt.transform;
+    delete gt.version;
 
     api.post(path)
     .set('Authorization', token)
-    .send(_generatorTemplate)
+    .send(gt)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (!err) {
@@ -78,7 +79,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
   });
 
   describe('post duplicate fails > ', () => {
-    beforeEach((done) => {
+    before((done) => {
       GeneratorTemplate.create(generatorTemplate)
       .then(() => done())
       .catch(done);
@@ -100,10 +101,11 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
     });
 
     it('with case different name', (done) => {
-      generatorTemplate.name = generatorTemplate.name.toLowerCase();
+      const gt = JSON.parse(JSON.stringify(generatorTemplate));
+      gt.name = gt.name.toLowerCase();
       api.post(path)
       .set('Authorization', token)
-      .send(generatorTemplate)
+      .send(gt)
       .expect(constants.httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
@@ -115,5 +117,4 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       });
     });
   });
-
 });

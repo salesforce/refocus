@@ -65,7 +65,7 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
       const fullSampObj = Object.assign({}, objToUpdate);
       fullSampObj.name = samp.name;
       fullSampObj.aspect =
-        sampleStore.arrayStringsToJson(asp, fieldsToStringify.aspect);
+        sampleStore.arrayObjsStringsToJson(asp, fieldsToStringify.aspect);
       fullSampObj.aspectId = fullSampObj.aspect.id;
       timedOutSamples.push(fullSampObj);
 

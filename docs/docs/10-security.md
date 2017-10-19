@@ -8,15 +8,9 @@ title: Security
 
 # API Tokens
 
-## Admin: Turn on API Token Enforcement
-
-If you want to enforce that every request has a valid API token, start your node.js server with environment variable `REQUIRE_ACCESS_TOKEN=true`.
-
-In heroku, [add a config variable](https://devcenter.heroku.com/articles/config-vars) called `REQUIRE_ACCESS_TOKEN` and set its value to `true`.
-
 ## Creating a New API Token
 
-If your Refocus Administrator has turned on API token enforcement, you must include a valid token in the `Authorization` header for every API request.
+You must include a valid token in the `Authorization` header for every API request.
 
 To get an API token using the UI, load `.../tokens/new` in your browser. You must be logged in to reach this page, and you must provide a token name which is unique to your user. Copy and paste your new token somewhere safe--you will not be able to retrieve it again!
 

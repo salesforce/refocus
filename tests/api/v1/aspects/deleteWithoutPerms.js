@@ -51,13 +51,7 @@ describe('tests/api/v1/aspects/deleteWithoutPerms.js >', () => {
       i = asp.id;
       aspect = asp;
     })
-    .then(() =>
-
-      /**
-       * tu.createToken creates an user and an admin user is already created,
-       * so one use of these.
-       */
-      User.findOne({ where: { name: tu.userName } }))
+    .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => aspect.addWriter(usr))
     .then(() => tu.createUser('myUNiqueUser'))
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
@@ -70,23 +64,20 @@ describe('tests/api/v1/aspects/deleteWithoutPerms.js >', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('should return 403 when deleting the aspect' +
-    ' without permission', (done) => {
+  it('403 deleting aspect without permission', (done) => {
     api.delete(path.replace('{key}', i))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
     .end(done);
   });
 
-  it('should return 403 when deleting relatedlinks ' +
-    ' without permission', (done) => {
+  it('403 deleting relatedlinks without permission', (done) => {
     api.delete(deleteOneRelLink.replace('{key}', i).replace('{akey}', 'rlink0'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)
     .end(done);
   });
-  it('should return 403 when deleting tags ' +
-    ' without permission', (done) => {
+  it('403 deleting tags without permission', (done) => {
     api.delete(deleteOneTag.replace('{key}', i).replace('{akey}', 'tag0'))
     .set('Authorization', otherValidToken)
     .expect(constants.httpStatus.FORBIDDEN)

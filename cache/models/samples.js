@@ -94,10 +94,10 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
  */
 function cleanAddAspectToSample(sampleObj, aspectObj) {
   let sampleRes = {};
-  sampleRes = sampleStore.arrayStringsToJson(
+  sampleRes = sampleStore.arrayObjsStringsToJson(
     sampleObj, constants.fieldsToStringify.sample
   );
-  const aspect = sampleStore.arrayStringsToJson(
+  const aspect = sampleStore.arrayObjsStringsToJson(
     aspectObj, constants.fieldsToStringify.aspect
   );
   sampleRes.aspect = aspect;
@@ -242,7 +242,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     sampleQueryBodyObj.subjectId = subject.id;
     sampleQueryBodyObj.aspectId = aspect.id;
 
-    aspectObj = sampleStore.arrayStringsToJson(
+    aspectObj = sampleStore.arrayObjsStringsToJson(
       aspect, constants.fieldsToStringify.aspect
     );
 
@@ -347,7 +347,7 @@ module.exports = {
         });
       }
 
-      aspect = sampleStore.arrayStringsToJson(
+      aspect = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
 
@@ -410,7 +410,7 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayStringsToJson(
+      aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
 
@@ -492,7 +492,7 @@ module.exports = {
       }
 
       modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
-      aspectObj = sampleStore.arrayStringsToJson(
+      aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
 
@@ -628,7 +628,7 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((sampleObj) => sampleStore.arrayStringsToJson(
+    .then((sampleObj) => sampleStore.arrayObjsStringsToJson(
       sampleObj, constants.fieldsToStringify.sample));
   },
 
@@ -672,7 +672,7 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayStringsToJson(
+      aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
 

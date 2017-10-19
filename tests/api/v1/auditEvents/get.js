@@ -127,7 +127,6 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       expect(new Date(res.body[0].loggedAt)).to
         .eql(new Date(auditEvent3.loggedAt));
       return done();
-
     });
   });
 
@@ -180,6 +179,291 @@ describe('tests/api/v1/auditEvents/get.js >', () => {
       expect(res.body[0].resourceType).to.equal('Collector');
       expect(res.body[0].resourceName).to.equal('Generator');
       return done();
+    });
+  });
+
+  describe('date filtering with startAt and endAt', () => {
+    it('Not Ok, should throw an error when the date ' +
+      'format is wrong', (done) => {
+      api.get(`${path}?startAt='invalidDate1'&endAt='invalidDate2'`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].message).to.include('Invalid date');
+        return done();
+      });
+    });
+
+    it('Not Ok, if startAt date is greater than endAt date', (done) => {
+      api.get(`${path}?startAt=2017-01-03&endAt=2017-01-01`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to.include('The startAt date: ' +
+         '2017-01-03 should be less than the endAt date: 2017-01-01');
+        return done();
+      });
+    });
+
+    it('Not Ok, only one of relativeDateTime or startAt/endAt filter ' +
+      'can be present', (done) => {
+      api.get(`${path}?startAt=2017-01-01&endAt=2017-02-02` +
+        '&relativeDateTime=-15')
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to.include('Only one of ' +
+          'relativeDateTime or startAt/endAt combination can be specified');
+        return done();
+      });
+    });
+
+    it('OK, filtering using startAt', (done) => {
+      api.get(`${path}?startAt=2017-05-05T05:10:00.000Z`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(1);
+        expect(res.body[0].loggedAt).to.be.above('2017-05-05T05:10:00.000Z');
+        return done();
+      });
+    });
+
+    it('OK, filtering using endAt', (done) => {
+      api.get(`${path}?endAt=2017-03-03T03:00:00.000Z`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(3);
+        expect(res.body[0].loggedAt).to.equal('2017-01-01T01:00:00.000Z');
+        expect(res.body[0].resourceName).to.equal('Generator');
+
+        expect(res.body[1].loggedAt).to.equal('2017-02-02T02:00:00.000Z');
+        expect(res.body[1].resourceName).to.equal('Aspect');
+
+        expect(res.body[2].loggedAt).to.equal('2017-03-03T03:00:00.000Z');
+        expect(res.body[2].resourceName).to.equal('Subject');
+        return done();
+      });
+    });
+
+    it('OK, select audit events between a startAt and endAt without ' +
+      ' seconds in date field', (done) => {
+      api.get(`${path}?startAt=2017-02-02&endAt=2017-04-04`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(2);
+        expect(res.body[0].loggedAt).to.equal('2017-02-02T02:00:00.000Z');
+        expect(res.body[0].resourceName).to.equal('Aspect');
+
+        expect(res.body[1].loggedAt).to.equal('2017-03-03T03:00:00.000Z');
+        expect(res.body[1].resourceName).to.equal('Subject');
+        return done();
+      });
+    });
+
+    it('OK, select audit events between a startAt and endAt with ' +
+      ' seconds in date field', (done) => {
+      api.get(`${path}?startAt=2017-02-02&endAt=2017-04-04T04:00:00.000Z`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(3);
+        expect(res.body[0].loggedAt).to.equal('2017-02-02T02:00:00.000Z');
+        expect(res.body[0].resourceName).to.equal('Aspect');
+
+        expect(res.body[1].loggedAt).to.equal('2017-03-03T03:00:00.000Z');
+        expect(res.body[1].resourceName).to.equal('Subject');
+
+        expect(res.body[2].loggedAt).to.equal('2017-04-04T04:00:00.000Z');
+        expect(res.body[2].resourceName).to.equal('Sample');
+        return done();
+      });
+    });
+  });
+
+  describe('date filtering with relativeDateTime', () => {
+    const date = new Date();
+
+    // set date to current date + 10 minutes
+    date.setMinutes(date.getMinutes() + 10);
+    const aeWith10MinOffset = u.createAuditEventObject('CollectorResource',
+      'Heartbeat', date, 'true');
+
+    beforeEach((done) => {
+      AuditEvent.create(aeWith10MinOffset)
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+
+    it('Not Ok, relativeDateTime must end with a time unit', (done) => {
+      api.get(`${path}?relativeDateTime=-15`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .include('RelativeDateTime should start with a negation (-) ' +
+          'and end with a valid time unit. The valid time units are d,h,m,s');
+        return done();
+      });
+    });
+
+    it('Not Ok, relativeDateTime should have the right time unit', (done) => {
+      api.get(`${path}?relativeDateTime=-15a`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .include('RelativeDateTime should start with a negation (-) ' +
+          'and end with a valid time unit. The valid time units are d,h,m,s');
+        return done();
+      });
+    });
+
+    it('Not Ok, should begin with - ', (done) => {
+      api.get(`${path}?relativeDateTime=15m`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].description).to
+        .include('RelativeDateTime should start with a negation (-) ' +
+          'and end with a valid time unit. The valid time units are d,h,m,s');
+        return done();
+      });
+    });
+
+    it('Not Ok, invalid offset in relativeDateTime', (done) => {
+      api.get(`${path}?relativeDateTime=-invalid`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].message).to.include('Invalid date');
+        return done();
+      });
+    });
+
+    it('Ok, relativeDateTime filter with seconds', (done) => {
+      const d = new Date();
+
+      // set date to current date + 3 seconds
+      d.setSeconds(d.getSeconds() + 3);
+      const ae = u.createAuditEventObject('Collector', 'GeneratorTemplate',
+        d, 'true');
+      AuditEvent.create(ae)
+      .then(() => {
+        api.get(`${path}?relativeDateTime=-s`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.length).to.equal(2);
+          expect(new Date(res.body[0].loggedAt).getTime())
+            .to.equal(d.getTime());
+          expect(res.body[0].resourceName).to.equal('GeneratorTemplate');
+          return done();
+        });
+      });
+    });
+
+    it('Ok, relativeDateTime filter with minutes', (done) => {
+      api.get(`${path}?relativeDateTime=-15m`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(1);
+        expect(new Date(res.body[0].loggedAt).getTime())
+          .to.equal(date.getTime());
+        expect(res.body[0].resourceName).to.equal('Heartbeat');
+        return done();
+      });
+    });
+
+    it('Ok, relativeDateTime filter with minutes', (done) => {
+      api.get(`${path}?relativeDateTime=-1h`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(1);
+        expect(new Date(res.body[0].loggedAt).getTime())
+          .to.equal(date.getTime());
+        expect(res.body[0].resourceName).to.equal('Heartbeat');
+        return done();
+      });
+    });
+
+    it('Ok, relativeDateTime filter with minutes', (done) => {
+      api.get(`${path}?relativeDateTime=-1d`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(1);
+        expect(new Date(res.body[0].loggedAt).getTime())
+          .to.equal(date.getTime());
+        expect(res.body[0].resourceName).to.equal('Heartbeat');
+        return done();
+      });
     });
   });
 });

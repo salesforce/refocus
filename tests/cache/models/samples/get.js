@@ -44,6 +44,7 @@ describe('tests/cache/models/samples/get.js, ' +
     .catch(done);
   });
 
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore',
     enableRedisSampleStore));
 
@@ -678,125 +679,125 @@ describe('tests/cache/models/samples/get.js, ' +
       .end(done);
     });
   });
+});
 
-  describe('tests/cache/models/samples/get.js, ' +
-   'Basic Get with cacheGetSamplesWildcard flag on', () => {
-    let token;
-    const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
-    const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
-    const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
+describe('tests/cache/models/samples/get.js, Basic Get with ' +
+  'cacheGetSamplesWildcard flag on', () => {
+  let token;
+  const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
+  const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
+  const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
 
-    before((done) => {
-      tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
-      tu.toggleOverride('enableRedisSampleStore', true);
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
+  before((done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
+    tu.toggleOverride('enableRedisSampleStore', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
 
-    before(rtu.populateRedis);
-    after(rtu.forceDelete);
+  before(rtu.populateRedis);
+  after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
 
-    after(() => {
-      tu.toggleOverride('cacheGetSamplesByNameWildcard',
-        cacheGetSamplesByNameWildcard);
-      tu.toggleOverride('enableRedisSampleStore',
-        enableRedisSampleStore);
-    });
+  after(() => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard',
+      cacheGetSamplesByNameWildcard);
+    tu.toggleOverride('enableRedisSampleStore',
+      enableRedisSampleStore);
+  });
 
-    it('get with wildcard should cache response', (done) => {
-      api.get(`${path}?name=___Subj*`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
+  it('get with wildcard should cache response', (done) => {
+    api.get(`${path}?name=___Subj*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get('___Subj*', (cacheErr, reply) => {
+        if (cacheErr) {
+          return done(cacheErr);
         }
 
-        redisCache.get('___Subj*', (cacheErr, reply) => {
-          if (cacheErr) {
-            return done(cacheErr);
-          }
-
-          expect(JSON.parse(reply).length).to.be.equal(3);
-          expect(JSON.parse(reply)[0].name).to.equal(s1s2a1);
-          redisCache.del('___Subj*');
-          return done();
-        });
-      });
-    });
-
-    it('get without wildcard should not cache response', (done) => {
-      api.get(`${path}?name=___Subject1.___Subject2|___Aspect1`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        redisCache.get('___Subject1.___Subject2|___Aspect1',
-          (cacheErr, reply) => {
-          if (cacheErr || !reply) {
-            expect(res.body.length).to.be.equal(1);
-            expect(res.body[0].name).to.equal(s1s2a1);
-            return done();
-          }
-        });
+        expect(JSON.parse(reply).length).to.be.equal(3);
+        expect(JSON.parse(reply)[0].name).to.equal(s1s2a1);
+        redisCache.del('___Subj*');
+        return done();
       });
     });
   });
 
-  describe('tests/cache/models/samples/get.js, ' +
-   'Basic Get with cacheGetSamplesWildcard flag on', () => {
-    let token;
-    const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
-    const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
-    const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
+  it('get without wildcard should not cache response', (done) => {
+    api.get(`${path}?name=___Subject1.___Subject2|___Aspect1`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-    before((done) => {
-      tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-      tu.toggleOverride('enableRedisSampleStore', true);
-      tu.createToken()
-      .then((returnedToken) => {
-        token = returnedToken;
-        done();
-      })
-      .catch(done);
-    });
-
-    before(rtu.populateRedis);
-    after(rtu.forceDelete);
-
-    after(() => {
-      tu.toggleOverride('cacheGetSamplesByNameWildcard',
-        cacheGetSamplesByNameWildcard);
-      tu.toggleOverride('enableRedisSampleStore',
-        enableRedisSampleStore);
-    });
-
-    it('get with wildcard should not cache response', (done) => {
-      api.get(`${path}?name=___Subj*`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
+      redisCache.get('___Subject1.___Subject2|___Aspect1',
+        (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.equal(1);
+          expect(res.body[0].name).to.equal(s1s2a1);
+          return done();
         }
-
-        redisCache.get('___Subj*', (cacheErr, reply) => {
-          if (cacheErr || !reply) {
-            expect(res.body.length).to.be.equal(3);
-            expect(res.body[0].name).to.equal(s1s2a1);
-            return done();
-          }
-
-        });
       });
     });
   });
 });
 
+describe('tests/cache/models/samples/get.js, Basic Get with ' +
+  'cacheGetSamplesWildcard flag off', () => {
+  let token;
+  const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
+  const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
+  const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
+
+  before((done) => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
+    tu.toggleOverride('enableRedisSampleStore', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before(rtu.populateRedis);
+  after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
+
+  after(() => {
+    tu.toggleOverride('cacheGetSamplesByNameWildcard',
+      cacheGetSamplesByNameWildcard);
+    tu.toggleOverride('enableRedisSampleStore',
+      enableRedisSampleStore);
+  });
+
+  it('get with wildcard should not cache response', (done) => {
+    api.get(`${path}?name=___Subj*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get('___Subj*', (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          expect(res.body.length).to.be.equal(3);
+          expect(res.body[0].name).to.equal(s1s2a1);
+          return done();
+        }
+      });
+    });
+  });
+});

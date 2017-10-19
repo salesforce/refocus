@@ -42,10 +42,6 @@ describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
     .then((gen) => {
       generatorTemplate = gen;
     })
-    /**
-     * tu.createToken creates an user and an admin user is already created,
-     * so one use of these.
-     */
     .then(() => User.findOne({ where: { name: tu.userName } }))
     .then((usr) => generatorTemplate.addWriter(usr))
     .then(() => tu.createSecondUser())
@@ -126,8 +122,8 @@ describe('tests/api/v1/generatorTemplates/deleteWriters.js > ', () => {
       });
     });
 
-    it('return 403 when deleteting a writer using a token ' +
-      'generated for a user not already in the list of writers', (done) => {
+    it('403 deleting a writer using a token generated for a user not already' +
+      'in the list of writers', (done) => {
       api.delete(writerPath.replace('{key}', generatorTemplate.id)
       .replace('{userNameOrId}', 'invalidUserName'))
       .set('Authorization', otherValidToken)

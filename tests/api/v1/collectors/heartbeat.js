@@ -52,7 +52,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
-    it('config ok', (done) => {
+    it.skip('config ok', (done) => {
       api.post(`/v1/collectors/${u.toCreate.name}/heartbeat`)
       .set('Authorization', collectorToken)
       .send({})

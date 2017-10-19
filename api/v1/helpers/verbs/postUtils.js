@@ -12,8 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const constants = require('../../constants');
 const logAPI = require('../../../../utils/apiLog').logAPI;
-const publisher = require('../../../../realtime/redisPublisher');
-const realtimeEvents = require('../../../../realtime/constants').events;
 const authUtils = require('../authUtils');
 const u = require('./utils');
 const featureToggles = require('feature-toggles');
@@ -38,11 +36,6 @@ function makePostPromise(params, props, req) {
     .catch(() => props.model.create(toPost));
   }
 
-  if (props.modelName === 'Generator') {
-    return props.model.createWithCollectors(toPost,
-      u.whereClauseForNameInArr, u.sortArrayObjectsByField);
-  }
-
   return props.model.create(toPost);
 }
 
@@ -58,20 +51,6 @@ function makePostPromise(params, props, req) {
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, o);
-
-  // publish the update event to the redis channel
-  if (props.publishEvents) {
-    publisher.publishSample(o, props.associatedModels.subject,
-      realtimeEvents.sample.add, props.associatedModels.aspect);
-  }
-
-  // order collectors by name
-  if (props.modelName === 'Generator' && o.collectors) {
-    const returnObj = o.get ? o.get() : o;
-    u.sortArrayObjectsByField(returnObj.collectors, 'name');
-    return res.status(constants.httpStatus.CREATED).json(
-      u.responsify(returnObj, props, req.method));
-  }
 
   /*
    * if response directly from sequelize, call reload to attach
