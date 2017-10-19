@@ -84,7 +84,9 @@ function getHashPromise(type, name) {
 function getValue(type, name) {
   return getHashPromise(type, name)
   .then((value) => {
-    redisStore.arrayStringsToJson(value, rsConstant.fieldsToStringify[type]);
+    redisStore.arrayObjsStringsToJson(
+      value, rsConstant.fieldsToStringify[type]
+    );
     return Promise.resolve(value);
   })
   .catch((err) => Promise.reject(err));
