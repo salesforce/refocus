@@ -148,7 +148,6 @@ const standardBotAction = {
   ],
 };
 
-
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
