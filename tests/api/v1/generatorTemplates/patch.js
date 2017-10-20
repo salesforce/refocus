@@ -33,7 +33,7 @@ describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
     .catch(done);
   });
 
-  beforeEach((done) => {
+  before((done) => {
     GeneratorTemplate.create(sgt)
     .then((gen) => {
       i = gen.id;
@@ -42,7 +42,7 @@ describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(tu.forceDeleteUser);
 
   it('patch anything other than isPublished should fail', (done) => {

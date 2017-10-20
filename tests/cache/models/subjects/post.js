@@ -50,6 +50,8 @@ describe('tests/cache/models/subjects/post.js >', () => {
   });
 
   afterEach(rtu.forceDelete);
+  after(rtu.forceDeleteUserAndProf);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
 

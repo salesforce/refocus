@@ -21,8 +21,7 @@ const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
-describe('tests/api/v1/samples/postWithProvider.js, token NOT enforced >',
-() => {
+describe('tests/api/v1/samples/postWithProvider.js >', () => {
   let sampleToPost;
   let token;
 
@@ -49,7 +48,7 @@ describe('tests/api/v1/samples/postWithProvider.js, token NOT enforced >',
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('if token provided, provider and user fields are returned', (done) => {
+  it('returnUser toggle on, provider and user fields returned', (done) => {
     const path = '/v1/samples';
     api.post(path)
     .set('Authorization', token)
@@ -64,39 +63,6 @@ describe('tests/api/v1/samples/postWithProvider.js, token NOT enforced >',
       expect(res.body.user).to.be.an('object');
       expect(res.body.user.name).to.be.an('string');
       expect(res.body.user.email).to.be.an('string');
-      done();
-    });
-  });
-
-  it('if token is not, provider and user fields are not returned', (done) => {
-    const path = '/v1/samples';
-    api.post(path)
-    .send(sampleToPost)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.provider).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
-      done();
-    });
-  });
-
-  it('if token is invalid, provider and user fields are not returned', (done) => {
-    const path = '/v1/samples';
-    api.post(path)
-    .set('Authorization', 'iDontExist')
-    .send(sampleToPost)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.provider).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
       done();
     });
   });

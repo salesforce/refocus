@@ -254,7 +254,7 @@ describe('tests/cache/sampleStore.js >', () => {
       .then(() => samstoinit.populate())
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect1'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).equal(3);
         expect(aspect.writers)
@@ -262,7 +262,7 @@ describe('tests/cache/sampleStore.js >', () => {
       })
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect2'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).to.equal(1);
         expect(aspect.writers).to.have.members([user4.name]);

@@ -69,6 +69,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('with returnUser toggle on >', () => {
@@ -389,8 +390,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       .catch(done);
     });
 
-    it('name should match subject absolutePath,' +
-      ' aspect name', (done) => {
+    it('name should match subject absolutePath, aspect name', (done) => {
       const sampleName = `${subject.absolutePath}|${aspect.name}`;
       api.post(path)
       .set('Authorization', token)
@@ -411,6 +411,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
     it('value is updated', (done) => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+      .set('Authorization', token)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -480,6 +481,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       })
       .then(() => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

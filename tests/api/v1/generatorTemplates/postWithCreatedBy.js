@@ -19,7 +19,6 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/generatorTemplates';
 const expect = require('chai').expect;
-const tokenPath = '/v1/tokens';
 
 describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   let token;
@@ -42,7 +41,7 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('if token provided, createdBy and user fields are returned', (done) => {
+  it('toggle returnUser on, createdBy and user fields returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generatorTemplateToCreate)
@@ -56,75 +55,6 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();
-    });
-  });
-
-  it('if token is NOT provided, createdBy and user fields are NOT' +
-    ' returned', (done) => {
-    api.post(path)
-    .send(generatorTemplateToCreate)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.createdBy).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
-      done();
-    });
-  });
-
-  it('on invalid token, createdBy and user fields are NOT' +
-    ' returned', (done) => {
-    api.post(path)
-    .set('Authorization', 'iDoNotExist')
-    .send(generatorTemplateToCreate)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.createdBy).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
-      done();
-    });
-  });
-
-  it('on revoked token, createdBy and user fields are returned', (done) => {
-    api.post(tokenPath)
-    .set('Authorization', token)
-    .send({ name: 'newToken' })
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      const newToken = res.body.token;
-      return api.post(`${tokenPath}/${res.body.id}/revoke`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send({ })
-      .end((_err, _res) => {
-        if (_err || _res.body.errors) {
-          return done(_err);
-        }
-
-        return api.post(path)
-          .set('Authorization', newToken)
-          .send(generatorTemplateToCreate)
-          .expect(constants.httpStatus.CREATED)
-          .end((__err, __res) => {
-            if (__err) {
-              return done(__err);
-            }
-
-            expect(__res.body.createdBy).to.equal(user.id);
-            expect(__res.body.user.name).to.equal(user.name);
-            expect(__res.body.user.email).to.equal(user.email);
-            return done();
-          });
-      });
     });
   });
 });

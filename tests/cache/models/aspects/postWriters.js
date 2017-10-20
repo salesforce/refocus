@@ -99,7 +99,7 @@ describe('tests/cache/models/aspects/postWriters.js, ' +
       // make sure the writers are added to the aspect in redis too
       rcli.hgetallAsync('samsto:aspect:___aspectname')
       .then((asp) => {
-        sampleStore.arrayStringsToJson(asp,
+        sampleStore.arrayObjsStringsToJson(asp,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(asp.writers.length).to.equal(2);
         expect(asp.writers).to.have

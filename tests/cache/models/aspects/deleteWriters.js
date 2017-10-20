@@ -106,7 +106,7 @@ describe('tests/cache/models/aspects/deleteWriters.js, ' +
           // make sure the writers are added to the aspect in redis too
           rcli.hgetallAsync('samsto:aspect:___aspectname')
           .then((asp) => {
-            sampleStore.arrayStringsToJson(asp,
+            sampleStore.arrayObjsStringsToJson(asp,
               sampleStore.constants.fieldsToStringify.aspect);
             expect(asp.writers.length).to.equal(0);
           });
@@ -124,6 +124,7 @@ describe('tests/cache/models/aspects/deleteWriters.js, ' +
     it('return 404 deleting writers for an aspect not in the system',
     (done) => {
       api.delete(writersPath.replace('{key}', 'InvalidAspect'))
+      .set('Authorization', token)
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
     });
@@ -186,7 +187,7 @@ describe('tests/cache/models/aspects/deleteWriters.js, ' +
           // make sure the
           rcli.hgetallAsync('samsto:aspect:___aspectname')
           .then((asp) => {
-            sampleStore.arrayStringsToJson(asp,
+            sampleStore.arrayObjsStringsToJson(asp,
               sampleStore.constants.fieldsToStringify.aspect);
             expect(asp.writers.length).to.equal(1);
           });

@@ -145,6 +145,7 @@ describe('tests/cache/models/subjects/getHierarchyStatusAndCombinedFilters.js, '
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('Sample Status filter >', () => {
