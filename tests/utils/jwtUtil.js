@@ -114,12 +114,12 @@ describe('tests/utils/jwtUtil.js >', () => {
       request.headers.authorization = collectorToken;
       jwtUtil.verifyToken(request, dummyCallback)
       .then(() => {
-        expect(request.headers.userName).to.equal(collectorInst.name);
-        expect(request.headers.profileName).to.equal(undefined);
-        expect(request.headers.tokenName).to.equal(collectorInst.name);
-        expect(request.headers.isAdmin).to.equal(false);
-        expect(request.headers.isBot).to.equal(false);
-        expect(request.headers.isCollector).to.equal(true);
+        expect(request.headers.UserName).to.equal(collectorInst.name);
+        expect(request.headers.ProfileName).to.equal(undefined);
+        expect(request.headers.TokenName).to.equal(collectorInst.name);
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(true);
         return done();
       }).catch(done);
     });
@@ -133,12 +133,12 @@ describe('tests/utils/jwtUtil.js >', () => {
       request.headers.authorization = predefinedAdminUserToken;
       jwtUtil.verifyToken(request, dummyCallback)
       .then(() => {
-        expect(request.headers.userName).to.equal(adminUser.name);
-        expect(request.headers.profileName).to.equal('Admin');
-        expect(request.headers.tokenName).to.equal(adminUser.name);
-        expect(request.headers.isAdmin).to.equal(true);
-        expect(request.headers.isBot).to.equal(false);
-        expect(request.headers.isCollector).to.equal(false);
+        expect(request.headers.UserName).to.equal(adminUser.name);
+        expect(request.headers.ProfileName).to.equal('Admin');
+        expect(request.headers.TokenName).to.equal(adminUser.name);
+        expect(request.headers.IsAdmin).to.equal(true);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
         return done();
       }).catch(done);
     });
@@ -151,12 +151,12 @@ describe('tests/utils/jwtUtil.js >', () => {
       request.session.token = userToken;
       jwtUtil.verifyToken(request, dummyCallback)
       .then(() => {
-        expect(request.headers.userName).to.equal(userInst.name);
-        expect(request.headers.profileName).to.equal('___myProfile');
-        expect(request.headers.tokenName).to.equal('___myRefocusUser');
-        expect(request.headers.isAdmin).to.equal(false);
-        expect(request.headers.isBot).to.equal(false);
-        expect(request.headers.isCollector).to.equal(false);
+        expect(request.headers.UserName).to.equal(userInst.name);
+        expect(request.headers.ProfileName).to.equal('___myProfile');
+        expect(request.headers.TokenName).to.equal('___myRefocusUser');
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
         return done();
       }).catch(done);
     });
@@ -170,9 +170,9 @@ describe('tests/utils/jwtUtil.js >', () => {
       jwtUtil.verifyToken(request, dummyCallback)
       .then(() => {
         expect(Object.keys(request.headers)).to.deep.equal(['authorization']);
-        expect(request.headers.userName).to.equal(undefined);
-        expect(request.headers.profileName).to.equal(undefined);
-        expect(request.headers.tokenName).to.equal(undefined);
+        expect(request.headers.UserName).to.equal(undefined);
+        expect(request.headers.ProfileName).to.equal(undefined);
+        expect(request.headers.TokenName).to.equal(undefined);
         return done();
       }).catch(done);
     });

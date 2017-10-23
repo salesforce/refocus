@@ -42,12 +42,12 @@ function assignKeyValue(object, key, value) {
  * Admin user
  */
 function assignUserHeaders(req, tokenName, isAdmin) {
-  assignKeyValue(req.headers, 'userName', req.user.name);
-  assignKeyValue(req.headers, 'tokenName', tokenName);
-  assignKeyValue(req.headers, 'profileName', req.user.profile.name);
-  assignKeyValue(req.headers, 'isAdmin', isAdmin);
-  assignKeyValue(req.headers, 'isCollector', false);
-  assignKeyValue(req.headers, 'isBot', false);
+  assignKeyValue(req.headers, 'UserName', req.user.name);
+  assignKeyValue(req.headers, 'TokenName', tokenName);
+  assignKeyValue(req.headers, 'ProfileName', req.user.profile.name);
+  assignKeyValue(req.headers, 'IsAdmin', isAdmin);
+  assignKeyValue(req.headers, 'IsCollector', false);
+  assignKeyValue(req.headers, 'IsBot', false);
 } // assignUserHeaders
 
 /**
@@ -57,11 +57,11 @@ function assignUserHeaders(req, tokenName, isAdmin) {
  * @param  {String} tokenName - The tokenname parsed from the token
  */
 function assignCollectorHeaders(req, userName, tokenName) {
-  assignKeyValue(req.headers, 'userName', userName);
-  assignKeyValue(req.headers, 'tokenName', tokenName);
-  assignKeyValue(req.headers, 'isCollector', true);
-  assignKeyValue(req.headers, 'isAdmin', false);
-  assignKeyValue(req.headers, 'isBot', false);
+  assignKeyValue(req.headers, 'UserName', userName);
+  assignKeyValue(req.headers, 'TokenName', tokenName);
+  assignKeyValue(req.headers, 'IsCollector', true);
+  assignKeyValue(req.headers, 'IsAdmin', false);
+  assignKeyValue(req.headers, 'IsBot', false);
 } // assignCollectorHeaders
 
 /**
