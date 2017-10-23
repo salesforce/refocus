@@ -115,7 +115,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       jwtUtil.verifyToken(request, dummyCallback)
       .then(() => {
         expect(request.headers.UserName).to.equal(collectorInst.name);
-        expect(request.headers.ProfileName).to.equal(undefined);
+        expect(request.headers.ProfileName).to.equal('');
         expect(request.headers.TokenName).to.equal(collectorInst.name);
         expect(request.headers.IsAdmin).to.equal(false);
         expect(request.headers.IsBot).to.equal(false);

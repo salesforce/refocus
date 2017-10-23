@@ -59,6 +59,7 @@ function assignUserHeaders(req, tokenName, isAdmin) {
 function assignCollectorHeaders(req, userName, tokenName) {
   assignKeyValue(req.headers, 'UserName', userName);
   assignKeyValue(req.headers, 'TokenName', tokenName);
+  assignKeyValue(req.headers, 'ProfileName', '');
   assignKeyValue(req.headers, 'IsCollector', true);
   assignKeyValue(req.headers, 'IsAdmin', false);
   assignKeyValue(req.headers, 'IsBot', false);
