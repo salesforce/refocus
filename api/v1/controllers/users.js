@@ -126,13 +126,14 @@ module.exports = {
       if (ok) {
         doPut(req, res, next, helper);
       } else {
-
-        // normal user
-        // allow iff user PUTTing themself AND profileId does not change
+        /*
+         * normal user allow iff user PUTTing themself AND profileId does
+         * not change
+         */
         authUtils.getUser(req)
         .then((user) => {
-          if (req.swagger.params.key.value === user.dataValues.name &&
-            user.dataValues.profileId === req.body.profileId) {
+          if (req.swagger.params.key.value === user.name &&
+            user.profileId === req.body.profileId) {
             doPut(req, res, next, helper);
           } else {
             u.forbidden(next);
