@@ -409,7 +409,7 @@ describe('tests/cache/models/subjects/getHierarchyAspectAndTagsFilters.js, ' +
   });
 
   describe('aspectTags filter on hierarchy >', () => {
-    it('Hierarchy for subject with Aspect tags matching the quuery params ' +
+    it('Hierarchy for subject with Aspect tags matching the query params ' +
     'should be returned', (done) => {
       const endpoint = path.replace('{key}', chi.id) + '?aspectTags=wnd';
       api.get(endpoint)
@@ -441,7 +441,7 @@ describe('tests/cache/models/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     });
 
     it('Multiple Query Params: Hierarchy for subject with Aspect tags ' +
-    'matching the quuery params should be returned', (done) => {
+    'matching the query params should be returned', (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?aspectTags=wnd,temp';
       api.get(endpoint)
       .set('Authorization', token)
@@ -485,7 +485,7 @@ describe('tests/cache/models/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     });
 
     it('Negation: Multiple Query Params: Hierarchy for subject with Aspect ' +
-    'tags matching the quuery params should be returned',
+    'tags matching the query params should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) +
         '?aspectTags=-temp,-wnd';
