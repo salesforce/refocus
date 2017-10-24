@@ -19,8 +19,51 @@ const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
 const Bot = require('../db/index').Bot;
+const Profile = require('../db/index').Profile;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
+
+/**
+ * Adds a key and its value to the passed in object.
+ * @param  {Object} object - The object to which the key value pair needs to be
+ * assgined
+ * @param  {String} key - The key that will be added to the object
+ * @param  {String} value  - The value that will be assigned to the key
+ */
+function assignKeyValue(object, key, value) {
+  object[key] = value;
+} // assignKeyValue
+
+/**
+ * Assigns user related information to the request header.
+ * @param  {Object}  req  - The request object
+ * @param  {String}  tokenName - Token name parsed from the token
+ * @param  {Boolean} isAdmin  - Flag to indicate if the request was made by an
+ * Admin user
+ */
+function assignUserHeaders(req, tokenName, isAdmin) {
+  assignKeyValue(req.headers, 'UserName', req.user.name);
+  assignKeyValue(req.headers, 'TokenName', tokenName);
+  assignKeyValue(req.headers, 'ProfileName', req.user.profile.name);
+  assignKeyValue(req.headers, 'IsAdmin', isAdmin);
+  assignKeyValue(req.headers, 'IsCollector', false);
+  assignKeyValue(req.headers, 'IsBot', false);
+} // assignUserHeaders
+
+/**
+ * Assigns collector related information to the request header
+ * @param  {Object} req - The request object
+ * @param  {String} userName  - The username parsed from the token
+ * @param  {String} tokenName - The tokenname parsed from the token
+ */
+function assignCollectorHeaders(req, userName, tokenName) {
+  assignKeyValue(req.headers, 'UserName', userName);
+  assignKeyValue(req.headers, 'TokenName', tokenName);
+  assignKeyValue(req.headers, 'ProfileName', '');
+  assignKeyValue(req.headers, 'IsCollector', true);
+  assignKeyValue(req.headers, 'IsAdmin', false);
+  assignKeyValue(req.headers, 'IsBot', false);
+} // assignCollectorHeaders
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -93,10 +136,12 @@ function checkTokenRecord(t) {
  */
 function verifyCollectorToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
+  let decodedData;
   return jwtVerifyAsync(token, secret, {})
-  .then((decodedData) => Collector.findOne({
-    where: { name: decodedData.username },
-  }))
+  .then((_decodedData) => {
+    decodedData = _decodedData;
+    return Collector.findOne({ where: { name: decodedData.username }, });
+  })
   .then((collector) => {
     if (!collector) {
       throw new apiErrors.ForbiddenError({
@@ -104,6 +149,7 @@ function verifyCollectorToken(req, cb) {
       });
     }
 
+    assignCollectorHeaders(req, decodedData.username, decodedData.tokenname);
     if (cb) {
       return cb();
     }
@@ -156,8 +202,11 @@ function verifyUserToken(req, cb) {
       });
     }
 
-    req.user = user;
-
+    req.user = user.get();
+    return Profile.isAdmin(req.user.profileId);
+  })
+  .then((isAdmin) => {
+    assignUserHeaders(req, decodedData.tokenname, isAdmin);
     /*
      * No need to check the token record if this is the default UI
      * token.
@@ -169,7 +218,7 @@ function verifyUserToken(req, cb) {
     return Token.findOne({
       where: {
         name: decodedData.tokenname,
-        createdBy: user.id,
+        createdBy: req.user.id,
       },
     })
     .then(checkTokenRecord)
@@ -189,9 +238,8 @@ function verifyUserToken(req, cb) {
  */
 function verifyToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
-
   if (token) {
-    verifyUserToken(req, cb)
+    return verifyUserToken(req, cb)
     .then((ret) => ret)
     .catch((err) => {
       if (err.explanation &&
@@ -203,12 +251,12 @@ function verifyToken(req, cb) {
       .then((_ret) => _ret)
       .catch(() => handleInvalidToken(cb));
     });
-  } else {
-    const err = new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found.',
-    });
-    handleError(cb, err, 'ApiToken');
   }
+
+  const err = new apiErrors.ForbiddenError({
+    explanation: 'No authorization token was found.',
+  });
+  return handleError(cb, err, 'ApiToken');
 } // verifyToken
 
 /**
