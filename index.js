@@ -208,12 +208,17 @@ function start() { // eslint-disable-line max-statements
     /*
      * Set up API rate limits. Note that we are doing this *after* the
      * swaggerSecurity middleware so that jwtUtil.verifyToken will already
-     * have been executed.
+     * have been executed so that all of the request headers it adds are
+     * available for the express-limiter "lookup".
+     * Set the "lookup" attribute to a string or array to do a value lookup on
+     * the request object. For example, if we wanted to apply API request
+     * limits by user name and IP address, we could set lookup to
+     * ['headers.UserName', 'headers.x-forwarded-for'].
      */
     limiter({
       path: conf.endpointToLimit,
       method: conf.httpMethodToLimit,
-      lookup: ['headers.UserName'], // use 'x-forwarded-for' for ip address
+      lookup: ['headers.UserName'],
       total: conf.rateLimit,
       expire: conf.rateWindow,
     });
