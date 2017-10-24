@@ -135,7 +135,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
 
@@ -156,14 +156,13 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
   });
 
   describe('normal user >', () => {
-    it('cannot change its profileId',
-      (done) => {
+    it('cannot change its profileId', (done) => {
       const normalUserToken = jwtUtil.createToken(
         userFive, userFive
       );
@@ -185,12 +184,11 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'ForbiddenError');
-        done();
+        return done();
       });
     });
 
-    it('can PUT, when its new profileId === old profileId',
-      (done) => {
+    it('can PUT, when its new profileId === old profileId', (done) => {
       const normalUserToken = jwtUtil.createToken(
         userThree, userThree
       );
@@ -210,7 +208,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
 
@@ -236,7 +234,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'ForbiddenError');
-        done();
+        return done();
       });
     });
   });
@@ -259,7 +257,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
 
@@ -282,7 +280,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
   });
