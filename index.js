@@ -55,19 +55,6 @@ function start() { // eslint-disable-line max-statements
 
   const app = express();
 
-  // redis client to for request limiter
-  const limiterRedisClient = require('./cache/redisCache').client.limiter;
-
-  // request limiter setting
-  const limiter = require('express-limiter')(app, limiterRedisClient);
-  limiter({
-    path: conf.endpointToLimit,
-    method: conf.httpMethodToLimit,
-    lookup: ['headers.x-forwarded-for'],
-    total: conf.rateLimit,
-    expire: conf.rateWindow,
-  });
-
   /*
    * Call this *before* the static pages and the API routes so that both the
    * static pages *and* the API responses are compressed (gzip).
@@ -92,6 +79,10 @@ function start() { // eslint-disable-line max-statements
 
   // middleware for checking api token
   const jwtUtil = require('./utils/jwtUtil');
+
+  // middleware for api rate limits
+  const limiterRedisClient = require('./cache/redisCache').client.limiter;
+  const limiter = require('express-limiter')(app, limiterRedisClient);
 
   // set up httpServer params
   const listening = 'Listening on port';
@@ -213,6 +204,19 @@ function start() { // eslint-disable-line max-statements
         jwtUtil.verifyToken(req, cb);
       },
     }));
+
+    /*
+     * Set up API rate limits. Note that we are doing this *after* the
+     * swaggerSecurity middleware so that jwtUtil.verifyToken will already
+     * have been executed.
+     */
+    limiter({
+      path: conf.endpointToLimit,
+      method: conf.httpMethodToLimit,
+      lookup: ['headers.UserName'], // use 'x-forwarded-for' for ip address
+      total: conf.rateLimit,
+      expire: conf.rateWindow,
+    });
 
     // Validate Swagger requests
     app.use(mw.swaggerValidator(conf.api.swagger.validator));
