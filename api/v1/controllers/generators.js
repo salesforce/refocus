@@ -18,6 +18,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
+const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const featureToggles = require('feature-toggles');
 const authUtils = require('../helpers/authUtils');
 const constants = require('../constants');
@@ -62,14 +63,19 @@ module.exports = {
   patchGenerator(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
+    let oldCollectors;
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
+      oldCollectors = o.collectors.map(collector => collector.name);
       return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
     })
-    .then((retVal) =>
-      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .then((retVal) => {
+      const newCollectors = retVal.collectors.map(collector => collector.name);
+      heartbeatUtils.trackGeneratorChanges(retVal, oldCollectors, newCollectors);
+      return u.handleUpdatePromise(resultObj, req, retVal, helper, res);
+    })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -118,6 +124,10 @@ module.exports = {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o);
 
+      const oldCollectors = [];
+      const newCollectors = o.collectors.map(collector => collector.name);
+      heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
+
       // order collectors by name
       u.sortArrayObjectsByField(helper, o);
 
@@ -162,6 +172,9 @@ module.exports = {
     })
     .then((_updatedInstance) => {
       instance = _updatedInstance;
+      const oldCollectors = instance.collectors.map(c => c.name);
+      const newCollectors = collectors.map(c => c.name);
+      heartbeatUtils.trackGeneratorChanges(instance, oldCollectors, newCollectors);
       return instance.setCollectors(collectors);
     }) // need reload instance to attach associations
     .then(() => instance.reload())
