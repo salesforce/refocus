@@ -16,6 +16,8 @@ const testStartTime = new Date();
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Collector, testStartTime)
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
     .then(() => done())
     .catch(done);
   },
