@@ -58,6 +58,19 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 } // prepareToPublish
 
 /**
+ * Determine if an instance is needs to use the bot channel.
+ *
+ * @param  {Object} inst - Model instance to be published
+ * @returns {Boolean} - True when bot channel is expected
+ */
+function useBotChannel(inst){
+  if (rtUtils.isRoom(inst) || rtUtils.isBotAction(inst)) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * This function publishes an created, updated or a deleted model instance to
  * the redis channel and returns the object that was published
  *
@@ -83,7 +96,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if (rtUtils.isRoom(inst) || rtUtils.isBotAction(inst)) {
+    if (useBotChannel(inst)) {
       pubBot.publish(botChannelName, JSON.stringify(obj));
     } else {
       pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
@@ -141,6 +154,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 } // publishSample
 
 module.exports = {
+  useBotChannel,
   publishObject,
   publishSample,
   publishPartialSample,
