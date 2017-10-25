@@ -171,6 +171,7 @@ module.exports = {
   // delete user
   forceDeleteUser(done) {
     forceDelete(db.User, testStartTime)
+    .then(() => forceDelete(db.Token, testStartTime))
     .then(() => forceDelete(db.Profile, testStartTime))
     .then(() => done())
     .catch(done);
