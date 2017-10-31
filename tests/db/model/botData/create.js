@@ -49,6 +49,36 @@ describe('tests/db/model/botData/create.js >', () => {
     .catch(done);
   });
 
+  it('ok, bot data with large value created', (done) => {
+    const testBotData = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      testBotData.value =
+        'yeDqFOAvhPjCBpZ67YdoNZZRRQFFQjbsf0yNVtxjKHe7C25FYX' +
+        'e6DAyMVA7Y2RQ5Q6vJrYrufPLcQKy7ZYWycI01IZa4bv23Abxf' +
+        'MlXkFmAOx51wV7Hg3yVeNYVMkoTLxPu8bmlCUnSLvVxD9a7j5g' +
+        '60EZwhh3m3MlqXnXq5qPdhGfysaKjAKpA3EnRQAxmFI3vd0GbM' +
+        'aHLPF33ZcYpsDz35tixhDc3tAm4AHh4Wu3LjTQlgWV9vuFUAmE' +
+        'UHIFfrkE3LmadNGzPgzebGPQvsgMshHqnecaRp42OR6LYivS3Q';
+      return BotData.create(testBotData);
+    })
+    .then((o) => {
+      expect(o).to.have.property('name');
+      done();
+    })
+    .catch(done);
+  });
+
   it('ok, bot data created with name', (done) => {
     const testBotData = u.getStandard();
     RoomType.create(rt.getStandard())

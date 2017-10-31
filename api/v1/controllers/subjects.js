@@ -453,6 +453,14 @@ module.exports = {
    */
   postChildSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     const key = req.swagger.params.key.value;
     if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
