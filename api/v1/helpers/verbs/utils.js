@@ -421,6 +421,7 @@ function findByName(model, key, opts) {
       } else {
         const err = new apiErrors.ResourceNotFoundError();
         err.resource = model.name;
+        err.description = model.name + ' not found.';
         err.key = key;
         throw err;
       }
