@@ -105,16 +105,18 @@ module.exports = function room(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+        let pubInstance = instance.toJSON();
+        pubInstance.useBotChannel = true;
+        return realTime.publishObject(pubInstance, roomEventNames.add,
           changedKeys, ignoreAttributes);
       },
 
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(
-              instance.toJSON(), roomEventNames.upd
-            );
+            let pubInstance = instance.toJSON();
+            pubInstance.useBotChannel = true;
+            return realTime.publishObject(pubInstance, roomEventNames.upd);
           }
         }
 
@@ -123,7 +125,9 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          return realTime.publishObject(instance.toJSON(), roomEventNames.del);
+          let pubInstance = instance.toJSON();
+          pubInstance.useBotChannel = true;
+          return realTime.publishObject(pubInstance, roomEventNames.del);
         }
 
         return seq.Promise.resolve();

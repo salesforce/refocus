@@ -165,17 +165,23 @@ module.exports = function botAction(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(),
+        let pubInstance = instance.toJSON();
+        pubInstance.useBotChannel = true;
+        return realTime.publishObject(pubInstance,
           botActionEventNames.add, changedKeys, ignoreAttributes);
       },
 
       afterUpdate(instance /* , opts */) {
-        return realTime.publishObject(instance.toJSON(),
+        let pubInstance = instance.toJSON();
+        pubInstance.useBotChannel = true;
+        return realTime.publishObject(pubInstance,
           botActionEventNames.upd);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
-        return realTime.publishObject(instance.toJSON(),
+        let pubInstance = instance.toJSON();
+        pubInstance.useBotChannel = true;
+        return realTime.publishObject(pubInstance,
           botActionEventNames.del);
       }, // hooks.afterDelete
     }, // hooks
