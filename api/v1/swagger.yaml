@@ -1735,7 +1735,6 @@ paths:
                 pattern: ^[0-9A-Za-z_\\-]{0,60}$
               value:
                 type: string
-                maxLength: 254
                 description: Value of the bot data
               botId:
                 type: string
@@ -1832,7 +1831,6 @@ paths:
                 pattern: ^[0-9A-Za-z_\\-]{0,60}$
               value:
                 type: string
-                maxLength: 254
                 description: Value of the bot data
               botId:
                 type: string
