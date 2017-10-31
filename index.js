@@ -221,6 +221,7 @@ function start() { // eslint-disable-line max-statements
       lookup: ['headers.UserName'],
       total: conf.rateLimit,
       expire: conf.rateWindow,
+      whitelist: (req) => req.headers.IsAdmin,
     });
 
     // Validate Swagger requests
