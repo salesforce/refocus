@@ -58,15 +58,16 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 } // prepareToPublish
 
 /**
- * Determine if an instance is needs to use the bot channel.
+ * Determine if an instance needs to use the bot channel
  *
  * @param  {Object} inst - Model instance to be published
  * @returns {Boolean} - True when bot channel is expected
  */
-function useBotChannel(inst){
+function useBotChannel(inst) {
   if (rtUtils.isRoom(inst) || rtUtils.isBotAction(inst)) {
     return true;
   }
+
   return false;
 }
 

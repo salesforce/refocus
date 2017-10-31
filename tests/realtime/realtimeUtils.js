@@ -166,7 +166,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         .to.equal(true);
       });
 
-      it('for should return true for botActionTest', () => {
+      it('should return true for botActionTest', () => {
         const nspString = realtimeUtils.getBotsNamespaceString(botActionTest);
         expect(realtimeUtils.shouldIEmitThisObj(nspString, botActionTest, true))
         .to.equal(true);
