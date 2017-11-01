@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "6"
+  - "8"
 
 # safelist - only do branch build for "master" (keep doing PR builds for
 # every pr)
