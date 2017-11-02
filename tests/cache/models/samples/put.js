@@ -88,7 +88,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
 
           const _err = res.body.errors[ZERO];
           expect(_err.type).to.equal('ResourceNotFoundError');
-          expect(_err.description).to.equal('Aspect not found.');
+          expect(_err.description).to.equal('Sample not found.');
           done();
         });
       });

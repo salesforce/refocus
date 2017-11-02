@@ -26,8 +26,13 @@ const sampleStore = require('./cache/sampleStoreInit');
  * Entry point for each clustered process.
  */
 function start() { // eslint-disable-line max-statements
-  const SegfaultHandler = require('segfault-handler');
-  SegfaultHandler.registerHandler('crash.log');
+  /*
+   * Heroku support suggested we use segfault-handler but it's not available
+   * for node 8 yet.
+   */
+
+  // const SegfaultHandler = require('segfault-handler');
+  // SegfaultHandler.registerHandler('crash.log');
 
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
@@ -221,6 +226,7 @@ function start() { // eslint-disable-line max-statements
       lookup: conf.expressLimiterLookup,
       total: conf.expressLimiterTotal,
       expire: conf.expressLimiterExpire,
+      whitelist: (req) => req.headers.IsAdmin,
     });
 
     // Validate Swagger requests

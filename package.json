@@ -2,8 +2,8 @@
   "name": "Refocus",
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
-    "node": "6.11.x",
-    "npm": "3.10.x"
+    "node": "8.9.x",
+    "npm": "5.5.x"
   },
   "license": "BSD-3-Clause",
   "main": "index.js",
@@ -112,7 +112,7 @@
     "multer": "^1.0.3",
     "newrelic": "^1.39.1",
     "nock": "^3.6.0",
-    "npm": "^3.10.9",
+    "npm": "^5.5.1",
     "npm-watch": "^0.1.6",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
@@ -139,7 +139,6 @@
     "redux": "^3.0.5",
     "redux-logger": "^2.0.2",
     "redux-thunk": "^0.1.0",
-    "segfault-handler": "^1.0.0",
     "semver-regex": "^1.0.0",
     "sequelize": "^3.5.1",
     "sequelize-cli": "^2.1.0",
