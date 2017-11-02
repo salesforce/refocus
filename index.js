@@ -216,11 +216,11 @@ function start() { // eslint-disable-line max-statements
      * ['headers.UserName', 'headers.x-forwarded-for'].
      */
     limiter({
-      path: conf.endpointToLimit,
-      method: conf.httpMethodToLimit,
-      lookup: ['headers.UserName'],
-      total: conf.rateLimit,
-      expire: conf.rateWindow,
+      path: conf.expressLimiterPath,
+      method: conf.expressLimiterMethod,
+      lookup: conf.expressLimiterLookup,
+      total: conf.expressLimiterTotal,
+      expire: conf.expressLimiterExpire,
     });
 
     // Validate Swagger requests

@@ -301,10 +301,11 @@ Refocus lets you limit the number of requests per user--once the user reaches th
 
 Configure your limits using the following environment variables:
 
-- `DDOS_RATE_WINDOW` - the time interval in milliseconds after which the limits are reset
-- `DDOS_RATE_LIMIT` - the total number of requests allowed by each user in the specified time interval
-- `DDOS_ENDPOINT_TO_LIMIT` - the URI to limit; allows wildcards; use "*" to limit  all requests
-- `DDOS_HTTP_METHOD_TO_LIMIT` - the HTTP method to limit; use "all" (in lower case) to limit all HTTP methods
+- `EXPRESS_LIMITER_PATH` - the URI to limit; allows wildcards; use "*" to limit  all requests
+- `EXPRESS_LIMITER_METHOD` - the HTTP method to limit; use "all" (in lower case) to limit all HTTP methods
+- `EXPRESS_LIMITER_LOOKUP` - the value(s) to lookup on the request object. default: 'headers.UserName'
+- `EXPRESS_LIMITER_TOTAL` - the total number of requests allowed by each user in the specified time interval
+- `EXPRESS_LIMITER_EXPIRE` - the time interval in milliseconds after which the limits are reset
 
 The following headers will then be added to the response:
 
