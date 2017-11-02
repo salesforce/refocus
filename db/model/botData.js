@@ -35,7 +35,7 @@ module.exports = function botData(seq, dataTypes) {
       comment: 'Name of the bot data',
     },
     value: {
-      type: dataTypes.STRING,
+      type: dataTypes.TEXT,
       comment: 'Current value for bot data',
     },
   }, {

@@ -18,10 +18,13 @@ const u = require('./utils');
 const path = '/v1/aspects';
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
+const jwtUtil = require('../../utils/jwtUtil');
+const adminUser = require('../../config').db.adminUser;
 
 describe('tests/limiter/limiter.js >', () => {
   let token;
   let token2;
+  let predefinedAdminUserToken;
 
   before((done) => {
     tu.createToken()
@@ -32,8 +35,10 @@ describe('tests/limiter/limiter.js >', () => {
     .then((u2) => tu.createTokenFromUserName(u2.name))
     .then((tok2) => {
       token2 = tok2;
-      done();
     })
+    .then(() => predefinedAdminUserToken = jwtUtil
+      .createToken(adminUser.name, adminUser.name))
+    .then(() => done())
     .catch(done);
   });
   after(u.forceDelete);
@@ -83,6 +88,39 @@ describe('tests/limiter/limiter.js >', () => {
     .expect((res) => {
       expect(res.headers['x-ratelimit-limit']).to.equal('2');
       expect(res.headers['x-ratelimit-remaining']).to.equal('0');
+    })
+    .end(done);
+  });
+
+  it('(e) Admin user req#1, no ratelimit headers, ok', (done) => {
+    api.post(path)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ name: tu.namePrefix + 'Limiter5', timeout: '1m' })
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.headers).to.not.have.property('x-ratelimit-limit');
+    })
+    .end(done);
+  });
+
+  it('(f) Admin user req#2, no ratelimit headers, ok', (done) => {
+    api.post(path)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ name: tu.namePrefix + 'Limiter6', timeout: '1m' })
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.headers).to.not.have.property('x-ratelimit-limit');
+    })
+    .end(done);
+  });
+
+  it('(g) Admin user req#3, no ratelimit headers, ok', (done) => {
+    api.post(path)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({ name: tu.namePrefix + 'Limiter7', timeout: '1m' })
+    .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.headers).to.not.have.property('x-ratelimit-limit');
     })
     .end(done);
   });
