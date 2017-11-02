@@ -41,7 +41,7 @@
     "test-api": "mocha -R dot --recursive tests/api",
     "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true mocha -R dot --recursive tests/api",
     "test-disablehttp": "REQUIRE_HTTPS=true mocha -R dot --recursive tests/disableHttp",
-    "test-limiter": "EXPRESS_LIMITER_PATH=* EXPRESS_LIMITER_METHOD=all EXPRESS_LIMITER_LOOKUP=headers.UserName EXPRESS_LIMITER_TOTAL=2 EXPRESS_LIMITER_EXPIRE=1000 mocha -R dot --recursive tests/limiter",
+    "test-limiter": "EXPRESS_LIMITER_PATH=* EXPRESS_LIMITER_METHOD=all EXPRESS_LIMITER_LOOKUP=headers.UserName,headers.content-type EXPRESS_LIMITER_TOTAL=2 EXPRESS_LIMITER_EXPIRE=1000 mocha -R dot --recursive tests/limiter",
     "test-rooms-enabled": "ENABLE_ROOMS=true mocha -R dot --recursive tests/roomFlag/roomFlagEnabled",
     "test-rooms-disabled": "ENABLE_ROOMS=false HIDDEN_ROUTES=/rooms mocha -R dot --recursive tests/roomFlag/roomFlagDisabled",
     "test-db": "npm run checkdb && mocha -R dot --recursive tests/db",
