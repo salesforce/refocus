@@ -304,7 +304,7 @@ For more details, see the [express-limiter](https://www.npmjs.com/package/expres
 
 - `EXPRESS_LIMITER_PATH` - the URI to limit; allows wildcards; use "*" to limit  all requests
 - `EXPRESS_LIMITER_METHOD` - the HTTP method to limit; use "all" (in lower case) to limit all HTTP methods
-- `EXPRESS_LIMITER_LOOKUP` - the value(s) to lookup on the request object. default: 'headers.UserName'
+- `EXPRESS_LIMITER_LOOKUP` - the value(s) to lookup on the request object. default: 'headers.UserName'. To specify multiple values, separate them with commas, e.g. "headers.UserName,headers.x-forwarded-for".
 - `EXPRESS_LIMITER_TOTAL` - the total number of requests allowed by each user in the specified time interval
 - `EXPRESS_LIMITER_EXPIRE` - the time interval in milliseconds after which the limits are reset
 
