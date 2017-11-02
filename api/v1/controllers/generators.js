@@ -20,7 +20,6 @@ const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
 const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const featureToggles = require('feature-toggles');
-const authUtils = require('../helpers/authUtils');
 const constants = require('../constants');
 
 module.exports = {
@@ -92,32 +91,14 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
     u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+    const toPost = params.queryBody.value;
 
-    /*
-     * @returns {Promise} - Contains the request body
-     */
-    function getPostBody() {
-      return new Promise((resolve) => {
-        const postBody = params.queryBody.value;
-        if (featureToggles.isFeatureEnabled('returnUser')) {
-          return authUtils.getUser(req)
-          .then((user) => {
-            if (user) {
-              postBody.createdBy = user.id;
-            }
-
-            return resolve(postBody);
-          }) // if no user found, create the model without the createdBy
-          .catch(() => resolve(postBody));
-        }
-
-        return resolve(postBody);
-      });
+    if (featureToggles.isFeatureEnabled('returnUser')) {
+      toPost.createdBy = req.user.id;
     }
 
-    getPostBody()
-    .then((_toPost) => helper.model.createWithCollectors(_toPost,
-      u.whereClauseForNameInArr))
+    helper.model.createWithCollectors(toPost,
+      u.whereClauseForNameInArr)
     .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
         o.reload() : o)
     .then((o) => {

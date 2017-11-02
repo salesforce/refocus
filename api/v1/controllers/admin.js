@@ -18,7 +18,6 @@ const sampleStore = require('../../../cache/sampleStore');
 const sampleStoreInit = require('../../../cache/sampleStoreInit');
 const apiErrors = require('../apiErrors');
 const httpStatus = require('../constants').httpStatus;
-const authUtils = require('../helpers/authUtils');
 const u = require('../helpers/verbs/utils');
 
 module.exports = {
@@ -34,26 +33,23 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   rebuildSampleStore(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (!ok) {
-        return u.forbidden(next);
-      }
+    if (!req.headers.IsAdmin) {
+      return u.forbidden(next);
+    }
 
-      const enabled = featureToggles
+    const enabled = featureToggles
         .isFeatureEnabled(sampleStore.constants.featureName);
-      if (!enabled) {
-        const err = new apiErrors.InvalidSampleStoreState({
-          explanation: 'You cannot rebuild the sample store if the ' +
-            'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
-        });
-        return next(err);
-      }
+    if (!enabled) {
+      const err = new apiErrors.InvalidSampleStoreState({
+        explanation: 'You cannot rebuild the sample store if the ' +
+          'ENABLE_REDIS_SAMPLE_STORE feature is not enabled.',
+      });
+      return next(err);
+    }
 
-      return sampleStoreInit.eradicate()
-        .then(() => sampleStoreInit.populate())
-        .then(() => res.status(httpStatus.NO_CONTENT).json());
-    })
-    .catch(() => u.forbidden(next));
+    return sampleStoreInit.eradicate()
+      .then(() => sampleStoreInit.populate())
+      .then(() => res.status(httpStatus.NO_CONTENT).json())
+      .catch(() => u.forbidden(next));
   },
 }; // exports

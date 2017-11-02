@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/profiles.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/profiles');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -19,7 +19,6 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
-const authUtils = require('../helpers/authUtils');
 
 module.exports = {
 
@@ -34,17 +33,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteProfile(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doDelete(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doDelete(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -86,17 +79,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchProfile(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPatch(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doPatch(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -110,17 +97,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postProfile(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPost(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doPost(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -135,16 +116,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putProfile(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPut(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doPut(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 }; // exports

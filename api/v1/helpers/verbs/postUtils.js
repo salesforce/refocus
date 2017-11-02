@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const constants = require('../../constants');
 const logAPI = require('../../../../utils/apiLog').logAPI;
-const authUtils = require('../authUtils');
 const u = require('./utils');
 const featureToggles = require('feature-toggles');
 
@@ -24,16 +23,10 @@ const featureToggles = require('feature-toggles');
  */
 function makePostPromise(params, props, req) {
   const toPost = params.queryBody.value;
-  if (featureToggles.isFeatureEnabled('returnUser')) {
-    return authUtils.getUser(req)
-    .then((user) => {
-      if (user) {
-        toPost.createdBy = user.id;
-      }
 
-      return props.model.create(toPost, user);
-    }) // if no user found, create the model with the user
-    .catch(() => props.model.create(toPost));
+  if (featureToggles.isFeatureEnabled('returnUser')) {
+    toPost.createdBy = req.user.id;
+    return props.model.create(toPost, req.user);
   }
 
   return props.model.create(toPost);
