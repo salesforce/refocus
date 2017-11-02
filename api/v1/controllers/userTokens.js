@@ -16,7 +16,6 @@ const apiErrors = require('../apiErrors');
 const cnstnts = require('../constants');
 const u = require('../helpers/verbs/utils');
 const httpStatus = cnstnts.httpStatus;
-const authUtils = require('../helpers/authUtils');
 
 /**
  * where clause to get user tokens
@@ -26,8 +25,10 @@ const authUtils = require('../helpers/authUtils');
 function whereClauseForUser(userNameOrId) {
   const whr = {};
   if (u.looksLikeId(userNameOrId)) {
-    /* need to use '$table.field$' for association fields. User IDs in the url
-    are case-sensitve. */
+    /*
+     * need to use '$table.field$' for association fields. User IDs in the url
+     * are case-sensitve.
+     */
     whr.where = { '$User.id$': {} };
     whr.where['$User.id$'] = userNameOrId;
   } else {
@@ -68,7 +69,6 @@ module.exports = {
     const user = req.swagger.params.key.value;
     const tokenName = req.swagger.params.tokenName.value;
     const whr = whereClauseForUserAndTokenName(user, tokenName);
-    let tokenToDel;
 
     // get user token
     helper.model.findOne(whr)
@@ -88,32 +88,17 @@ module.exports = {
         });
       }
 
-      tokenToDel = token;
-
-      // Check if requesting user is Admin
-      return authUtils.isAdmin(req);
-    })
-    .then((isAdmin) => {
-      // if admin, delete the token
-      if (isAdmin) {
-        return tokenToDel.destroy();
+      /*
+       * Ok to destroy the token if the request is made by an admin user or
+       * if an non admin user wants to revoke their own token
+       */
+      if (req.headers.IsAdmin || token.createdBy === req.user.id) {
+        return token.destroy();
       }
 
-      // Get user details from req
-      return authUtils.getUser(req)
-      .then((currentUser) => {
-        // OK to delete if user is NOT admin but is deleting own token
-        if (tokenToDel && tokenToDel.createdBy === currentUser.id) {
-          return tokenToDel.destroy();
-        }
-
-        // else forbidden
-        throw new apiErrors.ForbiddenError({
-          explanation: 'Forbidden.',
-        });
-      })
-      .catch((err) => {
-        throw err;
+      // else forbidden
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Forbidden.',
       });
     })
     .then((o) => {
@@ -198,41 +183,35 @@ module.exports = {
    */
   restoreTokenByName(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        const user = req.swagger.params.key.value;
-        const tokenName = req.swagger.params.tokenName.value;
-        const whr = whereClauseForUserAndTokenName(user, tokenName);
-        helper.model.findOne(whr)
-        .then((o) => {
-          if (!o) {
-            const err = new apiErrors.ResourceNotFoundError();
-            err.resource = helper.model.name;
-            err.key = user + ', ' + tokenName;
-            throw err;
-          }
+    if (req.headers.IsAdmin) {
+      const user = req.swagger.params.key.value;
+      const tokenName = req.swagger.params.tokenName.value;
+      const whr = whereClauseForUserAndTokenName(user, tokenName);
+      helper.model.findOne(whr)
+      .then((o) => {
+        if (!o) {
+          const err = new apiErrors.ResourceNotFoundError();
+          err.resource = helper.model.name;
+          err.key = user + ', ' + tokenName;
+          throw err;
+        }
 
-          if (o.isRevoked === '0') {
-            throw new apiErrors.InvalidTokenActionError();
-          }
+        if (o.isRevoked === '0') {
+          throw new apiErrors.InvalidTokenActionError();
+        }
 
-          return o.restore();
-        })
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          const retval = u.responsify(o, helper, req.method);
-          res.status(httpStatus.OK).json(retval);
-          u.logAPI(req, resultObj, retval);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+        return o.restore();
+      })
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const retval = u.responsify(o, helper, req.method);
+        res.status(httpStatus.OK).json(retval);
+        u.logAPI(req, resultObj, retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -246,40 +225,34 @@ module.exports = {
    */
   revokeTokenByName(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        const user = req.swagger.params.key.value;
-        const tokenName = req.swagger.params.tokenName.value;
-        const whr = whereClauseForUserAndTokenName(user, tokenName);
-        helper.model.findOne(whr)
-        .then((o) => {
-          if (!o) {
-            const err = new apiErrors.ResourceNotFoundError();
-            err.resource = helper.model.name;
-            err.key = user + ', ' + tokenName;
-            throw err;
-          }
+    if (req.headers.IsAdmin) {
+      const user = req.swagger.params.key.value;
+      const tokenName = req.swagger.params.tokenName.value;
+      const whr = whereClauseForUserAndTokenName(user, tokenName);
+      helper.model.findOne(whr)
+      .then((o) => {
+        if (!o) {
+          const err = new apiErrors.ResourceNotFoundError();
+          err.resource = helper.model.name;
+          err.key = user + ', ' + tokenName;
+          throw err;
+        }
 
-          if (o.isRevoked > '0') {
-            throw new apiErrors.InvalidTokenActionError();
-          }
+        if (o.isRevoked > '0') {
+          throw new apiErrors.InvalidTokenActionError();
+        }
 
-          return o.revoke();
-        })
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          const retval = u.responsify(o, helper, req.method);
-          u.logAPI(req, resultObj, retval);
-          res.status(httpStatus.OK).json(retval);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+        return o.revoke();
+      })
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const retval = u.responsify(o, helper, req.method);
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 }; // exports
