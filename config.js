@@ -62,7 +62,8 @@ const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
 // request limiter settings
 const expressLimiterPath = pe.EXPRESS_LIMITER_PATH;
 const expressLimiterMethod = pe.EXPRESS_LIMITER_METHOD;
-const expressLimiterLookup = pe.EXPRESS_LIMITER_LOOKUP || 'headers.UserName';
+const expressLimiterLookup =
+  configUtil.csvToArray(pe.EXPRESS_LIMITER_LOOKUP || 'headers.UserName');
 const expressLimiterTotal = pe.EXPRESS_LIMITER_TOTAL;
 const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
 

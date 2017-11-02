@@ -300,6 +300,7 @@ POST to `v1/subjects/USA/child` using the following body:
 Refocus lets you limit the number of requests per user--once the user reaches the limit for the specified time interval, subsequent requests will get http status code 429 (Too Many Requests).
 
 Configure your limits using the following environment variables:
+For more details, see the [express-limiter](https://www.npmjs.com/package/express-limiter) module.
 
 - `EXPRESS_LIMITER_PATH` - the URI to limit; allows wildcards; use "*" to limit  all requests
 - `EXPRESS_LIMITER_METHOD` - the HTTP method to limit; use "all" (in lower case) to limit all HTTP methods
