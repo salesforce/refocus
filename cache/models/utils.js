@@ -23,7 +23,6 @@ const ZERO = 0;
  * @param  {Array} attributes - Resource fields array
  */
 function applyFieldListFilter(resource, attributes) {
-  // apply field list filter
   Object.keys(resource).forEach((field) => {
     if (!attributes.includes(field)) {
       delete resource[field];
