@@ -13,7 +13,6 @@
 const expect = require('chai').expect;
 const pu = require('../../../../api/v1/helpers/verbs/postUtils');
 
-
 describe('api/v1/helpers/verbs/postUtils.js, Tests >', () => {
   const ASPECT = {
     name: 'hello',

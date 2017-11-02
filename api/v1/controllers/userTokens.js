@@ -89,7 +89,7 @@ module.exports = {
       }
 
       /*
-       * Ok to destory the token if the request is made by an admin user or
+       * Ok to destroy the token if the request is made by an admin user or
        * if an non admin user wants to revoke their own token
        */
       if (req.headers.IsAdmin || token.createdBy === req.user.id) {
