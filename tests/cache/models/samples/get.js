@@ -679,7 +679,7 @@ describe('tests/cache/models/samples/get.js, ' +
   });
 });
 
-describe('tests/cache/models/samples/get.js > cache the response >', () => {
+describe.only('tests/cache/models/samples/get.js > cache the response >', () => {
   let token;
   const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
   const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
@@ -700,8 +700,7 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
   after(tu.forceDeleteUser);
 
   after(() => {
-    tu.toggleOverride('enableRedisSampleStore',
-      enableRedisSampleStore);
+    tu.toggleOverride('enableRedisSampleStore', enableRedisSampleStore);
   });
 
   it('get with wildcard should cache response', (done) => {
@@ -742,6 +741,33 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
           expect(res.body[0].name).to.equal(s1s2a1);
           return done();
         }
+      });
+    });
+  });
+
+  it('do not return response from cache if ?fields are different', (done) => {
+    api.get(`${path}?name=___Subj*`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      redisCache.get('___Subj*', (cacheErr, reply) => {
+        if (cacheErr) {
+          return done(cacheErr);
+        }
+
+        expect(JSON.parse(reply).length).to.be.equal(3);
+        redisCache.get('___Subj*&fields=name,status', (cacheErr2, reply2) => {
+          if (cacheErr2) {
+            return done(cacheErr2);
+          }
+
+          expect(reply2).to.be.null;
+          return done();
+        });
       });
     });
   });
