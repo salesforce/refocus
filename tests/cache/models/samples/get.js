@@ -679,7 +679,7 @@ describe('tests/cache/models/samples/get.js, ' +
   });
 });
 
-describe.only('tests/cache/models/samples/get.js > cache the response >', () => {
+describe('tests/cache/models/samples/get.js > cache the response >', () => {
   let token;
   const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
   const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
