@@ -60,10 +60,12 @@ const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
   DEFAULT_CACHE_EXPIRY_IN_SECS;
 
 // request limiter settings
-const rateLimit = pe.DDOS_RATE_LIMIT;
-const rateWindow = pe.DDOS_RATE_WINDOW;
-const endpointToLimit = pe.DDOS_ENDPOINT_TO_LIMIT;
-const httpMethodToLimit = pe.DDOS_HTTP_METHOD_TO_LIMIT;
+const expressLimiterPath = pe.EXPRESS_LIMITER_PATH;
+const expressLimiterMethod = pe.EXPRESS_LIMITER_METHOD;
+const expressLimiterLookup =
+  configUtil.csvToArray(pe.EXPRESS_LIMITER_LOOKUP || 'headers.UserName');
+const expressLimiterTotal = pe.EXPRESS_LIMITER_TOTAL;
+const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
 
 const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 
@@ -250,8 +252,11 @@ module.exports = {
   JOB_REMOVAL_BATCH_SIZE,
   JOB_COUNTER_RESET_INTERVAL,
   deprioritizeJobsFrom,
-  endpointToLimit,
-  httpMethodToLimit,
+  expressLimiterPath,
+  expressLimiterMethod,
+  expressLimiterLookup,
+  expressLimiterTotal,
+  expressLimiterExpire,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
   nodeEnv,
@@ -263,8 +268,6 @@ module.exports = {
   prioritizeJobsFrom,
   queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
-  rateLimit,
-  rateWindow,
   readReplicas,
   hiddenRoutes,
   corsRoutes,
