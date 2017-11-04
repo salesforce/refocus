@@ -275,59 +275,12 @@ function isWritable(req, modelInst) {
       resolve(modelInst);
     }
 
-    if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => modelInst.isWritableBy(resObj.username))
-      .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError(
-          'Resource not writable for provided token'))
-      )
-      .catch(reject);
-    } else if (req.user) {
-      // try to use the logged-in user
-      modelInst.isWritableBy(req.user.name)
-      .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError(
-          'Resource not writable by this user'))
-      )
-      .catch(reject);
-    } else {
-      // check if isWritable with no user
-      // when not passed a user, isWritable will return true if
-      // the resource is not write protected, false if it is
-      modelInst.isWritableBy()
-      .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError('Resource is write protected'))
-      )
-      .catch(reject);
-    }
+    modelInst.isWritableBy(req.user.name)
+    .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors.ForbiddenError(
+        'Resource not writable for provided token')))
+    .catch(reject);
   });
 } // isWritable
-
-/**
- * This is a wrapper for the function with the same name in jwtUtil.
- * @param  {Object} req  - The request object
- * @param  {Boolean} doDecode - A flag to decide if the username has to be coded
- * from the token.
- * @returns {Promise} - A promise object which resolves to a username if the
- * doDecode flag is set
- */
-function getUserNameFromToken(req) {
-  return new Promise((resolve, reject) => {
-    if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => {
-        resolve(resObj.username);
-      })
-      .catch((err) => reject(err));
-    } else if (req.user) {
-      // try to use the logged-in user
-      resolve(req.user.name);
-    } else {
-      resolve(false);
-    }
-  });
-} // getUserNameFromToken
 
 /**
  * Builds the API links to send back in the response.
@@ -873,8 +826,6 @@ module.exports = {
   includeAssocToCreate,
 
   isWritable,
-
-  getUserNameFromToken,
 
   handleAssociations,
 

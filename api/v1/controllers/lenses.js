@@ -12,8 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const helper = require('../helpers/nouns/lenses');
-const authUtils = require('../helpers/authUtils');
-const userProps = require('../helpers/nouns/users');
 const doDelete = require('../helpers/verbs/doDelete');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
@@ -412,21 +410,9 @@ module.exports = {
         });
 
       if (featureToggles.isFeatureEnabled('returnUser')) {
-        authUtils.getUser(req)
-        .then((user) => {
-          if (user) {
-            seqObj.installedBy = user.id;
-          }
-
-          return createLens();
-        })
-        .catch((err) => {
-          if (err.status === httpStatus.FORBIDDEN) {
-            return createLens();
-          }
-
-          return u.handleError(next, err, helper.modelName);
-        });
+        const user = req.user;
+        seqObj.installedBy = user.id;
+        createLens();
       } else {
         createLens();
       }

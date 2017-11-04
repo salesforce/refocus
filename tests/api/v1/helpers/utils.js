@@ -73,36 +73,4 @@ describe('tests/api/v1/helpers/utils.js >', () => {
       });
     });
   });
-
-  describe('getUserNameFromToken >', () => {
-    it('doDecode is true: should return the username', (done) => {
-      const fakeReq = { headers: { authorization: token } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then((ok) => {
-        expect(ok).to.equal('___myUNiqueUser');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('with req object containing username', (done) => {
-      const fakeReq = { user: { name: 'myUserName' } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then((ok) => {
-        expect(ok).to.equal('myUserName');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('must throw an error for invalid tokens', (done) => {
-      const fakeReq = { headers: { authorization: 'invalidtoken' } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then(() => done(tu.malFormedTokenError))
-      .catch((err) => {
-        expect(err).to.not.equal('undefined');
-        done();
-      });
-    });
-  });
 });
