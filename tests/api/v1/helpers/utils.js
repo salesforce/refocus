@@ -43,16 +43,6 @@ describe('tests/api/v1/helpers/utils.js >', () => {
   after(tu.forceDeleteSubject);
   after(tu.forceDeleteUser);
   describe('isWritable >', () => {
-    it('return the instance no writers are added to the object', (done) => {
-      const fakeReq = { headers: { authorization: token } };
-      apiUtils.isWritable(fakeReq, subject)
-      .then((ok) => {
-        expect(ok).to.equal(subject);
-        done();
-      })
-      .catch(done);
-    });
-
     it('with req object containing username', (done) => {
       const fakeReq = { user: { name: 'myUserName' } };
       apiUtils.isWritable(fakeReq, subject)
