@@ -46,7 +46,8 @@ const redisCache = require('../../../cache/redisCache').client.cache;
  * @param {String} cacheKey - Cache Key
  * @param {Integer} cacheExpiry -  Cache expiry time
  */
-function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
+function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey,
+  cacheExpiry) {
   redisModelSample.findSamples(req, res, resultObj)
   .then((response) => {
     // loop through remove values to delete property
@@ -86,21 +87,29 @@ module.exports = {
   /**
    * GET /samples
    *
-   * Finds zero or more samples and sends them back in the response.
+   * Finds zero or more samples and sends them back in the response. Sample
+   * response for wildcard name query may be cached.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    // Check if Cache is on for Wildcard Sample query
-    if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
-      const query = req.query.name;
-      helper.cacheEnabled = query && (query.indexOf('*') > -1);
-      helper.cacheKey = helper.cacheEnabled ? query : null;
-      helper.cacheExpiry = helper.cacheEnabled ?
-        parseInt(getSamplesWildcardCacheInvalidation) : null;
+    // Use cache for wildcard sample query
+    const query = req.query.name;
+    helper.cacheEnabled = query && (query.indexOf('*') > -1);
+    helper.cacheKey = helper.cacheEnabled ? query : null;
+
+    /*
+     * Include field list as part of cache key so that we only use a cached
+     * response if it has the same field list.
+     */
+    if (helper.cacheKey && req.query.fields) {
+      helper.cacheKey += '|' + req.query.fields;
     }
+
+    helper.cacheExpiry = helper.cacheEnabled ?
+      parseInt(getSamplesWildcardCacheInvalidation) : null;
 
     // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {

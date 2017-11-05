@@ -114,10 +114,6 @@ const shortTermToggles = {
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
 
-  // Cache the GET request for samples with wildcard by name
-  cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
-    'CACHE_GET_SAMPLES_BY_NAME_WILDCARD'),
-
   // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
   getSubjectFromCache: environmentVariableTrue(pe,
     'GET_SUBJECT_FROM_CACHE'),

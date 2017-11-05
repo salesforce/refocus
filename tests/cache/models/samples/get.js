@@ -20,13 +20,11 @@ const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const featureToggles = require('feature-toggles');
-const cacheGetSamplesByNameWildcard =
-  featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard');
 const enableRedisSampleStore =
   featureToggles.isFeatureEnabled('enableRedisSampleStore');
 
 describe('tests/cache/models/samples/get.js, ' +
-`api::redisEnabled::GET ${path}`, () => {
+`api::redisEnabled::GET ${path} >`, () => {
   let userId;
   let token;
   const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
@@ -49,7 +47,7 @@ describe('tests/cache/models/samples/get.js, ' +
     enableRedisSampleStore));
 
   describe('with returnUser toggle on, should return user object with ' +
-    'profile field: ', () => {
+    'profile field >', () => {
     const Aspect = tu.db.Aspect;
     const Subject = tu.db.Subject;
     const Sample = tu.db.Sample;
@@ -178,7 +176,7 @@ describe('tests/cache/models/samples/get.js, ' +
     });
   });
 
-  describe('with returnUser toggle OFF', () => {
+  describe('with returnUser toggle OFF >', () => {
     before(rtu.populateRedis);
     after(rtu.forceDelete);
 
@@ -681,15 +679,13 @@ describe('tests/cache/models/samples/get.js, ' +
   });
 });
 
-describe('tests/cache/models/samples/get.js, Basic Get with ' +
-  'cacheGetSamplesWildcard flag on', () => {
+describe('tests/cache/models/samples/get.js > cache the response >', () => {
   let token;
   const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
   const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
   const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
 
   before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -704,10 +700,7 @@ describe('tests/cache/models/samples/get.js, Basic Get with ' +
   after(tu.forceDeleteUser);
 
   after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-    tu.toggleOverride('enableRedisSampleStore',
-      enableRedisSampleStore);
+    tu.toggleOverride('enableRedisSampleStore', enableRedisSampleStore);
   });
 
   it('get with wildcard should cache response', (done) => {
@@ -751,38 +744,8 @@ describe('tests/cache/models/samples/get.js, Basic Get with ' +
       });
     });
   });
-});
 
-describe('tests/cache/models/samples/get.js, Basic Get with ' +
-  'cacheGetSamplesWildcard flag off', () => {
-  let token;
-  const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
-  const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
-  const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
-
-  before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-    tu.toggleOverride('enableRedisSampleStore', true);
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
-
-  before(rtu.populateRedis);
-  after(rtu.forceDelete);
-  after(tu.forceDeleteUser);
-
-  after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-    tu.toggleOverride('enableRedisSampleStore',
-      enableRedisSampleStore);
-  });
-
-  it('get with wildcard should not cache response', (done) => {
+  it('do not return response from cache if ?fields are different', (done) => {
     api.get(`${path}?name=___Subj*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -792,11 +755,19 @@ describe('tests/cache/models/samples/get.js, Basic Get with ' +
       }
 
       redisCache.get('___Subj*', (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.equal(3);
-          expect(res.body[0].name).to.equal(s1s2a1);
-          return done();
+        if (cacheErr) {
+          return done(cacheErr);
         }
+
+        expect(JSON.parse(reply).length).to.be.equal(3);
+        redisCache.get('___Subj*&fields=name,status', (cacheErr2, reply2) => {
+          if (cacheErr2) {
+            return done(cacheErr2);
+          }
+
+          expect(reply2).to.be.null;
+          return done();
+        });
       });
     });
   });
