@@ -197,9 +197,9 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      redisModelSample.patchSample(req.swagger.params, req.user.name)
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+        res))
       .catch((err) => // the sample is write protected
         u.handleError(next, err, helper.modelName)
       );
@@ -274,9 +274,9 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.putSample(req.swagger.params, user))
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      redisModelSample.putSample(req.swagger.params, req.user.name)
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+        res))
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doPut(req, res, next, helper);
@@ -475,8 +475,8 @@ module.exports = {
     const params = req.swagger.params;
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      delRlinksPromise = u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
+      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params,
+        req.user.name);
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o))
