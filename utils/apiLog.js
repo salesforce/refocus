@@ -11,9 +11,9 @@
  *
  */
 'use strict'; // eslint-disable-line strict
+const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('./activityLog');
-const jwtUtil = require('../utils/jwtUtil');
 
 /**
  * Returns the number of characters in the object.

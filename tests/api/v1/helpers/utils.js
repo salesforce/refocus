@@ -43,7 +43,7 @@ describe('tests/api/v1/helpers/utils.js >', () => {
       .catch(done);
     });
 
-    it('with not containing user object in the request', (done) => {
+    it('request object does not contain the user', (done) => {
       const fakeReq = { };
       apiUtils.isWritable(fakeReq, subject)
       .then((ok) => {
