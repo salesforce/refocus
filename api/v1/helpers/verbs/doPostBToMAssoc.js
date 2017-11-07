@@ -13,7 +13,6 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const featureToggles = require('feature-toggles');
 
 /**
  * Creates a one to many association between a instance of the model name
