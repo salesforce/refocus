@@ -260,31 +260,6 @@ function verifyToken(req, cb) {
 } // verifyToken
 
 /**
- * Get token details: username, token name from the token string.
- *
- * @param  {String} s - The token string
- * @returns {Promise} - Resolves to an object containing "username" and
- *  "tokenname" attributes.
- */
-function getTokenDetailsFromTokenString(s) {
-  const err = new apiErrors.ForbiddenError({
-    explanation: 'No authorization token was found',
-  });
-
-  if (!s) {
-    return Promise.reject(err);
-  }
-
-  return jwtVerifyAsync(s, secret, {})
-    .then((decodedData) => {
-      const username = decodedData.username;
-      const tokenname = decodedData.tokenname;
-      return { username, tokenname };
-    })
-    .catch(() => Promise.reject(err));
-} // getTokenDetailsFromTokenString
-
-/**
  * Get token details (user name and token name) from the request.
  *
  * @param {Object} req - The request object.
@@ -292,19 +267,17 @@ function getTokenDetailsFromTokenString(s) {
  *  "tokenname" attributes.
  */
 function getTokenDetailsFromRequest(req) {
-  let t = null;
-  if (req && req.headers && req.headers.authorization) {
-    t = req.headers.authorization;
+  let username;
+  let tokenname;
+  if (req && req.headers) {
+    username = req.headers.UserName;
+    tokenname = req.headers.TokenName;
+    return { username, tokenname };
   }
 
-  // if token is null and request from UI
-  if (!t && req.session && req.session.token) {
-    const username = req.session.passport.user.name;
-    const tokenname = '__UI';
-    return Promise.resolve({ username, tokenname });
-  }
-
-  return getTokenDetailsFromTokenString(t);
+  username = req.session.passport.user.name;
+  tokenname = '__UI';
+  return { username, tokenname };
 } // getTokenDetailsFromRequest
 
 /**
@@ -328,7 +301,6 @@ module.exports = {
   verifyToken,
   createToken,
   getTokenDetailsFromRequest,
-  getTokenDetailsFromTokenString,
   verifyCollectorToken,
   verifyBotToken,
 };
