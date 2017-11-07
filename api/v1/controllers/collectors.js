@@ -217,12 +217,14 @@ function reRegisterCollector(req, res, next) {
   //TODO: remove token verification once it's set up in middleware for collectors
   //verify token
   return jwtUtil.verifyCollectorToken(req)
+
   //find collector object
   .then(() => u.findByKey(helper, req.swagger.params))
   .then((collector) => {
     if (collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot Re-register a collector that is currently registered.'});
+        'Cannot Re-register a collector that is currently registered.',
+      });
     }
 
     req.swagger.params.queryBody = {

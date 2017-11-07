@@ -24,7 +24,7 @@ const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
 describe('tests/api/v1/collectors/re-register.js >', () => {
-  let i = 0;
+  let collectorId;
   let userToken;
   let collectorToken;
 
@@ -37,32 +37,32 @@ describe('tests/api/v1/collectors/re-register.js >', () => {
     .catch(done);
   });
 
-/**
-* TODO: change this to use /v1/collectors/:key/start to register the collector
-* once that has been set up
-*/
-function postCollector(collector) {
-  return api.post('/v1/collectors')
-  .set('Authorization', userToken)
-  .send(collector)
-  .expect(201)
-  .endAsync()
-  .then((res) => {
-    collectorToken = res.body.token;
-    i= res.body.id;
-  })
-}
+  /**
+   * TODO: change this to use /v1/collectors/:key/start to register the collector
+   * once that has been set up
+   */
+  function postCollector(collector) {
+    return api.post('/v1/collectors')
+    .set('Authorization', userToken)
+    .send(collector)
+    .expect(201)
+    .endAsync()
+    .then((res) => {
+      collectorToken = res.body.token;
+      collectorId = res.body.id;
+    });
+  }
 
-function deregisterCollector(_id) {
-  return api.post(deRegisterPath.replace('{key}', _id))
-  .set('Authorization', collectorToken)
-  .send({})
-  .expect(constants.httpStatus.OK)
-  .endAsync()
-  .then((res) => {
-    expect(res.body.registered).to.be.false;
-  });
-}
+  function deRegisterCollector(_id) {
+    return api.post(deRegisterPath.replace('{key}', _id))
+    .set('Authorization', collectorToken)
+    .send({})
+    .expect(constants.httpStatus.OK)
+    .endAsync()
+    .then((res) => {
+      expect(res.body.registered).to.be.false;
+    });
+  }
 
   beforeEach((done) => {
     Promise.resolve()
@@ -75,9 +75,9 @@ function deregisterCollector(_id) {
 
   it('fails when the user token is provided instead of collector token',
   (done) => {
-    deregisterCollector(i)
+    deRegisterCollector(collectorId)
     .then(() => {
-      api.post(reRegisterPath.replace('{key}', i))
+      api.post(reRegisterPath.replace('{key}', collectorId))
       .set('Authorization', userToken)
       .send({})
       .expect(constants.httpStatus.FORBIDDEN)
@@ -95,7 +95,7 @@ function deregisterCollector(_id) {
   });
 
   it('fails with registered collector', (done) => {
-    api.post(reRegisterPath.replace('{key}', i))
+    api.post(reRegisterPath.replace('{key}', collectorId))
     .set('Authorization', collectorToken)
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
@@ -104,7 +104,7 @@ function deregisterCollector(_id) {
         return done(err);
       }
 
-       expect(res.body.errors[0].description).to.equal(
+      expect(res.body.errors[0].description).to.equal(
         'Cannot Re-register a collector that is currently registered.');
       done();
     });
@@ -112,9 +112,9 @@ function deregisterCollector(_id) {
 
   it('ok with de-registered collector, updates the collector to be registered',
     (done) => {
-    deregisterCollector(i)
+    deRegisterCollector(collectorId)
     .then(() => {
-      api.post(reRegisterPath.replace('{key}', i))
+      api.post(reRegisterPath.replace('{key}', collectorId))
       .set('Authorization', collectorToken)
       .send({})
       .expect(constants.httpStatus.OK)
