@@ -53,6 +53,17 @@ function postCollector(collector) {
   })
 }
 
+function deregisterCollector(_id) {
+  return api.post(deRegisterPath.replace('{key}', _id))
+  .set('Authorization', collectorToken)
+  .send({})
+  .expect(constants.httpStatus.OK)
+  .endAsync()
+  .then((res) => {
+    expect(res.body.registered).to.be.false;
+  });
+}
+
   beforeEach((done) => {
     Promise.resolve()
     .then(() => postCollector(u.toCreate))
@@ -64,17 +75,8 @@ function postCollector(collector) {
 
   it('fails when the user token is provided instead of collector token',
   (done) => {
-    api.post(deRegisterPath.replace('{key}', i))
-    .set('Authorization', collectorToken)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.registered).to.be.false;
-
+    deregisterCollector(i)
+    .then(() => {
       api.post(reRegisterPath.replace('{key}', i))
       .set('Authorization', userToken)
       .send({})
@@ -108,18 +110,10 @@ function postCollector(collector) {
     });
   });
 
-  it('ok with de-registered collector', (done) => {
-    api.post(deRegisterPath.replace('{key}', i))
-    .set('Authorization', collectorToken)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.registered).to.be.false;
-
+  it('ok with de-registered collector, updates the collector to be registered',
+    (done) => {
+    deregisterCollector(i)
+    .then(() => {
       api.post(reRegisterPath.replace('{key}', i))
       .set('Authorization', collectorToken)
       .send({})
