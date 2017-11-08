@@ -213,13 +213,13 @@ function deregisterCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function reregisterCollector(req, res, next) {
+  if (!req.headers.IsCollector) {
+    throw new apiErrors.ForbiddenError({
+      explanation: 'Invalid/No Token provided.',
+    });
+  }
 
-  //TODO: remove token verification once it's set up in middleware for collectors
-  //verify token
-  return jwtUtil.verifyCollectorToken(req)
-
-  //find collector object
-  .then(() => u.findByKey(helper, req.swagger.params))
+  return u.findByKey(helper, req.swagger.params)
   .then((collector) => {
     if (collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
