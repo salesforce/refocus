@@ -51,7 +51,7 @@ describe('tests/api/v1/collectors/reregister.js >', () => {
     });
   }
 
-  function deRegisterCollector(_id) {
+  function deregisterCollector(_id) {
     return api.post(deregisterPath.replace('{key}', _id))
     .set('Authorization', userToken)
     .send({})
@@ -89,7 +89,7 @@ describe('tests/api/v1/collectors/reregister.js >', () => {
 
   it('ok with deregistered collector, updates the collector to be registered',
     (done) => {
-    deRegisterCollector(collectorId)
+    deregisterCollector(collectorId)
     .then(() => {
       api.post(reregisterPath.replace('{key}', collectorId))
       .set('Authorization', userToken)
