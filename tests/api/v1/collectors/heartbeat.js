@@ -13,8 +13,7 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const reEncryptSGContextValues = require(
-  '../../../../api/v1/controllers/collectors'
-).reEncryptSGContextValues;
+  '../../../../api/v1/controllers/collectors').reEncryptSGContextValues;
 const u = require('./utils');
 const gu = require('../generators/utils');
 const tu = require('../../../testUtils');
@@ -24,7 +23,6 @@ const cryptUtils = require('../../../../utils/cryptUtils');
 const GlobalConfig = tu.db.GlobalConfig;
 const dbConstants = require('../../../../db/constants');
 const config = require('../../../../config');
-const jwtUtil = require('../../../../utils/jwtUtil');
 const Promise = require('bluebird');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Generator = tu.db.Generator;
@@ -64,7 +62,7 @@ const collector3 = JSON.parse(JSON.stringify(u.toCreate));
 collector1.name += '1';
 collector2.name += '2';
 collector3.name += '3';
-let collectorTokens = {};
+const collectorTokens = {};
 
 const sgt = gtUtil.getGeneratorTemplate();
 sgt.contextDefinition = contextDefinition;
@@ -84,7 +82,6 @@ generator3.name += '3';
 let userToken;
 
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
-
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -149,14 +146,14 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       it('invalid path, no token', (done) => {
-        api.post(`/v1/collectors/AAA/heartbeat`)
+        api.post('/v1/collectors/AAA/heartbeat')
         .send({ timestamp: Date.now() })
         .expect(403)
         .end(done);
       });
 
       it('invalid path, valid token', (done) => {
-        api.post(`/v1/collectors/AAA/heartbeat`)
+        api.post('/v1/collectors/AAA/heartbeat')
         .set('Authorization', collectorTokens[collector1.name])
         .send({ timestamp: Date.now() })
         .expect(404)
@@ -166,22 +163,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       it('valid user token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', userToken)
-        .send({ timestamp: Date.now() })
-        .expect(403)
-        .end(done);
-      });
-
-      it('valid collector token, doesnt match collector - by name', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .set('Authorization', collectorTokens[collector2.name])
-        .send({ timestamp: Date.now() })
-        .expect(403)
-        .end(done);
-      });
-
-      it('valid collector token, doesnt match collector - by id', (done) => {
-        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-        .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
         .expect(403)
         .end(done);
@@ -235,7 +216,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
     describe('generator changes', () => {
 
-      //reset the tracked changes
+      // reset the tracked changes
       beforeEach((done) => {
         Promise.resolve()
         .then(() => sendHeartbeat(collector1))
@@ -244,7 +225,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then(() => done()).catch(done);
       });
 
-      //reset generators
+      // reset generators
       afterEach((done) => {
         Promise.resolve()
         .then(() => Generator.destroy({ where: { name: generator1.name }, force: true }))

@@ -109,15 +109,9 @@ function attachTemplate(sg) {
  */
 function postCollector(req, res, next) {
   const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: req.timestamp };
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
-    if (helper.loggingEnabled) {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      utils.logAPI(req, resultObj, o);
-    }
-
     /*
      * When a collector registers itself with Refocus, Refocus sends back a
      * special token for that collector to use for all further communication
@@ -238,10 +232,15 @@ function reregisterCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function heartbeat(req, res, next) {
+  if (!req.headers.IsCollector) {
+    throw new apiErrors.ForbiddenError({
+      explanation: `The token: ${req.headers.TokenName} does not belong to ' +
+      'a collector`,
+    });
+  }
+
   const authToken = req.headers.authorization;
   const timestamp = req.body.timestamp;
-  let keyName;
-  let tokenName;
   const retval = {
     collectorConfig: config.collector,
     generatorsAdded: [],
@@ -249,30 +248,15 @@ function heartbeat(req, res, next) {
     generatorsUpdated: [],
   };
 
-  //TODO: remove token verification once it's set up in middleware for collectors
-  //verify token
-  jwtUtil.verifyCollectorToken(req)
-  .then(() => jwtUtil.getTokenDetailsFromRequest(req))
-  .then((details) => tokenName = details.username)
-
-  //find collector object
-  .then(() => u.findByKey(helper, req.swagger.params))
+  u.findByKey(helper, req.swagger.params)
   .then((o) => {
-    keyName = o.name;
-
-    //validate collector
-    //TODO: remove token verification once it's set up in middleware for collectors
-    if (keyName !== tokenName) {
-      throw new apiErrors.ForbiddenError({
-        explanation: 'Token does not match the specified collector',
-      });
-    } else if (o.status !== 'Running' && o.status !== 'Paused') {
+    if (o.status !== 'Running' && o.status !== 'Paused') {
       throw new apiErrors.ForbiddenError({
         explanation: `Collector must be running or paused. Status: ${o.status}`,
       });
     }
 
-    //setup retval
+    // setup retval
     if (heartbeatUtils.collectorMap[o.name]) {
       retval.generatorsAdded = heartbeatUtils.collectorMap[o.name].added;
       retval.generatorsDeleted = heartbeatUtils.collectorMap[o.name].deleted;
@@ -280,10 +264,10 @@ function heartbeat(req, res, next) {
       delete heartbeatUtils.collectorMap[o.name];
     }
 
-    //set lastHeartbeat
+    // set lastHeartbeat
     o.set('lastHeartbeat', timestamp);
 
-    //update metadata
+    // update metadata
     const changedConfig = req.body.collectorConfig;
     if (changedConfig) {
       if (changedConfig.osInfo) {
@@ -306,7 +290,7 @@ function heartbeat(req, res, next) {
     return o.save();
   })
 
-  //re-encrypt context values for added and updated generators
+  // re-encrypt context values for added and updated generators
   .then(() => Promise.all(
     retval.generatorsAdded.map((sg) =>
       attachTemplate(sg)
@@ -322,7 +306,7 @@ function heartbeat(req, res, next) {
   ))
   .then((updated) => retval.generatorsUpdated = updated)
 
-  //send response
+  // send response
   .then(() => res.status(httpStatus.OK).json(retval))
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // heartbeat
