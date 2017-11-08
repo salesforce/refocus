@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/collectors/re-register.js
+ * tests/api/v1/collectors/reregister.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
@@ -105,7 +105,7 @@ describe('tests/api/v1/collectors/re-register.js >', () => {
       }
 
       expect(res.body.errors[0].description).to.equal(
-        'Cannot Re-register a collector that is currently registered.');
+        'Cannot reregister--this collector is already registered.');
       done();
     });
   });

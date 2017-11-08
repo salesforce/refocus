@@ -212,7 +212,7 @@ function deregisterCollector(req, res, next) {
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
-function reRegisterCollector(req, res, next) {
+function reregisterCollector(req, res, next) {
 
   //TODO: remove token verification once it's set up in middleware for collectors
   //verify token
@@ -223,7 +223,7 @@ function reRegisterCollector(req, res, next) {
   .then((collector) => {
     if (collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot Re-register a collector that is currently registered.',
+        'Cannot reregister--this collector is already registered.',
       });
     }
 
@@ -234,7 +234,7 @@ function reRegisterCollector(req, res, next) {
     return doPatch(req, res, next, helper);
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
-} // reRegisterCollector
+} // reregisterCollector
 
 /**
  * Send heartbeat from collector. Access restricted to Refocus Collector only.
@@ -461,7 +461,7 @@ module.exports = {
   getCollector,
   patchCollector,
   deregisterCollector,
-  reRegisterCollector,
+  reregisterCollector,
   heartbeat,
   startCollector,
   stopCollector,

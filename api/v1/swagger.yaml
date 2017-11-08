@@ -2507,12 +2507,12 @@ paths:
     post:
       security:
         - jwt: []
-      summary: Re-registers a de-registered collector
+      summary: Reregisters a deregistered collector
       tags: [ collectors ]
       description: >-
-        Re-register the specified collector. Access restricted to Refocus
+        Reregister the specified collector. Access restricted to Refocus
         Collector only.
-      operationId: reRegisterCollector
+      operationId: reregisterCollector
       parameters:
         -
           name: key
@@ -11097,7 +11097,7 @@ definitions:
         description: "Generators assigned to this collector."
       isRegistered:
         type: "string"
-        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+        description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
         - false
