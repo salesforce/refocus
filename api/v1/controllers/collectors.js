@@ -213,12 +213,6 @@ function deregisterCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function reregisterCollector(req, res, next) {
-  if (!req.headers.IsCollector) {
-    throw new apiErrors.ForbiddenError({
-      explanation: 'Invalid/No Token provided.',
-    });
-  }
-
   return u.findByKey(helper, req.swagger.params)
   .then((collector) => {
     if (collector.registered) {

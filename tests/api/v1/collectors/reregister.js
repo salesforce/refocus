@@ -18,15 +18,14 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const startPath = '/v1/collectors/{key}/start';
-const deRegisterPath = '/v1/collectors/{key}/deregister';
-const reRegisterPath = '/v1/collectors/{key}/reregister';
+const deregisterPath = '/v1/collectors/{key}/deregister';
+const reregisterPath = '/v1/collectors/{key}/reregister';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
-describe('tests/api/v1/collectors/re-register.js >', () => {
+describe('tests/api/v1/collectors/reregister.js >', () => {
   let collectorId;
   let userToken;
-  let collectorToken;
 
   before((done) => {
     tu.createToken()
@@ -48,14 +47,13 @@ describe('tests/api/v1/collectors/re-register.js >', () => {
     .expect(201)
     .endAsync()
     .then((res) => {
-      collectorToken = res.body.token;
       collectorId = res.body.id;
     });
   }
 
   function deRegisterCollector(_id) {
-    return api.post(deRegisterPath.replace('{key}', _id))
-    .set('Authorization', collectorToken)
+    return api.post(deregisterPath.replace('{key}', _id))
+    .set('Authorization', userToken)
     .send({})
     .expect(constants.httpStatus.OK)
     .endAsync()
@@ -73,30 +71,9 @@ describe('tests/api/v1/collectors/re-register.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('fails when the user token is provided instead of collector token',
-  (done) => {
-    deRegisterCollector(collectorId)
-    .then(() => {
-      api.post(reRegisterPath.replace('{key}', collectorId))
-      .set('Authorization', userToken)
-      .send({})
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.errors[0].description).to.be.equal(
-          'Invalid/No Token provided.'
-        );
-        done();
-      });
-    });
-  });
-
   it('fails with registered collector', (done) => {
-    api.post(reRegisterPath.replace('{key}', collectorId))
-    .set('Authorization', collectorToken)
+    api.post(reregisterPath.replace('{key}', collectorId))
+    .set('Authorization', userToken)
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
@@ -110,12 +87,12 @@ describe('tests/api/v1/collectors/re-register.js >', () => {
     });
   });
 
-  it('ok with de-registered collector, updates the collector to be registered',
+  it('ok with deregistered collector, updates the collector to be registered',
     (done) => {
     deRegisterCollector(collectorId)
     .then(() => {
-      api.post(reRegisterPath.replace('{key}', collectorId))
-      .set('Authorization', collectorToken)
+      api.post(reregisterPath.replace('{key}', collectorId))
+      .set('Authorization', userToken)
       .send({})
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
