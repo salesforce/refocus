@@ -206,6 +206,31 @@ function deregisterCollector(req, res, next) {
 } // deregisterCollector
 
 /**
+ * Reregister a collector. Access restricted to Refocus Collector only.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function reregisterCollector(req, res, next) {
+  return u.findByKey(helper, req.swagger.params)
+  .then((collector) => {
+    if (collector.registered) {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot reregister--this collector is already registered.',
+      });
+    }
+
+    req.swagger.params.queryBody = {
+      value: { registered: true },
+    };
+
+    return doPatch(req, res, next, helper);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // reregisterCollector
+
+/**
  * Send heartbeat from collector. Access restricted to Refocus Collector only.
  *
  * @param {IncomingMessage} req - The request object
@@ -430,6 +455,7 @@ module.exports = {
   getCollector,
   patchCollector,
   deregisterCollector,
+  reregisterCollector,
   heartbeat,
   startCollector,
   stopCollector,
