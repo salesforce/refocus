@@ -2502,6 +2502,38 @@ paths:
 
   # ---------------------------------------------------------------------------
 
+  /collectors/{key}/reregister:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Reregisters a deregistered collector
+      tags: [ collectors ]
+      description: >-
+        Reregister the specified collector. Access restricted to Refocus
+        Collector only.
+      operationId: reregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: Access restricted to Refocus Collector only.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
   /collectors/{key}/heartbeat:
     x-swagger-router-controller: collectors
     post:
@@ -11065,7 +11097,7 @@ definitions:
         description: "Generators assigned to this collector."
       isRegistered:
         type: "string"
-        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+        description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
         - false
