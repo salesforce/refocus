@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
-const authUtils = require('../helpers/authUtils');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
@@ -197,7 +196,8 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      redisModelSample.patchSample(req.swagger.params, req.user.name)
+      const userName = req.user ? req.user.name : undefined;
+      redisModelSample.patchSample(req.swagger.params, userName)
       .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
         res))
       .catch((err) => // the sample is write protected
@@ -226,21 +226,16 @@ module.exports = {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     let createdSample;
     u.checkDuplicateRLinks(toPost.relatedLinks);
-    authUtils.getUser(req)
-    .then((user) => {
-      if (isSampleStoreEnabled) {
-        return isReturnUserEnabled ? redisModelSample.postSample(reqParams,
-         user) : redisModelSample.postSample(reqParams, false);
-      }
+    let createSample;
+    if (isSampleStoreEnabled) {
+      createSample = isReturnUserEnabled ? redisModelSample.postSample(reqParams,
+       req.user) : redisModelSample.postSample(reqParams, false);
+    } else {
+      createSample = isReturnUserEnabled ? helper.model.createSample(toPost,
+      req.user) : helper.model.createSample(toPost, false);
+    }
 
-      return isReturnUserEnabled ? helper.model.createSample(toPost, user) :
-        helper.model.createSample(toPost, false);
-    })/*
-       * if an error is throw by the getUser promise, create the sample
-       * without the user
-       */
-    .catch(() => isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
-        false) : helper.model.createSample(toPost, false))
+    createSample
     .then((sample) => {
       createdSample = sample;
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
@@ -274,7 +269,8 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      redisModelSample.putSample(req.swagger.params, req.user.name)
+      const userName = req.user ? req.user.name : undefined;
+      redisModelSample.putSample(req.swagger.params, userName)
       .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
         res))
       .catch((err) => u.handleError(next, err, helper.modelName));
@@ -352,19 +348,8 @@ module.exports = {
       });
     }
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      doUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    )
-    .catch(() => // user is not found. upsert anyway with no user
-      doUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
+    return doUpsert(req.user)
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -445,18 +430,8 @@ module.exports = {
       }
     }
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      bulkUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    ).catch(() => // user is not found. upsert anyway with no user
-      bulkUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
+    return bulkUpsert(req.user)
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -475,8 +450,9 @@ module.exports = {
     const params = req.swagger.params;
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      delRlinksPromise = redisModelSample.deleteSampleRelatedLinks(params,
-        req.user.name);
+      const userName = req.user ? req.user.name : undefined;
+      delRlinksPromise =
+        redisModelSample.deleteSampleRelatedLinks(params, userName);
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o))
