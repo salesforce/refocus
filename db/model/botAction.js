@@ -25,6 +25,10 @@ const botActionEventNames = {
   upd: 'refocus.internal.realtime.bot.action.update',
   del: 'refocus.internal.realtime.bot.action.remove',
 };
+const pubOpts = {
+  client: 'pubBot',
+  channel: 'botChannelName',
+};
 
 module.exports = function botAction(seq, dataTypes) {
   const BotAction = seq.define('BotAction', {
@@ -165,24 +169,18 @@ module.exports = function botAction(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        let pubInstance = instance.toJSON();
-        pubInstance.useBotChannel = true;
-        return realTime.publishObject(pubInstance,
-          botActionEventNames.add, changedKeys, ignoreAttributes);
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.add, changedKeys, ignoreAttributes, pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
-        let pubInstance = instance.toJSON();
-        pubInstance.useBotChannel = true;
-        return realTime.publishObject(pubInstance,
-          botActionEventNames.upd);
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.upd, null, null, pubOpts);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
-        let pubInstance = instance.toJSON();
-        pubInstance.useBotChannel = true;
-        return realTime.publishObject(pubInstance,
-          botActionEventNames.del);
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.del, null, null, pubOpts);
       }, // hooks.afterDelete
     }, // hooks
     indexes: [

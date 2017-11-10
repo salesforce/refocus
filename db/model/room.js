@@ -15,12 +15,15 @@
 
 const constants = require('../constants');
 const realTime = require('../../realtime/redisPublisher');
-
 const assoc = {};
 const roomEventNames = {
   add: 'refocus.internal.realtime.bot.namespace.initialize',
   upd: 'refocus.internal.realtime.room.settingsChanged',
   del: 'refocus.internal.realtime.room.remove',
+};
+const pubOpts = {
+  client: 'pubBot',
+  channel: 'botChannelName',
 };
 
 module.exports = function room(seq, dataTypes) {
@@ -105,18 +108,15 @@ module.exports = function room(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        let pubInstance = instance.toJSON();
-        pubInstance.useBotChannel = true;
-        return realTime.publishObject(pubInstance, roomEventNames.add,
-          changedKeys, ignoreAttributes);
+        return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+          changedKeys, ignoreAttributes, pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            let pubInstance = instance.toJSON();
-            pubInstance.useBotChannel = true;
-            return realTime.publishObject(pubInstance, roomEventNames.upd);
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
           }
         }
 
@@ -125,9 +125,8 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          let pubInstance = instance.toJSON();
-          pubInstance.useBotChannel = true;
-          return realTime.publishObject(pubInstance, roomEventNames.del);
+          return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
         }
 
         return seq.Promise.resolve();

@@ -11,10 +11,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
-const pubPerspective = require('../cache/redisCache').client.pubPerspective;
-const pubBot = require('../cache/redisCache').client.pubBot;
-const perspectiveChannelName = require('../config').redis.perspectiveChannelName;
-const botChannelName = require('../config').redis.botChannelName;
+const config = require('../config');
+const client = require('../cache/redisCache').client;
+const pubPerspective = client.pubPerspective;
+const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
 
@@ -69,9 +69,16 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * model that should be ignored
  * @returns {Object} - object that was published
  */
-function publishObject(inst, event, changedKeys, ignoreAttributes) {
+function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   const obj = {};
   obj[event] = inst;
+  let pubClient = pubPerspective;
+  let channelName = perspectiveChannelName;
+  if (opts) {
+    pubClient = opts.client ? client[opts.client] : pubClient;
+    channelName = opts.channel ? opts.channel : channelName;
+  }
+
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -83,11 +90,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if ('useBotChannel' in inst) {
-      pubBot.publish(botChannelName, JSON.stringify(obj));
-    } else {
-      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
-    }
+    pubClient.publish(channelName, JSON.stringify(obj));
   }
 
   return obj;
