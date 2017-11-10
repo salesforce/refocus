@@ -200,7 +200,7 @@ function deregisterCollector(req, res, next) {
 } // deregisterCollector
 
 /**
- * Reregister a collector. Access restricted to Refocus Collector only.
+ * Reregister a collector.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -241,6 +241,7 @@ function heartbeat(req, res, next) {
 
   const authToken = req.headers.authorization;
   const timestamp = req.body.timestamp;
+  const collectorNameFromToken = req.headers.UserName;
   const retval = {
     collectorConfig: config.collector,
     generatorsAdded: [],
@@ -250,7 +251,15 @@ function heartbeat(req, res, next) {
 
   u.findByKey(helper, req.swagger.params)
   .then((o) => {
-    if (o.status !== 'Running' && o.status !== 'Paused') {
+    /*
+     * TODO: remove this 'if block', once spoofing between collectors can be
+     * detected and rejected in the middleware.
+     */
+    if (collectorNameFromToken !== o.name) {
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Token does not match the specified collector',
+      });
+    } else if (o.status !== 'Running' && o.status !== 'Paused') {
       throw new apiErrors.ForbiddenError({
         explanation: `Collector must be running or paused. Status: ${o.status}`,
       });

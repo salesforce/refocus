@@ -168,6 +168,22 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
+      it('valid collector token, doesnt match collector - by name', (done) => {
+        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+        .set('Authorization', collectorTokens[collector2.name])
+        .send({ timestamp: Date.now() })
+        .expect(403)
+        .end(done);
+      });
+
+      it('valid collector token, doesnt match collector - by id', (done) => {
+        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
+        .set('Authorization', collectorTokens[collector2.name])
+        .send({ timestamp: Date.now() })
+        .expect(403)
+        .end(done);
+      });
+
       it('valid token, matches collector, collector stopped - by name', (done) => {
         stopCollector(collector1)
         .then(() => {
