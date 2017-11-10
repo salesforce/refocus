@@ -76,9 +76,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   let channelName = perspectiveChannelName;
   if (opts) {
     pubClient = opts.client ? client[opts.client] : pubClient;
-    channelName = opts.channel ? opts.channel : channelName;
+    channelName = opts.channel ? config.redis[opts.channel] : channelName;
   }
-
+  console.log();
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
