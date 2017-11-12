@@ -15,6 +15,7 @@ const constants = require('../constants');
 const redisCache = require('../../cache/redisCache').client.cache;
 const lensUtil = require('../../utils/lensUtil');
 const featureToggles = require('feature-toggles');
+const dbErrors = require('../dbErrors');
 const assoc = {};
 
 /**
@@ -126,9 +127,28 @@ module.exports = function lens(seq, dataTypes) {
     },
 
     hooks: {
+      /**
+       * Prohibit deleting a lens if perspectives are using it.
+       */
       beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      },
+        return seq.models.Perspective.findAll({
+          where: {
+            lensId: inst.id,
+          },
+          attributes: ['id', 'lensId', 'name'],
+        })
+        .then((perspectives) => {
+          if (perspectives && perspectives.length) {
+            throw new dbErrors.ValidationError({
+              message:
+                `Cannot delete ${inst.name} because it is still in use by the ` +
+                'following perspectives: ' + perspectives.map((p) => p.name),
+            });
+          } else {
+            return common.setIsDeleted(seq.Promise, inst);
+          }
+        });
+      }, // beforeDestroy
 
       /**
        * Makes sure isUrl/isEmail validations will handle empty strings
@@ -162,9 +182,10 @@ module.exports = function lens(seq, dataTypes) {
         redisCache.del(inst.name);
       },
 
+      /**
+       *  If installedBy is valid, reload to attach user object.
+       */
       afterCreate(inst /* , opts */) {
-
-        // if installedBy is valid, reload to attach user object
         if (inst.installedBy) {
           const library = inst.library; // reload removes the library
           inst.reload()
@@ -177,10 +198,15 @@ module.exports = function lens(seq, dataTypes) {
         }
       },
 
+      /**
+       * Clear this record from the cache so that a fresh entry is populated
+       * from the API layer when the lens is fetched.
+       * Note: we don't just add inst to the cache from here because default
+       * scope excludes the "library" attribute, which obviously needs to be
+       * cached.
+       */
       afterUpdate(inst /* , opts */) {
-        // the inst object here does not include library field because of
-        // default scope. So, we delete the cache entry on update so that
-        // fresh entry is populated on API layer when lens is fetched.
+        // Clear the lens from the cache whether it's stored by id or by name.
         redisCache.del(inst.id);
         redisCache.del(inst.name);
       },
