@@ -328,10 +328,21 @@ function heartbeat(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function startCollector(req, res, next) {
-  req.swagger.params.queryBody = {
-    value: { status: 'Running' },
-  };
-  doPatch(req, res, next, helper);
+  return u.findByKey(helper, req.swagger.params)
+  .then((collector) => {
+    if (!collector.registered) {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot start--this collector is not registered.',
+      });
+    }
+
+    req.swagger.params.queryBody = {
+      value: { status: 'Running' },
+    };
+
+    return doPatch(req, res, next, helper);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector
 
 /**
