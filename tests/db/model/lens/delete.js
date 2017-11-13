@@ -39,7 +39,7 @@ describe('tests/db/model/lens/delete.js >', () => {
 
   after(u.forceDelete);
 
-  it('OK, has no perspectives', (done) => {
+  it('Delete OK, has no perspectives', (done) => {
     Lens.create({
       name: `${tu.namePrefix}noPersp`,
       sourceName: `${tu.namePrefix}noPersp`,
@@ -56,7 +56,7 @@ describe('tests/db/model/lens/delete.js >', () => {
     .catch(done);
   });
 
-  it('Not allowed, still has perspectives', (done) => {
+  it('Delete not allowed, still has perspectives', (done) => {
     let lensId;
     Lens.create({
       name: `${tu.namePrefix}hasPersp`,
@@ -89,6 +89,60 @@ describe('tests/db/model/lens/delete.js >', () => {
     .catch((err) => {
       expect(err).to.have.property('name', 'ValidationError');
       expect(err.message).to.match(/Cannot delete .*/);
+      return done();
+    });
+  });
+
+  it('Unpublish OK, has no perspectives', (done) => {
+    Lens.create({
+      name: `${tu.namePrefix}UnPubnoPersp`,
+      sourceName: `${tu.namePrefix}UnPubnoPersp`,
+      description: 'd',
+      sourceDescription: 'd',
+      isPublished: true,
+      library: lensLibrary,
+    })
+    .then((l) => l.update({ isPublished: false }))
+    .then((l) => {
+      expect(l.isPublished).to.equal(false);
+    })
+    .then(() => done())
+    .catch(done);
+  });
+
+  it('Unpublish not allowed, still has perspectives', (done) => {
+    let lensId;
+    Lens.create({
+      name: `${tu.namePrefix}UnPubhasPersp`,
+      sourceName: `${tu.namePrefix}UnPubhasPersp`,
+      description: 'd',
+      sourceDescription: 'd',
+      isPublished: true,
+      library: lensLibrary,
+    })
+    .then((l) => {
+      lensId = l.id;
+      return Perspective.create({
+        name: `${tu.namePrefix}u1`,
+        rootSubject: subj.absolutePath,
+        lensId,
+      });
+    })
+    .then(() => Perspective.create({
+      name: `${tu.namePrefix}u2`,
+      rootSubject: subj.absolutePath,
+      lensId,
+    }))
+    .then(() => Lens.findOne({
+      where: {
+        name: `${tu.namePrefix}UnPubhasPersp`,
+      },
+    }))
+    .then((l) => l.update({ isPublished: false }))
+    .then((l) => done(new Error(`Expecting validation error but got "${l}"`)))
+    .catch((err) => {
+      expect(err).to.have.property('name', 'ValidationError');
+      expect(err.message).to.match(/Cannot unpublish .*/);
       return done();
     });
   });

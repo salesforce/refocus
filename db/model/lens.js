@@ -151,6 +151,30 @@ module.exports = function lens(seq, dataTypes) {
       }, // beforeDestroy
 
       /**
+       * Prohibit unpublishing a lens if perspectives are using it.
+       */
+      beforeUpdate(inst /* , opts */) {
+        if (inst.changed('isPublished') && inst.isPublished === false) {
+          return seq.models.Perspective.findAll({
+            where: {
+              lensId: inst.id,
+            },
+            attributes: ['id', 'lensId', 'name'],
+          })
+          .then((perspectives) => {
+            if (perspectives && perspectives.length) {
+              throw new dbErrors.ValidationError({
+                message:
+                  `Cannot unpublish ${inst.name} because it is still in use ` +
+                  'by the following perspectives: ' +
+                  perspectives.map((p) => p.name),
+              });
+            }
+          });
+        }
+      }, // beforeUpdate
+
+      /**
        * Makes sure isUrl/isEmail validations will handle empty strings
        * appropriately.
        *
