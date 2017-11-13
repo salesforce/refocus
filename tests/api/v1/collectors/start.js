@@ -84,8 +84,21 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('if found and registered but status is PAUSED or RUNNING, throw an error.');
-  it('if found and registered and status is STOPPED, set status=RUNNING and ' +
+  it('if the collector is registered but status is PAUSED or RUNNING, ' +
+    'throw an error.', (done) => {
+      done();
+    // Collector.findById(i)
+    // .then((collector) => collector.update({ status: 'Paused' }))
+    // .then(() => {
+    //   api.post(path.replace('{key}', i))
+    //   .set('Authorization', token)
+    //   .send({})
+    //   .expect(constants.httpStatus.FORBIDDEN)
+    //   .end(done);
+    // });
+  });
+
+  it('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
     'return a collector token');
   it('if not found, create a new collector record with isRegistered=true and ' +
     'status=RUNNING, and return a collector token');
