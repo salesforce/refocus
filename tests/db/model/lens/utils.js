@@ -16,7 +16,9 @@ const testStartTime = new Date();
 
 module.exports = {
   forceDelete(done) {
-    tu.forceDelete(tu.db.Lens, testStartTime)
+    tu.forceDelete(tu.db.Perspective, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
