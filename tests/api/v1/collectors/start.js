@@ -56,8 +56,6 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .end(done);
   });
 
-  it('test invalid state changes');
-
   it('Reject when the user token is invalid', (done) => {
     api.post(path.replace('{key}', i))
     .set('Authorization', 'iDontExist')
@@ -90,7 +88,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     _collector.name = 'PausedCollector';
 
     // if change from default status Stopped to Paused, will throw err
-    _collector.status ='Paused';
+    _collector.status = 'Paused';
     Collector.create(_collector)
     .then((c) => {
       api.post(path.replace('{key}', c.id))
@@ -111,11 +109,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
       .send({})
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
-      });
     });
+  });
 
-  it('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
-    'return a collector token', (done) => {
+  it('if the collector is registered and status is STOPPED, set ' +
+    'status=RUNNING and return a collector token', (done) => {
 
     // default status is STOPPED.
     api.post(path.replace('{key}', i))
@@ -133,7 +131,5 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   it('if not found, create a new collector record with isRegistered=true and ' +
-    'status=RUNNING, and return a collector token', (done) => {
-
-    });
+    'status=RUNNING, and return a collector token');
 });

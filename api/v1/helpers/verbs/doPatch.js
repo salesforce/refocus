@@ -82,7 +82,7 @@ function doPatch(req, res, next, props, addCollectorTokenToResponse) {
   .then((retVal) => {
     retVal.dataValues.token = jwtUtil
       .createToken(retVal.name, retVal.name);
-    return u.handleUpdatePromise(resultObj, req, retVal, props, res)
+    return u.handleUpdatePromise(resultObj, req, retVal, props, res);
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

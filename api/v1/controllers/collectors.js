@@ -333,7 +333,7 @@ function startCollector(req, res, next) {
     if (!collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
-      });jwtUtil
+      });
     }
 
     if (collector.status === 'Running') {
