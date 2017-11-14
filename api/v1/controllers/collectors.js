@@ -333,7 +333,7 @@ function startCollector(req, res, next) {
     if (!collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
-      });
+      });jwtUtil
     }
 
     if (collector.status === 'Running') {
@@ -351,7 +351,7 @@ function startCollector(req, res, next) {
       value: { status: 'Running' },
     };
 
-    return doPatch(req, res, next, helper);
+    return doPatch(req, res, next, helper, true);
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector

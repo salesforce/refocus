@@ -86,7 +86,6 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   it('if the collector is registered but status is PAUSED, ' +
     'throw an error.', (done) => {
-      // done();
     const _collector = JSON.parse(JSON.stringify(u.toCreate));
     _collector.name = 'PausedCollector';
 
@@ -115,8 +114,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
       });
     });
 
-  // need return collector token
-  it.only('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
+  it('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
     'return a collector token', (done) => {
 
     // default status is STOPPED.
@@ -135,5 +133,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   it('if not found, create a new collector record with isRegistered=true and ' +
-    'status=RUNNING, and return a collector token');
+    'status=RUNNING, and return a collector token', (done) => {
+
+    });
 });
