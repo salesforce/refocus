@@ -336,6 +336,17 @@ function startCollector(req, res, next) {
       });
     }
 
+    if (collector.status === 'Running') {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot start--this collector is already started.',
+      });
+    } else if (collector.status === 'Paused') {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot start--this collector is paused. ' +
+        'Resume this collector instead.',
+      });
+    }
+
     req.swagger.params.queryBody = {
       value: { status: 'Running' },
     };

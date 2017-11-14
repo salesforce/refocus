@@ -84,22 +84,56 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('if the collector is registered but status is PAUSED or RUNNING, ' +
+  it('if the collector is registered but status is PAUSED, ' +
     'throw an error.', (done) => {
-      done();
-    // Collector.findById(i)
-    // .then((collector) => collector.update({ status: 'Paused' }))
-    // .then(() => {
-    //   api.post(path.replace('{key}', i))
-    //   .set('Authorization', token)
-    //   .send({})
-    //   .expect(constants.httpStatus.FORBIDDEN)
-    //   .end(done);
-    // });
+      // done();
+    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    _collector.name = 'PausedCollector';
+
+    // if change from default status Stopped to Paused, will throw err
+    _collector.status ='Paused';
+    Collector.create(_collector)
+    .then((c) => {
+      api.post(path.replace('{key}', c.id))
+      .set('Authorization', token)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end(done);
+    });
   });
 
-  it('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
-    'return a collector token');
+  it('if the collector is registered but status is RUNNING, ' +
+    'throw an error.', (done) => {
+    Collector.findById(i)
+    .then((collector) => collector.update({ status: 'Running' }))
+    .then(() => {
+      api.post(path.replace('{key}', i))
+      .set('Authorization', token)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end(done);
+      });
+    });
+
+  // need return collector token
+  it.only('if the collector is registered and status is STOPPED, set status=RUNNING and ' +
+    'return a collector token', (done) => {
+
+    // default status is STOPPED.
+    api.post(path.replace('{key}', i))
+    .set('Authorization', token)
+    .send({})
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.status).to.equal('Running');
+      done();
+    });
+  });
+
   it('if not found, create a new collector record with isRegistered=true and ' +
     'status=RUNNING, and return a collector token');
 });
