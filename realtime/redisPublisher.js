@@ -67,18 +67,21 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * that were changed
  * @param  {[Array]} ignoreAttributes An array containing the fields of the
  * model that should be ignored
+ * @param  {Object} opts - Options for which client and channel to publish with
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   const obj = {};
   obj[event] = inst;
+
+  // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;
   let channelName = perspectiveChannelName;
   if (opts) {
     pubClient = opts.client ? client[opts.client] : pubClient;
     channelName = opts.channel ? config.redis[opts.channel] : channelName;
   }
-  console.log();
+
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
