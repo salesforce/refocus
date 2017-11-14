@@ -184,14 +184,13 @@ function patchCollector(req, res, next) {
 } // patchCollector
 
 /**
- * Deregister a collector. Access restricted to Refocus Collector only.
+ * Deregister a collector.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
 function deregisterCollector(req, res, next) {
-  // TODO reject if caller's token is not a collector token
   req.swagger.params.queryBody = {
     value: { registered: false },
   };
@@ -329,7 +328,6 @@ function heartbeat(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function startCollector(req, res, next) {
-  // TODO reject if caller's token is not a collector token
   req.swagger.params.queryBody = {
     value: { status: 'Running' },
   };
