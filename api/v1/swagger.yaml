@@ -2478,14 +2478,13 @@ paths:
       summary: Deregister collector
       tags: [ collectors ]
       description: >-
-        Deregister the specified collector. Access restricted to Refocus
-        Collector only.
+        Deregister the specified collector.
       operationId: deregisterCollector
       parameters:
         -
           name: key
           in: path
-          description: Access restricted to Refocus Collector only.
+          description: Deregister the specified collector.
           required: true
           type: string
       responses:
@@ -2510,14 +2509,13 @@ paths:
       summary: Reregisters a deregistered collector
       tags: [ collectors ]
       description: >-
-        Reregister the specified collector. Access restricted to Refocus
-        Collector only.
+        Reregister the specified collector.
       operationId: reregisterCollector
       parameters:
         -
           name: key
           in: path
-          description: Access restricted to Refocus Collector only.
+          description: Reregister the specified collector.
           required: true
           type: string
       responses:
@@ -2606,19 +2604,18 @@ paths:
         - jwt: []
       summary: Start collector
       tags: [ collectors ]
-      description: >-
-        Start collector. Access restricted to Refocus Collector only.
+      description: Starts the specified collector.
       operationId: startCollector
       parameters:
         -
           name: key
           in: path
-          description: Access restricted to Refocus Collector only.
+          description: Starts the specified collector.
           required: true
           type: string
       responses:
         200:
-          description: Access restricted to Refocus Collector only.
+          description: Success, returns the specified collector's metadata.
           schema:
             $ref: "#/definitions/CollectorResponse"
         400:
