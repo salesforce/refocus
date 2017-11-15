@@ -146,6 +146,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('if not found, create a new collector record with isRegistered=true and ' +
-    'status=RUNNING, and return a collector token');
+  it('If not found, create a new collector record with isRegistered=true ' +
+    ' and status=RUNNING, and return with a collector token', (done) => {
+
+
+  });
+
+  it('if not found, the created collector has the expected writer');
 });
