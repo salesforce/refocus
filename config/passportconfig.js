@@ -60,20 +60,29 @@ module.exports = (passportModule) => {
         return done(null, updatedUser);
       }
 
-      return Profile.findOrCreate({ where: { name: 'RefocusUser' } });
+      return Profile.findOne({ where: { name: 'RefocusUser' } });
     })
-    .spread((profile, created) => { // eslint-disable-line no-unused-vars
+    .then((foundProfile) => {
+      if (foundProfile) {
+        return foundProfile;
+      }
+
+      return Profile.create({ name: 'RefocusUser' });
+    })
+    .then((profile) =>
+
       // if non-sso register, create new user and token object.
-      let newUserCreated = null;
+      // Note: Used User.findById after creation so that we can get profile
+      // attached to user object.
       User.create({
         profileId: profile.id,
         name: userName,
         email: req.body.email,
         password: userPassword,
       })
-      .then((newUserCreated) => done(null, newUserCreated))
-      .catch((_err) => done(_err));
-    })
+    )
+    .then((userCreated) => User.findById(userCreated.id))
+    .then((foundUser) => done(null, foundUser))
     .catch((err) => done(err));
   }
 
@@ -87,7 +96,7 @@ module.exports = (passportModule) => {
    */
   function loginStrategy(req, userName, userPassword, done) {
     User.findOne({ where: { name: userName }, scope: null })
-    .then((foundUser) => {
+    .then((foundUser) => { // profile name is attached by default
       if (foundUser && foundUser.sso) {
         throw new Error('Invalid credentials');
       }

@@ -76,16 +76,20 @@ function samlAuthentication(userProfile, done) {
       return Profile.findOrCreate({ where: { name: 'RefocusSSOUser' } });
     }
 
+    // profile already attached - default scope applied on find
     return done(null, user);
   })
   .spread((profile) =>
-    User.create({
+    User.create({ // default scope not applied on create, hence no profile
       email: userProfile.email,
       profileId: profile.id,
       name: userProfile.email,
       password: viewConfig.dummySsoPassword,
       sso: true,
     })
+  )
+  .then((createdUser) =>
+    User.findById(createdUser.id) // to get profile name with user object
   )
   .then((user) => {
     done(null, user);
@@ -217,18 +221,30 @@ module.exports = function loadView(app, passport) {
         failureRedirect: '/login',
       }),
     (_req, _res) => {
-      if (_req.user && _req.user.name) {
-        const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _req.session.token = token;
-      }
+      // We make sure we have _req.user.profile.name in user returned from
+      // samlAuthentication
+      const user = _req.user;
 
-      if (_req.body.RelayState) {
-        // get the redirect url from relay state if present
-        _res.redirect(_req.body.RelayState);
-      } else {
-        // redirect to home page
-        _res.redirect('/');
-      }
+      return Profile.isAdmin(user.profileId)
+      .then((isAdmin) => {
+        const payloadObj = {
+          ProfileName: user.profile.name,
+          IsAdmin: isAdmin,
+        };
+
+        if (user && user.name && user.profile && user.profile.name) {
+          const token = jwtUtil.createToken(user.name, user.name, payloadObj);
+          _req.session.token = token;
+        }
+
+        if (_req.body.RelayState) {
+          // get the redirect url from relay state if present
+          _res.redirect(_req.body.RelayState);
+        } else {
+          // redirect to home page
+          _res.redirect('/');
+        }
+      });
     }
   );
 

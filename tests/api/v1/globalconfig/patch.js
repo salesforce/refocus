@@ -13,20 +13,16 @@
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const adminUser = require('../../../../config').db.adminUser;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/globalconfig';
 const expect = require('chai').expect;
-const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe('tests/api/v1/globalconfig/patch.js >', () => {
   let token;
   const uname = `${tu.namePrefix}test@test.com`;
   let testUserToken = '';
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
   const GLOBAL_CONFIG = tu.namePrefix + '_GLOBAL_CONFIG_ABC';
 
   before((done) => {

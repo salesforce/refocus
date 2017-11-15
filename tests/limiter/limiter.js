@@ -16,10 +16,7 @@ const constants = require('../../api/v1/constants');
 const tu = require('../testUtils');
 const u = require('./utils');
 const path = '/v1/aspects';
-const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
-const jwtUtil = require('../../utils/jwtUtil');
-const adminUser = require('../../config').db.adminUser;
 
 describe('tests/limiter/limiter.js >', () => {
   let token;
@@ -36,8 +33,7 @@ describe('tests/limiter/limiter.js >', () => {
     .then((tok2) => {
       token2 = tok2;
     })
-    .then(() => predefinedAdminUserToken = jwtUtil
-      .createToken(adminUser.name, adminUser.name))
+    .then(() => predefinedAdminUserToken = tu.createAdminToken())
     .then(() => done())
     .catch(done);
   });

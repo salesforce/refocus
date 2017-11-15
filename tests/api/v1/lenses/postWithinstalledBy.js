@@ -11,8 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
-const adminUser = require('../../../../config').db.adminUser;
-const jwtUtil = require('../../../../utils/jwtUtil');
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -25,9 +23,7 @@ const ZERO = 0;
 describe('tests/api/v1/lenses/postWithInstalledBy.js >', () => {
   let token;
   let user;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
 
   before((done) => {
     tu.toggleOverride('returnUser', true);

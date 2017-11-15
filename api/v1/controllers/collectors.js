@@ -117,7 +117,7 @@ function postCollector(req, res, next) {
      * special token for that collector to use for all further communication
      */
     o.dataValues.token = jwtUtil
-      .createToken(toPost.name, toPost.name);
+      .createToken(toPost.name, toPost.name, { IsCollector: true });
     return res.status(httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
   })
