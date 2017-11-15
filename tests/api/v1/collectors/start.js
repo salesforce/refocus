@@ -23,11 +23,21 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let i = 0;
   const asp = u.toCreate;
   let token;
+  let tokenOfSecondUser;
+  let userId;
+  let collector1;
+  const secondUserName = 'userTwo';
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((_user) => {
+      token = _user.token;
+      userId = _user.id;
+      return tu.createUser(secondUserName);
+    })
+    .then(() => tu.createTokenFromUserName(secondUserName))
+    .then((_token) => {
+      tokenOfSecondUser = _token;
       done();
     })
     .catch(done);
@@ -37,23 +47,47 @@ describe('tests/api/v1/collectors/start.js >', () => {
     Collector.create(u.toCreate)
     .then((c) => {
       i = c.id;
-      done();
+      collector1 = c;
+      return tu.db.User.findById(userId);
     })
+    .then((usr) => collector1.addWriter(usr))
+    .then(() => done())
     .catch(done);
   });
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('ok', (done) => {
-    api.post(path.replace('{key}', i))
-    .set('Authorization', token)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.status).to.be.equal('Running');
-    })
-    .end(done);
+  describe('if the collector is registered and status is STOPPED:', () => {
+    it('if the user is among the writers, start the collector ' +
+      'and return with the collector token', (done) => {
+
+      // default status is STOPPED.
+      api.post(path.replace('{key}', i))
+      .set('Authorization', token)
+      .send({})
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.status).to.equal('Running');
+        expect(res.body.token).to.be.an('string');
+        done();
+      });
+    });
+
+    it('reject if the user is NOT among the writers', (done) => {
+      api.post(path.replace('{key}', i))
+      .set('Authorization', tokenOfSecondUser)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .expect((res) => {
+        expect(res.body.errors[0].description).to.equal('Invalid Token.');
+      })
+      .end(done);
+    });
   });
 
   it('Reject when the user token is invalid', (done) => {
@@ -109,24 +143,6 @@ describe('tests/api/v1/collectors/start.js >', () => {
       .send({})
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
-    });
-  });
-
-  it('if the collector is registered and status is STOPPED, set ' +
-    'status=RUNNING and return a collector token', (done) => {
-
-    // default status is STOPPED.
-    api.post(path.replace('{key}', i))
-    .set('Authorization', token)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.status).to.equal('Running');
-      done();
     });
   });
 

@@ -321,7 +321,7 @@ function heartbeat(req, res, next) {
 
 /**
  * Change collector status to Running. Invalid if the collector's status is
- * not Stopped.
+ * not Stopped. Reject if the user is not among the writers.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
