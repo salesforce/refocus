@@ -16,6 +16,7 @@ const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
 const ZERO = 0;
 const ONE = 1;
+const RADIX = 10;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -266,11 +267,11 @@ function options(params, props) {
 
   // Specify the limit
   if (get(params, 'limit.value')) {
-    opts.limit = parseInt(params.limit.value, defaults.limit);
+    opts.limit = parseInt(params.limit.value, RADIX);
   }
 
   if (get(params, 'offset.value')) {
-    opts.offset = parseInt(params.offset.value, defaults.offset);
+    opts.offset = parseInt(params.offset.value, RADIX);
   }
 
   const filter = {};

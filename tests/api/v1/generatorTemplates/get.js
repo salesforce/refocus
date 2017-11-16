@@ -22,6 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const RADIX = 10;
 
 describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
@@ -318,7 +319,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
           return done(err);
         }
 
-        if (parseInt(expected)) {
+        if (parseInt(expected, RADIX)) {
           expect(res.body).to.have.length(expected);
         }
 
