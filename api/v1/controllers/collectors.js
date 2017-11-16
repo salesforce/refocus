@@ -343,7 +343,11 @@ function startCollector(req, res, next) {
       const username = jwtUtil.getTokenDetailsFromRequest(req).username;
       return Promise.all([
         helper.model.create(toPost),
-        userProps.model.findOne({ where: { name: username } })
+        userProps.model.findOne({
+          where: {
+            name: username,
+          },
+        }),
       ])
       .then((results) => {
         collector = results[0];

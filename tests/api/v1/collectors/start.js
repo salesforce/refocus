@@ -25,10 +25,10 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let token;
   let tokenOfSecondUser;
   let user;
-  let collector1;
   const secondUserName = 'userTwo';
   const defaultCollector = {
-    name: u.toCreate.name, version: '0.0.1' };
+    name: u.toCreate.name, version: '0.0.1',
+  };
 
   before((done) => {
     tu.createUserAndToken()
@@ -49,8 +49,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     Collector.create(u.toCreate)
     .then((c) => {
       i = c.id;
-      collector1 = c;
-      return collector1.addWriter(user);
+      return c.addWriter(user);
     })
     .then(() => done())
     .catch(done);
