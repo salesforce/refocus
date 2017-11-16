@@ -789,6 +789,7 @@ module.exports = {
    * expr (other than name) to samples array, then we sort, then apply
    * limit/offset and finally field list filters. Then, attach aspect to sample
    * using map we created and add to response array.
+   *
    * @param  {Object} req - Request object
    * @param  {Object} res - Result object
    * @param  {Object} logObject - Log object
@@ -798,6 +799,7 @@ module.exports = {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const response = [];
 
+    // Add response links to prev/next
     if (opts.limit || opts.offset) {
       res.links({
         prev: req.originalUrl,

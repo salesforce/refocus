@@ -16,6 +16,7 @@ const u = require('../../api/v1/helpers/verbs/utils');
 const MINUS_ONE = -1;
 const ONE = 1;
 const ZERO = 0;
+const RADIX = 10;
 
 /**
  * Apply field list filter.
@@ -214,12 +215,12 @@ function getOptionsFromReq(params, helper) {
 
   // handle limit
   if (params.limit && params.limit.value) {
-    opts.limit = parseInt(params.limit.value, defaults.limit);
+    opts.limit = parseInt(params.limit.value, RADIX);
   }
 
   // handle offset
   if (params.offset && params.offset.value) {
-    opts.offset = parseInt(params.offset.value, defaults.offset);
+    opts.offset = parseInt(params.offset.value, RADIX);
   }
 
   const filter = {};
