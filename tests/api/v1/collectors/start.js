@@ -24,7 +24,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let i = 0;
   let token;
   let tokenOfSecondUser;
-  let userId;
+  let user;
   let collector1;
   const secondUserName = 'userTwo';
   const defaultCollector = {
@@ -33,8 +33,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
   before((done) => {
     tu.createUserAndToken()
     .then((_user) => {
+      user = _user.user;
       token = _user.token;
-      userId = _user.id;
       return tu.createUser(secondUserName);
     })
     .then(() => tu.createTokenFromUserName(secondUserName))
@@ -50,9 +50,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then((c) => {
       i = c.id;
       collector1 = c;
-      return tu.db.User.findById(userId);
+      return collector1.addWriter(user);
     })
-    .then((usr) => collector1.addWriter(usr))
     .then(() => done())
     .catch(done);
   });
@@ -92,7 +91,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('Reject when the user token is invalid', (done) => {
+  it('reject when the user token is invalid', (done) => {
     api.post(path)
     .set('Authorization', 'iDontExist')
     .send({})
@@ -104,7 +103,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   // need token id to revoke it
-  it('Reject when the user token is revoked');
+  it('reject when the user token is revoked');
 
   it('if the collector is not registered, throw an error.', (done) => {
     Collector.findById(i)
@@ -118,44 +117,44 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('if the collector is registered but status is PAUSED, ' +
-    'throw an error.', (done) => {
-    const _collector = JSON.parse(JSON.stringify(u.toCreate));
-    _collector.name = 'PausedCollector';
+  describe('if the collector is registered:', () => {
+    it('reject if the status is PAUSED', (done) => {
+      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      _collector.name = 'PausedCollector';
 
-    /*
-     * If change from default status Stopped to Paused, will throw err.
-     * Thus create new collector instead.
-     */
-    _collector.status = 'Paused';
-    Collector.create(_collector)
-    .then((c) => {
-      api.post(path.replace('{key}', c.id))
-      .set('Authorization', token)
-      .send(_collector)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end(done);
+      /*
+       * If change from default status Stopped to Paused, will throw err.
+       * Thus create new collector instead.
+       */
+      _collector.status = 'Paused';
+      Collector.create(_collector)
+      .then((c) => {
+        api.post(path.replace('{key}', c.id))
+        .set('Authorization', token)
+        .send(_collector)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end(done);
+      });
+    });
+
+    it('reject if the status is RUNNING', (done) => {
+      Collector.findById(i)
+      .then((collector) => collector.update({ status: 'Running' }))
+      .then(() => {
+        api.post(path)
+        .set('Authorization', token)
+        .send(defaultCollector)
+        .expect(constants.httpStatus.FORBIDDEN)
+        .end(done);
+      });
     });
   });
 
-  it('if the collector is registered but status is RUNNING, ' +
-    'throw an error.', (done) => {
-    Collector.findById(i)
-    .then((collector) => collector.update({ status: 'Running' }))
-    .then(() => {
-      api.post(path)
-      .set('Authorization', token)
-      .send(defaultCollector)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end(done);
-    });
-  });
-
-  describe('If not found', () => {
+  describe('if collector not found', () => {
     const _collector = JSON.parse(JSON.stringify(u.toCreate));
     _collector.name = 'newCollector';
 
-    it('If not found, create a new collector record with isRegistered=true ' +
+    it('create a new collector record with isRegistered=true ' +
       ' and status=RUNNING, and return with a collector token', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -172,26 +171,26 @@ describe('tests/api/v1/collectors/start.js >', () => {
       });
     });
 
-    it.only('if not found, the created collector has the expected writer', (done) => {
+    it('created collector has the expected writer', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(_collector)
-      // .expect(constants.httpStatus.OK)
+      .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        console.log(res.body)
         if (err) {
           return done(err);
         }
 
         api.get(getWritersPath.replace('{key}', res.body.id))
         .set('Authorization', token)
-        // .expect(constants.httpStatus.OK)
+        .expect(constants.httpStatus.OK)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
           expect(res.body.length).to.equal(1);
+          expect(res.body[0].id).to.equal(user.id);
           done();
         });
       });

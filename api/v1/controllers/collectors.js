@@ -320,8 +320,10 @@ function heartbeat(req, res, next) {
 } // heartbeat
 
 /**
- * Change collector status to Running. Invalid if the collector's status is
- * not Stopped. Reject if the user is not among the writers.
+ * Creates a collector if name not found, with the user as the sole writer.
+ * Change collector status to Running and returns a new collector token.
+ * Reject if the user is not among the writers.
+ * Invalid if the collector's status is not Stopped.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -336,14 +338,17 @@ function startCollector(req, res, next) {
   return helper.model.findOne({ where: { name: toPost.name } })
   .then((returnedCollector) => {
     if (!returnedCollector) {
-      // create, add writer, add token
-      return helper.model.create(toPost)
-      .then((o) => {
-        collector = o;
-        const username = jwtUtil.getTokenDetailsFromRequest(req).username;
-        return userProps.model.findOne({ where: { name: username } });
+
+      // create collector, find user
+      const username = jwtUtil.getTokenDetailsFromRequest(req).username;
+      return Promise.all([
+        helper.model.create(toPost),
+        userProps.model.findOne({ where: { name: username } })
+      ])
+      .then((results) => {
+        collector = results[0];
+        return collector.addWriter(results[1]);
       })
-      .then((usr) => collector.addWriter(usr))
       .then(() => {
 
         /*
@@ -357,6 +362,7 @@ function startCollector(req, res, next) {
       });
     }
 
+    // found collector
     if (!returnedCollector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
