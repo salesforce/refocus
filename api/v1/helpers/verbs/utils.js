@@ -648,8 +648,6 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  console.log(key)
-
   const opts = buildFieldList(params);
   const keyClause = {};
   keyClause[constants.SEQ_LIKE] = key;

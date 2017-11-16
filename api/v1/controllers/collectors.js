@@ -10,6 +10,7 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
+const userProps = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -329,36 +330,44 @@ function heartbeat(req, res, next) {
 function startCollector(req, res, next) {
   const toPost = req.swagger.params.queryBody.value;
   toPost.status = 'Running';
+  let collector;
 
   // returns null if no collector found
   return helper.model.findOne({ where: { name: toPost.name } })
-  .then((collector) => {
-    if (!collector) {
+  .then((returnedCollector) => {
+    if (!returnedCollector) {
+      // create, add writer, add token
       return helper.model.create(toPost)
       .then((o) => {
+        collector = o;
+        const username = jwtUtil.getTokenDetailsFromRequest(req).username;
+        return userProps.model.findOne({ where: { name: username } });
+      })
+      .then((usr) => collector.addWriter(usr))
+      .then(() => {
 
         /*
          * When a collector registers itself with Refocus, Refocus sends back a
          * special token for that collector to use for all further communication
          */
-        o.dataValues.token = jwtUtil
+        collector.dataValues.token = jwtUtil
           .createToken(toPost.name, toPost.name);
         return res.status(httpStatus.OK)
-          .json(u.responsify(o, helper, req.method));
+          .json(u.responsify(collector, helper, req.method));
       });
     }
 
-    if (!collector.registered) {
+    if (!returnedCollector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
       });
     }
 
-    if (collector.status === 'Running') {
+    if (returnedCollector.status === 'Running') {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is already started.',
       });
-    } else if (collector.status === 'Paused') {
+    } else if (returnedCollector.status === 'Paused') {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is paused. ' +
         'Resume this collector instead.',

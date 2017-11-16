@@ -176,20 +176,24 @@ describe('tests/api/v1/collectors/start.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(_collector)
-      .expect(constants.httpStatus.OK)
+      // .expect(constants.httpStatus.OK)
       .end((err, res) => {
+        console.log(res.body)
         if (err) {
           return done(err);
         }
 
         api.get(getWritersPath.replace('{key}', res.body.id))
         .set('Authorization', token)
-        .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          console.log('result', res.body)
-          // expect(res.body).to.have.length(3);
-        })
-        .end(done);
+        // .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.length).to.equal(1);
+          done();
+        });
       });
     });
   });

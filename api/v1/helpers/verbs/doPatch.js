@@ -35,7 +35,6 @@ const validateAtLeastOneFieldPresent =
 function doPatch(req, res, next, props, addCollectorTokenToResponse) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
-  console.log('requestBody is', requestBody)
   const patchPromise = u.findByKey(
     props, req.swagger.params
   )
