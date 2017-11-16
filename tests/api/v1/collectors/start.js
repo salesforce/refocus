@@ -105,12 +105,14 @@ describe('tests/api/v1/collectors/start.js >', () => {
   it('reject when the user token is revoked');
 
   it('if the collector is not registered, throw an error.', (done) => {
-    Collector.findById(i)
-    .then((collector) => collector.update({ registered: false }))
+    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    _collector.name = 'unregisteredCollector';
+    _collector.registered = false;
+    Collector.create(_collector)
     .then(() => {
       api.post(path)
       .set('Authorization', token)
-      .send(defaultCollector)
+      .send(_collector)
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
@@ -137,12 +139,14 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
 
     it('reject if the status is RUNNING', (done) => {
-      Collector.findById(i)
-      .then((collector) => collector.update({ status: 'Running' }))
+      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      _collector.name = 'runningCollector';
+      _collector.status = 'Running';
+      Collector.create(_collector)
       .then(() => {
         api.post(path)
         .set('Authorization', token)
-        .send(defaultCollector)
+        .send(_collector)
         .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
