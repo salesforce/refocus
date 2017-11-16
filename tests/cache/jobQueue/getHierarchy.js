@@ -24,6 +24,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
 const featureToggles = require('feature-toggles');
+const RADIX = 10;
 let enableWorkerProcessInitial;
 let enqueueHierarchyInitial;
 
@@ -217,11 +218,11 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
             expect(logObj.recordCount).to.equal('1');
             expect(logObj.errorCount).to.equal('0');
 
-            const totalTime = parseInt(logObj.totalTime);
-            const queueTime = parseInt(logObj.queueTime);
-            const queueResponseTime = parseInt(logObj.queueResponseTime);
-            const workTime = parseInt(logObj.workTime);
-            const dbTime = parseInt(logObj.dbTime);
+            const totalTime = parseInt(logObj.totalTime, RADIX);
+            const queueTime = parseInt(logObj.queueTime, RADIX);
+            const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
+            const workTime = parseInt(logObj.workTime, RADIX);
+            const dbTime = parseInt(logObj.dbTime, RADIX);
 
             expect(workTime).to.be.at.least(dbTime);
             expect(totalTime).to.be.at.least(workTime);
@@ -241,8 +242,8 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
             expect(logObj.dbTime).to.match(/\d+ms/);
             expect(logObj.recordCount).to.equal('1');
             expect(logObj.responseBytes).to.match(/\d+/);
-            const totalTime = parseInt(logObj.totalTime);
-            const dbTime = parseInt(logObj.dbTime);
+            const totalTime = parseInt(logObj.totalTime, RADIX);
+            const dbTime = parseInt(logObj.dbTime, RADIX);
             expect(totalTime).to.be.above(dbTime);
             apiLogged = true;
           } catch (err) {
