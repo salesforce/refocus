@@ -15,7 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const path = '/v1/collectors/{key}/start';
+const path = '/v1/collectors/start';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
@@ -27,6 +27,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let userId;
   let collector1;
   const secondUserName = 'userTwo';
+  const defaultCollector = { name: 'CollectorName', version: '0.0.1' };
 
   before((done) => {
     tu.createUserAndToken()
@@ -58,14 +59,14 @@ describe('tests/api/v1/collectors/start.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('if the collector is registered and status is STOPPED:', () => {
+  describe.only('if the collector is registered and status is STOPPED:', () => {
     it('if the user is among the writers, start the collector ' +
       'and return with the collector token', (done) => {
 
       // default status is STOPPED.
-      api.post(path.replace('{key}', i))
+      api.post(path)
       .set('Authorization', token)
-      .send({})
+      .send(defaultCollector)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -79,9 +80,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
 
     it('reject if the user is NOT among the writers', (done) => {
-      api.post(path.replace('{key}', i))
+      api.post(path)
       .set('Authorization', tokenOfSecondUser)
-      .send({})
+      .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect((res) => {
         expect(res.body.errors[0].description).to.equal('Invalid Token.');
@@ -91,7 +92,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   it('Reject when the user token is invalid', (done) => {
-    api.post(path.replace('{key}', i))
+    api.post(path)
     .set('Authorization', 'iDontExist')
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
@@ -108,9 +109,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
     Collector.findById(i)
     .then((collector) => collector.update({ registered: false }))
     .then(() => {
-      api.post(path.replace('{key}', i))
+      api.post(path)
       .set('Authorization', token)
-      .send({})
+      .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
@@ -127,7 +128,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then((c) => {
       api.post(path.replace('{key}', c.id))
       .set('Authorization', token)
-      .send({})
+      .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
@@ -138,9 +139,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
     Collector.findById(i)
     .then((collector) => collector.update({ status: 'Running' }))
     .then(() => {
-      api.post(path.replace('{key}', i))
+      api.post(path)
       .set('Authorization', token)
-      .send({})
+      .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
