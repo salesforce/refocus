@@ -357,7 +357,7 @@ function startCollector(req, res, next) {
 
         /*
          * When a collector registers itself with Refocus, Refocus sends back a
-         * special token for that collector to use for all further communication
+         * special token for that collector to use for all subsequent heartbeats.
          */
         collector.dataValues.token = jwtUtil
           .createToken(toPost.name, toPost.name);
