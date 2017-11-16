@@ -108,7 +108,6 @@ function attachTemplate(sg) {
  * @param {Function} next - The next middleware function in the stack
  */
 function postCollector(req, res, next) {
-  const collectorToPost = req.swagger.params.queryBody.value;
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
@@ -117,7 +116,7 @@ function postCollector(req, res, next) {
      * special token for that collector to use for all further communication
      */
     o.dataValues.token = jwtUtil
-      .createToken(collectorToPost.name, collectorToPost.name);
+      .createToken(toPost.name, toPost.name);
     return res.status(httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
   })
@@ -329,8 +328,26 @@ function heartbeat(req, res, next) {
  */
 function startCollector(req, res, next) {
   const toPost = req.swagger.params.queryBody.value;
+  toPost.status = 'Running';
+
+  // returns null if no collector found
   return helper.model.findOne({ where: { name: toPost.name } })
   .then((collector) => {
+    if (!collector) {
+      return helper.model.create(toPost)
+      .then((o) => {
+
+        /*
+         * When a collector registers itself with Refocus, Refocus sends back a
+         * special token for that collector to use for all further communication
+         */
+        o.dataValues.token = jwtUtil
+          .createToken(toPost.name, toPost.name);
+        return res.status(httpStatus.OK)
+          .json(u.responsify(o, helper, req.method));
+      });
+    }
+
     if (!collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
@@ -347,8 +364,6 @@ function startCollector(req, res, next) {
         'Resume this collector instead.',
       });
     }
-
-    toPost.status = 'Running';
 
     // doPatch needs the key in swagger params
     req.swagger.params.key = { value: toPost.name };

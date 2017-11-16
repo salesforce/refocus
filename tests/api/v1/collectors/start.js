@@ -16,6 +16,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/collectors/start';
+const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
@@ -150,11 +151,47 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it.only('If not found, create a new collector record with isRegistered=true ' +
-    ' and status=RUNNING, and return with a collector token', (done) => {
+  describe('If not found', () => {
+    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    _collector.name = 'newCollector';
 
+    it('If not found, create a new collector record with isRegistered=true ' +
+      ' and status=RUNNING, and return with a collector token', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send(_collector)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
+        expect(res.body.status).to.equal('Running');
+        expect(res.body.token).to.be.an('string');
+        done();
+      });
+    });
+
+    it.only('if not found, the created collector has the expected writer', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send(_collector)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.get(getWritersPath.replace('{key}', res.body.id))
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          console.log('result', res.body)
+          // expect(res.body).to.have.length(3);
+        })
+        .end(done);
+      });
+    });
   });
-
-  it('if not found, the created collector has the expected writer');
 });
+

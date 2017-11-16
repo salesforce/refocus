@@ -81,7 +81,6 @@ function doPatch(req, res, next, props, addCollectorTokenToResponse) {
 
   patchPromise
   .then((retVal) => {
-    console.log('retVal')
     retVal.dataValues.token = jwtUtil
       .createToken(retVal.name, retVal.name);
     return u.handleUpdatePromise(resultObj, req, retVal, props, res);
