@@ -120,12 +120,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
   });
 
   describe('heartbeat >', () => {
-
     before((done) => {
       Promise.resolve()
-      .then(() => postCollector(collector1))
-      .then(() => postCollector(collector2))
-      .then(() => postCollector(collector3))
+      .then(() => startCollector(collector1))
+      .then(() => startCollector(collector2))
+      .then(() => startCollector(collector3))
       .then(() => done()).catch(done);
     });
 
@@ -190,7 +189,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(403)
+          .expect(200)
           .end(done);
         });
       });
@@ -201,31 +200,25 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.id}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(403)
+          .expect(200)
           .end(done);
         });
       });
 
       it('valid token, matches collector, collector running - by name', (done) => {
-        startCollector(collector1)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(200)
-          .end(done);
-        });
+        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+        .set('Authorization', collectorTokens[collector1.name])
+        .send({ timestamp: Date.now() })
+        .expect(200)
+        .end(done);
       });
 
       it('valid token, matches collector, collector running - by id', (done) => {
-        startCollector(collector1)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(200)
-          .end(done);
-        });
+        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
+        .set('Authorization', collectorTokens[collector1.name])
+        .send({ timestamp: Date.now() })
+        .expect(200)
+        .end(done);
       });
 
     });
@@ -263,7 +256,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('post with collector that doesnt exist', (done) => {
           Promise.resolve()
           .then(() => postGenerator(generator1, [collector4], 404))
-          .then(() => postCollector(collector4))
+          .then(() => startCollector(collector4))
           .then(() => sendHeartbeat(collector4))
           .then((res) => expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
@@ -273,7 +266,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           Promise.resolve()
           .then(() => postGenerator(generator1, []))
           .then(() => patchGenerator(generator1, [collector4], 404))
-          .then(() => postCollector(collector4))
+          .then(() => startCollector(collector4))
           .then(() => sendHeartbeat(collector4))
           .then((res) => expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
@@ -283,7 +276,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           Promise.resolve()
           .then(() => postGenerator(generator1, []))
           .then(() => putGenerator(generator1, [collector4], 404))
-          .then(() => postCollector(collector4))
+          .then(() => startCollector(collector4))
           .then(() => sendHeartbeat(collector4))
           .then((res) => expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
@@ -1156,28 +1149,16 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
   });
 });
 
-/**
-* TODO: change this to use /v1/collectors/:key/start to register the collector
-* once that has been set up
-*/
-function postCollector(collector) {
-  return api.post('/v1/collectors')
+function startCollector(collector) {
+  return api.post('/v1/collectors/start')
   .set('Authorization', userToken)
   .send(collector)
-  .expect(201)
+  .expect(200)
   .endAsync()
   .then((res) => {
     collectorTokens[res.body.name] = res.body.token;
     collector.id = res.body.id;
-  })
-  .then(() => startCollector(collector));
-}
-
-function startCollector(collector) {
-  return api.post(`/v1/collectors/${collector.name}/start`)
-  .set('Authorization', collectorTokens[collector.name])
-  .send({})
-  .endAsync();
+  });
 }
 
 function stopCollector(collector) {
