@@ -21,13 +21,13 @@ const expect = require('chai').expect;
 
 describe('tests/api/v1/collectors/start.js >', () => {
   let i = 0;
-  const asp = u.toCreate;
   let token;
   let tokenOfSecondUser;
   let userId;
   let collector1;
   const secondUserName = 'userTwo';
-  const defaultCollector = { name: 'CollectorName', version: '0.0.1' };
+  const defaultCollector = {
+    name: u.toCreate.name, version: '0.0.1' };
 
   before((done) => {
     tu.createUserAndToken()
@@ -59,7 +59,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe.only('if the collector is registered and status is STOPPED:', () => {
+  describe('if the collector is registered and status is STOPPED:', () => {
     it('if the user is among the writers, start the collector ' +
       'and return with the collector token', (done) => {
 
@@ -122,13 +122,16 @@ describe('tests/api/v1/collectors/start.js >', () => {
     const _collector = JSON.parse(JSON.stringify(u.toCreate));
     _collector.name = 'PausedCollector';
 
-    // if change from default status Stopped to Paused, will throw err
+    /*
+     * If change from default status Stopped to Paused, will throw err.
+     * Thus create new collector instead.
+     */
     _collector.status = 'Paused';
     Collector.create(_collector)
     .then((c) => {
       api.post(path.replace('{key}', c.id))
       .set('Authorization', token)
-      .send(defaultCollector)
+      .send(_collector)
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
@@ -147,7 +150,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  it('If not found, create a new collector record with isRegistered=true ' +
+  it.only('If not found, create a new collector record with isRegistered=true ' +
     ' and status=RUNNING, and return with a collector token', (done) => {
 
 

@@ -328,7 +328,8 @@ function heartbeat(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function startCollector(req, res, next) {
-  return u.findByKey(helper, req.swagger.params)
+  const toPost = req.swagger.params.queryBody.value;
+  return helper.model.findOne({ where: { name: toPost.name } })
   .then((collector) => {
     if (!collector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
@@ -347,10 +348,10 @@ function startCollector(req, res, next) {
       });
     }
 
-    req.swagger.params.queryBody = {
-      value: { status: 'Running' },
-    };
+    toPost.status = 'Running';
 
+    // doPatch needs the key in swagger params
+    req.swagger.params.key = { value: toPost.name };
     return doPatch(req, res, next, helper, true);
   })
   .catch((err) => u.handleError(next, err, helper.modelName));

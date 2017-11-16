@@ -35,6 +35,7 @@ const validateAtLeastOneFieldPresent =
 function doPatch(req, res, next, props, addCollectorTokenToResponse) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
+  console.log('requestBody is', requestBody)
   const patchPromise = u.findByKey(
     props, req.swagger.params
   )
@@ -80,6 +81,7 @@ function doPatch(req, res, next, props, addCollectorTokenToResponse) {
 
   patchPromise
   .then((retVal) => {
+    console.log('retVal')
     retVal.dataValues.token = jwtUtil
       .createToken(retVal.name, retVal.name);
     return u.handleUpdatePromise(resultObj, req, retVal, props, res);
