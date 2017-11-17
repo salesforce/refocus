@@ -2,8 +2,8 @@
   "name": "Refocus",
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
-    "node": "8.9.x",
-    "npm": "5.5.x"
+    "node": "6.11.x",
+    "npm": "3.10.x"
   },
   "license": "BSD-3-Clause",
   "main": "index.js",
@@ -112,7 +112,7 @@
     "multer": "^1.0.3",
     "newrelic": "^1.39.1",
     "nock": "^3.6.0",
-    "npm": "^5.5.1",
+    "npm": "^3.10.9",
     "npm-watch": "^0.1.6",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",

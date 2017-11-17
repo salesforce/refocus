@@ -18,7 +18,7 @@ const expect = require('chai').expect;
 const config = require('../../../../config');
 
 function getWithLimit(path, skipWildcards) {
-  const originalDefaultLimit = config.GET_REQUEST_DEFAULT_LIMIT;
+  const originalDefaultLimit = config.api.defaults.limit;
   let expectedResponse;
   let filteredResponse;
   let token;
@@ -33,7 +33,7 @@ function getWithLimit(path, skipWildcards) {
   });
 
   after((done) => {
-    config.GET_REQUEST_DEFAULT_LIMIT = originalDefaultLimit;
+    config.api.defaults.limit = originalDefaultLimit;
     done();
   });
 
@@ -44,7 +44,8 @@ function getWithLimit(path, skipWildcards) {
     .expect((res) => {
       expect(res.body.length).to.be.at.least(10);
       expectedResponse = res.body;
-      filteredResponse = res.body.filter((o) => o.name && o.name.includes('limitTest'));
+      filteredResponse = res.body.filter((o) => o.name &&
+        o.name.includes('limitTest'));
     })
     .end(done);
   });
@@ -121,7 +122,7 @@ function getWithLimit(path, skipWildcards) {
   }
 
   it('default limit 5', (done) => {
-    config.GET_REQUEST_DEFAULT_LIMIT = 5;
+    config.api.defaults.limit = 5;
     api.get(`${path}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -132,7 +133,7 @@ function getWithLimit(path, skipWildcards) {
   });
 
   it('default limit 3, limit=10', (done) => {
-    config.GET_REQUEST_DEFAULT_LIMIT = 3;
+    config.api.defaults.limit = 3;
     api.get(`${path}?limit=10`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -143,7 +144,7 @@ function getWithLimit(path, skipWildcards) {
   });
 
   it('default limit 3, offset=5', (done) => {
-    config.GET_REQUEST_DEFAULT_LIMIT = 3;
+    config.api.defaults.limit = 3;
     api.get(`${path}?offset=5`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -158,7 +159,7 @@ function getWithLimit(path, skipWildcards) {
 
   if (!skipWildcards) {
     it('default limit 3, name=*even', (done) => {
-      config.GET_REQUEST_DEFAULT_LIMIT = 3;
+      config.api.defaults.limit = 3;
       api.get(`${path}?name=*even`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -172,7 +173,7 @@ function getWithLimit(path, skipWildcards) {
     });
 
     it('default limit 3, name=*even&offset=2', (done) => {
-      config.GET_REQUEST_DEFAULT_LIMIT = 3;
+      config.api.defaults.limit = 3;
       api.get(`${path}?name=*even&offset=2`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)

@@ -410,8 +410,15 @@ function handleLensDomEvent(library, hierarchyLoadEvent) {
 
   u.removeSpinner(SPINNER_ID);
 
-  // load lens
-  const lensLoadEvent = new CustomEvent('refocus.lens.load');
+  /*
+   * Load the lens. Pass userId from cookie through to the lens, in case the
+   * lens wants to do any analytics by userId.
+   */
+  const lensLoadEvent = new CustomEvent('refocus.lens.load', {
+    detail: {
+      userId: u.getCookie('userId'),
+    },
+  });
   LENS_DIV.dispatchEvent(lensLoadEvent);
 
   /*

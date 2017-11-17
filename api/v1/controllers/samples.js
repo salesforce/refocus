@@ -33,6 +33,7 @@ const kue = kueSetup.kue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
 const redisCache = require('../../../cache/redisCache').client.cache;
+const RADIX = 10;
 
 /**
  * Find sample from samplestore. If cache is on then
@@ -108,7 +109,7 @@ module.exports = {
     }
 
     helper.cacheExpiry = helper.cacheEnabled ?
-      parseInt(getSamplesWildcardCacheInvalidation) : null;
+      parseInt(getSamplesWildcardCacheInvalidation, RADIX) : null;
 
     // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
