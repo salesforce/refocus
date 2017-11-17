@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
-const userProps = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');

@@ -49,9 +49,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
     Collector.create(u.toCreate)
     .then((c) => {
       i = c.id;
-      return c.addWriter(user);
+      done();
     })
-    .then(() => done())
     .catch(done);
   });
 
