@@ -349,8 +349,9 @@ function startCollector(req, res, next) {
          * When a collector registers itself with Refocus, Refocus sends back a
          * special token for that collector to use for all subsequent heartbeats.
          */
-        collector.dataValues.token = jwtUtil
-          .createToken(requestBody.name, requestBody.name);
+        collector.dataValues.token = jwtUtil.createToken(
+          requestBody.name, requestBody.name, { IsCollector: true }
+        );
         return res.status(httpStatus.OK)
           .json(u.responsify(collector, helper, req.method));
       });
@@ -376,7 +377,9 @@ function startCollector(req, res, next) {
   })
   .then(() => returnedCollector.update(requestBody))
   .then((retVal) => {
-    retVal.dataValues.token = jwtUtil.createToken(retVal.name, retVal.name);
+    retVal.dataValues.token = jwtUtil.createToken(
+      retVal.name, retVal.name, { IsCollector: true }
+    );
     return res.status(httpStatus.OK)
       .json(u.responsify(retVal, helper, req.method));
   })
