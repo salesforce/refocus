@@ -213,12 +213,16 @@ function getOptionsFromReq(params, helper) {
     opts.order = params.sort.value || helper.defaultOrder;
   }
 
-  // handle limit
+  // Specify the limit (must not be greater than default)
+  opts.limit = defaults.limit;
   if (params.limit && params.limit.value) {
-    opts.limit = parseInt(params.limit.value, RADIX);
+    const lim = parseInt(params.limit.value, RADIX);
+    if (lim < defaults.limit) {
+      opts.limit = lim;
+    }
   }
 
-  // handle offset
+  opts.offset = defaults.offset;
   if (params.offset && params.offset.value) {
     opts.offset = parseInt(params.offset.value, RADIX);
   }

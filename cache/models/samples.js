@@ -800,12 +800,10 @@ module.exports = {
     const response = [];
 
     // Add response links to prev/next
-    if (opts.limit || opts.offset) {
-      res.links({
-        prev: req.originalUrl,
-        next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
-      });
-    }
+    res.links({
+      prev: req.originalUrl,
+      next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
+    });
 
     // get all Samples sorted lexicographically
     return redisClient.sortAsync(constants.indexKey.sample, 'alpha')
