@@ -11,6 +11,7 @@
  */
 'use strict';
 const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
+const config = require('../../../../config');
 const options = fu.options;
 const expect = require('chai').expect;
 
@@ -35,6 +36,8 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
 
     it('no values', () => {
       const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
         where: {},
       };
 
@@ -69,6 +72,8 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
 
     it('replace/escape like clause', () => {
       const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
         where: {
           name: {
             $iLike: '%name%',
@@ -104,31 +109,51 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
 
     it('tags single include', () => {
       params.tags.value = ['a'];
-      const opts = { where: { tags: { $contains: ['a'] } } };
+      const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
+        where: { tags: { $contains: ['a'] } },
+      };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
     it('tags multiple include', () => {
       params.tags.value = ['a', 'b'];
-      const opts = { where: { tags: { $contains: ['a', 'b'] } } };
+      const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
+        where: { tags: { $contains: ['a', 'b'] } },
+      };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
     it('tags single exclude', () => {
       params.tags.value = ['-a'];
-      const opts = { where: { $not: { tags: { $overlap: ['a'] } } } };
+      const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
+        where: { $not: { tags: { $overlap: ['a'] } } },
+      };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
     it('tags multiple exclude', () => {
       params.tags.value = ['-a', 'b'];
-      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
+        where: { $not: { tags: { $overlap: ['a', 'b'] } } },
+      };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
     it('tags multiple exclude', () => {
       params.tags.value = ['-a', '-b'];
-      const opts = { where: { $not: { tags: { $overlap: ['a', 'b'] } } } };
+      const opts = {
+        limit: config.api.defaults.limit,
+        offset: config.api.defaults.offset,
+        where: { $not: { tags: { $overlap: ['a', 'b'] } } },
+      };
       expect(options(params, props)).to.deep.equal(opts);
     });
 
