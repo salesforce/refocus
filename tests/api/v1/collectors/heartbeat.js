@@ -190,7 +190,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.OK)
+          .expect(constants.httpStatus.FORBIDDEN)
           .end(done);
         });
       });
@@ -201,17 +201,20 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.id}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.OK)
+          .expect(constants.httpStatus.FORBIDDEN)
           .end(done);
         });
       });
 
       it('valid token, matches collector, collector running - by name', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .set('Authorization', collectorTokens[collector1.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.OK)
-        .end(done);
+        startCollector(collector1)
+        .then(() => {
+          api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+          .set('Authorization', collectorTokens[collector1.name])
+          .send({ timestamp: Date.now() })
+          .expect(constants.httpStatus.OK)
+          .end(done);
+        });
       });
 
       it('valid token, matches collector, collector running - by id', (done) => {
