@@ -10,7 +10,7 @@
  * api/v1/helpers/verbs/doPatch.js
  */
 'use strict'; // eslint-disable-line strict
-const jwtUtil = require('../../../../utils/jwtUtil');
+
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
 const helper = require('../nouns/perspectives');
@@ -29,10 +29,8 @@ const validateAtLeastOneFieldPresent =
  * @param {Function} next - The next middleware function in the stack
  * @param {Module} props - The module containing the properties of the
  *  resource type to patch.
- * @param {Boolean} addCollectorTokenToResponse - If true, add a collector
- *  token to the response
  */
-function doPatch(req, res, next, props, addCollectorTokenToResponse) {
+function doPatch(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
   const patchPromise = u.findByKey(
@@ -79,14 +77,7 @@ function doPatch(req, res, next, props, addCollectorTokenToResponse) {
   });
 
   patchPromise
-  .then((retVal) => {
-    if (addCollectorTokenToResponse) {
-      retVal.dataValues.token = jwtUtil
-        .createToken(retVal.name, retVal.name);
-    }
-
-    return u.handleUpdatePromise(resultObj, req, retVal, props, res);
-  })
+  .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

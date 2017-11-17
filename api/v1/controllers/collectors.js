@@ -331,18 +331,18 @@ function heartbeat(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function startCollector(req, res, next) {
-  const toPost = req.swagger.params.queryBody.value;
-  toPost.status = 'Running';
-
+  const requestBody = req.swagger.params.queryBody.value;
+  requestBody.status = 'Running';
+  let returnedCollector;
   // returns null if no collector found
-  return helper.model.findOne({ where: { name: toPost.name } })
-  .then((returnedCollector) => {
-    if (!returnedCollector) {
+  return helper.model.findOne({ where: { name: requestBody.name } })
+  .then((_collector) => {
+    if (!_collector) {
       if (featureToggles.isFeatureEnabled('returnUser')) {
-        toPost.createdBy = req.user.id;
+        requestBody.createdBy = req.user.id;
       }
 
-      return helper.model.create(toPost)
+      return helper.model.create(requestBody)
       .then((collector) => {
 
         /*
@@ -350,33 +350,35 @@ function startCollector(req, res, next) {
          * special token for that collector to use for all subsequent heartbeats.
          */
         collector.dataValues.token = jwtUtil
-          .createToken(toPost.name, toPost.name);
+          .createToken(requestBody.name, requestBody.name);
         return res.status(httpStatus.OK)
           .json(u.responsify(collector, helper, req.method));
       });
     }
 
     // found collector
+    returnedCollector = _collector;
     if (!returnedCollector.registered) {
       throw new apiErrors.ForbiddenError({ explanation:
         'Cannot start--this collector is not registered.',
       });
     }
 
-    if (returnedCollector.status === 'Running') {
+    if (returnedCollector.status === 'Running' ||
+      returnedCollector.status === 'Paused') {
       throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot start--this collector is already started.',
-      });
-    } else if (returnedCollector.status === 'Paused') {
-      throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot start--this collector is paused. ' +
-        'Resume this collector instead.',
+        'Cannot start--only stopped collectors can start.',
       });
     }
 
-    // doPatch needs the key in swagger params
-    req.swagger.params.key = { value: toPost.name };
-    return doPatch(req, res, next, helper, true);
+    // check write permissions, and add the token
+    return u.isWritable(req, returnedCollector)
+  })
+  .then(() => returnedCollector.update(requestBody))
+  .then((retVal) => {
+    retVal.dataValues.token = jwtUtil.createToken(retVal.name, retVal.name);
+    return res.status(httpStatus.OK)
+      .json(u.responsify(retVal, helper, req.method));
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector
