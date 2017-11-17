@@ -19,6 +19,8 @@ const db = require('../db');
 const testStartTime = new Date();
 const userName = `${pfx}testUser@refocus.com`;
 const featureToggles = require('feature-toggles');
+const adminUser = require('../config').db.adminUser;
+const adminProfile = require('../config').db.adminProfile;
 
 /**
  * Performs a regex test on the key to determine whether it looks like a
@@ -167,6 +169,15 @@ module.exports = {
     }))
     .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
+
+  // create admin token
+  createAdminToken() {
+    return jwtUtil.createToken(
+      adminUser.name,
+      adminUser.name,
+      { IsAdmin: true, ProfileName: adminProfile.name }
+    );
+  }, // createAdminToken
 
   // delete user
   forceDeleteUser(done) {
