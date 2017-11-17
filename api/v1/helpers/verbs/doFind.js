@@ -34,12 +34,6 @@ const config = require('../../../../config');
  */
 function doFindAndCountAll(reqResNext, props, opts) {
   const resultObj = { reqStartTime: reqResNext.req.timestamp };
-
-  // enforce the default limit
-  if (!opts.limit || opts.limit > config.GET_REQUEST_DEFAULT_LIMIT) {
-    opts.limit = config.GET_REQUEST_DEFAULT_LIMIT;
-  }
-
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;

@@ -67,23 +67,21 @@ function applyFiltersOnResourceObjs(resourceObjArray, opts) {
 }
 
 /**
- * Apply limit and offset filter to resource array
+ * Apply limit and offset filter to resource array.
+ *
  * @param  {Object} opts - Filter options
  * @param  {Array} arr - Array of resource keys or objects
  * @returns {Array} - Sliced array
  */
 function applyLimitAndOffset(opts, arr) {
-  let startIndex = 0;
-  let endIndex = arr.length;
-  if (opts.offset) {
-    startIndex = opts.offset;
+  let startIndex = opts.offset || 0;
+  let endIndex = startIndex + opts.limit || arr.length;
+
+  // Short circuit: avoid calling array slice if we don't have to!
+  if (startIndex === 0 && endIndex >= arr.length) {
+    return arr;
   }
 
-  if (opts.limit) {
-    endIndex = startIndex + opts.limit;
-  }
-
-  // apply limit and offset, default 0 to length
   return arr.slice(startIndex, endIndex);
 }
 
@@ -213,12 +211,16 @@ function getOptionsFromReq(params, helper) {
     opts.order = params.sort.value || helper.defaultOrder;
   }
 
-  // handle limit
+  // Specify the limit (must not be greater than default)
+  opts.limit = defaults.limit;
   if (params.limit && params.limit.value) {
-    opts.limit = parseInt(params.limit.value, RADIX);
+    const lim = parseInt(params.limit.value, RADIX);
+    if (lim < defaults.limit) {
+      opts.limit = lim;
+    }
   }
 
-  // handle offset
+  opts.offset = defaults.offset;
   if (params.offset && params.offset.value) {
     opts.offset = parseInt(params.offset.value, RADIX);
   }
