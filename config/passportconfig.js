@@ -71,9 +71,11 @@ module.exports = (passportModule) => {
     })
     .then((profile) =>
 
-      // if non-sso register, create new user and token object.
-      // Note: Used User.findById after creation so that we can get profile
-      // attached to user object.
+    /**
+     * if non-sso register, create new user and token object.
+     * Note: Used User.findById after creation so that we can get profile
+     * attached to user object.
+     */
       User.create({
         profileId: profile.id,
         name: userName,

@@ -21,6 +21,7 @@ const Collector = require('../db/index').Collector;
 const Bot = require('../db/index').Bot;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
+const Profile = require('../db/index').Profile;
 
 // these headers will be assigned default values if not present in token.
 const headersWithDefaults = {
@@ -47,8 +48,11 @@ function assignKeyValue(object, key, value) {
  * @param  {Object} decodedTokenData - decoded data from token
  */
 function assignHeaderValues(req, decodedTokenData) {
-  // username and tokenname should always be there if createToken function is
-  // used for creating token
+
+  /*
+   * username and tokenname should always be there if createToken function is
+   * used for creating token
+   */
   if (decodedTokenData.username) {
     assignKeyValue(req.headers, 'UserName', decodedTokenData.username);
   }
@@ -208,6 +212,23 @@ function verifyUserToken(req, cb) {
     }
 
     req.user = user.get();
+
+    /**
+     * For tokens with no ProfileName and IsAdmin set, like existing tokens -
+     * we set IsAdmin and ProfileName after decoding the token.
+     */
+    if (!decodedData.hasOwnProperty('ProfileName')) {
+      decodedData.ProfileName = user.profile.name;
+    }
+
+    if (!decodedData.hasOwnProperty('IsAdmin')) {
+      return Profile.isAdmin(req.user.profileId);
+    }
+
+    return decodedData.IsAdmin;
+  })
+  .then((isAdmin) => {
+    decodedData.IsAdmin = isAdmin; // ok to reassign in case of new tokens
     assignHeaderValues(req, decodedData);
 
     /*
@@ -278,10 +299,10 @@ function createToken(tokenName, userName, payloadObj) {
     timestamp: Date.now(),
   };
 
-  /*
-    If payload not given, no additional headers are set.
-    If payload is given, set only the headers which matches the headers in
-    headersWithDefaults.
+  /**
+   * If payload not given, no additional headers are set.
+   * If payload is given, set only the headers which matches the headers in
+   * headersWithDefaults.
    */
   if (payloadObj) {
     Object.keys(payloadObj).forEach((key) => {
@@ -301,4 +322,5 @@ module.exports = {
   verifyCollectorToken,
   verifyBotToken,
   assignHeaderValues, // for testing purposes only
+  headersWithDefaults, // for testing purposes only
 };

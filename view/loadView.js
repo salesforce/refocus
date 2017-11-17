@@ -79,15 +79,20 @@ function samlAuthentication(userProfile, done) {
     // profile already attached - default scope applied on find
     return done(null, user);
   })
-  .spread((profile) =>
-    User.create({ // default scope not applied on create, hence no profile
+  .spread((profile) => {
+
+    /**
+     * default scope not applied on create, so we use User.find after this to
+     * get profile attached to user.
+     */
+    return User.create({
       email: userProfile.email,
       profileId: profile.id,
       name: userProfile.email,
       password: viewConfig.dummySsoPassword,
       sso: true,
-    })
-  )
+    });
+  })
   .then((createdUser) =>
     User.findById(createdUser.id) // to get profile name with user object
   )

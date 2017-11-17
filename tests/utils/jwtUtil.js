@@ -18,6 +18,7 @@ const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
 const conf = require('../../config');
 const adminUser = require('../../config').db.adminUser;
+const adminProfile = require('../../config').db.adminProfile;
 const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const Bot = tu.db.Bot;
 const n = `${tu.namePrefix}Testing`;
@@ -187,6 +188,74 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(request.headers.UserName).to.equal(undefined);
         expect(request.headers.ProfileName).to.equal(undefined);
         expect(request.headers.TokenName).to.equal(undefined);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyUserToken - a header with default value - true, and ' +
+      'token with that header value false - false should be set in req',
+    (done) => {
+      jwtUtil.headersWithDefaults.newBooleanHeader = true;
+      const dummyToken = jwtUtil.createToken(
+        'myTokenName', userInst.name,
+        { newBooleanHeader: false, IsCollector: true }
+      );
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(userInst.name);
+        expect(request.headers.ProfileName).to.equal(profile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(true);
+        expect(request.headers.newBooleanHeader).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyUserToken - non admin user - no ProfileName or IsAdmin in ' +
+      'token, both should be set in req', (done) => {
+      const dummyToken = jwtUtil.createToken('myTokenName', userInst.name);
+
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(userInst.name);
+        expect(request.headers.ProfileName).to.equal(profile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyUserToken - admin user - no ProfileName or IsAdmin in ' +
+      'token, both should be set in req', (done) => {
+      const dummyToken = jwtUtil.createToken('myTokenName', adminUser.name);
+
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(adminUser.name);
+        expect(request.headers.ProfileName).to.equal(adminProfile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(true);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
         return done();
       }).catch(done);
     });
