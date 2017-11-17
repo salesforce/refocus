@@ -154,6 +154,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   describe('if collector not found', () => {
+    before(() => tu.toggleOverride('returnUser', true));
+    after(() => tu.toggleOverride('returnUser', false));
+
     const _collector = JSON.parse(JSON.stringify(u.toCreate));
     _collector.name = 'newCollector';
 

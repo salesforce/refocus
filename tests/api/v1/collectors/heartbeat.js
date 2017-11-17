@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
+const constants = require('../../../../api/v1/constants');
 const reEncryptSGContextValues = require(
   '../../../../api/v1/controllers/collectors').reEncryptSGContextValues;
 const u = require('./utils');
@@ -132,7 +133,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       it('no token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
@@ -140,14 +141,14 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', 'aaa')
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
       it('invalid path, no token', (done) => {
         api.post('/v1/collectors/AAA/heartbeat')
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
@@ -155,7 +156,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post('/v1/collectors/AAA/heartbeat')
         .set('Authorization', collectorTokens[collector1.name])
         .send({ timestamp: Date.now() })
-        .expect(404)
+        .expect(constants.httpStatus.NOT_FOUND)
         .end(done);
       });
 
@@ -163,7 +164,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', userToken)
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
@@ -171,7 +172,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
@@ -179,7 +180,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.id}/heartbeat`)
         .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
-        .expect(403)
+        .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
@@ -189,7 +190,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(200)
+          .expect(constants.httpStatus.OK)
           .end(done);
         });
       });
@@ -200,7 +201,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           api.post(`/v1/collectors/${collector1.id}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
           .send({ timestamp: Date.now() })
-          .expect(200)
+          .expect(constants.httpStatus.OK)
           .end(done);
         });
       });
@@ -209,7 +210,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', collectorTokens[collector1.name])
         .send({ timestamp: Date.now() })
-        .expect(200)
+        .expect(constants.httpStatus.OK)
         .end(done);
       });
 
@@ -217,7 +218,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(`/v1/collectors/${collector1.id}/heartbeat`)
         .set('Authorization', collectorTokens[collector1.name])
         .send({ timestamp: Date.now() })
-        .expect(200)
+        .expect(constants.httpStatus.OK)
         .end(done);
       });
 
@@ -1153,7 +1154,7 @@ function startCollector(collector) {
   return api.post('/v1/collectors/start')
   .set('Authorization', userToken)
   .send(collector)
-  .expect(200)
+  .expect(constants.httpStatus.OK)
   .endAsync()
   .then((res) => {
     collectorTokens[res.body.name] = res.body.token;
@@ -1224,7 +1225,7 @@ function sendHeartbeat(collector, body) {
   return api.post(`/v1/collectors/${collector.name}/heartbeat`)
   .set('Authorization', collectorTokens[collector.name])
   .send(body)
-  .expect(200)
+  .expect(constants.httpStatus.OK)
   .endAsync();
 }
 

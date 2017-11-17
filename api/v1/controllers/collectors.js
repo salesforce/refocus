@@ -10,6 +10,7 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const userProps = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
@@ -332,28 +333,17 @@ function heartbeat(req, res, next) {
 function startCollector(req, res, next) {
   const toPost = req.swagger.params.queryBody.value;
   toPost.status = 'Running';
-  let collector;
 
   // returns null if no collector found
   return helper.model.findOne({ where: { name: toPost.name } })
   .then((returnedCollector) => {
     if (!returnedCollector) {
+      if (featureToggles.isFeatureEnabled('returnUser')) {
+        toPost.createdBy = req.user.id;
+      }
 
-      // create collector, find user
-      const username = jwtUtil.getTokenDetailsFromRequest(req).username;
-      return Promise.all([
-        helper.model.create(toPost),
-        userProps.model.findOne({
-          where: {
-            name: username,
-          },
-        }),
-      ])
-      .then((results) => {
-        collector = results[0];
-        return collector.addWriter(results[1]);
-      })
-      .then(() => {
+      return helper.model.create(toPost)
+      .then((collector) => {
 
         /*
          * When a collector registers itself with Refocus, Refocus sends back a
