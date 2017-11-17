@@ -334,6 +334,7 @@ function startCollector(req, res, next) {
   const requestBody = req.swagger.params.queryBody.value;
   requestBody.status = 'Running';
   let returnedCollector;
+
   // returns null if no collector found
   return helper.model.findOne({ where: { name: requestBody.name } })
   .then((_collector) => {
@@ -372,7 +373,7 @@ function startCollector(req, res, next) {
     }
 
     // check write permissions, and add the token
-    return u.isWritable(req, returnedCollector)
+    return u.isWritable(req, returnedCollector);
   })
   .then(() => returnedCollector.update(requestBody))
   .then((retVal) => {
