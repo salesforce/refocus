@@ -110,9 +110,12 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       logObject.request_id = req.headers['x-request-id'];
     }
 
-    const tokenDetails = jwtUtil.getTokenDetailsFromRequest(req);
-    logObject.user = tokenDetails.username;
-    logObject.token = tokenDetails.tokenname;
+    /**
+     * we already set UserName and TokenName in req headers when verifying
+     * token
+     */
+    logObject.user = req.headers.UserName;
+    logObject.token = req.headers.TokenName;
 
     combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }

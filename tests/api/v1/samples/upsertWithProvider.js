@@ -16,13 +16,10 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
-const ZERO = 0;
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const adminUser = require('../../../../config').db.adminUser;
-const predefinedAdminUserToken =
-  tu.createTokenFromUserName(adminUser.name, adminUser.name);
+const predefinedAdminUserToken = tu.createAdminToken();
 
 describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
 () => {

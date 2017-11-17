@@ -13,12 +13,19 @@
 const expect = require('chai').expect;
 const jwtUtil = require('../../utils/jwtUtil');
 const tu = require('../testUtils');
+const jwt = require('jsonwebtoken');
+const Promise = require('bluebird');
+const jwtVerifyAsync = Promise.promisify(jwt.verify);
+const conf = require('../../config');
+const adminUser = require('../../config').db.adminUser;
+const adminProfile = require('../../config').db.adminProfile;
+const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const Bot = tu.db.Bot;
 const n = `${tu.namePrefix}Testing`;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 const Collector = tu.db.Collector;
-const adminUser = require('../../config').db.adminUser;
+
 
 describe('tests/utils/jwtUtil.js >', () => {
   const newBot = {
@@ -31,11 +38,10 @@ describe('tests/utils/jwtUtil.js >', () => {
   let collectorInst;
   let userToken;
   let collectorToken;
+  let profile;
   const testStartTime = new Date();
 
-  const predefinedAdminUserToken = jwtUtil.createToken(
-      adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
 
   // dummy callback that returns a promise.
   const dummyCallback = function dummy () {
@@ -46,12 +52,15 @@ describe('tests/utils/jwtUtil.js >', () => {
 
   before((done) => {
     Profile.create({ name: tu.namePrefix + 'myProfile' })
-    .then((createdProfile) => User.create({
-      email: 'testToken@refocus.com',
-      profileId: createdProfile.id,
-      name: `${tu.namePrefix}myRefocusUser`,
-      password: 'abcd',
-    }))
+    .then((createdProfile) => {
+      profile = createdProfile;
+      return User.create({
+        email: 'testToken@refocus.com',
+        profileId: createdProfile.id,
+        name: `${tu.namePrefix}myRefocusUser`,
+        password: 'abcd',
+      });
+    })
     .then((user) => {
       userInst = user;
       return Collector.create({
@@ -62,11 +71,17 @@ describe('tests/utils/jwtUtil.js >', () => {
     })
     .then((collector) => {
       collectorInst = collector;
-      return tu.createTokenFromUserName(userInst.name);
+      return jwtUtil.createToken(
+        userInst.name,
+        userInst.name,
+        { IsAdmin: false, ProfileName: profile.name }
+      );
     })
     .then((token) => {
       userToken = token;
-      return tu.createTokenFromUserName(collectorInst.name);
+      return jwtUtil.createToken(
+        collectorInst.name, collectorInst.name, { IsCollector: true }
+      );
     })
     .then((token) => {
       collectorToken = token;
@@ -175,6 +190,205 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(request.headers.TokenName).to.equal(undefined);
         return done();
       }).catch(done);
+    });
+
+    it('verifyUserToken - a header with default value - true, and ' +
+      'token with that header value false - false should be set in req',
+    (done) => {
+      jwtUtil.headersWithDefaults.newBooleanHeader = true;
+      const dummyToken = jwtUtil.createToken(
+        'myTokenName', userInst.name,
+        { newBooleanHeader: false, IsCollector: true }
+      );
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(userInst.name);
+        expect(request.headers.ProfileName).to.equal(profile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(true);
+        expect(request.headers.newBooleanHeader).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyUserToken - non admin user - no ProfileName or IsAdmin in ' +
+      'token, both should be set in req', (done) => {
+      const dummyToken = jwtUtil.createToken('myTokenName', userInst.name);
+
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(userInst.name);
+        expect(request.headers.ProfileName).to.equal(profile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(false);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyUserToken - admin user - no ProfileName or IsAdmin in ' +
+      'token, both should be set in req', (done) => {
+      const dummyToken = jwtUtil.createToken('myTokenName', adminUser.name);
+
+      const request = {
+        headers: { },
+        session: { },
+      };
+      request.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(request, dummyCallback)
+      .then(() => {
+        expect(request.headers.UserName).to.equal(adminUser.name);
+        expect(request.headers.ProfileName).to.equal(adminProfile.name);
+        expect(request.headers.TokenName).to.equal('myTokenName');
+        expect(request.headers.IsAdmin).to.equal(true);
+        expect(request.headers.IsBot).to.equal(false);
+        expect(request.headers.IsCollector).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+  });
+
+  describe('createToken tests', () => {
+    it('No additional payload - no extra headers set',
+    (done) => {
+      const token = jwtUtil.createToken('myTokenName', 'myUserName');
+      jwtVerifyAsync(token, secret, {})
+      .then((decodedData) => {
+        expect(decodedData.username).to.be.equal('myUserName');
+        expect(decodedData.tokenname).to.be.equal('myTokenName');
+        expect(decodedData.timestamp).to.be.an('number');
+        expect(decodedData.ProfileName).to.be.equal(undefined);
+        expect(decodedData.IsAdmin).to.be.equal(undefined);
+        expect(decodedData.isBot).to.be.equal(undefined);
+        expect(decodedData.IsCollector).to.be.equal(undefined);
+        return done();
+      }).catch(done);
+    });
+
+    it('With payload - all headers in payload present in default headers',
+    (done) => {
+      const token = jwtUtil.createToken(
+        'myTokenName',
+        'myUserName',
+        { ProfileName: 'myProfile', IsAdmin: false }
+      );
+      jwtVerifyAsync(token, secret, {})
+      .then((decodedData) => {
+        expect(decodedData.username).to.be.equal('myUserName');
+        expect(decodedData.tokenname).to.be.equal('myTokenName');
+        expect(decodedData.timestamp).to.be.an('number');
+        expect(decodedData.ProfileName).to.be.equal('myProfile');
+        expect(decodedData.IsAdmin).to.be.equal(false);
+        expect(decodedData.isBot).to.be.equal(undefined);
+        expect(decodedData.IsCollector).to.be.equal(undefined);
+        return done();
+      }).catch(done);
+    });
+
+    it('With payload - some headers in payload present in default headers',
+    (done) => {
+      const token = jwtUtil.createToken(
+        'myTokenName',
+        'myUserName',
+        { IsCollector: true, RandomHeader: 'randomStr' }
+      );
+      jwtVerifyAsync(token, secret, {})
+      .then((decodedData) => {
+        expect(decodedData.username).to.be.equal('myUserName');
+        expect(decodedData.tokenname).to.be.equal('myTokenName');
+        expect(decodedData.timestamp).to.be.an('number');
+        expect(decodedData.IsCollector).to.be.equal(true);
+        expect(decodedData.ProfileName).to.be.equal(undefined);
+        expect(decodedData.IsAdmin).to.be.equal(undefined);
+        expect(decodedData.isBot).to.be.equal(undefined);
+        expect(decodedData.RandomHeader).to.be.equal(undefined);
+        return done();
+      }).catch(done);
+    });
+
+    it('Create token with empty payload', (done) => {
+      const token = jwtUtil.createToken('myTokenName', 'myUserName', {});
+      jwtVerifyAsync(token, secret, {})
+      .then((decodedData) => {
+        expect(decodedData.username).to.be.equal('myUserName');
+        expect(decodedData.tokenname).to.be.equal('myTokenName');
+        expect(decodedData.timestamp).to.be.an('number');
+        expect(decodedData.ProfileName).to.be.equal(undefined);
+        expect(decodedData.IsAdmin).to.be.equal(undefined);
+        expect(decodedData.isBot).to.be.equal(undefined);
+        expect(decodedData.IsCollector).to.be.equal(undefined);
+        return done();
+      }).catch(done);
+    });
+  });
+
+  describe('assignHeaderValues tests', () => {
+    it('decodedTokenData empty', (done) => {
+      const req = { headers: {} };
+      jwtUtil.assignHeaderValues(req, {});
+      expect(req.headers.UserName).to.be.equal(undefined);
+      expect(req.headers.TokenName).to.be.equal(undefined);
+      expect(req.headers.ProfileName).to.be.equal('');
+      expect(req.headers.IsAdmin).to.be.equal(false);
+      expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsBot).to.be.equal(false);
+      return done();
+    });
+
+    it('decodedTokenData with all valid headers', (done) => {
+      const req = { headers: {} };
+      jwtUtil.assignHeaderValues(
+        req,
+        {
+          username: 'myUserName',
+          tokenname: 'myTokenName',
+          IsAdmin: true,
+          ProfileName: 'Admin',
+        }
+      );
+      expect(req.headers.UserName).to.be.equal('myUserName');
+      expect(req.headers.TokenName).to.be.equal('myTokenName');
+      expect(req.headers.ProfileName).to.be.equal('Admin');
+      expect(req.headers.IsAdmin).to.be.equal(true);
+      expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsBot).to.be.equal(false);
+      return done();
+    });
+
+    it('decodedTokenData with some invalid headers - invalid headers ignored',
+    (done) => {
+      const req = { headers: {} };
+      jwtUtil.assignHeaderValues(
+        req,
+        {
+          username: 'myUserName',
+          tokenname: 'myTokenName',
+          IsAdmin: true,
+          ProfileName: 'Admin',
+          Random: 'randomVal', //ignored
+        }
+      );
+      expect(req.headers.UserName).to.be.equal('myUserName');
+      expect(req.headers.TokenName).to.be.equal('myTokenName');
+      expect(req.headers.ProfileName).to.be.equal('Admin');
+      expect(req.headers.IsAdmin).to.be.equal(true);
+      expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsBot).to.be.equal(false);
+      expect(req.headers.Random).to.be.equal(undefined);
+      return done();
     });
   });
 });

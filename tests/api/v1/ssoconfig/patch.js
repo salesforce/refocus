@@ -14,20 +14,14 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
-const adminUser = require('../../../../config').db.adminUser;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/ssoconfig';
-const jwtUtil = require('../../../../utils/jwtUtil');
-const ZERO = 0;
 const ONE = 1;
 
 describe(`tests/api/v1/ssoconfig/patch.js, PATCH ${path} >`, () => {
   let token;
-  const uname = `${tu.namePrefix}test@test.com`;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
   let testUserToken = '';
 
   before((done) => {

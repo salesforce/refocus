@@ -18,13 +18,9 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/profiles';
 const expect = require('chai').expect;
-const jwtUtil = require('../../../../utils/jwtUtil');
-const adminUser = require('../../../../config').db.adminUser;
 
 describe('tests/api/v1/profiles/post.js >', () => {
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
   let token;
   const p0 = { name: `${tu.namePrefix}1` };
 
