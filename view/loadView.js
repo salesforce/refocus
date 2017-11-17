@@ -73,13 +73,20 @@ function samlAuthentication(userProfile, done) {
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
-      return Profile.findOrCreate({ where: { name: 'RefocusSSOUser' } });
+      return Profile.findOne({ where: { name: 'RefocusSSOUser' } });
     }
 
     // profile already attached - default scope applied on find
     return done(null, user);
   })
-  .spread((profile) => {
+  .then((foundProfile) => {
+    if (foundProfile) {
+      return foundProfile;
+    }
+
+    return Profile.create({ name: 'RefocusSSOUser' });
+  })
+  .then((profile) => {
 
     /**
      * default scope not applied on create, so we use User.find after this to
