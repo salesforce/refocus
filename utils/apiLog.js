@@ -111,8 +111,8 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
     }
 
     const tokenDetails = jwtUtil.getTokenDetailsFromRequest(req);
-    logObject.user = tokenDetails.userName;
-    logObject.token = tokenDetails.tokenName;
+    logObject.user = tokenDetails.username;
+    logObject.token = tokenDetails.tokenname;
 
     combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }

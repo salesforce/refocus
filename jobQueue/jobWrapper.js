@@ -127,8 +127,8 @@ function logJobOnComplete(req, job) {
 
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
       const tokenDetails = jwtUtil.getTokenDetailsFromRequest(req);
-      logObject.user = tokenDetails.userName;
-      logObject.token = tokenDetails.tokenName;
+      logObject.user = tokenDetails.username;
+      logObject.token = tokenDetails.tokenname;
 
     }
 
