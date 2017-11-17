@@ -103,8 +103,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspective(req, res, next) {
-    helper.cacheEnabled = featureToggles
-    .isFeatureEnabled('enableCachePerspective');
+    /* Add userId to response to make it available from perspective page. */
+    res.cookie('userId', req.user.id, { maxAge: 1000 });
+    helper.cacheEnabled =
+      featureToggles.isFeatureEnabled('enableCachePerspective');
     doGet(req, res, next, helper);
   },
 
