@@ -2376,6 +2376,76 @@ paths:
               $ref: "#/definitions/CollectorResponse"
 
   # ---------------------------------------------------------------------------
+
+  /collectors/start:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Access restricted to Refocus Collector only.
+            properties:
+              name:
+                type: string
+                description: Access restricted to Refocus Collector only.
+              description:
+                type: string
+                maxLength: 4096
+                description: Access restricted to Refocus Collector only.
+              helpEmail:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: Access restricted to Refocus Collector only.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
+            required:
+              - name
+              - version
+      summary: Start collector
+      tags: [ collectors ]
+      description: Starts the specified collector.
+      operationId: startCollector
+
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
   /collectors/{key}:
     x-swagger-router-controller: collectors
     get:
@@ -2588,36 +2658,6 @@ paths:
           description: Success.
           schema:
             $ref: "#/definitions/HeartbeatResponse"
-        400:
-          $ref: "#/responses/400"
-        403:
-          $ref: "#/responses/403"
-        404:
-            $ref: "#/responses/404"
-
-  # ---------------------------------------------------------------------------
-
-  /collectors/{key}/start:
-    x-swagger-router-controller: collectors
-    post:
-      security:
-        - jwt: []
-      summary: Start collector
-      tags: [ collectors ]
-      description: Starts the specified collector.
-      operationId: startCollector
-      parameters:
-        -
-          name: key
-          in: path
-          description: Starts the specified collector.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Success, returns the specified collector's metadata.
-          schema:
-            $ref: "#/definitions/CollectorResponse"
         400:
           $ref: "#/responses/400"
         403:

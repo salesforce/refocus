@@ -10,6 +10,7 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -108,7 +109,6 @@ function attachTemplate(sg) {
  * @param {Function} next - The next middleware function in the stack
  */
 function postCollector(req, res, next) {
-  const collectorToPost = req.swagger.params.queryBody.value;
   const toPost = req.swagger.params.queryBody.value;
   helper.model.create(toPost)
   .then((o) => {
@@ -117,7 +117,7 @@ function postCollector(req, res, next) {
      * special token for that collector to use for all further communication
      */
     o.dataValues.token = jwtUtil
-      .createToken(collectorToPost.name, collectorToPost.name);
+      .createToken(toPost.name, toPost.name);
     return res.status(httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
   })
@@ -320,18 +320,67 @@ function heartbeat(req, res, next) {
 } // heartbeat
 
 /**
- * Change collector status to Running. Invalid if the collector's status is
- * not Stopped.
+ * Creates a collector if name not found, with the user as the sole writer.
+ * Change collector status to Running and returns a new collector token.
+ * Reject if the user is not among the writers.
+ * Invalid if the collector's status is not Stopped.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
 function startCollector(req, res, next) {
-  req.swagger.params.queryBody = {
-    value: { status: 'Running' },
-  };
-  doPatch(req, res, next, helper);
+  const requestBody = req.swagger.params.queryBody.value;
+  requestBody.status = 'Running';
+  let returnedCollector;
+
+  // returns null if no collector found
+  return helper.model.findOne({ where: { name: requestBody.name } })
+  .then((_collector) => {
+    if (!_collector) {
+      if (featureToggles.isFeatureEnabled('returnUser')) {
+        requestBody.createdBy = req.user.id;
+      }
+
+      return helper.model.create(requestBody)
+      .then((collector) => {
+
+        /*
+         * When a collector registers itself with Refocus, Refocus sends back a
+         * special token for that collector to use for all subsequent heartbeats.
+         */
+        collector.dataValues.token = jwtUtil
+          .createToken(requestBody.name, requestBody.name);
+        return res.status(httpStatus.OK)
+          .json(u.responsify(collector, helper, req.method));
+      });
+    }
+
+    // found collector
+    returnedCollector = _collector;
+    if (!returnedCollector.registered) {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot start--this collector is not registered.',
+      });
+    }
+
+    if (returnedCollector.status === 'Running' ||
+      returnedCollector.status === 'Paused') {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot start--only stopped collectors can start.',
+      });
+    }
+
+    // check write permissions, and add the token
+    return u.isWritable(req, returnedCollector);
+  })
+  .then(() => returnedCollector.update(requestBody))
+  .then((retVal) => {
+    retVal.dataValues.token = jwtUtil.createToken(retVal.name, retVal.name);
+    return res.status(httpStatus.OK)
+      .json(u.responsify(retVal, helper, req.method));
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector
 
 /**
