@@ -353,25 +353,21 @@ module.exports = {
 
       return checkWritePermission(aspect, sampObjToReturn, userName);
     })
+    /*
+     * Set up and execute the commands to:
+     * (1) delete the sample entry from the master list of sample index,
+     * (2) delete the aspect from the subAspMap,
+     * (3) delete the sample hash.
+     */
     .then(() => {
-
-      // delete sample entry from the master list of sample index
       cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
-
-      // delete the aspect from the subAspMap
       cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
-
-      // delete the sample hash
       cmds.push(redisOps.delHashCmd(sampleType, sampleName));
-
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.executeBatchCmds(cmds))
-    .then(() => {
-      // attach aspect and links to sample
-      const resSampAsp = cleanAddAspectToSample(sampObjToReturn, aspect);
-      return resSampAsp;
-    });
+    /* Attach aspect and links to sample. */
+    .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
   },
 
   /**
@@ -818,17 +814,21 @@ module.exports = {
     }
 
     return redisClient.sortAsync(sortArgs)
+    /*
+     * Prefilter based on sample name, if specified. Then, for each of the
+     * remaining sample keys, derive the aspect name and key from the sample
+     * name, then add the commands to get the sample details and aspect details
+     * from their respective objects in the sample store and execute that
+     * batch of commands.
+     */
     .then((allSampKeys) => {
       const filteredSampKeys = hasFilters ?
         modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
       const commands = [];
       filteredSampKeys.forEach((sKey) => {
-        /* Get aspect name and key from the sample name. */
         const aName = sKey.split('|')[ONE];
         const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
-        /* Command to get sample details from sample store. */
         commands.push(['hgetall', sKey]);
-        /* Command to get aspect details from sample store. */
         commands.push(['hgetall', aKey]);
       });
 
@@ -837,7 +837,6 @@ module.exports = {
     .then((redisResponses) => { // samples and aspects
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const samples = [];
-      const response = [];
 
       // Eg: { samplename: asp object}, so that we can attach aspect later
       const sampAspectMap = {};
@@ -848,27 +847,17 @@ module.exports = {
 
       const filteredSamples =
         modelUtils.applyFiltersOnResourceObjs(samples, opts);
-      filteredSamples.forEach((sample) => {
-        const sampName = sample.name;
+      return filteredSamples.map((sample) => {
         if (opts.attributes) { // delete sample fields, hence no return obj
           modelUtils.applyFieldListFilter(sample, opts.attributes);
         }
 
-        // attach aspect to sample
-        const resSampAsp = cleanAddAspectToSample(
-          sample, sampAspectMap[sampName]
-        );
-
-        // add api links
-        resSampAsp.apiLinks = u.getApiLinks(
-          resSampAsp.name, helper, req.method
-        );
-        response.push(resSampAsp); // add sample to response
+        const s = cleanAddAspectToSample(sample, sampAspectMap[sample.name]);
+        s.apiLinks = u.getApiLinks(s.name, helper, req.method);
+        return s;
       });
-
-      return response;
     });
-  },
+  }, // findSamples
 
   /**
    * Upsert sample in Redis.
