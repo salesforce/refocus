@@ -11,8 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const adminUser = require('../../../../config').db.adminUser;
-const jwtUtil = require('../../../../utils/jwtUtil');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
@@ -23,9 +21,6 @@ const expect = require('chai').expect;
 describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   let token;
   let user;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
   const generatorTemplateToCreate = u.getGeneratorTemplate();
   before((done) => {
     tu.toggleOverride('returnUser', true);

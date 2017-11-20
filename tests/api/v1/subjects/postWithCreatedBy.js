@@ -12,24 +12,17 @@
 'use strict';
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const adminUser = require('../../../../config').db.adminUser;
-const jwtUtil = require('../../../../utils/jwtUtil');
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
-const ZERO = 0;
 
 describe('tests/api/v1/subjects/postWithCreatedBy.js, returnUser toggle on >',
 () => {
   let token;
   let user;
   const n2b = { name: `${tu.namePrefix}Quebec` };
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
 
   before((done) => {
     tu.toggleOverride('returnUser', true);

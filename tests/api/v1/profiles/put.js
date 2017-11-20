@@ -17,9 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/profiles';
 const expect = require('chai').expect;
-const jwtUtil = require('../../../../utils/jwtUtil');
 const adminProfile = require('../../../../config').db.adminProfile;
-const adminUser = require('../../../../config').db.adminUser;
 const Profile = tu.db.Profile;
 
 describe('tests/api/v1/profiles/put.js >', () => {
@@ -27,9 +25,7 @@ describe('tests/api/v1/profiles/put.js >', () => {
   const pname = `${tu.namePrefix}testProfile`;
   const newName = pname + '2';
   /* out of the box admin user token */
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = tu.createAdminToken();
 
   beforeEach((done) => {
     // Create profile __testProfile

@@ -7,23 +7,19 @@
  */
 
 /**
- * tests/tokenReq/api/token/revoke.js
+ * tests/enforceToken/revoke.js
  */
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
-const adminUser = require('../../config').db.adminUser;
 const constants = require('../../api/v1/constants');
-const jwtUtil = require('../../utils/jwtUtil');
 const u = require('../testUtils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
 describe('tests/enforceToken/revoke.js, enforceToken: revoke >', () => {
   let defaultToken;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = u.createAdminToken();
 
   beforeEach((done) => {
     api.post(registerPath)

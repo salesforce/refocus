@@ -18,9 +18,9 @@ const u = require('./utils');
 const path = '/v1/users';
 const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
+const OBAdminProfile = require('../../../../config').db.adminProfile;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
-const Token = tu.db.Token;
 
 describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const ZERO = 0;
@@ -36,9 +36,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
   /* out of the box admin user token */
-  const OBAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const OBAdminUserToken = tu.createAdminToken();
 
   before((done) => {
     Profile.create({ name: pname + ONE })
@@ -84,7 +82,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
-      userFour, userFour
+      userFour, userFour, { IsAdmin: true, ProfileName: OBAdminProfile.name }
     );
 
     before((done) => {

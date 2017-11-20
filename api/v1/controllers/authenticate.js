@@ -15,6 +15,7 @@ const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const apiErrors = require('../apiErrors');
 const jwtUtil = require('../../../utils/jwtUtil');
+const Profile = require('../helpers/nouns/profiles').model;
 
 const resourceName = 'authenticate';
 
@@ -48,15 +49,26 @@ module.exports = {
           return u.handleError(next, _err, resourceName);
         }
 
-        // create token
-        const token = jwtUtil.createToken(req.user.name, req.user.name);
-        req.session.token = token;
-        const retObj = {
-          success: true,
-          message: 'authentication succeeded',
-        };
-        u.logAPI(req, resultObj, retObj);
-        return res.status(httpStatus.OK).json(retObj);
+        return Profile.isAdmin(user.profileId)
+        .then((isAdmin) => { // update in token payload if admin
+          const payloadObj = {
+            ProfileName: user.profile.name,
+            IsAdmin: isAdmin,
+          };
+
+          // create token
+          const token = jwtUtil.createToken(
+            req.user.name, req.user.name, payloadObj
+          );
+
+          req.session.token = token;
+          const retObj = {
+            success: true,
+            message: 'authentication succeeded',
+          };
+          u.logAPI(req, resultObj, retObj);
+          return res.status(httpStatus.OK).json(retObj);
+        });
       });
     })(req, res, next);
   },

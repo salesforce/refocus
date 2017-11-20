@@ -18,6 +18,7 @@ const doGet = require('../helpers/verbs/doGet');
 const jwtUtil = require('../../../utils/jwtUtil');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const Profile = require('../helpers/nouns/profiles').model;
 
 module.exports = {
 
@@ -80,14 +81,23 @@ module.exports = {
 
     // create token to be returned in response.
     const tokenName = req.swagger.params.queryBody.value.name;
-    const token = jwtUtil.createToken(
-      tokenName, user.name
-    );
+    let token;
+    Profile.isAdmin(user.profileId)
+    .then((isAdmin) => {
+      const payloadObj = {
+        ProfileName: user.profile.name,
+        IsAdmin: isAdmin,
+      };
 
-    // create token object in db
-    return helper.model.create({
-      name: tokenName,
-      createdBy: user.id,
+      token = jwtUtil.createToken(
+        tokenName, user.name, payloadObj
+      );
+
+      // create token object in db
+      return helper.model.create({
+        name: tokenName,
+        createdBy: user.id,
+      });
     })
     .then((createdToken) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

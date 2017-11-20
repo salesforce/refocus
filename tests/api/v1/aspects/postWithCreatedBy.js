@@ -11,25 +11,16 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const adminUser = require('../../../../config').db.adminUser;
-const jwtUtil = require('../../../../utils/jwtUtil');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/aspects';
-const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
-const ZERO = 0;
-const ONE = 1;
-const tokenPath = '/v1/tokens';
 
 describe('tests/api/v1/aspects/postWithCreatedBy.js, ' + path + ' >', () => {
   let token;
   let user;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
   before((done) => {
     tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()

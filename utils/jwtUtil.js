@@ -19,9 +19,17 @@ const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
 const Bot = require('../db/index').Bot;
-const Profile = require('../db/index').Profile;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
+const Profile = require('../db/index').Profile;
+
+// these headers will be assigned default values if not present in token.
+const headersWithDefaults = {
+  ProfileName: '',
+  IsAdmin: false,
+  IsCollector: false,
+  IsBot: false,
+};
 
 /**
  * Adds a key and its value to the passed in object.
@@ -35,35 +43,35 @@ function assignKeyValue(object, key, value) {
 } // assignKeyValue
 
 /**
- * Assigns user related information to the request header.
- * @param  {Object}  req  - The request object
- * @param  {String}  tokenName - Token name parsed from the token
- * @param  {Boolean} isAdmin  - Flag to indicate if the request was made by an
- * Admin user
+ * Assign request headers using token info
+ * @param  {Object} req - Request object
+ * @param  {Object} decodedTokenData - decoded data from token
  */
-function assignUserHeaders(req, tokenName, isAdmin) {
-  assignKeyValue(req.headers, 'UserName', req.user.name);
-  assignKeyValue(req.headers, 'TokenName', tokenName);
-  assignKeyValue(req.headers, 'ProfileName', req.user.profile.name);
-  assignKeyValue(req.headers, 'IsAdmin', isAdmin);
-  assignKeyValue(req.headers, 'IsCollector', false);
-  assignKeyValue(req.headers, 'IsBot', false);
-} // assignUserHeaders
+function assignHeaderValues(req, decodedTokenData) {
 
-/**
- * Assigns collector related information to the request header
- * @param  {Object} req - The request object
- * @param  {String} userName  - The username parsed from the token
- * @param  {String} tokenName - The tokenname parsed from the token
- */
-function assignCollectorHeaders(req, userName, tokenName) {
-  assignKeyValue(req.headers, 'UserName', userName);
-  assignKeyValue(req.headers, 'TokenName', tokenName);
-  assignKeyValue(req.headers, 'ProfileName', '');
-  assignKeyValue(req.headers, 'IsCollector', true);
-  assignKeyValue(req.headers, 'IsAdmin', false);
-  assignKeyValue(req.headers, 'IsBot', false);
-} // assignCollectorHeaders
+  /*
+   * username and tokenname should always be there if createToken function is
+   * used for creating token
+   */
+  if (decodedTokenData.username) {
+    assignKeyValue(req.headers, 'UserName', decodedTokenData.username);
+  }
+
+  if (decodedTokenData.tokenname) {
+    assignKeyValue(req.headers, 'TokenName', decodedTokenData.tokenname);
+  }
+
+  Object.keys(headersWithDefaults).forEach((headerName) => {
+    let headerValue;
+    if (decodedTokenData.hasOwnProperty(headerName)) {
+      headerValue = decodedTokenData[headerName];
+    } else {
+      headerValue = headersWithDefaults[headerName];
+    }
+
+    assignKeyValue(req.headers, headerName, headerValue);
+  });
+}
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -149,7 +157,8 @@ function verifyCollectorToken(req, cb) {
       });
     }
 
-    assignCollectorHeaders(req, decodedData.username, decodedData.tokenname);
+    assignHeaderValues(req, decodedData);
+
     if (cb) {
       return cb();
     }
@@ -203,10 +212,25 @@ function verifyUserToken(req, cb) {
     }
 
     req.user = user.get();
-    return Profile.isAdmin(req.user.profileId);
+
+    /**
+     * For tokens with no ProfileName and IsAdmin set, like existing tokens -
+     * we set IsAdmin and ProfileName after decoding the token.
+     */
+    if (!decodedData.hasOwnProperty('ProfileName')) {
+      decodedData.ProfileName = user.profile.name;
+    }
+
+    if (!decodedData.hasOwnProperty('IsAdmin')) {
+      return Profile.isAdmin(req.user.profileId);
+    }
+
+    return decodedData.IsAdmin;
   })
   .then((isAdmin) => {
-    assignUserHeaders(req, decodedData.tokenname, isAdmin);
+    decodedData.IsAdmin = isAdmin; // ok to reassign in case of new tokens
+    assignHeaderValues(req, decodedData);
+
     /*
      * No need to check the token record if this is the default UI
      * token.
@@ -260,39 +284,34 @@ function verifyToken(req, cb) {
 } // verifyToken
 
 /**
- * Get token details (user name and token name) from the request.
- *
- * @param {Object} req - The request object.
- * @returns {Promise} - Resolves to an object containing "username" and
- *  "tokenname" attributes.
- */
-function getTokenDetailsFromRequest(req) {
-  let username;
-  let tokenname;
-  if (req && req.headers) {
-    username = req.headers.UserName;
-    tokenname = req.headers.TokenName;
-    return { username, tokenname };
-  }
-
-  username = req.session.passport.user.name;
-  tokenname = '__UI';
-  return { username, tokenname };
-} // getTokenDetailsFromRequest
-
-/**
  * Create jwt token.
  *
  * @param {string} tokenName - the name of the token
  * @param {string} userName - the name of the user
+ * @param {Object} payloadObj - optional additional info to be included in
+ * jwt claim
  * @returns {string} created token
  */
-function createToken(tokenName, userName) {
+function createToken(tokenName, userName, payloadObj) {
   const jwtClaim = {
     tokenname: tokenName,
     username: userName,
-    timestamp: Date.now,
+    timestamp: Date.now(),
   };
+
+  /**
+   * If payload not given, no additional headers are set.
+   * If payload is given, set only the headers which matches the headers in
+   * headersWithDefaults.
+   */
+  if (payloadObj) {
+    Object.keys(payloadObj).forEach((key) => {
+      if (headersWithDefaults.hasOwnProperty(key)) {
+        jwtClaim[key] = payloadObj[key];
+      }
+    });
+  }
+
   const createdToken = jwt.sign(jwtClaim, secret);
   return createdToken;
 }
@@ -300,7 +319,8 @@ function createToken(tokenName, userName) {
 module.exports = {
   verifyToken,
   createToken,
-  getTokenDetailsFromRequest,
   verifyCollectorToken,
   verifyBotToken,
+  assignHeaderValues, // for testing purposes only
+  headersWithDefaults, // for testing purposes only
 };

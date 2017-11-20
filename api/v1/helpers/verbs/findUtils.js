@@ -265,11 +265,16 @@ function options(params, props) {
     opts.order = toSequelizeOrder(ord, props.modelName);
   }
 
-  // Specify the limit
+  // Specify the limit (must not be greater than default)
+  opts.limit = defaults.limit;
   if (get(params, 'limit.value')) {
-    opts.limit = parseInt(params.limit.value, RADIX);
+    const lim = parseInt(params.limit.value, RADIX);
+    if (lim < defaults.limit) {
+      opts.limit = lim;
+    }
   }
 
+  opts.offset = defaults.offset;
   if (get(params, 'offset.value')) {
     opts.offset = parseInt(params.offset.value, RADIX);
   }
