@@ -797,7 +797,6 @@ module.exports = {
    */
   findSamples(req, res, logObject) {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
-    const response = [];
 
     // Add prev/next response links.
     res.links({
@@ -806,9 +805,11 @@ module.exports = {
     });
 
     /*
-     * If there are no filters, pass the limit and offset through as part of
-     * the initial redis command. If there are filters, we need to load more
-     * records in case some get filtered out.
+     * Send a batch of redis commands to get all the samples sorted
+     * lexicographically by key (i.e. sample name). If there are no filters,
+     * pass the limit and offset through as part of the initial redis command.
+     * If there are filters, we need to load more records so we can return the
+     * right number of records in case some get filtered out later.
      */
     const sortArgs = [constants.indexKey.sample, 'alpha'];
     const hasFilters = Object.keys(opts.filter).length > 0;
@@ -816,10 +817,6 @@ module.exports = {
       sortArgs.push('LIMIT', opts.offset, opts.limit);
     }
 
-    /*
-     * Send a batch of redis commands to get all the samples sorted
-     * lexicographically by key (i.e. sample name).
-     */
     return redisClient.sortAsync(sortArgs)
     .then((allSampKeys) => {
       const filteredSampKeys = hasFilters ?
@@ -840,6 +837,7 @@ module.exports = {
     .then((redisResponses) => { // samples and aspects
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const samples = [];
+      const response = [];
 
       // Eg: { samplename: asp object}, so that we can attach aspect later
       const sampAspectMap = {};
@@ -848,9 +846,9 @@ module.exports = {
         sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
       }
 
-      const filteredSamples = modelUtils.applyFiltersOnResourceObjs(samples, opts);
+      const filteredSamples =
+        modelUtils.applyFiltersOnResourceObjs(samples, opts);
       filteredSamples.forEach((sample) => {
-
         const sampName = sample.name;
         if (opts.attributes) { // delete sample fields, hence no return obj
           modelUtils.applyFieldListFilter(sample, opts.attributes);
