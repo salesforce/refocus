@@ -835,7 +835,6 @@ module.exports = {
       return redisClient.batch(commands).execAsync();
     })
     .then((redisResponses) => { // samples and aspects
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       const samples = [];
 
       // Eg: { samplename: asp object}, so that we can attach aspect later
@@ -847,7 +846,7 @@ module.exports = {
 
       const filteredSamples =
         modelUtils.applyFiltersOnResourceObjs(samples, opts);
-      return filteredSamples.map((sample) => {
+      const retval = filteredSamples.map((sample) => {
         if (opts.attributes) { // delete sample fields, hence no return obj
           modelUtils.applyFieldListFilter(sample, opts.attributes);
         }
@@ -856,6 +855,9 @@ module.exports = {
         s.apiLinks = u.getApiLinks(s.name, helper, req.method);
         return s;
       });
+
+      logObject.dbTime = new Date() - logObject.reqStartTime;
+      return retval;
     });
   }, // findSamples
 
