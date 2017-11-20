@@ -788,10 +788,9 @@ module.exports = {
    *
    * @param  {Object} req - Request object
    * @param  {Object} res - Result object
-   * @param  {Object} logObject - Log object
    * @returns {Promise} - Resolves to a list of all samples objects
    */
-  findSamples(req, res, logObject) {
+  findSamples(req, res) {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
 
     // Add prev/next response links.
@@ -846,7 +845,7 @@ module.exports = {
 
       const filteredSamples =
         modelUtils.applyFiltersOnResourceObjs(samples, opts);
-      const retval = filteredSamples.map((sample) => {
+      return filteredSamples.map((sample) => {
         if (opts.attributes) { // delete sample fields, hence no return obj
           modelUtils.applyFieldListFilter(sample, opts.attributes);
         }
@@ -855,9 +854,6 @@ module.exports = {
         s.apiLinks = u.getApiLinks(s.name, helper, req.method);
         return s;
       });
-
-      logObject.dbTime = new Date() - logObject.reqStartTime;
-      return retval;
     });
   }, // findSamples
 
