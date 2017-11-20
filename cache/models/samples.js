@@ -799,27 +799,40 @@ module.exports = {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const response = [];
 
-    // Add response links to prev/next
+    // Add prev/next response links.
     res.links({
       prev: req.originalUrl,
       next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
     });
 
-    // get all Samples sorted lexicographically
-    return redisClient.sortAsync(constants.indexKey.sample, 'alpha')
-    .then((allSampKeys) => {
-      const commands = [];
-      const filteredSampKeys = modelUtils
-        .applyFiltersOnResourceKeys(allSampKeys, opts);
+    /*
+     * If there are no filters, pass the limit and offset through as part of
+     * the initial redis command. If there are filters, we need to load more
+     * records in case some get filtered out.
+     */
+    const sortArgs = [constants.indexKey.sample, 'alpha'];
+    const hasFilters = Object.keys(opts.filter).length > 0;
+    if (!hasFilters) {
+      sortArgs.push('LIMIT', opts.offset, opts.limit);
+    }
 
-      // add to commands
-      filteredSampKeys.forEach((sampKey) => {
-        const aspectName = sampKey.split('|')[ONE];
-        commands.push(['hgetall', sampKey]); // get sample
-        commands.push(
-          ['hgetall',
-           sampleStore.toKey(constants.objectType.aspect, aspectName),
-          ]);
+    /*
+     * Send a batch of redis commands to get all the samples sorted
+     * lexicographically by key (i.e. sample name).
+     */
+    return redisClient.sortAsync(sortArgs)
+    .then((allSampKeys) => {
+      const filteredSampKeys = hasFilters ?
+        modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
+      const commands = [];
+      filteredSampKeys.forEach((sKey) => {
+        /* Get aspect name and key from the sample name. */
+        const aName = sKey.split('|')[ONE];
+        const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
+        /* Command to get sample details from sample store. */
+        commands.push(['hgetall', sKey]);
+        /* Command to get aspect details from sample store. */
+        commands.push(['hgetall', aKey]);
       });
 
       return redisClient.batch(commands).execAsync();
