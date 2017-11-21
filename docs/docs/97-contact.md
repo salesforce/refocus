@@ -15,4 +15,4 @@ Check out our [contribution guidelines](https://salesforce.github.io/refocus/doc
 
 ## Other?
 
-Email us directly: cxtools "at" salesforce "dot" com
+Email us directly: cxtools "at" salesforce "dot" com.
