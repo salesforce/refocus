@@ -48,9 +48,15 @@ const RADIX = 10;
  */
 function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey,
   cacheExpiry) {
-  redisModelSample.findSamples(req, res, resultObj)
+  redisModelSample.findSamples(req, res)
   .then((response) => {
-    // loop through remove values to delete property
+    /*
+     * Record the "dbTime" (time spent retrieving the records from the sample
+     * store).
+     */
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+    // delete any attributes designated for exclusion from the response
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
         u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
@@ -117,16 +123,15 @@ module.exports = {
       if (helper.cacheEnabled) {
         redisCache.get(helper.cacheKey, (cacheErr, reply) => {
           if (cacheErr || !reply) {
-            doFindSampleStoreResponse(req, res,
-             next, resultObj, helper.cacheKey, helper.cacheExpiry);
+            doFindSampleStoreResponse(req, res, next, resultObj,
+              helper.cacheKey, helper.cacheExpiry);
           } else {
             u.logAPI(req, resultObj, reply); // audit log
             res.status(httpStatus.OK).json(JSON.parse(reply));
           }
         });
       } else {
-        doFindSampleStoreResponse(req, res,
-          next, resultObj);
+        doFindSampleStoreResponse(req, res, next, resultObj);
       }
     } else {
       doFind(req, res, next, helper);

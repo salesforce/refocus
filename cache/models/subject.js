@@ -306,12 +306,10 @@ module.exports = {
     .then((allSubjectKeys) => {
       const commands = [];
       const filteredSubjectKeys = modelUtils
-        .applyFiltersOnResourceKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
-
+        .prefilterKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
       filteredSubjectKeys.forEach((subjectKey) => {
         commands.push(['hgetall', subjectKey]);
       });
-
       return redisClient.batch(commands).execAsync();
     })
     .then((subjects) => {
