@@ -34,6 +34,7 @@ const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
 const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
+const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 
 /**
  * Find sample from samplestore. If cache is on then
@@ -55,8 +56,9 @@ function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey,
      * store).
      */
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    // delete any attributes designated for exclusion from the response
+    /* Add response header with record count. */
+    res.set(COUNT_HEADER_NAME, response.length);
+    /* Delete any attributes designated for exclusion from the response. */
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
         u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
