@@ -25,7 +25,7 @@ const roomEventNames = {
 const pubOpts = {
   client: rtConstants.bot.client,
   channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.roomFilterIndex,
+  filterIndex: rtConstants.bot.roomFilterIndex,
   filterField: 'name',
 };
 

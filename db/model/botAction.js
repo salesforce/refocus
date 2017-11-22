@@ -29,7 +29,7 @@ const botActionEventNames = {
 const pubOpts = {
   client: rtConstants.bot.client,
   channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.botActionFilterIndex,
+  filterIndex: rtConstants.bot.botActionFilterIndex,
   filterField: 'name',
 };
 
