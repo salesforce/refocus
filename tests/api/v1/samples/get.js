@@ -72,6 +72,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         expect(user.name).to.be.an('string');
         expect(user.email).to.be.an('string');
         expect(user.profile.name).to.be.an('string');
+        expect(res.header).to.have.property('x-total-count', '1');
         done();
       });
     });
