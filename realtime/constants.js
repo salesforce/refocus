@@ -59,6 +59,6 @@ module.exports = {
     channel: 'botChannelName',
     roomFilterIndex: 0,
     botActionFilterIndex: 1,
-  }
+  },
 
 };
