@@ -42,26 +42,6 @@ function isThisSubject(obj) {
 }
 
 /**
- * A function to see if an instance is an instance of a room
- * Checks the name from the model
- * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the name singular is room
- */
-function isRoom(obj) {
-  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
-}
-
-/**
- * A function to see if an instance is an instance of a room
- * Checks the name from the model
- * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the name singular is room
- */
-function isBotAction(obj) {
-  return obj.hasOwnProperty('parameters') && obj.hasOwnProperty('response');
-}
-
-/**
  * A function to see if an object is a sample object or not. It returns true
  * if an object passed has 'value' as one of its property.
  * @param  {Object}  obj - An object instance
@@ -256,15 +236,9 @@ function perspectiveEmit(nspComponents, obj) {
  * identified by this namespace string.
  */
 function botEmit(nspComponents, obj) {
-  const room = nspComponents[constants.roomFilterIndex];
-  const botActionFilter = nspComponents[constants.botActionFilterIndex];
-
-  if (isRoom(obj)) {
-    return applyFilter(room, obj.name);
-  }
-
-  if (isBotAction(obj)) {
-    return applyFilter(botActionFilter, obj.name);
+  const objFilter = nspComponents[obj.pubOpts.filterIndex];
+  if (objFilter) {
+    return applyFilter(objFilter, obj[obj.pubOpts.filterField]);
   }
 
   return false;
@@ -327,18 +301,13 @@ function getPerspectiveNamespaceString(inst) {
 /**
  * When passed a room object, it returns a namespace string based on the
  * fields set in the room object.
- * @param  {Instance} inst - Perspective object
+ * @param  {Instance} inst - Room object
  * @returns {String} - namespace string.
  */
 function getBotsNamespaceString(inst) {
   let namespace = botAbsolutePath;
-
-  if (isRoom(inst)) {
+  if (inst) {
     namespace += constants.filterSeperator + inst.name;
-  }
-
-  if (isBotAction(inst)) {
-    namespace += constants.filterSeperator + inst.roomId;
   }
 
   return namespace;
@@ -494,7 +463,5 @@ module.exports = {
   parseObject,
   shouldIEmitThisObj,
   isThisSample,
-  isRoom,
-  isBotAction,
   attachAspectSubject,
 }; // exports

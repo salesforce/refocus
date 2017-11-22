@@ -15,6 +15,7 @@
 
 const constants = require('../constants');
 const realTime = require('../../realtime/redisPublisher');
+const rtConstants = require('../../realtime/constants');
 const assoc = {};
 const roomEventNames = {
   add: 'refocus.internal.realtime.bot.namespace.initialize',
@@ -22,8 +23,10 @@ const roomEventNames = {
   del: 'refocus.internal.realtime.room.remove',
 };
 const pubOpts = {
-  client: 'pubBot',
-  channel: 'botChannelName',
+  client: rtConstants.bot.client,
+  channel: rtConstants.bot.channel,
+  filterIndex: rtConstants.roomFilterIndex,
+  filterField: 'name',
 };
 
 module.exports = function room(seq, dataTypes) {
