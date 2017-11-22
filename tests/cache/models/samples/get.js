@@ -142,6 +142,7 @@ describe('tests/cache/models/samples/get.js, ' +
           return done(err);
         }
 
+        expect(res.header).to.have.property('x-total-count', '3');
         for (let i = res.body.length - 1; i >= 0; i--) {
           const { user } = res.body[i];
           expect(user).to.be.an('object');
