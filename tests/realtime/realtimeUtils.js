@@ -137,7 +137,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then(() => {
       const botData = u.getStandardBotData();
-      return tu.db.Event.create(botData);
+      return tu.db.BotData.create(botData);
     })
     .then((bd) => {
       botDataTest = bd.toJSON();
