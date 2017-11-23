@@ -33,6 +33,10 @@ module.exports = (io, key, obj) => {
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
      rtUtils.shouldIEmitThisObj(nsp, obj)) {
+      if (obj.pubOpts) {
+        delete obj.pubOpts;
+      }
+
       io.of(nsp).emit(key, newObjectAsString);
     }
   }

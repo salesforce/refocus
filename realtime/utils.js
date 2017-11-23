@@ -236,8 +236,8 @@ function perspectiveEmit(nspComponents, obj) {
  * identified by this namespace string.
  */
 function botEmit(nspComponents, obj) {
-  const objFilter = nspComponents[obj.pubOpts.filterIndex];
-  if (objFilter) {
+  if (obj.pubOpts) {
+    const objFilter = nspComponents[obj.pubOpts.filterIndex];
     return applyFilter(objFilter, obj[obj.pubOpts.filterField]);
   }
 

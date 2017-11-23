@@ -70,7 +70,6 @@ module.exports = (io) => {
     const mssgObj = JSON.parse(mssgStr);
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
-    delete parsedObj.pubOpts;
 
     /*
      * pass on the message received through the redis subscriber to the socket
