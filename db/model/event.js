@@ -16,6 +16,19 @@
  */
 
 const assoc = {};
+const realTime = require('../../realtime/redisPublisher');
+const rtConstants = require('../../realtime/constants');
+const botEventNames = {
+  add: 'refocus.internal.realtime.bot.event.add',
+  upd: 'refocus.internal.realtime.bot.event.update',
+  del: 'refocus.internal.realtime.bot.event.remove',
+};
+const pubOpts = {
+  client: rtConstants.bot.client,
+  channel: rtConstants.bot.channel,
+  filterIndex: rtConstants.bot.botEventFilterIndex,
+  filterField: 'id',
+};
 
 module.exports = function event(seq, dataTypes) {
   const Event = seq.define('Event', {
@@ -68,6 +81,25 @@ module.exports = function event(seq, dataTypes) {
         });
       },
     },
+    hooks: {
+
+      afterCreate: (instance) => {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return realTime.publishObject(instance.toJSON(),
+          botEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+      },
+
+      afterUpdate(instance /* , opts */) {
+        return realTime.publishObject(instance.toJSON(),
+          botEventNames.upd, null, null, pubOpts);
+      }, // hooks.afterUpdate
+
+      afterDelete(instance /* , opts */) {
+        return realTime.publishObject(instance.toJSON(),
+          botEventNames.del, null, null, pubOpts);
+      }, // hooks.afterDelete
+    }, // hooks
     indexes: [
       {
         name: 'SpecificEvent',

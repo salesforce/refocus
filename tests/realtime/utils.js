@@ -148,6 +148,13 @@ const standardBotAction = {
   ],
 };
 
+const standardEvent = {
+  log: 'Logged Info',
+  context: {
+    Sample: 'DATA',
+  },
+};
+
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
@@ -183,6 +190,10 @@ module.exports = {
 
   getStandardBotAction() {
     return JSON.parse(JSON.stringify(standardBotAction));
+  },
+
+  getStandardEvent() {
+    return JSON.parse(JSON.stringify(standardEvent));
   },
 
   forceDelete(done) {
