@@ -69,6 +69,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let roomID;
   let botID;
   let botActionTest;
+  let botDataTest;
 
   let createdLensId;
   before((done) => {
@@ -133,6 +134,13 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then((ba) => {
       botActionTest = ba.toJSON();
+    })
+    .then(() => {
+      const botData = u.getStandardBotData();
+      return tu.db.Event.create(botData);
+    })
+    .then((bd) => {
+      botDataTest = bd.toJSON();
     }).then(() => done())
     .catch(done);
   });
@@ -169,6 +177,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('should return true for botActionTest', () => {
         const nspString = realtimeUtils.getBotsNamespaceString(botActionTest);
         expect(realtimeUtils.shouldIEmitThisObj(nspString, botActionTest, true))
+        .to.equal(true);
+      });
+
+      it('should return true for botDataTest', () => {
+        const nspString = realtimeUtils.getBotsNamespaceString(botDataTest);
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, botDataTest, true))
         .to.equal(true);
       });
 

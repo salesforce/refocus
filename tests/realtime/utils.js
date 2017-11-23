@@ -148,6 +148,11 @@ const standardBotAction = {
   ],
 };
 
+const standardBotData = {
+  name: 'Test BotData',
+  value: 'String1',
+};
+
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
@@ -185,6 +190,10 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardBotAction));
   },
 
+  getStandardBotData() {
+    return JSON.parse(JSON.stringify(standardBotData));
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
@@ -192,6 +201,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
+    .then(() => tu.forceDelete(tu.db.BotData, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
