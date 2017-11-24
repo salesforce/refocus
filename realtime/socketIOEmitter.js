@@ -35,6 +35,7 @@ module.exports = (io, key, obj) => {
      rtUtils.shouldIEmitThisObj(nsp, obj)) {
       if (obj.pubOpts) {
         delete obj.pubOpts;
+        newObjectAsString = rtUtils.getNewObjAsString(key, obj);
       }
 
       io.of(nsp).emit(key, newObjectAsString);
