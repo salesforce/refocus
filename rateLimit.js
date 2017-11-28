@@ -17,7 +17,7 @@ const Limiter = require('ratelimiter');
 const Promise = require('bluebird');
 Limiter.prototype.getAsync = Promise.promisify(Limiter.prototype.get);
 
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
   if (req.headers.IsAdmin) return next();
   const limiterConfig1 = {
     db: limiterRedisClient,

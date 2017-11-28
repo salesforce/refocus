@@ -226,7 +226,7 @@ function start() { // eslint-disable-line max-statements
       if (paths && paths.length && app[method]) {
         try {
           app[method](paths, rateLimit);
-        } catch(err) {
+        } catch (err) {
           console.error(`Failed to initialize limiter for ${method} ${paths}`);
           console.error(err);
         }
