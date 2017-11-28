@@ -24,6 +24,8 @@ module.exports = {
 
   roomFilterIndex: 0,
 
+  botActionFilterIndex: 1,
+
   filterSeperator: '&',
 
   valuesSeparator: ';',
