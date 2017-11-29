@@ -970,43 +970,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
     });
 
-    describe('added generator >', () => {
-      before(() => tu.toggleOverride('returnUser', true));
-      after(() => tu.toggleOverride('returnUser', false));
-
-      // setup and create a new generator with the createdBy field
-      it('contains the user token', (done) => {
-        const gtPath = '/v1/generatorTemplates';
-        const sgtCopy = JSON.parse(JSON.stringify(sgt));
-        sgtCopy.name = 'iAmNew';
-        sgtCopy.createdBy = userId;
-        sgtCopy.contextDefinition = contextDefinition;
-        gu.createSGtoSGTMapping(sgtCopy, generator1);
-
-        api.post(gtPath)
-        .set('Authorization', userToken)
-        .send(sgtCopy)
-        .expect(constants.httpStatus.CREATED)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.createdBy).to.equal(userId);
-          const timestamp = Date.now();
-          return Promise.resolve()
-          .then(() => postGenerator(generator1, [collector1]))
-          .then(() => sendHeartbeat(collector1, { timestamp }))
-          .then((res) => {
-            const reencryptedSG = res.body.generatorsAdded[0];
-            expect(reencryptedSG.token).to.be.an('string');
-            done();
-          })
-          .catch(done);
-        });
-      });
-    });
-
     describe('encryption >', () => {
       let encryptedSG = JSON.parse(JSON.stringify(generator1));
       beforeEach((done) => {
@@ -1054,6 +1017,43 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         })
         .then(done)
         .catch(done);
+      });
+    });
+
+    describe('added generator >', () => {
+      before(() => tu.toggleOverride('returnUser', true));
+      after(() => tu.toggleOverride('returnUser', false));
+
+      // setup and create a new generator with the createdBy field
+      it('contains the user token', (done) => {
+        const gtPath = '/v1/generatorTemplates';
+        const sgtCopy = JSON.parse(JSON.stringify(sgt));
+        sgtCopy.name = 'iAmNew';
+        sgtCopy.createdBy = userId;
+        sgtCopy.contextDefinition = contextDefinition;
+        gu.createSGtoSGTMapping(sgtCopy, generator2);
+
+        api.post(gtPath)
+        .set('Authorization', userToken)
+        .send(sgtCopy)
+        .expect(constants.httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.createdBy).to.equal(userId);
+          const timestamp = Date.now();
+          return Promise.resolve()
+          .then(() => postGenerator(generator2, [collector1]))
+          .then(() => sendHeartbeat(collector1))
+          .then((res) => {
+            const reencryptedSG = res.body.generatorsAdded[0];
+            expect(reencryptedSG.token).to.be.an('string');
+            done();
+          })
+          .catch(done);
+        });
       });
     });
   });

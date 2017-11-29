@@ -303,8 +303,11 @@ function heartbeat(req, res, next) {
     retval.generatorsAdded.map((sg) =>
       attachTemplate(sg)
       .then((sg) => {
-        const userName = sg.generatorTemplate.user.name;
-        sg.token = jwtUtil.createToken(userName, userName);
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          const userName = sg.generatorTemplate.user.name;
+          sg.token = jwtUtil.createToken(userName, userName);
+        }
+
         return reEncryptSGContextValues(sg, authToken, timestamp);
       })
     )
