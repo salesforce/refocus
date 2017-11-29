@@ -86,8 +86,7 @@ function start() { // eslint-disable-line max-statements
   const jwtUtil = require('./utils/jwtUtil');
 
   // middleware for api rate limits
-  const limiterRedisClient = require('./cache/redisCache').client.limiter;
-  const limiter = require('express-limiter')(app, limiterRedisClient);
+  const rateLimit = require('./rateLimit');
 
   // set up httpServer params
   const listening = 'Listening on port';
@@ -220,13 +219,18 @@ function start() { // eslint-disable-line max-statements
      * limits by user name and IP address, we could set lookup to
      * ['headers.UserName', 'headers.x-forwarded-for'].
      */
-    limiter({
-      path: conf.expressLimiterPath,
-      method: conf.expressLimiterMethod,
-      lookup: conf.expressLimiterLookup,
-      total: conf.expressLimiterTotal,
-      expire: conf.expressLimiterExpire,
-      whitelist: (req) => req.headers.IsAdmin,
+    const methods = conf.expressLimiterMethod;
+    const paths = conf.expressLimiterPath;
+    methods.forEach((method) => {
+      method = method.toLowerCase();
+      if (paths && paths.length && app[method]) {
+        try {
+          app[method](paths, rateLimit);
+        } catch (err) {
+          console.error(`Failed to initialize limiter for ${method} ${paths}`);
+          console.error(err);
+        }
+      }
     });
 
     // Validate Swagger requests
