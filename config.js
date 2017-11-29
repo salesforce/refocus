@@ -60,12 +60,14 @@ const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
   DEFAULT_CACHE_EXPIRY_IN_SECS;
 
 // request limiter settings
-const expressLimiterPath = pe.EXPRESS_LIMITER_PATH;
-const expressLimiterMethod = pe.EXPRESS_LIMITER_METHOD;
+const expressLimiterPath = configUtil.csvToArray(pe.EXPRESS_LIMITER_PATH);
+const expressLimiterMethod = configUtil.csvToArray(pe.EXPRESS_LIMITER_METHOD);
 const expressLimiterLookup =
   configUtil.csvToArray(pe.EXPRESS_LIMITER_LOOKUP || 'headers.UserName');
 const expressLimiterTotal = pe.EXPRESS_LIMITER_TOTAL;
 const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
+const expressLimiterTotal2 = pe.EXPRESS_LIMITER_TOTAL_2;
+const expressLimiterExpire2 = pe.EXPRESS_LIMITER_EXPIRE_2;
 
 const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 
@@ -255,6 +257,8 @@ module.exports = {
   expressLimiterLookup,
   expressLimiterTotal,
   expressLimiterExpire,
+  expressLimiterTotal2,
+  expressLimiterExpire2,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
   nodeEnv,
