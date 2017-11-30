@@ -18,7 +18,7 @@ const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {
   // newObjectAsString contains { key: {new: obj }}
-  const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+  let newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
   // Initialize namespace when perspective initialize namespace event is sent
   if (key.startsWith(initPerspectiveEvent)) {
@@ -33,6 +33,11 @@ module.exports = (io, key, obj) => {
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
      rtUtils.shouldIEmitThisObj(nsp, obj)) {
+      if (obj.pubOpts) {
+        delete obj.pubOpts;
+        newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+      }
+
       io.of(nsp).emit(key, newObjectAsString);
     }
   }
