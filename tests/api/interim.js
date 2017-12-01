@@ -35,8 +35,13 @@ describe('begins with', () => {
     expect(results.length).to.equal(0);
   });
 
-  it('one match', () => {
+  it('one match in periphery', () => {
     const results = getMatches(words, "pers");
+    expect(results.length).to.equal(1);
+  });
+
+   it('one match in middle', () => {
+    const results = getMatches(words, "i");
     expect(results.length).to.equal(1);
   });
 
