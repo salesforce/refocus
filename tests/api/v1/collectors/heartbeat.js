@@ -1049,7 +1049,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(() => sendHeartbeat(collector1))
           .then((res) => {
             const reencryptedSG = res.body.generatorsAdded[0];
-            expect(reencryptedSG.token).to.be.an('string');
+            expect(reencryptedSG.token).to.be.a('string');
             done();
           })
           .catch(done);
