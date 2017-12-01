@@ -2,7 +2,10 @@ const expect = require('chai').expect;
 
 function getMatches(arr, value) {
   const matches = [];
-  binarySearch(arr, value, matches);
+
+  // items are sorted ie. A, B, ..., a, b, ...
+  binarySearch(arr, value.toLowerCase(), matches);
+  binarySearch(arr, value.toUpperCase(), matches);
   return matches;
 }
 
@@ -27,9 +30,16 @@ function binarySearch(items, value, matches) {
   }
 }
 
+describe.only('ordered items with different cases', () => {
+  const ordered = ["AAAAA", "Az", "BB", "Be", "a", "aaaaaaaa"];
+  it('multiple matches across different cases', () => {
+    const results = getMatches(ordered, "a");
+    expect(results.length).to.equal(4);
+  });
+});
+
 describe('begins with', () => {
   const words = ["aaa", "ba", "bb", "ccc", "cd", "code", "in", "perspective"];
-
   it('no match', () => {
     const results = getMatches(words, "volvo");
     expect(results.length).to.equal(0);
@@ -40,7 +50,7 @@ describe('begins with', () => {
     expect(results.length).to.equal(1);
   });
 
-   it('one match in middle', () => {
+  it('one match in middle', () => {
     const results = getMatches(words, "i");
     expect(results.length).to.equal(1);
   });
