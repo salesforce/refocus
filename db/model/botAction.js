@@ -18,6 +18,7 @@ const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const realTime = require('../../realtime/redisPublisher');
+const rtConstants = require('../../realtime/constants');
 const u = require('../helpers/botUtils');
 const commonUtils = require('../../utils/common');
 const botActionEventNames = {
@@ -26,8 +27,10 @@ const botActionEventNames = {
   del: 'refocus.internal.realtime.bot.action.remove',
 };
 const pubOpts = {
-  client: 'pubBot',
-  channel: 'botChannelName',
+  client: rtConstants.bot.client,
+  channel: rtConstants.bot.channel,
+  filterIndex: rtConstants.bot.botActionFilterIndex,
+  filterField: 'name',
 };
 
 module.exports = function botAction(seq, dataTypes) {

@@ -113,8 +113,6 @@ function parseBot(bot) {
     );
     document.body.appendChild(botScript);
   }
-
-  uPage.removeSpinner();
 } // parseBots
 
 window.onload = () => {
@@ -133,5 +131,6 @@ window.onload = () => {
     res.forEach((bot) => {
       parseBot(bot.body);
     });
+    uPage.removeSpinner();
   });
 };
