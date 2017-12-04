@@ -16,6 +16,7 @@ const fs = require('fs');
 const testStartTime = new Date();
 const rt = `${tu.namePrefix}TestRoomType`;
 const r = `${tu.namePrefix}TestRoom`;
+const bd = `${tu.namePrefix}TestBotData`;
 
 const standardRoom = {
   name: r,
@@ -149,7 +150,7 @@ const standardBotAction = {
 };
 
 const standardBotData = {
-  name: 'Test BotData',
+  name: bd,
   value: 'String1',
 };
 
