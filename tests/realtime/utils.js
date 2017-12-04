@@ -202,10 +202,10 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Event, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Event, testStartTime))
     .then(() => done())
     .catch(done);
   },
