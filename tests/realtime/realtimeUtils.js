@@ -70,8 +70,8 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let botID;
   let botActionTest;
   let botDataTest;
-
   let createdLensId;
+
   before((done) => {
     u.doSetup()
     .then((createdLens) => {
