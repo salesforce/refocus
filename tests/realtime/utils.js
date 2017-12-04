@@ -197,12 +197,20 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Perspective, testStartTime)
+    tu.db.Event.destroy({
+      where: {
+        createdAt: {
+          $lt: new Date(),
+          $gte: testStartTime,
+        },
+      },
+      force: true,
+    })
+    .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Event, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
