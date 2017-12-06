@@ -89,6 +89,65 @@ const standardRoomType = {
   ],
 };
 
+const standardBot = {
+  name: 'TestBot',
+  url: 'http://www.bar.com',
+  active: true,
+  settings: [
+    { key: 'key1', helpText: 'help Text 1' },
+  ],
+  actions: [
+    {
+      name: 'Action1',
+      parameters: [
+        { name: 'Param1', type: 'BOOLEAN' },
+        { name: 'Param2', type: 'INTEGER' },
+        { name: 'Param3', type: 'DECIMAL' },
+        { name: 'Param4', type: 'STRING' },
+      ],
+    },
+    {
+      name: 'Action2',
+      parameters: [
+        { name: 'Param1', type: 'BOOLEAN' },
+        { name: 'Param2', type: 'INTEGER' },
+        { name: 'Param3', type: 'DECIMAL' },
+        { name: 'Param4', type: 'STRING' },
+      ],
+    },
+  ],
+  data: [
+    { name: 'Data1', type: 'BOOLEAN' },
+    { name: 'Data2', type: 'INTEGER' },
+    { name: 'Data3', type: 'DECIMAL' },
+    { name: 'Data4', type: 'STRING' },
+    { name: 'Data5', type: 'ARRAY' },
+  ],
+};
+
+const standardBotAction = {
+  isPending: true,
+  name: 'Action1',
+  parameters: [
+    {
+      name: 'Param1',
+      value: true,
+    },
+    {
+      name: 'Param2',
+      value: 4,
+    },
+    {
+      name: 'Param3',
+      value: 62.2,
+    },
+    {
+      name: 'Param4',
+      value: 'TestValue',
+    },
+  ],
+};
+
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
@@ -118,12 +177,22 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardRoom));
   },
 
+  getStandardBot() {
+    return JSON.parse(JSON.stringify(standardBot));
+  },
+
+  getStandardBotAction() {
+    return JSON.parse(JSON.stringify(standardBotAction));
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Perspective, testStartTime)
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);

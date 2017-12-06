@@ -32,7 +32,8 @@ function applyFieldListFilter(resource, attributes) {
 }
 
 /**
- * Apply filters on resource array list
+ * Apply filters on resource array list.
+ *
  * @param  {Array} resourceObjArray - Resource objects array
  * @param  {Object} opts - Filter options
  * @returns {Array} - Filtered resource objects array
@@ -64,7 +65,7 @@ function applyFiltersOnResourceObjs(resourceObjArray, opts) {
   }
 
   return filteredResources;
-}
+} // applyFiltersOnResourceObjs
 
 /**
  * Apply limit and offset filter to resource array.
@@ -86,14 +87,15 @@ function applyLimitAndOffset(opts, arr) {
 }
 
 /**
- * Apply filters on resource keys list
+ * Do any prefiltering based on the keys.
+ *
  * @param  {Array} keysArr - Resource key names array
  * @param  {Object} opts - Filter options
  * @param  {Function} getNameFunc - For filter on name, any processing
  *  on keys to get the resource name.
  * @returns {Array} - Filtered resource keys array
  */
-function applyFiltersOnResourceKeys(keysArr, opts, getNameFunc) {
+function prefilterKeys(keysArr, opts, getNameFunc) {
   let resArr = keysArr;
 
   // apply limit and offset if no sort order defined
@@ -103,14 +105,13 @@ function applyFiltersOnResourceKeys(keysArr, opts, getNameFunc) {
 
   // apply wildcard expr on name, if specified
   if (opts.filter && opts.filter.name) {
-    const filteredKeys = filterByFieldWildCardExpr(
-      resArr, 'name', opts.filter.name, getNameFunc
-    );
+    const filteredKeys = filterByFieldWildCardExpr(resArr, 'name',
+      opts.filter.name, getNameFunc);
     resArr = filteredKeys;
   }
 
   return resArr;
-}
+} // prefilterKeys
 
 /**
  * Remove extra fields from query body object.
@@ -187,7 +188,7 @@ function sortByOrder(arr, propArr) {
 
     return ZERO;
   });
-}
+} // sortByOrder
 
 /**
  * Get option fields from requesr parameters. An example:
@@ -245,7 +246,7 @@ module.exports = {
   cleanQueryBodyObj,
   filterByFieldWildCardExpr,
   applyFieldListFilter,
-  applyFiltersOnResourceKeys,
+  prefilterKeys,
   applyLimitAndOffset,
   getOptionsFromReq,
   sortByOrder,

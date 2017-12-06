@@ -11,10 +11,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
-const pubPerspective = require('../cache/redisCache').client.pubPerspective;
-const pubBot = require('../cache/redisCache').client.pubBot;
-const perspectiveChannelName = require('../config').redis.perspectiveChannelName;
-const botChannelName = require('../config').redis.botChannelName;
+const config = require('../config');
+const client = require('../cache/redisCache').client;
+const pubPerspective = client.pubPerspective;
+const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
 
@@ -67,11 +67,22 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * that were changed
  * @param  {[Array]} ignoreAttributes An array containing the fields of the
  * model that should be ignored
+ * @param  {Object} opts - Options for which client and channel to publish with
  * @returns {Object} - object that was published
  */
-function publishObject(inst, event, changedKeys, ignoreAttributes) {
+function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   const obj = {};
   obj[event] = inst;
+
+  // set pub client and channel to perspective unless there are overrides opts
+  let pubClient = pubPerspective;
+  let channelName = perspectiveChannelName;
+  if (opts) {
+    obj[event].pubOpts = opts;
+    pubClient = opts.client ? client[opts.client] : pubClient;
+    channelName = opts.channel ? config.redis[opts.channel] : channelName;
+  }
+
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -83,11 +94,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
   }
 
   if (obj[event]) {
-    if (rtUtils.isRoom(inst)) {
-      pubBot.publish(botChannelName, JSON.stringify(obj));
-    } else {
-      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
-    }
+    pubClient.publish(channelName, JSON.stringify(obj));
   }
 
   return obj;
