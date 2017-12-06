@@ -73,38 +73,41 @@ function samlAuthentication(userProfile, done) {
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
-      return Profile.findOne({ where: { name: 'RefocusSSOUser' } });
+      return Profile.findOne({ where: { name: 'RefocusSSOUser' } })
+      .then((foundProfile) => {
+        if (foundProfile) {
+          return foundProfile;
+        }
+
+        return Profile.create({ name: 'RefocusSSOUser' });
+      })
+      .then((profile) => {
+
+        /**
+         * default scope not applied on create, so we use User.find after this to
+         * get profile attached to user.
+         */
+        return User.create({
+          email: userProfile.email,
+          profileId: profile.id,
+          name: userProfile.email,
+          password: viewConfig.dummySsoPassword,
+          sso: true,
+        });
+      })
+      .then((createdUser) =>
+        User.findById(createdUser.id) // to get profile name with user object
+      )
+      .then((newUser) => {
+        done(null, newUser);
+      })
+      .catch((error) => {
+        done(error);
+      });
     }
 
     // profile already attached - default scope applied on find
     return done(null, user);
-  })
-  .then((foundProfile) => {
-    if (foundProfile) {
-      return foundProfile;
-    }
-
-    return Profile.create({ name: 'RefocusSSOUser' });
-  })
-  .then((profile) => {
-
-    /**
-     * default scope not applied on create, so we use User.find after this to
-     * get profile attached to user.
-     */
-    return User.create({
-      email: userProfile.email,
-      profileId: profile.id,
-      name: userProfile.email,
-      password: viewConfig.dummySsoPassword,
-      sso: true,
-    });
-  })
-  .then((createdUser) =>
-    User.findById(createdUser.id) // to get profile name with user object
-  )
-  .then((user) => {
-    done(null, user);
   })
   .catch((error) => {
     done(error);
