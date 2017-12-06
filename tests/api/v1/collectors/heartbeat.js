@@ -1027,7 +1027,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       before(() => {
         tu.toggleOverride('returnUser', true);
       });
-      after(() => tu.toggleOverride(sampleStore.constants.featureName,
+      after(() => tu.toggleOverride('returnUser',
         initialFeatureState));
 
       // setup and create a new generator with the createdBy field
