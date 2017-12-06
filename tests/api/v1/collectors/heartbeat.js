@@ -10,6 +10,7 @@
  * tests/api/v1/collectors/heartbeat.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -1021,8 +1022,13 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     });
 
     describe('added generator >', () => {
-      before(() => tu.toggleOverride('returnUser', true));
-      after(() => tu.toggleOverride('returnUser', false));
+      const initialFeatureState = featureToggles
+        .isFeatureEnabled('returnUser');
+      before(() => {
+        tu.toggleOverride('returnUser', true);
+      });
+      after(() => tu.toggleOverride(sampleStore.constants.featureName,
+        initialFeatureState));
 
       // setup and create a new generator with the createdBy field
       it('contains the user token', (done) => {
