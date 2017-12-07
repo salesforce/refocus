@@ -91,13 +91,17 @@ module.exports = function event(seq, dataTypes) {
       },
 
       afterUpdate(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botEventNames.upd, null, null, pubOpts);
+          botEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botEventNames.del, null, null, pubOpts);
+          botEventNames.del, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterDelete
     }, // hooks
     indexes: [
