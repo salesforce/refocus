@@ -133,13 +133,17 @@ module.exports = function botData(seq, dataTypes) {
       },
 
       afterUpdate(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botDataEventNames.upd, null, null, pubOpts);
+          botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botDataEventNames.del, null, null, pubOpts);
+          botDataEventNames.del, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterDelete
     },
     indexes: [
