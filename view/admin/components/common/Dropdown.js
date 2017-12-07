@@ -16,7 +16,7 @@
 import React, { PropTypes } from 'react';
 const ZERO = 0;
 const ONE = 1;
-
+let names = [];
 /**
  * Returns subset of data array that matches text.
  * @param {Array} dataArr The array of text to filter
@@ -141,6 +141,7 @@ class Dropdown extends React.Component {
     } else {
       const searchText = event.target.value || '';
       console.log('********* searchText is', searchText)
+      console.log('********* searching through names', names)
       this.setState({ data: [] });
 
       // only show the dropdown if the value is truthy
@@ -156,6 +157,17 @@ class Dropdown extends React.Component {
     }
   }
   componentWillReceiveProps(nextProps) {
+    names = nextProps.options.map((absolutePath) => {
+      const obj = { absolutePath };
+      const dotIndex = absolutePath.lastIndexOf('.');
+      obj.name = dotIndex < 0 ? absolutePath :
+      absolutePath.slice(dotIndex + 1);
+
+      return obj;
+    });
+    console.log('update the array. supplement the array of absPath by computing names')
+    console.log('names are: ', names);
+
     // update dropdown options on props change
     if (nextProps.options !== this.props.options) {
       this.setState({
