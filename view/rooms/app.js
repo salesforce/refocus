@@ -21,6 +21,8 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[1];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
+let _io;
+let botInfo = {};
 
 /**
  * Creates headers for each bot added to the UI
@@ -76,6 +78,89 @@ function createHeader(bot) {
 }
 
 /**
+ * Setup the socket.io client to listen to a namespace, where the namespace is
+ * named for the root subject of the perspective.
+ *
+ * @param  {Object} persBody - Perspective object
+ */
+function setupSocketIOClient(bots) {
+  bots.forEach((bot) => {
+    botInfo[bot.body.id] = bot.body.name;
+  });
+
+  const socket = _io('/', { transports: ['websocket'] });
+
+  const settingsChangedEventName =
+    'refocus.internal.realtime.room.settingsChanged';
+  const botActionsUpdate =
+    'refocus.internal.realtime.bot.action.update';
+  const botDataAdd =
+    'refocus.internal.realtime.bot.data.add';
+  const botDataUpdate =
+    'refocus.internal.realtime.bot.data.update';
+  const botEventAdd =
+    'refocus.internal.realtime.bot.event.add';
+
+  socket.on('connect', () => {
+    console.log('Socket Connected');
+    bots.forEach((bot) => {
+      parseBot(bot.body);
+    });
+  });
+
+  socket.on(settingsChangedEventName, (data) => {
+    const eventData = JSON.parse(data);
+    const room = eventData[settingsChangedEventName];
+    document.body
+    .dispatchEvent(new CustomEvent('refocus.room.settings', {
+      detail: room,
+    }));
+  });
+
+  socket.on(botActionsUpdate, (data) => {
+    const eventData = JSON.parse(data);
+    const action = eventData[botActionsUpdate];
+    document.getElementById(botInfo[action.new.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.actions', {
+      detail: action.new,
+    }));
+  });
+
+  socket.on(botDataAdd, (data) => {
+    const eventData = JSON.parse(data);
+    const bd = eventData[botDataAdd];
+    document.getElementById(botInfo[bd.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      detail: bd,
+    }));
+  });
+
+  socket.on(botDataUpdate, (data) => {
+    const eventData = JSON.parse(data);
+    const bd = eventData[botDataUpdate];
+    document.getElementById(botInfo[bd.new.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      detail: bd.new,
+    }));
+  });
+
+  socket.on(botEventAdd, (data) => {
+    const eventData = JSON.parse(data);
+    const events = eventData[botEventAdd];
+    Object.keys(botInfo).forEach((key) => {
+      document.getElementById(botInfo[key])
+      .dispatchEvent(new CustomEvent('refocus.events', {
+        detail: events,
+      }));
+    });
+  });
+
+  socket.on('disconnect', () => {
+     console.log('Socket Disconnected');
+  });
+} // setupSocketIOClient
+
+/**
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bots - Bot response with UI
@@ -105,7 +190,7 @@ function parseBot(bot) {
 
   // go through zipEntries that arent 'index.html'
   const zipEntriesNoIndex = zipEntries.filter(
-    entry => entry.name !== 'index.html'
+    (entry) => entry.name !== 'index.html'
   );
   for (let i = 0; i < zipEntriesNoIndex.length; i++) {
     botScript.appendChild(
@@ -116,21 +201,21 @@ function parseBot(bot) {
 } // parseBots
 
 window.onload = () => {
-  uPage.setTitle(`Room # ${ROOM_ID}`);
+  _io = io;
 
+  uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     uPage.setSubtitle(res.body.name);
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    const promises = res.body.bots.map(botName => u.getPromiseWithUrl(GET_BOTS + '/' + botName));
+    const promises = res.body.bots.map((botName) =>
+      u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
   .then((res) => {
-    res.forEach((bot) => {
-      parseBot(bot.body);
-    });
+    setupSocketIOClient(res);
     uPage.removeSpinner();
   });
 };
