@@ -140,10 +140,19 @@ class Dropdown extends React.Component {
       window.location.href = '/perspectives/' + persName;
     } else {
       const searchText = event.target.value || '';
+      console.log('********* searchText is', searchText)
       this.setState({ data: [] });
-      filterData(this.props.options, searchText, (data) => {
-        this.setState({ data, loading: false });
-      });
+
+      // only show the dropdown if the value is truthy
+      if (searchText || searchText.length) {
+        filterData(this.props.options, searchText, (data) => {
+          this.setState({ data, loading: false, open: true });
+        });
+      } else {
+
+        // do not show the dropdown
+        this.toggle(false);
+      }
     }
   }
   componentWillReceiveProps(nextProps) {
@@ -221,7 +230,7 @@ class Dropdown extends React.Component {
       aria-expanded='true'
       aria-activedescendant=''
       placeholder={ placeholderText || '' }
-      onFocus={ this.handleFocus.bind(this) }
+      onFocus={ this.props.openOnFocus ? this.handleFocus.bind(this) : false }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
     // if there's child elements, render them
