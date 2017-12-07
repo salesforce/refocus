@@ -78,10 +78,10 @@ function createHeader(bot) {
 }
 
 /**
- * Setup the socket.io client to listen to a namespace, where the namespace is
- * named for the root subject of the perspective.
+ * Setup the socket.io client to listen to a namespace, and once sockets
+ * are connected install the bots in the room.
  *
- * @param  {Object} persBody - Perspective object
+ * @param  {Array} bots - Array of Bots
  */
 function setupSocketIOClient(bots) {
   bots.forEach((bot) => {
