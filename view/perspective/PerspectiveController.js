@@ -79,7 +79,6 @@ class PerspectiveController extends React.Component {
           onAddNewButton={ values.lenses && this.openCreatePanel.bind(this) }
           newButtonText='New Perspective'
           renderAsLink={ true }
-          openOnFocus={ true }
         />
         { showCreatePanel && <CreatePerspective
           cancelCreate={ this.cancelForm.bind(this) }

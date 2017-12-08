@@ -152,6 +152,15 @@ function getOptions(options, value) {
   return leftovers;
 }
 
+function findNamePrefixFromAbsolutePath(options, searchText, callback) {
+  const arr = options.filter((option) => {
+    const dotIndex = option.lastIndexOf('.');
+    const name = dotIndex > -1 ? option.slice(dotIndex+1) : option;
+    return name.toUpperCase().startsWith(searchText.toUpperCase());
+  });
+  callback(arr);
+}
+
 /**
  * Returns config object for the key in values array.
  *
@@ -175,6 +184,10 @@ function getConfig(values, key, value) {
     let options = getArray('absolutePath', values[key]);
     config.options = filteredArray(options, value);
     config.isArray = false;
+    config.notOpenOnFocus = true;
+
+    // need specify custom handleKeyUp: given absolutePaths
+    config.customFilterOnKeyUp = findNamePrefixFromAbsolutePath;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
     let options = getArray('name', values[key]);

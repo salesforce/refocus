@@ -16,7 +16,7 @@
 import React, { PropTypes } from 'react';
 const ZERO = 0;
 const ONE = 1;
-let names = [];
+
 /**
  * Returns subset of data array that matches text.
  * @param {Array} dataArr The array of text to filter
@@ -118,7 +118,7 @@ class Dropdown extends React.Component {
     const keycode = event.keyCode || event.which;
     const { highlightedIndex } = this.state;
     const { getupdatedIndex } = this.constructor;
-    const { options } = this.props;
+    const { options, renderAsLink, customFilterOnKeyUp } = this.props;
     if (keycode === Key.UP) {
       this.setState({
         highlightedIndex: getupdatedIndex(
@@ -135,39 +135,26 @@ class Dropdown extends React.Component {
           false,
         ),
       });
-    } else if (keycode === Key.ENTER && this.props.renderAsLink) {
+    } else if (keycode === Key.ENTER && renderAsLink) {
       const persName = options[highlightedIndex];
       window.location.href = '/perspectives/' + persName;
     } else {
       const searchText = event.target.value || '';
-      console.log('********* searchText is', searchText)
-      console.log('********* searching through names', names)
       this.setState({ data: [] });
-
-      // only show the dropdown if the value is truthy
-      if (searchText || searchText.length) {
-        filterData(this.props.options, searchText, (data) => {
-          this.setState({ data, loading: false, open: true });
-        });
-      } else {
-
-        // do not show the dropdown
-        this.toggle(false);
+      if (searchText && searchText.length) {
+        if (customFilterOnKeyUp) {
+          customFilterOnKeyUp(options, searchText, (data) => {
+            this.setState({ data, loading: false, open: true });
+          });
+        } else {
+          filterData(options, searchText, (data) => {
+            this.setState({ data, loading: false, open: true });
+          });
+        }
       }
     }
   }
   componentWillReceiveProps(nextProps) {
-    names = nextProps.options.map((absolutePath) => {
-      const obj = { absolutePath };
-      const dotIndex = absolutePath.lastIndexOf('.');
-      obj.name = dotIndex < 0 ? absolutePath :
-      absolutePath.slice(dotIndex + 1);
-
-      return obj;
-    });
-    console.log('update the array. supplement the array of absPath by computing names')
-    console.log('names are: ', names);
-
     // update dropdown options on props change
     if (nextProps.options !== this.props.options) {
       this.setState({
@@ -242,7 +229,7 @@ class Dropdown extends React.Component {
       aria-expanded='true'
       aria-activedescendant=''
       placeholder={ placeholderText || '' }
-      onFocus={ this.props.openOnFocus ? this.handleFocus.bind(this) : false }
+      onFocus={ this.props.notOpenOnFocus ? false : this.handleFocus.bind(this) }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
     // if there's child elements, render them
