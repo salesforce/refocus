@@ -81,14 +81,12 @@ generator2.name += '2';
 generator3.name += '3';
 
 let userToken;
-let userId;
 
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
   before((done) => {
-    tu.createUserAndToken()
-    .then((obj) => {
-      userId = obj.user.id;
-      userToken = obj.token;
+    tu.createToken()
+    .then((returnedToken) => {
+      userToken = returnedToken;
       done();
     })
     .catch(done);
@@ -226,6 +224,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .expect(constants.httpStatus.OK)
         .end(done);
       });
+
     });
 
     describe('generator changes', () => {
@@ -1018,43 +1017,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then(done)
         .catch(done);
       });
-    });
 
-    describe('added generator >', () => {
-      before(() => tu.toggleOverride('returnUser', true));
-      after(() => tu.toggleOverride('returnUser', false));
-
-      // setup and create a new generator with the createdBy field
-      it('contains the user token', (done) => {
-        const gtPath = '/v1/generatorTemplates';
-        const sgtCopy = JSON.parse(JSON.stringify(sgt));
-        sgtCopy.name = 'iAmNew';
-        sgtCopy.createdBy = userId;
-        sgtCopy.contextDefinition = contextDefinition;
-        gu.createSGtoSGTMapping(sgtCopy, generator2);
-
-        api.post(gtPath)
-        .set('Authorization', userToken)
-        .send(sgtCopy)
-        .expect(constants.httpStatus.CREATED)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.createdBy).to.equal(userId);
-          const timestamp = Date.now();
-          return Promise.resolve()
-          .then(() => postGenerator(generator2, [collector1]))
-          .then(() => sendHeartbeat(collector1))
-          .then((res) => {
-            const reencryptedSG = res.body.generatorsAdded[0];
-            expect(reencryptedSG.token).to.be.an('string');
-            done();
-          })
-          .catch(done);
-        });
-      });
     });
   });
 

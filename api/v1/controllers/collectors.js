@@ -302,14 +302,7 @@ function heartbeat(req, res, next) {
   .then(() => Promise.all(
     retval.generatorsAdded.map((sg) =>
       attachTemplate(sg)
-      .then((sg) => {
-        if (featureToggles.isFeatureEnabled('returnUser')) {
-          const userName = sg.generatorTemplate.user.name;
-          sg.token = jwtUtil.createToken(userName, userName);
-        }
-
-        return reEncryptSGContextValues(sg, authToken, timestamp);
-      })
+      .then((sg) => reEncryptSGContextValues(sg, authToken, timestamp))
     )
   ))
   .then((added) => retval.generatorsAdded = added)
