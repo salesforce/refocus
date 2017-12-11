@@ -21,8 +21,95 @@ const u = require('../helpers/verbs/utils');
 const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const featureToggles = require('feature-toggles');
 const constants = require('../constants');
+const Aspect = require('../helpers/nouns/aspects').model;
+const apiErrors = require('../apiErrors');
+
+/**
+ * Validate that user has write permissions on given aspects.
+ * @param  {Array} aspects - Array of aspect names
+ * @param  {Object} req - Request object
+ * @returns {Promise} Resolves if user has write permission on all aspects, else
+ * rejects
+ */
+function validateGeneratorAspectsPermissions(aspects, req) {
+  if (!aspects) { // put and patch may not have aspects in query body
+    return Promise.resolve();
+  }
+
+  if (!req) {
+    return Promise.reject(
+      new apiErrors.ValidationError('req is required argument')
+    );
+  }
+
+  const getAspectPromises = [];
+  aspects.forEach((aspNameFromGen) => {
+    getAspectPromises.push(
+      Aspect.findOne({ where: { name: { $iLike: aspNameFromGen } } })
+      .then((asp) => {
+        if (!asp) { // error if aspect not found
+          return {
+            aspectName: aspNameFromGen,
+            error: new apiErrors.ResourceNotFoundError('Aspect not found'),
+          };
+        }
+
+        // returns aspect object or forbidden error
+        return u.isWritable(req, asp);
+      })
+      .catch((err) => {
+        const res = { aspectName: aspNameFromGen, error: err };
+        return res;
+      })
+    );
+  });
+
+  /**
+   * results is an array of: either aspect objects with valid permission or
+   * errors corresponding to each aspect
+   */
+  return Promise.all(getAspectPromises)
+  .then((results) => {
+    const aspInvalidPerm = [];
+
+    /**
+     * There can be different kinds of error: Aspect not found, resource not
+     * writable by user, resource write protected if token not provided etc.
+     * If there are errors for resource not writable by user, we create a
+     * list of those aspects and throw an error at last if everything else
+     * is fine.
+     * If there is some other error case, we throw that error right away,
+     * with aspect name added as info to the error.
+     */
+    for (let i = 0; i < results.length; i++) {
+      const error = results[i].error;
+      if (error) {
+        if (error.name === 'ForbiddenError' &&
+         error.message === 'Resource not writable for provided token') {
+          aspInvalidPerm.push(results[i].aspectName);
+        } else {
+          // aspect name added to all errors already
+          error.info = results[i].aspectName;
+          return Promise.reject(error);
+        }
+      }
+    }
+
+    if (aspInvalidPerm.length > 0) {
+      return Promise.reject(
+        new apiErrors.ValidationError(
+          'User does not have permission to upsert samples for the ' +
+          'following aspects:' + aspInvalidPerm
+        )
+      );
+    }
+
+    return Promise.resolve();
+  });
+}
 
 module.exports = {
+  validateGeneratorAspectsPermissions, // exported for testing purposes
 
   /**
    * GET /generators
@@ -63,7 +150,8 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
     let oldCollectors;
-    u.findByKey(helper, req.swagger.params)
+    validateGeneratorAspectsPermissions(requestBody.aspects, req)
+    .then(() => u.findByKey(helper, req.swagger.params))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
@@ -97,8 +185,9 @@ module.exports = {
       toPost.createdBy = req.user.id;
     }
 
-    helper.model.createWithCollectors(toPost,
-      u.whereClauseForNameInArr)
+    validateGeneratorAspectsPermissions(toPost.aspects, req)
+    .then(() => helper.model.createWithCollectors(toPost,
+      u.whereClauseForNameInArr))
     .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
         o.reload() : o)
     .then((o) => {
@@ -140,7 +229,8 @@ module.exports = {
      * Will throw error if there are duplicate
      * or non-existent collectors in request
      */
-    u.findByKey(helper, req.swagger.params)
+    validateGeneratorAspectsPermissions(toPut.aspects, req)
+    .then(() => u.findByKey(helper, req.swagger.params))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
