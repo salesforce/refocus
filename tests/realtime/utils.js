@@ -149,6 +149,13 @@ const standardBotAction = {
   ],
 };
 
+const standardEvent = {
+  log: 'Logged Info',
+  context: {
+    Sample: 'DATA',
+  },
+};
+
 const standardBotData = {
   name: bd,
   value: 'String1',
@@ -191,12 +198,25 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardBotAction));
   },
 
+  getStandardEvent() {
+    return JSON.parse(JSON.stringify(standardEvent));
+  },
+
   getStandardBotData() {
     return JSON.parse(JSON.stringify(standardBotData));
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Perspective, testStartTime)
+    tu.db.Event.destroy({
+      where: {
+        createdAt: {
+          $lt: new Date(),
+          $gte: testStartTime,
+        },
+      },
+      force: true,
+    })
+    .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
