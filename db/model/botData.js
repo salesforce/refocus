@@ -18,6 +18,19 @@ const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const commonUtils = require('../../utils/common');
+const realTime = require('../../realtime/redisPublisher');
+const rtConstants = require('../../realtime/constants');
+const botDataEventNames = {
+  add: 'refocus.internal.realtime.bot.data.add',
+  upd: 'refocus.internal.realtime.bot.data.update',
+  del: 'refocus.internal.realtime.bot.data.remove',
+};
+const pubOpts = {
+  client: rtConstants.bot.client,
+  channel: rtConstants.bot.channel,
+  filterIndex: rtConstants.bot.botDataFilterIndex,
+  filterField: 'name',
+};
 
 module.exports = function botData(seq, dataTypes) {
   const BotData = seq.define('BotData', {
@@ -111,6 +124,27 @@ module.exports = function botData(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
+
+      afterCreate: (instance) => {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return realTime.publishObject(instance.toJSON(),
+          botDataEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+      },
+
+      afterUpdate(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return realTime.publishObject(instance.toJSON(),
+          botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
+      }, // hooks.afterUpdate
+
+      afterDelete(instance /* , opts */) {
+        const changedKeys = Object.keys(instance._changed);
+        const ignoreAttributes = ['isDeleted'];
+        return realTime.publishObject(instance.toJSON(),
+          botDataEventNames.del, changedKeys, ignoreAttributes, pubOpts);
+      }, // hooks.afterDelete
     },
     indexes: [
       {
