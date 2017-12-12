@@ -59,6 +59,7 @@ module.exports = {
     channel: 'botChannelName',
     roomFilterIndex: 0,
     botActionFilterIndex: 1,
+    botDataFilterIndex: 2,
     botEventFilterIndex: 3,
   },
 
