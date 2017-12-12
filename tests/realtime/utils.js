@@ -16,6 +16,7 @@ const fs = require('fs');
 const testStartTime = new Date();
 const rt = `${tu.namePrefix}TestRoomType`;
 const r = `${tu.namePrefix}TestRoom`;
+const bd = `${tu.namePrefix}TestBotData`;
 
 const standardRoom = {
   name: r,
@@ -148,6 +149,18 @@ const standardBotAction = {
   ],
 };
 
+const standardEvent = {
+  log: 'Logged Info',
+  context: {
+    Sample: 'DATA',
+  },
+};
+
+const standardBotData = {
+  name: bd,
+  value: 'String1',
+};
+
 module.exports = {
   doSetup() {
     return new tu.db.Sequelize.Promise((resolve, reject) => {
@@ -185,13 +198,31 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardBotAction));
   },
 
+  getStandardEvent() {
+    return JSON.parse(JSON.stringify(standardEvent));
+  },
+
+  getStandardBotData() {
+    return JSON.parse(JSON.stringify(standardBotData));
+  },
+
   forceDelete(done) {
-    tu.forceDelete(tu.db.Perspective, testStartTime)
+    tu.db.Event.destroy({
+      where: {
+        createdAt: {
+          $lt: new Date(),
+          $gte: testStartTime,
+        },
+      },
+      force: true,
+    })
+    .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
+    .then(() => tu.forceDelete(tu.db.BotData, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
