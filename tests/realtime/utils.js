@@ -197,11 +197,11 @@ module.exports = {
   getStandardBotAction() {
     return JSON.parse(JSON.stringify(standardBotAction));
   },
-  
+
   getStandardEvent() {
     return JSON.parse(JSON.stringify(standardEvent));
   },
-  
+
   getStandardBotData() {
     return JSON.parse(JSON.stringify(standardBotData));
   },
