@@ -146,20 +146,7 @@ module.exports = function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        const templateVars = Object.assign(
-          {},
-          { queryParams: JSON.stringify(req.query) },
-          trackObj
-        );
-
-        // if url contains a query, render perspective detail page with realtime
-        // updates
-        if ((key === '/perspectives' && Object.keys(req.query).length) ||
-        key === '/perspectives/:key') {
-          res.render(viewmap[key], templateVars);
-        } else {
-          res.render(viewmap[key], trackObj);
-        }
+        res.render(viewmap[key], trackObj);
       }
     )
   );
