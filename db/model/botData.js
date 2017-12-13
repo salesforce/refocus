@@ -15,6 +15,7 @@
  */
 
 const assoc = {};
+const u = require('../helpers/botDataUtils');
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const commonUtils = require('../../utils/common');
@@ -126,6 +127,11 @@ module.exports = function botData(seq, dataTypes) {
       }, // hooks.beforeCreate
 
       afterCreate: (instance) => {
+        // Sync bot data
+        console.log('added');
+        u.updateValues(seq, instance);
+
+        // Publish creation
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
@@ -133,6 +139,10 @@ module.exports = function botData(seq, dataTypes) {
       },
 
       afterUpdate(instance /* , opts */) {
+        // Sync bot data
+        u.updateValues(seq, instance);
+
+        // Publish update
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
@@ -140,6 +150,7 @@ module.exports = function botData(seq, dataTypes) {
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
+        // Publish delete
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
