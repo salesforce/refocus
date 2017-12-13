@@ -49,12 +49,6 @@ function isJson(item) {
  * @returns {String} outputValue - String with output replaced
  */
 function replaceValue(startingString, replaceString, instance) {
-
-            console.log('startingString',startingString);
-
-            console.log('replaceString',replaceString);
-
-            console.log('instance',instance);
   let outputValue = startingString;
   const replaceField = replaceString.replace('{$', '')
     .replace('$}', '').split('.');
@@ -107,12 +101,15 @@ function updateValues(seq, instance) {
           let whereConst = {};
           let syncValue = '';
           Object.keys(context[syncBot]).forEach((botValueName) => {
-            console.log('botValueName',botValueName);
             syncValue = JSON.stringify(context[syncBot][botValueName]);
             const replaceBlocks = syncValue.match(/{\$(.*?)\$}/g);
             // Replace logic blocks wtih vlaues
             replaceBlocks.forEach((replaceBlock) => {
-              syncValue = replaceValue(syncValue, replaceBlock, instance);
+              syncValue = replaceValue(
+                syncValue,
+                replaceBlock,
+                instance.dataValues
+              );
               whereConst= {
                 'where':
                 {
@@ -143,14 +140,14 @@ function updateValues(seq, instance) {
       for (let i=ZERO; i<data.length; i+=TWO) {
         newValue = data[i+ONE];
         // If bot data is JSON then merge data
-        if (isJson(data[i])) {
+        if (isJson(data[i].value)) {
           newValue = JSON.stringify(
             _.extend(JSON.parse(data[i].value), JSON.parse(data[i+ONE]))
           );
         }
+
         updates.push(data[i].update({ value: newValue }));
       }
-
       return Promise.all(updates);
     }
 
