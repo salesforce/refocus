@@ -390,16 +390,25 @@ function isIpWhitelisted(addr, whitelist) {
  */
 function attachAspectSubject(_sample, useSampleStore, subjectModel,
   aspectModel) {
-  const sample = _sample.get ? _sample.get() : _sample;
-  let nameParts;
+  let sample;
+  let source;
+  if (_sample.get) {
+    sample = _sample.get();
+    source = 'db';
+  } else {
+    sample = _sample;
+    source = 'redis';
+  }
 
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
-    logger.error('sample object does not contain name', sample);
+    logger.error('sample coming from ', source);
+    logger.error('sample object does not contain name', JSON.stringify(sample));
+    console.trace('from attachAspectSubject');
     return Promise.resolve(null);
   }
 
-  nameParts = sample.name.split('|');
+  let nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
