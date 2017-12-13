@@ -12,20 +12,40 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
-
+const ZERO = 0;
+const ONE = 1;
 const botsContainer = document.getElementById('botsContainer');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
-const ROOM_ID = window.location.pathname.split('/rooms/')[1];
+const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
+let _io;
+let botInfo = {};
+const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
+  .includes('debug=REALTIME');
 
 /**
  * Creates headers for each bot added to the UI
  *
- * @param {Object} bots - Bot response with UI
+ * @param {Object} msg - Bot response with UI
+ * @param {Object} obj - Bot response with UI
+ */
+function debugMessage(msg, obj){
+  if ((DEBUG_REALTIME) && obj) {
+    console.log(msg, obj);
+  } else if (DEBUG_REALTIME) {
+    console.log(msg);
+  }
+}
+
+/**
+ * Creates headers for each bot added to the UI
+ *
+ * @param {Object} bot - Bot response with UI
+ * @returns {DOM} section - Header section
  */
 function createHeader(bot) {
   const section = document.createElement('div');
@@ -78,7 +98,7 @@ function createHeader(bot) {
 /**
  * Create DOM elements for each of the files in the bots zip.
  *
- * @param {Object} bots - Bot response with UI
+ * @param {Object} bot - Bot response with UI
  */
 function parseBot(bot) {
   // Unzip bots
@@ -96,41 +116,129 @@ function parseBot(bot) {
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
   const index = zipEntries.filter((entry) => entry.name === 'index.html');
-  if (index.length > 0) {
-    contentSection.innerHTML = zip.readAsText(index[0]);
+  if (index.length > ZERO) {
+    contentSection.innerHTML = zip.readAsText(index[ZERO]);
     headerSection.appendChild(contentSection);
     botContainer.appendChild(headerSection);
     botsContainer.appendChild(botContainer);
   }
 
   // go through zipEntries that arent 'index.html'
-  const zipEntriesNoIndex = zipEntries.filter(
-    entry => entry.name !== 'index.html'
-  );
-  for (let i = 0; i < zipEntriesNoIndex.length; i++) {
+  zipEntries.filter(
+    (entry) => entry.name !== 'index.html'
+  ).forEach((script) => {
     botScript.appendChild(
-      document.createTextNode(zip.readAsText(zipEntriesNoIndex[i]))
+      document.createTextNode(zip.readAsText(script))
     );
     document.body.appendChild(botScript);
-  }
+  });
 } // parseBots
 
-window.onload = () => {
-  uPage.setTitle(`Room # ${ROOM_ID}`);
+/**
+ * Setup the socket.io client to listen to a namespace, and once sockets
+ * are connected install the bots in the room.
+ *
+ * @param  {Array} bots - Array of Bots
+ */
+function setupSocketIOClient(bots) {
+  bots.forEach((bot) => {
+    botInfo[bot.body.id] = bot.body.name;
+  });
 
+  const socket = _io('/', { transports: ['websocket'] });
+
+  const settingsChangedEventName =
+    'refocus.internal.realtime.room.settingsChanged';
+  const botActionsUpdate =
+    'refocus.internal.realtime.bot.action.update';
+  const botDataAdd =
+    'refocus.internal.realtime.bot.data.add';
+  const botDataUpdate =
+    'refocus.internal.realtime.bot.data.update';
+  const botEventAdd =
+    'refocus.internal.realtime.bot.event.add';
+
+  socket.on('connect', () => {
+    debugMessage('Socket Connected');
+    bots.forEach((bot) => {
+      parseBot(bot.body);
+    });
+  });
+
+  socket.on(settingsChangedEventName, (data) => {
+    const eventData = JSON.parse(data);
+    const room = eventData[settingsChangedEventName];
+    debugMessage('Setting Changed', room);
+    document.body
+    .dispatchEvent(new CustomEvent('refocus.room.settings', {
+      detail: room,
+    }));
+  });
+
+  socket.on(botActionsUpdate, (data) => {
+    const eventData = JSON.parse(data);
+    const action = eventData[botActionsUpdate];
+    debugMessage('BotActions Updated', action);
+    document.getElementById(botInfo[action.new.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.actions', {
+      detail: action.new,
+    }));
+  });
+
+  socket.on(botDataAdd, (data) => {
+    const eventData = JSON.parse(data);
+    const bd = eventData[botDataAdd];
+    debugMessage('BotData Added', bd);
+    document.getElementById(botInfo[bd.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      detail: bd,
+    }));
+  });
+
+  socket.on(botDataUpdate, (data) => {
+    const eventData = JSON.parse(data);
+    const bd = eventData[botDataUpdate];
+    debugMessage('BotData Updated', bd);
+    document.getElementById(botInfo[bd.new.botId])
+    .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      detail: bd.new,
+    }));
+  });
+
+  socket.on(botEventAdd, (data) => {
+    const eventData = JSON.parse(data);
+    const events = eventData[botEventAdd];
+    debugMessage('Events Added', events);
+    Object.keys(botInfo).forEach((key) => {
+      document.getElementById(botInfo[key])
+      .dispatchEvent(new CustomEvent('refocus.events', {
+        detail: events,
+      }));
+    });
+  });
+
+  socket.on('disconnect', () => {
+    debugMessage('Socket Disconnected');
+  });
+} // setupSocketIOClient
+
+window.onload = () => {
+  // Note: this is declared in index.pug:
+  _io = io;
+
+  uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     uPage.setSubtitle(res.body.name);
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    const promises = res.body.bots.map(botName => u.getPromiseWithUrl(GET_BOTS + '/' + botName));
+    const promises = res.body.bots.map((botName) =>
+      u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
   .then((res) => {
-    res.forEach((bot) => {
-      parseBot(bot.body);
-    });
+    setupSocketIOClient(res);
     uPage.removeSpinner();
   });
 };
