@@ -11,7 +11,6 @@
  *
  * Used by the Bot Data model.
  */
-
 const _ = require('lodash');
 const ZERO = 0;
 const ONE = 1;
@@ -61,6 +60,7 @@ function replaceValue(startingString, replaceString, instance) {
         .replace(replaceString, instance.value);
     }
   }
+
   return outputValue;
 } // replaceValue
 
@@ -79,7 +79,7 @@ function updateValues(seq, instance) {
   const botNames = {};
   const botsIds = {};
   return Bot.findAll({
-    attributes: ['name', 'id']
+    attributes: ['name', 'id'],
   })
   .then((botJSON) => {
     // Create lookups for bots by name or id
@@ -101,8 +101,11 @@ function updateValues(seq, instance) {
           let whereConst = {};
           let syncValue = '';
           Object.keys(context[syncBot]).forEach((botValueName) => {
-            syncValue = JSON.stringify(context[syncBot][botValueName]);
+            syncValue = isJson(context[syncBot][botValueName]) ?
+              JSON.stringify(context[syncBot][botValueName]) :
+              context[syncBot][botValueName];
             const replaceBlocks = syncValue.match(/{\$(.*?)\$}/g);
+
             // Replace logic blocks wtih vlaues
             replaceBlocks.forEach((replaceBlock) => {
               syncValue = replaceValue(
@@ -110,16 +113,17 @@ function updateValues(seq, instance) {
                 replaceBlock,
                 instance.dataValues
               );
-              whereConst= {
-                'where':
+              whereConst = {
+                where:
                 {
-                  'name': botValueName,
-                  'botId': botNames[syncBot],
-                  'roomId': instance.roomId
-                }
+                  name: botValueName,
+                  botId: botNames[syncBot],
+                  roomId: instance.roomId,
+                },
               };
             });
           });
+
           // Find bot data to update
           promises.push(BotData.findOne(whereConst));
           promises.push(syncValue);
@@ -137,17 +141,19 @@ function updateValues(seq, instance) {
       let newValue;
 
       // Update bot data
-      for (let i=ZERO; i<data.length; i+=TWO) {
-        newValue = data[i+ONE];
+      for (let i = ZERO; i < data.length; i += TWO) {
+        newValue = data[i + ONE];
+
         // If bot data is JSON then merge data
         if (isJson(data[i].value)) {
           newValue = JSON.stringify(
-            _.extend(JSON.parse(data[i].value), JSON.parse(data[i+ONE]))
+            _.extend(JSON.parse(data[i].value), JSON.parse(data[i + ONE]))
           );
         }
 
         updates.push(data[i].update({ value: newValue }));
       }
+
       return Promise.all(updates);
     }
 
