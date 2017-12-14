@@ -423,12 +423,12 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
   } else {
     const subOpts = {
       where: {
-        absolutePath: subName,
+        absolutePath: { $iLike: subName },
       },
     };
     const aspOpts = {
       where: {
-        name: aspName,
+        name: { $iLike: aspName },
       },
     };
     const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
