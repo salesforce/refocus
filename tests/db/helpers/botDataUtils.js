@@ -275,7 +275,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     }).catch(done);
   });
 
-  it('ok, Sync one botData with another on creation and appednd JSON',
+  it('ok, Sync one botData with another on creation and append JSON',
   (done) => {
     Bot.create(bot1)
     .then((botRes) => {
@@ -309,7 +309,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     }).catch(done);
   });
 
-  it('ok, Sync two botData with another on creation and appednd JSON',
+  it('ok, Sync two botData with another on creation and append JSON',
   (done) => {
     Bot.create(bot1)
     .then((botRes) => {

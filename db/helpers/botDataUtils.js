@@ -91,7 +91,7 @@ function updateValues(seq, instance) {
   })
   .then((room) => {
     // Determine if a sync needs to be performed
-    if ('sharedContext' in room.settings) {
+    if (('settings' in room) && ('sharedContext' in room.settings)) {
       const settings = room.settings.sharedContext;
       const context = settings[botsIds[instance.botId]];
       const promises = [];
