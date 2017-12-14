@@ -206,7 +206,7 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardBotData));
   },
 
-  forceDelete(done) {
+  forceDeleteAspectsAndSubjects(done) {
     tu.db.Event.destroy({
       where: {
         createdAt: {
@@ -218,6 +218,20 @@ module.exports = {
     })
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => done())
+    .catch(done);
+  },
+
+  forceDelete(done) {
+    tu.db.Event.destroy({
+      where: {
+        createdAt: {
+          $lt: new Date(),
+          $gte: testStartTime,
+        },
+      },
+      force: true,
+    })
     .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
