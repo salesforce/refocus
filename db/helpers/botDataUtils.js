@@ -91,48 +91,46 @@ function updateValues(seq, instance) {
   })
   .then((room) => {
     // Determine if a sync needs to be performed
-    if ('settings' in room) {
-      if ('sharedContext' in room.settings) {
-        const settings = room.settings.sharedContext;
-        const context = settings[botsIds[instance.botId]];
-        const promises = [];
-        if (context) {
-          // Create a different sync for each bot listed
-          Object.keys(context).forEach((syncBot) => {
-            let whereConst = {};
-            let syncValue = '';
-            Object.keys(context[syncBot]).forEach((botValueName) => {
-              syncValue = isJson(context[syncBot][botValueName]) ?
-                JSON.stringify(context[syncBot][botValueName]) :
-                context[syncBot][botValueName];
-              const replaceBlocks = syncValue.match(/{\$(.*?)\$}/g);
+    if (room && ('settings' in room) && ('sharedContext' in room.settings)) {
+      const settings = room.settings.sharedContext;
+      const context = settings[botsIds[instance.botId]];
+      const promises = [];
+      if (context) {
+        // Create a different sync for each bot listed
+        Object.keys(context).forEach((syncBot) => {
+          let whereConst = {};
+          let syncValue = '';
+          Object.keys(context[syncBot]).forEach((botValueName) => {
+            syncValue = isJson(context[syncBot][botValueName]) ?
+              JSON.stringify(context[syncBot][botValueName]) :
+              context[syncBot][botValueName];
+            const replaceBlocks = syncValue.match(/{\$(.*?)\$}/g);
 
-              // Replace logic blocks wtih vlaues
-              replaceBlocks.forEach((replaceBlock) => {
-                syncValue = replaceValue(
-                  syncValue,
-                  replaceBlock,
-                  instance.dataValues
-                );
-                whereConst = {
-                  where:
-                  {
-                    name: botValueName,
-                    botId: botNames[syncBot],
-                    roomId: instance.roomId,
-                  },
-                };
-              });
+            // Replace logic blocks wtih vlaues
+            replaceBlocks.forEach((replaceBlock) => {
+              syncValue = replaceValue(
+                syncValue,
+                replaceBlock,
+                instance.dataValues
+              );
+              whereConst = {
+                where:
+                {
+                  name: botValueName,
+                  botId: botNames[syncBot],
+                  roomId: instance.roomId,
+                },
+              };
             });
-
-            // Find bot data to update
-            promises.push(BotData.findOne(whereConst));
-            promises.push(syncValue);
           });
-        }
 
-        return Promise.all(promises);
+          // Find bot data to update
+          promises.push(BotData.findOne(whereConst));
+          promises.push(syncValue);
+        });
       }
+
+      return Promise.all(promises);
     }
 
     return false;
