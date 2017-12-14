@@ -227,8 +227,8 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for perspective persNA', () => {
         const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
         expect(nspString)
-        .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name + ';humidity&INCLUDE=ea;' + rootSubjNA +
-          '&INCLUDE=temp;hum&INCLUDE=OK');
+        .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name + ';humidity&INCLUDE=ea;' +
+          rootSubjNA + '&INCLUDE=temp;hum&INCLUDE=OK');
       });
 
       it('for perspective persNAUSCA', () => {
