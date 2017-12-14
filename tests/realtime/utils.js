@@ -216,6 +216,8 @@ module.exports = {
       },
       force: true,
     })
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => tu.forceDelete(tu.db.Sample, testStartTime))

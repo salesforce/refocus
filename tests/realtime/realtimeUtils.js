@@ -16,51 +16,51 @@ const tu = require('../testUtils');
 const u = require('./utils');
 
 describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
+  const rootSubjNA = tu.namePrefix + 'NA';
+  const rootSubjNAUS = rootSubjNA + '.US';
+  const rootSubjNAUSCA = rootSubjNA + '.CA';
   const newSubject = {
-    absolutePath: 'NA.US.CA.SF',
+    absolutePath: rootSubjNAUSCA + '.SF',
     name: 'SF',
   };
   const updatedSubject = {
     new: {
-      absolutePath: 'NA.US.CA.SF',
+      absolutePath: rootSubjNAUSCA + '.SF',
       name: 'SF',
       helpurl: 'helpme.com',
     },
     old: {
-      absolutePath: 'NA.US.CA.SF',
+      absolutePath: rootSubjNAUSCA + '.SF',
       name: 'SF',
       helpurl: '',
     },
   };
+  const aspectOne = {
+    name: tu.namePrefix + 'temperature',
+    timeout: '30s',
+    isPublished: true,
+    tags: ['temp'],
+  };
   const looksLikeSampleObjNA = {
     value: '10',
-    name: 'NA|temperature',
-    absolutePath: 'NA',
+    name: rootSubjNA + '|' + aspectOne.name,
+    absolutePath: rootSubjNA,
     status: 'OK',
-    aspect: {
-      name: 'temperature',
-      tags: ['temp'],
-    },
+    aspect: aspectOne,
     subject: {
       tags: ['ea'],
     },
   };
   const looksLikeSampleObjNAUS = {
     value: '1',
-    name: 'NA.US|temperature',
-    absolutePath: 'NA.US',
+    name: rootSubjNAUS + '|' + aspectOne.name,
+    absolutePath: rootSubjNAUS,
     status: 'INVALID',
-    aspect: {
-      name: 'temperature',
-      tags: ['temp'],
-    },
+    aspect: aspectOne,
     subject: {
       tags: ['ea'],
     },
   };
-  const rootSubjNAUS = 'NA.US';
-  const rootSubjNA = 'NA';
-  const rootSubjNAUSCA = 'NA.US.CA';
 
   let persRootNAUS;
   let persRootNA;
@@ -74,7 +74,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let createdLensId;
 
   before((done) => {
-    u.doSetup()
+    tu.db.Aspect.create(aspectOne)
+    .then(() => tu.db.Subject.create({
+      name: rootSubjNA,
+      isPublished: true,
+    }))
+    .then(() => u.doSetup())
     .then((createdLens) => {
       createdLensId = createdLens.id;
     })
@@ -89,11 +94,11 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         name: `${tu.namePrefix}secondPersp`,
         lensId: createdLensId,
         rootSubject: rootSubjNA,
-        aspectFilter: ['temperature', 'humidity'],
+        aspectFilter: [aspectOne.name, 'humidity'],
         aspectFilterType: 'INCLUDE',
         aspectTagFilter: ['temp', 'hum'],
         aspectTagFilterType: 'INCLUDE',
-        subjectTagFilter: ['ea', 'na'],
+        subjectTagFilter: ['ea', rootSubjNA],
         subjectTagFilterType: 'INCLUDE',
         statusFilter: ['OK'],
         statusFilterType: 'INCLUDE',
@@ -105,7 +110,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         name: `${tu.namePrefix}thirdPersp`,
         lensId: createdLensId,
         rootSubject: rootSubjNAUSCA,
-        aspectFilter: ['temperature', 'humidity'],
+        aspectFilter: [aspectOne.name, 'humidity'],
         statusFilter: ['OK'],
       });
     })
@@ -211,7 +216,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for perspective persNAUS', () => {
         const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUS);
         expect(nspString)
-        .to.equal('/NA.US&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
+        .to.equal('/' + rootSubjNAUS + '&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
 
       it('for roomTest', () => {
@@ -222,14 +227,14 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('for perspective persNA', () => {
         const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
         expect(nspString)
-        .to.equal('/NA&INCLUDE=temperature;humidity&INCLUDE=ea;na' +
+        .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name + ';humidity&INCLUDE=ea;' + rootSubjNA +
           '&INCLUDE=temp;hum&INCLUDE=OK');
       });
 
       it('for perspective persNAUSCA', () => {
         const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUSCA);
         expect(nspString)
-        .to.equal('/NA.US.CA&EXCLUDE=temperature;humidity' +
+        .to.equal('/' + rootSubjNAUSCA + '&EXCLUDE=' + aspectOne.name + ';humidity' +
           '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
       });
     });
@@ -316,6 +321,29 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           done();
         })
         .catch(done);
+      });
+
+      describe('case insensitive tests', () => {
+        const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+        it('same output with upper sample name', (done) => {
+          copySample.name = copySample.name.toUpperCase();
+          realtimeUtils.attachAspectSubject(copySample, false, tu.db.Subject, tu.db.Aspect)
+          .then((sample) => {
+            expect(sample.name).equal(copySample.name);
+            done();
+          })
+          .catch(done);
+        });
+
+        it('same output with lower sample name', (done) => {
+          copySample.name = copySample.name.toLowerCase();
+          realtimeUtils.attachAspectSubject(copySample, false, tu.db.Subject, tu.db.Aspect)
+          .then((sample) => {
+            expect(sample.name).equal(copySample.name);
+            done();
+          })
+          .catch(done);
+        });
       });
     });
   });
