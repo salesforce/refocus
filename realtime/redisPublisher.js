@@ -78,6 +78,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   let pubClient = pubPerspective;
   let channelName = perspectiveChannelName;
   if (opts) {
+    obj[event].pubOpts = opts;
     pubClient = opts.client ? client[opts.client] : pubClient;
     channelName = opts.channel ? config.redis[opts.channel] : channelName;
   }

@@ -22,10 +22,6 @@ module.exports = {
 
   statusFilterIndex: 4,
 
-  roomFilterIndex: 0,
-
-  botActionFilterIndex: 1,
-
   filterSeperator: '&',
 
   valuesSeparator: ';',
@@ -56,6 +52,15 @@ module.exports = {
     perspective: {
       initialize: 'refocus.internal.realtime.perspective.namespace.initialize',
     },
+  },
+
+  bot: {
+    client: 'pubBot',
+    channel: 'botChannelName',
+    roomFilterIndex: 0,
+    botActionFilterIndex: 1,
+    botDataFilterIndex: 2,
+    botEventFilterIndex: 3,
   },
 
 };

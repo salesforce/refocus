@@ -10,6 +10,7 @@
  * tests/api/v1/collectors/heartbeat.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
@@ -81,12 +82,14 @@ generator2.name += '2';
 generator3.name += '3';
 
 let userToken;
+let userId;
 
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      userToken = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      userToken = obj.token;
       done();
     })
     .catch(done);
@@ -224,7 +227,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .expect(constants.httpStatus.OK)
         .end(done);
       });
-
     });
 
     describe('generator changes', () => {
@@ -1017,7 +1019,48 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then(done)
         .catch(done);
       });
+    });
 
+    describe('added generator >', () => {
+      const initialFeatureState = featureToggles
+        .isFeatureEnabled('returnUser');
+      before(() => {
+        tu.toggleOverride('returnUser', true);
+      });
+      after(() => tu.toggleOverride('returnUser',
+        initialFeatureState));
+
+      // setup and create a new generator with the createdBy field
+      it('contains the user token', (done) => {
+        const gtPath = '/v1/generatorTemplates';
+        const sgtCopy = JSON.parse(JSON.stringify(sgt));
+        sgtCopy.name = 'iAmNew';
+        sgtCopy.createdBy = userId;
+        sgtCopy.contextDefinition = contextDefinition;
+        gu.createSGtoSGTMapping(sgtCopy, generator2);
+
+        api.post(gtPath)
+        .set('Authorization', userToken)
+        .send(sgtCopy)
+        .expect(constants.httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.createdBy).to.equal(userId);
+          const timestamp = Date.now();
+          return Promise.resolve()
+          .then(() => postGenerator(generator2, [collector1]))
+          .then(() => sendHeartbeat(collector1))
+          .then((res) => {
+            const reencryptedSG = res.body.generatorsAdded[0];
+            expect(reencryptedSG.token).to.be.a('string');
+            done();
+          })
+          .catch(done);
+        });
+      });
     });
   });
 
