@@ -40,7 +40,36 @@ function isJson(item) {
 } // isJson
 
 /**
- * Check if a string is a JSON
+ * If a string  contains some string enclosed in between {$ and $} this
+ * is an indication that string needs to be replaced with some instance
+ * value. The string between the {$ $} tokens should be in the pattern
+ * {Name of the bot}.{Name of botData}.{Key of Bot Data}, by using that
+ * pattern we will be able to replace the string with right value.
+ *
+ * eg)
+ *   if:
+ *     startingString === 'this is a {$Bot.Test$}'
+ *     replaceString === '{$Bot.Test$}'
+ *     instance === {
+ *       name: 'Test',
+ *       botId: 'Bot',
+ *       value: 'test'
+ *     }
+ *
+ *   then:
+ *     outputValue ==== 'this is a test'
+ *
+ *   if:
+ *     startingString === 'this is a {$Bot.Test$}'
+ *     replaceString === '{$Bot.Test.Name$}'
+ *     instance === {
+ *       name: 'Test',
+ *       botId: 'Bot',
+ *       value: '{ Name: "test"}'
+ *     }
+ *
+ *   then:
+ *     outputValue === 'this is a test'
  *
  * @param {String} startingString - String to replace
  * @param {String} replaceString - Replacement value
@@ -65,10 +94,39 @@ function replaceValue(startingString, replaceString, instance) {
 } // replaceValue
 
 /**
- * Determine if bot data needs to synced between bots and perform the action.
+ * If the current room defines 'sharedContext' in its settings then on every
+ * botData creation or update we need to determine if another bot data follows
+ * that data and needs updated or appended. If it does, then we do so;
+ * if not we return false
  *
- * @param {Object} seq - The array to test
- * @param {Object} instance - The array to test
+ * eg)
+ *   if:
+ *     Room.settings === {
+ *       sharedContext':
+ *         Bot1: {                      <----- Bot thats followed
+ *           Bot2: {                    <----- Bots that are following
+ *             botDataName:             <----- botData to update:
+ *            'this is {Bot1.Test}',    <----- Value to update botData with
+ *           }
+ *         }
+ *       }
+ *     }
+ *
+ *    Bot1.Test === {
+ *      name: 'Test',
+ *      botId: 'Bot1',
+ *      value: 'a test'
+ *    }
+ *
+ *   then:
+ *     Bot2.botDataName === {
+ *      name: 'botDataName',
+ *      botId: 'Bot2',
+ *      value: 'This is a test'
+ *    }
+ *
+ * @param {Object} seq -
+ * @param {Object} instance -
  * @returns {undefined} - OK
  * @throws {validationError} - if the array does not contain valid attributes
  */
@@ -78,8 +136,22 @@ function updateValues(seq, instance) {
   const BotData = seq.models.BotData;
   const botNames = {};
   const botsIds = {};
-  return Bot.findAll({
-    attributes: ['name', 'id'],
+  let room = null;
+  return Room.findOne({ where: { id: instance.roomId } })
+  .then((currentRoom) => {
+    if (currentRoom && currentRoom.bots) {
+      room = currentRoom;
+      return Bot.findAll({
+        attributes: ['name', 'id'],
+        where: {
+          name: {
+            $in: room.bots
+          }
+        }
+      });
+    }
+
+    return [];
   })
   .then((botJSON) => {
     // Create lookups for bots by name or id
@@ -87,9 +159,8 @@ function updateValues(seq, instance) {
       botsIds[bot.dataValues.id] = bot.dataValues.name;
       botNames[bot.dataValues.name] = bot.dataValues.id;
     });
-    return Room.findOne({ where: { id: instance.roomId } });
   })
-  .then((room) => {
+  .then(() => {
     // Determine if a sync needs to be performed
     if (room && ('settings' in room) && ('sharedContext' in room.settings)) {
       const settings = room.settings.sharedContext;

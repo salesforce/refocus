@@ -104,7 +104,7 @@ const roomType3 = {
     },
   },
   bots: [
-    'TestBot1', 'TestBot2',
+    'TestBot1', 'TestBot2', 'TestBot3',
   ],
 };
 const room = {
@@ -191,6 +191,19 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
 
     expect(bdUtil.replaceValue(testString, replacment, instance))
       .to.equal('this is a test of replacement.');
+    done();
+  });
+
+  it('fail, String string is not matched', (done) => {
+    const testString = 'this is a {$TestBot.response$}';
+    const replacment = '{$TestBot.response2$}';
+    const instance = {
+      name: 'response',
+      value: 'test of replacement.',
+    };
+
+    expect(bdUtil.replaceValue(testString, replacment, instance))
+      .to.equal('this is a {$TestBot.response$}');
     done();
   });
 
