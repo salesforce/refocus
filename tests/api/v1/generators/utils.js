@@ -13,6 +13,7 @@
 const tu = require('../../../testUtils');
 const gtUtil = require('../generatorTemplates/utils');
 const testStartTime = new Date();
+const Aspect = tu.db.Aspect;
 
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
@@ -58,12 +59,22 @@ function getGenerator() {
   return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
+function createGeneratorAspects() {
+  return Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[0], isPublished: true, timeout: '110s',
+  })
+  .then(() => Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[1], isPublished: true, timeout: '110s',
+  }));
+}
+
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Generator, testStartTime)
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
   },
@@ -71,4 +82,5 @@ module.exports = {
   getGenerator,
   gtUtil,
   createSGtoSGTMapping,
+  createGeneratorAspects,
 };

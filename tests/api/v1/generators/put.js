@@ -40,6 +40,7 @@ describe('tests/api/v1/generators/put.js >', () => {
       generatorId = gen.id;
       done();
     })
+    .then(u.createGeneratorAspects())
     .catch((err) => {
       done(err);
     });

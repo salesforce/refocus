@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/generator/patch.js
+ * tests/api/v1/generators/patch.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
