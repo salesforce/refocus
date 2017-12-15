@@ -125,8 +125,8 @@ function replaceValue(startingString, replaceString, instance) {
  *      value: 'This is a test'
  *    }
  *
- * @param {Object} seq -
- * @param {Object} instance -
+ * @param {Object} seq - Sequelize definitions
+ * @param {Object} instance - botData that has been created/updated
  * @returns {undefined} - OK
  * @throws {validationError} - if the array does not contain valid attributes
  */
