@@ -40,7 +40,7 @@ function isJson(item) {
 } // isJson
 
 /**
- * If a string  contains some string enclosed in between {$ and $} this
+ * If a string contains some string enclosed in between {$ and $} this
  * is an indication that string needs to be replaced with some instance
  * value. The string between the {$ $} tokens should be in the pattern
  * {Name of the bot}.{Name of botData}.{Key of Bot Data}, by using that
