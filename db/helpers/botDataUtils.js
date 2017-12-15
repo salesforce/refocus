@@ -40,10 +40,10 @@ function isJson(item) {
 } // isJson
 
 /**
- * If a string contains some string enclosed in between {$ and $} this
+ * If a string contains some substring enclosed in between {$ and $} this
  * is an indication that string needs to be replaced with some instance
  * value. The string between the {$ $} tokens should be in the pattern
- * {Name of the bot}.{Name of botData}.{Key of Bot Data}, by using that
+ * {Name of the bot}.{Name of botData}.{Key of botData}, by using that
  * pattern we will be able to replace the string with right value.
  *
  * eg)
@@ -95,15 +95,15 @@ function replaceValue(startingString, replaceString, instance) {
 
 /**
  * If the current room defines 'sharedContext' in its settings then on every
- * botData creation or update we need to determine if another bot data follows
- * that data and needs updated or appended. If it does, then we do so;
+ * botData creation or update we need to determine if any botData follows
+ * that data and needs to be updated or appended. If it does, then we do so;
  * if not we return false
  *
  * eg)
  *   if:
  *     Room.settings === {
  *       sharedContext':
- *         Bot1: {                      <----- Bot thats followed
+ *         Bot1: {                      <----- Bot that is followed
  *           Bot2: {                    <----- Bots that are following
  *             botDataName:             <----- botData to update:
  *            'this is {Bot1.Test}',    <----- Value to update botData with
