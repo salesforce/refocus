@@ -36,6 +36,7 @@ describe('tests/api/v1/generators/postWithCreatedBy.js >', () => {
       user = obj.user;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
