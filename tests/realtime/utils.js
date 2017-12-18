@@ -206,22 +206,6 @@ module.exports = {
     return JSON.parse(JSON.stringify(standardBotData));
   },
 
-  forceDeleteAspectsAndSubjects(done) {
-    tu.db.Event.destroy({
-      where: {
-        createdAt: {
-          $lt: new Date(),
-          $gte: testStartTime,
-        },
-      },
-      force: true,
-    })
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => done())
-    .catch(done);
-  },
-
   forceDelete(done) {
     tu.db.Event.destroy({
       where: {
@@ -241,6 +225,8 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.BotData, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
   },

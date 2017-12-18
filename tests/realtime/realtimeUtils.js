@@ -159,7 +159,6 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   });
 
   after(u.forceDelete);
-  after(u.forceDeleteAspectsAndSubjects);
 
   describe('utility function tests >', () => {
     describe('shouldIEmitThisObject functon tests >', () => {
