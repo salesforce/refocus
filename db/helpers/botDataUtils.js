@@ -145,9 +145,9 @@ function updateValues(seq, instance) {
         attributes: ['name', 'id'],
         where: {
           name: {
-            $in: room.bots
-          }
-        }
+            $in: room.bots,
+          },
+        },
       });
     }
 
