@@ -97,6 +97,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
   before((done) => {
     GeneratorTemplate.create(sgt)
+    .then(() => gu.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
