@@ -225,6 +225,8 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.BotData, testStartTime))
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
   },
