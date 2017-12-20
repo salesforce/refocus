@@ -40,16 +40,16 @@ function isJson(item) {
 } // isJson
 
 /**
- * If a string contains some substring enclosed in between {$ and $} this
+ * If a string contains some substring enclosed in between ${ and } this
  * is an indication that string needs to be replaced with some instance
- * value. The string between the {$ $} tokens should be in the pattern
+ * value. The string between the ${ } tokens should be in the pattern
  * {Name of the bot}.{Name of botData}.{Key of botData}, by using that
  * pattern we will be able to replace the string with right value.
  *
  * eg)
  *   if:
- *     startingString === 'this is a {$Bot.Test$}'
- *     replaceString === '{$Bot.Test$}'
+ *     startingString === 'this is a ${Bot.Test}'
+ *     replaceString === '${Bot.Test}'
  *     instance === {
  *       name: 'Test',
  *       botId: 'Bot',
@@ -60,8 +60,8 @@ function isJson(item) {
  *     outputValue ==== 'this is a test'
  *
  *   if:
- *     startingString === 'this is a {$Bot.Test$}'
- *     replaceString === '{$Bot.Test.Name$}'
+ *     startingString === 'this is a ${Bot.Test}'
+ *     replaceString === '${Bot.Test.Name}'
  *     instance === {
  *       name: 'Test',
  *       botId: 'Bot',
@@ -78,8 +78,8 @@ function isJson(item) {
  */
 function replaceValue(startingString, replaceString, instance) {
   let outputValue = startingString;
-  const replaceField = replaceString.replace('{$', '')
-    .replace('$}', '').split('.');
+  const replaceField = replaceString.replace('${', '')
+    .replace('}', '').split('.');
   if (instance.name === replaceField[ONE]) {
     if (replaceField.length > TWO) {
       outputValue = outputValue.replace(replaceString,
@@ -106,7 +106,7 @@ function replaceValue(startingString, replaceString, instance) {
  *         Bot1: {                      <----- Bot that is followed
  *           Bot2: {                    <----- Bots that are following
  *             botDataName:             <----- botData to update:
- *            'this is {Bot1.Test}',    <----- Value to update botData with
+ *            'this is ${Bot1.Test}',   <----- Value to update botData with
  *           }
  *         }
  *       }
@@ -175,7 +175,7 @@ function updateValues(seq, instance) {
             syncValue = isJson(context[syncBot][botValueName]) ?
               JSON.stringify(context[syncBot][botValueName]) :
               context[syncBot][botValueName];
-            const replaceBlocks = syncValue.match(/{\$(.*?)\$}/g);
+            const replaceBlocks = syncValue.match(/\${(.*?)}/g);
 
             // Replace logic blocks wtih vlaues
             replaceBlocks.forEach((replaceBlock) => {

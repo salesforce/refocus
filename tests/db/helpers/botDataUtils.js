@@ -59,7 +59,7 @@ const roomType = {
     sharedContext: {
       TestBot1: {
         TestBot2: {
-          data: 'this is a {$TestBot1.response$}',
+          data: 'this is a ${TestBot1.response}',
         },
       },
     },
@@ -76,7 +76,7 @@ const roomType2 = {
       TestBot1: {
         TestBot2: {
           data: {
-            response: 'this is a {$TestBot1.response$}',
+            response: 'this is a ${TestBot1.response}',
           },
         },
       },
@@ -94,11 +94,11 @@ const roomType3 = {
       TestBot1: {
         TestBot2: {
           data: {
-            response: 'this is a {$TestBot1.response$}',
+            response: 'this is a ${TestBot1.response}',
           },
         },
         TestBot3: {
-          stringName: '{$TestBot1.response$}',
+          stringName: '${TestBot1.response}',
         },
       },
     },
@@ -182,8 +182,8 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
   });
 
   it('ok, String value is replaced single depth', (done) => {
-    const testString = 'this is a {$TestBot.response$}';
-    const replacment = '{$TestBot.response$}';
+    const testString = 'this is a ${TestBot.response}';
+    const replacment = '${TestBot.response}';
     const instance = {
       name: 'response',
       value: 'test of replacement.',
@@ -195,21 +195,21 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
   });
 
   it('fail, String string is not matched', (done) => {
-    const testString = 'this is a {$TestBot.response$}';
-    const replacment = '{$TestBot.response2$}';
+    const testString = 'this is a ${TestBot.response}';
+    const replacment = '${TestBot.response2}';
     const instance = {
       name: 'response',
       value: 'test of replacement.',
     };
 
     expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.equal('this is a {$TestBot.response$}');
+      .to.equal('this is a ${TestBot.response}');
     done();
   });
 
   it('ok, String value is replaced multiple depth', (done) => {
-    const testString = 'this is a {$TestBot.response.newMessage$}';
-    const replacment = '{$TestBot.response.newMessage$}';
+    const testString = 'this is a ${TestBot.response.newMessage}';
+    const replacment = '${TestBot.response.newMessage}';
     const instance = {
       name: 'response',
       value: '{' +
