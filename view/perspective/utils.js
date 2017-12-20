@@ -180,7 +180,7 @@ function getConfig(values, key, value) {
   };
 
   if (key === 'subjects') {
-    config.placeholderText = 'Select a Subject...';
+    config.placeholderText = 'Enter a subject name';
     let options = getArray('absolutePath', values[key]);
     config.options = filteredArray(options, value);
     config.isArray = false;
