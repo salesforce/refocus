@@ -76,6 +76,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
