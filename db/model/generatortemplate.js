@@ -133,7 +133,7 @@ module.exports = function user(seq, dataTypes) {
       },
     },
     transform: {
-      type: dataTypes.TEXT,
+      type: dataTypes.JSON,
       allowNull: false,
     },
     isPublished: {
