@@ -51,7 +51,6 @@ module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Tag, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
