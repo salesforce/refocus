@@ -80,14 +80,12 @@ function replaceValue(startingString, replaceString, instance) {
   let outputValue = startingString;
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
-  if (instance.name === replaceField[ONE]) {
-    if (replaceField.length > TWO) {
-      outputValue = outputValue.replace(replaceString,
-        JSON.parse(instance.value)[replaceField[TWO]]);
-    } else {
-      outputValue = outputValue
-        .replace(replaceString, instance.value);
-    }
+  if (replaceField.length > TWO) {
+    outputValue = outputValue.replace(replaceString,
+      JSON.parse(instance.value)[replaceField[TWO]]);
+  } else {
+    outputValue = outputValue
+      .replace(replaceString, instance.value);
   }
 
   return outputValue;
@@ -179,19 +177,23 @@ function updateValues(seq, instance) {
 
             // Replace logic blocks wtih vlaues
             replaceBlocks.forEach((replaceBlock) => {
-              syncValue = replaceValue(
-                syncValue,
-                replaceBlock,
-                instance.dataValues
-              );
-              whereConst = {
-                where:
-                {
-                  name: botValueName,
-                  botId: botNames[syncBot],
-                  roomId: instance.roomId,
-                },
-              };
+              const replaceField = replaceBlock.replace('${', '')
+                .replace('}', '').split('.');
+              if (instance.dataValues.name === replaceField[ONE]) {
+                syncValue = replaceValue(
+                  syncValue,
+                  replaceBlock,
+                  instance.dataValues
+                );
+                whereConst = {
+                  where:
+                  {
+                    name: botValueName,
+                    botId: botNames[syncBot],
+                    roomId: instance.roomId,
+                  },
+                };
+              }
             });
           });
 
