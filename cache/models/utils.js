@@ -39,33 +39,48 @@ function applyFieldListFilter(resource, attributes) {
  * @returns {Array} - Filtered resource objects array
  */
 function applyFiltersOnResourceObjs(resourceObjArray, opts) {
-  let filteredResources = resourceObjArray;
+  let filtered = resourceObjArray;
 
   // apply wildcard expr if other than name because
   // name filter was applied before redis call
   if (opts.filter) {
     const filterOptions = opts.filter;
     Object.keys(filterOptions).forEach((field) => {
-      if (field !== 'name') {
-        const filteredKeys = filterByFieldWildCardExpr(
-          resourceObjArray, field, filterOptions[field]
-        );
-        filteredResources = filteredKeys;
+      const value = filterOptions[field];
+      if (field === 'isPublished') {
+        filtered = filterByIsPublished(filtered, value);
+      } else if (field === 'tags') {
+        filtered = filterByTags(filtered, value);
+      } else if (field !== 'name' && typeof field === 'string') {
+        filtered = filterByFieldWildCardExpr(filtered, field, value);
       }
     });
   }
 
-  // sort and apply limits to resources
+  // sort resources
   if (opts.order) {
-    const sortedResources = sortByOrder(filteredResources, opts.order);
-    filteredResources = sortedResources;
-
-    const slicedResourceObjs = applyLimitAndOffset(opts, filteredResources);
-    filteredResources = slicedResourceObjs;
+    filtered = sortByOrder(filtered, opts.order);
   }
 
-  return filteredResources;
+  // apply limits to resources if not already applied in prefilterKeys
+  if (!applyLimitAndOffsetInPrefilter(opts)) {
+    filtered = applyLimitAndOffset(opts, filtered);
+  }
+
+  return filtered;
 } // applyFiltersOnResourceObjs
+
+/**
+ * Determines if the options have filters on fields other than "name"
+ *
+ * @param  {Object} opts - Filter options
+ * @returns {Boolean} - true if filtered
+ */
+function applyLimitAndOffsetInPrefilter(opts) {
+  const filters = Object.keys(opts.filter);
+  const onlyName = filters.length === 1 && filters[0] === 'name';
+  return !opts.order && (!filters.length || onlyName);
+}
 
 /**
  * Apply limit and offset filter to resource array.
@@ -110,6 +125,11 @@ function prefilterKeys(keysArr, opts, getNameFunc) {
     resArr = filteredKeys;
   }
 
+  //apply limit and offset now if possible
+  if (applyLimitAndOffsetInPrefilter(opts)) {
+    resArr = applyLimitAndOffset(opts, resArr);
+  }
+
   return resArr;
 } // prefilterKeys
 
@@ -124,6 +144,55 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
       delete qbObj[qbField];
     }
   });
+}
+
+/**
+ * Apply isPublished filter on resource array of objects.
+ *
+ * @param  {Array}  arr - Array of objects to filter
+ * @param  {Boolean} value - value to filter by
+ * @returns {Array} - Filtered array
+ */
+function filterByIsPublished(arr, value) {
+  return arr.filter((obj) => obj.isPublished === value);
+}
+
+/**
+ * Apply tags filter on resource array of objects.
+ *
+ * @param  {Array}  arr - Array of objects to filter
+ * @param  {Array} tags - Array of tags to filter by
+ * @returns {Array} - Filtered array
+ */
+function filterByTags(arr, tags) {
+  /*
+   * If !INCLUDE, splice out the leading "-" in tags. Otherwise throw an
+   * exception if tag starts with "-".
+   */
+  const INCLUDE = !tags[0].startsWith('-');
+  tags.forEach((tag, i) => {
+    if (tag.startsWith('-')) {
+      if (INCLUDE) {
+        throw new Error('To specify EXCLUDE tags, prepend each tag with -');
+      } else {
+        tags[i] = tags[i].slice(ONE);
+      }
+    }
+  });
+
+  /*
+   * If INCLUDE, return objects that include all specified tags.
+   * If EXCLUDE, return objects that include none of the specified tags.
+   */
+  if (INCLUDE) {
+    return arr.filter((obj) =>
+      tags.every((tag) => obj.tags.includes(tag))
+    );
+  } else {
+    return arr.filter((obj) =>
+      tags.every((tag) => !obj.tags.includes(tag))
+    );
+  }
 }
 
 /**
