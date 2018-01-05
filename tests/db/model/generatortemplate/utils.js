@@ -36,8 +36,10 @@ const GT_SIMPLE = {
     proxy: 'pro.xy.server.net',
     bulk: false,
   },
-  transform: 'return [{ name: "S1|A1", value: 10 }, ' +
-    '{ name: "S2|A1", value: 2 }] ',
+  transform: {
+    default: [{ name: "S1|A1", value: 10 },
+    { name: "S2|A1", value: 2 }],
+  },
   contextDefinition: {
     okValue: {
       required: false,
