@@ -113,11 +113,6 @@ function applyLimitAndOffset(opts, arr) {
 function prefilterKeys(keysArr, opts, getNameFunc) {
   let resArr = keysArr;
 
-  // apply limit and offset if no sort order defined
-  if (!opts.order) {
-    resArr = applyLimitAndOffset(opts, keysArr);
-  }
-
   // apply wildcard expr on name, if specified
   if (opts.filter && opts.filter.name) {
     const filteredKeys = filterByFieldWildCardExpr(resArr, 'name',
