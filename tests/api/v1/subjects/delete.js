@@ -73,6 +73,8 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         .catch(done);
       });
 
+      beforeEach(u.populateRedisIfEnabled);
+
       afterEach(u.forceDelete);
 
       it('delete childless subject by id', (done) => {
