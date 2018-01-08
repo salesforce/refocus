@@ -54,8 +54,10 @@ const connectionSchema = joi.object().keys({
 });
 
 const transformSchema = joi.object().keys({
-  default: joi.string().required().description('The default transform'),
-  errorHandlers: joi.object().description('Error handler objects'),
+  default: joi.string().required().description('The default transform ' +
+    'function as a string'),
+  errorHandlers: joi.object().description('Optional errorhandlers to handle ' +
+    'the errors from remote collection'),
 });
 
 const ctxDefRequiredProps = ['description'];
