@@ -9,6 +9,7 @@
 /**
  * db/model/generatortemplate.js
  */
+'use strict';
 const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
@@ -50,6 +51,13 @@ const connectionSchema = joi.object().keys({
     'all of the designated subjects in a single request. When set to true, ' +
     'the url string or url function may only reference context attributes ' +
     'with defaults.'),
+});
+
+const transformSchema = joi.object().keys({
+  default: joi.string().required().description('The default transform ' +
+    'function as a string'),
+  errorHandlers: joi.object().description('Optional errorhandlers to handle ' +
+    'the errors from remote collection'),
 });
 
 const ctxDefRequiredProps = ['description'];
@@ -133,8 +141,13 @@ module.exports = function user(seq, dataTypes) {
       },
     },
     transform: {
-      type: dataTypes.TEXT,
+      type: dataTypes.JSON,
       allowNull: false,
+      validate: {
+        validateObject(value) {
+          common.validateObject(value, transformSchema);
+        },
+      },
     },
     isPublished: {
       type: dataTypes.BOOLEAN,
