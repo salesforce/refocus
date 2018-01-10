@@ -20,7 +20,6 @@ const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
-const common = require('../../utils/common');
 const ONE = 1;
 const TWO = 2;
 
@@ -177,11 +176,7 @@ function traverseHierarchy(res) {
       }
     }
 
-    if (filteredChildrenArr.length) {
-      res.children = filteredChildrenArr;
-    } else {
-      res.children = undefined;
-    }
+    res.children = filteredChildrenArr.length ? filteredChildrenArr : undefined;
 
     return attachSamples(res);
   })

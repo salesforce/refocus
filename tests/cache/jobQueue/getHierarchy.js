@@ -53,11 +53,11 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
   after(() => jobQueue.testMode.exit());
 
   /*
-   Run normal getHierarchy tests with cache and worker enabled.
-   Note that this must be run in a separate command from the api tests,
-   and from the cache subject tests (which also require these files),
-   otherwise these tests will not run because files can't be required
-   twice in the same process.
+   * Run normal getHierarchy tests with cache and worker enabled.
+   * Note that this must be run in a separate command from the api tests,
+   * and from the cache subject tests (which also require these files),
+   * otherwise these tests will not run because files can't be required
+   * twice in the same process.
    */
   require('../../api/v1/subjects/getHierarchy');
   require('../../api/v1/subjects/getHierarchyAspectAndTagsFilters');
