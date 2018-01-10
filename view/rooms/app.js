@@ -235,7 +235,6 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
-    console.log(res,"res")
     const promises = res.body.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
