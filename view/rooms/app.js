@@ -59,19 +59,7 @@ function createHeader(bot) {
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
-  text.innerHTML = bot.name;
-
-  const url = document.createElement('p');
-  url.className =
-    'slds-text-body_small ' +
-    'slds-line-height_reset ' +
-    'slds-p-horizontal_small ' +
-    'slds-theme_shade';
-  url.innerHTML = bot.url;
-  url.setAttribute(
-    'style',
-    'padding:0px 12px 5px 12px;'
-  );
+  text.innerHTML = `<a href=${bot.url}>${bot.name}</a>`;
 
   const circle = document.createElement('div');
   if (bot.active) {
@@ -89,7 +77,6 @@ function createHeader(bot) {
   circle.className = 'slds-float_right';
 
   title.appendChild(text);
-  title.appendChild(url);
   text.appendChild(circle);
   section.appendChild(title);
 
