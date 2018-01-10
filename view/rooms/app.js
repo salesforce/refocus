@@ -23,6 +23,7 @@ const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
 let _io;
+let _user;
 let botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -212,6 +213,7 @@ function setupSocketIOClient(bots) {
 window.onload = () => {
   // Note: this is declared in index.pug:
   _io = io;
+  _user = JSON.parse(user.replace(/&quot;/g, '"'));
 
   uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
