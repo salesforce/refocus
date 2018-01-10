@@ -122,6 +122,17 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     .catch();
   });
 
+  it('ok, can create templates without errorHandlers', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.errorHandlers;
+    GeneratorTemplate.create(_gt)
+    .then((o) => {
+      expect(o.transform).to.deep.equal(_gt.transform);
+      done();
+    })
+    .catch(done);
+  });
+
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
     const _gt = u.getGeneratorTemplate();
@@ -276,6 +287,62 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
       expect(err.message).to.contain('description is required');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('contextDefinition');
+      done();
+    });
+  });
+
+  it('not ok, transform as a string instead of object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform = 'return { name: S1|A1, value: 1 }';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, transform without the default key', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.default;
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"default" is required');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when default key is not a string', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.default = { return: [{ name: 'S1|A1', value: 10 },
+       { name: 'S2|A2', value: 10 },
+       ],
+    };
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"default" must be a string');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when errorHandler is not an object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.errorHandlers = 'return: [{ name: S1|A1, messageBody: ' +
+    'NOT FOUND }, { name: S2|A2, messageBody: NOT FOUND }] ';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"errorHandlers" must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
       done();
     });
   });

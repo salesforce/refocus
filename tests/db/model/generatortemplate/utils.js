@@ -36,8 +36,13 @@ const GT_SIMPLE = {
     proxy: 'pro.xy.server.net',
     bulk: false,
   },
-  transform: 'return [{ name: "S1|A1", value: 10 }, ' +
+  transform: { default: 'return [{ name: "S1|A1", value: 10 }, ' +
     '{ name: "S2|A1", value: 2 }] ',
+    errorHandlers: {
+      404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },' +
+      ' { name: "S2|A1", messageBody: "NOT FOUND" }]',
+    },
+  },
   contextDefinition: {
     okValue: {
       required: false,

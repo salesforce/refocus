@@ -15,6 +15,7 @@
  */
 
 const assoc = {};
+const u = require('../helpers/botDataUtils');
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const commonUtils = require('../../utils/common');
@@ -126,20 +127,41 @@ module.exports = function botData(seq, dataTypes) {
       }, // hooks.beforeCreate
 
       afterCreate: (instance) => {
+        // Sync bot data
+        const updateValues = new seq.Promise((resolve, reject) =>
+          u.updateValues(seq, instance)
+          .then(() => resolve(instance))
+          .catch((err) => reject(err))
+        );
+
+        // Publish creation
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(),
+        const publishObject = realTime.publishObject(instance.toJSON(),
           botDataEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+
+        return Promise.all([updateValues, publishObject]);
       },
 
       afterUpdate(instance /* , opts */) {
+        // Sync bot data
+        const updateValues = new seq.Promise((resolve, reject) =>
+          u.updateValues(seq, instance)
+          .then(() => resolve(instance))
+          .catch((err) => reject(err))
+        );
+
+        // Publish update
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(),
+        const publishObject = realTime.publishObject(instance.toJSON(),
           botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
+
+        return Promise.all([updateValues, publishObject]);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
+        // Publish delete
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
