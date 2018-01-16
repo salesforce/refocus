@@ -160,6 +160,68 @@ describe('tests/cache/models/samples/upsert.js, ' +
     });
   });
 
+  describe(`unpublished subject >`, () => {
+    let unPublishedSubjectAbsolutePath;
+
+    // unpublish the subject
+    beforeEach((done) => {
+      Subject.findById(subject.id)
+      .then((subjectOne) => subjectOne.update({
+        isPublished: false,
+      }))
+      .then((_subject) => {
+        unPublishedSubjectAbsolutePath = _subject.absolutePath;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('name refers to unpublished subject', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${unPublishedSubjectAbsolutePath.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+  });
+
+  describe(`unpublished aspect >`, () => {
+    let updatedAspect;
+
+    // unpublish the aspects
+    beforeEach((done) => {
+      Aspect.findById(aspect.id)
+      .then((aspectOne) => aspectOne.update({
+        isPublished: false,
+      }))
+      .then((_aspect) => {
+        updatedAspect = _aspect;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('name refers to unpublished aspect', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${updatedAspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
+    });
+  });
+
   describe('returnUser toggle is off', () => {
     it('name field is required', (done) => {
       api.post(path)

@@ -231,11 +231,11 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   ])
   .then((responses) => {
     [subject, aspect, sample] = responses;
-    if (!subject) {
+    if (!subject || subject.isPublished === 'false') {
       handleUpsertError(constants.objectType.subject, isBulk);
     }
 
-    if (!aspect) {
+    if (!aspect || aspect.isPublished === 'false') {
       handleUpsertError(constants.objectType.aspect, isBulk);
     }
 
