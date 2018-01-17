@@ -269,9 +269,7 @@ function prepareFields(subject, opts, req) {
   }
 
   // add api links
-  subject.apiLinks = utils.getApiLinks(
-    subject.name, helper, req.method
-  );
+  subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);
 }
 
 module.exports = {

@@ -32,6 +32,37 @@ function applyFieldListFilter(resource, attributes) {
 }
 
 /**
+ * Determines if the options have filters on fields other than "name"
+ *
+ * @param  {Object} opts - Filter options
+ * @returns {Boolean} - true if filtered
+ */
+function applyLimitAndOffsetInPrefilter(opts) {
+  const filters = Object.keys(opts.filter);
+  const onlyName = filters.length === 1 && filters[0] === 'name';
+  return !opts.order && (!filters.length || onlyName);
+}
+
+/**
+ * Apply limit and offset filter to resource array.
+ *
+ * @param  {Object} opts - Filter options
+ * @param  {Array} arr - Array of resource keys or objects
+ * @returns {Array} - Sliced array
+ */
+function applyLimitAndOffset(opts, arr) {
+  let startIndex = opts.offset || 0;
+  let endIndex = startIndex + opts.limit || arr.length;
+
+  // Short circuit: avoid calling array slice if we don't have to!
+  if (startIndex === 0 && endIndex >= arr.length) {
+    return arr;
+  }
+
+  return arr.slice(startIndex, endIndex);
+}
+
+/**
  * Apply filters on resource array list.
  *
  * @param  {Array} resourceObjArray - Resource objects array
@@ -69,37 +100,6 @@ function applyFiltersOnResourceObjs(resourceObjArray, opts) {
 
   return filtered;
 } // applyFiltersOnResourceObjs
-
-/**
- * Determines if the options have filters on fields other than "name"
- *
- * @param  {Object} opts - Filter options
- * @returns {Boolean} - true if filtered
- */
-function applyLimitAndOffsetInPrefilter(opts) {
-  const filters = Object.keys(opts.filter);
-  const onlyName = filters.length === 1 && filters[0] === 'name';
-  return !opts.order && (!filters.length || onlyName);
-}
-
-/**
- * Apply limit and offset filter to resource array.
- *
- * @param  {Object} opts - Filter options
- * @param  {Array} arr - Array of resource keys or objects
- * @returns {Array} - Sliced array
- */
-function applyLimitAndOffset(opts, arr) {
-  let startIndex = opts.offset || 0;
-  let endIndex = startIndex + opts.limit || arr.length;
-
-  // Short circuit: avoid calling array slice if we don't have to!
-  if (startIndex === 0 && endIndex >= arr.length) {
-    return arr;
-  }
-
-  return arr.slice(startIndex, endIndex);
-}
 
 /**
  * Do any prefiltering based on the keys.
