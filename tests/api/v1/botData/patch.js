@@ -122,7 +122,7 @@ describe('tests/api/v1/botData/patch.js >', () => {
       api.patch(`${path}/${saveBotData.id}`)
       .set('Authorization', token)
       .send({ name: newName })
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

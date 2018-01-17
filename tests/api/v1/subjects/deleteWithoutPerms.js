@@ -52,6 +52,8 @@ describe('tests/api/v1/subjects/deleteWithoutPerms.js >', () => {
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

@@ -89,7 +89,7 @@ describe('tests/api/v1/profiles/post.js >', () => {
     api.post(`${path}`)
     .set('Authorization', predefinedAdminUserToken)
     .send(p0)
-    .expect(constants.httpStatus.FORBIDDEN)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
         return done(err);

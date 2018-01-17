@@ -91,20 +91,22 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         .catch(done);
       });
 
+      beforeEach(u.populateRedisIfEnabled);
+
       afterEach(u.forceDelete);
 
       it('with identical name', (done) => {
         api.post(path)
         .set('Authorization', token)
         .send(DUMMY)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type)
-            .to.equal(tu.uniErrorName);
+          expect(res.body.errors[ZERO].type).to.be
+            .oneOf([tu.uniErrorName, 'DuplicateResourceError']);
           done();
         });
       });
@@ -113,14 +115,14 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         api.post(path)
         .set('Authorization', token)
         .send(DUMMY)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type)
-            .to.equal(tu.uniErrorName);
+          expect(res.body.errors[ZERO].type).to.be
+            .oneOf([tu.uniErrorName, 'DuplicateResourceError']);
           done();
         });
       });
@@ -440,8 +442,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         name: n1.name,
         parentId: i0,
       })
-      .expect(constants.httpStatus.FORBIDDEN)
-      .expect(/UniqueConstraintError/)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(res => expect(res.body.errors[0].type).to.equal(tu.uniErrorName))
       .end(done);
     });
 
@@ -449,8 +451,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       api.post(path)
       .set('Authorization', token)
       .send(n0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .expect(/UniqueConstraintError/)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(res => expect(res.body.errors[0].type).to.equal(tu.uniErrorName))
       .end(done);
     });
 

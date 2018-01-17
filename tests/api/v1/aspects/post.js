@@ -100,7 +100,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(aspectToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -120,7 +120,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(aspectToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

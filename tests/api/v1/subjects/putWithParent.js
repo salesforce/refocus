@@ -73,6 +73,8 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

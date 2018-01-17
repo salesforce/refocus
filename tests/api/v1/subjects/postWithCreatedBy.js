@@ -35,6 +35,8 @@ describe('tests/api/v1/subjects/postWithCreatedBy.js, returnUser toggle on >',
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
