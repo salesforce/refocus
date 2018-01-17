@@ -32,40 +32,16 @@ function applyFieldListFilter(resource, attributes) {
 }
 
 /**
- * Apply filters on resource array list.
+ * Determines if the options have filters on fields other than "name"
  *
- * @param  {Array} resourceObjArray - Resource objects array
  * @param  {Object} opts - Filter options
- * @returns {Array} - Filtered resource objects array
+ * @returns {Boolean} - true if filtered
  */
-function applyFiltersOnResourceObjs(resourceObjArray, opts) {
-  let filteredResources = resourceObjArray;
-
-  // apply wildcard expr if other than name because
-  // name filter was applied before redis call
-  if (opts.filter) {
-    const filterOptions = opts.filter;
-    Object.keys(filterOptions).forEach((field) => {
-      if (field !== 'name') {
-        const filteredKeys = filterByFieldWildCardExpr(
-          resourceObjArray, field, filterOptions[field]
-        );
-        filteredResources = filteredKeys;
-      }
-    });
-  }
-
-  // sort and apply limits to resources
-  if (opts.order) {
-    const sortedResources = sortByOrder(filteredResources, opts.order);
-    filteredResources = sortedResources;
-
-    const slicedResourceObjs = applyLimitAndOffset(opts, filteredResources);
-    filteredResources = slicedResourceObjs;
-  }
-
-  return filteredResources;
-} // applyFiltersOnResourceObjs
+function applyLimitAndOffsetInPrefilter(opts) {
+  const filters = Object.keys(opts.filter);
+  const onlyName = filters.length === 1 && filters[0] === 'name';
+  return !opts.order && (!filters.length || onlyName);
+}
 
 /**
  * Apply limit and offset filter to resource array.
@@ -87,6 +63,45 @@ function applyLimitAndOffset(opts, arr) {
 }
 
 /**
+ * Apply filters on resource array list.
+ *
+ * @param  {Array} resourceObjArray - Resource objects array
+ * @param  {Object} opts - Filter options
+ * @returns {Array} - Filtered resource objects array
+ */
+function applyFiltersOnResourceObjs(resourceObjArray, opts) {
+  let filtered = resourceObjArray;
+
+  // apply wildcard expr if other than name because
+  // name filter was applied before redis call
+  if (opts.filter) {
+    const filterOptions = opts.filter;
+    Object.keys(filterOptions).forEach((field) => {
+      const value = filterOptions[field];
+      if (field === 'isPublished') {
+        filtered = filterByIsPublished(filtered, value);
+      } else if (field === 'tags') {
+        filtered = filterByTags(filtered, value);
+      } else if (field !== 'name' && typeof field === 'string') {
+        filtered = filterByFieldWildCardExpr(filtered, field, value);
+      }
+    });
+  }
+
+  // sort resources
+  if (opts.order) {
+    filtered = sortByOrder(filtered, opts.order);
+  }
+
+  // apply limits to resources if not already applied in prefilterKeys
+  if (!applyLimitAndOffsetInPrefilter(opts)) {
+    filtered = applyLimitAndOffset(opts, filtered);
+  }
+
+  return filtered;
+} // applyFiltersOnResourceObjs
+
+/**
  * Do any prefiltering based on the keys.
  *
  * @param  {Array} keysArr - Resource key names array
@@ -98,16 +113,16 @@ function applyLimitAndOffset(opts, arr) {
 function prefilterKeys(keysArr, opts, getNameFunc) {
   let resArr = keysArr;
 
-  // apply limit and offset if no sort order defined
-  if (!opts.order) {
-    resArr = applyLimitAndOffset(opts, keysArr);
-  }
-
   // apply wildcard expr on name, if specified
   if (opts.filter && opts.filter.name) {
     const filteredKeys = filterByFieldWildCardExpr(resArr, 'name',
       opts.filter.name, getNameFunc);
     resArr = filteredKeys;
+  }
+
+  //apply limit and offset now if possible
+  if (applyLimitAndOffsetInPrefilter(opts)) {
+    resArr = applyLimitAndOffset(opts, resArr);
   }
 
   return resArr;
@@ -124,6 +139,55 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
       delete qbObj[qbField];
     }
   });
+}
+
+/**
+ * Apply isPublished filter on resource array of objects.
+ *
+ * @param  {Array}  arr - Array of objects to filter
+ * @param  {Boolean} value - value to filter by
+ * @returns {Array} - Filtered array
+ */
+function filterByIsPublished(arr, value) {
+  return arr.filter((obj) => obj.isPublished === value);
+}
+
+/**
+ * Apply tags filter on resource array of objects.
+ *
+ * @param  {Array}  arr - Array of objects to filter
+ * @param  {Array} tags - Array of tags to filter by
+ * @returns {Array} - Filtered array
+ */
+function filterByTags(arr, tags) {
+  /*
+   * If !INCLUDE, splice out the leading "-" in tags. Otherwise throw an
+   * exception if tag starts with "-".
+   */
+  const INCLUDE = !tags[0].startsWith('-');
+  tags.forEach((tag, i) => {
+    if (tag.startsWith('-')) {
+      if (INCLUDE) {
+        throw new Error('To specify EXCLUDE tags, prepend each tag with -');
+      } else {
+        tags[i] = tags[i].slice(ONE);
+      }
+    }
+  });
+
+  /*
+   * If INCLUDE, return objects that include all specified tags.
+   * If EXCLUDE, return objects that include none of the specified tags.
+   */
+  if (INCLUDE) {
+    return arr.filter((obj) =>
+      tags.every((tag) => obj.tags.includes(tag))
+    );
+  } else {
+    return arr.filter((obj) =>
+      tags.every((tag) => !obj.tags.includes(tag))
+    );
+  }
 }
 
 /**

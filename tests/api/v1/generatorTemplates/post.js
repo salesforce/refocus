@@ -89,7 +89,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       api.post(path)
       .set('Authorization', token)
       .send(generatorTemplate)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -106,7 +106,7 @@ describe('tests/api/v1/generatorTemplates/post.js > ', () => {
       api.post(path)
       .set('Authorization', token)
       .send(gt)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

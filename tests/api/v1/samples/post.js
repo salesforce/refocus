@@ -54,7 +54,7 @@ describe('tests/api/v1/samples/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(sampleToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -70,7 +70,7 @@ describe('tests/api/v1/samples/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(sampleToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

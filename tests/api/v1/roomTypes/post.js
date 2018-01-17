@@ -79,7 +79,7 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

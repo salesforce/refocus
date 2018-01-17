@@ -47,7 +47,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
       .set('Authorization', token)
       .field('name', u.name)
       .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -64,7 +64,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
       .set('Authorization', token)
       .field('name', u.name)
       .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
