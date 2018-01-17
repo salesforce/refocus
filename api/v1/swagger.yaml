@@ -3858,7 +3858,7 @@ paths:
                   Variables available to connection.url, connection.toUrl, and
                   the transform function.
               transform:
-                type: string
+                type: object
                 description: >-
                   The body of a javascript function which transforms some data into
                   an array of samples
@@ -11428,7 +11428,7 @@ definitions:
           Variables available to connection.url, connection.toUrl, and
           the transform function.
       transform:
-        type: string
+        type: object
         description: >-
           The body of a javascript function which transforms some data into an
           array of samples
