@@ -87,3 +87,6 @@ Guidelines on contributing to Refocus are available [here](https://salesforce.gi
 - [refocus-ldk](https://github.com/salesforce/refocus-ldk) - Refocus Lens Developer Kit - a toolkit for developing, testing and packaging Refocus lenses for deployment
 - [refocus-lens-multitable](https://github.com/salesforce/refocus-lens-multitable) - A fluid multi-table layout. Each table groups subjects together under a shared parent.
 - [refocus-lens-tree](https://github.com/salesforce/refocus-lens-tree) - Display your subjects and samples in a hierarchical left-to-right tree.
+- [refocus-ruby](https://github.com/heroku/refocus-ruby) - A ruby library (API wrapper) & CLI project.
+
+
