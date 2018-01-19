@@ -413,7 +413,6 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        console.log(res.body);
         expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
         done();
       });

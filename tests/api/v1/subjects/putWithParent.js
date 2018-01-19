@@ -403,7 +403,6 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
           return done(err);
         }
 
-        console.log(res.body);
         expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
         done();
       });
