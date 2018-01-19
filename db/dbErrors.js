@@ -89,6 +89,16 @@ errors.create({
 });
 errors.create({
   scope: exports,
+  code: 10115,
+  status: 400,
+  name: 'SubjectAlreadyExistsUnderParent',
+  parent: this.ValidationError,
+  defaultMessage: 'The new parent already has a subject with the same absolutePath',
+  explanation: 'If a subject specifies that it has a parent, the parent' +
+  'subject must not already have a child with the same absolutePath',
+});
+errors.create({
+  scope: exports,
   code: 10116,
   status: 400,
   name: 'DuplicateBotError',

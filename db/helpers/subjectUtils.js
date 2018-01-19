@@ -18,6 +18,8 @@ const ParentSubjectNotMatch = require('../dbErrors')
   .ParentSubjectNotMatch;
 const IllegalSelfParenting = require('../dbErrors')
   .IllegalSelfParenting;
+const SubjectAlreadyExistsUnderParent = require('../dbErrors')
+  .SubjectAlreadyExistsUnderParent;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
@@ -75,6 +77,7 @@ function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
  * @returns {Object} the subject instance
  */
 function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
+  let newAbsolutePath;
   return Subject.scope({ method:
     ['id', inst.previous('parentId')],
   }).find()
@@ -83,13 +86,23 @@ function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
       oldParent.decrement('childCount');
     }
 
-    const absolutePath = parentAbsolutePath ?
+    newAbsolutePath = parentAbsolutePath ?
       parentAbsolutePath + '.' + inst.name : inst.name;
-
+    const whereObj = { where: { absolutePath: { $iLike: newAbsolutePath } } };
+    return Subject.find(whereObj);
+  })
+  .then((subj) => {
+    if (subj && subj.id !== inst.id) {
+      throw new SubjectAlreadyExistsUnderParent({
+        message: newAbsolutePath + ' already exists.',
+      });
+    }
+  })
+  .then(() => {
     // update the subject values
     inst.setDataValue('parentId', parentId);
     inst.setDataValue('parentAbsolutePath', parentAbsolutePath);
-    inst.setDataValue('absolutePath', absolutePath);
+    inst.setDataValue('absolutePath', newAbsolutePath);
     return inst;
   });
 }

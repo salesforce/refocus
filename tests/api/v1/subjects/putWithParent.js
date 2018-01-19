@@ -375,6 +375,41 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
     });
   });
 
+  it('fail if a subject with the new absolutePath already exists', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: _root.name,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        console.log(res.body);
+        expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
+        done();
+      });
+    });
+  });
+
   it('with NEITHER parentId NOR parentAbsolutePath, ' +
     'reparent the subject as a root subject', (done) => {
     const NAME = 'iAmRoot';
