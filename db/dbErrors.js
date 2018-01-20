@@ -122,6 +122,16 @@ errors.create({
   parent: this.ValidationError,
   defaultMessage: 'You cannot map duplicate Collectors to a Generator.',
 });
+errors.create({
+  scope: exports,
+  code: 10120,
+  status: 400,
+  name: 'SubjectAlreadyExistsUnderParent',
+  parent: this.ValidationError,
+  defaultMessage: 'The new parent already has a subject with the same absolutePath',
+  explanation: 'If a subject specifies that it has a parent, the parent' +
+  'subject must not already have a child with the same absolutePath',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found
