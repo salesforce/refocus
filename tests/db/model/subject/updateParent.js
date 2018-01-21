@@ -453,4 +453,112 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     })
     .catch(done);
   });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1 ===>/ O<= child1
+   * |
+   * O<= child2
+   */
+  it('error, assign first child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then(() => Subject.findById(childId1))
+    .then((child1) => {
+      expect(child1.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1`);
+      return child1.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child2
+   * |             /
+   * O<= child2   /
+   */
+  it('error, assign last child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, subjId2);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findById(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child1
+   * |             /  |
+   * O<= child2   /   O<= child2
+   */
+  it('ok, assign child to new parent with existing child in the hierarchy',
+    (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then((created) => {
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, created.id);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findById(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((updatedChild) => {
+      expect(updatedChild.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent2.${tu.namePrefix}child2`);
+      done();
+    })
+    .catch(done);
+  });
 });
