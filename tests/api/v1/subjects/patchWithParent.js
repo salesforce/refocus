@@ -387,6 +387,38 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
     });
   });
 
+  it('fail if a subject with the new absolutePath already exists', (done) => {
+    const NEW_NAME = 'newName';
+    api.patch(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      parentAbsolutePath: _root.name,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.patch(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
+        done();
+      });
+    });
+  });
+
   it('with NEITHER parentId NOR parentAbsolutePath, does not reparent the ' +
   'subject', (done) => {
     api.patch(`${path}/${i1}`)
