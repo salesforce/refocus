@@ -2292,7 +2292,7 @@ paths:
             enum:
               - name
               - status
-              - isRegistered
+              - registered
               - lastHeartbeat
               - lastModifiedAt
               - createdBy
@@ -2304,7 +2304,7 @@ paths:
               - version
               - -name
               - -status
-              - -isRegistered
+              - -registered
               - -lastHeartbeat
               - -lastModifiedAt
               - -createdBy
@@ -2333,10 +2333,10 @@ paths:
           required: false
           type: string
         -
-          name: isRegistered
+          name: registered
           in: query
           description: >-
-            Filter by isRegistered (true|false).
+            Filter by registered (true|false).
           required: false
           type: boolean
         -
@@ -11132,8 +11132,8 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      isRegistered:
-        type: "string"
+      registered:
+        type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
@@ -11531,7 +11531,7 @@ parameters:
         - name
         - id
         - status
-        - isRegistered
+        - registered
         - currentGenerators
         - lastHeartbeat
         - lastModifiedAt

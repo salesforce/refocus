@@ -159,8 +159,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
     const _collector = JSON.parse(JSON.stringify(u.toCreate));
     _collector.name = 'newCollector';
 
-    it('create a new collector record with isRegistered=true ' +
-      ' and status=RUNNING, and return with a collector token', (done) => {
+    it('create a new collector record with registered=true ' +
+      'and status=RUNNING, and return with a collector token', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(_collector)
