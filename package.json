@@ -1,4 +1,4 @@
-{
+ {
   "name": "Refocus",
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
@@ -30,7 +30,7 @@
     "dropdb": "node db/createOrDropDb.js --drop",
     "initdb": "node db/createOrDropDb.js --init",
     "jscs": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue migrations realtime tests utils view worker",
-    "jscs-enforce": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue migrations realtime tests/api tests/cache tests/clock tests/config tests/db tests/disableHttp tests/enableCache tests/enforceToken tests/jobQueue tests/logging tests/realtime tests/roomFlag utils worker",
+    "jscs-enforce": "./node_modules/jscs/bin/jscs *.js api cache clock config db jobQueue migrations realtime tests/api tests/cache tests/clock tests/config tests/db tests/disableHttp tests/enableCache tests/enforceToken tests/jobQueue tests/logging tests/realtime utils worker",
     "lint": "eslint view/admin",
     "migratedb": "node db/migrate.js",
     "on-release": "npm run checkdb",
