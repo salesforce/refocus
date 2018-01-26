@@ -233,6 +233,45 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
     });
 
+    describe('return collector status in heartbeat', () => {
+      const _localCollector = JSON.parse(JSON.stringify(u.toCreate));
+      _localCollector.name += 'collectorForStateChange';
+
+      afterEach((done) => {
+        Collector.destroy({ where: { name: _localCollector.name }, force: true });
+        done();
+      });
+
+      it('should return the right collector status1', (done) => {
+        u.startCollector(_localCollector, collectorTokens, userToken)
+        .then(() => {
+          return u.sendHeartbeat(_localCollector, collectorTokens);
+        })
+        .then((res) => {
+          expect(res.body.collectorConfig).to.have.property('status');
+          expect(res.body.collectorConfig.status).to.equal('Running');
+          return u.pauseCollector(_localCollector, userToken);
+        })
+        .then((res) => {
+          expect(res.body.status).to.equal('Paused');
+          return u.sendHeartbeat(_localCollector, collectorTokens);
+        })
+        .then((res) => {
+          expect(res.body.collectorConfig.status).to.equal('Paused');
+          return u.resumeCollector(_localCollector, userToken);
+        })
+        .then((res) => {
+          expect(res.body.status).to.equal('Running');
+          return u.sendHeartbeat(_localCollector, collectorTokens);
+        })
+        .then((res) => {
+          expect(res.body.collectorConfig.status).to.equal('Running');
+          done();
+        })
+        .catch(done);
+      });
+    });
+
     describe('generator changes', () => {
       // reset the tracked changes
       beforeEach((done) => {
