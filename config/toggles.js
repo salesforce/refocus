@@ -76,9 +76,6 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
-  // Enable Rooms functionality
-  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
-
   // Enable sample store info logging
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
