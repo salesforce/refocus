@@ -242,7 +242,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         done();
       });
 
-      it('should return the right collector status1', (done) => {
+      it('should return the right collector status after status ' +
+        'change', (done) => {
         u.startCollector(_localCollector, collectorTokens, userToken)
         .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
         .then((res) => {
