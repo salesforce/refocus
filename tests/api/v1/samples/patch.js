@@ -50,6 +50,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedisIfEnabled);
     afterEach(u.forceDelete);
 
     it('reject if name field in request', (done) => {
@@ -241,8 +242,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
           expect(res.body).to.have.property('errors');
           expect(res.body.errors[ZERO].message)
           .to.contain('Name of the relatedlinks should be unique');
-          expect(res.body.errors[ZERO].source)
-          .to.contain('relatedLinks');
         })
         .end(done);
       });
@@ -356,6 +355,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
 
     it('cannot patch sample if subject not published', (done) => {
@@ -398,6 +398,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
 
     it('cannot patch sample if aspect not published', (done) => {
