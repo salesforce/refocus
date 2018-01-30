@@ -1445,6 +1445,8 @@ paths:
   /botActions:
     x-swagger-router-controller: botActions
     get:
+      security:
+        - jwt: []
       summary: Find botActions
       tags: [ botActions ]
       operationId: findBotActions
@@ -1577,6 +1579,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get botAction
       tags: [ botActions ]
       operationId: getBotAction
@@ -1680,6 +1684,8 @@ paths:
   /botData:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       tags: [ botData ]
       operationId: findBotData
       parameters:
@@ -1770,6 +1776,8 @@ paths:
   /botData/{key}:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get botData
       tags: [ botData ]
       operationId: getBotData
@@ -1892,6 +1900,8 @@ paths:
   /bots:
     x-swagger-router-controller: bots
     get:
+      security:
+        - jwt: []
       summary: Find bots
       tags: [ bots ]
       operationId: findBots
@@ -2028,6 +2038,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get bot
       tags: [ bots ]
       operationId: getBot
@@ -2292,7 +2304,7 @@ paths:
             enum:
               - name
               - status
-              - isRegistered
+              - registered
               - lastHeartbeat
               - lastModifiedAt
               - createdBy
@@ -2304,7 +2316,7 @@ paths:
               - version
               - -name
               - -status
-              - -isRegistered
+              - -registered
               - -lastHeartbeat
               - -lastModifiedAt
               - -createdBy
@@ -2333,10 +2345,10 @@ paths:
           required: false
           type: string
         -
-          name: isRegistered
+          name: registered
           in: query
           description: >-
-            Filter by isRegistered (true|false).
+            Filter by registered (true|false).
           required: false
           type: boolean
         -
@@ -2949,6 +2961,8 @@ paths:
   /events:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Find events
       tags: [ events ]
       operationId: findEvents
@@ -3066,6 +3080,8 @@ paths:
   /events/{key}:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Get event
       tags: [ events ]
       description: >-
@@ -6303,6 +6319,8 @@ paths:
   /rooms:
     x-swagger-router-controller: rooms
     get:
+      security:
+        - jwt: []
       tags: [ rooms ]
       operationId: findRooms
       parameters:
@@ -6426,6 +6444,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get room
       tags: [ rooms ]
       operationId: getRoom
@@ -6516,6 +6536,8 @@ paths:
   /roomTypes:
     x-swagger-router-controller: roomTypes
     get:
+      security:
+        - jwt: []
       tags: [ roomTypes ]
       operationId: findRoomTypes
       parameters:
@@ -6647,6 +6669,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get roomType
       tags: [ roomTypes ]
       operationId: getRoomType
@@ -9576,6 +9600,8 @@ paths:
   /rooms/{roomId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -9612,6 +9638,8 @@ paths:
   /rooms/{roomId}/bots/{botId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -11132,8 +11160,8 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      isRegistered:
-        type: "string"
+      registered:
+        type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
@@ -11531,7 +11559,7 @@ parameters:
         - name
         - id
         - status
-        - isRegistered
+        - registered
         - currentGenerators
         - lastHeartbeat
         - lastModifiedAt
