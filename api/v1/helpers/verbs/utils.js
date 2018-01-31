@@ -768,7 +768,7 @@ function checkDuplicateRLinks(rLinkArr) {
   rLinkArr.forEach((rLinkObj) => {
     if (rLinkObj.name && uniqlinks.has(rLinkObj.name.toLowerCase())) {
       throw new apiErrors.ValidationError({
-        explanation: 'Name of the relatedlinks should be unique.',
+        message: 'Name of the relatedlinks should be unique.',
       });
     }
 

@@ -44,6 +44,7 @@ describe('tests/api/v1/samples/postWithProvider.js >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));

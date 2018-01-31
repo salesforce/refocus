@@ -19,12 +19,14 @@ const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
 const redisErrors = require('../redisErrors');
+const apiErrors = require('../../api/v1/apiErrors');
 const sampleUtils = require('../../db/helpers/sampleUtils');
 const dbConstants = require('../../db/constants');
 const redisOps = require('../redisOps');
 const db = require('../../db/index');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
+const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
@@ -464,6 +466,7 @@ module.exports = {
       });
     }
 
+    const subjectAbsolutePath = sampAspArr[ZERO];
     const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
@@ -491,6 +494,15 @@ module.exports = {
       aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
+
+      return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
+    })
+    .then((subjObj) => {
+      if (!subjObj || (subjObj.isPublished == 'false')) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Subject not found.',
+        });
+      }
 
       return checkWritePermission(aspectObj, currSampObj, userName);
     })
@@ -573,7 +585,7 @@ module.exports = {
     })
     .then((sampFromRedis) => {
       if (sampFromRedis) {
-        throw new redisErrors.ForbiddenError({
+        throw new apiErrors.DuplicateResourceError({
           explanation: 'Sample already exists.',
         });
       }
@@ -647,6 +659,7 @@ module.exports = {
       });
     }
 
+    const subjectAbsolutePath = sampAspArr[ZERO];
     const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
@@ -671,6 +684,15 @@ module.exports = {
       aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
+
+      return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
+    })
+    .then((subjObj) => {
+      if (!subjObj || (subjObj.isPublished == 'false')) {
+        throw new redisErrors.ResourceNotFoundError({
+          explanation: 'Subject not found.',
+        });
+      }
 
       return checkWritePermission(aspectObj, currSampObj, userName);
     })

@@ -40,7 +40,8 @@ module.exports = {
     if (
       featureToggles.isFeatureEnabled('enableRedisSampleStore')
     ) {
-      samstoinit.populate()
+      samstoinit.eradicate()
+      .then(() => samstoinit.populate())
       .then(() => done())
       .catch(done);
     } else {
