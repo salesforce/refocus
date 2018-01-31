@@ -15,10 +15,6 @@ const u = require('./utils');
 const getWithLimit = require('../common/getWithLimit.js').getWithLimit;
 const Sample = tu.db.Sample;
 const path = '/v1/samples';
-const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
-const expect = require('chai').expect;
 
 describe('tests/api/v1/samples/getWithLimit.js >', () => {
   const modelList = [];
