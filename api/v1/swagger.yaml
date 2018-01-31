@@ -2637,34 +2637,58 @@ paths:
           description: Access restricted to Refocus Collector only.
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              description: Access restricted to Refocus Collector only.
-              properties:
-                logLines:
-                  type: array
-                  items:
+            type: object
+            description: >-
+              Heartbeat from the collector.
+            properties:
+              timestamp:
+                type: integer
+                description: Access restricted to Refocus Collector only.
+              collectorConfig:
+                type: object
+                properties:
+                  osInfo:
                     type: object
-                    description: Access restricted to Refocus Collector only.
                     properties:
-                      timeStamp:
+                      arch:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      sampleCount:
-                        type: integer
+                      hostname:
+                        type: string
                         description: Access restricted to Refocus Collector only.
-                      sourceUrls:
-                        type: array
-                        items:
-                          type: string
+                      platform:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      release:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      type:
+                        type: string
                         description: Access restricted to Refocus Collector only.
                       username:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      workTime:
-                        type: integer
+                  processInfo:
+                    type: object
+                    properties:
+                      execPath:
+                        type: string
                         description: Access restricted to Refocus Collector only.
+                      memoryUsage:
+                        type:  object
+                        description: Access restricted to Refocus Collector only.
+                      uptime:
+                        type: number
+                        description: Access restricted to Refocus Collector only.
+                      version:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      versions:
+                        type: object
+                        description: Access restricted to Refocus Collector only.
+                  version:
+                    type: string
+                    description: Access restricted to Refocus Collector only.
       responses:
         200:
           description: Success.

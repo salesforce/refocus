@@ -264,6 +264,8 @@ function heartbeat(req, res, next) {
       });
     }
 
+    retval.collectorConfig.status = o.status;
+
     // setup retval
     if (heartbeatUtils.collectorMap[o.name]) {
       retval.generatorsAdded = heartbeatUtils.collectorMap[o.name].added;
