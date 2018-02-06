@@ -61,12 +61,7 @@ module.exports = (job, done) => {
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
         } else {
-          if (featureToggles // eslint-disable-line  no-lonely-if
-            .isFeatureEnabled('publishPartialSample')) {
-            publisher.publishPartialSample(results[i]);
-          } else {
-            publisher.publishSample(results[i], subHelper.model);
-          }
+          publisher.publishSample(results[i], subHelper.model);
         }
       }
 

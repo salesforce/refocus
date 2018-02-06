@@ -101,26 +101,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
 } // publishChange
 
 /**
- * Publishes the sample without attaching the related subject and the aspect to
- * the redis channel
- * @param  {Object} sampleInst - The sample instance to be published
- * @param  {String} event - The event type that is being published.
- * @returns {Object} - the sample object
- */
-function publishPartialSample(sampleInst, event) {
-  const eventType = event || getSampleEventType(sampleInst);
-
-  // will be over written when unwrapping json.stringified fields
-  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
-
-  delete sample.aspect;
-  delete sample.subject;
-
-  publishObject(sample, eventType);
-  return sample;
-} // publishPartialSample
-
-/**
  * The sample object needs to be attached its subject object and it also needs
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
@@ -136,7 +116,6 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
   const useSampleStore =
     featureToggles.isFeatureEnabled('enableRedisSampleStore');
-
   return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
     aspectModel)
   .then((sample) => {
@@ -150,6 +129,5 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 module.exports = {
   publishObject,
   publishSample,
-  publishPartialSample,
   getSampleEventType,
 }; // exports

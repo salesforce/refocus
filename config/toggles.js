@@ -127,9 +127,6 @@ const shortTermToggles = {
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
-  // publish partial sample to the subscribers
-  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
-
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'
