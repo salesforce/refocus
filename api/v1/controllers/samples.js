@@ -416,8 +416,9 @@ module.exports = {
          * channel
          */
         sampleModel.bulkUpsertByName(value, user, readOnlyFields)
-        .then((samples) => samples.filter((s) => !s.isFailed)
-          .forEach((s) => publisher.publishSample(sample, subHelper.model)));
+        .then((samples) =>
+          samples.filter((s) => !s.isFailed)
+          .forEach((s) => publisher.publishSample(s, subHelper.model)));
         u.logAPI(req, resultObj, body, value.length);
         return Promise.resolve(res.status(httpStatus.OK).json(body));
       }
