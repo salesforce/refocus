@@ -87,7 +87,6 @@ function parseName(name) {
   });
 } // parseName
 
-
 /**
  * Checks if the user has the permission to perform the write operation on the
  * sample or not
