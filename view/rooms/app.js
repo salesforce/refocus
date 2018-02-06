@@ -92,10 +92,12 @@ function parseBot(bot) {
   // Unzip bots
   const zip = new AdmZip(new Buffer(bot.ui.data));
   const zipEntries = zip.getEntries();
+  const botScript = document.createElement('script');
+  botScript.id = bot.name + '-script';
 
   // Get the bots section of the page
-  const botScript = document.createElement('script');
   const botContainer = document.createElement('div');
+  botContainer.id = bot.name + '-section';
   botContainer.className = 'slds-large-size--1-of-3';
   const contentSection = document.createElement('div');
   contentSection.className = 'slds-section__content';
@@ -149,6 +151,12 @@ function setupSocketIOClient(bots) {
   socket.on('connect', () => {
     debugMessage('Socket Connected');
     bots.forEach((bot) => {
+      if (document.getElementById(bot.body.name + '-section')) {
+        document.getElementById(bot.body.name + '-section').remove();
+        document.getElementById(bot.body.name + '-script').remove();
+      }
+    });
+    bots.forEach((bot) => {
       parseBot(bot.body);
     });
   });
@@ -156,53 +164,63 @@ function setupSocketIOClient(bots) {
   socket.on(settingsChangedEventName, (data) => {
     const eventData = JSON.parse(data);
     const room = eventData[settingsChangedEventName];
-    debugMessage('Setting Changed', room);
-    document.body
-    .dispatchEvent(new CustomEvent('refocus.room.settings', {
-      detail: room,
-    }));
+    if (room.id === parseInt(ROOM_ID, 10)) {
+      debugMessage('Setting Changed', room);
+      document.body
+      .dispatchEvent(new CustomEvent('refocus.room.settings', {
+        detail: room,
+      }));
+    }
   });
 
   socket.on(botActionsUpdate, (data) => {
     const eventData = JSON.parse(data);
     const action = eventData[botActionsUpdate];
-    debugMessage('BotActions Updated', action);
-    document.getElementById(botInfo[action.new.botId])
-    .dispatchEvent(new CustomEvent('refocus.bot.actions', {
-      detail: action.new,
-    }));
+    if (action.new.roomId === parseInt(ROOM_ID, 10)) {
+      debugMessage('BotActions Updated', action);
+      document.getElementById(botInfo[action.new.botId])
+      .dispatchEvent(new CustomEvent('refocus.bot.actions', {
+        detail: action.new,
+      }));
+    }
   });
 
   socket.on(botDataAdd, (data) => {
     const eventData = JSON.parse(data);
     const bd = eventData[botDataAdd];
-    debugMessage('BotData Added', bd);
-    document.getElementById(botInfo[bd.botId])
-    .dispatchEvent(new CustomEvent('refocus.bot.data', {
-      detail: bd,
-    }));
+    if (bd.roomId === parseInt(ROOM_ID, 10)) {
+      debugMessage('BotData Added', bd);
+      document.getElementById(botInfo[bd.botId])
+      .dispatchEvent(new CustomEvent('refocus.bot.data', {
+        detail: bd,
+      }));
+    }
   });
 
   socket.on(botDataUpdate, (data) => {
     const eventData = JSON.parse(data);
     const bd = eventData[botDataUpdate];
-    debugMessage('BotData Updated', bd);
-    document.getElementById(botInfo[bd.new.botId])
-    .dispatchEvent(new CustomEvent('refocus.bot.data', {
-      detail: bd.new,
-    }));
+    if (bd.new.roomId === parseInt(ROOM_ID, 10)) {
+      debugMessage('BotData Updated', bd);
+      document.getElementById(botInfo[bd.new.botId])
+      .dispatchEvent(new CustomEvent('refocus.bot.data', {
+        detail: bd.new,
+      }));
+    }
   });
 
   socket.on(botEventAdd, (data) => {
     const eventData = JSON.parse(data);
     const events = eventData[botEventAdd];
-    debugMessage('Events Added', events);
-    Object.keys(botInfo).forEach((key) => {
-      document.getElementById(botInfo[key])
-      .dispatchEvent(new CustomEvent('refocus.events', {
-        detail: events,
-      }));
-    });
+    if (events.roomId === parseInt(ROOM_ID, 10)) {
+      debugMessage('Events Added', events);
+      Object.keys(botInfo).forEach((key) => {
+        document.getElementById(botInfo[key])
+        .dispatchEvent(new CustomEvent('refocus.events', {
+          detail: events,
+        }));
+      });
+    }
   });
 
   socket.on('disconnect', () => {
