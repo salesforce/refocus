@@ -151,6 +151,12 @@ function setupSocketIOClient(bots) {
   socket.on('connect', () => {
     debugMessage('Socket Connected');
     bots.forEach((bot) => {
+      if (document.getElementById(bot.body.name + '-section')) {
+        document.getElementById(bot.body.name + '-section').remove();
+        document.getElementById(bot.body.name + '-script').remove();
+      }
+    });
+    bots.forEach((bot) => {
       parseBot(bot.body);
     });
   });
