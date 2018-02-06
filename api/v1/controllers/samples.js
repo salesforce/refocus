@@ -254,7 +254,7 @@ module.exports = {
         u.responsify(createdSample, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+  }, // postSample
 
   /**
    * PUT /samples/{key}
@@ -327,7 +327,6 @@ module.exports = {
           featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample.upsertSample(sampleQueryBody, user) :
           helper.model.upsertByName(sampleQueryBody, user);
-
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -339,8 +338,8 @@ module.exports = {
         }
 
         /*
-         * send the upserted sample to the client by publishing it to the redis
-         * channel
+         * Send the upserted sample to the client by publishing it to the redis
+         * channel.
          */
         publisher.publishSample(samp, subHelper.model);
 
@@ -408,7 +407,7 @@ module.exports = {
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const sampleModel =
-        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
+          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample : helper.model;
 
         /*
@@ -419,7 +418,7 @@ module.exports = {
         .then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {
-              publisher.publishSample(sample, subHelper.model);  
+              publisher.publishSample(sample, subHelper.model);
             }
           });
         });
@@ -430,7 +429,7 @@ module.exports = {
 
     return bulkUpsert(req.user)
     .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+  }, // bulkUpsertSample
 
   /**
    * DELETE /v1/samples/{key}/relatedLinks/
