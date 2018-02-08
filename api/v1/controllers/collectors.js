@@ -317,8 +317,7 @@ function heartbeat(req, res, next) {
  * POST /collectors/start
  *
  * Starts a collector by setting the status to "Running". If the collector is
- * not found, a new collector is created. A collector token is sent back as a
- * response.
+ * not found, a new collector is created.
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
@@ -363,6 +362,9 @@ function startCollector(req, res, next) {
       collector.dataValues.token = jwtUtil.createToken(
         requestBody.name, requestBody.name, { IsCollector: true }
       );
+
+      collector.dataValues.collectorConfig = config.collector;
+      collector.dataValues.collectorConfig.status = collector.status;
 
       return res.status(httpStatus.OK)
         .json(u.responsify(collector, helper, req.method));
