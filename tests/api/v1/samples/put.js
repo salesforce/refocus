@@ -21,9 +21,12 @@ const expect = require('chai').expect;
 const ZERO = 0;
 
 describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
-  let sampleName;
-  let subjectId;
-  let aspectId;
+  let sampleName1;
+  let sampleName2;
+  let aspectId1;
+  let subjectId1;
+  let subjectId2;
+  let aspectId2;
   let token;
 
   before((done) => {
@@ -39,25 +42,29 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     u.doCustomSetup('COFFEE', 'BAGEL')
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      sampleName = samp.name;
+      sampleName1 = samp.name;
+      subjectId1 = samp.subjectId;
+      aspectId1 = samp.aspectId;
       return u.doCustomSetup('TEA', 'TOFFEE');
     })
     .then((samp) => Sample.create(samp))
     .then((samp) => {
-      subjectId = samp.subjectId;
-      aspectId = samp.aspectId;
+      sampleName2 = samp.name;
+      subjectId2 = samp.subjectId;
+      aspectId2 = samp.aspectId;
       done();
     })
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
   it('check apiLinks end with sample name', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, value: '2' })
+    .send({ subjectId2, aspectId2, value: '2' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -70,7 +77,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       for (let j = apiLinks.length - 1; j >= 0; j--) {
         href = apiLinks[j].href;
         if (apiLinks[j].method != 'POST') {
-          expect(href.split('/').pop()).to.equal(sampleName);
+          expect(href.split('/').pop()).to.equal(sampleName1);
         } else {
           expect(href).to.equal(path);
         }
@@ -81,9 +88,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   });
 
   it('reject if name field in request', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, value: '2', name: '2' })
+    .send({ subjectId2, aspectId2, value: '2', name: '2' })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -96,24 +103,24 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   });
 
   it('basic succeeds', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, value: '2' })
+    .send({ subjectId2, aspectId2, value: '2' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      expect(res.body.name).to.equal(sampleName);
+      expect(res.body.name).to.equal(sampleName1);
       done();
     });
   });
 
   it('put with readOnly field isDeleted should fail', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, isDeleted: 0 })
+    .send({ subjectId2, aspectId2, isDeleted: 0 })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -127,9 +134,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   });
 
   it('put with readOnly field createdAt should fail', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, createdAt: new Date().toString() })
+    .send({ subjectId2, aspectId2, createdAt: new Date().toString() })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -143,9 +150,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   });
 
   it('put with readOnly field previousStatus should fail', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, previousStatus: 'Invalid' })
+    .send({ subjectId2, aspectId2, previousStatus: 'Invalid' })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -159,9 +166,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   });
 
   it('put does not return id', (done) => {
-    api.put(`${path}/${sampleName}`)
+    api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
-    .send({ subjectId, aspectId, value: '2' })
+    .send({ subjectId2, aspectId2, value: '2' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -175,7 +182,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
 
   describe('subject isPublished false >', () => {
     beforeEach((done) => {
-      tu.db.Subject.findById(subjectId)
+      tu.db.Subject.findById(subjectId1)
       .then((sub) => {
         sub.update({ isPublished: false });
         done();
@@ -184,9 +191,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
 
     it('cannot create sample if subject not published', (done) => {
-      api.post(path)
+      api.put(`${path}/${sampleName1}`)
       .set('Authorization', token)
-      .send({ subjectId, aspectId, value: '2' })
+      .send({ subjectId1, aspectId1, value: '2' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
     });
@@ -194,7 +201,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
 
   describe('aspect isPublished false >', () => {
     beforeEach((done) => {
-      tu.db.Aspect.findById(aspectId)
+      tu.db.Aspect.findById(aspectId1)
       .then((asp) => {
         asp.update({ isPublished: false });
         done();
@@ -203,9 +210,9 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
 
     it('cannot create sample if aspect not published', (done) => {
-      api.post(path)
+      api.put(`${path}/${sampleName1}`)
       .set('Authorization', token)
-      .send({ subjectId, aspectId, value: '2' })
+      .send({ subjectId1, aspectId1, value: '2' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
     });

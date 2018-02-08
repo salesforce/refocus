@@ -149,13 +149,14 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO].type)
+          .to.equal('DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
           .to.equal('Sample already exists.');
           return done();
@@ -166,13 +167,14 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO].type)
+          .to.equal('DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
           .to.equal('Sample already exists.');
           return done();
@@ -331,7 +333,7 @@ describe('tests/cache/models/samples/post.js >', () => {
       .send(sampleToPost)
       .expect((res) => {
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].description)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique.');
       })
       .end(done);

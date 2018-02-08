@@ -24,6 +24,7 @@ const logger = require('winston');
  * @param {Object} sub - Redis subscriber instance
  */
 module.exports = (io) => {
+  // Broadcast messages to Perspectives
   subPerspective.on('message', (channel, mssgStr) => {
     if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
       logger.info('Size of the sample received by the subscriber',
@@ -35,31 +36,14 @@ module.exports = (io) => {
     const key = Object.keys(mssgObj)[0];
     const parsedObj = rtUtils.parseObject(mssgObj[key], key);
 
-    if (featureToggles.isFeatureEnabled('publishPartialSample') &&
-    rtUtils.isThisSample(parsedObj)) {
-      const useSampleStore =
-        featureToggles.isFeatureEnabled('enableRedisSampleStore');
-
-      // assign the subject db model if sampleStore is not enabled
-      const subjectModel =
-        useSampleStore ? undefined :
-          require('../db/index').Subject; // eslint-disable-line global-require
-      rtUtils.attachAspectSubject(parsedObj, useSampleStore, subjectModel)
-      .then((obj) => {
-        /*
-         * pass on the message received through the redis subscriber to the
-         * socket io emitter to send data to the browser clients.
-         */
-        emitter(io, key, obj);
-      });
-    } else {
-      /*
-       * pass on the message received through the redis subscriber to the socket
-       * io emitter to send data to the browser clients.
-       */
-      emitter(io, key, parsedObj);
-    }
+    /*
+     * pass on the message received through the redis subscriber to the socket
+     * io emitter to send data to the browser clients.
+     */
+    emitter(io, key, parsedObj);
   });
+
+  // Broadcast messages to Bots
   subBot.on('message', (channel, mssgStr) => {
     if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
       logger.info('Size of the bot received by the subscriber',

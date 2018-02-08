@@ -376,7 +376,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
           return done(err);
         }
 
-        expect(res.body.errors[0].description)
+        expect(res.body.errors[0].message)
         .to.equal('Name of the relatedlinks should be unique.');
         done();
       });

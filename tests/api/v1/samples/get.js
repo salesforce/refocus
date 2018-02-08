@@ -53,6 +53,8 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       })
       .catch(done);
     });
+
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
     after(() => tu.toggleOverride('returnUser', false));
 
@@ -109,6 +111,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       .catch(done);
     });
 
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
 
     it('apiLinks in basic get end  with sample name', (done) => {
@@ -291,6 +294,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} > ` +
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
