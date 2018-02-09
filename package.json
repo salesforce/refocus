@@ -58,7 +58,7 @@
     "test-all": "npm run test-main && npm run test-extra",
     "test": "npm run reset-coverage && npm run test-all && npm run report",
     "test-travis": "npm run test && npm run coveralls",
-    "test-with-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -report none --print none --include-pid --",
+    "test-with-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report none --print none --include-pid -- -R dot",
     "undo-migratedb": "node db/migrateUndo.js",
     "view": "NODE_ENV=production gulp browserifyViews && npm start",
     "watch": "npm-watch"
