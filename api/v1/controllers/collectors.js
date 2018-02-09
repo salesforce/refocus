@@ -321,7 +321,7 @@ function heartbeat(req, res, next) {
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
- * @returns {Object} - Respone of the start endpoint
+ * @returns {Object} - Response of the start endpoint
  */
 function startCollector(req, res, next) {
   const requestBody = req.swagger.params.queryBody.value;
