@@ -345,7 +345,7 @@ function startCollector(req, res, next) {
 
         if (collector.status === 'Running' || collector.status === 'Paused') {
           throw new apiErrors.ForbiddenError({ explanation:
-            'Cannot start--this collector is not registered.',
+            'Cannot start--only a stopped collector can start',
           });
         }
       }
