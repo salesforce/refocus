@@ -11242,6 +11242,9 @@ definitions:
         description: >
           The ipAddress where the collector is installed.
         maxLength: 60
+      collectorConfig:
+        type: object
+        $ref: "#/definitions/CollectorConfigResponse"
 
   CollectorWriterResponse:
     type: object
@@ -11274,8 +11277,8 @@ definitions:
     description: >
       Gets the config and sample collection metadata from the Refocus server.
     properties:
-      collectorConfigUpdates:
-        $ref: "#/definitions/CollectorConfigUpdatesResponse"
+      collectorConfig:
+        $ref: "#/definitions/CollectorConfigResponse"
       generatersAdded:
         $ref: "#/definitions/GeneratorsAddedResponse"
       generatersUpdated:
@@ -11283,7 +11286,7 @@ definitions:
       generatorsRemoved:
         $ref: "#/definitions/GeneratorsRemovedResponse"
 
-  CollectorConfigUpdatesResponse:
+  CollectorConfigResponse:
     type: object
     description: Collector config variables changed since last heartbeat.
     properties:

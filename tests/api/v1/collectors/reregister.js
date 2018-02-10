@@ -12,15 +12,14 @@
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const Promise = require('bluebird');
-supertest.Test.prototype.endAsync = Promise.promisify(supertest.Test.prototype.end);
+supertest.Test.prototype.endAsync = Promise.promisify(supertest.Test
+  .prototype.end);
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const startPath = '/v1/collectors/{key}/start';
 const deregisterPath = '/v1/collectors/{key}/deregister';
 const reregisterPath = '/v1/collectors/{key}/reregister';
-const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
 describe('tests/api/v1/collectors/reregister.js >', () => {
@@ -36,15 +35,11 @@ describe('tests/api/v1/collectors/reregister.js >', () => {
     .catch(done);
   });
 
-  /**
-   * TODO: change this to use /v1/collectors/:key/start to register the collector
-   * once that has been set up
-   */
   function postCollector(collector) {
-    return api.post('/v1/collectors')
+    return api.post('/v1/collectors/start')
     .set('Authorization', userToken)
     .send(collector)
-    .expect(201)
+    .expect(constants.httpStatus.OK)
     .endAsync()
     .then((res) => {
       collectorId = res.body.id;
@@ -89,20 +84,20 @@ describe('tests/api/v1/collectors/reregister.js >', () => {
 
   it('ok with deregistered collector, updates the collector to be registered',
     (done) => {
-    deregisterCollector(collectorId)
-    .then(() => {
-      api.post(reregisterPath.replace('{key}', collectorId))
-      .set('Authorization', userToken)
-      .send({})
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+      deregisterCollector(collectorId)
+      .then(() => {
+        api.post(reregisterPath.replace('{key}', collectorId))
+        .set('Authorization', userToken)
+        .send({})
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(res.body.registered).to.be.true;
-        done();
+          expect(res.body.registered).to.be.true;
+          done();
+        });
       });
     });
-  });
 });
