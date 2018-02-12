@@ -189,7 +189,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       it('valid token, matches collector, collector stopped - by name', (done) => {
-        u.stopCollector(collector1, collectorTokens)
+        u.stopCollector(collector1, userToken)
         .then(() => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
@@ -201,7 +201,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       it('valid token, matches collector, collector stopped - by id', (done) => {
-        u.stopCollector(collector1, collectorTokens)
+        u.stopCollector(collector1, userToken)
         .then(() => {
           api.post(`/v1/collectors/${collector1.id}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
