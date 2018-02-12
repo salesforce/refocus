@@ -59,7 +59,7 @@ module.exports = {
    */
   findBotData(req, res, next) {
     const botId = req.swagger.params.botId;
-    if (botId && !u.looksLikeId(botId)) {
+    if (botId && !u.looksLikeId(botId.value)) {
       Bot.findOne({
         where: {
           name: { $iLike: req.swagger.params.botId.value },
@@ -67,9 +67,9 @@ module.exports = {
       })
       .then((o) => {
         if (o) {
-          req.swagger.params.botId.value = o.dataValues;
+          req.swagger.params.botId.value = o.dataValues.id;
         }
-
+        
         doFind(req, res, next, helper);
       });
     } else {
