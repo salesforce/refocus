@@ -1452,6 +1452,18 @@ paths:
       operationId: findBotActions
       parameters:
         -
+          name: roomId
+          description: Get actions from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get actions from specific bot
+          in: query
+          required: false
+          type: string
+        -
           name: name
           description: Get botActions by name
           in: query
@@ -1689,6 +1701,18 @@ paths:
       tags: [ botData ]
       operationId: findBotData
       parameters:
+        -
+          name: roomId
+          description: Get data from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get data from specific bot
+          in: query
+          required: false
+          type: string
         -
           name: name
           description: Filter botData by name
