@@ -11,20 +11,15 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const collectorMap = {};
-const propsToSend = [
-  'aspects', 'collectors', 'connection', 'context',
-  'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id', 'name',
-  'subjectQuery', 'subjects', 'tags',
-];
-const ADDED = 1;
-const DELETED = 2;
-const UPDATED = 3;
-const NOCHANGE = 4;
+const redisClient = require('../../../../cache/redisCache').client.heartbeat;
+const ADDED = 'added';
+const DELETED = 'deleted';
+const UPDATED = 'updated';
+const NOCHANGE = 0;
 
 /**
  * Track generator changes to be sent in the heartbeat response.
- * Maintain collectorMap such that it always maps collector names to lists of
+ * Maintain redis keys that map collector names to sets of
  * generators added, deleted, and updated since the last heartbeat from that
  * collector.
  *
@@ -35,76 +30,106 @@ const NOCHANGE = 4;
  *  with this generator now, after the update has been applied.
  */
 function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
-  const gen = generator.get ? generator.get() : generator;
-  generator = {};
-  propsToSend.forEach(key => generator[key] = gen[key]);
-  const allCollectors = new Set([...oldCollectors, ...newCollectors]);
-  allCollectors.forEach((collectorName) => {
+  const genId = generator.id;
+  const allCollectors = Array.from(new Set([...oldCollectors, ...newCollectors]));
 
-    //make sure the generator object is unique for each collector
-    generator = JSON.parse(JSON.stringify(generator));
+  Promise.all(allCollectors.map(name => getChanges(name)))
+  .then((collectorChanges) => {
+    let promises = [];
+    collectorChanges.forEach((changes, i) => {
+      const collectorName = allCollectors[i];
 
-    //initialize the collectorMap for this collector
-    if (!collectorMap[collectorName]) {
-      collectorMap[collectorName] = {
-        added: [],
-        deleted: [],
-        updated: [],
-      };
-    }
+      // determine the change type
+      let change;
+      const inOld = oldCollectors.includes(collectorName);
+      const inNew = newCollectors.includes(collectorName);
+      if (inOld && !inNew) change = DELETED;
+      if (!inOld && inNew) change = ADDED;
+      if (inOld && inNew) change = UPDATED;
 
-    //determine the change type
-    let change;
-    const inOld = oldCollectors.includes(collectorName);
-    const inNew = newCollectors.includes(collectorName);
-    if (inOld && !inNew) change = DELETED;
-    if (!inOld && inNew) change = ADDED;
-    if (inOld && inNew) change = UPDATED;
+      // determine if this generator has already been changed since the last heartbeat
+      const alreadyAdded = changes.added.includes(genId);
+      const alreadyDeleted = changes.deleted.includes(genId);
+      const alreadyUpdated = changes.updated.includes(genId);
+      const alreadyChanged = alreadyAdded || alreadyDeleted || alreadyUpdated;
 
-    //determine if this generator has already been changed since the last heartbeat
-    const addedGenerators = collectorMap[collectorName].added;
-    const deletedGenerators = collectorMap[collectorName].deleted;
-    const updatedGenerators = collectorMap[collectorName].updated;
-    const alreadyAdded = addedGenerators.find((g) => g.id === generator.id);
-    const alreadyDeleted = deletedGenerators.find((g) => g.id === generator.id);
-    const alreadyUpdated = updatedGenerators.find((g) => g.id === generator.id);
-    const alreadyChanged = alreadyAdded || alreadyDeleted || alreadyUpdated;
-
-    //reset the change map to account for previous changes
-    if (alreadyChanged) {
-      if (alreadyAdded && change === DELETED) {
-        removeFromList(addedGenerators);
-        change = NOCHANGE;
-      } else if (alreadyDeleted && change === ADDED) {
-        removeFromList(deletedGenerators);
-        change = UPDATED;
-      } else if (alreadyUpdated && change === DELETED) {
-        removeFromList(updatedGenerators);
-        change = DELETED;
-      } else {
-        change = NOCHANGE;
+      // account for previous changes
+      let undoChange;
+      if (alreadyChanged) {
+        if (alreadyAdded && change === DELETED) {
+          undoChange = ADDED;
+          change = NOCHANGE;
+        } else if (alreadyDeleted && change === ADDED) {
+          undoChange = DELETED;
+          change = UPDATED;
+        } else if (alreadyUpdated && change === DELETED) {
+          undoChange = UPDATED;
+          change = DELETED;
+        } else {
+          change = NOCHANGE;
+        }
       }
-    }
 
-    //update collectorMap based on the change type
-    if (change === ADDED) {
-      addedGenerators.push(generator);
-    } else if (change === DELETED) {
-      deletedGenerators.push(generator);
-    } else if (change === UPDATED) {
-      updatedGenerators.push(generator);
-    }
+      // update redis
+      promises.push(removeFromSet(collectorName, undoChange, genId));
+      promises.push(addToSet(collectorName, change, genId));
+    });
 
+    return Promise.all(promises);
   });
-
-  function removeFromList(list) {
-    const index = list.findIndex((g) => g.id === generator.id);
-    if (index !== -1) list.splice(index, 1);
-  }
-
 } // trackGeneratorChanges
 
+function getChanges(collectorName) {
+  return new Promise((resolve, reject) =>
+    redisClient.multi()
+    .smembers(getKey(collectorName, ADDED))
+    .smembers(getKey(collectorName, DELETED))
+    .smembers(getKey(collectorName, UPDATED))
+    .exec((err, replies) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          added: replies[0],
+          deleted: replies[1],
+          updated: replies[2],
+        });
+      }
+    })
+  );
+}
+
+function removeFromSet(collectorName, change, genId) {
+  if (change === ADDED || change === DELETED || change === UPDATED) {
+    const key = getKey(collectorName, change);
+    return redisClient.sremAsync(key, genId);
+  } else {
+    return Promise.resolve();
+  }
+}
+
+function addToSet(collectorName, change, genId) {
+  if (change === ADDED || change === DELETED || change === UPDATED) {
+    const key = getKey(collectorName, change);
+    return redisClient.saddAsync(key, genId);
+  } else {
+    return Promise.resolve();
+  }
+}
+
+function resetChanges(collectorName) {
+  const addedKey = getKey(collectorName, ADDED);
+  const deletedKey = getKey(collectorName, DELETED);
+  const updatedKey = getKey(collectorName, UPDATED);
+  return redisClient.delAsync(addedKey, deletedKey, updatedKey);
+}
+
+function getKey(collectorName, changeType) {
+  return `heartbeat::generatorChanges::${collectorName}::${changeType}`;
+}
+
 module.exports = {
-  collectorMap,
   trackGeneratorChanges,
+  getChanges,
+  resetChanges,
 };

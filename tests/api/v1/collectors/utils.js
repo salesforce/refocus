@@ -17,9 +17,10 @@ const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const expectedProps = [
-  'aspects', 'collectors', 'connection', 'context',
-  'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id', 'name',
-  'subjectQuery', 'subjects', 'tags',
+  'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
+  'deletedAt', 'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id',
+  'isActive', 'isDeleted', 'name', 'subjectQuery', 'subjects', 'tags',
+  'updatedAt', 'user',
 ];
 
 const expectedCtxProps = ['password', 'secretInformation',
