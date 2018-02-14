@@ -44,9 +44,9 @@ function startCollector(collector, collectorTokens, userToken) {
   });
 }
 
-function stopCollector(collector, collectorTokens) {
+function stopCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
-  .set('Authorization', collectorTokens[collector.name])
+  .set('Authorization', userToken)
   .send({})
   .endAsync();
 }

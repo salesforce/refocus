@@ -16,12 +16,12 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/collectors/start';
+const collectorConfig = require('../../../../config/collectorConfig');
 const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 
 describe('tests/api/v1/collectors/start.js >', () => {
-  let i = 0;
   let token;
   let tokenOfSecondUser;
   let user;
@@ -48,7 +48,6 @@ describe('tests/api/v1/collectors/start.js >', () => {
   beforeEach((done) => {
     Collector.create(u.toCreate)
     .then((c) => {
-      i = c.id;
       done();
     })
     .catch(done);
@@ -59,9 +58,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   describe('if the collector is registered and status is STOPPED:', () => {
     it('if the user is among the writers, start the collector ' +
-      'and return with the collector token', (done) => {
-
-      // default status is STOPPED.
+      'and return the expected response', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(defaultCollector)
@@ -73,7 +70,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
         expect(res.body.status).to.equal('Running');
         expect(res.body.token).to.be.an('string');
-        done();
+        expect(res.body.collectorConfig).to.include(collectorConfig);
+        expect(res.body.collectorConfig.status).to.include('Running');
+        return done();
       });
     });
 
@@ -160,7 +159,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     _collector.name = 'newCollector';
 
     it('create a new collector record with registered=true ' +
-      'and status=RUNNING, and return with a collector token', (done) => {
+      'and status=RUNNING, and return the expected response', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(_collector)
@@ -172,7 +171,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
         expect(res.body.status).to.equal('Running');
         expect(res.body.token).to.be.an('string');
-        done();
+        expect(res.body.collectorConfig).to.include(collectorConfig);
+        expect(res.body.collectorConfig.status).to.include('Running');
+        return done();
       });
     });
 
@@ -196,7 +197,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
           expect(res.body.length).to.equal(1);
           expect(res.body[0].id).to.equal(user.id);
-          done();
+          return done();
         });
       });
     });
