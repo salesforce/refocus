@@ -361,6 +361,7 @@ function startCollector(req, res, next) {
     })
     .then((generators) => {
       collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
+        // generator associations before adding it to the response
         delete g.dataValues.GeneratorCollectors;
         delete g.dataValues.collectors;
         return g.dataValues;
