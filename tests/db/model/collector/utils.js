@@ -13,33 +13,39 @@
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const cname = `${tu.namePrefix}Collector`;
+const collector = {
+  name: cname,
+  description: 'This is a mock collector object for testing.',
+  helpEmail: 'test@test.com',
+  helpUrl: 'http://test.com',
+  host: 'xxx-yyy-zzz.aaa.bbb.ccc.com',
+  ipAddress: '123.456.789.012',
+  osInfo: {
+    hostname: 'testHostname',
+    username: 'testUsername',
+  },
+  processInfo: {
+    execPath: 'testExecPath',
+    memoryUsage: {
+      heapTotal: 1234,
+      external: 5678,
+    },
+    version: 'v1',
+    versions: { a: 'a', b: 'b' },
+  },
+  version: '1.0.0',
+};
 
 module.exports = {
-  collectorObj: {
-    name: cname,
-    description: 'This is a mock collector object for testing.',
-    helpEmail: 'test@test.com',
-    helpUrl: 'http://test.com',
-    host: 'xxx-yyy-zzz.aaa.bbb.ccc.com',
-    ipAddress: '123.456.789.012',
-    osInfo: {
-      hostname: 'testHostname',
-      username: 'testUsername',
-    },
-    processInfo: {
-      execPath: 'testExecPath',
-      memoryUsage: {
-        heapTotal: 1234,
-        external: 5678,
-      },
-      version: 'v1',
-      versions: { a: 'a', b: 'b' },
-    },
-    version: '1.0.0',
+
+  getCollectorObj() {
+    return JSON.parse(JSON.stringify(collector));
   },
 
   forceDelete(done) {
     tu.forceDelete(tu.db.Collector, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())

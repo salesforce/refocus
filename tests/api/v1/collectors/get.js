@@ -75,7 +75,7 @@ describe('tests/api/v1/collectors/get.js >', () => {
   });
 
   it('get with limit ok', (done) => {
-    const c2 = u.toCreate;
+    const c2 = JSON.parse(JSON.stringify(u.toCreate));
     c2.name = c2.name + '2';
     Collector.create(c2)
     .then(() => {

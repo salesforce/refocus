@@ -11267,8 +11267,9 @@ definitions:
           The ipAddress where the collector is installed.
         maxLength: 60
       collectorConfig:
-        type: object
         $ref: "#/definitions/CollectorConfigResponse"
+      generatersAdded:
+        $ref: "#/definitions/GeneratorsAddedResponse"
 
   CollectorWriterResponse:
     type: object
@@ -11318,11 +11319,6 @@ definitions:
         type: integer
         description: >
           The number of milliseconds to wait before aborting a request to Refocus.
-      description:
-        type: string
-        maxLength: 4096
-        description: >
-          A description of the config update.
       sampleCollectorTimeout:
         type: integer
         description: >-
@@ -11337,16 +11333,6 @@ definitions:
           system-wide minimum sample upsert queue time will be defined in Refocus config;
           a Refocus admin will also be able to override that with a MINIMUM_SAMPLE_UPSERT_QUEUE_TIME
           environment variable.
-      helpEmail:
-        type: string
-        description: >
-          The email address where a user can go to get more help about the collector.
-        maxLength: 254
-      helpUrl:
-        type: string
-        maxLength: 2082
-        description: >
-          The url where a user can go to get more help about the collector.
 
   GeneratorsAddedResponse:
     type: array

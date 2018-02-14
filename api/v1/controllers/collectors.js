@@ -327,6 +327,7 @@ function startCollector(req, res, next) {
   const requestBody = req.swagger.params.queryBody.value;
   requestBody.status = 'Running';
   requestBody.createdBy = req.user.id;
+  let collectorToReturn;
   return helper.model.findOne({ where: { name: requestBody.name } })
     .then((collector) => {
       if (collector) {
@@ -355,19 +356,29 @@ function startCollector(req, res, next) {
     .then((collector) => collector ? collector.update(requestBody) :
       helper.model.create(requestBody))
     .then((collector) => {
+      collectorToReturn = collector;
+      return collector.getCurrentGenerators();
+    })
+    .then((generators) => {
+      collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
+        delete g.dataValues.GeneratorCollectors;
+        delete g.dataValues.collectors;
+        return g.dataValues;
+      });
+
       /*
        * When a collector registers itself with Refocus, Refocus sends back a
        * special token for that collector to use for all subsequent heartbeats.
        */
-      collector.dataValues.token = jwtUtil.createToken(
+      collectorToReturn.dataValues.token = jwtUtil.createToken(
         requestBody.name, requestBody.name, { IsCollector: true }
       );
 
-      collector.dataValues.collectorConfig = config.collector;
-      collector.dataValues.collectorConfig.status = collector.status;
+      collectorToReturn.dataValues.collectorConfig = config.collector;
+      collectorToReturn.dataValues.collectorConfig.status = collectorToReturn.status;
 
       return res.status(httpStatus.OK)
-        .json(u.responsify(collector, helper, req.method));
+        .json(u.responsify(collectorToReturn, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
 }

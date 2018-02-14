@@ -20,6 +20,10 @@ const collectorConfig = require('../../../../config/collectorConfig');
 const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const sgUtils = require('../generators/utils');
+const gtUtil = sgUtils.gtUtil;
 
 describe('tests/api/v1/collectors/start.js >', () => {
   let token;
@@ -29,6 +33,10 @@ describe('tests/api/v1/collectors/start.js >', () => {
   const defaultCollector = {
     name: u.toCreate.name, version: '0.0.1',
   };
+
+  let generator1;
+  let generator2;
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   before((done) => {
     tu.createUserAndToken()
@@ -46,10 +54,22 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
-    .then((c) => {
-      done();
+    GeneratorTemplate.create(generatorTemplate)
+    .then(() => {
+      const gen1 = sgUtils.getGenerator();
+      gen1.name += 'generator-1';
+
+      const gen2 = sgUtils.getGenerator();
+      gen2.name += 'generator-2';
+      return Generator.bulkCreate([gen1, gen2]);
     })
+    .then((generators) => {
+      generator1 = generators[0];
+      generator2 = generators[1];
+      return Collector.create(u.toCreate);
+    })
+    .then((c) => c.addCurrentGenerators([generator1, generator2]))
+    .then(() => done())
     .catch(done);
   });
 
@@ -72,6 +92,16 @@ describe('tests/api/v1/collectors/start.js >', () => {
         expect(res.body.token).to.be.an('string');
         expect(res.body.collectorConfig).to.include(collectorConfig);
         expect(res.body.collectorConfig.status).to.include('Running');
+        expect(res.body.generatorsAdded).to.have.lengthOf(2);
+        const sg1 = res.body.generatorsAdded.filter((gen) =>
+          gen.name === generator1.name)[0];
+        const sg2 = res.body.generatorsAdded.filter((gen) =>
+          gen.name === generator2.name)[0];
+        expect(sg1.id).to.include(generator1.id);
+        expect(sg1.GeneratorCollectors).to.equal(undefined);
+        expect(sg1.collectors).to.equal(undefined);
+        expect(sg2.GeneratorCollectors).to.equal(undefined);
+        expect(sg2.collectors).to.equal(undefined);
         return done();
       });
     });
@@ -173,6 +203,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
         expect(res.body.token).to.be.an('string');
         expect(res.body.collectorConfig).to.include(collectorConfig);
         expect(res.body.collectorConfig.status).to.include('Running');
+        expect(res.body.generatorsAdded).to.have.lengthOf(0);
         return done();
       });
     });
