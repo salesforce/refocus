@@ -11268,7 +11268,7 @@ definitions:
         maxLength: 60
       collectorConfig:
         $ref: "#/definitions/CollectorConfigResponse"
-      generatersAdded:
+      generatorsAdded:
         $ref: "#/definitions/GeneratorsAddedResponse"
 
   CollectorWriterResponse:

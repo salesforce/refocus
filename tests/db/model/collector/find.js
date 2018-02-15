@@ -88,7 +88,7 @@ describe('tests/db/model/collector/find.js >', () => {
     .catch(done);
   });
 
-  it('Collector Instnace with related generators', (done) => {
+  it('Collector Instance with related generators', (done) => {
     collectorInst1.getCurrentGenerators()
     .then((generators) => {
       expect(generators).to.have.lengthOf(2);
@@ -103,7 +103,7 @@ describe('tests/db/model/collector/find.js >', () => {
     .catch(done);
   });
 
-  it('Collector Instnace without generators ', (done) => {
+  it('Collector Instance without generators ', (done) => {
     collectorInst2.getCurrentGenerators()
     .then((generators) => {
       expect(generators).to.have.lengthOf(0);

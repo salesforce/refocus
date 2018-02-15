@@ -19,7 +19,7 @@ describe('tests/db/model/collector/create.js >', () => {
   let userId;
   let collectorObj;
   beforeEach((done) => {
-    collectorObj = JSON.parse(JSON.stringify(u.getCollectorObj()));
+    collectorObj = u.getCollectorObj();
     tu.createUser('testUser')
     .then((user) => {
       userId = user.id;

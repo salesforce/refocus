@@ -30,9 +30,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let tokenOfSecondUser;
   let user;
   const secondUserName = 'userTwo';
-  const defaultCollector = {
-    name: u.toCreate.name, version: '0.0.1',
-  };
+  const defaultCollector = u.getCollectorToCreate();
+  defaultCollector.version = '0.0.1';
 
   let generator1;
   let generator2;
@@ -66,7 +65,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then((generators) => {
       generator1 = generators[0];
       generator2 = generators[1];
-      return Collector.create(u.toCreate);
+      return Collector.create(u.getCollectorToCreate());
     })
     .then((c) => c.addCurrentGenerators([generator1, generator2]))
     .then(() => done())
@@ -133,7 +132,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   it('reject when the user token is revoked');
 
   it('if the collector is not registered, throw an error.', (done) => {
-    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    const _collector = u.getCollectorToCreate();
     _collector.name = 'unregisteredCollector';
     _collector.registered = false;
     Collector.create(_collector)
@@ -148,7 +147,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   describe('if the collector is registered:', () => {
     it('reject if the status is PAUSED', (done) => {
-      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      const _collector = u.getCollectorToCreate();
       _collector.name = 'PausedCollector';
 
       /*
@@ -167,7 +166,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
 
     it('reject if the status is RUNNING', (done) => {
-      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      const _collector = u.getCollectorToCreate();
       _collector.name = 'runningCollector';
       _collector.status = 'Running';
       Collector.create(_collector)
@@ -185,7 +184,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     before(() => tu.toggleOverride('returnUser', true));
     after(() => tu.toggleOverride('returnUser', false));
 
-    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    const _collector = u.getCollectorToCreate();
     _collector.name = 'newCollector';
 
     it('create a new collector record with registered=true ' +
