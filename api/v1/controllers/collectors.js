@@ -284,19 +284,23 @@ function heartbeat(req, res, next) {
   })
 
   // get the ids for changed generators
-  .then(() => heartbeatUtils.getChanges(collectorName))
+  .then(() => heartbeatUtils.getChangedIds(collectorName))
 
-  // find the generator objects for the changes ids
-  .then((changed) => Promise.join(
-      Generator.findAll({ where: { id: changed.added } }),
-      Generator.findAll({ where: { id: changed.deleted } }),
-      Generator.findAll({ where: { id: changed.updated } }),
-      (addedGenerators, deletedGenerators, updatedGenerators) => {
-        retval.generatorsAdded = addedGenerators.map(g => g.get());
-        retval.generatorsDeleted = deletedGenerators.map(g => g.get());
-        retval.generatorsUpdated = updatedGenerators.map(g => g.get());
-      }
+  // find the generator objects for the changed ids
+  .then((changedIds) => Promise.all(
+    ['added', 'deleted', 'updated'].map((changeType) => {
+      const ids = changedIds[changeType];
+      const where = { where: { id: ids } };
+      return ids.length ? Generator.findAll(where) : Promise.resolve([]);
+    })
   ))
+
+  // assign the changed generators to retval
+  .then((generators) => {
+    retval.generatorsAdded = generators[0].map(g => g.get());
+    retval.generatorsDeleted = generators[1].map(g => g.get());
+    retval.generatorsUpdated = generators[2].map(g => g.get());
+  })
 
   // reset the tracked changes for this collector
   .then(() => heartbeatUtils.resetChanges(collectorName))

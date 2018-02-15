@@ -33,10 +33,10 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
   const genId = generator.id;
   const allCollectors = Array.from(new Set([...oldCollectors, ...newCollectors]));
 
-  Promise.all(allCollectors.map(name => getChanges(name)))
+  Promise.all(allCollectors.map(name => getChangedIds(name)))
   .then((collectorChanges) => {
     let promises = [];
-    collectorChanges.forEach((changes, i) => {
+    collectorChanges.forEach((changedIds, i) => {
       const collectorName = allCollectors[i];
 
       // determine the change type
@@ -48,9 +48,9 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
       if (inOld && inNew) change = UPDATED;
 
       // determine if this generator has already been changed since the last heartbeat
-      const alreadyAdded = changes.added.includes(genId);
-      const alreadyDeleted = changes.deleted.includes(genId);
-      const alreadyUpdated = changes.updated.includes(genId);
+      const alreadyAdded = changedIds.added.includes(genId);
+      const alreadyDeleted = changedIds.deleted.includes(genId);
+      const alreadyUpdated = changedIds.updated.includes(genId);
       const alreadyChanged = alreadyAdded || alreadyDeleted || alreadyUpdated;
 
       // account for previous changes
@@ -79,7 +79,7 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
   });
 } // trackGeneratorChanges
 
-function getChanges(collectorName) {
+function getChangedIds(collectorName) {
   return new Promise((resolve, reject) =>
     redisClient.multi()
     .smembers(getKey(collectorName, ADDED))
@@ -130,6 +130,6 @@ function getKey(collectorName, changeType) {
 
 module.exports = {
   trackGeneratorChanges,
-  getChanges,
+  getChangedIds,
   resetChanges,
 };
