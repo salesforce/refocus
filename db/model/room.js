@@ -45,6 +45,14 @@ module.exports = function room(seq, dataTypes) {
       },
       comment: 'Create a named room ',
     },
+    externalId: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+      comment: 'externalId to case',
+    },
     settings: {
       type: dataTypes.JSON,
       allowNull: true,
