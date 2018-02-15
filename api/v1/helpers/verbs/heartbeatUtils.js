@@ -18,6 +18,91 @@ const UPDATED = 'updated';
 const NOCHANGE = 0;
 
 /**
+ * Get the changes from redis for a given collector
+ *
+ * @param {String} collectorName - The collector name
+ * @returns {Object} - An object with lists of added, deleted, and updated
+ * generator ids
+ */
+function getChangedIds(collectorName) {
+  return new Promise((resolve, reject) =>
+    redisClient.multi()
+    .smembers(getKey(collectorName, ADDED))
+    .smembers(getKey(collectorName, DELETED))
+    .smembers(getKey(collectorName, UPDATED))
+    .exec((err, replies) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          added: replies[0],
+          deleted: replies[1],
+          updated: replies[2],
+        });
+      }
+    })
+  );
+}
+
+/**
+ * Remove the generator from the specified change set
+ *
+ * @param {String} collectorName - The collector name
+ * @param {String} change - The change type
+ * @param {String} genId - The id of the generator to remove
+ * @returns {Promise}
+ */
+function removeFromSet(collectorName, change, genId) {
+  if (change === ADDED || change === DELETED || change === UPDATED) {
+    const key = getKey(collectorName, change);
+    return redisClient.sremAsync(key, genId);
+  } else {
+    return Promise.resolve();
+  }
+}
+
+/**
+ * Add the generator to the specified change set
+ *
+ * @param {String} collectorName - The collector name
+ * @param {String} change - The change type
+ * @param {String} genId - The id of the generator to add
+ * @returns {Promise}
+ */
+function addToSet(collectorName, change, genId) {
+  if (change === ADDED || change === DELETED || change === UPDATED) {
+    const key = getKey(collectorName, change);
+    return redisClient.saddAsync(key, genId);
+  } else {
+    return Promise.resolve();
+  }
+}
+
+/**
+ * Reset all changes for this collector.
+ *
+ * @param {String} collectorName - The collector name
+ * @returns {Promise}
+ */
+function resetChanges(collectorName) {
+  const addedKey = getKey(collectorName, ADDED);
+  const deletedKey = getKey(collectorName, DELETED);
+  const updatedKey = getKey(collectorName, UPDATED);
+  return redisClient.delAsync(addedKey, deletedKey, updatedKey);
+}
+
+/**
+ * Generate the redis key
+ *
+ * @param {String} collectorName - The collector name
+ * @param {String} changeType - The change type
+ * @returns {String} - The redis key
+ */
+function getKey(collectorName, changeType) {
+  return `heartbeat::generatorChanges::${collectorName}::${changeType}`;
+}
+
+/**
  * Track generator changes to be sent in the heartbeat response.
  * Maintain redis keys that map collector names to sets of
  * generators added, deleted, and updated since the last heartbeat from that
@@ -79,57 +164,8 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
   });
 } // trackGeneratorChanges
 
-function getChangedIds(collectorName) {
-  return new Promise((resolve, reject) =>
-    redisClient.multi()
-    .smembers(getKey(collectorName, ADDED))
-    .smembers(getKey(collectorName, DELETED))
-    .smembers(getKey(collectorName, UPDATED))
-    .exec((err, replies) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({
-          added: replies[0],
-          deleted: replies[1],
-          updated: replies[2],
-        });
-      }
-    })
-  );
-}
-
-function removeFromSet(collectorName, change, genId) {
-  if (change === ADDED || change === DELETED || change === UPDATED) {
-    const key = getKey(collectorName, change);
-    return redisClient.sremAsync(key, genId);
-  } else {
-    return Promise.resolve();
-  }
-}
-
-function addToSet(collectorName, change, genId) {
-  if (change === ADDED || change === DELETED || change === UPDATED) {
-    const key = getKey(collectorName, change);
-    return redisClient.saddAsync(key, genId);
-  } else {
-    return Promise.resolve();
-  }
-}
-
-function resetChanges(collectorName) {
-  const addedKey = getKey(collectorName, ADDED);
-  const deletedKey = getKey(collectorName, DELETED);
-  const updatedKey = getKey(collectorName, UPDATED);
-  return redisClient.delAsync(addedKey, deletedKey, updatedKey);
-}
-
-function getKey(collectorName, changeType) {
-  return `heartbeat::generatorChanges::${collectorName}::${changeType}`;
-}
-
 module.exports = {
-  trackGeneratorChanges,
   getChangedIds,
   resetChanges,
+  trackGeneratorChanges,
 };
