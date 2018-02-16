@@ -52,6 +52,12 @@ function debugMessage(msg, obj){
 function createHeader(bot) {
   const section = document.createElement('div');
   section.className = 'slds-section slds-is-open';
+
+  section.setAttribute(
+    'style',
+    'box-shadow:0px 0px 20px 2px #e2e2e2;margin:1rem;'
+  );
+
   const title = document.createElement('div');
 
   const text = document.createElement('h3');
@@ -132,10 +138,6 @@ function parseBot(bot) {
   contentSection.className = 'slds-section__content';
   const headerSection = createHeader(bot);
   const footerSection = createFooter(bot);
-  headerSection.setAttribute(
-    'style',
-    'box-shadow:0px 0px 20px 2px #e2e2e2;margin:1rem;'
-  );
 
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
