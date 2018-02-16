@@ -20,8 +20,9 @@ describe('tests/db/model/collector/delete.js >', () => {
   beforeEach((done) => {
     tu.createUser('testUser')
     .then((user) => {
-      u.collectorObj.createdBy = user.id;
-      return Collector.create(u.collectorObj);
+      const collectorObj = u.getCollectorObj();
+      collectorObj.createdBy = user.id;
+      return Collector.create(collectorObj);
     })
     .then((c) => {
       collectorDb = c;
