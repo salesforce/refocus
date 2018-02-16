@@ -93,7 +93,7 @@ function createHeader(bot) {
  * Creates footers for each bot added to the UI
  *
  * @param {Object} bot - Bot response with UI
- * @returns {DOM} section - Footer section
+ * @returns {DOM} footer - Footer section
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
