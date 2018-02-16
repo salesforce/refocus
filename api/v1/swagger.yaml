@@ -1445,10 +1445,24 @@ paths:
   /botActions:
     x-swagger-router-controller: botActions
     get:
+      security:
+        - jwt: []
       summary: Find botActions
       tags: [ botActions ]
       operationId: findBotActions
       parameters:
+        -
+          name: roomId
+          description: Get actions from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get actions from specific bot
+          in: query
+          required: false
+          type: string
         -
           name: name
           description: Get botActions by name
@@ -1577,6 +1591,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get botAction
       tags: [ botActions ]
       operationId: getBotAction
@@ -1603,9 +1619,7 @@ paths:
           description: >-
             Success, returns specified botAction
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotActionResponse"
+            $ref: "#/definitions/BotActionResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -1682,9 +1696,23 @@ paths:
   /botData:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       tags: [ botData ]
       operationId: findBotData
       parameters:
+        -
+          name: roomId
+          description: Get data from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get data from specific bot
+          in: query
+          required: false
+          type: string
         -
           name: name
           description: Filter botData by name
@@ -1737,7 +1765,6 @@ paths:
                 pattern: ^[0-9A-Za-z_\\-]{0,60}$
               value:
                 type: string
-                maxLength: 254
                 description: Value of the bot data
               botId:
                 type: string
@@ -1773,6 +1800,8 @@ paths:
   /botData/{key}:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get botData
       tags: [ botData ]
       operationId: getBotData
@@ -1793,9 +1822,7 @@ paths:
           description: >-
             Success, returns specified botData
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotDataResponse"
+            $ref: "#/definitions/BotDataResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -1836,7 +1863,6 @@ paths:
                 pattern: ^[0-9A-Za-z_\\-]{0,60}$
               value:
                 type: string
-                maxLength: 254
                 description: Value of the bot data
               botId:
                 type: string
@@ -1898,6 +1924,8 @@ paths:
   /bots:
     x-swagger-router-controller: bots
     get:
+      security:
+        - jwt: []
       summary: Find bots
       tags: [ bots ]
       operationId: findBots
@@ -2023,9 +2051,7 @@ paths:
           description: >-
             Success, Deleted Bot
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotResponse"
+            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2036,6 +2062,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get bot
       tags: [ bots ]
       operationId: getBot
@@ -2068,9 +2096,7 @@ paths:
           description: >-
             Success, returns specified bot
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotResponse"
+            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2213,6 +2239,67 @@ paths:
   # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Access restricted to Refocus Collector only.
+      description: Access restricted to Refocus Collector only.
+      operationId: postCollector
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Access restricted to Refocus Collector only.
+            properties:
+              name:
+                type: string
+                description: Access restricted to Refocus Collector only.
+              description:
+                type: string
+                maxLength: 4096
+                description: Access restricted to Refocus Collector only.
+              helpEmail:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: Access restricted to Refocus Collector only.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
+            required:
+              - name
+              - version
+      responses:
+        201:
+          description: Success.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
     get:
       security:
         - jwt: []
@@ -2241,7 +2328,7 @@ paths:
             enum:
               - name
               - status
-              - isRegistered
+              - registered
               - lastHeartbeat
               - lastModifiedAt
               - createdBy
@@ -2253,7 +2340,7 @@ paths:
               - version
               - -name
               - -status
-              - -isRegistered
+              - -registered
               - -lastHeartbeat
               - -lastModifiedAt
               - -createdBy
@@ -2282,10 +2369,10 @@ paths:
           required: false
           type: string
         -
-          name: isRegistered
+          name: registered
           in: query
           description: >-
-            Filter by isRegistered (true|false).
+            Filter by registered (true|false).
           required: false
           type: boolean
         -
@@ -2325,6 +2412,76 @@ paths:
               $ref: "#/definitions/CollectorResponse"
 
   # ---------------------------------------------------------------------------
+
+  /collectors/start:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Access restricted to Refocus Collector only.
+            properties:
+              name:
+                type: string
+                description: Access restricted to Refocus Collector only.
+              description:
+                type: string
+                maxLength: 4096
+                description: Access restricted to Refocus Collector only.
+              helpEmail:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: Access restricted to Refocus Collector only.
+              host:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 4096
+              ipAddress:
+                type: string
+                description: Access restricted to Refocus Collector only.
+                maxLength: 60
+              osInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              processInfo:
+                type: object
+                description: Access restricted to Refocus Collector only.
+              version:
+                type: string
+                description: Access restricted to Refocus Collector only.
+            required:
+              - name
+              - version
+      summary: Start collector
+      tags: [ collectors ]
+      description: Starts the specified collector.
+      operationId: startCollector
+
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
   /collectors/{key}:
     x-swagger-router-controller: collectors
     get:
@@ -2427,14 +2584,44 @@ paths:
       summary: Deregister collector
       tags: [ collectors ]
       description: >-
-        Deregister the specified collector. Access restricted to Refocus
-        Collector only.
+        Deregister the specified collector.
       operationId: deregisterCollector
       parameters:
         -
           name: key
           in: path
-          description: Access restricted to Refocus Collector only.
+          description: Deregister the specified collector.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/reregister:
+    x-swagger-router-controller: collectors
+    post:
+      security:
+        - jwt: []
+      summary: Reregisters a deregistered collector
+      tags: [ collectors ]
+      description: >-
+        Reregister the specified collector.
+      operationId: reregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: Reregister the specified collector.
           required: true
           type: string
       responses:
@@ -2474,70 +2661,63 @@ paths:
           description: Access restricted to Refocus Collector only.
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              description: Access restricted to Refocus Collector only.
-              properties:
-                logLines:
-                  type: array
-                  items:
+            type: object
+            description: >-
+              Heartbeat from the collector.
+            properties:
+              timestamp:
+                type: integer
+                description: Access restricted to Refocus Collector only.
+              collectorConfig:
+                type: object
+                properties:
+                  osInfo:
                     type: object
-                    description: Access restricted to Refocus Collector only.
                     properties:
-                      timeStamp:
+                      arch:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      sampleCount:
-                        type: integer
+                      hostname:
+                        type: string
                         description: Access restricted to Refocus Collector only.
-                      sourceUrls:
-                        type: array
-                        items:
-                          type: string
+                      platform:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      release:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      type:
+                        type: string
                         description: Access restricted to Refocus Collector only.
                       username:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      workTime:
-                        type: integer
+                  processInfo:
+                    type: object
+                    properties:
+                      execPath:
+                        type: string
                         description: Access restricted to Refocus Collector only.
+                      memoryUsage:
+                        type:  object
+                        description: Access restricted to Refocus Collector only.
+                      uptime:
+                        type: number
+                        description: Access restricted to Refocus Collector only.
+                      version:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      versions:
+                        type: object
+                        description: Access restricted to Refocus Collector only.
+                  version:
+                    type: string
+                    description: Access restricted to Refocus Collector only.
       responses:
         200:
           description: Success.
           schema:
             $ref: "#/definitions/HeartbeatResponse"
-        400:
-          $ref: "#/responses/400"
-        403:
-          $ref: "#/responses/403"
-        404:
-            $ref: "#/responses/404"
-
-  # ---------------------------------------------------------------------------
-
-  /collectors/{key}/start:
-    x-swagger-router-controller: collectors
-    post:
-      security:
-        - jwt: []
-      summary: Start collector
-      tags: [ collectors ]
-      description: >-
-        Start collector. Access restricted to Refocus Collector only.
-      operationId: startCollector
-      parameters:
-        -
-          name: key
-          in: path
-          description: Access restricted to Refocus Collector only.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Access restricted to Refocus Collector only.
-          schema:
-            $ref: "#/definitions/CollectorResponse"
         400:
           $ref: "#/responses/400"
         403:
@@ -2829,6 +3009,8 @@ paths:
   /events:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Find events
       tags: [ events ]
       operationId: findEvents
@@ -2946,6 +3128,8 @@ paths:
   /events/{key}:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Get event
       tags: [ events ]
       description: >-
@@ -2968,9 +3152,7 @@ paths:
           description: >-
             Success, returns specified event
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/EventResponse"
+            $ref: "#/definitions/EventResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -3740,7 +3922,7 @@ paths:
                   Variables available to connection.url, connection.toUrl, and
                   the transform function.
               transform:
-                type: string
+                type: object
                 description: >-
                   The body of a javascript function which transforms some data into
                   an array of samples
@@ -6185,6 +6367,8 @@ paths:
   /rooms:
     x-swagger-router-controller: rooms
     get:
+      security:
+        - jwt: []
       tags: [ rooms ]
       operationId: findRooms
       parameters:
@@ -6297,9 +6481,7 @@ paths:
           description: >-
             Success, Deleted RoomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomResponse"
+            $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6310,6 +6492,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get room
       tags: [ rooms ]
       operationId: getRoom
@@ -6336,9 +6520,7 @@ paths:
           description: >-
             Success, returns specified room
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomResponse"
+            $ref: "#/definitions/RoomResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6402,6 +6584,8 @@ paths:
   /roomTypes:
     x-swagger-router-controller: roomTypes
     get:
+      security:
+        - jwt: []
       tags: [ roomTypes ]
       operationId: findRoomTypes
       parameters:
@@ -6522,9 +6706,7 @@ paths:
           description: >-
             Success, Deleted RoomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomTypeResponse"
+            $ref: "#/definitions/RoomTypeResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -6535,6 +6717,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get roomType
       tags: [ roomTypes ]
       operationId: getRoomType
@@ -6561,9 +6745,7 @@ paths:
           description: >-
             Success, returns specified roomType
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/RoomTypeResponse"
+            $ref: "#/definitions/RoomTypeResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -9466,6 +9648,8 @@ paths:
   /rooms/{roomId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -9502,6 +9686,8 @@ paths:
   /rooms/{roomId}/bots/{botId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -11022,9 +11208,9 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      isRegistered:
-        type: "string"
-        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+      registered:
+        type: boolean
+        description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
         - false
@@ -11080,6 +11266,9 @@ definitions:
         description: >
           The ipAddress where the collector is installed.
         maxLength: 60
+      collectorConfig:
+        type: object
+        $ref: "#/definitions/CollectorConfigResponse"
 
   CollectorWriterResponse:
     type: object
@@ -11112,8 +11301,8 @@ definitions:
     description: >
       Gets the config and sample collection metadata from the Refocus server.
     properties:
-      collectorConfigUpdates:
-        $ref: "#/definitions/CollectorConfigUpdatesResponse"
+      collectorConfig:
+        $ref: "#/definitions/CollectorConfigResponse"
       generatersAdded:
         $ref: "#/definitions/GeneratorsAddedResponse"
       generatersUpdated:
@@ -11121,7 +11310,7 @@ definitions:
       generatorsRemoved:
         $ref: "#/definitions/GeneratorsRemovedResponse"
 
-  CollectorConfigUpdatesResponse:
+  CollectorConfigResponse:
     type: object
     description: Collector config variables changed since last heartbeat.
     properties:
@@ -11318,7 +11507,7 @@ definitions:
           Variables available to connection.url, connection.toUrl, and
           the transform function.
       transform:
-        type: string
+        type: object
         description: >-
           The body of a javascript function which transforms some data into an
           array of samples
@@ -11421,7 +11610,7 @@ parameters:
         - name
         - id
         - status
-        - isRegistered
+        - registered
         - currentGenerators
         - lastHeartbeat
         - lastModifiedAt

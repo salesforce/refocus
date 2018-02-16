@@ -76,9 +76,6 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
-  // Enable Rooms functionality
-  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
-
   // Enable sample store info logging
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
@@ -92,9 +89,6 @@ const longTermToggles = {
    * achieve better web process throughput and response times.
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
-
-  // Enforce that all API requests have valid API token
-  requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
@@ -117,10 +111,6 @@ const shortTermToggles = {
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
 
-  // Cache the GET request for samples with wildcard by name
-  cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
-    'CACHE_GET_SAMPLES_BY_NAME_WILDCARD'),
-
   // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
   getSubjectFromCache: environmentVariableTrue(pe,
     'GET_SUBJECT_FROM_CACHE'),
@@ -136,9 +126,6 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
-
-  // publish partial sample to the subscribers
-  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(

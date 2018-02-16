@@ -33,6 +33,7 @@ const sampleStoreConstants = sampleStore.constants;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
+const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 
@@ -226,14 +227,20 @@ module.exports = {
    * GET /subjects/{key}
    *
    * Retrieves the subject and sends it back in the response.
+   * If the cache is enabled for subjects and the key is an absolutePath, get
+   * from the cache. The cache is keyed by absolutePath, so if the key is an id
+   * we need to get it from the db
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-    featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+    if (
+      featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)
+      && featureToggles.isFeatureEnabled('getSubjectFromCache')
+      && !common.looksLikeId(req.swagger.params.key.value)
+    ) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
       .then((response) => {
@@ -453,6 +460,14 @@ module.exports = {
    */
   postChildSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     const key = req.swagger.params.key.value;
     if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;

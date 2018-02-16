@@ -18,9 +18,9 @@ const u = require('./utils');
 const path = '/v1/users';
 const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
+const OBAdminProfile = require('../../../../config').db.adminProfile;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
-const Token = tu.db.Token;
 
 describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const ZERO = 0;
@@ -36,9 +36,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
   /* out of the box admin user token */
-  const OBAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const OBAdminUserToken = tu.createAdminToken();
 
   before((done) => {
     Profile.create({ name: pname + ONE })
@@ -84,7 +82,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
-      userFour, userFour
+      userFour, userFour, { IsAdmin: true, ProfileName: OBAdminProfile.name }
     );
 
     before((done) => {
@@ -135,7 +133,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
 
@@ -156,14 +154,13 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
   });
 
   describe('normal user >', () => {
-    it('cannot change its profileId',
-      (done) => {
+    it('cannot change its profileId', (done) => {
       const normalUserToken = jwtUtil.createToken(
         userFive, userFive
       );
@@ -185,12 +182,11 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'ForbiddenError');
-        done();
+        return done();
       });
     });
 
-    it('can PUT, when its new profileId === old profileId',
-      (done) => {
+    it('can PUT, when its new profileId === old profileId', (done) => {
       const normalUserToken = jwtUtil.createToken(
         userThree, userThree
       );
@@ -210,7 +206,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
 
@@ -236,7 +232,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'ForbiddenError');
-        done();
+        return done();
       });
     });
   });
@@ -259,7 +255,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         }
 
         expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        return done();
       });
     });
 
@@ -282,7 +278,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
   });

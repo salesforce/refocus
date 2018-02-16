@@ -76,6 +76,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
@@ -108,7 +109,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       const { name, collectors } = res.body;
       expect(name).to.equal(toPut.name);
       expect(collectors.length).to.equal(ZERO);
-      done();
+      return done();
     });
   });
 
@@ -129,7 +130,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       expect(collectors.length).to.equal(THREE);
       const collectorNames = collectors.map((collector) => collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
-      done();
+      return done();
     });
   });
 
@@ -148,7 +149,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       const { collectors } = res.body;
       expect(collectors.length).to.equal(ONE);
       expect(collectors[ZERO].name).to.equal(collector1.name);
-      done();
+      return done();
     });
   });
 
@@ -185,7 +186,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
 
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
-      done();
+      return done();
     });
   });
 });

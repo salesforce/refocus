@@ -21,8 +21,6 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const featureToggles = require('feature-toggles');
-const cacheGetSamplesByNameWildcard =
-  featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard');
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
@@ -55,6 +53,8 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       })
       .catch(done);
     });
+
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
     after(() => tu.toggleOverride('returnUser', false));
 
@@ -74,6 +74,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         expect(user.name).to.be.an('string');
         expect(user.email).to.be.an('string');
         expect(user.profile.name).to.be.an('string');
+        expect(res.header).to.have.property('x-total-count', '1');
         done();
       });
     });
@@ -110,6 +111,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       .catch(done);
     });
 
+    before(u.populateRedisIfEnabled);
     after(u.forceDelete);
 
     it('apiLinks in basic get end  with sample name', (done) => {
@@ -268,13 +270,12 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   });
 });
 
-describe(`tests/api/v1/samples/get.js, GET ${path} >` +
-  'GET with cacheGetSamplesWildcard flag on', () => {
+describe(`tests/api/v1/samples/get.js, GET ${path} > ` +
+  'cache the response >', () => {
   let sampleName;
   let token;
 
   before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -293,11 +294,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
     .catch(done);
   });
 
-  after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-  });
-
+  before(u.populateRedisIfEnabled);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -341,56 +338,3 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
     });
   });
 });
-
-describe(`tests/api/v1/samples/get.js, GET ${path} >` +
-  'GET with cacheGetSamplesWildcard flag off', () => {
-  let sampleName;
-  let token;
-
-  before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
-
-  before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
-    .then((samp) => {
-      sampleName = samp.name;
-      done();
-    })
-    .catch(done);
-  });
-
-  after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-  });
-
-  after(u.forceDelete);
-  after(tu.forceDeleteUser);
-
-  it('get with wildcard should not cache response', (done) => {
-    api.get(`${path}?name=${sampleName}*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.above(ZERO);
-          done();
-        }
-      });
-    });
-  });
-});
-

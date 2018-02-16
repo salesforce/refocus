@@ -26,8 +26,13 @@ const sampleStore = require('./cache/sampleStoreInit');
  * Entry point for each clustered process.
  */
 function start() { // eslint-disable-line max-statements
-  const SegfaultHandler = require('segfault-handler');
-  SegfaultHandler.registerHandler('crash.log');
+  /*
+   * Heroku support suggested we use segfault-handler but it's not available
+   * for node 8 yet.
+   */
+
+  // const SegfaultHandler = require('segfault-handler');
+  // SegfaultHandler.registerHandler('crash.log');
 
   const featureToggles = require('feature-toggles');
   const conf = require('./config');
@@ -55,19 +60,6 @@ function start() { // eslint-disable-line max-statements
 
   const app = express();
 
-  // redis client to for request limiter
-  const limiterRedisClient = require('./cache/redisCache').client.limiter;
-
-  // request limiter setting
-  const limiter = require('express-limiter')(app, limiterRedisClient);
-  limiter({
-    path: conf.endpointToLimit,
-    method: conf.httpMethodToLimit,
-    lookup: ['headers.x-forwarded-for'],
-    total: conf.rateLimit,
-    expire: conf.rateWindow,
-  });
-
   /*
    * Call this *before* the static pages and the API routes so that both the
    * static pages *and* the API responses are compressed (gzip).
@@ -92,6 +84,9 @@ function start() { // eslint-disable-line max-statements
 
   // middleware for checking api token
   const jwtUtil = require('./utils/jwtUtil');
+
+  // middleware for api rate limits
+  const rateLimit = require('./rateLimit');
 
   // set up httpServer params
   const listening = 'Listening on port';
@@ -157,13 +152,6 @@ function start() { // eslint-disable-line max-statements
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
-  // Filter out hidden routes
-  if (!featureToggles.isFeatureEnabled('enableRooms')) {
-    for (let i = 0; i < conf.hiddenRoutes.length; i++) {
-      delete swaggerDoc.paths[conf.hiddenRoutes[i]];
-    }
-  }
-
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     app.use((req, res, next) => { // add timestamp to request
       req.timestamp = Date.now();
@@ -208,13 +196,35 @@ function start() { // eslint-disable-line max-statements
     app.use(mw.swaggerMetadata());
 
     // Use token security in swagger api routes
-    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
-      app.use(mw.swaggerSecurity({
-        jwt: (req, authOrSecDef, scopes, cb) => {
-          jwtUtil.verifyToken(req, cb);
-        },
-      }));
-    }
+    app.use(mw.swaggerSecurity({
+      jwt: (req, authOrSecDef, scopes, cb) => {
+        jwtUtil.verifyToken(req, cb);
+      },
+    }));
+
+    /*
+     * Set up API rate limits. Note that we are doing this *after* the
+     * swaggerSecurity middleware so that jwtUtil.verifyToken will already
+     * have been executed so that all of the request headers it adds are
+     * available for the express-limiter "lookup".
+     * Set the "lookup" attribute to a string or array to do a value lookup on
+     * the request object. For example, if we wanted to apply API request
+     * limits by user name and IP address, we could set lookup to
+     * ['headers.UserName', 'headers.x-forwarded-for'].
+     */
+    const methods = conf.expressLimiterMethod;
+    const paths = conf.expressLimiterPath;
+    methods.forEach((method) => {
+      method = method.toLowerCase();
+      if (paths && paths.length && app[method]) {
+        try {
+          app[method](paths, rateLimit);
+        } catch (err) {
+          console.error(`Failed to initialize limiter for ${method} ${paths}`);
+          console.error(err);
+        }
+      }
+    });
 
     // Validate Swagger requests
     app.use(mw.swaggerValidator(conf.api.swagger.validator));

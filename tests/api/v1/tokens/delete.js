@@ -17,11 +17,8 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/tokens';
 const expect = require('chai').expect;
-const jwtUtil = require('../../../../utils/jwtUtil');
-const adminUser = require('../../../../config').db.adminUser;
 const regPath = '/v1/register';
 const tokenPath = '/v1/tokens';
-const Token = tu.db.Token;
 
 describe(`tests/api/v1/tokens/delete.js, DELETE ${path} >`, () => {
   /* user uname has 2 tokens: Voldemort and Tom
@@ -29,8 +26,7 @@ describe(`tests/api/v1/tokens/delete.js, DELETE ${path} >`, () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
   const tname1 = `${tu.namePrefix}Voldemort`;
   const tname2 = `${tu.namePrefix}Tom`;
-  const predefinedAdminUserToken =
-    jwtUtil.createToken(adminUser.name, adminUser.name);
+  const predefinedAdminUserToken = tu.createAdminToken();
   let userToken = '';
   let tid1;
   let tid2;

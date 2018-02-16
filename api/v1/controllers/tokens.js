@@ -9,7 +9,7 @@
 /**
  * api/v1/controllers/tokens.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/tokens');
 const apiErrors = require('../apiErrors');
@@ -18,7 +18,7 @@ const doGet = require('../helpers/verbs/doGet');
 const jwtUtil = require('../../../utils/jwtUtil');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const authUtils = require('../helpers/authUtils');
+const Profile = require('../helpers/nouns/profiles').model;
 
 module.exports = {
 
@@ -33,31 +33,22 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteTokenById(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doDelete(req, res, next, helper);
-      } else {
-        // also OK if user is NOT admin but is deleting own token
-        let userId;
-        authUtils.getUser(req)
-        .then((user) => {
-          userId = user.id;
-          const id = req.swagger.params.key.value;
-          return helper.model.findById(id);
-        })
-        .then((o) => {
-          if (o && o.createdBy === userId) {
-            doDelete(req, res, next, helper);
-          } else {
-            u.forbidden(next);
-          }
-        });
-      }
-    })
-    .catch((err) => {
-      u.forbidden(next);
-    });
+    if (req.headers.IsAdmin) {
+      doDelete(req, res, next, helper);
+    } else {
+      // also OK if user is NOT admin but is deleting own token
+      const id = req.swagger.params.key.value;
+      helper.model.findById(id)
+      .then((token) => {
+        if (token && token.createdBy === req.user.id) {
+          doDelete(req, res, next, helper);
+        } else {
+          u.forbidden(next);
+        }
+      }).catch((err) => {
+        u.forbidden(next);
+      });
+    }
   },
 
   /**
@@ -86,15 +77,20 @@ module.exports = {
    */
   postToken(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    let tokenValue;
+    const user = req.user;
 
-    // get user details from req
-    authUtils.getUser(req)
-    .then((user) => {
-      // create token to be returned in response.
-      const tokenName = req.swagger.params.queryBody.value.name;
-      tokenValue = jwtUtil.createToken(
-        tokenName, user.name
+    // create token to be returned in response.
+    const tokenName = req.swagger.params.queryBody.value.name;
+    let token;
+    Profile.isAdmin(user.profileId)
+    .then((isAdmin) => {
+      const payloadObj = {
+        ProfileName: user.profile.name,
+        IsAdmin: isAdmin,
+      };
+
+      token = jwtUtil.createToken(
+        tokenName, user.name, payloadObj
       );
 
       // create token object in db
@@ -106,7 +102,7 @@ module.exports = {
     .then((createdToken) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const tokenObj = u.responsify(createdToken, helper, req.method);
-      tokenObj.token = tokenValue;
+      tokenObj.token = token;
       u.logAPI(req, resultObj, tokenObj);
       return res.status(httpStatus.CREATED).json(tokenObj);
     })
@@ -125,32 +121,26 @@ module.exports = {
    */
   restoreTokenById(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        const id = req.swagger.params.key.value;
-        helper.model.findById(id)
-        .then((o) => {
-          if (o.isRevoked === '0') {
-            throw new apiErrors.InvalidTokenActionError();
-          }
+    if (req.headers.IsAdmin) {
+      const id = req.swagger.params.key.value;
+      helper.model.findById(id)
+      .then((o) => {
+        if (o.isRevoked === '0') {
+          throw new apiErrors.InvalidTokenActionError();
+        }
 
-          return o.restore();
-        })
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          const retval = u.responsify(o, helper, req.method);
-          u.logAPI(req, resultObj, retval);
-          res.status(httpStatus.OK).json(retval);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+        return o.restore();
+      })
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const retval = u.responsify(o, helper, req.method);
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -164,31 +154,25 @@ module.exports = {
    */
   revokeTokenById(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        const id = req.swagger.params.key.value;
-        helper.model.findById(id)
-        .then((o) => {
-          if (o.isRevoked > '0') {
-            throw new apiErrors.InvalidTokenActionError();
-          }
+    if (req.headers.IsAdmin) {
+      const id = req.swagger.params.key.value;
+      helper.model.findById(id)
+      .then((o) => {
+        if (o.isRevoked > '0') {
+          throw new apiErrors.InvalidTokenActionError();
+        }
 
-          return o.revoke();
-        })
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          const retval = u.responsify(o, helper, req.method);
-          u.logAPI(req, resultObj, retval);
-          res.status(httpStatus.OK).json(retval);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+        return o.revoke();
+      })
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        const retval = u.responsify(o, helper, req.method);
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 }; // exports

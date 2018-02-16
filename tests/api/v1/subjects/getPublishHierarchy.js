@@ -83,6 +83,8 @@ describe(`tests/api/v1/subjects/getPublishHierarchy.js, GET ${path} >`, () => {
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

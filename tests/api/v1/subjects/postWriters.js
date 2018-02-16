@@ -77,6 +77,8 @@ describe('tests/api/v1/subjects/postWriters.js >', () => {
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

@@ -25,6 +25,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
+const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
 'redisStore: POST using worker process' + path, () => {
@@ -70,6 +71,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);
@@ -152,11 +154,11 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
           expect(logObj.recordCount).to.equal('2');
           expect(logObj.errorCount).to.equal('1');
 
-          const totalTime = parseInt(logObj.totalTime);
-          const queueTime = parseInt(logObj.queueTime);
-          const queueResponseTime = parseInt(logObj.queueResponseTime);
-          const workTime = parseInt(logObj.workTime);
-          const dbTime = parseInt(logObj.dbTime);
+          const totalTime = parseInt(logObj.totalTime, RADIX);
+          const queueTime = parseInt(logObj.queueTime, RADIX);
+          const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
+          const workTime = parseInt(logObj.workTime, RADIX);
+          const dbTime = parseInt(logObj.dbTime, RADIX);
 
           expect(workTime).to.be.at.least(dbTime);
           expect(totalTime).to.be.at.least(workTime);
@@ -182,8 +184,8 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
           expect(logObj.dbTime).to.match(/\d+ms/);
           expect(logObj.recordCount).to.equal('3');
           expect(logObj.responseBytes).to.match(/\d+/);
-          const totalTime = parseInt(logObj.totalTime);
-          const dbTime = parseInt(logObj.dbTime);
+          const totalTime = parseInt(logObj.totalTime, RADIX);
+          const dbTime = parseInt(logObj.dbTime, RADIX);
           expect(totalTime).to.be.above(dbTime);
           apiLogged = true;
           if (workerLogged && apiLogged) {

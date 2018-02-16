@@ -15,12 +15,18 @@
 
 const constants = require('../constants');
 const realTime = require('../../realtime/redisPublisher');
-
+const rtConstants = require('../../realtime/constants');
 const assoc = {};
 const roomEventNames = {
   add: 'refocus.internal.realtime.bot.namespace.initialize',
   upd: 'refocus.internal.realtime.room.settingsChanged',
   del: 'refocus.internal.realtime.room.remove',
+};
+const pubOpts = {
+  client: rtConstants.bot.client,
+  channel: rtConstants.bot.channel,
+  filterIndex: rtConstants.bot.roomFilterIndex,
+  filterField: 'name',
 };
 
 module.exports = function room(seq, dataTypes) {
@@ -38,6 +44,14 @@ module.exports = function room(seq, dataTypes) {
         is: constants.nameRegex,
       },
       comment: 'Create a named room ',
+    },
+    externalId: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+      comment: 'externalId to case',
     },
     settings: {
       type: dataTypes.JSON,
@@ -106,15 +120,14 @@ module.exports = function room(seq, dataTypes) {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(), roomEventNames.add,
-          changedKeys, ignoreAttributes);
+          changedKeys, ignoreAttributes, pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(
-              instance.toJSON(), roomEventNames.upd
-            );
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
           }
         }
 
@@ -123,7 +136,8 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          return realTime.publishObject(instance.toJSON(), roomEventNames.del);
+          return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
         }
 
         return seq.Promise.resolve();

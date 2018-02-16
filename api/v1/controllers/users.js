@@ -18,7 +18,6 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-const authUtils = require('../helpers/authUtils');
 const u = require('../helpers/verbs/utils');
 
 module.exports = {
@@ -74,20 +73,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchUser(req, res, next) {
-
-    // Only an admin may modify a user's profile
-    if (req.body.profileId) {
-      authUtils.isAdmin(req)
-      .then((ok) => {
-        if (ok) {
-          doPatch(req, res, next, helper);
-        } else {
-          u.forbidden(next);
-        }
-      })
-      .catch((err) => {
-        u.forbidden(next);
-      });
+    if (req.headers.IsAdmin) {
+      doPatch(req, res, next, helper);
+    } else if (req.body.profileId && !req.headers.IsAdmin) {
+      // Only an admin may modify a user's profile
+      u.forbidden(next);
     } else {
       doPatch(req, res, next, helper);
     }
@@ -121,27 +111,18 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   putUser(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPut(req, res, next, helper);
-      } else {
-
-        // normal user
-        // allow iff user PUTTing themself AND profileId does not change
-        authUtils.getUser(req)
-        .then((user) => {
-          if (req.swagger.params.key.value === user.dataValues.name &&
-            user.dataValues.profileId === req.body.profileId) {
-            doPut(req, res, next, helper);
-          } else {
-            u.forbidden(next);
-          }
-        });
-      }
-    })
-    .catch((err) => {
+    const user = req.user;
+    if (req.headers.IsAdmin) {
+      doPut(req, res, next, helper);
+    } else if (req.swagger.params.key.value === user.name &&
+      user.profileId === req.body.profileId) {
+      /*
+       * Allow normal user iff user PUTTing themself AND profileId does
+       * not change
+       */
+      doPut(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 }; // exports

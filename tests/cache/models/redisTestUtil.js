@@ -10,6 +10,7 @@
  * tests/cache/models/redisTestUtil.js
  */
 'use strict'; // eslint-disable-line strict
+const Promise = require('bluebird');
 const sampleStore = require('../../../cache/sampleStore');
 const samstoinit = require('../../../cache/sampleStoreInit');
 const rcli = require('../../../cache/redisCache').client.sampleStore;
@@ -120,12 +121,12 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => rcli.flushallAsync())
+    Promise.join(
+      rcli.flushallAsync(),
+      tu.forceDelete(tu.db.Sample, testStartTime)
+        .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+        .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },

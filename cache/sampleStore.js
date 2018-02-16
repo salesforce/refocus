@@ -33,9 +33,10 @@ const constants = {
       'infoRange',
       'okRange',
       'writers',
+      'user', // an object
     ],
     sample: ['relatedLinks', 'user'],
-    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
+    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation', 'user'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
@@ -77,39 +78,42 @@ function getNameFromKey(key) {
 } // getNameFromKey
 
 /**
- * Convert array strings to json from redis object. For each array field,
- * if that field exists in obj and its and array, then json parse.
+ * Convert array and object strings to json from redis object. For each array
+ * and object field, if that field exists in obj and it is not an array or an
+ * object, then json parse.
  * @param  {Object} obj - Object to convert
- * @param  {Object} arrayFields - List of array fields which were stringified.
+ * @param  {Object} arrObjfields - List of array or object fields which were
+ * stringified.
  * @returns {Object} - Converted object
  */
-function arrayStringsToJson(obj, arrayFields) {
-  arrayFields.forEach((field) => {
-    if (obj && obj[field] && !Array.isArray(obj[field])) {
+function arrayObjsStringsToJson(obj, arrObjfields) {
+  arrObjfields.forEach((field) => {
+    if (obj && obj[field] && !Array.isArray(obj[field]) &&
+     typeof obj[field] !== 'object') {
       obj[field] = JSON.parse(obj[field]);
     }
   });
   return obj;
-} // arrayStringsToJson
+} // arrayObjsStringsToJson
 
 /**
- * Remove null fields; stringify array fields.
+ * Remove null fields; stringify array and object fields.
  *
  * @param {Object} obj - The object to clean.
- * @param {Array} arrayFields - List of array fields to stringify.
- * @returns {Object} the object with no nulls and stringified arrays.
+ * @param {Array} arrObjFields - List of array and object fields to stringify.
+ * @returns {Object} the object with no nulls and stringified arrays/objects.
  */
-function removeNullsAndStringifyArrays(obj, arrayFields) {
+function removeNullsAndStringifyArraysObjs(obj, arrObjFields) {
   Object.keys(obj).forEach((key) => {
     if (obj[key] === null) {
       delete obj[key];
-    } else if (arrayFields.includes(key)) {
+    } else if (arrObjFields.includes(key)) {
       obj[key] = JSON.stringify(obj[key]);
     }
   });
 
   return obj;
-} // removeNullsAndStringifyArrays
+} // removeNullsAndStringifyArraysObjs
 
 /**
  * Returns the ISO formatted date
@@ -143,7 +147,7 @@ function convertToISO(obj, resourceType) {
  */
 function cleanSubject(subj) {
   let retval = subj.get ? subj.get() : subj;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.subject);
   return retval;
 } // cleanSubject
@@ -157,7 +161,7 @@ function cleanSubject(subj) {
  */
 function cleanAspect(a) {
   let retval = a.get ? a.get() : a;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.aspect);
 
   // convert date time fields to proper format
@@ -176,7 +180,7 @@ function cleanAspect(a) {
 function cleanSample(s) {
   let retval = s.get ? s.get() : s;
   delete retval.aspect;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.sample);
 
   // convert date time fields to proper format
@@ -191,6 +195,6 @@ module.exports = {
   cleanSample,
   constants,
   toKey,
-  arrayStringsToJson,
+  arrayObjsStringsToJson,
   getNameFromKey,
 };

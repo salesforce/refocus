@@ -72,6 +72,7 @@ describe('tests/cache/models/samples/post.js >', () => {
     });
 
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     describe('unpublished subject/aspect fails >', () => {
@@ -148,13 +149,14 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO].type)
+          .to.equal('DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
           .to.equal('Sample already exists.');
           return done();
@@ -165,13 +167,14 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO].type)
+          .to.equal('DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
           .to.equal('Sample already exists.');
           return done();
@@ -263,23 +266,8 @@ describe('tests/cache/models/samples/post.js >', () => {
       api.post(path)
       .set('Authorization', 'invalidtoken')
       .send(sampleToPost)
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        if (!res.body) {
-          throw new Error('expecting sample');
-        }
-
-        if (res.body.status !== constants.statuses.Critical) {
-          throw new Error('Incorrect Status Value');
-        }
-
-        expect(res.body.name).to.be.equal(sampleName);
-        return done();
-      });
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end(done);
     });
 
     it('createdAt and updatedAt fields have the expected format', (done) => {
@@ -345,7 +333,7 @@ describe('tests/cache/models/samples/post.js >', () => {
       .send(sampleToPost)
       .expect((res) => {
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].description)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique.');
       })
       .end(done);

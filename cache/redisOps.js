@@ -84,7 +84,9 @@ function getHashPromise(type, name) {
 function getValue(type, name) {
   return getHashPromise(type, name)
   .then((value) => {
-    redisStore.arrayStringsToJson(value, rsConstant.fieldsToStringify[type]);
+    redisStore.arrayObjsStringsToJson(
+      value, rsConstant.fieldsToStringify[type]
+    );
     return Promise.resolve(value);
   })
   .catch((err) => Promise.reject(err));
@@ -142,7 +144,7 @@ function deleteKey(type, name) {
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param {String} name - Name of the key to be deleted
+ * @param {String} name - The name of the key to be deleted
  * @returns {Promise} - which resolves to the values returned by the redis batch
  * command
  */
@@ -171,7 +173,8 @@ function deleteKeys(type, objectName, name) {
       const subjectKey = nameParts[0];
       const aspect = nameParts[1];
       if ((objectName.toLowerCase() === subjectType && nameKey === subjectKey)
-        || (objectName.toLowerCase() === aspectType && name === aspect)) {
+        || (objectName.toLowerCase() === aspectType &&
+          name.toLowerCase() === aspect)) {
         keyArr.push(key);
       }
     });

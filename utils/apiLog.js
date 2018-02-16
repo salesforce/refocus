@@ -11,7 +11,7 @@
  *
  */
 'use strict'; // eslint-disable-line strict
-const jwtUtil = require('./jwtUtil');
+const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('./activityLog');
 
@@ -34,7 +34,8 @@ function getSize(obj) {
  * @param {Integer} [recordCountOverride] - override the
  * default recordCount. optional
  */
-function mapApiResultsToLogObject(resultObj, logObject, retval, recordCountOverride) {
+function mapApiResultsToLogObject(resultObj, logObject, retval,
+  recordCountOverride) {
   const { reqStartTime, dbTime } = resultObj;
 
   // set the totalTime: duration in ms between start time and now
@@ -89,7 +90,7 @@ function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
  * @param {Object} req - the request object
  * @param {Object} resultObj - Object with the rest of the fields to print
  * @param {Object or Array} retval - the returned object
- * @param {Integer} [recordCountOverride] - override the
+ * @param {Integer} recordCountOverride - override the
  * default recordCount. optional
  */
 function logAPI(req, resultObj, retval, recordCountOverride) {
@@ -109,16 +110,14 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       logObject.request_id = req.headers['x-request-id'];
     }
 
-    // If API token enabled, extract user, token to update log object
-    jwtUtil.getTokenDetailsFromRequest(req)
-    .then((resObj) => {
-      logObject.user = resObj.username;
-      logObject.token = resObj.tokenname;
+    /**
+     * we already set UserName and TokenName in req headers when verifying
+     * token
+     */
+    logObject.user = req.headers.UserName;
+    logObject.token = req.headers.TokenName;
 
-      // log with the token
-      combineAndLog(resultObj, logObject, obj, recordCountOverride);
-    })
-    .catch(() => combineAndLog(resultObj, logObject, obj, recordCountOverride));
+    combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }
 }
 

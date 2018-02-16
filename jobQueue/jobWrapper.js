@@ -126,11 +126,13 @@ function logJobOnComplete(req, job) {
       }
 
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => {
-        logObject.user = resObj.username;
-        logObject.token = resObj.tokenname;
-      }).catch(() => {}); // no-op
+
+      /**
+       * we already set UserName and TokenName in req headers when verifying
+       * token
+       */
+      logObject.user = req.headers.UserName;
+      logObject.token = req.headers.TokenName;
     }
 
     // continue to update and print logObject on job completion.

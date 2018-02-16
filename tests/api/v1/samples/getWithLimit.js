@@ -24,10 +24,11 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
     tu.db.Subject.create(u.subjectToCreate)
     .then((s) => {
       sampleObj.subjectId = s.id;
+      sampleObj.name = s.name + '|';
       let aspectPromises = [];
       for (let i = 0; i < 10; i++) {
         const aspectObj = JSON.parse(JSON.stringify(u.aspectToCreate));
-        aspectObj.name += i;
+        aspectObj.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
         aspectPromises.push(tu.db.Aspect.create(aspectObj));
       }
 
@@ -37,7 +38,7 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
       for (let i = 0; i < 10; i++) {
         const toCreate = JSON.parse(JSON.stringify(sampleObj));
         toCreate.aspectId = createdAspects[i].id;
-        toCreate.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
+        toCreate.name += createdAspects[i].name;
         modelList.push(toCreate);
       }
 
@@ -47,6 +48,7 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

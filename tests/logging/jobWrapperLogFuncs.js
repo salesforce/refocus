@@ -17,6 +17,7 @@ const path = '/v1/samples/upsert/bulk';
 const jobWrapper = require('../../jobQueue/jobWrapper');
 const jobQueue = require('../../jobQueue/jobWrapper').jobQueue;
 const sinon = require('sinon');
+const RADIX = 10;
 
 describe('tests/logging/jobWrapperLogFuncs.js, jobWrapper functions >', () => {
   let token;
@@ -61,10 +62,10 @@ describe('tests/logging/jobWrapperLogFuncs.js, jobWrapper functions >', () => {
     expect(logObject.recordCount).to.be.equal(jobResultObj.recordCount);
     expect(logObject.errorCount).to.be.equal(jobResultObj.errorCount);
 
-    const queueTime = parseInt(logObject.queueTime);
-    const workTime = parseInt(logObject.workTime);
-    const queueResponseTime = parseInt(logObject.queueResponseTime);
-    const totalTime = parseInt(logObject.totalTime);
+    const queueTime = parseInt(logObject.queueTime, RADIX);
+    const workTime = parseInt(logObject.workTime, RADIX);
+    const queueResponseTime = parseInt(logObject.queueResponseTime, RADIX);
+    const totalTime = parseInt(logObject.totalTime, RADIX);
     expect(queueTime + workTime + queueResponseTime).to.equal(totalTime);
     done();
   });

@@ -25,6 +25,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
 - [API Documentation](#api-documentation)
 - [Useful Resources](#useful-resources)
 - [Contributing](#contributing)
+- [Related Github Repositories](#related-github-repositories)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -79,3 +80,13 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 
 ## Contributing
 Guidelines on contributing to Refocus are available [here](https://salesforce.github.io/refocus/docs/95-contributing.html).
+
+## Related Github Repositories
+- [refocus-collector](https://github.com/salesforce/refocus-collector) - Use a Refocus Collector to push your samples to Refocus
+- [refocus-collector-eval](https://github.com/salesforce/refocus-collector-eval) - Utilities used by Refocus Collectors for executing the transform logic from a Sample Generator Template.
+- [refocus-ldk](https://github.com/salesforce/refocus-ldk) - Refocus Lens Developer Kit - a toolkit for developing, testing and packaging Refocus lenses for deployment
+- [refocus-lens-multitable](https://github.com/salesforce/refocus-lens-multitable) - A fluid multi-table layout. Each table groups subjects together under a shared parent.
+- [refocus-lens-tree](https://github.com/salesforce/refocus-lens-tree) - Display your subjects and samples in a hierarchical left-to-right tree.
+- [refocus-ruby](https://github.com/heroku/refocus-ruby) - A ruby library (API wrapper) & CLI project.
+
+

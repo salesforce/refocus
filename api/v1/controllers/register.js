@@ -16,6 +16,7 @@ const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
+const Profile = require('../helpers/nouns/profiles').model;
 
 const resourceName = 'register';
 
@@ -43,20 +44,29 @@ module.exports = {
         return u.handleError(next, loginErr, resourceName);
       }
 
-      // Create token
-      const tokenToReturn = jwtUtil.createToken(user.name, user.name);
-      req.logIn(user, (_err) => {
+      return req.logIn(user, (_err) => {
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
-        const userObj = u.responsify(user, helper, req.method);
-        userObj.token = tokenToReturn;
-        req.session.token = tokenToReturn;
-        u.logAPI(req, resultObj, userObj);
-        return res.status(httpStatus.CREATED).json(userObj);
+        return Profile.isAdmin(user.profileId)
+        .then((isAdmin) => { // update in token payload if admin
+          const payloadObj = {
+            ProfileName: user.profile.name,
+            IsAdmin: isAdmin,
+          };
+
+          // Create token
+          const tokenToReturn = jwtUtil.createToken(
+            user.name, user.name, payloadObj
+          );
+          const userObj = u.responsify(user, helper, req.method);
+          userObj.token = tokenToReturn;
+          req.session.token = tokenToReturn;
+          u.logAPI(req, resultObj, userObj);
+          return res.status(httpStatus.CREATED).json(userObj);
+        });
       });
     })(req, res, next);
   },
-
 }; // exports

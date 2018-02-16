@@ -47,11 +47,11 @@ describe('tests/api/v1/bots/post.js >', () => {
         return done(err);
       }
 
-      const botToken = jwtUtil
-        .createToken(u.name, u.name);
       const fakeToken = jwtUtil
         .createToken(u.name + 'Fail', u.name + 'Fail');
-      expect(res.body.token).to.equal(botToken);
+
+      // since createToken uses current timestamp, the token value is not fixed.
+      expect(res.body.token).to.not.equal(undefined);
       expect(res.body.token).to.not.equal(fakeToken);
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
@@ -65,7 +65,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

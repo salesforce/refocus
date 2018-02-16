@@ -59,6 +59,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -292,8 +293,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
           return done(err);
         }
 
-        const { source, description } = res.body.errors[0];
-        expect(description)
+        const { source, message } = res.body.errors[0];
+        expect(message)
           .to.contain('Name of the relatedlinks should be unique');
         expect(source).to.equal('Sample');
         done();
@@ -446,7 +447,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
         value: '2',
       })
       .then(() => {
-        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        api.get(`/v1/samples?name=${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

@@ -69,6 +69,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('with returnUser toggle on >', () => {
@@ -156,6 +157,68 @@ describe('tests/cache/models/samples/upsert.js, ' +
         .to.be.equal('aspect not found');
         done();
       });
+    });
+  });
+
+  describe(`unpublished subject >`, () => {
+    let unPublishedSubjectAbsolutePath;
+
+    // unpublish the subject
+    beforeEach((done) => {
+      Subject.findById(subject.id)
+      .then((subjectOne) => subjectOne.update({
+        isPublished: false,
+      }))
+      .then((_subject) => {
+        unPublishedSubjectAbsolutePath = _subject.absolutePath;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('name refers to unpublished subject', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${unPublishedSubjectAbsolutePath.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+  });
+
+  describe(`unpublished aspect >`, () => {
+    let updatedAspect;
+
+    // unpublish the aspects
+    beforeEach((done) => {
+      Aspect.findById(aspect.id)
+      .then((aspectOne) => aspectOne.update({
+        isPublished: false,
+      }))
+      .then((_aspect) => {
+        updatedAspect = _aspect;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('name refers to unpublished aspect', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${updatedAspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
     });
   });
 
@@ -313,7 +376,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
           return done(err);
         }
 
-        expect(res.body.errors[0].description)
+        expect(res.body.errors[0].message)
         .to.equal('Name of the relatedlinks should be unique.');
         done();
       });
@@ -389,8 +452,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       .catch(done);
     });
 
-    it('name should match subject absolutePath,' +
-      ' aspect name', (done) => {
+    it('name should match subject absolutePath, aspect name', (done) => {
       const sampleName = `${subject.absolutePath}|${aspect.name}`;
       api.post(path)
       .set('Authorization', token)
@@ -411,6 +473,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
     it('value is updated', (done) => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+      .set('Authorization', token)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -480,6 +543,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       })
       .then(() => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

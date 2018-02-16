@@ -73,22 +73,41 @@ function samlAuthentication(userProfile, done) {
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
-      return Profile.findOrCreate({ where: { name: 'RefocusSSOUser' } });
+      return Profile.findOne({ where: { name: 'RefocusSSOUser' } })
+      .then((foundProfile) => {
+        if (foundProfile) {
+          return foundProfile;
+        }
+
+        return Profile.create({ name: 'RefocusSSOUser' });
+      })
+      .then((profile) => {
+
+        /**
+         * default scope not applied on create, so we use User.find after this to
+         * get profile attached to user.
+         */
+        return User.create({
+          email: userProfile.email,
+          profileId: profile.id,
+          name: userProfile.email,
+          password: viewConfig.dummySsoPassword,
+          sso: true,
+        });
+      })
+      .then((createdUser) =>
+        User.findById(createdUser.id) // to get profile name with user object
+      )
+      .then((newUser) => {
+        done(null, newUser);
+      })
+      .catch((error) => {
+        done(error);
+      });
     }
 
+    // profile already attached - default scope applied on find
     return done(null, user);
-  })
-  .spread((profile) =>
-    User.create({
-      email: userProfile.email,
-      profileId: profile.id,
-      name: userProfile.email,
-      password: viewConfig.dummySsoPassword,
-      sso: true,
-    })
-  )
-  .then((user) => {
-    done(null, user);
   })
   .catch((error) => {
     done(error);
@@ -127,20 +146,7 @@ module.exports = function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        const templateVars = Object.assign(
-          {},
-          { queryParams: JSON.stringify(req.query) },
-          trackObj
-        );
-
-        // if url contains a query, render perspective detail page with realtime
-        // updates
-        if ((key === '/perspectives' && Object.keys(req.query).length) ||
-        key === '/perspectives/:key') {
-          res.render(viewmap[key], templateVars);
-        } else {
-          res.render(viewmap[key], trackObj);
-        }
+        res.render(viewmap[key], trackObj);
       }
     )
   );
@@ -217,18 +223,30 @@ module.exports = function loadView(app, passport) {
         failureRedirect: '/login',
       }),
     (_req, _res) => {
-      if (_req.user && _req.user.name) {
-        const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _req.session.token = token;
-      }
+      // We make sure we have _req.user.profile.name in user returned from
+      // samlAuthentication
+      const user = _req.user;
 
-      if (_req.body.RelayState) {
-        // get the redirect url from relay state if present
-        _res.redirect(_req.body.RelayState);
-      } else {
-        // redirect to home page
-        _res.redirect('/');
-      }
+      return Profile.isAdmin(user.profileId)
+      .then((isAdmin) => {
+        const payloadObj = {
+          ProfileName: user.profile.name,
+          IsAdmin: isAdmin,
+        };
+
+        if (user && user.name && user.profile && user.profile.name) {
+          const token = jwtUtil.createToken(user.name, user.name, payloadObj);
+          _req.session.token = token;
+        }
+
+        if (_req.body.RelayState) {
+          // get the redirect url from relay state if present
+          _res.redirect(_req.body.RelayState);
+        } else {
+          // redirect to home page
+          _res.redirect('/');
+        }
+      });
     }
   );
 

@@ -210,8 +210,8 @@ describe('tests/cache/sampleStore.js >', () => {
         // Make sure aspects that don't have samples are *also* here
         expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
 
-        // Make sure unpublished aspects are *not* here
-        expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
+        // Make sure unpublished aspects are here
+        expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
       .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
       .then((res) => {
@@ -254,7 +254,7 @@ describe('tests/cache/sampleStore.js >', () => {
       .then(() => samstoinit.populate())
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect1'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).equal(3);
         expect(aspect.writers)
@@ -262,7 +262,7 @@ describe('tests/cache/sampleStore.js >', () => {
       })
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect2'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).to.equal(1);
         expect(aspect.writers).to.have.members([user4.name]);

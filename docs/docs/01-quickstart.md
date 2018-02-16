@@ -4,7 +4,7 @@ title: Quickstart
 ---
 
 
-# Refocus 
+# Refocus
 *Quick Start Guide*
 
   * [Why Use Refocus?](#why-use-refocus)
@@ -34,13 +34,13 @@ title: Quickstart
 Refocus is a visualization platform for the status and health of anything you want to monitor.
 If you care about how your service is performing *right now*, use Refocus to:
 
-- **Understand**  
+- **Understand**
   Understand your data in new ways by gaining insight
-  
-- **Connect**  
+
+- **Connect**
   Connect various monitoring tools together into one unified platform
-  
-- **Visualize**  
+
+- **Visualize**
   Visualize your system health in beautiful and unambiguous ways
 
 ## Refocus Terminology
@@ -48,37 +48,37 @@ Let’s familiarize you with the terms we use in Refocus.
 
 ### Subject
   Anything that can be monitored. Yes, we mean anything! In Refocus, subjects are the center of our data model.
-  
+
 ### Aspect
   A characteristic of a subject. An aspect can be anything that is measurable, such as average page times, wait times for a train, and even the weather. Anything!
-  
+
 ### Sample
   The value of an aspect for a particular subject at a specified point in time. For example, a snapshot of subject status and health.
-  
+
 ### Lens
-  A visualization of the underlying Refocus data. Each lens provides a unique layout to represent the subject, child subjects, and samples.  
-  
+  A visualization of the underlying Refocus data. Each lens provides a unique layout to represent the subject, child subjects, and samples.
+
   With the Lens Developer Kit (**coming soon**), you can create your own lens to meet your specific visualization needs. When you install your lens into Refocus, it will also be available to other users.
-  
+
 ### Perspective
   A filtered view of a subset of data using a selected lens. You can save a perspective and share it with other Refocus users.
-  
+
 ## Refocus Interface
 
 Refocus displays real-time system status in a browser window based on the selected lens. The following lenses are available for Refocus.
 
-- **MultiTable**  
-  A set of tables with the various subject components arranged like a menu board. You can view system status at a glance and expand the components for combos and sides.  
-  
-- **Branch**  
-  An expandable set of system components, organized by the hierarchy each lives in. Click a branch to explore the component neighborhood.  
-  
-- **Tree**  
-  An expandable display of system components, organized in a root, trunk, and branch hierarchy. Go out on a limb to view the status of individual components.  
-  
+- **MultiTable**
+  A set of tables with the various subject components arranged like a menu board. You can view system status at a glance and expand the components for combos and sides.
+
+- **Branch**
+  An expandable set of system components, organized by the hierarchy each lives in. Click a branch to explore the component neighborhood.
+
+- **Tree**
+  An expandable display of system components, organized in a root, trunk, and branch hierarchy. Go out on a limb to view the status of individual components.
+
 You can develop your own lenses with the [lens developer kit](./50-lensdevelopment.html) (LDK).
 
-## Getting Started with Refocus  
+## Getting Started with Refocus
 You have two ways to deploy Refocus. Select the one that best meets your needs.
 
 - I want [one-click Heroku deployment](./03-quickstartheroku.html)
@@ -87,7 +87,7 @@ You have two ways to deploy Refocus. Select the one that best meets your needs.
 
 Refocus requires that both Redis and PostgreSQL are running. After Refocus is deployed, create an account and sign in.
 
-*OK, I've got Refocus deployed, and I'm signed in. Now what?*  
+*OK, I've got Refocus deployed, and I'm signed in. Now what?*
 
 Think about how you want to structure your visualization based on the Refocus hierarchy. The relationship between subjects, aspects, and samples looks like this:
 
@@ -109,7 +109,7 @@ Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 ### Create a Root Subject
 
-Remember that a subject represents anything that you’re monitoring.  
+Remember that a subject represents anything that you’re monitoring.
 
 Using your favorite API client , send a POST request to `/v1/subjects`. In the body of the request, use the following:
 
@@ -250,7 +250,7 @@ Upload the lens by completing the following steps.
  1. Under **Body > form-data**, set the key to **library**.
  2. Change the value field to **File**.
  3. Click **Choose Files**, and select the MultiTable lens zip file that you downloaded earlier.
- 4. Add an isPublished key and set the value to **true**. 
+ 4. Add an isPublished key and set the value to **true**.
 
 Your form-data (in key-value format) looks like the following:
 
@@ -295,9 +295,7 @@ POST to `v1/subjects/USA/child` using the following body:
     ]
 }
 ```
-### Request Rate Limiting
 
-Refocus lets you limit requests based on IP address using environment variables. Set `DDOS_RATE_WINDOW` to the time interval in milliseconds after which the limits are reset and set `DDOS_RATE_LIMIT` to the total number of requests allowed per IP. When the request limit is exceeded, the request is rejected with HTTP status code 429.
-For example, if you set `DDOS_RATE_WINDOW=300000` and `DDOS_RATE_LIMIT=250`, then only 250 requests will be allowed from any individual IP address over any rolling five minute period.
+-----
 
 *Built with love by the Site Reliability Tools team @ Salesforce.*

@@ -18,8 +18,60 @@ const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
+const Bot = require('../db/index').Bot;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
+const Profile = require('../db/index').Profile;
+
+// these headers will be assigned default values if not present in token.
+const headersWithDefaults = {
+  ProfileName: '',
+  IsAdmin: false,
+  IsCollector: false,
+  IsBot: false,
+};
+
+/**
+ * Adds a key and its value to the passed in object.
+ * @param  {Object} object - The object to which the key value pair needs to be
+ * assgined
+ * @param  {String} key - The key that will be added to the object
+ * @param  {String} value  - The value that will be assigned to the key
+ */
+function assignKeyValue(object, key, value) {
+  object[key] = value;
+} // assignKeyValue
+
+/**
+ * Assign request headers using token info
+ * @param  {Object} req - Request object
+ * @param  {Object} decodedTokenData - decoded data from token
+ */
+function assignHeaderValues(req, decodedTokenData) {
+
+  /*
+   * username and tokenname should always be there if createToken function is
+   * used for creating token
+   */
+  if (decodedTokenData.username) {
+    assignKeyValue(req.headers, 'UserName', decodedTokenData.username);
+  }
+
+  if (decodedTokenData.tokenname) {
+    assignKeyValue(req.headers, 'TokenName', decodedTokenData.tokenname);
+  }
+
+  Object.keys(headersWithDefaults).forEach((headerName) => {
+    let headerValue;
+    if (decodedTokenData.hasOwnProperty(headerName)) {
+      headerValue = decodedTokenData[headerName];
+    } else {
+      headerValue = headersWithDefaults[headerName];
+    }
+
+    assignKeyValue(req.headers, headerName, headerValue);
+  });
+}
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -92,16 +144,20 @@ function checkTokenRecord(t) {
  */
 function verifyCollectorToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
+  let decodedData;
   return jwtVerifyAsync(token, secret, {})
-  .then((decodedData) => Collector.findOne({
-    where: { name: decodedData.username },
-  }))
+  .then((_decodedData) => {
+    decodedData = _decodedData;
+    return Collector.findOne({ where: { name: decodedData.username }, });
+  })
   .then((collector) => {
     if (!collector) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Invalid Token.',
       });
     }
+
+    assignHeaderValues(req, decodedData);
 
     if (cb) {
       return cb();
@@ -115,6 +171,20 @@ function verifyCollectorToken(req, cb) {
     });
   });
 } // verifyCollectorToken
+
+/**
+ * Function to verify if a bot token is valid or not.
+ * @param  {object} req - request object
+ * @returns {Function|undefined} - Callback function or undefined
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
+ */
+function verifyBotToken(token) {
+  return jwtVerifyAsync(token, secret, {})
+  .then((decodedData) => Bot.findOne({
+    where: { name: decodedData.username },
+  })).then((bot) => bot);
+} // verifyBotToken
 
 /**
  * Function to verify if an user token is valid or not. If verification is
@@ -141,7 +211,25 @@ function verifyUserToken(req, cb) {
       });
     }
 
-    req.user = user;
+    req.user = user.get();
+
+    /**
+     * For tokens with no ProfileName and IsAdmin set, like existing tokens -
+     * we set IsAdmin and ProfileName after decoding the token.
+     */
+    if (!decodedData.hasOwnProperty('ProfileName')) {
+      decodedData.ProfileName = user.profile.name;
+    }
+
+    if (!decodedData.hasOwnProperty('IsAdmin')) {
+      return Profile.isAdmin(req.user.profileId);
+    }
+
+    return decodedData.IsAdmin;
+  })
+  .then((isAdmin) => {
+    decodedData.IsAdmin = isAdmin; // ok to reassign in case of new tokens
+    assignHeaderValues(req, decodedData);
 
     /*
      * No need to check the token record if this is the default UI
@@ -154,7 +242,7 @@ function verifyUserToken(req, cb) {
     return Token.findOne({
       where: {
         name: decodedData.tokenname,
-        createdBy: user.id,
+        createdBy: req.user.id,
       },
     })
     .then(checkTokenRecord)
@@ -174,9 +262,8 @@ function verifyUserToken(req, cb) {
  */
 function verifyToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
-
   if (token) {
-    verifyUserToken(req, cb)
+    return verifyUserToken(req, cb)
     .then((ret) => ret)
     .catch((err) => {
       if (err.explanation &&
@@ -188,75 +275,43 @@ function verifyToken(req, cb) {
       .then((_ret) => _ret)
       .catch(() => handleInvalidToken(cb));
     });
-  } else {
-    const err = new apiErrors.ForbiddenError({
-      explanation: 'No authorization token was found.',
-    });
-    handleError(cb, err, 'ApiToken');
   }
-} // verifyToken
 
-/**
- * Get token details: username, token name from the token string.
- *
- * @param  {String} s - The token string
- * @returns {Promise} - Resolves to an object containing "username" and
- *  "tokenname" attributes.
- */
-function getTokenDetailsFromTokenString(s) {
   const err = new apiErrors.ForbiddenError({
-    explanation: 'No authorization token was found',
+    explanation: 'No authorization token was found.',
   });
-
-  if (!s) {
-    return Promise.reject(err);
-  }
-
-  return jwtVerifyAsync(s, secret, {})
-    .then((decodedData) => {
-      const username = decodedData.username;
-      const tokenname = decodedData.tokenname;
-      return { username, tokenname };
-    })
-    .catch(() => Promise.reject(err));
-} // getTokenDetailsFromTokenString
-
-/**
- * Get token details (user name and token name) from the request.
- *
- * @param {Object} req - The request object.
- * @returns {Promise} - Resolves to an object containing "username" and
- *  "tokenname" attributes.
- */
-function getTokenDetailsFromRequest(req) {
-  let t = null;
-  if (req && req.headers && req.headers.authorization) {
-    t = req.headers.authorization;
-  }
-
-  // if token is null and request from UI
-  if (!t && req.session && req.session.token) {
-    const username = req.session.passport.user.name;
-    const tokenname = '__UI';
-    return Promise.resolve({ username, tokenname });
-  }
-
-  return getTokenDetailsFromTokenString(t);
-} // getTokenDetailsFromRequest
+  return handleError(cb, err, 'ApiToken');
+} // verifyToken
 
 /**
  * Create jwt token.
  *
  * @param {string} tokenName - the name of the token
  * @param {string} userName - the name of the user
+ * @param {Object} payloadObj - optional additional info to be included in
+ * jwt claim
  * @returns {string} created token
  */
-function createToken(tokenName, userName) {
+function createToken(tokenName, userName, payloadObj) {
   const jwtClaim = {
     tokenname: tokenName,
     username: userName,
-    timestamp: Date.now,
+    timestamp: Date.now(),
   };
+
+  /**
+   * If payload not given, no additional headers are set.
+   * If payload is given, set only the headers which matches the headers in
+   * headersWithDefaults.
+   */
+  if (payloadObj) {
+    Object.keys(payloadObj).forEach((key) => {
+      if (headersWithDefaults.hasOwnProperty(key)) {
+        jwtClaim[key] = payloadObj[key];
+      }
+    });
+  }
+
   const createdToken = jwt.sign(jwtClaim, secret);
   return createdToken;
 }
@@ -264,7 +319,8 @@ function createToken(tokenName, userName) {
 module.exports = {
   verifyToken,
   createToken,
-  getTokenDetailsFromRequest,
-  getTokenDetailsFromTokenString,
   verifyCollectorToken,
+  verifyBotToken,
+  assignHeaderValues, // for testing purposes only
+  headersWithDefaults, // for testing purposes only
 };

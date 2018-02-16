@@ -27,7 +27,7 @@ const ZERO = 0;
 const u = require('./utils');
 
 describe('tests/cache/models/samples/postWithProvider.js, ' +
-`api: redisStore: POST ${path} with provider`, () => {
+`api: redisStore: POST ${path} with provider, returnUser toggle on`, () => {
   let sampleToPost;
   let token;
   const sampleName = `${tu.namePrefix}TEST_SUBJECT` + '.' +
@@ -73,11 +73,11 @@ describe('tests/cache/models/samples/postWithProvider.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('when token is provided, provider and user object is returned, and ' +
-  'such fields are also found in cache', (done) => {
+  it('provider and user object returned and fields also in cache', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(sampleToPost)
@@ -101,78 +101,6 @@ describe('tests/cache/models/samples/postWithProvider.js, ' +
         done();
       })
       .catch(done);
-    });
-  });
-
-  it('if token is NOT provided, provider and user fields are NOT returned',
-  (done) => {
-    api.post(path)
-    .send(sampleToPost)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.provider).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
-      done();
-    });
-  });
-
-  it('on invalid token, provider and user fields are NOT' +
-    ' returned', (done) => {
-    api.post(path)
-    .set('Authorization', 'iDoNotExist')
-    .send(sampleToPost)
-    .expect(constants.httpStatus.CREATED)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.provider).to.be.undefined;
-      expect(res.body.user).to.be.undefined;
-      done();
-    });
-  });
-
-  it('on revoked token, provider and user fields are returned', (done) => {
-    const tokenPath = '/v1/tokens';
-    const predefinedAdminUserToken = tu.createTokenFromUserName(adminUser.name);
-    api.post(tokenPath)
-    .set('Authorization', token)
-    .send({ name: 'newToken' })
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      const newToken = res.body.token;
-      return api.post(`${tokenPath}/${res.body.id}/revoke`)
-      .set('Authorization', predefinedAdminUserToken)
-      .send({ })
-      .end((err2, res2) => {
-        if (err2 || res2.body.errors) {
-          return done(err2);
-        }
-
-        api.post(path)
-        .set('Authorization', newToken)
-        .send(sampleToPost)
-        .expect(constants.httpStatus.CREATED)
-        .end((err3, res) => {
-          if (err3) {
-            return done(err3);
-          }
-
-          expect(res.body.provider).to.be.an('string');
-          expect(res.body.user).to.be.an('object');
-          expect(res.body.user.name).to.be.an('string');
-          expect(res.body.user.email).to.be.an('string');
-          done();
-        });
-      });
     });
   });
 });

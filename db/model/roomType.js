@@ -147,20 +147,22 @@ module.exports = function roomType(seq, dataTypes) {
             resolve();
           })
           .then(() => {
-            inst.dataValues.bots.forEach((botName) => {
-              seq.models.Bot.findOne({
-                where: {
-                  name: {
-                    $iLike: botName,
+            if (inst.dataValues.bots) {
+              inst.dataValues.bots.forEach((botName) => {
+                seq.models.Bot.findOne({
+                  where: {
+                    name: {
+                      $iLike: botName,
+                    },
                   },
-                },
-              })
-              .then((o) => {
-                inst.addBots(o)
-                .catch(reject);
+                })
+                .then((o) => {
+                  inst.addBots(o)
+                  .catch(reject);
+                });
               });
-            });
-            resolve(inst);
+              resolve(inst);
+            }
           });
         });
       }, // hooks.afterUpdate

@@ -174,8 +174,8 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         // Make sure aspects that don't have samples are *also* here
         expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
 
-        // Make sure unpublished aspects are *not* here
-        expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
+        // Make sure unpublished aspects are here
+        expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
       .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
       .then((res) => {

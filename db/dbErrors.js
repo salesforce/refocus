@@ -12,9 +12,10 @@
  * Database Error Definitions
  */
 
-const dbErrors = require('errors');
+const errors = require('errors');
 
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10010,
   name: 'FocusDatabaseError',
 });
@@ -23,102 +24,124 @@ dbErrors.create({
 // Validation Errors
 // ----------------------------------------------------------------------------
 
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10100,
   status: 400,
   name: 'ValidationError',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
   fields: [],
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10101,
   status: 400,
   name: 'MissingRequiredFieldError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   fields: [],
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10111,
   status: 400,
   name: 'InvalidProfileReassignmentError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   profile: {},
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10112,
   status: 400,
   name: 'InvalidRangeValuesError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   range: [],
   defaultMessage: 'The second element in the range must be greater than or ' +
     'equal to the first element',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10113,
   status: 400,
   name: 'InvalidRangeSizeError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   range: [],
   defaultMessage: 'A non-null range must include two elements',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10114,
   status: 400,
   name: 'ParentSubjectNotFound',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'Could not find the specified parent for this subject.',
   explanation: 'If a subject specifies that it has a parent, the parent ' +
    'subject must already exist.',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10115,
   status: 400,
   name: 'ParentSubjectNotMatch',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'The parentAbsolutePath and parentId do not match.',
   explanation: 'If a subject specifies both a parentAbsolutePath and a ' +
     'parentId, the parent specified by both fields need to have the same id.',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10116,
   status: 400,
   name: 'DuplicateBotError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'You cannot have duplicate bots in a room.',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10117,
   status: 400,
   name: 'IllegalSelfParenting',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'A subject may not be its own parent.',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10118,
   status: 400,
   name: 'SampleGeneratorContextEncryptionError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'Unable to save this Sample Generator with encrypted ' +
   'context data. Please contact your Refocus administrator to set ' +
   'up the encryption algorithm and key to protect any sensitive information ' +
   'you may include in your Sample Generator\'s context',
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10119,
   status: 400,
   name: 'DuplicateCollectorError',
-  parent: dbErrors.ValidationError,
+  parent: this.ValidationError,
   defaultMessage: 'You cannot map duplicate Collectors to a Generator.',
+});
+errors.create({
+  scope: exports,
+  code: 10120,
+  status: 400,
+  name: 'SubjectAlreadyExistsUnderParent',
+  parent: this.ValidationError,
+  defaultMessage: 'The new parent already has a subject with the same absolutePath',
+  explanation: 'If a subject specifies that it has a parent, the parent' +
+  'subject must not already have a child with the same absolutePath',
 });
 
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10200,
   status: 404,
   name: 'ResourceNotFoundError',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
   resourceType: '',
   resourceKey: '',
 });
@@ -126,31 +149,35 @@ dbErrors.create({
 // ----------------------------------------------------------------------------
 // Delete Constraint Errors
 // ----------------------------------------------------------------------------
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10300,
   status: 403,
   name: 'DeleteConstraintError',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10301,
   status: 403,
   name: 'ProfileDeleteConstraintError',
-  parent: dbErrors.DeleteConstraintError,
+  parent: this.DeleteConstraintError,
   profile: {},
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10302,
   status: 403,
   name: 'SubjectDeleteConstraintError',
-  parent: dbErrors.DeleteConstraintError,
+  parent: this.DeleteConstraintError,
   subject: {},
 });
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10303,
   status: 403,
   name: 'TokenDeleteConstraintError',
-  parent: dbErrors.DeleteConstraintError,
+  parent: this.DeleteConstraintError,
   token: {},
   defaultMessage: 'Not allowed to delete the system-created token.',
   explanation: 'Not allowed to delete the system-created token.',
@@ -159,44 +186,57 @@ dbErrors.create({
 // ----------------------------------------------------------------------------
 // Create Constraint Errors
 // ----------------------------------------------------------------------------
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10400,
   status: 403,
   name: 'CreateConstraintError',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
 });
 
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10401,
   status: 403,
   name: 'SSOConfigCreateConstraintError',
-  parent: dbErrors.CreateConstraintError,
+  parent: this.CreateConstraintError,
   subject: {},
 });
 
 // ----------------------------------------------------------------------------
 // Permission Errors
 // ----------------------------------------------------------------------------
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10500,
   status: 403,
   name: 'AdminUpdateDeleteForbidden',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
   range: [],
   defaultMessage: 'Unauthorized.',
   explanation: 'Unauthorized.',
 });
 
-dbErrors.create({
+errors.create({
+  scope: exports,
   code: 10501,
   status: 403,
   name: 'UpdateDeleteForbidden',
-  parent: dbErrors.FocusDatabaseError,
+  parent: this.FocusDatabaseError,
   range: [],
   defaultMessage: 'Unauthorized.',
   explanation: 'Unauthorized.',
 });
 
-// ----------------------------------------------------------------------------
+errors.create({
+  scope: exports,
+  code: 11400,
+  status: 403,
+  name: 'ForbiddenError',
+  parent: this.FocusDatabaseError,
+  range: [],
+  defaultMessage: 'Forbidden',
+  explanation: 'Forbidden',
+});
 
-module.exports = dbErrors;
+// ----------------------------------------------------------------------------

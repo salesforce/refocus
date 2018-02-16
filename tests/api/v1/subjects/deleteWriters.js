@@ -68,6 +68,8 @@ describe('tests/api/v1/subjects/deleteWriters.js, permissions >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
+
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 

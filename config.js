@@ -60,10 +60,14 @@ const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
   DEFAULT_CACHE_EXPIRY_IN_SECS;
 
 // request limiter settings
-const rateLimit = pe.DDOS_RATE_LIMIT;
-const rateWindow = pe.DDOS_RATE_WINDOW;
-const endpointToLimit = pe.DDOS_ENDPOINT_TO_LIMIT;
-const httpMethodToLimit = pe.DDOS_HTTP_METHOD_TO_LIMIT;
+const expressLimiterPath = configUtil.csvToArray(pe.EXPRESS_LIMITER_PATH);
+const expressLimiterMethod = configUtil.csvToArray(pe.EXPRESS_LIMITER_METHOD);
+const expressLimiterLookup =
+  configUtil.csvToArray(pe.EXPRESS_LIMITER_LOOKUP || 'headers.UserName');
+const expressLimiterTotal = pe.EXPRESS_LIMITER_TOTAL;
+const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
+const expressLimiterTotal2 = pe.EXPRESS_LIMITER_TOTAL_2;
+const expressLimiterExpire2 = pe.EXPRESS_LIMITER_EXPIRE_2;
 
 const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 
@@ -117,8 +121,6 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 // set time interval for enableQueueStatsActivityLogs
 const queueStatsActivityLogsInterval = 60000;
 
-const GET_REQUEST_DEFAULT_LIMIT = +pe.GET_REQUEST_DEFAULT_LIMIT || 10000;
-
 // encryption/decryption algorithm used for securing the context variables when
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
@@ -126,8 +128,8 @@ const encryptionAlgoForCollector = 'aes-256-cbc';
 module.exports = {
   api: {
     defaults: {
-      limit: 10,
-      offset: 10,
+      limit: +pe.GET_REQUEST_DEFAULT_LIMIT || 10000,
+      offset: 0,
     },
     swagger: {
       doc: './api/v1/swagger.yaml',
@@ -250,8 +252,13 @@ module.exports = {
   JOB_REMOVAL_BATCH_SIZE,
   JOB_COUNTER_RESET_INTERVAL,
   deprioritizeJobsFrom,
-  endpointToLimit,
-  httpMethodToLimit,
+  expressLimiterPath,
+  expressLimiterMethod,
+  expressLimiterLookup,
+  expressLimiterTotal,
+  expressLimiterExpire,
+  expressLimiterTotal2,
+  expressLimiterExpire2,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
   nodeEnv,
@@ -263,11 +270,8 @@ module.exports = {
   prioritizeJobsFrom,
   queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
-  rateLimit,
-  rateWindow,
   readReplicas,
   hiddenRoutes,
   corsRoutes,
-  GET_REQUEST_DEFAULT_LIMIT,
   encryptionAlgoForCollector,
 };

@@ -42,25 +42,6 @@ function isThisSubject(obj) {
 }
 
 /**
- * A function to see if an instance is an instance of a room
- * Checks the name from the model
- * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the name singular is room
- */
-function isRoom(obj) {
-  return obj.hasOwnProperty('type') && obj.hasOwnProperty('settings');
-}
-/**
- * A function to see if an object is a sample object or not. It returns true
- * if an object passed has 'value' as one of its property.
- * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has the property "value"
- */
-function isThisSample(obj) {
-  return obj.hasOwnProperty('value');
-} // isThisSample
-
-/**
  * Transforms and returns the stringified object.
  * If the key, i.e. the event type, ends with "update", then return the
  * stringified object with the specified key as the property and the given
@@ -153,8 +134,8 @@ function applyFilter(filterString, objValues) {
    * filterType
    */
   if (filterString) {
-    const filterComponents = filterString
-                                .split(constants.fieldTypeFieldSeparator);
+    const filterComponents =
+      filterString.split(constants.fieldTypeFieldSeparator);
 
     /*
      * When the filters are not set the size of the filterComponents array is
@@ -245,10 +226,9 @@ function perspectiveEmit(nspComponents, obj) {
  * identified by this namespace string.
  */
 function botEmit(nspComponents, obj) {
-  const room = nspComponents[constants.roomFilterIndex];
-
-  if (isRoom(obj)) {
-    return applyFilter(room, obj.name);
+  if (obj.pubOpts) {
+    const objFilter = nspComponents[obj.pubOpts.filterIndex];
+    return applyFilter(objFilter, obj[obj.pubOpts.filterField]);
   }
 
   return false;
@@ -311,13 +291,12 @@ function getPerspectiveNamespaceString(inst) {
 /**
  * When passed a room object, it returns a namespace string based on the
  * fields set in the room object.
- * @param  {Instance} inst - Perspective object
+ * @param  {Instance} inst - Room object
  * @returns {String} - namespace string.
  */
 function getBotsNamespaceString(inst) {
   let namespace = botAbsolutePath;
-
-  if (isRoom(inst)) {
+  if (inst) {
     namespace += constants.filterSeperator + inst.name;
   }
 
@@ -401,16 +380,25 @@ function isIpWhitelisted(addr, whitelist) {
  */
 function attachAspectSubject(_sample, useSampleStore, subjectModel,
   aspectModel) {
-  const sample = _sample.get ? _sample.get() : _sample;
-  let nameParts;
+  let sample;
+  let source;
+  if (_sample.get) {
+    sample = _sample.get();
+    source = 'db';
+  } else {
+    sample = _sample;
+    source = 'redis';
+  }
 
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
-    logger.error('sample object does not contain name', sample);
+    logger.error('sample coming from ', source);
+    logger.error('sample object does not contain name', JSON.stringify(sample));
+    console.trace('from attachAspectSubject');
     return Promise.resolve(null);
   }
 
-  nameParts = sample.name.split('|');
+  let nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
@@ -425,18 +413,18 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
   } else {
     const subOpts = {
       where: {
-        absolutePath: subName,
+        absolutePath: { $iLike: subName },
       },
     };
     const aspOpts = {
       where: {
-        name: aspName,
+        name: { $iLike: aspName },
       },
     };
     const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
-                              Promise.resolve(sample.aspect);
+      Promise.resolve(sample.aspect);
     const getSubjectPromise = subjectModel ? subjectModel.findOne(subOpts) :
-                              Promise.resolve(sample.subject);
+      Promise.resolve(sample.subject);
     promiseArr = [getAspectPromise, getSubjectPromise];
   }
 
@@ -449,11 +437,11 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
     delete asp.writers;
     delete sub.writers;
 
-    sample.aspect = redisStore.arrayStringsToJson(asp,
-         redisStore.constants.fieldsToStringify.aspect);
+    sample.aspect = redisStore.arrayObjsStringsToJson(asp,
+      redisStore.constants.fieldsToStringify.aspect);
 
-    sample.subject = redisStore.arrayStringsToJson(sub,
-         redisStore.constants.fieldsToStringify.subject);
+    sample.subject = redisStore.arrayObjsStringsToJson(sub,
+      redisStore.constants.fieldsToStringify.subject);
 
     /*
      * attach absolutePath field to the sample. This is done to simplify the
@@ -473,7 +461,5 @@ module.exports = {
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-  isThisSample,
-  isRoom,
   attachAspectSubject,
 }; // exports

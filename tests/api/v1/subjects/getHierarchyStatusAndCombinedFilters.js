@@ -140,6 +140,8 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -157,7 +159,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
           .to.equal('temperature');
         expect(res.body.children[0].samples[0].status)
           .to.equal('Critical');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -183,7 +185,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -253,7 +255,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -274,7 +276,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -340,7 +342,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
         .to.equal('temperature');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -362,7 +364,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -397,7 +399,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -412,7 +414,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.children).to.have.length(0);
+        expect(res.body.children).to.not.exist;
       })
       .end(done);
     });
@@ -442,7 +444,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -482,7 +484,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });

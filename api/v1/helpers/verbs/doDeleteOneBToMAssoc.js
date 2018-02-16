@@ -13,7 +13,6 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const featureToggles = require('feature-toggles');
 
 /**
  * Deletes the associated record of the model which is identified by the

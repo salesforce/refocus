@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
-const authUtils = require('../helpers/authUtils');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
@@ -34,10 +33,12 @@ const kue = kueSetup.kue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
 const redisCache = require('../../../cache/redisCache').client.cache;
+const RADIX = 10;
+const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 
 /**
- * Find sample from samplestore. If cache is on then
- * cache the response as well.
+ * Find sample (from redis sample store). If cache is on then cache the
+ * response as well.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -46,10 +47,17 @@ const redisCache = require('../../../cache/redisCache').client.cache;
  * @param {String} cacheKey - Cache Key
  * @param {Integer} cacheExpiry -  Cache expiry time
  */
-function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
-  redisModelSample.findSamples(req, res, resultObj)
+function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
+  redisModelSample.findSamples(req, res)
   .then((response) => {
-    // loop through remove values to delete property
+    /*
+     * Record the "dbTime" (time spent retrieving the records from the sample
+     * store).
+     */
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    /* Add response header with record count. */
+    res.set(COUNT_HEADER_NAME, response.length);
+    /* Delete any attributes designated for exclusion from the response. */
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
         u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
@@ -66,7 +74,7 @@ function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExp
     res.status(httpStatus.OK).json(response);
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
-}
+} // doFindSample
 
 module.exports = {
 
@@ -86,21 +94,29 @@ module.exports = {
   /**
    * GET /samples
    *
-   * Finds zero or more samples and sends them back in the response.
+   * Finds zero or more samples and sends them back in the response. Sample
+   * response for wildcard name query may be cached.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    // Check if Cache is on for Wildcard Sample query
-    if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
-      const query = req.query.name;
-      helper.cacheEnabled = query && (query.indexOf('*') > -1);
-      helper.cacheKey = helper.cacheEnabled ? query : null;
-      helper.cacheExpiry = helper.cacheEnabled ?
-        parseInt(getSamplesWildcardCacheInvalidation) : null;
+    // Use cache for wildcard sample query
+    const query = req.query.name;
+    helper.cacheEnabled = query && (query.indexOf('*') > -1);
+    helper.cacheKey = helper.cacheEnabled ? query : null;
+
+    /*
+     * Include field list as part of cache key so that we only use a cached
+     * response if it has the same field list.
+     */
+    if (helper.cacheKey && req.query.fields) {
+      helper.cacheKey += '|' + req.query.fields;
     }
+
+    helper.cacheExpiry = helper.cacheEnabled ?
+      parseInt(getSamplesWildcardCacheInvalidation, RADIX) : null;
 
     // Check if Sample Store is on or not
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
@@ -108,16 +124,15 @@ module.exports = {
       if (helper.cacheEnabled) {
         redisCache.get(helper.cacheKey, (cacheErr, reply) => {
           if (cacheErr || !reply) {
-            doFindSampleStoreResponse(req, res,
-             next, resultObj, helper.cacheKey, helper.cacheExpiry);
+            doFindSample(req, res, next, resultObj, helper.cacheKey,
+              helper.cacheExpiry);
           } else {
             u.logAPI(req, resultObj, reply); // audit log
             res.status(httpStatus.OK).json(JSON.parse(reply));
           }
         });
       } else {
-        doFindSampleStoreResponse(req, res,
-          next, resultObj);
+        doFindSample(req, res, next, resultObj);
       }
     } else {
       doFind(req, res, next, helper);
@@ -188,9 +203,10 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      const userName = req.user ? req.user.name : undefined;
+      redisModelSample.patchSample(req.swagger.params, userName)
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+        res))
       .catch((err) => // the sample is write protected
         u.handleError(next, err, helper.modelName)
       );
@@ -217,21 +233,16 @@ module.exports = {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     let createdSample;
     u.checkDuplicateRLinks(toPost.relatedLinks);
-    authUtils.getUser(req)
-    .then((user) => {
-      if (isSampleStoreEnabled) {
-        return isReturnUserEnabled ? redisModelSample.postSample(reqParams,
-         user) : redisModelSample.postSample(reqParams, false);
-      }
+    let createSample;
+    if (isSampleStoreEnabled) {
+      createSample = isReturnUserEnabled ? redisModelSample.postSample(reqParams,
+       req.user) : redisModelSample.postSample(reqParams, false);
+    } else {
+      createSample = isReturnUserEnabled ? helper.model.createSample(toPost,
+      req.user) : helper.model.createSample(toPost, false);
+    }
 
-      return isReturnUserEnabled ? helper.model.createSample(toPost, user) :
-        helper.model.createSample(toPost, false);
-    })/*
-       * if an error is throw by the getUser promise, create the sample
-       * without the user
-       */
-    .catch(() => isSampleStoreEnabled ? redisModelSample.postSample(reqParams,
-        false) : helper.model.createSample(toPost, false))
+    createSample
     .then((sample) => {
       createdSample = sample;
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
@@ -243,7 +254,7 @@ module.exports = {
         u.responsify(createdSample, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+  }, // postSample
 
   /**
    * PUT /samples/{key}
@@ -265,9 +276,10 @@ module.exports = {
         u.checkDuplicateRLinks(rLinks);
       }
 
-      u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.putSample(req.swagger.params, user))
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+      const userName = req.user ? req.user.name : undefined;
+      redisModelSample.putSample(req.swagger.params, userName)
+      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+        res))
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doPut(req, res, next, helper);
@@ -313,10 +325,8 @@ module.exports = {
 
       const upsertSamplePromise =
           featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.upsertSample(
-              sampleQueryBody, user) :
+          redisModelSample.upsertSample(sampleQueryBody, user) :
           helper.model.upsertByName(sampleQueryBody, user);
-
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -328,14 +338,10 @@ module.exports = {
         }
 
         /*
-         *send the upserted sample to the client by publishing it to the redis
-         *channel
+         * Send the upserted sample to the client by publishing it to the redis
+         * channel.
          */
-        if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-          publisher.publishPartialSample(samp);
-        } else {
-          publisher.publishSample(samp, subHelper.model);
-        }
+        publisher.publishSample(samp, subHelper.model);
 
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
@@ -343,20 +349,9 @@ module.exports = {
       });
     }
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      doUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    )
-    .catch(() => // user is not found. upsert anyway with no user
-      doUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
-  },
+    return doUpsert(req.user)
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // upsertSample
 
   /**
    * POST /samples/upsert/bulk
@@ -412,7 +407,7 @@ module.exports = {
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const sampleModel =
-        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
+          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample : helper.model;
 
         /*
@@ -423,11 +418,7 @@ module.exports = {
         .then((samples) => {
           samples.forEach((sample) => {
             if (!sample.isFailed) {
-              if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-                publisher.publishPartialSample(sample);
-              } else {
-                publisher.publishSample(sample, subHelper.model);
-              }
+              publisher.publishSample(sample, subHelper.model);
             }
           });
         });
@@ -436,19 +427,9 @@ module.exports = {
       }
     }
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      bulkUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    ).catch(() => // user is not found. upsert anyway with no user
-      bulkUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
-  },
+    return bulkUpsert(req.user)
+    .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // bulkUpsertSample
 
   /**
    * DELETE /v1/samples/{key}/relatedLinks/
@@ -466,8 +447,9 @@ module.exports = {
     const params = req.swagger.params;
     let delRlinksPromise;
     if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      delRlinksPromise = u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
+      const userName = req.user ? req.user.name : undefined;
+      delRlinksPromise =
+        redisModelSample.deleteSampleRelatedLinks(params, userName);
     } else {
       delRlinksPromise = u.findByKey(helper, params)
         .then((o) => u.isWritable(req, o))

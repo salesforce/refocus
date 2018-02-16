@@ -98,6 +98,7 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('createdAt and updatedAt fields have the expected format', (done) => {

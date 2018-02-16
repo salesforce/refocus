@@ -52,10 +52,11 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -76,9 +77,51 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       }
 
       expect(res.body.collectors.length).to.equal(THREE);
-      const collectorNames = res.body.collectors.map((collector) => collector.name);
+      const collectorNames = res.body.collectors.map((collector) =>
+        collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
-      done();
+      return done();
+    });
+  });
+
+  it('GETing a generator after posting should have its collector ' +
+    'array sorted', (done) => {
+    const _generator = JSON.parse(JSON.stringify(generator));
+    _generator.name = 'generatorForPosting';
+    _generator.collectors = [
+      collector1.name,
+      collector2.name,
+      collector3.name,
+    ];
+    api.post(path)
+    .set('Authorization', token)
+    .send(_generator)
+    .expect(constants.httpStatus.CREATED)
+    .then(() => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body).to.have.lengthOf(TWO);
+        const firstGenerator = res.body[ZERO];
+        expect(firstGenerator.collectors.length).to.equal(THREE);
+        let collectorNames = firstGenerator.collectors.map((collector) =>
+          collector.name);
+        expect(collectorNames).to.deep.equal(sortedNames);
+        expect(firstGenerator.id).to.not.equal(undefined);
+        const secondGenerator = res.body[ONE];
+        expect(secondGenerator.collectors.length).to.equal(THREE);
+
+        collectorNames = secondGenerator.collectors.map((collector) =>
+          collector.name);
+        expect(collectorNames).to.deep.equal(sortedNames);
+        expect(secondGenerator.id).to.not.equal(undefined);
+        return done();
+      });
     });
   });
 
@@ -97,7 +140,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
-      done();
+      return done();
     });
   });
 
@@ -116,7 +159,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
-      done();
+      return done();
     });
   });
 });

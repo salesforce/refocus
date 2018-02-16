@@ -75,6 +75,8 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -382,6 +384,38 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
       expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
+    });
+  });
+
+  it('fail if a subject with the new absolutePath already exists', (done) => {
+    const NEW_NAME = 'newName';
+    api.patch(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      parentAbsolutePath: _root.name,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.patch(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
+        done();
+      });
     });
   });
 

@@ -29,7 +29,6 @@ const u = require('./utils');
 function doPut(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const toPut = req.swagger.params.queryBody.value;
-  let instance;
   const puttableFields =
     req.swagger.params.queryBody.schema.schema.properties;
 

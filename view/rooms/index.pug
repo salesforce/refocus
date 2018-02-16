@@ -29,9 +29,11 @@ html
             .slds-spinner__dot-a
             .slds-spinner__dot-b
 
+  script(src='/static/scripts/socket.io.js')
   script(src='/static/scripts/jquery-1.11.1.min.js')
   script(src='/static/scripts/moment.min.js')
   script.
     var trackingId = '#{trackingId}';
+    var user = '#{user}';
   script(src='/static/analytics/app.js')
   script(src='/static/rooms/app.js')

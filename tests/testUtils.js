@@ -19,6 +19,8 @@ const db = require('../db');
 const testStartTime = new Date();
 const userName = `${pfx}testUser@refocus.com`;
 const featureToggles = require('feature-toggles');
+const adminUser = require('../config').db.adminUser;
+const adminProfile = require('../config').db.adminProfile;
 
 /**
  * Performs a regex test on the key to determine whether it looks like a
@@ -131,17 +133,13 @@ module.exports = {
   // create user and corresponding token to be used in api tests.
   // returns both the user and the token object
   createUserAndToken() {
-    return db.Profile.create({
-      name: `${pfx}testProfile`,
-    })
-    .then((createdProfile) =>
-      db.User.create({
-        profileId: createdProfile.id,
-        name: userName,
-        email: userName,
-        password: 'user123password',
-      })
-    )
+    return db.Profile.create({ name: `${pfx}testProfile` })
+    .then((createdProfile) => db.User.create({
+      profileId: createdProfile.id,
+      name: userName,
+      email: userName,
+      password: 'user123password',
+    }))
     .then((user) => {
       const obj = { user };
       obj.token = jwtUtil.createToken(userName, userName);
@@ -151,38 +149,40 @@ module.exports = {
 
   // create user object from a given user name
   createUser(usrName) {
-    return db.Profile.create({
-      name: `${pfx}` + usrName + 'profile',
-    })
-    .then((createdProfile) =>
-      db.User.create({
-        profileId: createdProfile.id,
-        name: `${pfx}` + usrName,
-        email: usrName + '@' + usrName + '.com',
-        password: usrName,
-      })
-    );
+    return db.Profile.create({ name: `${pfx}` + usrName + 'profile' })
+    .then((createdProfile) => db.User.create({
+      profileId: createdProfile.id,
+      name: `${pfx}` + usrName,
+      email: usrName + '@' + usrName + '.com',
+      password: usrName,
+    }));
   },
 
   // create user and corresponding token to be used in api tests.
   createToken() {
-    return db.Profile.create({
-      name: `${pfx}testProfile`,
-    })
-    .then((createdProfile) =>
-      db.User.create({
-        profileId: createdProfile.id,
-        name: userName,
-        email: userName,
-        password: 'user123password',
-      })
-    )
+    return db.Profile.create({ name: `${pfx}testProfile` })
+    .then((createdProfile) => db.User.create({
+      profileId: createdProfile.id,
+      name: userName,
+      email: userName,
+      password: 'user123password',
+    }))
     .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
+
+  // create admin token
+  createAdminToken() {
+    return jwtUtil.createToken(
+      adminUser.name,
+      adminUser.name,
+      { IsAdmin: true, ProfileName: adminProfile.name }
+    );
+  }, // createAdminToken
 
   // delete user
   forceDeleteUser(done) {
     forceDelete(db.User, testStartTime)
+    .then(() => forceDelete(db.Token, testStartTime))
     .then(() => forceDelete(db.Profile, testStartTime))
     .then(() => done())
     .catch(done);

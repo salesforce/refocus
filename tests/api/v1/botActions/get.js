@@ -130,6 +130,62 @@ describe('tests/api/v1/botActions/get.js >', () => {
     });
   });
 
+  it('Pass, get by botId', (done) => {
+    api.get(`${path}?botId=${testBotAction.botId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('Fail, get by botId', (done) => {
+    api.get(`${path}?botId=NOT_FOUND`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('Pass, get by roomId', (done) => {
+    api.get(`${path}?roomId=${testBotAction.roomId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('Fail, get by roomId', (done) => {
+    api.get(`${path}?roomId=NOT_FOUND`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('Pass, get by roomId and botId', (done) => {
+    api.get(`${path}?roomId=${testBotAction.roomId}&botId=${testBotAction.botId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
   it('Pass, get by name', (done) => {
     api.get(`${path}?name=${u.name}`)
     .set('Authorization', token)

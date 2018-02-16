@@ -31,7 +31,13 @@ const GENERATOR_TEMPLATE_SIMPLE = {
     url: 'http://www.bbb.com',
     bulk: false,
   },
-  transform: 'function...',
+  transform: { default: 'return [{ name: "S1|A1", value: 10 }, ' +
+    '{ name: "S2|A1", value: 2 }] ',
+    errorHandlers: {
+      404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },' +
+      ' { name: "S2|A1", messageBody: "NOT FOUND" }]',
+    },
+  },
   isPublished: true,
   helpEmail: 'a@aaa.com',
   helpUrl: 'aaa.com',
