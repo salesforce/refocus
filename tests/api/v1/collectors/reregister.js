@@ -59,7 +59,7 @@ describe('tests/api/v1/collectors/reregister.js >', () => {
 
   beforeEach((done) => {
     Promise.resolve()
-    .then(() => postCollector(u.toCreate))
+    .then(() => postCollector(u.getCollectorToCreate()))
     .then(() => done()).catch(done);
   });
 
