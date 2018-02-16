@@ -25,23 +25,16 @@ const NOCHANGE = 0;
  * generator ids
  */
 function getChangedIds(collectorName) {
-  return new Promise((resolve, reject) =>
-    redisClient.multi()
-    .smembers(getKey(collectorName, ADDED))
-    .smembers(getKey(collectorName, DELETED))
-    .smembers(getKey(collectorName, UPDATED))
-    .exec((err, replies) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({
-          added: replies[0],
-          deleted: replies[1],
-          updated: replies[2],
-        });
-      }
-    })
-  );
+  return redisClient.multi()
+  .smembers(getKey(collectorName, ADDED))
+  .smembers(getKey(collectorName, DELETED))
+  .smembers(getKey(collectorName, UPDATED))
+  .execAsync()
+  .then((replies) => ({
+    added: replies[0],
+    deleted: replies[1],
+    updated: replies[2],
+  }));
 }
 
 /**
