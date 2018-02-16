@@ -12,7 +12,6 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
-
 const ZERO = 0;
 const ONE = 1;
 const botsContainer = document.getElementById('botsContainer');
@@ -60,7 +59,6 @@ function createHeader(bot) {
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
-
   text.innerHTML = bot.name;
 
   const circle = document.createElement('div');
@@ -102,31 +100,11 @@ function createFooter(bot) {
     'slds-theme_shade ';
 
   linkedElement.href = bot.url;
-
-  linkedElement.setAttribute(
-    'target',
-    '_blank'
-  );
-
-  linkedElement.setAttribute(
-    'rel',
-    'noopener noreferrer'
-  );
-
-  gitHubImage.setAttribute(
-    'height',
-    '20'
-  );
-
-  gitHubImage.setAttribute(
-    'width',
-    '20'
-  );
-
-  gitHubImage.setAttribute(
-    'src',
-    gitHubLogo
-  );
+  linkedElement.target = '_blank';
+  linkedElement.rel = 'noopener noreferrer';
+  gitHubImage.height = '20';
+  gitHubImage.width = '20';
+  gitHubImage.src = gitHubLogo;
 
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
@@ -167,7 +145,6 @@ function parseBot(bot) {
     headerSection.appendChild(contentSection);
     headerSection.appendChild(footerSection);
     botContainer.appendChild(headerSection);
-
     botsContainer.appendChild(botContainer);
   }
 
