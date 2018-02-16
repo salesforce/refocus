@@ -17,6 +17,13 @@ html
           div.slds-cols.slds-has-flexi-truncate
             div.slds-media.slds-no-space.slds-grow
               div.slds-media__body
+                div.slds-form-element(style='float: right')
+                  label.slds-checkbox_toggle.slds-grid
+                    input#activeToggle(type='checkbox', checked)
+                    span.slds-checkbox_faux_container
+                      span.slds-checkbox_faux
+                      span.slds-checkbox_on.slds-text-align--center Active
+                      span.slds-checkbox_off.slds-text-align--center Closed
                 h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
                 p#subTitle.slds-text-body_small.slds-line-height_reset
     block container

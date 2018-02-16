@@ -265,7 +265,16 @@ function setupSocketIOClient(bots) {
   });
 } // setupSocketIOClient
 
+function aaa() {
+  console.log("hereeeeee");
+}
+
 window.onload = () => {
+  const a = document.getElementById('activeToggle');
+  console.log(a);
+  a.addEventListener('click' , aaa);
+
+
   // Note: this is declared in index.pug:
   _io = io;
   _user = JSON.parse(user.replace(/&quot;/g, '"'));
