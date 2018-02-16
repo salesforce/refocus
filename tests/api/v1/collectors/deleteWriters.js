@@ -38,7 +38,7 @@ describe('tests/api/v1/collectors/deleteWriters.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
+    Collector.create(u.getCollectorToCreate())
     .then((c) => {
       coll = c;
     })

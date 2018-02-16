@@ -15,28 +15,60 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Collector = tu.db.Collector;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const sgUtils = require('../generator/utils');
+const gtUtil = sgUtils.gtUtil;
 
 describe('tests/db/model/collector/find.js >', () => {
   let userId;
-  let collectorDb;
-  beforeEach((done) => {
-    tu.createUser('testUser')
+  let collectorInst1;
+  let collectorInst2;
+  let generator1;
+  let generator2;
+
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  before((done) => {
+    GeneratorTemplate.create(generatorTemplate)
+    .then(() => tu.createUser('testUser'))
     .then((user) => {
       userId = user.id;
-      u.collectorObj.createdBy = user.id;
-      return Collector.create(u.collectorObj);
+      const c = u.getCollectorObj();
+      c.createdBy = user.id;
+      return Collector.create(c);
     })
     .then((c) => {
-      collectorDb = c;
+      collectorInst1 = c;
+      const gen = sgUtils.getGenerator();
+      gen.name += 'generator-1';
+      return Generator.create(gen);
+    })
+    .then((g1) => {
+      generator1 = g1;
+      const gen = sgUtils.getGenerator();
+      gen.name += 'generator-2';
+      return Generator.create(gen);
+    })
+    .then((g2) => {
+      generator2 = g2;
+      return collectorInst1.addCurrentGenerators([generator1, generator2]);
+    })
+    .then(() => {
+      const c = u.getCollectorObj();
+      c.name += 'secondCollector';
+      return Collector.create(c);
+    })
+    .then((c) => {
+      collectorInst2 = c;
       done();
     })
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('Find by Id', (done) => {
-    Collector.findById(collectorDb.id)
+    Collector.findById(collectorInst1.id)
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
@@ -56,8 +88,32 @@ describe('tests/db/model/collector/find.js >', () => {
     .catch(done);
   });
 
+  it('Collector Instance with related generators', (done) => {
+    collectorInst1.getCurrentGenerators()
+    .then((generators) => {
+      expect(generators).to.have.lengthOf(2);
+      const sg1 = generators.filter((gen) =>
+        gen.dataValues.name === generator1.name)[0].dataValues;
+      const sg2 = generators.filter((gen) =>
+        gen.dataValues.name === generator2.name)[0].dataValues;
+      expect(sg1.id).to.include(generator1.id);
+      expect(sg2.id).to.include(generator2.id);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Collector Instance without generators ', (done) => {
+    collectorInst2.getCurrentGenerators()
+    .then((generators) => {
+      expect(generators).to.have.lengthOf(0);
+      done();
+    })
+    .catch(done);
+  });
+
   it('Find, using where', (done) => {
-    Collector.findOne({ where: { id: collectorDb.id } })
+    Collector.findOne({ where: { id: collectorInst1.id } })
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
@@ -79,9 +135,10 @@ describe('tests/db/model/collector/find.js >', () => {
 
   it('Find all', (done) => {
     Collector.findAll()
-    .then((objs) => {
-      expect(objs.length).to.be.equal(1);
-      const obj = objs[0];
+    .then((collectors) => {
+      expect(collectors.length).to.be.equal(2);
+      const obj = collectors.filter((c) => c.name === '___Collector')[0]
+        .dataValues;
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
       expect(obj.status).to.be.equal('Stopped');

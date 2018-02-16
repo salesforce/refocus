@@ -73,7 +73,7 @@ function createSGtoSGTMapping(sgt, sg) {
  * @returns {Object} - Generator object
  */
 function getGenerator() {
-  return GENERATOR_SIMPLE;
+  return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
 module.exports = {
