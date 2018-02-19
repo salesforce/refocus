@@ -35,7 +35,7 @@ describe('tests/api/v1/collectors/patch.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
+    Collector.create(u.getCollectorToCreate())
     .then((c) => {
       collectorToken = jwtUtil.createToken(c.name, c.name);
       i = c.id;
