@@ -57,9 +57,9 @@ const context = {
   otherNonSecretInformation,
 };
 
-const collector1 = JSON.parse(JSON.stringify(u.toCreate));
-const collector2 = JSON.parse(JSON.stringify(u.toCreate));
-const collector3 = JSON.parse(JSON.stringify(u.toCreate));
+const collector1 = u.getCollectorToCreate();
+const collector2 = u.getCollectorToCreate();
+const collector3 = u.getCollectorToCreate();
 collector1.name += '1';
 collector2.name += '2';
 collector3.name += '3';
@@ -234,7 +234,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     });
 
     describe('return collector status in heartbeat', () => {
-      const _localCollector = JSON.parse(JSON.stringify(u.toCreate));
+      const _localCollector = u.getCollectorToCreate();
       _localCollector.name += 'collectorForStateChange';
 
       afterEach((done) => {
@@ -294,7 +294,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
       describe('make sure updating a nonexistent collector doesnt modify ' +
       'the collectorMap', () => {
-        const collector4 = JSON.parse(JSON.stringify(u.toCreate));
+        const collector4 = u.getCollectorToCreate();
         collector4.name += '4';
         afterEach((done) => {
           Collector.destroy({ where: { name: collector4.name }, force: true });
