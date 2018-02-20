@@ -265,15 +265,20 @@ function setupSocketIOClient(bots) {
   });
 } // setupSocketIOClient
 
+function activeToggleHandler(evt) {
+  const data = { active: evt.target.checked };
+  u.patchPromiseWithUrl(GET_ROOM, data);
+  document.dispatchEvent(new CustomEvent('activeToggle'));
+}
+
 function aaa() {
-  console.log("hereeeeee");
+  console.log("herrreeee");
 }
 
 window.onload = () => {
-  const a = document.getElementById('activeToggle');
-  console.log(a);
-  a.addEventListener('click' , aaa);
-
+  const activeToggle = document.getElementById('activeToggle');
+  activeToggle.addEventListener('click', activeToggleHandler);
+  document.addEventListener('activeToggle', aaa);
 
   // Note: this is declared in index.pug:
   _io = io;
@@ -283,6 +288,7 @@ window.onload = () => {
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     _roomName = res.body.name;
+    activeToggle.checked = res.body.active;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {

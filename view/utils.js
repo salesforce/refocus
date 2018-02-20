@@ -114,10 +114,31 @@ function getPromiseWithUrl(url) {
   });
 } // getPromiseWithUrl
 
+/**
+ * @param {String} url The url to get from
+ * @returns {Promise} For use in chaining.
+ */
+function patchPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.patch(url)
+    .set(REQ_HEADERS)
+    .send(data)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // patchPromiseWithUrl
+
 module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
   removeSpinner,
   getPromiseWithUrl,
+  patchPromiseWithUrl,
 };
