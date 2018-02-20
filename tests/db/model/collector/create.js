@@ -19,11 +19,11 @@ describe('tests/db/model/collector/create.js >', () => {
   let userId;
   let collectorObj;
   beforeEach((done) => {
+    collectorObj = u.getCollectorObj();
     tu.createUser('testUser')
     .then((user) => {
       userId = user.id;
-      u.collectorObj.createdBy = user.id;
-      collectorObj = JSON.parse(JSON.stringify(u.collectorObj));
+      collectorObj.createdBy = user.id;
       done();
     })
     .catch(done);
@@ -93,7 +93,6 @@ describe('tests/db/model/collector/create.js >', () => {
 
   it('Create collector, error if invalid email', (done) => {
     collectorObj.helpEmail = 'NotAnEmail';
-
     Collector.create(collectorObj)
     .then(() => done(tu.valError))
     .catch((err) => {

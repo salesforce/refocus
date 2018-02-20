@@ -16,6 +16,16 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const collectorToCreate =  {
+  name: tu.namePrefix + 'Coll',
+  description: 'This is my collector description.',
+  helpEmail: 'a@bcd.com',
+  helpUrl: 'a.bcd.com',
+  host: 'a.bcd',
+  ipAddress: '127.0.0.1',
+  version: '1.0.0',
+};
+
 const expectedProps = [
   'aspects', 'collectors', 'connection', 'context',
   'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id', 'name',
@@ -156,6 +166,14 @@ function expectLengths(expected, res) {
   expect(generatorsUpdated).to.be.an('array').with.lengthOf(updated);
 }
 
+/**
+ * Return a new copy of a collector object
+ * @returns {Object} - collector object
+ */
+function getCollectorToCreate() {
+  return JSON.parse(JSON.stringify(collectorToCreate));
+}
+
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Collector, testStartTime)
@@ -168,6 +186,7 @@ module.exports = {
 
   expectLengths,
   getCollector,
+  getCollectorToCreate,
   patchGenerator,
   pauseCollector,
   postGenerator,
@@ -176,13 +195,5 @@ module.exports = {
   sendHeartbeat,
   startCollector,
   stopCollector,
-  toCreate: {
-    name: tu.namePrefix + 'Coll',
-    description: 'This is my collector description.',
-    helpEmail: 'a@bcd.com',
-    helpUrl: 'a.bcd.com',
-    host: 'a.bcd',
-    ipAddress: '127.0.0.1',
-    version: '1.0.0',
-  },
+
 };

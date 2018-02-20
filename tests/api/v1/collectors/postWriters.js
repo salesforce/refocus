@@ -39,7 +39,7 @@ describe('tests/api/v1/collectors/postWriters.js >', () => {
   });
 
   before((done) => {
-    Collector.create(u.toCreate)
+    Collector.create(u.getCollectorToCreate())
     .then((c) => {
       coll = c;
     })
