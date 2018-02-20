@@ -66,6 +66,7 @@ subBot.subscribe(rconf.botChannelName);
 
 const client = {
   cache: redis.createClient(rconf.instanceUrl.cache, opts),
+  heartbeat: redis.createClient(rconf.instanceUrl.heartbeat, opts),
   limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
   pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective, opts),
   pubBot: redis.createClient(rconf.instanceUrl.pubsubBots, opts),

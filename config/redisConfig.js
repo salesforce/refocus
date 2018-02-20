@@ -30,6 +30,12 @@ module.exports = {
       pe[pe.REDIS_CACHE] : PRIMARY_REDIS,
 
     /*
+     * Track generator changes to be sent in collector heartbeat response.
+     */
+    heartbeat: pe.REDIS_HEARTBEAT && pe[pe.REDIS_HEARTBEAT] ?
+      pe[pe.REDIS_HEARTBEAT] : PRIMARY_REDIS,
+
+    /*
      * Keys for tracking rate limiter activity
      */
     limiter: pe.REDIS_LIMITER && pe[pe.REDIS_LIMITER] ?
