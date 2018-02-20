@@ -22,6 +22,7 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
+const GITHUB_LOGO = 'https://image.flaticon.com/icons/svg/25/25231.svg';
 let _io;
 let _user;
 let _roomName;
@@ -99,7 +100,7 @@ function createFooter(bot) {
   const footer = document.createElement('h3');
   const linkedElement = document.createElement('a');
   const gitHubImage = document.createElement('img');
-  const gitHubLogo = 'https://image.flaticon.com/icons/svg/25/25231.svg';
+
   footer.className =
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
@@ -110,7 +111,7 @@ function createFooter(bot) {
   linkedElement.rel = 'noopener noreferrer';
   gitHubImage.height = '20';
   gitHubImage.width = '20';
-  gitHubImage.src = gitHubLogo;
+  gitHubImage.src = GITHUB_LOGO;
 
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
