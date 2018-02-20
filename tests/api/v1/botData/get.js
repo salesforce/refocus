@@ -57,6 +57,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     })
     .then((bot) => {
       testBotData.botId = bot.id;
+      testBotData.botName = bot.name;
       return BotData.create(testBotData);
     })
     .then((botData) => {
@@ -201,7 +202,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     })
     .then(() => {
       api.get(
-        `/v1/rooms/${testBotData.roomId}/bots/${bot.name}/data`
+        `/v1/rooms/${testBotData.roomId}/bots/${testBotData.botName}/data`
       )
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -234,6 +235,20 @@ describe('tests/api/v1/botData/get.js >', () => {
 
   it('Pass, get by botId', (done) => {
     api.get(`${path}?botId=${testBotData.botId}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('Pass, get by bot name', (done) => {
+    api.get(`${path}?botId=${testBotData.botName}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
