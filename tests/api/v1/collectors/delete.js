@@ -34,7 +34,7 @@ describe('tests/api/v1/collectors/delete.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
+    Collector.create(u.getCollectorToCreate())
     .then((c) => {
       cid = c.id;
       done();
