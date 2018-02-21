@@ -22,7 +22,7 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
-const GITHUB_LOGO = 'https://image.flaticon.com/icons/svg/25/25231.svg';
+const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 let _io;
 let _user;
 let _roomName;
