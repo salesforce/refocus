@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const Promise = require('bluebird');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -30,6 +31,7 @@ const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
+const Generator = require('../../../db/index').Generator;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
 
@@ -226,6 +228,8 @@ function heartbeat(req, res, next) {
   const authToken = req.headers.authorization;
   const timestamp = req.body.timestamp;
   const collectorNameFromToken = req.headers.UserName;
+  let collectorName;
+
   const retval = {
     collectorConfig: config.collector,
     generatorsAdded: [],
@@ -235,6 +239,8 @@ function heartbeat(req, res, next) {
 
   u.findByKey(helper, req.swagger.params)
   .then((o) => {
+    collectorName = o.name;
+
     /*
      * TODO: remove this 'if block', once spoofing between collectors can be
      * detected and rejected in the middleware.
@@ -250,14 +256,6 @@ function heartbeat(req, res, next) {
     }
 
     retval.collectorConfig.status = o.status;
-
-    // setup retval
-    if (heartbeatUtils.collectorMap[o.name]) {
-      retval.generatorsAdded = heartbeatUtils.collectorMap[o.name].added;
-      retval.generatorsDeleted = heartbeatUtils.collectorMap[o.name].deleted;
-      retval.generatorsUpdated = heartbeatUtils.collectorMap[o.name].updated;
-      delete heartbeatUtils.collectorMap[o.name];
-    }
 
     // set lastHeartbeat
     o.set('lastHeartbeat', timestamp);
@@ -284,6 +282,28 @@ function heartbeat(req, res, next) {
 
     return o.save();
   })
+
+  // get the ids for changed generators
+  .then(() => heartbeatUtils.getChangedIds(collectorName))
+
+  // find the generator objects for the changed ids
+  .then((changedIds) => Promise.all(
+    ['added', 'deleted', 'updated'].map((changeType) => {
+      const ids = changedIds[changeType];
+      const where = { where: { id: ids } };
+      return ids.length ? Generator.findAll(where) : Promise.resolve([]);
+    })
+  ))
+
+  // assign the changed generators to retval
+  .then((generators) => {
+    retval.generatorsAdded = generators[0].map(g => g.get());
+    retval.generatorsDeleted = generators[1].map(g => g.get());
+    retval.generatorsUpdated = generators[2].map(g => g.get());
+  })
+
+  // reset the tracked changes for this collector
+  .then(() => heartbeatUtils.resetChanges(collectorName))
 
   // re-encrypt context values for added and updated generators
   .then(() => Promise.all(
