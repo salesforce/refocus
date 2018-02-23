@@ -22,7 +22,7 @@ const expect = require('chai').expect;
 describe('tests/api/v1/collectors/get.js >', () => {
   let token;
   let cid;
-
+  const collectorObj = u.getCollectorToCreate();
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -33,7 +33,7 @@ describe('tests/api/v1/collectors/get.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
+    Collector.create(collectorObj)
     .then((c) => {
       cid = c.id;
       done();
@@ -45,7 +45,7 @@ describe('tests/api/v1/collectors/get.js >', () => {
   after(tu.forceDeleteUser);
 
   it('get by name ok', (done) => {
-    api.get(path + '/' + u.toCreate.name)
+    api.get(path + '/' + collectorObj.name)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
@@ -75,7 +75,7 @@ describe('tests/api/v1/collectors/get.js >', () => {
   });
 
   it('get with limit ok', (done) => {
-    const c2 = u.toCreate;
+    const c2 = u.getCollectorToCreate();
     c2.name = c2.name + '2';
     Collector.create(c2)
     .then(() => {

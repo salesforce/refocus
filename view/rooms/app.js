@@ -29,6 +29,7 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
+const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 let _io;
 let _user;
 let _roomName;
@@ -101,13 +102,17 @@ function createHeader(bot) {
  * Creates footers for each bot added to the UI
  *
  * @param {Object} bot - Bot response with UI
+<<<<<<< HEAD
  * @returns {DOM} section - Footer section
+=======
+ * @returns {DOM} footer - Footer section
+>>>>>>> 286fd077077ed10a485748bcdf238768a31b8812
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
   const linkedElement = document.createElement('a');
   const gitHubImage = document.createElement('img');
-  const gitHubLogo = 'https://image.flaticon.com/icons/svg/25/25231.svg';
+
   footer.className =
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
@@ -118,8 +123,7 @@ function createFooter(bot) {
   linkedElement.rel = 'noopener noreferrer';
   gitHubImage.height = '20';
   gitHubImage.width = '20';
-  gitHubImage.src = gitHubLogo;
-
+  gitHubImage.src = GITHUB_LOGO;
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
 
