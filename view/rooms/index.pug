@@ -35,6 +35,18 @@ html
             span.slds-assistive-text Loading
             .slds-spinner__dot-a
             .slds-spinner__dot-b
+    block activeToggleConfirmation
+      div#toggle_confirmation_modal(style='display: none')
+        section.slds-modal.slds-fade-in-open.slds-modal_prompt
+          div.slds-modal__container
+            header.slds-modal__header.slds-theme_info.slds-theme_alert-texture
+              h2.slds-text-heading_medium Confirmation Required
+            div.slds-modal__content.slds-p-around_medium
+              p#confirmation_text
+            footer.slds-modal__footer.slds-theme_default
+              button#confirmed_active_state_change.slds-button.slds-button_neutral Yes
+              button#declined_active_state_change.slds-button.slds-button_neutral Cancel
+        div.slds-backdrop.slds-backdrop_open
 
   script(src='/static/scripts/socket.io.js')
   script(src='/static/scripts/jquery-1.11.1.min.js')

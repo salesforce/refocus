@@ -134,6 +134,24 @@ function patchPromiseWithUrl(url, data) {
   });
 } // patchPromiseWithUrl
 
+
+function postPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.post(url)
+      .set(REQ_HEADERS)
+      .send(data)
+      .end((error, response) => {
+        // reject if error is present, otherwise resolve request
+        if (error) {
+          console.log(error);
+          reject(error);
+        } else {
+          resolve(response);
+        }
+      });
+  });
+}
+
 module.exports = {
   setCookie,
   getCookie,
@@ -141,4 +159,5 @@ module.exports = {
   removeSpinner,
   getPromiseWithUrl,
   patchPromiseWithUrl,
+  postPromiseWithUrl,
 };

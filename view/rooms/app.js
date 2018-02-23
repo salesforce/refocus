@@ -172,6 +172,8 @@ function setupSocketIOClient(bots) {
     botInfo[bot.body.id] = bot.body.name;
   });
 
+  botInfo.activeToggle = 'activeToggle';
+
   const socket = _io('/', { transports: ['websocket'] });
 
   const settingsChangedEventName =
@@ -265,20 +267,79 @@ function setupSocketIOClient(bots) {
   });
 } // setupSocketIOClient
 
+
+
+
+
 function activeToggleHandler(evt) {
-  const data = { active: evt.target.checked };
-  u.patchPromiseWithUrl(GET_ROOM, data);
-  document.dispatchEvent(new CustomEvent('activeToggle'));
+  evt.preventDefault();
+  toggleConfirmationModal();
 }
 
-function aaa() {
-  console.log("herrreeee");
+function toggleConfirmationModal() {
+  const confirmationModal = document.getElementById('toggle_confirmation_modal');
+  const activeToggle = document.getElementById('activeToggle');
+  const confirmationText = document.getElementById('confirmation_text');
+  if (confirmationModal.style.display === 'none') {
+    confirmationModal.style.display = 'block';
+    if (activeToggle.checked) {
+      confirmationText.innerText = 'Would you like to activate this room?';
+    } else {
+      confirmationText.innerText = 'Would you like to close this room?';
+    }
+  } else {
+    confirmationModal.style.display = 'none';
+  }
+}
+
+function roomStateChanged() {
+  toggleConfirmationModal();
+  const activeToggle = document.getElementById('activeToggle');
+  activeToggle.disabled = true;
+  const activating = !activeToggle.checked;
+  const data = { active: activating };
+  u.patchPromiseWithUrl(GET_ROOM, data)
+  .then((res, err) => {
+    if (err) {
+      return console.log(err);
+    }
+
+    const message = activating ? 'Room Activated' : 'Room Closed';
+
+    const eventType = {
+      'type': 'RoomState',
+      'user': _user,
+      'active': activating,
+    };
+
+    const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID)
+    };
+
+    return u.postPromiseWithUrl('/v1/events', events);
+  });
+}
+
+function handleEvents(evt) {
+  if (evt.detail.context.type === 'RoomState') {
+    evt.target.checked = evt.detail.context.active;
+    evt.target.disabled = false;
+  }
 }
 
 window.onload = () => {
   const activeToggle = document.getElementById('activeToggle');
+  const confirmedActiveStateChange =
+    document.getElementById('confirmed_active_state_change');
+  const declinedActiveStateChange =
+    document.getElementById('declined_active_state_change');
   activeToggle.addEventListener('click', activeToggleHandler);
-  document.addEventListener('activeToggle', aaa);
+  activeToggle.addEventListener('refocus.events', handleEvents, false);
+  confirmedActiveStateChange.onclick = roomStateChanged;
+  declinedActiveStateChange.onclick = toggleConfirmationModal;
 
   // Note: this is declared in index.pug:
   _io = io;
