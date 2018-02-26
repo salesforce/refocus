@@ -319,7 +319,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     ]).execAsync();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
-  .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj))
+  .then((updatedSamp) => {
+    parseName(updatedSamp.name); // throw if invalid name
+    return cleanAddAspectToSample(updatedSamp, aspectObj);
+  })
   .catch((err) => {
     if (isBulk) {
       return err;
@@ -558,7 +561,13 @@ module.exports = {
       return redisOps.setHashMultiPromise(sampleType, sampleName, reqBody);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+    .then((updatedSamp) => {
+      parseName(updatedSamp.name); // throw if invalid name
+      return cleanAddAspectToSample(updatedSamp, aspectObj);
+    })
+    .catch((err) => {
+      throw err;
+    });
   }, // patchSample
 
   /**
@@ -821,6 +830,7 @@ module.exports = {
 
       // clean and attach aspect to sample, add api links as well
       const sampleRes = cleanAddAspectToSample(sample, aspect);
+      parseName(sampleName); // throw if invalid name
       return sampleRes;
     });
   }, // getSample
@@ -900,6 +910,7 @@ module.exports = {
         }
 
         const s = cleanAddAspectToSample(sample, sampAspectMap[sample.name]);
+        parseName(s.name); // throw if invalid name
         s.apiLinks = u.getApiLinks(s.name, helper, req.method);
         return s;
       });
