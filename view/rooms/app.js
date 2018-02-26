@@ -22,8 +22,10 @@ const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
 const GET_ROOMTYPES = '/v1/roomTypes';
+const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 let _io;
 let _user;
+let _roomName;
 let botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -52,6 +54,11 @@ function createHeader(bot) {
   const section = document.createElement('div');
   section.className = 'slds-section slds-is-open';
 
+  section.setAttribute(
+    'style',
+    'box-shadow:0px 0px 20px 2px #e2e2e2;margin:1rem;'
+  );
+
   const title = document.createElement('div');
 
   const text = document.createElement('h3');
@@ -59,7 +66,7 @@ function createHeader(bot) {
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
-  text.innerHTML = `<a href=${bot.url}>${bot.name}</a>`;
+  text.innerHTML = bot.name;
 
   const circle = document.createElement('div');
   if (bot.active) {
@@ -84,6 +91,35 @@ function createHeader(bot) {
 }
 
 /**
+ * Creates footers for each bot added to the UI
+ *
+ * @param {Object} bot - Bot response with UI
+ * @returns {DOM} footer - Footer section
+ */
+function createFooter(bot) {
+  const footer = document.createElement('h3');
+  const linkedElement = document.createElement('a');
+  const gitHubImage = document.createElement('img');
+
+  footer.className =
+    'slds-section__title ' +
+    'slds-p-horizontal_small ' +
+    'slds-theme_shade ';
+
+  linkedElement.href = bot.url;
+  linkedElement.target = '_blank';
+  linkedElement.rel = 'noopener noreferrer';
+  gitHubImage.height = '20';
+  gitHubImage.width = '20';
+  gitHubImage.src = GITHUB_LOGO;
+
+  linkedElement.appendChild(gitHubImage);
+  footer.appendChild(linkedElement);
+
+  return footer;
+}
+
+/**
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bot - Bot response with UI
@@ -102,6 +138,7 @@ function parseBot(bot) {
   const contentSection = document.createElement('div');
   contentSection.className = 'slds-section__content';
   const headerSection = createHeader(bot);
+  const footerSection = createFooter(bot);
 
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
@@ -109,6 +146,7 @@ function parseBot(bot) {
   if (index.length > ZERO) {
     contentSection.innerHTML = zip.readAsText(index[ZERO]);
     headerSection.appendChild(contentSection);
+    headerSection.appendChild(footerSection);
     botContainer.appendChild(headerSection);
     botsContainer.appendChild(botContainer);
   }
@@ -236,10 +274,11 @@ window.onload = () => {
   uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    uPage.setSubtitle(res.body.name);
+    _roomName = res.body.name;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {
+    uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
     const promises = res.body.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
