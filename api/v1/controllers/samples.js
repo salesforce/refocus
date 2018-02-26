@@ -231,20 +231,21 @@ module.exports = {
     const toPost = reqParams.queryBody.value;
     const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    let createdSample;
     u.checkDuplicateRLinks(toPost.relatedLinks);
     let createSample;
     if (isSampleStoreEnabled) {
-      createSample = isReturnUserEnabled ? redisModelSample.postSample(reqParams,
-       req.user) : redisModelSample.postSample(reqParams, false);
+      createSample = redisModelSample
+        .postSample(reqParams, isReturnUserEnabled ? req.user : false);
     } else {
-      createSample = isReturnUserEnabled ? helper.model.createSample(toPost,
-      req.user) : helper.model.createSample(toPost, false);
+      createSample =  helper.model
+        .createSample(toPost, isReturnUserEnabled ? req.user : false);
     }
 
+    let createdSample;
     createSample
     .then((sample) => {
       createdSample = sample;
+      /* reload now if the sample came from the db */
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
     })
     .then(() => {
