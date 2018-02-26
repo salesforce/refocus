@@ -79,7 +79,7 @@ function parseName(name) {
   }
 
   throw new redisErrors.ResourceNotFoundError({
-    explanation: `Invalid sample name "${sampleName}"`,
+    explanation: `Invalid sample name "${name}"`,
   });
 } // parseName
 
@@ -776,7 +776,10 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+    .then((updatedSamp) => {
+      parseName(updatedSamp.name); // throw if invalid name
+      return cleanAddAspectToSample(updatedSamp, aspectObj);
+    });
   }, // putSample
 
   /**
@@ -828,9 +831,8 @@ module.exports = {
         modelUtils.applyFieldListFilter(sample, opts.attributes);
       }
 
-      // clean and attach aspect to sample, add api links as well
-      const sampleRes = cleanAddAspectToSample(sample, aspect);
       parseName(sampleName); // throw if invalid name
+      const sampleRes = cleanAddAspectToSample(sample, aspect);
       return sampleRes;
     });
   }, // getSample
