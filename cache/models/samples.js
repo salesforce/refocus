@@ -205,7 +205,7 @@ function handleUpsertError(objectType, isBulk) {
   }
 
   throw err;
-}
+} // handleUpsertError
 
 /**
  * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
@@ -248,17 +248,16 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   let subject;
   let aspect;
   let sample;
-  return checkWritePermission(aspectName, userName, isBulk)
 
   /*
-   * if any of the promise errors, the subsequent promise does not process and
-   * error is returned, else sample is returned
+   * If any of these promises throws an error, we drop through to the catch
+   * block and return an error. Otherwise, we return the sample.
    */
+  return checkWritePermission(aspectName, userName, isBulk)
   .then(() => Promise.all([
     redisClient.hgetallAsync(subjKey),
     redisClient.hgetallAsync(
-    sampleStore.toKey(constants.objectType.aspect, aspectName)
-    ),
+      sampleStore.toKey(constants.objectType.aspect, aspectName)),
     redisClient.hgetallAsync(sampleKey),
   ])
   .then((responses) => {
@@ -273,45 +272,45 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     sampleQueryBodyObj.subjectId = subject.id;
     sampleQueryBodyObj.aspectId = aspect.id;
-
-    aspectObj = sampleStore.arrayObjsStringsToJson(
-      aspect, constants.fieldsToStringify.aspect
-    );
-
+    aspectObj = sampleStore.arrayObjsStringsToJson(aspect,
+      constants.fieldsToStringify.aspect);
     return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
 
-    // if sample exists, just update sample.
-    if (sample) {
-      // to avoid updating sample name
-      delete sampleQueryBodyObj.name;
+    if (sample) { // if sample exists, just update sample
+      delete sampleQueryBodyObj.name; // to avoid updating sample name
       logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     }
 
-    // sample is new
-    // make sure the name is a combination of subject
-    // and aspect fields
+    /*
+     * Otherwise the sample is new. Set the name to be the combination of
+     * subject absolutePath and aspect name.
+     */
     sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
 
-    // add the provider and user fields
+    // Add the provider and user fields.
     if (user && featureToggles.isFeatureEnabled('returnUser')) {
       sampleQueryBodyObj.provider = user.id;
       sampleQueryBodyObj.user = JSON.stringify({
-        name: user.name, email: user.email,
-        profile: { name: user.profile.name },
+        name: user.name,
+        email: user.email,
+        profile: {
+          name: user.profile.name,
+        },
       });
     }
 
-    const subaspMapKey = sampleStore.toKey(
-      constants.objectType.subAspMap, absolutePath
-    );
+    const subaspMapKey = sampleStore.toKey(constants.objectType.subAspMap,
+      absolutePath);
 
-    // add aspect name to subject set, add sample key to sample set,
-    // create/update hash of sample
+    /*
+     * Add aspect name to subject set. Add sample key to sample set.
+     * Create/update hash of sample.
+     */
     logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
     return redisClient.batch([
       ['sadd', subaspMapKey, aspectName],
@@ -320,7 +319,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     ]).execAsync();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
-
   .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj))
   .catch((err) => {
     if (isBulk) {
@@ -329,7 +327,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     throw err;
   });
-}
+} // upsertOneSample
 
 module.exports = {
 
@@ -399,7 +397,7 @@ module.exports = {
     .then(() => redisOps.executeBatchCmds(cmds))
     /* Attach aspect and links to sample. */
     .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
-  },
+  }, // deleteSample
 
   /**
    * Delete sample related links
@@ -473,7 +471,7 @@ module.exports = {
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
-  },
+  }, // deleteSampleRelatedLinks
 
   /**
    * Patch sample. First get sample, if not found, throw error, else get aspect.
@@ -561,7 +559,7 @@ module.exports = {
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
-  },
+  }, // patchSample
 
   /**
    * Post sample. First get subject from db, then get aspect from db, then try
@@ -667,7 +665,7 @@ module.exports = {
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampleObj) => sampleStore.arrayObjsStringsToJson(
       sampleObj, constants.fieldsToStringify.sample));
-  },
+  }, // postSample
 
   /**
    * Put sample. First get sample, if not found, throw error, else get aspect.
@@ -770,7 +768,7 @@ module.exports = {
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
-  },
+  }, // putSample
 
   /**
    * Retrieves the sample from redis and sends it back in the response. Get
@@ -825,7 +823,7 @@ module.exports = {
       const sampleRes = cleanAddAspectToSample(sample, aspect);
       return sampleRes;
     });
-  },
+  }, // getSample
 
   /**
    * Finds samples with filter options if provided. We get sample keys from
@@ -887,15 +885,15 @@ module.exports = {
     .then((redisResponses) => { // samples and aspects
       const samples = [];
 
-      // Eg: { samplename: asp object}, so that we can attach aspect later
+      // e.g { samplename: asp object }, so that we can attach aspect later
       const sampAspectMap = {};
       for (let num = 0; num < redisResponses.length; num += TWO) {
         samples.push(redisResponses[num]);
         sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
       }
 
-      const filteredSamples =
-        modelUtils.applyFiltersOnResourceObjs(samples, opts);
+      const filteredSamples = modelUtils.applyFiltersOnResourceObjs(samples,
+        opts);
       return filteredSamples.map((sample) => {
         if (opts.attributes) { // delete sample fields, hence no return obj
           modelUtils.applyFieldListFilter(sample, opts.attributes);
@@ -927,8 +925,8 @@ module.exports = {
    */
   bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
     const promises = sampleQueryBody.map((sampleReq) => {
+      // Throw error if sample is upserted with read-only field.
       try {
-        // thow an error if a sample is upserted with a read-only-field
         commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
         return upsertOneSample(sampleReq, true, user);
       } catch (err) {
@@ -937,5 +935,5 @@ module.exports = {
     });
 
     return Promise.all(promises);
-  },
+  }, // bulkUpsertByName
 };
