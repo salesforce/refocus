@@ -245,6 +245,7 @@ module.exports = {
     createSample
     .then((sample) => {
       createdSample = sample;
+      /* reload now if the sample came from the db */
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
     })
     .then(() => {

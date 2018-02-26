@@ -30,6 +30,7 @@ const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
+const sampleNameSeparator = '|';
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -57,16 +58,42 @@ const TWO = 2;
 const MINUS_ONE = -1;
 
 /**
+ * Parses a sample name into its separate parts, i.e. the subject absolute
+ * path and the aspect name.
+ *
+ * @param {String} name - The sample name
+ * @returns {Object} containing subject.absolutePath and aspect.name
+ * @throws {ResourceNotFoundError} if the name cannot be split in two using
+ *  sampleNameSeparator
+ */
+function parseName(name) {
+  const retval = {
+    subject: { absolutePath: undefined },
+    aspect: { name: undefined },
+  };
+  const arr = (name || '').split(sampleNameSeparator);
+  if (arr.length === 2) {
+    retval.subject.absolutePath = arr[0];
+    retval.aspect.name = arr[1];
+    return retval;
+  }
+
+  throw new redisErrors.ResourceNotFoundError({
+    explanation: `Invalid sample name "${sampleName}"`,
+  });
+} // parseName
+
+/**
  * Checks if the user has the permission to perform the write operation on the
- * sample or not
+ * sample or not.
+
  * @param  {String}  aspect - Aspect object
- * @param  {String}  sample - Sample object
  * @param  {String}  userName -  User performing the operation
  * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
- * operation or not
+ *  operation or not
  * @returns {Promise} - which resolves to true if the user has write permission
  */
-function checkWritePermission(aspect, sample, userName, isBulk) {
+function checkWritePermission(aspect, userName, isBulk) {
   let isWritable = true;
   if (aspect.writers && aspect.writers.length) {
     isWritable = aspect.writers.includes(userName);
@@ -74,8 +101,8 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
 
   if (!isWritable) {
     const err = new redisErrors.UpdateDeleteForbidden({
-      explanation: `The user: ${userName}, does not have write permission` +
-        ` on the sample: ${sample.name}`,
+      explanation: `User "${userName}" does not have write permission ` +
+        `for aspect "${aspect.name}"`,
     });
     if (isBulk) {
       return Promise.reject({ isFailed: true, explanation: err });
@@ -84,34 +111,35 @@ function checkWritePermission(aspect, sample, userName, isBulk) {
     return Promise.reject(err);
   }
 
+  // If we got this far, the user has write permission on this aspect.
   return Promise.resolve(true);
 } // checkWritePermission
 
 /**
  * Convert array strings to Json for sample and aspect, then attach aspect to
- * sample. Then add add api links and return complete sample object.
+ * sample.
+ *
  * @param  {Object} sampleObj - Sample object from redis
  * @param  {Object} aspectObj - Aspect object from redis
  * @returns {Object} - Sample object with aspect attached
  */
 function cleanAddAspectToSample(sampleObj, aspectObj) {
   let sampleRes = {};
-  sampleRes = sampleStore.arrayObjsStringsToJson(
-    sampleObj, constants.fieldsToStringify.sample
-  );
-  const aspect = sampleStore.arrayObjsStringsToJson(
-    aspectObj, constants.fieldsToStringify.aspect
-  );
+  sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
+    constants.fieldsToStringify.sample);
+  const aspect = sampleStore.arrayObjsStringsToJson(aspectObj,
+    constants.fieldsToStringify.aspect);
   sampleRes.aspect = aspect;
   return sampleRes;
-}
+} // cleanAddAspectToSample
 
 /**
- * Create properties array having and fields and values need to be set to
- * update/create sample. Value is empty string if new object being created.
- * If some value, then calculate status. Update status, previous status and
- * changed at fields in 2 cases: a) sampObj not present, or b) sample obj
- * present and previous status != current status.
+ * Create properties array with fields to update/create. Value is empty string
+ * if new object being created. If value is present, then calculate status.
+ * Update the status, previousStatus and changedAt fields if:
+ *   a) sampObj is not present, or
+ *   b) sampObj is present and previousStatus != current status.
+ *
  * @param  {Object} qbObj - Query body object
  * @param  {Object} sampObj - Sample object
  * @param  {Object} aspectObj - Aspect object
@@ -131,7 +159,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
 
     if (!sampObj || (sampObj && (sampObj[sampFields.STATUS] !== status))) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
-                            dbConstants.statuses.Invalid;
+        dbConstants.statuses.Invalid;
       qbObj[sampFields.PRVS_STATUS] = prevStatus;
       qbObj[sampFields.STS_CHNGED_AT] = new Date().toISOString();
       qbObj[sampFields.STATUS] = status;
@@ -157,10 +185,11 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
   }
 
   qbObj[sampFields.UPD_AT] = dateNow;
-}
+} // createSampHsetCommand
 
 /**
  * Throws custom error object based on object type for sample upsert.
+ *
  * @param  {string}  objectType - Object type - subject or aspect
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
  * @throws {Object} Error object
@@ -179,11 +208,12 @@ function handleUpsertError(objectType, isBulk) {
 }
 
 /**
- * Upsert a sample. Check if subject exist. If yes, Get aspect and sample.
- * If aspect exists, create fields array with values need to be set for sample
- * in redis. Add aspect name to subject set, add aspect key to sample set and
- * update/create sample hash. We use hset which updates a sample if exists,
- * else creates a new one.
+ * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
+ * create fields array with values need to be set for sample in redis. Add
+ * aspect name to subject set, add aspect key to sample set and update/create
+ * sample hash. We use hset which updates a sample if exists, else creates a
+ * new one.
+ *
  * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
  * @param {Object} user - The user performing the write operation
@@ -218,7 +248,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   let subject;
   let aspect;
   let sample;
-  return checkWritePermission(aspectName, sampleName, userName, isBulk)
+  return checkWritePermission(aspectName, userName, isBulk)
 
   /*
    * if any of the promise errors, the subsequent promise does not process and
@@ -248,8 +278,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       aspect, constants.fieldsToStringify.aspect
     );
 
-    return checkWritePermission(aspectObj, sampleQueryBodyObj,
-      userName, isBulk);
+    return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
     // sampleQueryBodyObj updated with fields
@@ -353,7 +382,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return checkWritePermission(aspect, sampObjToReturn, userName);
+      return checkWritePermission(aspect, userName);
     })
     /*
      * Set up and execute the commands to:
@@ -412,7 +441,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
       let updatedRlinks = [];
@@ -470,7 +499,7 @@ module.exports = {
     const aspectName = sampAspArr[ONE];
     let currSampObj;
     let aspectObj;
-    return checkWritePermission(aspectName, sampleName, userName)
+    return checkWritePermission(aspectName, userName)
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
@@ -504,7 +533,7 @@ module.exports = {
         });
       }
 
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
       if (reqBody.value) {
@@ -694,7 +723,7 @@ module.exports = {
         });
       }
 
-      return checkWritePermission(aspectObj, currSampObj, userName);
+      return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
       modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
