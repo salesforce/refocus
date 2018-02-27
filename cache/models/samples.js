@@ -222,12 +222,10 @@ function handleUpsertError(objectType, isBulk) {
 function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   const userName = user ? user.name : false;
   const sampleName = sampleQueryBodyObj.name;
-  const subjAspArr = sampleName.toLowerCase().split('|');
-  if (subjAspArr.length < TWO) {
-    const err = new redisErrors.ValidationError({
-      explanation: 'Incorrect sample name.',
-    });
-
+  let parsedSampleName = {};
+  try {
+    parsedSampleName = parseName(sampleName.toLowerCase());
+  } catch (err) {
     if (isBulk) {
       return Promise.reject({ isFailed: true, explanation: err });
     }
@@ -235,15 +233,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return Promise.reject(err);
   }
 
-  const sampleKey = sampleStore.toKey(
-    constants.objectType.sample, sampleName
-  );
-  const absolutePath = subjAspArr[ZERO];
-  const aspectName = subjAspArr[ONE];
-  const subjKey = sampleStore.toKey(
-    constants.objectType.subject, absolutePath
-  );
-
+  const sampleKey = sampleStore.toKey(constants.objectType.sample, sampleName);
+  const absolutePath = parsedSampleName.subject.absolutePath;
+  const aspectName = parsedSampleName.aspect.name;
+  const subjKey = sampleStore.toKey(constants.objectType.subject, absolutePath);
   let aspectObj = {};
   let subject;
   let aspect;
@@ -344,17 +337,15 @@ module.exports = {
    */
   deleteSample(sampleName, userName) {
     const cmds = [];
-    const subjAspArr = sampleName.toLowerCase().split('|');
-
-    if (subjAspArr.length < TWO) {
-      const err = new redisErrors.ValidationError({
-        explanation: 'Incorrect sample name.',
-      });
-      return Promise.resolve(err);
+    let parsedSampleName = {};
+    try {
+      parsedSampleName = parseName(sampleName.toLowerCase());
+    } catch (err) {
+      return Promise.reject(err);
     }
 
-    const subjAbsPath = subjAspArr[ZERO];
-    const aspName = subjAspArr[ONE];
+    const subjAbsPath = parsedSampleName.subject.absolutePath;
+    const aspName = parsedSampleName.aspect.name;
     let sampObjToReturn;
     let aspect;
     return redisOps.getHashPromise(sampleType, sampleName)
@@ -410,14 +401,8 @@ module.exports = {
    */
   deleteSampleRelatedLinks(params, userName) {
     const sampleName = params.key.value;
-    const sampAspArr = sampleName.split('|');
-    if (sampAspArr.length < TWO) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Incorrect sample name.',
-      });
-    }
-
-    const aspectName = sampAspArr[ONE];
+    const parsedSampleName = parseName(sampleName);
+    const aspectName = parsedSampleName.aspect.name;
     let currSampObj;
     let aspectObj;
     return redisOps.getHashPromise(sampleType, sampleName)
@@ -477,11 +462,12 @@ module.exports = {
   }, // deleteSampleRelatedLinks
 
   /**
-   * Patch sample. First get sample, if not found, throw error, else get aspect.
+   * Patch sample. First get sample. If not found, throw error. Get aspect.
    * Update request body with required fields based on value and related links
    * if needed. Update sample. Then get updated sample, attach aspect and return
    * response. Note: Message body and message code will be updated if provided,
    * else no fields for message body/message code in redis object.
+   *
    * @param  {Object} params - Request parameters
    * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
@@ -489,15 +475,9 @@ module.exports = {
   patchSample(params, userName) {
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
-    const sampAspArr = sampleName.split('|');
-    if (sampAspArr.length < TWO) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Incorrect sample name.',
-      });
-    }
-
-    const subjectAbsolutePath = sampAspArr[ZERO];
-    const aspectName = sampAspArr[ONE];
+    const parsedSampleName = parseName(sampleName.toLowerCase());
+    const subjectAbsolutePath = parsedSampleName.subject.absolutePath;
+    const aspectName = parsedSampleName.aspect.name;
     let currSampObj;
     let aspectObj;
     return checkWritePermission(aspectName, userName)
@@ -590,7 +570,7 @@ module.exports = {
     .then((subjFromDb) => {
       if (!subjFromDb || !subjFromDb.isPublished) {
         throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Subject not found.',
+          explanation: `Subject "${reqBody.subjectId}" not found.`,
         });
       }
 
@@ -600,7 +580,7 @@ module.exports = {
     .then((aspFromDb) => {
       if (!aspFromDb || !aspFromDb.isPublished) {
         throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
+          explanation: `Aspect "${reqBody.aspectId}" not found.`,
         });
       }
 
@@ -611,8 +591,8 @@ module.exports = {
       sampleName = subject.absolutePath + '|' + aspectObj.name;
       if (!isWritable) {
         const err = new redisErrors.UpdateDeleteForbidden({
-          explanation: `The user: ${userName}, does not have write permission` +
-            ` on the sample: ${sampleName}`,
+          explanation: `User "${userName}" does not have write permission ` +
+            `for aspect "${aspectObj.name}"`,
         });
         return Promise.reject(err);
       }
@@ -622,23 +602,16 @@ module.exports = {
     .then((sampFromRedis) => {
       if (sampFromRedis) {
         throw new apiErrors.DuplicateResourceError({
-          explanation: 'Sample already exists.',
+          explanation: `Sample "${sampFromRedis.name}" already exists.`,
         });
       }
 
-      modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr); // remove extra fields
-      reqBody.name = sampleName; // set name
-
-      let value = '';
-      if (reqBody.value) {
-        value = reqBody.value;
-      }
-
-      // value and status
+      modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
+      reqBody.name = sampleName;
+      const value = reqBody.value || '';
       reqBody[sampFields.STATUS] = sampleUtils.computeStatus(aspectObj, value);
       reqBody[sampFields.VALUE] = value;
-
-      if (reqBody.relatedLinks) { // related links
+      if (reqBody.relatedLinks) {
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
       } else {
         reqBody[sampFields.RLINKS] = '[]';
@@ -677,10 +650,11 @@ module.exports = {
   }, // postSample
 
   /**
-   * Put sample. First get sample, if not found, throw error, else get aspect.
+   * Put sample. First get sample. If not found, throw error. Get aspect.
    * Update request body with required fields based on value and related links
    * if needed. Delete message body and message code fields from hash
    * if not provided because they will be null. Then update sample.
+   *
    * @param  {Object} params - Request parameters
    * @param {String} userName - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
@@ -688,15 +662,9 @@ module.exports = {
   putSample(params, userName) {
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
-    const sampAspArr = sampleName.split('|');
-    if (sampAspArr.length < TWO) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Incorrect sample name.',
-      });
-    }
-
-    const subjectAbsolutePath = sampAspArr[ZERO];
-    const aspectName = sampAspArr[ONE];
+    const parsedSampleName = parseName(sampleName);
+    const subjectAbsolutePath = parsedSampleName.subject.absolutePath;
+    const aspectName = parsedSampleName.aspect.name;
     let currSampObj;
     let aspectObj;
     return redisOps.getHashPromise(sampleType, sampleName)
@@ -792,16 +760,8 @@ module.exports = {
    */
   getSample(params) {
     const sampleName = params.key.value.toLowerCase();
-    const sampAspArr = sampleName.split('|');
+    const parsedSampleName = parseName(sampleName); // throw is invalid name
     const commands = [];
-
-    if (sampAspArr.length < TWO) {
-      throw new redisErrors.ResourceNotFoundError({
-        explanation: 'Incorrect sample name.',
-      });
-    }
-
-    // push command to get sample
     commands.push([
       'hgetall',
       sampleStore.toKey(constants.objectType.sample, sampleName),
@@ -810,14 +770,14 @@ module.exports = {
     // push command to get aspect
     commands.push([
       'hgetall',
-      sampleStore.toKey(constants.objectType.aspect, sampAspArr[ONE]),
+      sampleStore.toKey(constants.objectType.aspect,
+        parsedSampleName.aspect.name),
     ]);
 
     return redisClient.batch(commands).execAsync()
     .then((responses) => {
       const sample = responses[ZERO];
       const aspect = responses[ONE];
-
       if (!sample || !aspect) {
         throw new redisErrors.ResourceNotFoundError({
           explanation: 'Sample/Aspect not found.',
@@ -825,9 +785,7 @@ module.exports = {
       }
 
       const opts = modelUtils.getOptionsFromReq(params, helper);
-
-      // apply fields list filter
-      if (opts.attributes) {
+      if (opts.attributes) { // apply fields list filter
         modelUtils.applyFieldListFilter(sample, opts.attributes);
       }
 
