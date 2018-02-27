@@ -31,6 +31,7 @@ const sampleType = redisOps.sampleType;
 const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
+const logger = require('winston');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -78,6 +79,8 @@ function parseName(name) {
     return retval;
   }
 
+  logger.error(`cache/models/samples.parseName|Invalid sample name "${name}"`);
+  console.trace(); // eslint-disable-line no-console
   throw new redisErrors.ResourceNotFoundError({
     explanation: `Invalid sample name "${name}"`,
   });
