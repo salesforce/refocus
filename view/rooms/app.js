@@ -292,11 +292,9 @@ function toggleConfirmationModal(event) {
     'style',
     'display:block;'
   );
-  if (_isActive) {
-    confirmationText.innerText = 'Would you like to close this room?';
-  } else {
-    confirmationText.innerText = 'Would you like to activate this room?';
-  }
+
+  confirmationText.innerText =
+    `Would you like to ${_isActive ? 'close' : 'activate'} this room?`;
 }
 
 // Closes the confirmation modal
@@ -307,6 +305,11 @@ function closeConfirmationModal() {
   );
 }
 
+/**
+ * The room state has changed so it needs to be updated.
+ *
+ * @returns {Promise} For use in chaining.
+ */
 function roomStateChanged() {
   closeConfirmationModal();
   activeToggle.disabled = true;
@@ -337,11 +340,16 @@ function roomStateChanged() {
   });
 }
 
-function handleEvents(evt) {
-  if (evt.detail.context.type === 'RoomState') {
-    evt.target.checked = evt.detail.context.active;
-    _isActive = evt.detail.context.active;
-    evt.target.disabled = false;
+/**
+ * Handles events that have been triggered
+ *
+ * @param  {Object} event - Event that was triggered.
+ */
+function handleEvents(event) {
+  if (event.detail.context.type === 'RoomState') {
+    event.target.checked = event.detail.context.active;
+    _isActive = event.detail.context.active;
+    event.target.disabled = false;
   }
 }
 
