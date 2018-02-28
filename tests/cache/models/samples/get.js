@@ -624,7 +624,7 @@ describe('tests/cache/models/samples/get.js, ' +
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('Incorrect sample name.');
+        .to.be.equal('Invalid sample name "abc"');
         return done();
       });
     });

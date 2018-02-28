@@ -411,14 +411,14 @@ describe('tests/cache/models/samples/upsert.js, ' +
         name: `${subject.name}xxxxx`,
         value: '2',
       })
-      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(constants.httpStatus.NOT_FOUND)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('Incorrect sample name.');
+        .to.be.equal('Invalid sample name "___test_subjectxxxxx"');
         done();
       });
     });
