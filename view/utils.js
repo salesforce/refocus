@@ -115,7 +115,8 @@ function getPromiseWithUrl(url) {
 } // getPromiseWithUrl
 
 /**
- * @param {String} url The url to get from
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
  * @returns {Promise} For use in chaining.
  */
 function patchPromiseWithUrl(url, data) {
@@ -134,7 +135,11 @@ function patchPromiseWithUrl(url, data) {
   });
 } // patchPromiseWithUrl
 
-
+/**
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
+ * @returns {Promise} For use in chaining.
+ */
 function postPromiseWithUrl(url, data) {
   return new Promise((resolve, reject) => {
     request.post(url)
@@ -143,14 +148,13 @@ function postPromiseWithUrl(url, data) {
       .end((error, response) => {
         // reject if error is present, otherwise resolve request
         if (error) {
-          console.log(error);
           reject(error);
         } else {
           resolve(response);
         }
       });
   });
-}
+} // postPromiseWithUrl
 
 module.exports = {
   setCookie,
