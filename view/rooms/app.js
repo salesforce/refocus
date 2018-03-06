@@ -28,6 +28,7 @@ const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
+const GET_EVENTS = '/v1/events';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 let _io;
@@ -266,11 +267,12 @@ function setupSocketIOClient(bots) {
         }));
       });
 
-      if (events.context.type === 'RoomState') {
-        document.getElementById('activeToggle')
-        .dispatchEvent(new CustomEvent('refocus.events', {
-          detail: events,
-        }));
+      if (events.context) {
+        if (events.context.type === 'RoomState') {
+          activeToggle.dispatchEvent(new CustomEvent('refocus.events', {
+            detail: events,
+          }));
+        }
       }
     }
   });
@@ -336,7 +338,7 @@ function roomStateChanged() {
       roomId: parseInt(ROOM_ID, 10)
     };
 
-    return u.postPromiseWithUrl('/v1/events', events);
+    return u.postPromiseWithUrl(GET_EVENTS, events);
   });
 }
 
