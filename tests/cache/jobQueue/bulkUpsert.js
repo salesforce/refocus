@@ -28,7 +28,7 @@ const logger = require('../../../utils/activityLog').logger;
 const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
-'redisStore: POST using worker process' + path, () => {
+'redisStore: POST using worker process, ' + path + ' >', () => {
   let token;
 
   before((done) => {
@@ -77,8 +77,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     tu.toggleOverride('enableRedisSampleStore', false);
   });
 
-  it('should return ok status with the job id for good ' +
-      'or bad samples', (done) => {
+  it('return ok status with job id for good or bad samples', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -108,7 +107,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     });
   });
 
-  it('test logging', (done) => {
+  it('logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     logger.on('logging', testLogMessage);
