@@ -297,9 +297,9 @@ module.exports = function aspect(seq, dataTypes) {
 
             /*
              * delete multiple possible sample entries in the sample master
-             * list of index
+             * list of index and the related sample hashes
              */
-            redisOps.deleteKeys(sampleType, aspectType, inst.name);
+            redisOps.deleteKeys(sampleType, aspectType, oldAspectName);
           } else if (inst.changed('isPublished')) {
 
             // Prevent any changes to original inst dataValues object
@@ -371,6 +371,7 @@ module.exports = function aspect(seq, dataTypes) {
           if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
             // delete the entry in the aspectStore
             redisOps.deleteKey(aspectType, inst.name);
+            redisOps.deleteKeys(sampleType, aspectType, inst.name);
 
             // delete multiple possible entries in sampleStore
             redisOps.deleteKeys(sampleType, aspectType, inst.name);
