@@ -140,6 +140,8 @@ function parseBot(bot) {
   const headerSection = createHeader(bot);
   const footerSection = createFooter(bot);
 
+
+
   // 'index.html' contains root elements that scripts hook up to
   // and needs to be loaded into the DOM first
   const index = zipEntries.filter((entry) => entry.name === 'index.html');
@@ -148,7 +150,7 @@ function parseBot(bot) {
     headerSection.appendChild(contentSection);
     headerSection.appendChild(footerSection);
     botContainer.appendChild(headerSection);
-    botsContainer.appendChild(botContainer);
+    //botsContainer.appendChild(botContainer);
   }
 
   // go through zipEntries that arent 'index.html'
@@ -158,8 +160,34 @@ function parseBot(bot) {
     botScript.appendChild(
       document.createTextNode(zip.readAsText(script))
     );
-    document.body.appendChild(botScript);
+    //document.body.appendChild(botScript);
   });
+
+  var iframe = document.createElement('iframe');
+  iframe.id = bot.name + '-iframe-section';
+  document.body.appendChild(iframe);
+  var doc = document.getElementById(bot.name + '-iframe-section');
+  var iframedoc = doc.document;
+  if (doc.contentDocument)
+    iframedoc = doc.contentDocument;
+  else if (doc.contentWindow)
+    iframedoc = doc.contentWindow.document;
+
+   if (iframedoc){
+    // Put the content in the iframe
+    iframedoc.open();
+    iframedoc.writeln(
+      '<script>var user = "'+ user +'"</script> ' + 
+      '<div id="Weather-Bot"></div>' + 
+      '<script>' + botScript.innerHTML+'</script>'+
+      '<script> function handleMessage(e) { console.log(e) } window.addEventListener("message", handleMessage, false)</script>'
+    );
+    iframedoc.close();
+   } else {
+      //just in case of browsers that don't support the above 3 properties.
+      //fortunately we don't come across such case so far.
+    alert('Cannot inject dynamic contents into iframe.');
+   }
 } // parseBots
 
 /**
@@ -216,8 +244,12 @@ function setupSocketIOClient(bots) {
     const action = eventData[botActionsUpdate];
     if (action.new.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotActions Updated', action);
-      document.getElementById(botInfo[action.new.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.actions', {
+      // document.getElementById(botInfo[action.new.botId])
+      // .dispatchEvent(new CustomEvent('refocus.bot.actions', {
+      //   detail: action.new,
+      // }));
+
+      document.getElementById(botInfo[action.new.botId] + '-iframe-section').contentDocument.getElementById(botInfo[action.new.botId]).dispatchEvent(new CustomEvent('refocus.bot.actions', {
         detail: action.new,
       }));
     }
@@ -228,8 +260,12 @@ function setupSocketIOClient(bots) {
     const bd = eventData[botDataAdd];
     if (bd.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotData Added', bd);
-      document.getElementById(botInfo[bd.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      // document.getElementById(botInfo[bd.botId])
+      // .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      //   detail: bd,
+      // }));
+
+      document.getElementById(botInfo[bd.botId] + '-iframe-section').contentDocument.getElementById(botInfo[bd.botId]).dispatchEvent(new CustomEvent('refocus.bot.data', {
         detail: bd,
       }));
     }
@@ -240,8 +276,13 @@ function setupSocketIOClient(bots) {
     const bd = eventData[botDataUpdate];
     if (bd.new.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotData Updated', bd);
-      document.getElementById(botInfo[bd.new.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      // document.getElementById(botInfo[bd.new.botId])
+      // .dispatchEvent(new CustomEvent('refocus.bot.data', {
+      //   detail: bd.new,
+      // }));
+      console.log(document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument)
+console.log(document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument.getElementById(botInfo[bd.new.botId]))
+      document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument.getElementById(botInfo[bd.new.botId]).dispatchEvent(new CustomEvent('refocus.bot.data', {
         detail: bd.new,
       }));
     }
@@ -253,10 +294,10 @@ function setupSocketIOClient(bots) {
     if (events.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('Events Added', events);
       Object.keys(botInfo).forEach((key) => {
-        document.getElementById(botInfo[key])
-        .dispatchEvent(new CustomEvent('refocus.events', {
-          detail: events,
-        }));
+        // document.getElementById(botInfo[key])
+        // .dispatchEvent(new CustomEvent('refocus.events', {
+        //   detail: events,
+        // }));
       });
     }
   });
