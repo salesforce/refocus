@@ -147,9 +147,9 @@ function parseBot(bot) {
   const index = zipEntries.filter((entry) => entry.name === 'index.html');
   if (index.length > ZERO) {
     contentSection.innerHTML = zip.readAsText(index[ZERO]);
-    headerSection.appendChild(contentSection);
-    headerSection.appendChild(footerSection);
-    botContainer.appendChild(headerSection);
+    //headerSection.appendChild(contentSection);
+    //headerSection.appendChild(footerSection);
+    //botContainer.appendChild(headerSection);
     //botsContainer.appendChild(botContainer);
   }
 
@@ -164,8 +164,15 @@ function parseBot(bot) {
   });
 
   var iframe = document.createElement('iframe');
+  headerSection.appendChild(iframe);
+  headerSection.appendChild(footerSection);
+  botContainer.appendChild(headerSection);
+  botsContainer.appendChild(botContainer);
+
   iframe.id = bot.name + '-iframe-section';
-  document.body.appendChild(iframe);
+  iframe.style = "display: block; border: none; width: 100%;";
+  iframe.frameBorder = 0;
+
   var doc = document.getElementById(bot.name + '-iframe-section');
   var iframedoc = doc.document;
   if (doc.contentDocument)
@@ -177,10 +184,10 @@ function parseBot(bot) {
     // Put the content in the iframe
     iframedoc.open();
     iframedoc.writeln(
+      '<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/css/salesforce-lightning-design-system.2.4.3.min.css">' + 
       '<script>var user = "'+ user +'"</script> ' + 
-      '<div id="Weather-Bot"></div>' + 
-      '<script>' + botScript.innerHTML+'</script>'+
-      '<script> function handleMessage(e) { console.log(e) } window.addEventListener("message", handleMessage, false)</script>'
+      '<div id="' + bot.name + '">/<div>' + 
+      '<script>' + botScript.innerHTML+'</script>'
     );
     iframedoc.close();
    } else {
@@ -189,7 +196,6 @@ function parseBot(bot) {
     alert('Cannot inject dynamic contents into iframe.');
    }
 } // parseBots
-
 /**
  * Setup the socket.io client to listen to a namespace, and once sockets
  * are connected install the bots in the room.
@@ -280,8 +286,6 @@ function setupSocketIOClient(bots) {
       // .dispatchEvent(new CustomEvent('refocus.bot.data', {
       //   detail: bd.new,
       // }));
-      console.log(document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument)
-console.log(document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument.getElementById(botInfo[bd.new.botId]))
       document.getElementById(botInfo[bd.new.botId] + '-iframe-section').contentDocument.getElementById(botInfo[bd.new.botId]).dispatchEvent(new CustomEvent('refocus.bot.data', {
         detail: bd.new,
       }));
