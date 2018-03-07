@@ -189,7 +189,7 @@ function parseBot(bot) {
       '<div id="' + bot.name + '">/<div>' + 
       '<script>' + botScript.innerHTML+'</script>'
     );
-    iframedoc.close();
+    iframedoc.close();  
    } else {
       //just in case of browsers that don't support the above 3 properties.
       //fortunately we don't come across such case so far.
