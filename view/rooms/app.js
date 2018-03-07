@@ -187,7 +187,8 @@ function parseBot(bot) {
       '<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/css/salesforce-lightning-design-system.2.4.3.min.css">' + 
       '<script>var user = "'+ user +'"</script> ' + 
       '<div id="' + bot.name + '">/<div>' + 
-      '<script>' + botScript.innerHTML+'</script>'
+      '<script>' + botScript.innerHTML+'</script>' + 
+      '<script>' + 'function outputsize(e) {  console.log(e[0].target.scrollHeight); parent.postMessage({"name": "'+ bot.name+'", "height": e[0].target.scrollHeight},"*"); } new ResizeObserver(outputsize).observe(document.getElementById("'+ bot.name +'"))' +'</script>'
     );
     iframedoc.close();  
    } else {
@@ -196,6 +197,18 @@ function parseBot(bot) {
     alert('Cannot inject dynamic contents into iframe.');
    }
 } // parseBots
+
+var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+var eventer = window[eventMethod];
+var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+// Listen to message from child window
+eventer(messageEvent, function(e) {
+  const iframe = document.getElementById(e.data.name + '-iframe-section');
+  iframe.height = e.data.height + 'px';
+},false);
+
+
 /**
  * Setup the socket.io client to listen to a namespace, and once sockets
  * are connected install the bots in the room.
@@ -332,4 +345,6 @@ window.onload = () => {
     setupSocketIOClient(res);
     uPage.removeSpinner();
   });
+
+
 };
