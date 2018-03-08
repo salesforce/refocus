@@ -11,6 +11,10 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const featureToggles = require('feature-toggles');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 
 const testStartTime = new Date();
 
@@ -25,6 +29,14 @@ const subjectToCreate = {
   name: `${tu.namePrefix}TEST_SUBJECT`,
 };
 
+function flushRedisIfEnabled() {
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    return rcli.flushallAsync();
+  } else {
+    return Promise.resolve();
+  }
+}
+
 module.exports = {
   toCreate: {
     name: `${tu.namePrefix}ASPECTNAME`,
@@ -38,10 +50,26 @@ module.exports = {
   subjectToCreate,
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(
+      flushRedisIfEnabled(),
+      tu.forceDelete(tu.db.Sample, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
     .catch(done);
+  },
+
+  populateRedisIfEnabled(done) {
+    if (
+      featureToggles.isFeatureEnabled('enableRedisSampleStore')
+    ) {
+      samstoinit.eradicate()
+      .then(() => samstoinit.populate())
+      .then(() => done())
+      .catch(done);
+    } else {
+      done();
+    }
   },
 };

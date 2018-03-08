@@ -24,13 +24,15 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   let child1AbsolutePath;
   let child1Name;
   let childId2;
+  let rootId;
   const ROOT_NAME = `${tu.namePrefix}parent0`;
 
   beforeEach((done) => {
     const _root = u
     .getSubjectPrototype(ROOT_NAME, null);
     Subject.create(_root)
-    .then(() => {
+    .then((root) => {
+      rootId = root.id;
       const myParent1 = u
       .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
       return Subject.create(myParent1);
@@ -121,17 +123,16 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     });
   });
 
-  it('on update parentAbsolutePath and parentId to empty and non-empty parent subjects, ' +
-    'the update fails', (done) => {
+  it('on update parentAbsolutePath and parentId to empty and non-empty parent' +
+    ' subjects, the empty field is set to match the other one', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: ROOT_NAME, parentId: null }))
-    .then((updatedChild) => done('Expected ParentSubjectNotMatch error. But received' +
-      JSON.stringify(updatedChild)))
-    .catch((err) => {
-      expect(err.status).to.equal(400);
-      expect(err.name).to.equal('ParentSubjectNotMatch');
+    .then((updatedChild) => {
+      expect(updatedChild.parentAbsolutePath).to.equal(ROOT_NAME);
+      expect(updatedChild.parentId).to.equal(rootId);
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('on update parentAbsolutePath and parentId to different parent subjects, ' +
