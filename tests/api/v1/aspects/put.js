@@ -16,8 +16,13 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const featureToggles = require('feature-toggles');
+const Promise = require('bluebird');
+supertest.Test.prototype.endAsync =
+  Promise.promisify(supertest.Test.prototype.end);
 const Aspect = tu.db.Aspect;
+const Sample = tu.db.Sample;
 const path = '/v1/aspects';
+const samplePath = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
@@ -433,6 +438,162 @@ describe('tests/api/v1/aspects/put.js >', () => {
         expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
       })
       .end(done);
+    });
+  });
+
+  describe(`PUT ${path} isPublished >`, () => {
+    const sampleName = `${u.subjectToCreate.name}|${u.toCreate.name}`;
+    const subjectToCreateSecond = {
+      description: 'this is sample description',
+      help: {
+        email: 'sample@bar.com',
+        url: 'http://www.bar.com/a0',
+      },
+      imageUrl: 'http://www.bar.com/a0.jpg',
+      isPublished: true,
+      name: `${tu.namePrefix}TEST_SUBJECT1`,
+    };
+
+    beforeEach((done) => {
+      const samp1 = { aspectId, value: '1' };
+      const samp2 = { aspectId, value: '2' };
+      tu.db.Subject.create(u.subjectToCreate)
+      .then((s1) => {
+        samp1.subjectId = s1.id;
+        return tu.db.Subject.create(subjectToCreateSecond);
+      })
+      .then((s2) => {
+        samp2.subjectId = s2.id;
+      })
+      .then(() => Sample.create(samp1))
+      .then(() => Sample.create(samp2))
+      .then(() => done())
+      .catch(done);
+    });
+
+    beforeEach(u.populateRedisIfEnabled);
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    function expectInResponse(res, props) {
+      expect(res.body).to.include(props);
+      return Promise.resolve();
+    }
+
+    function expectInDB(props) {
+      return Aspect.findById(aspectId)
+      .then((asp) => {
+        expect(asp).to.include(props);
+      });
+    }
+
+    function expectInSampleEmbed(sampleCount, props) {
+      return api.get(samplePath)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => {
+        expect(res.body).to.have.length(sampleCount);
+        res.body.forEach((sample) => expect(sample.aspect).to.include(props));
+      });
+    }
+
+    it('updating aspect isPublished to true does not delete its samples',
+      (done) => {
+        const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
+        aspectObj.isPublished = true;
+        aspectObj.timeout = '5s';
+        const expected = {
+          isPublished: true,
+          timeout: '5s',
+        };
+
+        api.put(`${path}/${aspectId}`)
+        .set('Authorization', token)
+        .send(aspectObj)
+        .expect(constants.httpStatus.OK)
+        .endAsync()
+        .then((res) => expectInResponse(res, expected))
+        .then(() => expectInDB(expected))
+        .then(() => expectInSampleEmbed(2, expected))
+        .then(() => done())
+        .catch(done);
+      });
+
+    it('updating aspect isPublished to false deletes its samples', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
+      aspectObj.isPublished = false;
+      aspectObj.timeout = '5s';
+      const expected = {
+        isPublished: false,
+        timeout: '5s',
+      };
+
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => expectInResponse(res, expected))
+      .then(() => expectInDB(expected))
+      .then(() => expectInSampleEmbed(0))
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('updating aspect with isPublished missing deletes its samples,',
+      (done) => {
+        const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
+        delete aspectObj.isPublished;
+        aspectObj.timeout = '5s';
+        const expected = {
+          isPublished: false,
+          timeout: '5s',
+        };
+
+        api.put(`${path}/${aspectId}`)
+        .set('Authorization', token)
+        .send(aspectObj)
+        .expect(constants.httpStatus.OK)
+        .endAsync()
+        .then((res) => expectInResponse(res, expected))
+        .then(() => expectInDB(expected))
+        .then(() => expectInSampleEmbed(0, expected))
+        .then(() => done())
+        .catch(done);
+      });
+
+    it('setting aspect name without changing it does not delete its samples',
+      (done) => {
+        const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
+        aspectObj.name = u.toCreate.name;
+
+        api.put(`${path}/${aspectId}`)
+        .set('Authorization', token)
+        .send(aspectObj)
+        .expect(constants.httpStatus.OK)
+        .endAsync()
+        .then((res) => expectInResponse(res, { name: u.toCreate.name }))
+        .then(() => expectInDB({ name: u.toCreate.name }))
+        .then(() => expectInSampleEmbed(2, { name: u.toCreate.name }))
+        .then(() => done())
+        .catch(done);
+      });
+
+    it('updating aspect name deletes its samples', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
+      aspectObj.name = 'name_change';
+
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => expectInResponse(res, { name: 'name_change' }))
+      .then(() => expectInDB({ name: 'name_change' }))
+      .then(() => expectInSampleEmbed(0, { name: 'name_change' }))
+      .then(() => done())
+      .catch(done);
     });
   });
 });
