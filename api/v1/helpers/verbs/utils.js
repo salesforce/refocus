@@ -41,13 +41,11 @@ function updateInstance(o, puttableFields, toPut) {
       }
 
       o.set(key, nullish);
-
-      // take nullified fields out of changed fields
-      o.changed(key, false);
     } else {
       /*
-       * value may have changed. set changed to true to
-       * trigger checks in the model
+       * value may be set but not changed. set changed to true to
+       * trigger checks in the model. This is the only way to differentiate between
+       * PUT and PATCH in certain cases.
        */
       o.changed(key, true);
       o.set(key, toPut[key]);
@@ -92,6 +90,9 @@ function sortArrayObjectsByField(props, instArrayOrObject) {
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
   const returnObj = retVal.get ? retVal.get() : retVal;
+  //returnObj here is what was returned from the db save(), and what will be sent in the res
+  //returnObj.isPublished is false. should be true
+
   sortArrayObjectsByField(props, returnObj);
 
   // publish the update event to the redis channel
