@@ -90,9 +90,6 @@ function sortArrayObjectsByField(props, instArrayOrObject) {
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
   const returnObj = retVal.get ? retVal.get() : retVal;
-  //returnObj here is what was returned from the db save(), and what will be sent in the res
-  //returnObj.isPublished is false. should be true
-
   sortArrayObjectsByField(props, returnObj);
 
   // publish the update event to the redis channel
