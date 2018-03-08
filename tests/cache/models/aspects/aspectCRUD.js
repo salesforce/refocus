@@ -332,25 +332,46 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .catch(done);
   });
 
+  it('when an aspect is updated but not unpublished its related samples ' +
+    'should remain in the samplestore', (done) => {
+    // of the form samsto:samples:
+    let aspectName;
+    samstoinit.populate()
+    .then(() => Aspect.findById(aspHumdId))
+    .then((a) => {
+      aspectName = a.name;
+      return a.update({ isPublished: true });
+    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((members) => {
+      let count = 0;
+      members.forEach((member) => {
+        const nameParts = member.split('|');
+        if (nameParts[1] === aspectName) count++;
+      });
+      expect(count).to.be.at.least(1);
+      done();
+    })
+    .catch(done);
+  });
+
   it('when an aspect is unpublished all its related samples should be ' +
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
     .then(() => Aspect.findById(aspHumdId))
-    .then((a) => a.update({ isPublished: false }))
     .then((a) => {
       aspectName = a.name;
-      return Subject.findById(ipar);
+      return a.update({ isPublished: false });
     })
-    .then((s) => s.destroy())
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
 
         // all the samples related to the aspect should be deleted
-        expect(nameParts[0]).not.equal(aspectName);
+        expect(nameParts[1]).not.equal(aspectName);
       });
       done();
     })
