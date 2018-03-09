@@ -11,11 +11,12 @@
  */
 'use strict';
 
+const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
-const DEFAULT_LIMIT = 100;
+const DEFAULT_LIMIT = config.botEventLimit;
 
 module.exports = {
 
