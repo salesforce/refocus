@@ -237,7 +237,8 @@ function updateValues(seq, instance) {
 
       // Update bot data
       for (let i = ZERO; i < data.length; i += TWO) {
-        updates.push(combineValue(data[i].value, data[i + ONE]));
+        newValue = combineValue(data[i].value, data[i + ONE]);
+        updates.push(data[i].update({ value: newValue }));
       }
 
       return Promise.all(updates);
