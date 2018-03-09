@@ -27,9 +27,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 'redis: aspect: create >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
 
-  // const parUnPub =
-  //       { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
-
   const aspectTemp = {
     name: 'temperature',
     timeout: '30s',
@@ -135,7 +132,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     })
     .then((ok) => {
       expect(ok).to.equal(1);
-      return aspect.update({ isPublished: true });
+      return aspect.update({ isPublished: false });
     })
     .then(() => rcli.sismemberAsync(aspectIndexName, aspectKey))
     .then((ok) => {
@@ -146,7 +143,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(asp).to.not.equal(null);
       expect(asp.timeout).to.equal('30s');
       expect(asp.name).to.equal(aspWindChill.name);
-      expect(asp.isPublished).to.equal('true');
+      expect(asp.isPublished).to.equal('false');
       done();
     })
     .catch(done);
@@ -205,8 +202,10 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return rcli.keysAsync(newName + '*');
     })
     .then((ret) => {
-      // since sample store has not been popluated yet. rename should not
-      // create a new entry in sample store.
+      /*
+       * since sample store has not been popluated yet. rename should not
+       * create a new entry in sample store.
+       */
       expect(ret.length).to.equal(0);
       done();
     })
@@ -232,7 +231,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return rcli.sismemberAsync(subjectIndexName, oldKey);
+      return rcli.sismemberAsync(aspectIndexName, oldKey);
     })
     .then((ok) => {
       // old key should not be found
@@ -248,17 +247,17 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       // sample with old aspect name or new aspect name should not be found
       members.forEach((member) => {
         const nameParts = member.split('|');
-        if (nameParts[0] === oldNameWithPrefix) {
+        if (nameParts[1] === oldName) {
           samplesWithOldName.push(member);
-        } else if (nameParts[0] === newNameWithPrefix) {
+        } else if (nameParts[1] === newName) {
           samplesWithNewName.push(members);
         }
       });
 
-      // only samples with new name should be found
+      // sample should not be renamed with the new aspect name
       expect(samplesWithNewName.length).to.equal(0);
 
-      // all the samples related to the aspect should be deleted
+      // all the samples with the old aspect name should be deleted
       expect(samplesWithOldName.length).to.equal(0);
       done();
     })
@@ -350,7 +349,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
         const nameParts = member.split('|');
 
         // all the samples related to the aspect should be deleted
-        expect(nameParts[0]).not.equal(aspectName);
+        expect(nameParts[1]).not.equal(aspectName);
       });
       done();
     })
