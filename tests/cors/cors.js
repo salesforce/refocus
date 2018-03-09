@@ -20,10 +20,13 @@ const eventsPath = '/v1/events';
 const roomsPath = '/v1/rooms';
 const profilesPath = '/v1/profiles';
 const tu = require('../testUtils');
+const b = require('../api/v1/bots/utils');
+const Bot = tu.db.Bot;
 const expect = require('chai').expect;
 
 describe('tests/cors/corsEnabled.js, CORS testing for routes', () => {
   let token;
+  let testBot;
 
   before((done) => {
     tu.createToken()
@@ -34,10 +37,20 @@ describe('tests/cors/corsEnabled.js, CORS testing for routes', () => {
     .catch(done);
   });
 
+  beforeEach((done) => {
+    Bot.create(b.getStandard())
+    .then((bot) => {
+      testBot = bot;
+      done();
+    })
+    .catch(done);
+  });
+
   after(tu.forceDeleteToken);
+  afterEach(b.forceDelete);
 
   it('Pass, GET BotActions and check for access control', (done) => {
-    api.get(botActionsPath)
+    api.get(`${botActionsPath}?botId=${testBot.id}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
@@ -47,7 +60,7 @@ describe('tests/cors/corsEnabled.js, CORS testing for routes', () => {
   });
 
   it('Pass, GET botData and check for access control', (done) => {
-    api.get(botDataPath)
+    api.get(`${botDataPath}?botId=${testBot.id}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
