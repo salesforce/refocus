@@ -69,7 +69,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjectQuery: '?subjects',
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -79,7 +79,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
 
-      expect(res.body.subjectQuery).to.equal('?subjects');
+      expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
       expect(res.body.subjects).to.not.exist;
     })
     .end(done);
@@ -139,7 +139,7 @@ describe('tests/api/v1/generators/put.js >', () => {
         },
       },
       subjects: ['US'],
-      subjectQuery: '?subjects',
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
