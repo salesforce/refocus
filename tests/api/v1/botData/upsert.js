@@ -72,7 +72,7 @@ describe('tests/api/v1/botData/upsert.js >', () => {
       }
 
       expect(res.body.value).to.equal(testBotData.value);
-      done();
+      return done();
     });
   });
 
@@ -86,53 +86,54 @@ describe('tests/api/v1/botData/upsert.js >', () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-        return done(err);
-      }
+          return done(err);
+        }
 
-      expect(res.body.value).to.equal('newValue');
-      done();
+        expect(res.body.value).to.equal('newValue');
+        return done();
       });
     })
     .catch(done);
   });
 
   it('Pass, update botData json', (done) => {
-    testBotData.value = "{\"test\":\"Test1\"}";
+    testBotData.value = '{\"test\":\"Test1\"}';
     BotData.create(testBotData)
     .then(() => {
-      testBotData.value = "{\"test\":\"Test2\"}";
+      testBotData.value = '{\"test\":\"Test2\"}';
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotData)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-        return done(err);
-      }
+          return done(err);
+        }
 
-      expect(res.body.value).to.equal("{\"test\":\"Test2\"}");
-      done();
+        expect(res.body.value).to.equal('{\"test\":\"Test2\"}');
+        return done();
       });
     })
     .catch(done);
   });
 
   it('Pass, append botData json', (done) => {
-    testBotData.value = "{ \"test\": \"Test1\" }";
+    testBotData.value = '{ \"test\": \"Test1\" }';
     BotData.create(testBotData)
     .then(() => {
-      testBotData.value = "{ \"test2\": \"Test2\" }";
+      testBotData.value = '{ \"test2\": \"Test2\" }';
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotData)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-        return done(err);
-      }
+          return done(err);
+        }
 
-      expect(res.body.value).to.equal("{\"test\":\"Test1\",\"test2\":\"Test2\"}");
-      done();
+        expect(res.body.value).to
+        .equal('{\"test\":\"Test1\",\"test2\":\"Test2\"}');
+        return done();
       });
     })
     .catch(done);
@@ -141,39 +142,39 @@ describe('tests/api/v1/botData/upsert.js >', () => {
   it('Pass, repalce string botData with json', (done) => {
     BotData.create(testBotData)
     .then(() => {
-      testBotData.value = "{ \"test\": \"Test1\" }";
+      testBotData.value = '{ \"test\": \"Test1\" }';
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotData)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-        return done(err);
-      }
+          return done(err);
+        }
 
-      expect(res.body.value).to.equal("{ \"test\": \"Test1\" }");
-      done();
+        expect(res.body.value).to.equal('{ \"test\": \"Test1\" }');
+        return done();
       });
     })
     .catch(done);
   });
 
   it('Pass, repalce json botData with string', (done) => {
-    testBotData.value = "{ \"test\": \"Test1\" }";
+    testBotData.value = '{ \"test\": \"Test1\" }';
     BotData.create(testBotData)
     .then(() => {
-      testBotData.value = "Test1";
+      testBotData.value = 'Test1';
       api.post(`${path}`)
       .set('Authorization', token)
       .send(testBotData)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
-        return done(err);
-      }
+          return done(err);
+        }
 
-      expect(res.body.value).to.equal("Test1");
-      done();
+        expect(res.body.value).to.equal('Test1');
+        return done();
       });
     })
     .catch(done);
@@ -192,7 +193,7 @@ describe('tests/api/v1/botData/upsert.js >', () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain(tu.schemaValidationErrorName);
-      done();
+      return done();
     });
   });
 });

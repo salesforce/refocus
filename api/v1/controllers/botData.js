@@ -20,10 +20,7 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
 const u = require('../../../utils/common');
-const helperUtils = require('../helpers/verbs/utils');
-const constants = require('../constants');
 const bdUtils = require('../../../db/helpers/botDataUtils');
-
 
 module.exports = {
 
@@ -98,7 +95,7 @@ module.exports = {
   /**
    * POST /botData/upsert
    *
-   * Check if botData exists if does not exist create a new botData and 
+   * Check if botData exists if does not exist create a new botData and
    * sends it back in the response; if does exist then update the value
    *
    * @param {IncomingMessage} req - The request object
@@ -116,26 +113,14 @@ module.exports = {
     })
     .then((bd) => {
       if (bd) {
-        req.swagger.params.key = { value: bd.id }
-        req.swagger.params.queryBody.value.value = bdUtils.combineValue(bd.value, queryBody.value);
+        req.swagger.params.key = { value: bd.id };
+        req.swagger.params.queryBody.value.value =
+          bdUtils.combineValue(bd.value, queryBody.value);
         doPatch(req, res, next, helper);
       } else {
         doPost(req, res, next, helper);
       }
     });
-  },
-
-  /**
-   * POST /botData
-   *
-   * Creates a new botData and sends it back in the response.
-   *
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  postBotData(req, res, next) {
-    doPost(req, res, next, helper);
   },
 
   /**

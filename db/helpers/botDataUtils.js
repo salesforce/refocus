@@ -40,8 +40,13 @@ function isJson(item) {
 } // isJson
 
 /**
- * 
+ * Bot Data values are stored as strings but can be converted to
+ * JSON. If a JSON string is being overridden by another JSON
+ * string we merge the values rather than replace.
  *
+ * @param {String} originalValue - Original bot data value
+ * @param {String} newValue - New bot data value
+ * @returns {String} - Bot data where values are properly merged
  */
 function combineValue(originalValue, newValue) {
   let output = newValue;
@@ -53,7 +58,7 @@ function combineValue(originalValue, newValue) {
     );
   }
 
-  return output; 
+  return output;
 }
 
 /**
