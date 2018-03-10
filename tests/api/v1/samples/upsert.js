@@ -16,7 +16,7 @@ const constants = require('../../../../api/v1/constants');
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert';
@@ -163,7 +163,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
       .catch(done);
     });
 
-    it('name refers to unpublished aspect', (done) => {
+    // TODO: unskip this when sampleStore flag is removed from aspects
+    it.skip('name refers to unpublished aspect', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({

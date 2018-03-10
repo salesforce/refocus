@@ -15,7 +15,8 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Aspect = tu.db.Aspect;
+const Sample = tu.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
@@ -46,7 +47,8 @@ describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
     .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleName = samp.name;
-      return samp.getAspect();
+      const aspectName = sampleName.split('|')[1].toLowerCase();
+      return Aspect.findOne({ where: { name: { $iLike: aspectName } } });
     })
     .then((asp) => asp.addWriters(user))
     .then(() => done())

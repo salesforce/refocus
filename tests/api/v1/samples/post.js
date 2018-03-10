@@ -46,7 +46,7 @@ describe('tests/api/v1/samples/post.js >', () => {
 
   describe('post duplicate fails >', () => {
     beforeEach((done) => {
-      tu.db.Sample.create(sampleToPost)
+      tu.Sample.create(sampleToPost)
       .then(() => done())
       .catch(done);
     });

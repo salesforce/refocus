@@ -15,7 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 
@@ -26,7 +26,7 @@ describe(`tests/api/v1/samples/filter.js, ${path} >`, () => {
   const ZERO = 0;
   const ONE = 1;
   const MESSAGE_CODE_1 = '12345';
-
+  let samp;
   before((done) => {
     tu.createToken()
     .then((returnedToken) => {
@@ -53,14 +53,26 @@ describe(`tests/api/v1/samples/filter.js, ${path} >`, () => {
       obj.messageCode = MESSAGE_CODE_1;
       return Sample.create(obj);
     })
-    .then((samp) => samp.update({ value: String(ONE) }))
-    .then(() => { // sample updated
-      done();
+    .then((sampInst) => {
+      samp = sampInst;
+      return done();
     })
     .catch(done);
   });
 
   before(u.populateRedisIfEnabled);
+
+  /*
+   * Update the sample once the related aspect and subject have been loaded into
+   * the sample store.
+   */
+  before((done) => {
+    samp.value = String(ONE);
+    Sample.update(samp)
+    .then(() => done())
+    .catch(done);
+  });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
