@@ -296,7 +296,7 @@ function toggleConfirmationModal(event) {
   );
 
   confirmationText.innerText =
-    `Would you like to ${_isActive ? 'close' : 'activate'} this room?`;
+    `Would you like to ${_isActive ? 'deactivate' : 'activate'} this room?`;
 }
 
 // Closes the confirmation modal
@@ -323,7 +323,7 @@ function roomStateChanged() {
       return console.log(err);
     }
 
-    const message = _isActive ? 'Room Activated' : 'Room Closed';
+    const message = _isActive ? 'Room Activated' : 'Room Deactivated';
 
     const eventType = {
       'type': 'RoomState',
