@@ -40,7 +40,7 @@ describe('tests/api/v1/samples/post.js >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -51,7 +51,7 @@ describe('tests/api/v1/samples/post.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
 
     it('with identical name', (done) => {
       api.post(path)
@@ -275,7 +275,7 @@ describe('tests/api/v1/samples/post.js > subject isPublished false >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -310,7 +310,7 @@ describe('tests/api/v1/samples/post.js > aspect isPublished false >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

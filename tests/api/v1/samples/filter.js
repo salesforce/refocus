@@ -60,7 +60,7 @@ describe(`tests/api/v1/samples/filter.js, ${path} >`, () => {
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
 
   /*
    * Update the sample once the related aspect and subject have been loaded into

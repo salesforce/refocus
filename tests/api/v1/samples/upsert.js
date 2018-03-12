@@ -59,7 +59,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

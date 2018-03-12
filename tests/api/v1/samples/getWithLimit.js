@@ -48,7 +48,7 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

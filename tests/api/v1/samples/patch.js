@@ -52,7 +52,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
 
     it('reject if name field in request', (done) => {
@@ -352,7 +352,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    before(u.populateRedisIfEnabled);
+    before(u.populateRedis);
     after(u.forceDelete);
 
     it('cannot patch sample if subject not published', (done) => {
@@ -393,7 +393,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    before(u.populateRedisIfEnabled);
+    before(u.populateRedis);
     after(u.forceDelete);
 
     // TODO: unskip this when sampleStore flag is removed from aspects

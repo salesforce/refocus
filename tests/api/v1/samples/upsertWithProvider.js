@@ -55,7 +55,7 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
@@ -95,7 +95,7 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('returnUser', false));

@@ -53,7 +53,7 @@ describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

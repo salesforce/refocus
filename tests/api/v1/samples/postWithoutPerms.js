@@ -54,7 +54,7 @@ describe('tests/api/v1/samples/postWithoutPerms.js >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
