@@ -13,12 +13,21 @@
 
 const tu = require('../../testUtils');
 const testStartTime = new Date();
+const samstoinit = require('../../../cache/sampleStoreInit');
+
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
+    .then(() => samstoinit.eradicate())
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch((err) => done(err));
+  },
+
+  populateRedis(done) {
+    samstoinit.populate()
+    .then(() => done())
+    .catch(done);
   },
 };
