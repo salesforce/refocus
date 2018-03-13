@@ -187,7 +187,7 @@ module.exports = function subject(seq, dataTypes) {
         }));
         Subject.addScope('absolutePath', (value) => ({
           where: {
-            absolutePath: value,
+            absolutePath: { $iLike: value },
           },
         }));
         Subject.addScope('hierarchy', {
@@ -518,6 +518,13 @@ module.exports = function subject(seq, dataTypes) {
         const papEmpty = inst.parentAbsolutePath == null ||
           inst.parentAbsolutePath == false;
         const pidEmpty = inst.parentId == null || inst.parentId == false;
+
+        console.log('parentId', inst.parentId)
+        console.log('previous parentId', inst._previousDataValues['parentId'])
+        console.log('papChanged', papChanged)
+        console.log('pidChanged', pidChanged)
+        console.log('papEmpty', papEmpty)
+        console.log('pidEmpty', pidEmpty)
 
         return new seq.Promise((resolve, reject) => resolve(checkPublished()))
         .then(() => {

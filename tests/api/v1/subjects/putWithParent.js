@@ -31,7 +31,7 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
   const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = { name: `${tu.namePrefix}Quebec`, isPublished: true };
   const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
-  const _root = { name: `${tu.namePrefix}_Root`, isPublished: true };
+  const _root = { name: `${tu.namePrefix}_root`, isPublished: true };
 
   let i0 = ZERO;
   let i1 = ZERO;
@@ -68,6 +68,7 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
     .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
+      n0a.absolutePath = subj.absolutePath;
       done();
     })
     .catch(done);
@@ -392,6 +393,69 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
 
       expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
+      done();
+    });
+  });
+
+  it('re-parent by id', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentId: i0a,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
+      done();
+    });
+  });
+
+  it('re-parent by absolutePath', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: n0a.absolutePath,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
+      done();
+    });
+  });
+
+  it('re-parent by absolutePath lowercase', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: n0a.absolutePath.toLowerCase(),
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
       done();
     });
   });
