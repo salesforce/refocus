@@ -1804,7 +1804,7 @@ paths:
         - jwt: []
       summary: Upsert botData
       tags: [ botData ]
-      description: Creates or updates bot data for a rooms specific bots
+      description: Creates or updates bot data for a room's specific bots
       operationId: upsertBotData
       parameters:
         -

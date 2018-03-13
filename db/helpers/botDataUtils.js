@@ -41,8 +41,10 @@ function isJson(item) {
 
 /**
  * Bot Data values are stored as strings but can be converted to
- * JSON. If a JSON string is being overridden by another JSON
- * string we merge the values rather than replace.
+ * JSON. If either parameter is not JSON strings we replace originalValue
+ * with the newValue. If both values are JSON strings we extend the
+ * originalValue by adding any missing key-value pairs and replacing any
+ * exsiting key-value pairs with new value
  *
  * @param {String} originalValue - Original bot data value
  * @param {String} newValue - New bot data value
@@ -51,7 +53,7 @@ function isJson(item) {
 function combineValue(originalValue, newValue) {
   let output = newValue;
 
-  // If values are json, then merge values
+  // if both values are JSON strings then extend the original JSON strings
   if ((isJson(originalValue)) && (isJson(newValue))) {
     output = JSON.stringify(
       _.extend(JSON.parse(originalValue), JSON.parse(newValue))
