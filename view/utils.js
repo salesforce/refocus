@@ -114,10 +114,54 @@ function getPromiseWithUrl(url) {
   });
 } // getPromiseWithUrl
 
+/**
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
+ * @returns {Promise} For use in chaining.
+ */
+function patchPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.patch(url)
+    .set(REQ_HEADERS)
+    .send(data)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // patchPromiseWithUrl
+
+/**
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
+ * @returns {Promise} For use in chaining.
+ */
+function postPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.post(url)
+      .set(REQ_HEADERS)
+      .send(data)
+      .end((error, response) => {
+        // reject if error is present, otherwise resolve request
+        if (error) {
+          reject(error);
+        } else {
+          resolve(response);
+        }
+      });
+  });
+} // postPromiseWithUrl
+
 module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
   removeSpinner,
   getPromiseWithUrl,
+  patchPromiseWithUrl,
+  postPromiseWithUrl,
 };
