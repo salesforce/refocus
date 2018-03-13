@@ -688,14 +688,7 @@ module.exports = function subject(seq, dataTypes) {
             value = this.getDataValue('parentAbsolutePath');
           }
 
-          const whereObj = { where: {} };
-          if (key === 'absolutePath') {
-            whereObj.where[key] = { $iLike: value };
-          } else {
-            whereObj.where[key] = value;
-          }
-
-          return Subject.find(whereObj)
+          return Subject.scope({ method: [key, value] }).find()
           .then((parent) => {
             if (parent) {
               if (parent.getDataValue('isPublished') === false &&

@@ -31,7 +31,7 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
   const p0 = { name: `${tu.namePrefix}NA`, isPublished: true };
   const p1 = { name: `${tu.namePrefix}Quebec`, isPublished: true };
   const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
-  const _root = { name: `${tu.namePrefix}_root`, isPublished: true };
+  const _root = { name: `${tu.namePrefix}_Root`, isPublished: true };
 
   let i0 = ZERO;
   let i1 = ZERO;
@@ -362,6 +362,27 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
       name: NEW_NAME,
       isPublished: p1.isPublished,
       parentAbsolutePath: _root.name,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(iRoot);
+      expect(res.body.parentAbsolutePath).to.equal(_root.name);
+      done();
+    });
+  });
+
+  it('sets the parent based on the parentAbsolutePath lowercase', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: _root.name.toLowerCase(),
     })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
