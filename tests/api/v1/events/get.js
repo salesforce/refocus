@@ -25,6 +25,9 @@ const Event = tu.db.Event;
 const b = require('../../../db/model/bot/utils');
 const r = require('../../../db/model/room/utils');
 const rt = require('../../../db/model/roomType/utils');
+const DEFAULT_LIMIT = 100;
+const TOTAL_EVENTS = 150;
+const PRE_BUILT_EVENTS = 3;
 
 describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
@@ -83,6 +86,75 @@ describe('tests/api/v1/events/get.js >', () => {
 
       expect(res.body.length).to.equal(THREE);
       done();
+    });
+  });
+
+  it('Pass, hit default limit', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(DEFAULT_LIMIT);
+        done();
+      });
+    });
+  });
+
+  it('Pass, offset events', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}?offset=${DEFAULT_LIMIT}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(TOTAL_EVENTS - DEFAULT_LIMIT);
+        done();
+      });
+    });
+  });
+
+  it('Pass, set limit', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}?limit=${TOTAL_EVENTS}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(TOTAL_EVENTS);
+        done();
+      });
     });
   });
 

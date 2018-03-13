@@ -67,16 +67,11 @@ describe('tests/api/v1/botActions/get.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  it('Pass, get array of one', (done) => {
+  it('Fail, get array of one', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.length).to.equal(ONE);
       done(err);
     });
   });
@@ -87,7 +82,7 @@ describe('tests/api/v1/botActions/get.js >', () => {
     respondedAction.roomId = testBotAction.roomId;
     BotAction.create(respondedAction)
     .then(() => {
-      api.get(`${path}`)
+      api.get(`${path}?botId=${testBotAction.botId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
@@ -103,7 +98,7 @@ describe('tests/api/v1/botActions/get.js >', () => {
   });
 
   it('Pass, get active', (done) => {
-    api.get(`${path}?isPending=true`)
+    api.get(`${path}?isPending=true&botId=${testBotAction.botId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -117,7 +112,7 @@ describe('tests/api/v1/botActions/get.js >', () => {
   });
 
   it('Pass, get inactive', (done) => {
-    api.get(`${path}?isPending=false`)
+    api.get(`${path}?isPending=false&botId=${testBotAction.botId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -151,16 +146,11 @@ describe('tests/api/v1/botActions/get.js >', () => {
     .end(() => done());
   });
 
-  it('Pass, get by roomId', (done) => {
+  it('Fail, get by roomId no bot Id', (done) => {
     api.get(`${path}?roomId=${testBotAction.roomId}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.length).to.equal(ONE);
       done();
     });
   });
@@ -187,7 +177,7 @@ describe('tests/api/v1/botActions/get.js >', () => {
   });
 
   it('Pass, get by name', (done) => {
-    api.get(`${path}?name=${u.name}`)
+    api.get(`${path}?botId=${testBotAction.botId}&name=${u.name}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
