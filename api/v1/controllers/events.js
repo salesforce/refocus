@@ -11,10 +11,12 @@
  */
 'use strict';
 
+const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
+const DEFAULT_LIMIT = config.botEventLimit;
 
 module.exports = {
 
@@ -28,6 +30,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findEvents(req, res, next) {
+    if (!req.swagger.params.limit.value) {
+      req.swagger.params.limit.value = DEFAULT_LIMIT;
+    }
+
     doFind(req, res, next, helper);
   },
 

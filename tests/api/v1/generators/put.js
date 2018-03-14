@@ -69,7 +69,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -79,10 +79,79 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
 
-      // subjectQuery is ?subjects after reload
-      expect(res.body.subjectQuery)
-        .to.equal(generatorToCreate.subjectQuery);
+      expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
+      expect(res.body.subjects).to.not.exist;
+    })
+    .end(done);
+  });
+
+  it('replace subjectQuery with subjects', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: 'refocus-ok-generator-template',
+        version: '1.0.0',
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.subjectQuery).to.not.exist;
       expect(res.body.subjects).to.deep.equal(toPut.subjects);
+    })
+    .end(done);
+  });
+
+  it('put with both subjectQuery and subjects (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: 'refocus-ok-generator-template',
+        version: '1.0.0',
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SequelizeValidationError');
+      expect(res.body.errors[0].message).to.equal(
+        'Only one of ["subjects", "subjectQuery"] is required'
+      );
     })
     .end(done);
   });
@@ -116,6 +185,40 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.description).to.equal(toPut.description);
+    })
+    .end(done);
+  });
+
+  it('replace subjectQuery with subjects', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: 'refocus-ok-generator-template',
+        version: '1.0.0',
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.subjectQuery).to.not.exist;
+      expect(res.body.subjects).to.deep.equal(toPut.subjects);
     })
     .end(done);
   });
