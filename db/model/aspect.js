@@ -329,7 +329,7 @@ module.exports = function aspect(seq, dataTypes) {
           }
         }
 
-        if (isPublishedChanged && !inst.isPublished || nameChanged) {
+        if (nameChanged || (isPublishedChanged && !inst.isPublished)) {
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())
