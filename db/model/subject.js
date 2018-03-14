@@ -187,7 +187,7 @@ module.exports = function subject(seq, dataTypes) {
         }));
         Subject.addScope('absolutePath', (value) => ({
           where: {
-            absolutePath: value,
+            absolutePath: { $iLike: value },
           },
         }));
         Subject.addScope('hierarchy', {
@@ -249,52 +249,7 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       beforeCreate(inst /* , opts*/) {
-        if (inst.parentAbsolutePath || inst.parentId) {
-          let key = null;
-          let value = null;
-          let param = null;
-          let key1 = null;
-          if (inst.parentId) {
-            key = 'id';
-            value = inst.getDataValue('parentId');
-            param = 'parentAbsolutePath';
-            key1 = 'absolutePath';
-          } else {
-            key = 'absolutePath';
-            value = inst.getDataValue('parentAbsolutePath');
-            param = 'parentId';
-            key1 = 'id';
-          }
-
-          return new seq.Promise((resolve, reject) => {
-            Subject.scope({ method: [key, value] }).find()
-            .then((parent) => {
-              if (parent) {
-                if (parent.getDataValue('isPublished') === false &&
-                  inst.getDataValue('isPublished') === true) {
-                  throw new dbErrors.ValidationError({
-                    message: 'You cannot insert a subject with ' +
-                      'isPublished = true unless all its ancestors are also ' +
-                      'published.',
-                  });
-                }
-
-                inst.setDataValue('absolutePath',
-                  parent.absolutePath + '.' + inst.name);
-                inst.setDataValue(param, parent.getDataValue(key1));
-              } else {
-                throw new dbErrors.ParentSubjectNotFound({
-                  message: 'parent' + key + ' not found.',
-                });
-              }
-
-              resolve(inst);
-            })
-            .catch((err) => reject(err));
-          });
-        }
-
-        inst.setDataValue('absolutePath', inst.name);
+        return inst.setupParentFields();
       },
 
       /**
@@ -558,29 +513,29 @@ module.exports = function subject(seq, dataTypes) {
           }
         }
 
+        const papChanged = inst.changed('parentAbsolutePath');
+        const pidChanged = inst.changed('parentId');
+        const papEmpty = inst.parentAbsolutePath == null ||
+          inst.parentAbsolutePath == false;
+        const pidEmpty = inst.parentId == null || inst.parentId == false;
+
         return new seq.Promise((resolve, reject) => resolve(checkPublished()))
         .then(() => {
-
-          // parentId and parentAbsolutePath check
-          // pap is shorthand for parentAbsolutePath,
-          // pip is shorthand for parentId
+          if ((papChanged && pidChanged) && (papEmpty != pidEmpty)) {
+            return inst.setupParentFields();
+          } else {
+            return Promise.resolve();
+          }
+        })
+        .then(() => {
           const papChanged = inst.changed('parentAbsolutePath');
           const pidChanged = inst.changed('parentId');
-
-          // initialize papEmpty, pidEmpty: check whether the
-          // fields are '' or null or falsey
           const papEmpty = inst.parentAbsolutePath == null ||
             inst.parentAbsolutePath == false;
           const pidEmpty = inst.parentId == null || inst.parentId == false;
 
           // If either is empty, decrement the parent's childCount
           if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
-
-            // if both changed, throw not match error if
-            // one is empty and the other is not
-            if (papChanged && pidChanged && (papEmpty != pidEmpty)) {
-              throwNotMatchError(inst.parentId, inst.absolutePath);
-            }
 
             // set parentAbsolutePath, parentId to null
             return updateParentFields(Subject, null, null, inst);
@@ -720,6 +675,46 @@ module.exports = function subject(seq, dataTypes) {
             resolve(found.length === 1);
           }));
       }, // isWritableBy
+
+      setupParentFields() {
+        if (this.parentAbsolutePath || this.parentId) {
+          let key = null;
+          let value = null;
+          if (this.parentId) {
+            key = 'id';
+            value = this.getDataValue('parentId');
+          } else {
+            key = 'absolutePath';
+            value = this.getDataValue('parentAbsolutePath');
+          }
+
+          return Subject.scope({ method: [key, value] }).find()
+          .then((parent) => {
+            if (parent) {
+              if (parent.getDataValue('isPublished') === false &&
+                this.getDataValue('isPublished') === true) {
+                throw new dbErrors.ValidationError({
+                  message: 'You cannot insert a subject with ' +
+                  'isPublished = true unless all its ancestors are also ' +
+                  'published.',
+                });
+              }
+
+              this.setDataValue('absolutePath',
+                parent.absolutePath + '.' + this.name);
+              this.setDataValue('parentId', parent.id);
+              this.setDataValue('parentAbsolutePath', parent.absolutePath);
+            } else {
+              throw new dbErrors.ParentSubjectNotFound({
+                message: 'parent' + key + ' not found.',
+              });
+            }
+          });
+        } else {
+          this.setDataValue('absolutePath', this.name);
+          return Promise.resolve();
+        }
+      },
     }, // instanceMethods
     paranoid: true,
   });

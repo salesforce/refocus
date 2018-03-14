@@ -38,14 +38,7 @@ const subAspMapType = redisOps.subAspMapType;
  * @returns {Promise} contains parent subject
  */
 function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
-  const whereObj = { where: {} };
-  if (fieldName === 'absolutePath') {
-    whereObj.where[fieldName] = { $iLike: parentFieldVal };
-  } else {
-    whereObj.where[fieldName] = parentFieldVal;
-  }
-
-  return Subject.find(whereObj)
+  return Subject.scope({ method: [fieldName, parentFieldVal] }).find()
   .then((parent) => {
     if (!parent) {
       throw new ParentSubjectNotFound({
