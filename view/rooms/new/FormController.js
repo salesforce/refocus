@@ -29,7 +29,7 @@ class FormController extends React.Component {
           <div className="slds-text-heading_medium">
             New room attributes
           </div>
-          <div className="slds-form-element slds-p-vertical_small">
+          <div className="slds-form-element slds-p-top_small">
             <label className="slds-form-element__label">Room Name</label>
             <div className="slds-form-element__control">
               <input
@@ -38,24 +38,52 @@ class FormController extends React.Component {
                 placeholder="A readable name for your room"/>
             </div>
           </div>
-          <div className="slds-form-element__control slds-p-vertical_small">
-            <span className="slds-form-element__legend slds-form-element__label">
+          <div className="slds-form-element slds-p-top_small">
+            <label className="slds-form-element__label">External ID</label>
+            <div className="slds-form-element__control">
+              <input
+                type="text"
+                className="slds-input"
+                placeholder="(Optional) Enter an External ID"/>
+            </div>
+          </div>
+          <div className="slds-form-element__control slds-p-top_small">
+            <span
+              className="slds-form-element__legend slds-form-element__label">
               Is the room currently active?
             </span>
-            <span className="slds-radio">
-              <input type="radio" id="radio-3" name="options" value="on" />
-              <label className="slds-radio__label">
-                <span className="slds-radio_faux"></span>
-                <span className="slds-form-element__label">Active</span>
+            <div className="slds-form-element">
+              <label className="slds-checkbox_toggle slds-grid">
+                <span className="slds-checkbox_faux_container">
+                  <span className="slds-checkbox_faux">
+                  </span>
+                  <span className="slds-checkbox_on slds-text-align--center">
+                    Active
+                  </span>
+                  <span className="slds-checkbox_off slds-text-align--center">
+                    Inactive
+                  </span>
+                </span>
               </label>
-            </span>
-            <span className="slds-radio">
-              <input type="radio" id="radio-4" name="options" value="on" />
-              <label className="slds-radio__label">
-                <span className="slds-radio_faux"></span>
-                <span className="slds-form-element__label">Inactive</span>
-              </label>
-            </span>
+            </div>
+          </div>
+          <div className="slds-form-element slds-p-top_small">
+            <label className="slds-form-element__label">Bots</label>
+            <div className="slds-form-element__control">
+              <input
+                type="text"
+                className="slds-input"
+                placeholder="List of Bots needed in the room"/>
+            </div>
+          </div>
+          <div className="slds-form-element slds-p-top_small">
+            <label className="slds-form-element__label">Settings</label>
+            <div className="slds-form-element__control">
+              <textarea
+                type="text"
+                className="slds-textarea"
+                placeholder="Object that contains all the settings for this room"/>
+            </div>
           </div>
         </div>
       </div>
