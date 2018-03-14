@@ -37,7 +37,7 @@ let _roomName;
 let _isActive;
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
-  .includes('log=REALTIME');
+  .includes('debug=REALTIME');
 
 /**
  * Creates headers for each bot added to the UI
