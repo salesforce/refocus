@@ -154,6 +154,8 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(request.headers.IsAdmin).to.equal(true);
         expect(request.headers.IsBot).to.equal(false);
         expect(request.headers.IsCollector).to.equal(false);
+        expect(request.user.name).to.equal(adminUser.name);
+        expect(request.user.profile.name).to.equal(adminProfile.name);
         return done();
       }).catch(done);
     });
@@ -235,6 +237,8 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(request.headers.IsAdmin).to.equal(false);
         expect(request.headers.IsBot).to.equal(false);
         expect(request.headers.IsCollector).to.equal(false);
+        expect(request.user.name).to.equal(userInst.name);
+        expect(request.user.profile.name).to.equal(profile.name);
         return done();
       }).catch(done);
     });
