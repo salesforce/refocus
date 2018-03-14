@@ -31,33 +31,10 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     name: `${tu.namePrefix}Quebec`,
     isPublished: true,
   };
-  const n0a = { name: `${tu.namePrefix}NorthAmerica` };
+  const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   let i0 = 0;
   let i1 = 0;
   let i0a = 0;
-
-  function childCheckIfPatched(res) {
-    const errors = [];
-    if (res.body.name !== p1.name) {
-      errors.push(new Error(`name should be ${p1.name}`));
-    }
-
-    if (res.body.absolutePath !== `${n0.name}.${p1.name}`) {
-      errors.push(new Error(`absolutePath should be ${n0.name}.${p1.name}`));
-    }
-
-    if (!res.body.isPublished) {
-      errors.push(new Error('isPublished should be true'));
-    }
-
-    if (res.body.isDeleted > 0) {
-      errors.push(new Error('isDeleted should be zero'));
-    }
-
-    if (errors.length) {
-      throw new Error(errors);
-    }
-  }
 
   function parentCheckIfPatched(res) {
     const errors = [];
@@ -358,7 +335,10 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .set('Authorization', token)
     .send(p1)
     .expect(constants.httpStatus.OK)
-    .expect(childCheckIfPatched)
+    .expect((res) => {
+      expect(res.body.name).to.equal(p1.name);
+      expect(res.body.isPublished).to.equal(p1.isPublished);
+    })
     .end(done);
   });
 
@@ -434,7 +414,11 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .set('Authorization', token)
     .send(toPatch)
     .expect(constants.httpStatus.OK)
-    .expect(childCheckIfPatched)
+    .expect((res) => {
+      expect(res.body.name).to.equal(p1.name);
+      expect(res.body.isPublished).to.equal(p1.isPublished);
+      expect(res.body.helpUrl).to.equal(p1.helpUrl);
+    })
     .end(done);
   });
 
