@@ -146,9 +146,11 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         aspectFilter: ['temperature', 'humidity'],
         aspectTagFilter: ['temp', 'hum'],
         subjectTagFilter: ['ea', 'na'],
+        statusFilter: ['Critical', '-OK'],
         aspectFilterType: 'INCLUDE',
         aspectTagFilterType: 'INCLUDE',
         subjectTagFilterType: 'INCLUDE',
+        statusFilterType: 'INCLUDE',
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {

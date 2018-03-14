@@ -172,7 +172,7 @@ describe('tests/db/model/generator/create.js >', () => {
     'the generator schema', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.subjects = ['Asia, America'];
-    _generator.subjectQuery = '?subjects=A*';
+    _generator.subjectQuery = '?absolutePath=Foo.*';
     _generator.name += 'bothSubSUbQPresent';
     Generator.create(_generator)
     .then(() => {
