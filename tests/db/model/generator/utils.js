@@ -38,7 +38,7 @@ const GENERATOR_SIMPLE = {
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
-  subjectQuery: '?subjects',
+  subjectQuery: '?absolutePath=Foo.*',
   aspects: ['Temperature', 'Weather'],
 };
 
@@ -73,7 +73,7 @@ function createSGtoSGTMapping(sgt, sg) {
  * @returns {Object} - Generator object
  */
 function getGenerator() {
-  return GENERATOR_SIMPLE;
+  return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
 module.exports = {

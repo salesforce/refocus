@@ -13,13 +13,41 @@
 const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const featureToggles = require('feature-toggles');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+
+function flushRedisIfEnabled() {
+  if (
+    featureToggles.isFeatureEnabled('enableRedisSampleStore')
+    && featureToggles.isFeatureEnabled('getSubjectFromCache')
+  ) {
+    return rcli.flushallAsync();
+  }
+}
 
 module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => flushRedisIfEnabled())
     .then(() => done())
     .catch(done);
   },
+
+  populateRedisIfEnabled(done) {
+    if (
+      featureToggles.isFeatureEnabled('enableRedisSampleStore')
+    ) {
+      samstoinit.eradicate()
+      .then(() => samstoinit.populate())
+      .then(() => done())
+      .catch(done);
+    } else {
+      done();
+    }
+  },
+
 };
+

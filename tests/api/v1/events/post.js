@@ -66,6 +66,32 @@ describe('tests/api/v1/events/post.js >', () => {
     });
   });
 
+  it('Pass, post multiple events', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(u.getStandard())
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.logLine);
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(u.getStandard())
+      .expect(constants.httpStatus.CREATED)
+      .end((err2, res2) => {
+        if (err2) {
+          return done(err2);
+        }
+
+        expect(res2.body.name).to.equal(u.logLine);
+        done();
+      });
+    });
+  });
+
   it('Fail, event validation incorrect', (done) => {
     let testEvent = u.getStandard();
     testEvent.context = 'INVALID_VALUE';

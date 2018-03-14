@@ -42,7 +42,12 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
   afterEach(() => jobQueue.testMode.clear());
   after(() => jobQueue.testMode.exit());
 
-  //run normal getHierarchy tests with worker enabled
+  /*
+   * Run normal getHierarchy tests with worker enabled.
+   * Note that this must be run in a separate command from the api tests,
+   * otherwise these tests will not run because files can't be required
+   * twice in the same process.
+   */
   require('../../api/v1/subjects/getHierarchy');
   require('../../api/v1/subjects/getHierarchyAspectAndTagsFilters');
   require('../../api/v1/subjects/getHierarchyStatusAndCombinedFilters');

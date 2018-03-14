@@ -115,7 +115,7 @@ function traverseHierarchy(res) {
     }
 
     // filtered array is attached to the children key
-    res.children = filteredChildrenArr;
+    res.children = filteredChildrenArr.length ? filteredChildrenArr : undefined;
   }
 
   // return 0 only if both filteredChildrenArr.length and pruneNode return zero

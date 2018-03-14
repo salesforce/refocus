@@ -44,6 +44,8 @@ describe(`tests/api/v1/subjects/postChild.js, POST ${path} >`, () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

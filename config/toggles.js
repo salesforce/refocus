@@ -76,9 +76,6 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
-  // Enable Rooms functionality
-  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
-
   // Enable sample store info logging
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
@@ -129,9 +126,6 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
-
-  // publish partial sample to the subscribers
-  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(

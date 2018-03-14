@@ -24,13 +24,15 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   let child1AbsolutePath;
   let child1Name;
   let childId2;
+  let rootId;
   const ROOT_NAME = `${tu.namePrefix}parent0`;
 
   beforeEach((done) => {
     const _root = u
     .getSubjectPrototype(ROOT_NAME, null);
     Subject.create(_root)
-    .then(() => {
+    .then((root) => {
+      rootId = root.id;
       const myParent1 = u
       .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
       return Subject.create(myParent1);
@@ -121,17 +123,16 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     });
   });
 
-  it('on update parentAbsolutePath and parentId to empty and non-empty parent subjects, ' +
-    'the update fails', (done) => {
+  it('on update parentAbsolutePath and parentId to empty and non-empty parent' +
+    ' subjects, the empty field is set to match the other one', (done) => {
     Subject.findById(childId2)
     .then((child) => child.update({ parentAbsolutePath: ROOT_NAME, parentId: null }))
-    .then((updatedChild) => done('Expected ParentSubjectNotMatch error. But received' +
-      JSON.stringify(updatedChild)))
-    .catch((err) => {
-      expect(err.status).to.equal(400);
-      expect(err.name).to.equal('ParentSubjectNotMatch');
+    .then((updatedChild) => {
+      expect(updatedChild.parentAbsolutePath).to.equal(ROOT_NAME);
+      expect(updatedChild.parentId).to.equal(rootId);
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('on update parentAbsolutePath and parentId to different parent subjects, ' +
@@ -450,6 +451,114 @@ describe('tests/db/model/subject/updateParent.js >', () => {
         .catch(done);
         done();
       }, 500);
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1 ===>/ O<= child1
+   * |
+   * O<= child2
+   */
+  it('error, assign first child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then(() => Subject.findById(childId1))
+    .then((child1) => {
+      expect(child1.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1`);
+      return child1.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child2
+   * |             /
+   * O<= child2   /
+   */
+  it('error, assign last child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, subjId2);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findById(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child1
+   * |             /  |
+   * O<= child2   /   O<= child2
+   */
+  it('ok, assign child to new parent with existing child in the hierarchy',
+    (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then((created) => {
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, created.id);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findById(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((updatedChild) => {
+      expect(updatedChild.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent2.${tu.namePrefix}child2`);
+      done();
     })
     .catch(done);
   });

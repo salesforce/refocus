@@ -16,19 +16,26 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/collectors/start';
+const collectorConfig = require('../../../../config/collectorConfig');
 const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const sgUtils = require('../generators/utils');
+const gtUtil = sgUtils.gtUtil;
 
 describe('tests/api/v1/collectors/start.js >', () => {
-  let i = 0;
   let token;
   let tokenOfSecondUser;
   let user;
   const secondUserName = 'userTwo';
-  const defaultCollector = {
-    name: u.toCreate.name, version: '0.0.1',
-  };
+  const defaultCollector = u.getCollectorToCreate();
+  defaultCollector.version = '0.0.1';
+
+  let generator1;
+  let generator2;
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   before((done) => {
     tu.createUserAndToken()
@@ -46,11 +53,22 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   beforeEach((done) => {
-    Collector.create(u.toCreate)
-    .then((c) => {
-      i = c.id;
-      done();
+    GeneratorTemplate.create(generatorTemplate)
+    .then(() => {
+      const gen1 = sgUtils.getGenerator();
+      gen1.name += 'generator-1';
+
+      const gen2 = sgUtils.getGenerator();
+      gen2.name += 'generator-2';
+      return Generator.bulkCreate([gen1, gen2]);
     })
+    .then((generators) => {
+      generator1 = generators[0];
+      generator2 = generators[1];
+      return Collector.create(u.getCollectorToCreate());
+    })
+    .then((c) => c.addCurrentGenerators([generator1, generator2]))
+    .then(() => done())
     .catch(done);
   });
 
@@ -59,9 +77,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   describe('if the collector is registered and status is STOPPED:', () => {
     it('if the user is among the writers, start the collector ' +
-      'and return with the collector token', (done) => {
-
-      // default status is STOPPED.
+      'and return the expected response', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(defaultCollector)
@@ -73,7 +89,19 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
         expect(res.body.status).to.equal('Running');
         expect(res.body.token).to.be.an('string');
-        done();
+        expect(res.body.collectorConfig).to.include(collectorConfig);
+        expect(res.body.collectorConfig.status).to.include('Running');
+        expect(res.body.generatorsAdded).to.have.lengthOf(2);
+        const sg1 = res.body.generatorsAdded.filter((gen) =>
+          gen.name === generator1.name)[0];
+        const sg2 = res.body.generatorsAdded.filter((gen) =>
+          gen.name === generator2.name)[0];
+        expect(sg1.id).to.include(generator1.id);
+        expect(sg1.GeneratorCollectors).to.equal(undefined);
+        expect(sg1.collectors).to.equal(undefined);
+        expect(sg2.GeneratorCollectors).to.equal(undefined);
+        expect(sg2.collectors).to.equal(undefined);
+        return done();
       });
     });
 
@@ -104,7 +132,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   it('reject when the user token is revoked');
 
   it('if the collector is not registered, throw an error.', (done) => {
-    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    const _collector = u.getCollectorToCreate();
     _collector.name = 'unregisteredCollector';
     _collector.registered = false;
     Collector.create(_collector)
@@ -119,7 +147,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   describe('if the collector is registered:', () => {
     it('reject if the status is PAUSED', (done) => {
-      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      const _collector = u.getCollectorToCreate();
       _collector.name = 'PausedCollector';
 
       /*
@@ -138,7 +166,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
 
     it('reject if the status is RUNNING', (done) => {
-      const _collector = JSON.parse(JSON.stringify(u.toCreate));
+      const _collector = u.getCollectorToCreate();
       _collector.name = 'runningCollector';
       _collector.status = 'Running';
       Collector.create(_collector)
@@ -156,11 +184,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
     before(() => tu.toggleOverride('returnUser', true));
     after(() => tu.toggleOverride('returnUser', false));
 
-    const _collector = JSON.parse(JSON.stringify(u.toCreate));
+    const _collector = u.getCollectorToCreate();
     _collector.name = 'newCollector';
 
-    it('create a new collector record with isRegistered=true ' +
-      ' and status=RUNNING, and return with a collector token', (done) => {
+    it('create a new collector record with registered=true ' +
+      'and status=RUNNING, and return the expected response', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(_collector)
@@ -172,7 +200,10 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
         expect(res.body.status).to.equal('Running');
         expect(res.body.token).to.be.an('string');
-        done();
+        expect(res.body.collectorConfig).to.include(collectorConfig);
+        expect(res.body.collectorConfig.status).to.include('Running');
+        expect(res.body.generatorsAdded).to.have.lengthOf(0);
+        return done();
       });
     });
 
@@ -196,7 +227,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
           expect(res.body.length).to.equal(1);
           expect(res.body[0].id).to.equal(user.id);
-          done();
+          return done();
         });
       });
     });

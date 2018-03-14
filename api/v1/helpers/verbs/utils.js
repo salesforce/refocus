@@ -41,13 +41,11 @@ function updateInstance(o, puttableFields, toPut) {
       }
 
       o.set(key, nullish);
-
-      // take nullified fields out of changed fields
-      o.changed(key, false);
     } else {
       /*
-       * value may have changed. set changed to true to
-       * trigger checks in the model
+       * value may be set but not changed. set changed to true to
+       * trigger checks in the model. This is the only way to differentiate between
+       * PUT and PATCH in certain cases.
        */
       o.changed(key, true);
       o.set(key, toPut[key]);
@@ -59,6 +57,7 @@ function updateInstance(o, puttableFields, toPut) {
 
 /**
  * Sorts the array field of an object or an array of objects alphabetically.
+ *
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param  {Object|Array} instArrayOrObject  - The instance object or an array
  *   of instance object with fields containing an array of objects that needs
@@ -80,8 +79,7 @@ function sortArrayObjectsByField(props, instArrayOrObject) {
 } // sortArrayObjectsByField
 
 /**
- * Sends the udpated record back in the json response
- * with status code 200.
+ * Sends the udpated record back in the json response with status code 200.
  *
  * @param {Object} resultObj - For logging
  * @param {Object} req - The request object
@@ -92,13 +90,12 @@ function sortArrayObjectsByField(props, instArrayOrObject) {
  */
 function handleUpdatePromise(resultObj, req, retVal, props, res) {
   const returnObj = retVal.get ? retVal.get() : retVal;
-
   sortArrayObjectsByField(props, returnObj);
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
-    publisher.publishSample(
-      returnObj, props.associatedModels.subject, realtimeEvents.sample.upd);
+    publisher.publishSample(returnObj, props.associatedModels.subject,
+      realtimeEvents.sample.upd);
   }
 
   // update the cache
@@ -111,10 +108,9 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, returnObj);
-
   return res.status(constants.httpStatus.OK)
     .json(responsify(returnObj, props, req.method));
-}
+} // handleUpdatePromise
 
 /**
  * In-place removal of certain keys from the input object
@@ -768,7 +764,7 @@ function checkDuplicateRLinks(rLinkArr) {
   rLinkArr.forEach((rLinkObj) => {
     if (rLinkObj.name && uniqlinks.has(rLinkObj.name.toLowerCase())) {
       throw new apiErrors.ValidationError({
-        explanation: 'Name of the relatedlinks should be unique.',
+        message: 'Name of the relatedlinks should be unique.',
       });
     }
 

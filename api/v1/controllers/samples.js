@@ -35,10 +35,11 @@ const getSamplesWildcardCacheInvalidation = require('../../../config')
 const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
+const logger = require('winston');
 
 /**
- * Find sample from samplestore. If cache is on then
- * cache the response as well.
+ * Find sample (from redis sample store). If cache is on then cache the
+ * response as well.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -47,8 +48,7 @@ const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
  * @param {String} cacheKey - Cache Key
  * @param {Integer} cacheExpiry -  Cache expiry time
  */
-function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey,
-  cacheExpiry) {
+function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
   redisModelSample.findSamples(req, res)
   .then((response) => {
     /*
@@ -74,8 +74,15 @@ function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey,
     u.logAPI(req, resultObj, response); // audit log
     res.status(httpStatus.OK).json(response);
   })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-}
+  .catch((err) => {
+    // Tracking invalid sample name problems, e.g. missing name
+    if (err.name === 'ResourceNotFoundError') {
+      logger.error('api/v1/controllers/samples.doFindSample|', err);
+    }
+
+    return u.handleError(next, err, helper.modelName);
+  });
+} // doFindSample
 
 module.exports = {
 
@@ -125,15 +132,15 @@ module.exports = {
       if (helper.cacheEnabled) {
         redisCache.get(helper.cacheKey, (cacheErr, reply) => {
           if (cacheErr || !reply) {
-            doFindSampleStoreResponse(req, res, next, resultObj,
-              helper.cacheKey, helper.cacheExpiry);
+            doFindSample(req, res, next, resultObj, helper.cacheKey,
+              helper.cacheExpiry);
           } else {
             u.logAPI(req, resultObj, reply); // audit log
             res.status(httpStatus.OK).json(JSON.parse(reply));
           }
         });
       } else {
-        doFindSampleStoreResponse(req, res, next, resultObj);
+        doFindSample(req, res, next, resultObj);
       }
     } else {
       doFind(req, res, next, helper);
@@ -208,9 +215,14 @@ module.exports = {
       redisModelSample.patchSample(req.swagger.params, userName)
       .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
         res))
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      );
+      .catch((err) => { // e.g. the sample is write protected
+        // Tracking invalid sample name problems, e.g. missing name
+        if (err.name === 'ResourceNotFoundError') {
+          logger.error('api/v1/controllers/samples.patchSample|', err);
+        }
+
+        return u.handleError(next, err, helper.modelName);
+      });
     } else {
       doPatch(req, res, next, helper);
     }
@@ -246,6 +258,7 @@ module.exports = {
     createSample
     .then((sample) => {
       createdSample = sample;
+      /* reload now if the sample came from the db */
       return isReturnUserEnabled && sample.get ? sample.reload() : sample;
     })
     .then(() => {
@@ -254,8 +267,15 @@ module.exports = {
       return res.status(httpStatus.CREATED).json(
         u.responsify(createdSample, helper, req.method));
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+    .catch((err) => {
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.postSample|', err);
+      }
+
+      return u.handleError(next, err, helper.modelName);
+    });
+  }, // postSample
 
   /**
    * PUT /samples/{key}
@@ -281,7 +301,14 @@ module.exports = {
       redisModelSample.putSample(req.swagger.params, userName)
       .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
         res))
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => {
+        // Tracking invalid sample name problems, e.g. missing name
+        if (err.name === 'ResourceNotFoundError') {
+          logger.error('api/v1/controllers/samples.putSample|', err);
+        }
+
+        return u.handleError(next, err, helper.modelName);
+      });
     } else {
       doPut(req, res, next, helper);
     }
@@ -326,10 +353,8 @@ module.exports = {
 
       const upsertSamplePromise =
           featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.upsertSample(
-              sampleQueryBody, user) :
+          redisModelSample.upsertSample(sampleQueryBody, user) :
           helper.model.upsertByName(sampleQueryBody, user);
-
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -341,14 +366,10 @@ module.exports = {
         }
 
         /*
-         *send the upserted sample to the client by publishing it to the redis
-         *channel
+         * Send the upserted sample to the client by publishing it to the redis
+         * channel.
          */
-        if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-          publisher.publishPartialSample(samp);
-        } else {
-          publisher.publishSample(samp, subHelper.model);
-        }
+        publisher.publishSample(samp, subHelper.model);
 
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
@@ -357,8 +378,15 @@ module.exports = {
     }
 
     return doUpsert(req.user)
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+    .catch((err) => {
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.upsertSample|', err);
+      }
+
+      return u.handleError(next, err, helper.modelName);
+    });
+  }, // upsertSample
 
   /**
    * POST /samples/upsert/bulk
@@ -392,16 +420,13 @@ module.exports = {
      */
     function bulkUpsert(user) {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
-
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.user = user;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
-
         const jobPromise = jobWrapper
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
@@ -414,7 +439,7 @@ module.exports = {
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const sampleModel =
-        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
+          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
           redisModelSample : helper.model;
 
         /*
@@ -422,25 +447,19 @@ module.exports = {
          * channel
          */
         sampleModel.bulkUpsertByName(value, user, readOnlyFields)
-        .then((samples) => {
-          samples.forEach((sample) => {
-            if (!sample.isFailed) {
-              if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-                publisher.publishPartialSample(sample);
-              } else {
-                publisher.publishSample(sample, subHelper.model);
-              }
-            }
-          });
-        });
+        .then((samples) => samples.forEach((sample) => {
+          if (!sample.isFailed) {
+            publisher.publishSample(sample, subHelper.model);
+          }
+        }));
         u.logAPI(req, resultObj, body, value.length);
         return Promise.resolve(res.status(httpStatus.OK).json(body));
       }
-    }
+    } // bulkUpsert
 
     return bulkUpsert(req.user)
     .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+  }, // bulkUpsertSample
 
   /**
    * DELETE /v1/samples/{key}/relatedLinks/

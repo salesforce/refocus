@@ -106,8 +106,7 @@ module.exports = function event(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'SpecificEvent',
-        unique: true,
+        name: 'EventRoomBot',
         fields: ['roomId', 'botId'],
       },
     ],

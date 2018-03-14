@@ -16,6 +16,8 @@ const testStartTime = new Date();
 const aspectName = `${tu.namePrefix}TEST_ASPECT`;
 const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
 const sampleName = subjectName + '|' + aspectName;
+const featureToggles = require('feature-toggles');
+const samstoinit = require('../../../../cache/sampleStoreInit');
 
 const aspectToCreate = {
   description: 'this is a0 description',
@@ -134,6 +136,17 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
+  },
+
+  populateRedisIfEnabled(done) {
+    if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+      samstoinit.eradicate()
+      .then(() => samstoinit.populate())
+      .then(() => done())
+      .catch(done);
+    } else {
+      done();
+    }
   },
 
   subjectToCreate,

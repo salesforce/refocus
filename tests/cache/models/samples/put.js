@@ -261,7 +261,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
         }
 
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].description)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
         done();
       });

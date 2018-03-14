@@ -40,6 +40,7 @@ describe('tests/api/v1/samples/post.js >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -50,18 +51,18 @@ describe('tests/api/v1/samples/post.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedisIfEnabled);
+
     it('with identical name', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send(sampleToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
         done();
       });
     });
@@ -70,14 +71,12 @@ describe('tests/api/v1/samples/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(sampleToPost)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.body.errors[ZERO].type)
-          .to.equal(tu.uniErrorName);
         done();
       });
     });
@@ -179,7 +178,7 @@ describe('tests/api/v1/samples/post.js >', () => {
     .send(sampleToPost)
     .expect((res) => {
       expect(res.body).to.have.property('errors');
-      expect(res.body.errors[ZERO].description)
+      expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
     })
     .end(done);
@@ -276,6 +275,7 @@ describe('tests/api/v1/samples/post.js > subject isPublished false >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -310,6 +310,7 @@ describe('tests/api/v1/samples/post.js > aspect isPublished false >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

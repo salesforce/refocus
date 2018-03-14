@@ -68,10 +68,13 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
     .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
+      n0a.absolutePath = subj.absolutePath;
       done();
     })
     .catch(done);
   });
+
+  before(u.populateRedisIfEnabled);
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -370,6 +373,124 @@ describe('tests/api/v1/subjects/putWithParent.js, ' +
       expect(res.body.parentId).to.equal(iRoot);
       expect(res.body.parentAbsolutePath).to.equal(_root.name);
       done();
+    });
+  });
+
+  it('sets the parent based on the parentAbsolutePath lowercase', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: _root.name.toLowerCase(),
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(iRoot);
+      expect(res.body.parentAbsolutePath).to.equal(_root.name);
+      done();
+    });
+  });
+
+  it('re-parent by id', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentId: i0a,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
+      done();
+    });
+  });
+
+  it('re-parent by absolutePath', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: n0a.absolutePath,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
+      done();
+    });
+  });
+
+  it('re-parent by absolutePath lowercase', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i1}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: n0a.absolutePath.toLowerCase(),
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.parentId).to.equal(i0a);
+      expect(res.body.parentAbsolutePath).to.equal(n0a.absolutePath);
+      done();
+    });
+  });
+
+  it('fail if a subject with the new absolutePath already exists', (done) => {
+    const NEW_NAME = 'newName';
+    api.put(`${path}/${i0}`)
+    .set('Authorization', token)
+    .send({
+      name: NEW_NAME,
+      isPublished: p1.isPublished,
+      parentAbsolutePath: _root.name,
+    })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      api.put(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: NEW_NAME,
+        isPublished: p1.isPublished,
+        parentAbsolutePath: _root.name,
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('SubjectAlreadyExistsUnderParent');
+        done();
+      });
     });
   });
 

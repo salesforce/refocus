@@ -43,4 +43,4 @@ services:
 script:
   - npm run jscs-enforce
   - npm run checkdb
-  - npm test
+  - npm run test-travis

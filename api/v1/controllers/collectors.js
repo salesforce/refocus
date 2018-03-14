@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const Promise = require('bluebird');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -30,6 +31,7 @@ const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
+const Generator = require('../../../db/index').Generator;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
 
@@ -98,33 +100,8 @@ function attachTemplate(sg) {
 }
 
 /**
- * TODO: delete this once the auto-registration has been set up and the heartbeat
- * has been updated to use it
- */
-/**
- * Register a collector. Access restricted to Refocus Collector only.
+ * GET /collectors
  *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function postCollector(req, res, next) {
-  const toPost = req.swagger.params.queryBody.value;
-  helper.model.create(toPost)
-  .then((o) => {
-    /*
-     * When a collector registers itself with Refocus, Refocus sends back a
-     * special token for that collector to use for all further communication
-     */
-    o.dataValues.token = jwtUtil
-      .createToken(toPost.name, toPost.name, { IsCollector: true });
-    return res.status(httpStatus.CREATED)
-      .json(u.responsify(o, helper, req.method));
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-} // postCollector
-
-/**
  * Find a collector or collectors. You may query using field filters with
  * asterisk (*) wildcards. You may also optionally specify sort, limit, offset,
  * and a list of fields to include in the response.
@@ -138,6 +115,8 @@ function findCollectors(req, res, next) {
 } // findCollectors
 
 /**
+ * GET /collectors/{key}
+ *
  * Retrieve the specified collector metadata by the collector's id or name. You
  * may also optionally specify a list of fields to include in the response.
  *
@@ -150,6 +129,8 @@ function getCollector(req, res, next) {
 } // getCollector
 
 /**
+ * PATCH /collectors/{key}
+ *
  * Update the specified collector's config data. If a field is not included in
  * the querybody, that field will not be updated.
  * Some fields are only writable by the collector itself. So, if any of those
@@ -184,6 +165,8 @@ function patchCollector(req, res, next) {
 } // patchCollector
 
 /**
+ * POST /collectors/{key}/deregister
+ *
  * Deregister a collector.
  *
  * @param {IncomingMessage} req - The request object
@@ -199,6 +182,8 @@ function deregisterCollector(req, res, next) {
 } // deregisterCollector
 
 /**
+ * POST /collectors/{key}/reregister
+ *
  * Reregister a collector.
  *
  * @param {IncomingMessage} req - The request object
@@ -224,6 +209,8 @@ function reregisterCollector(req, res, next) {
 } // reregisterCollector
 
 /**
+ * POST /collectors/{key}/heartbeat
+ *
  * Send heartbeat from collector. Access restricted to Refocus Collector only.
  *
  * @param {IncomingMessage} req - The request object
@@ -241,6 +228,8 @@ function heartbeat(req, res, next) {
   const authToken = req.headers.authorization;
   const timestamp = req.body.timestamp;
   const collectorNameFromToken = req.headers.UserName;
+  let collectorName;
+
   const retval = {
     collectorConfig: config.collector,
     generatorsAdded: [],
@@ -250,6 +239,8 @@ function heartbeat(req, res, next) {
 
   u.findByKey(helper, req.swagger.params)
   .then((o) => {
+    collectorName = o.name;
+
     /*
      * TODO: remove this 'if block', once spoofing between collectors can be
      * detected and rejected in the middleware.
@@ -264,13 +255,7 @@ function heartbeat(req, res, next) {
       });
     }
 
-    // setup retval
-    if (heartbeatUtils.collectorMap[o.name]) {
-      retval.generatorsAdded = heartbeatUtils.collectorMap[o.name].added;
-      retval.generatorsDeleted = heartbeatUtils.collectorMap[o.name].deleted;
-      retval.generatorsUpdated = heartbeatUtils.collectorMap[o.name].updated;
-      delete heartbeatUtils.collectorMap[o.name];
-    }
+    retval.collectorConfig.status = o.status;
 
     // set lastHeartbeat
     o.set('lastHeartbeat', timestamp);
@@ -297,6 +282,28 @@ function heartbeat(req, res, next) {
 
     return o.save();
   })
+
+  // get the ids for changed generators
+  .then(() => heartbeatUtils.getChangedIds(collectorName))
+
+  // find the generator objects for the changed ids
+  .then((changedIds) => Promise.all(
+    ['added', 'deleted', 'updated'].map((changeType) => {
+      const ids = changedIds[changeType];
+      const where = { where: { id: ids } };
+      return ids.length ? Generator.findAll(where) : Promise.resolve([]);
+    })
+  ))
+
+  // assign the changed generators to retval
+  .then((generators) => {
+    retval.generatorsAdded = generators[0].map(g => g.get());
+    retval.generatorsDeleted = generators[1].map(g => g.get());
+    retval.generatorsUpdated = generators[2].map(g => g.get());
+  })
+
+  // reset the tracked changes for this collector
+  .then(() => heartbeatUtils.resetChanges(collectorName))
 
   // re-encrypt context values for added and updated generators
   .then(() => Promise.all(
@@ -327,73 +334,79 @@ function heartbeat(req, res, next) {
 } // heartbeat
 
 /**
- * Creates a collector if name not found, with the user as the sole writer.
- * Change collector status to Running and returns a new collector token.
- * Reject if the user is not among the writers.
- * Invalid if the collector's status is not Stopped.
+ * POST /collectors/start
  *
+ * Starts a collector by setting the status to "Running". If the collector is
+ * not found, a new collector is created.
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
+ * @returns {Object} - Response of the start endpoint
  */
 function startCollector(req, res, next) {
   const requestBody = req.swagger.params.queryBody.value;
   requestBody.status = 'Running';
-  let returnedCollector;
-
-  // returns null if no collector found
+  requestBody.createdBy = req.user.id;
+  let collectorToReturn;
   return helper.model.findOne({ where: { name: requestBody.name } })
-  .then((_collector) => {
-    if (!_collector) {
-      if (featureToggles.isFeatureEnabled('returnUser')) {
-        requestBody.createdBy = req.user.id;
+    .then((collector) => {
+      if (collector) {
+        return u.isWritable(req, collector);
       }
 
-      return helper.model.create(requestBody)
-      .then((collector) => {
+      return collector;
+    })
+    .then((collector) => {
+      if (collector) {
+        if (!collector.registered) {
+          throw new apiErrors.ForbiddenError({ explanation:
+            'Cannot start--this collector is not registered.',
+          });
+        }
 
-        /*
-         * When a collector registers itself with Refocus, Refocus sends back a
-         * special token for that collector to use for all subsequent heartbeats.
-         */
-        collector.dataValues.token = jwtUtil.createToken(
-          requestBody.name, requestBody.name, { IsCollector: true }
-        );
-        return res.status(httpStatus.OK)
-          .json(u.responsify(collector, helper, req.method));
+        if (collector.status === 'Running' || collector.status === 'Paused') {
+          throw new apiErrors.ForbiddenError({ explanation:
+            'Cannot start--only a stopped collector can start',
+          });
+        }
+      }
+
+      return collector;
+    })
+    .then((collector) => collector ? collector.update(requestBody) :
+      helper.model.create(requestBody))
+    .then((collector) => {
+      collectorToReturn = collector;
+      return collector.getCurrentGenerators();
+    })
+    .then((generators) => {
+      collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
+        // generator associations before adding it to the response
+        delete g.dataValues.GeneratorCollectors;
+        delete g.dataValues.collectors;
+        return g.dataValues;
       });
-    }
 
-    // found collector
-    returnedCollector = _collector;
-    if (!returnedCollector.registered) {
-      throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot start--this collector is not registered.',
-      });
-    }
+      /*
+       * When a collector registers itself with Refocus, Refocus sends back a
+       * special token for that collector to use for all subsequent heartbeats.
+       */
+      collectorToReturn.dataValues.token = jwtUtil.createToken(
+        requestBody.name, requestBody.name, { IsCollector: true }
+      );
 
-    if (returnedCollector.status === 'Running' ||
-      returnedCollector.status === 'Paused') {
-      throw new apiErrors.ForbiddenError({ explanation:
-        'Cannot start--only stopped collectors can start.',
-      });
-    }
+      collectorToReturn.dataValues.collectorConfig = config.collector;
+      collectorToReturn.dataValues.collectorConfig.status = collectorToReturn.status;
 
-    // check write permissions, and add the token
-    return u.isWritable(req, returnedCollector);
-  })
-  .then(() => returnedCollector.update(requestBody))
-  .then((retVal) => {
-    retVal.dataValues.token = jwtUtil.createToken(
-      retVal.name, retVal.name, { IsCollector: true }
-    );
-    return res.status(httpStatus.OK)
-      .json(u.responsify(retVal, helper, req.method));
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-} // startCollector
+      return res.status(httpStatus.OK)
+        .json(u.responsify(collectorToReturn, helper, req.method));
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+}
 
 /**
+ * POST /collectors/{key}/stop
+ *
  * Change collector status to Stopped. Invalid if the collector's status is
  * Stopped.
  *
@@ -409,6 +422,8 @@ function stopCollector(req, res, next) {
 } // stopCollector
 
 /**
+ * POST /collectors/{key}/pause
+ *
  * Change collector status to Paused. Invalid if the collector's status is not
  * Running.
  *
@@ -424,6 +439,8 @@ function pauseCollector(req, res, next) {
 } // pauseCollector
 
 /**
+ * POST /collectors/{key}/resume
+ *
  * Change collector status from Paused to Running. Invalid if the collector's
  * status is not Paused.
  *
@@ -439,6 +456,8 @@ function resumeCollector(req, res, next) {
 } // resumeCollector
 
 /**
+ * GET /collectors/{key}/writers
+ *
  * Returns a list of users permitted to modify this collector. DOES NOT use
  * wildcards.
  *
@@ -451,6 +470,8 @@ function getCollectorWriters(req, res, next) {
 } // getCollectorWriters
 
 /**
+ * POST /collectors/{key}/writers
+ *
  * Add one or more users to a collector's list of authorized writers.
  *
  * @param {IncomingMessage} req - The request object
@@ -462,6 +483,8 @@ function postCollectorWriters(req, res, next) {
 } // postCollectorWriters
 
 /**
+ * GET /collectors/{key}/writers/{userNameOrId}
+ *
  * Determine whether a user is an authorized writer for a Collector. If user is
  * unauthorized, there is no writer by this name for this collector.
  *
@@ -474,6 +497,8 @@ function getCollectorWriter(req, res, next) {
 }
 
 /**
+ * DELETE /collectors/{key}/writers/{userNameOrId}
+ *
  * Remove a user from a collector’s list of authorized writers.
  *
  * @param {IncomingMessage} req - The request object
@@ -500,7 +525,6 @@ function deleteCollectorWriters(req, res, next) {
 } // deleteCollectorWriters
 
 module.exports = {
-  postCollector,
   findCollectors,
   getCollector,
   patchCollector,

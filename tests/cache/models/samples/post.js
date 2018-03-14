@@ -99,8 +99,9 @@ describe('tests/cache/models/samples/post.js >', () => {
             }
 
             const _err = res.body.errors[ZERO];
-            expect(_err.type).to.equal('ResourceNotFoundError');
-            expect(_err.description).to.equal('Aspect not found.');
+            expect(_err).to.have.property('type', 'ResourceNotFoundError');
+            expect(_err.description)
+            .to.match(/Aspect \"[a-f0-9-]*\" not found./);
             return done();
           });
         });
@@ -128,8 +129,9 @@ describe('tests/cache/models/samples/post.js >', () => {
             }
 
             const _err = res.body.errors[ZERO];
-            expect(_err.type).to.equal('ResourceNotFoundError');
-            expect(_err.description).to.equal('Subject not found.');
+            expect(_err).to.have.property('type', 'ResourceNotFoundError');
+            expect(_err.description)
+            .to.match(/Subject \"[a-z0-9-]*\" not found./);
             return done();
           });
         });
@@ -149,15 +151,16 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO])
+          .to.have.property('type', 'DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
-          .to.equal('Sample already exists.');
+          .to.match(/Sample \".*\" already exists./);
           return done();
         });
       });
@@ -166,15 +169,16 @@ describe('tests/cache/models/samples/post.js >', () => {
         api.post(path)
         .set('Authorization', token)
         .send(sampleToPost)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type).to.equal('ForbiddenError');
+          expect(res.body.errors[ZERO])
+          .to.have.property('type', 'DuplicateResourceError');
           expect(res.body.errors[ZERO].description)
-          .to.equal('Sample already exists.');
+          .to.match(/Sample \".*\" already exists./);
           return done();
         });
       });
@@ -331,7 +335,7 @@ describe('tests/cache/models/samples/post.js >', () => {
       .send(sampleToPost)
       .expect((res) => {
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].description)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique.');
       })
       .end(done);

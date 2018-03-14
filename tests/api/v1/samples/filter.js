@@ -60,6 +60,7 @@ describe(`tests/api/v1/samples/filter.js, ${path} >`, () => {
     .catch(done);
   });
 
+  before(u.populateRedisIfEnabled);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

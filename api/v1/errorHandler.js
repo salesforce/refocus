@@ -62,7 +62,7 @@ function isDbError(err) {
  * @returns {Boolean} true if err is defined as one of our Cache errors
  */
 function isCacheError(err) {
-  return err instanceof cacheErrors.UpdateDeleteForbidden;
+  return err instanceof cacheErrors.RefocusRedisError;
 }
 
 /**
@@ -122,7 +122,7 @@ module.exports = function errorHandler(err, req, res, next) {
       if (/Route defined in Swagger specification.*/.test(err.message)) {
         err.status = constants.httpStatus.NOT_ALLOWED;
       } else if (err.name === 'SequelizeUniqueConstraintError') {
-        err.status = constants.httpStatus.FORBIDDEN;
+        err.status = constants.httpStatus.BAD_REQUEST;
       } else {
         err.status = constants.httpStatus.BAD_REQUEST;
       }

@@ -1445,10 +1445,24 @@ paths:
   /botActions:
     x-swagger-router-controller: botActions
     get:
+      security:
+        - jwt: []
       summary: Find botActions
       tags: [ botActions ]
       operationId: findBotActions
       parameters:
+        -
+          name: roomId
+          description: Get actions from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get actions from specific bot
+          in: query
+          required: true
+          type: string
         -
           name: name
           description: Get botActions by name
@@ -1577,6 +1591,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get botAction
       tags: [ botActions ]
       operationId: getBotAction
@@ -1680,9 +1696,23 @@ paths:
   /botData:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       tags: [ botData ]
       operationId: findBotData
       parameters:
+        -
+          name: roomId
+          description: Get data from specific room
+          in: query
+          required: false
+          type: integer
+        -
+          name: botId
+          description: Get data from specific bot
+          in: query
+          required: true
+          type: string
         -
           name: name
           description: Filter botData by name
@@ -1770,6 +1800,8 @@ paths:
   /botData/{key}:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get botData
       tags: [ botData ]
       operationId: getBotData
@@ -1892,6 +1924,8 @@ paths:
   /bots:
     x-swagger-router-controller: bots
     get:
+      security:
+        - jwt: []
       summary: Find bots
       tags: [ bots ]
       operationId: findBots
@@ -2028,6 +2062,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get bot
       tags: [ bots ]
       operationId: getBot
@@ -2292,7 +2328,7 @@ paths:
             enum:
               - name
               - status
-              - isRegistered
+              - registered
               - lastHeartbeat
               - lastModifiedAt
               - createdBy
@@ -2304,7 +2340,7 @@ paths:
               - version
               - -name
               - -status
-              - -isRegistered
+              - -registered
               - -lastHeartbeat
               - -lastModifiedAt
               - -createdBy
@@ -2333,10 +2369,10 @@ paths:
           required: false
           type: string
         -
-          name: isRegistered
+          name: registered
           in: query
           description: >-
-            Filter by isRegistered (true|false).
+            Filter by registered (true|false).
           required: false
           type: boolean
         -
@@ -2625,34 +2661,58 @@ paths:
           description: Access restricted to Refocus Collector only.
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              description: Access restricted to Refocus Collector only.
-              properties:
-                logLines:
-                  type: array
-                  items:
+            type: object
+            description: >-
+              Heartbeat from the collector.
+            properties:
+              timestamp:
+                type: integer
+                description: Access restricted to Refocus Collector only.
+              collectorConfig:
+                type: object
+                properties:
+                  osInfo:
                     type: object
-                    description: Access restricted to Refocus Collector only.
                     properties:
-                      timeStamp:
+                      arch:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      sampleCount:
-                        type: integer
+                      hostname:
+                        type: string
                         description: Access restricted to Refocus Collector only.
-                      sourceUrls:
-                        type: array
-                        items:
-                          type: string
+                      platform:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      release:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      type:
+                        type: string
                         description: Access restricted to Refocus Collector only.
                       username:
                         type: string
                         description: Access restricted to Refocus Collector only.
-                      workTime:
-                        type: integer
+                  processInfo:
+                    type: object
+                    properties:
+                      execPath:
+                        type: string
                         description: Access restricted to Refocus Collector only.
+                      memoryUsage:
+                        type:  object
+                        description: Access restricted to Refocus Collector only.
+                      uptime:
+                        type: number
+                        description: Access restricted to Refocus Collector only.
+                      version:
+                        type: string
+                        description: Access restricted to Refocus Collector only.
+                      versions:
+                        type: object
+                        description: Access restricted to Refocus Collector only.
+                  version:
+                    type: string
+                    description: Access restricted to Refocus Collector only.
       responses:
         200:
           description: Success.
@@ -2949,6 +3009,8 @@ paths:
   /events:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Find events
       tags: [ events ]
       operationId: findEvents
@@ -3066,6 +3128,8 @@ paths:
   /events/{key}:
     x-swagger-router-controller: events
     get:
+      security:
+        - jwt: []
       summary: Get event
       tags: [ events ]
       description: >-
@@ -3858,7 +3922,7 @@ paths:
                   Variables available to connection.url, connection.toUrl, and
                   the transform function.
               transform:
-                type: string
+                type: object
                 description: >-
                   The body of a javascript function which transforms some data into
                   an array of samples
@@ -6303,6 +6367,8 @@ paths:
   /rooms:
     x-swagger-router-controller: rooms
     get:
+      security:
+        - jwt: []
       tags: [ rooms ]
       operationId: findRooms
       parameters:
@@ -6426,6 +6492,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get room
       tags: [ rooms ]
       operationId: getRoom
@@ -6516,6 +6584,8 @@ paths:
   /roomTypes:
     x-swagger-router-controller: roomTypes
     get:
+      security:
+        - jwt: []
       tags: [ roomTypes ]
       operationId: findRoomTypes
       parameters:
@@ -6647,6 +6717,8 @@ paths:
           $ref: "#/responses/genericError"
 
     get:
+      security:
+        - jwt: []
       summary: Get roomType
       tags: [ roomTypes ]
       operationId: getRoomType
@@ -9576,6 +9648,8 @@ paths:
   /rooms/{roomId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -9612,6 +9686,8 @@ paths:
   /rooms/{roomId}/bots/{botId}/data:
     x-swagger-router-controller: botData
     get:
+      security:
+        - jwt: []
       summary: Get room bot data
       tags: [ rooms ]
       operationId: findBotData
@@ -11132,8 +11208,8 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      isRegistered:
-        type: "string"
+      registered:
+        type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
         enum:
         - true
@@ -11190,6 +11266,10 @@ definitions:
         description: >
           The ipAddress where the collector is installed.
         maxLength: 60
+      collectorConfig:
+        $ref: "#/definitions/CollectorConfigResponse"
+      generatorsAdded:
+        $ref: "#/definitions/GeneratorsAddedResponse"
 
   CollectorWriterResponse:
     type: object
@@ -11222,8 +11302,8 @@ definitions:
     description: >
       Gets the config and sample collection metadata from the Refocus server.
     properties:
-      collectorConfigUpdates:
-        $ref: "#/definitions/CollectorConfigUpdatesResponse"
+      collectorConfig:
+        $ref: "#/definitions/CollectorConfigResponse"
       generatersAdded:
         $ref: "#/definitions/GeneratorsAddedResponse"
       generatersUpdated:
@@ -11231,7 +11311,7 @@ definitions:
       generatorsRemoved:
         $ref: "#/definitions/GeneratorsRemovedResponse"
 
-  CollectorConfigUpdatesResponse:
+  CollectorConfigResponse:
     type: object
     description: Collector config variables changed since last heartbeat.
     properties:
@@ -11239,11 +11319,6 @@ definitions:
         type: integer
         description: >
           The number of milliseconds to wait before aborting a request to Refocus.
-      description:
-        type: string
-        maxLength: 4096
-        description: >
-          A description of the config update.
       sampleCollectorTimeout:
         type: integer
         description: >-
@@ -11258,16 +11333,6 @@ definitions:
           system-wide minimum sample upsert queue time will be defined in Refocus config;
           a Refocus admin will also be able to override that with a MINIMUM_SAMPLE_UPSERT_QUEUE_TIME
           environment variable.
-      helpEmail:
-        type: string
-        description: >
-          The email address where a user can go to get more help about the collector.
-        maxLength: 254
-      helpUrl:
-        type: string
-        maxLength: 2082
-        description: >
-          The url where a user can go to get more help about the collector.
 
   GeneratorsAddedResponse:
     type: array
@@ -11428,7 +11493,7 @@ definitions:
           Variables available to connection.url, connection.toUrl, and
           the transform function.
       transform:
-        type: string
+        type: object
         description: >-
           The body of a javascript function which transforms some data into an
           array of samples
@@ -11531,7 +11596,7 @@ parameters:
         - name
         - id
         - status
-        - isRegistered
+        - registered
         - currentGenerators
         - lastHeartbeat
         - lastModifiedAt
