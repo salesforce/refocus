@@ -1461,7 +1461,7 @@ paths:
           name: botId
           description: Get actions from specific bot
           in: query
-          required: false
+          required: true
           type: string
         -
           name: name
@@ -1711,7 +1711,7 @@ paths:
           name: botId
           description: Get data from specific bot
           in: query
-          required: false
+          required: true
           type: string
         -
           name: name
