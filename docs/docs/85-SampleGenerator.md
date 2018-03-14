@@ -22,7 +22,11 @@ Glad you asked! A Sample Generator generates Samples... Ok, that isn't helpful. 
 This tells the Sample Generator what Subjects you will be monitoring. You can define Subjects by EITHER
 passing in a list of Subject Absolute Paths into the “subjects” array
 OR
-by defining a query in the “subjectQuery” string. The “subjectQuery” is inserted in the subjects API endpoint like so /v1/subjects/{subjectQuery} 
+by defining a query in the “subjectQuery” string. The “subjectQuery” is inserted in the subjects API endpoint like so 
+
+```
+"subjectQuery": "subjects/absolutePath=NorthAmerica.UnitedStates.California.*&tags=Indigo" 
+```
 
 ### Aspects
 
