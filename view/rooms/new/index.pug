@@ -8,11 +8,11 @@
 doctype html
 html
   head
-    title Refocus Room
+    title Refocus Room | Create Room
     link(rel='shortcut icon', href='favicon.ico')
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
     block page-header
-      div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem')
+      div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem').slds-theme_shade 
         div.slds-grid
           div.slds-cols.slds-has-flexi-truncate
             div.slds-media.slds-no-space.slds-grow
@@ -20,7 +20,7 @@ html
                 h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
                 p#subTitle.slds-text-body_small.slds-line-height_reset
     block container
-      div#formContainer.slds-grid.slds-grid_align-space.slds-wrap
+      div#formContainer
     block spinner
       div#loading_spinner
         .slds-spinner_container

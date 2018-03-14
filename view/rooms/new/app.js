@@ -13,17 +13,31 @@
  * to have their UI appended to the page.
  */
 
-const u = require('../../utils');
-const uPage = require('./../utils/page');
-
 import React from 'react';
 import ReactDOM from 'react-dom';
+import FormController from './FormController';
+// import moment from 'moment';
 
-const ROOM_TYPE_ID = window.location.pathname.split('/rooms/types/')[1];
-const GET_ROOMTYPE = '/v1/roomTypes';
+// const u = require('../../utils');
+const uPage = require('./../utils/page');
+const formContainer = document.getElementById('formContainer');
+// const GET_ROOMS = '/v1/rooms';
+// const GET_ROOMTYPES = '/v1/roomTypes';
+
+
+// const ROOM_TYPE_ID = window.location.pathname.split('/rooms/types/')[1];
+// const GET_ROOMTYPE = '/v1/roomTypes';
 
 window.onload = () => {
   uPage.setTitle('Create new room');
-  uPage.setSubtitle('Fill in data to create a new room. Click "Create Room" when you are ready to create room');
+  uPage.setSubtitle(
+    `Fill in data to create a new room.
+    Click "Create Room" when you are ready to create room`
+  );
+  ReactDOM.render(
+    <FormController
+    />,
+    formContainer
+  );
   uPage.removeSpinner();
 };
