@@ -17,6 +17,8 @@ const aspectName = `${tu.namePrefix}TEST_ASPECT`;
 const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
 const sampleName = subjectName + '|' + aspectName;
 const featureToggles = require('feature-toggles');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 
 const aspectToCreate = {
@@ -94,6 +96,14 @@ function doCustomSetup(aspectName, subjectName) {
   });
 }
 
+function flushRedisIfEnabled() {
+  if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
+    return rcli.flushallAsync();
+  } else {
+    return Promise.resolve();
+  }
+}
+
 module.exports = {
   aspectToCreate,
   sampleName,
@@ -131,9 +141,12 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(
+      flushRedisIfEnabled(),
+      tu.forceDelete(tu.db.Sample, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },

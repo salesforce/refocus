@@ -97,6 +97,37 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
 } // arrayObjsStringsToJson
 
 /**
+ * Convert subject fields to the correct type
+ *
+ * @param {Object} subject
+ */
+function convertSubjectStrings(subject) {
+  // convert the strings into numbers
+  subject.childCount = parseInt(subject.childCount, 10) || 0;
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+
+  // convert strings into booleans
+  subject.isPublished = JSON.parse(subject.isPublished);
+
+  // convert strings into arrays
+  subject.tags = JSON.parse(subject.tags);
+  subject.relatedLinks = JSON.parse(subject.relatedLinks);
+}
+
+/**
+ * Convert aspect fields to the correct type
+ *
+ * @param {Object} aspect
+ */
+function convertAspectStrings(aspect) {
+  // convert the strings into numbers
+  aspect.rank = parseInt(aspect.rank, 10) || undefined;
+
+  // convert strings into booleans
+  aspect.isPublished = JSON.parse(aspect.isPublished);
+}
+
+/**
  * Remove null fields; stringify array and object fields.
  *
  * @param {Object} obj - The object to clean.
@@ -196,5 +227,7 @@ module.exports = {
   constants,
   toKey,
   arrayObjsStringsToJson,
+  convertSubjectStrings,
+  convertAspectStrings,
   getNameFromKey,
 };

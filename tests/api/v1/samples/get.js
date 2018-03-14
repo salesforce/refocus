@@ -148,6 +148,51 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       .end(done);
     });
 
+    it('has all expected fields', (done) => {
+      api.get(path)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        if (tu.gotExpectedLength(res.body, ZERO)) {
+          throw new Error('expecting sample');
+        }
+
+        const sample = res.body[0];
+        const aspect = sample.aspect;
+
+        expect(sample).to.have.property('name').that.is.a('string');
+        expect(sample).to.have.property('status').that.is.a('string');
+        expect(sample).to.have.property('previousStatus').that.is.a('string');
+        expect(sample).to.have.property('statusChangedAt').that.is.a('string');
+        expect(sample).to.have.property('value').that.is.a('string');
+        expect(sample).to.have.property('relatedLinks').that.is.an('array');
+        expect(sample).to.have.property('createdAt').that.is.a('string');
+        expect(sample).to.have.property('updatedAt').that.is.a('string');
+        expect(sample).to.have.property('aspectId').that.is.a('string');
+        expect(sample).to.have.property('subjectId').that.is.a('string');
+        expect(sample).to.have.property('apiLinks').that.is.an('array');
+
+        expect(aspect).to.have.property('description').that.is.a('string');
+        expect(aspect).to.have.property('id').that.is.a('string');
+        expect(aspect).to.have.property('isPublished').that.is.a('boolean');
+        expect(aspect).to.have.property('name').that.is.a('string');
+        expect(aspect).to.have.property('criticalRange').that.is.an('array');
+        expect(aspect).to.have.property('warningRange').that.is.an('array');
+        expect(aspect).to.have.property('infoRange').that.is.an('array');
+        expect(aspect).to.have.property('okRange').that.is.an('array');
+        expect(aspect).to.have.property('timeout').that.is.a('string');
+        expect(aspect).to.have.property('valueLabel').that.is.a('string');
+        expect(aspect).to.have.property('valueType').that.is.a('string');
+        expect(aspect).to.have.property('relatedLinks').that.is.an('array');
+        expect(aspect).to.have.property('tags').that.is.an('array');
+
+        if (res.body[ZERO].status !== constants.statuses.Critical) {
+          throw new Error('Incorrect Status Value');
+        }
+      })
+      .end(done);
+    });
+
     it('basic get', (done) => {
       api.get(path)
       .set('Authorization', token)

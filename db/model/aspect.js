@@ -276,6 +276,10 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        const nameChanged = inst.previous('name') !== inst.getDataValue('name');
+        const isPublishedChanged =
+          inst.previous('isPublished') !== inst.getDataValue('isPublished');
+
         /*
          * When the sample store feature is enabled do the following
          * 1. if aspect name is changed and it is published, rename the entry
@@ -288,7 +292,7 @@ module.exports = function aspect(seq, dataTypes) {
          * the aspect with the new values.
         */
         if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-          if (inst.changed('name') && inst.isPublished) {
+          if (nameChanged && inst.isPublished) {
             const newAspName = inst.name;
             const oldAspectName = inst._previousDataValues.name;
 
@@ -300,7 +304,7 @@ module.exports = function aspect(seq, dataTypes) {
              * list of index and the related sample hashes
              */
             redisOps.deleteKeys(sampleType, aspectType, oldAspectName);
-          } else if (inst.changed('isPublished')) {
+          } else if (isPublishedChanged) {
 
             // Prevent any changes to original inst dataValues object
             const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -318,17 +322,14 @@ module.exports = function aspect(seq, dataTypes) {
             }
           } else if (inst.isPublished) {
             const instChanged = {};
-            Object.keys(inst._changed).forEach((key) => {
-              instChanged[key] = inst[key];
-            });
+            Object.keys(inst._changed)
+            .filter(key => inst._changed[key])
+            .forEach(key => instChanged[key] = inst[key]);
             redisOps.hmSet(aspectType, inst.name, instChanged);
           }
         }
 
-        if (inst.changed('isPublished') &&
-          inst.previous('isPublished') &&
-          !inst.getDataValue('isPublished') ||
-          inst.changed('name')) {
+        if (nameChanged || (isPublishedChanged && !inst.isPublished)) {
           return new seq.Promise((resolve, reject) =>
             inst.getSamples()
             .each((samp) => samp.destroy())

@@ -190,6 +190,8 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedisIfEnabled);
+
     it('cannot create sample if subject not published', (done) => {
       api.put(`${path}/${sampleName1}`)
       .set('Authorization', token)
