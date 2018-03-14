@@ -41,6 +41,8 @@ const viewmap = {
   '/rooms/types': 'rooms/types',
   '/rooms/types/:key': 'rooms/type',
   '/rooms/:key': 'rooms',
+  '/rooms/new/:key': 'rooms/new',
+  '/rooms/new/': 'rooms/new',
 };
 
 /**

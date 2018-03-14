@@ -27,7 +27,8 @@ const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
-const GET_ROOM = '/v1/rooms/' + ROOM_ID;
+let GET_ROOM = '/v1/rooms/';
+GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
@@ -365,13 +366,23 @@ window.onload = () => {
   _io = io;
   _user = JSON.parse(user.replace(/&quot;/g, '"'));
 
-  uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    _roomName = res.body.name;
-    _isActive = res.body.active;
+    const response = Array.isArray(res.body) ? res.body[0] : res.body;
+
+    if (response === undefined) {
+      window.location.replace(`/rooms/new/${ROOM_ID}`);
+    }
+
+    if (parseInt(ROOM_ID, 10) !== response.id) {
+      window.location.replace(`/rooms/${response.id}`);
+    }
+
+    uPage.setTitle(`Room # ${ROOM_ID}`);
+    _roomName = response.name;
+    _isActive = response.active;
     activeToggle.checked = _isActive;
-    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
