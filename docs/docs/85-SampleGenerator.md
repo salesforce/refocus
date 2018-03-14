@@ -25,7 +25,7 @@ OR
 by defining a query in the “subjectQuery” string. The “subjectQuery” is inserted in the subjects API endpoint like so 
 
 ```
-"subjectQuery": "subjects/absolutePath=NorthAmerica.UnitedStates.California.*&tags=Indigo" 
+"subjectQuery": "subjects?absolutePath=NorthAmerica.UnitedStates.California.*&tags=Indigo" 
 ```
 
 ### Aspects
@@ -52,19 +52,19 @@ POST {refocus_url}/v1/generators
 ```
 ```
 {
-  "description": "string", // What do people need to know about your Sample Generator?
-  "helpEmail": "string", // Who should someone contact if things aren't behaving as expected?
-  "helpUrl": "string", // How can someone get more information about your team or product?
-  "name": "string", // A unique and descriptive name for your Sample Generator
-  "subjectQuery": "string", // Either specify this or "subjects" (see above for details).
-  "collectors": [ // List of collectors which are able to collect samples
+  "description": "string", // A description of the Generator.
+  "helpEmail": "string", // The email address where a user can go to get more help about the Generator.
+  "helpUrl": "string", // The url where a user can go to get more help about the generator.
+  "name": "string", // A unique and descriptive name for your Generator.
+  "subjectQuery": "string", // The query to append to GET subjects. Either specify this or "subjects" (see above for details).
+  "collectors": [ // List of collectors this Sample Generator should try to use.
     "string1",
     "string2"
   ],
-  "subjects": [ // Either fill in this or "subjectQuery" (see above for details).
+  "subjects": [ // AbsolutePaths of the subjects. Either fill in this or "subjectQuery" (see above for details).
     "string"
   ],
-  "aspects": [ // List of one or more Aspects you want to collect for
+  "aspects": [ // List of one or more Aspects you want to collect Samples for.
     "aspect1",
     "aspect2"
   ],
