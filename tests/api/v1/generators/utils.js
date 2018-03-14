@@ -35,7 +35,7 @@ const GENERATOR_SIMPLE = {
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
-  subjectQuery: '?subjects',
+  subjectQuery: '?absolutePath=Foo.*',
   aspects: ['Temperature', 'Weather'],
 };
 

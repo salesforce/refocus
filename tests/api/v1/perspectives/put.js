@@ -27,6 +27,19 @@ describe('tests/api/v1/perspectives/put.js >', () => {
   const aspectTagFilterArr = ['temp', 'hum'];
   const subjectTagFilterArr = ['ea', 'na'];
   const statusFilterArr = ['Critical', '-OK'];
+  const toPut = {
+    name: 'testPersp',
+    lensId: '',
+    rootSubject: 'changedMainSubject',
+    aspectFilter: aspectFilterArr,
+    aspectTagFilter: aspectTagFilterArr,
+    subjectTagFilter: subjectTagFilterArr,
+    statusFilter: statusFilterArr,
+    aspectFilterType: 'INCLUDE',
+    aspectTagFilterType: 'INCLUDE',
+    subjectTagFilterType: 'INCLUDE',
+    statusFilterType: 'INCLUDE',
+  };
 
   before((done) => {
     tu.createToken()
@@ -51,6 +64,7 @@ describe('tests/api/v1/perspectives/put.js >', () => {
     .then((createdPersp) => {
       perspectiveId = createdPersp.id;
       createdLensId = createdPersp.lensId;
+      toPut.lensId = createdLensId;
       done();
     })
     .catch(done);
@@ -60,22 +74,9 @@ describe('tests/api/v1/perspectives/put.js >', () => {
   after(tu.forceDeleteUser);
 
   it('update an perspective with include ', (done) => {
-    const ARR = ['temp', 'hum'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'changedMainSubject',
-      aspectFilter: aspectFilterArr,
-      aspectTagFilter: aspectTagFilterArr,
-      subjectTagFilter: subjectTagFilterArr,
-      statusFilter: statusFilterArr,
-      aspectFilterType: 'INCLUDE',
-      aspectTagFilterType: 'INCLUDE',
-      subjectTagFilterType: 'INCLUDE',
-      statusFilterType: 'INCLUDE',
-    })
+    .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -92,13 +93,10 @@ describe('tests/api/v1/perspectives/put.js >', () => {
 
   it('update name with different case succeeds', (done) => {
     const newName = name.toUpperCase();
+    toPut.name = newName;
     api.put(path + '/' + newName)
     .set('Authorization', token)
-    .send({
-      name: newName,
-      lensId: createdLensId,
-      rootSubject: 'changedMainSubject',
-    })
+    .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -111,13 +109,10 @@ describe('tests/api/v1/perspectives/put.js >', () => {
   });
 
   it('update root subject', (done) => {
+    toPut.rootSubject = 'changedMainSubject';
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'changedMainSubject',
-    })
+    .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -125,20 +120,15 @@ describe('tests/api/v1/perspectives/put.js >', () => {
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
-      expect(res.body.aspectTagFilter).to.equal(undefined);
       done();
     });
   });
 
   it('update aspectTagFilter', (done) => {
+    toPut.aspectTagFilter = ['_temp', '_hum'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'changedMainSubject',
-      aspectTagFilter: ['_temp', '_hum'],
-    })
+    .send(toPut)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -152,15 +142,10 @@ describe('tests/api/v1/perspectives/put.js >', () => {
   });
 
   it('cannot update an perspective with include = [] ', (done) => {
+    toPut.aspectTagFilter = [];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'changedMainSubject',
-      aspectTagFilter: [],
-      aspectTagFilterType: 'INCLUDE',
-    })
+    .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -171,58 +156,42 @@ describe('tests/api/v1/perspectives/put.js >', () => {
       done();
     });
   });
+
   it('validates aspectFilter', (done) => {
+    toPut.aspectFilter = ['temperature#'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
-    .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'myMainSubject',
-      aspectFilter: ['temperature#'],
-    })
+    .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 
   it('validates aspectTagFilter', (done) => {
+    toPut.aspectTagFilter = ['temp#', 'hum'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'myMainSubject',
-      aspectTagFilter: ['temp#', 'hum'],
-    })
+    .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 
   it('validates subjectTagFilter', (done) => {
+    toPut.subjectTagFilter = ['ea#', 'na'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'myMainSubject',
-      subjectTagFilter: ['ea#', 'na'],
-    })
+    .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 
   it('validates statusFilter', (done) => {
+    toPut.statusFilter = ['Critical', '-OKAY'];
     api.put(`${path}/${perspectiveId}`)
     .set('Authorization', token)
     .set('Authorization', token)
-    .send({
-      name: 'testPersp',
-      lensId: createdLensId,
-      rootSubject: 'myMainSubject',
-      statusFilter: ['Critical', '-OKAY'],
-    })
+    .send(toPut)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
