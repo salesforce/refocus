@@ -16,39 +16,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
-const request = require('superagent');
-// import moment from 'moment';
+const url = require('url');
+const adr = window.location.href;
+const q = url.parse(adr, true);
+const qdata = q.query ? q.query : {};
 
-// const u = require('../../utils');
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
-// const GET_ROOMS = '/v1/rooms';
-// const GET_ROOMTYPES = '/v1/roomTypes';
-
-
-// const ROOM_TYPE_ID = window.location.pathname.split('/rooms/types/')[1];
-// const GET_ROOMTYPE = '/v1/roomTypes';
-
-function createRoom(obj){
-  const req = request.post('/v1/rooms');
-  req
-    .send(obj)
-    .end((error, res) => {
-      if (error) {
-        console.log('Error: ', { error, res });
-      }
-      console.log('res', res);
-    });
-}
 
 window.onload = () => {
-  uPage.setTitle('Create new room');
-  uPage.setSubtitle(
-    `Fill in data to create a new room.
-    Click "Create Room" when you are ready to create room`
-  );
+  const paramName = qdata.name || '';
+  const paramType = qdata.roomType || '';
+  const paramActive = qdata.active === 'true';
+  const paramExternalId = qdata.externalId || '';
+  let paramSettings;
+  try {
+    paramSettings = qdata.settings ? JSON.parse(qdata.settings) : {};
+  } catch (e) {
+    paramSettings = {};
+  }
+  const paramBots = qdata.bots ? qdata.bots.split(',') : [];
   ReactDOM.render(
     <FormController
+      name={paramName}
+      type={paramType}
+      active={paramActive}
+      externalId={paramExternalId}
+      settings={paramSettings}
+      bots={paramBots}
     />,
     formContainer
   );

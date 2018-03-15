@@ -13,81 +13,195 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+const request = require('superagent');
 
 class FormController extends React.Component {
   constructor(props) {
     super(props);
+    this.state={
+      name: this.props.name,
+      type: this.props.type,
+      active: this.props.active,
+      externalId: this.props.externalId,
+      settings: this.props.settings,
+      JSONsettings: JSON.stringify(this.props.settings, undefined, 2),
+      settingBorder: 'slds-textarea',
+      bots: this.props.bots,
+      botString: this.props.bots.toString(),
+    };
+
+    this.createRoom = this.createRoom.bind(this);
+    this.setName = this.setName.bind(this);
+    this.setType = this.setType.bind(this);
+    this.setActive = this.setActive.bind(this);
+    this.setExternalId = this.setExternalId.bind(this);
+    this.setSettings = this.setSettings.bind(this);
+    this.fixJson = this.fixJson.bind(this);
+    this.setBots = this.setBots.bind(this);
+  }
+
+  createRoom(){
+    const req = request.post('/v1/rooms');
+    const obj = {
+      name: this.state.name,
+      type: this.state.type,
+      active: this.state.active,
+      settings: this.state.settings,
+      bots: this.state.bots,
+    };
+    req
+      .send(obj)
+      .end((error, res) => {
+        if (error) {
+          if (error.response.text.includes('SequelizeUniqueConstraintError')) {
+            window.location.href = `/rooms/${this.state.name}`;
+          }
+          console.log('Error: ', error.response.text);
+        } else {
+          window.location.replace(`/rooms/${res.body.id}`);
+        }
+      });
+  }
+
+  setName(event) {
+    this.setState({ name: event.target.value });
+  }
+
+  setType(event) {
+    this.setState({ type: event.target.value });
+  }
+
+  setActive(event) {
+    this.setState({ active: (event.target.value === 'Active') });
+  }
+
+  setExternalId(event) {
+    this.setState({ externalId: event.target.value });
+  }
+
+  setSettings(event) {
+    this.setState({ JSONsettings: event.target.value });
+  }
+
+  fixJson(event){
+    try {
+      this.setState({ JSONsettings: JSON.stringify(JSON.parse(event.target.value), undefined, 2) });
+      this.setState({ settingBorder: 'slds-textarea' });
+    } catch (e) {
+      this.setState({ settingBorder: 'slds-textarea slds-has-error' });
+    }
+  }
+
+  setBots(event) {
+    this.setState({ botString: event.target.value });
   }
 
   render() {
     return (
-      <div className="slds-p-around_large">
-        <div className="slds-form slds-form_stacked">
-          <div className="slds-text-heading_medium">
-            New room attributes
-          </div>
-          <div className="slds-form-element slds-p-top_small">
-            <label className="slds-form-element__label">Room Name</label>
-            <div className="slds-form-element__control">
-              <input
-                type="text"
-                className="slds-input"
-                placeholder="A readable name for your room"/>
+      <div>
+        <div className="slds-page-header slds-page-header_vertical slds-theme_shade" style={{ paddingLeft: '1.5rem' }}>
+          <div className="slds-grid">
+            <div className="slds-cols slds-has-flexi-truncate">
+              <div className="slds-media slds-no-space slds-grow">
+                <div className="slds-media__body">
+                  <div className="slds-form-element" style={{ float: 'right' }}>
+                    <button className="slds-button slds-button_neutral" id="createNew1" onClick={() => this.createRoom()}>
+                      Create Room
+                    </button>
+                  </div>
+                  <h1 className="slds-page-header__title slds-m-right--small slds-align-middle" id="title">
+                    Create new room
+                  </h1>
+                  <p className="slds-text-body_small slds-line-height_reset" id="subTitle">
+                    Fill in data to create a new room.
+                    Click "Create Room" when you are ready to create room
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="slds-form-element slds-p-top_small">
-            <label className="slds-form-element__label">External ID</label>
-            <div className="slds-form-element__control">
-              <input
-                type="text"
-                className="slds-input"
-                placeholder="(Optional) Enter an External ID"/>
+        </div>
+        <div className="slds-p-around_large">
+          <div className="slds-form slds-form_stacked">
+            <div className="slds-text-heading_medium">
+              New room attributes
             </div>
-          </div>
-          <div className="slds-form-element__control slds-p-top_small">
-            <span
-              className="slds-form-element__legend slds-form-element__label">
-              Is the room currently active?
-            </span>
-            <div className="slds-form-element">
-              <label className="slds-checkbox_toggle slds-grid">
-                <span className="slds-checkbox_faux_container">
-                  <span className="slds-checkbox_faux">
-                  </span>
-                  <span className="slds-checkbox_on slds-text-align--center">
-                    Active
-                  </span>
-                  <span className="slds-checkbox_off slds-text-align--center">
-                    Inactive
-                  </span>
-                </span>
-              </label>
+            <div className="slds-form-element slds-p-top_small">
+              <label className="slds-form-element__label"><span className="slds-required">*</span>Room Name</label>
+              <div className="slds-form-element__control">
+                <input
+                  type="text"
+                  className="slds-input"
+                  value={this.state.name}
+                  onChange={this.setName}
+                  placeholder="A readable name for your room"/>
+              </div>
             </div>
-          </div>
-          <div className="slds-form-element slds-p-top_small">
-            <label className="slds-form-element__label">Bots</label>
-            <div className="slds-form-element__control">
-              <input
-                type="text"
-                className="slds-input"
-                placeholder="List of Bots needed in the room"/>
+            <div className="slds-form-element slds-p-top_small">
+              <label className="slds-form-element__label"><span className="slds-required">*</span>Room Type</label>
+              <div className="slds-form-element__control">
+                <div className="slds-select_container">
+                  <select className="slds-select" value={this.state.type} onChange={this.setType}>
+                    <option value="">Please select a Room Type</option>
+                    <option value="46bb08e6-ad09-4a67-90f6-45d1018c50d8">CoreSR</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="slds-form-element slds-p-top_small">
-            <label className="slds-form-element__label">Settings</label>
-            <div className="slds-form-element__control">
-              <textarea
-                type="text"
-                className="slds-textarea"
-                placeholder=
-                  "Object that contains all the settings for this room"/>
+            <div className="slds-form-element slds-p-top_small">
+              <label className="slds-form-element__label">External ID</label>
+              <div className="slds-form-element__control">
+                <input
+                  type="text"
+                  className="slds-input"
+                  value={this.state.externalId}
+                  onChange={this.setExternalId}
+                  placeholder="(Optional) Enter an External ID"/>
+              </div>
             </div>
-          </div>
-          <div className=
-            "slds-form-element slds-p-top_small slds-text-align_center">
-            <button className="slds-button slds-button_neutral" id="createNew">
-              Create Room
-            </button>
+            <div className="slds-form-element slds-p-top_small">
+              <span
+                className="slds-form-element__legend slds-form-element__label">
+                <span className="slds-required">*</span>Current State of Room
+              </span>
+              <div className="slds-form-element">
+                <div className="slds-form-element__control" onChange={this.setActive}>
+                  <input type="radio" value="Active" name="active" defaultChecked={this.state.active} /> Active <br/>
+                  <input type="radio" value="Inactive" name="active" defaultChecked={!this.state.active}/> Inactive
+                </div>
+              </div>
+            </div>
+            <div className="slds-form-element slds-p-top_small">
+              <label className="slds-form-element__label">Bots</label>
+              <div className="slds-form-element__control">
+                <input
+                  type="text"
+                  className="slds-input"
+                  value={this.state.botString}
+                  onChange={this.setBots}
+                  placeholder="List of Bots needed in the room"/>
+              </div>
+            </div>
+            <div className="slds-form-element slds-p-top_small">
+              <label className="slds-form-element__label">Settings</label>
+              <div className="slds-form-element__control">
+                <textarea
+                  type="text"
+                  className={this.state.settingBorder}
+                  onBlur={this.fixJson}
+                  value={this.state.JSONsettings}
+                  onChange={this.setSettings}
+                  rows={this.state.JSONsettings.split('\n').length}
+                  placeholder=
+                    "Object that contains all the settings for this room"/>
+              </div>
+            </div>
+            <div className=
+              "slds-form-element slds-p-top_small slds-text-align_center">
+              <button className="slds-button slds-button_neutral" id="createNew" onClick={() => this.createRoom()}>
+                Create Room
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -97,10 +211,20 @@ class FormController extends React.Component {
 
 FormController.propTypes = {
   name: PropTypes.string,
+  type: PropTypes.string,
   active: PropTypes.boolean,
   externalId: PropTypes.string,
   settings: PropTypes.object,
   bots: PropTypes.array,
+};
+
+FormController.defaultProps = {
+  name: '',
+  type: '',
+  active: false,
+  externalId: '',
+  settings: {},
+  bots: [],
 };
 
 export default FormController;
