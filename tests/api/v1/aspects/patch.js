@@ -525,7 +525,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .catch(done);
     });
 
-    .skip('updating aspect without changing isPublished does not delete its ' +
+    it.skip('updating aspect without changing isPublished does not delete its ' +
       'samples', (done) => {
         api.patch(`${path}/${i}`)
         .set('Authorization', token)
