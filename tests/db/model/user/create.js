@@ -30,6 +30,7 @@ describe('tests/db/model/user/create.js, db: User: create >', () => {
       name: `${tu.namePrefix}1`,
       email: 'user@example.com',
       password: 'user123password',
+      fullName: 'user fullName',
     }))
     .then((createdUser) => {
       user = createdUser;
@@ -44,6 +45,7 @@ describe('tests/db/model/user/create.js, db: User: create >', () => {
     expect(user).to.have.property('name').to.equal(`${tu.namePrefix}1`);
     expect(user).to.have.property('email').to.equal('user@example.com');
     expect(user.password).to.not.equal('user123password');
+    expect(user.fullName).to.equal('user fullName');
     bcrypt.compare('user123password', user.password, (err, res) => {
       if (err) {
         throw err;
