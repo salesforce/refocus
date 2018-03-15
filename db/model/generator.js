@@ -349,13 +349,18 @@ module.exports = function generator(seq, dataTypes) {
           subjectPromises = g.subjects.map((absPath) =>
             seq.models.Subject.findOne({
               where: {
-                absolutePath: { $iLike: absPath } },
+                absolutePath: {
+                  $iLike: absPath,
+                },
                 isPublished: true,
+              },
             })
           );
         } else {
           // TODO find subjects using subjectQuery
+          subjectPromises = [];
         }
+
         return seq.Promise.all(aspectPromises)
         .then((records) => {
           this.aspects = records.map((rec) => rec.get());

@@ -89,7 +89,7 @@ describe('tests/db/model/generator/find.js >', () => {
       expect(g.get().aspects).to.be.an('array')
       .that.includes('Temperature')
       .that.includes('Weather');
-      expect(g.get().subjectQuery).to.equal('?absolutePath=Foo.*') ;
+      expect(g.get().subjectQuery).to.equal('?absolutePath=Foo.*');
       return g;
     })
     .then((g) => g.updateForHeartbeat())

@@ -123,9 +123,10 @@ module.exports = {
   createGeneratorAspects,
   createGeneratorSubjects,
   createSGtoSGTMapping,
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Aspect, testStartTime)
-    tu.forceDelete(tu.db.Subject, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
@@ -133,11 +134,13 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
   forceDeleteCollector(done) {
     tu.forceDelete(tu.db.Collector, testStartTime)
     .then(() => done())
     .catch(done);
   },
+
   getGenerator,
   getGeneratorWithSubjectArray,
   gtUtil,
