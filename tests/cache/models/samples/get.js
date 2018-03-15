@@ -530,26 +530,6 @@ describe('tests/cache/models/samples/get.js, ' +
       });
     });
 
-    it('on the attached aspect, time fields have the expected format',
-    (done) => {
-      const sampleName = s1s3a1;
-      api.get(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        const { aspect } = res.body;
-        expect(aspect.updatedAt)
-        .to.equal(new Date(aspect.updatedAt).toISOString());
-        expect(aspect.createdAt)
-        .to.equal(new Date(aspect.createdAt).toISOString());
-        done();
-      });
-    });
-
     it('basic get by name, OK', (done) => {
       const sampleName = s1s3a1;
       api.get(`${path}/${sampleName}`)

@@ -117,7 +117,7 @@ function attachSamples(res) {
         sampleStore.arrayObjsStringsToJson(sample,
                                     constants.fieldsToStringify.sample);
         sampleStore.arrayObjsStringsToJson(asp, constants.fieldsToStringify.aspect);
-        convertAspectStrings(asp);
+        sampleStore.convertAspectStrings(asp);
 
         sample.aspect = asp;
         res.samples.push(sample);
@@ -216,37 +216,6 @@ function completeSubjectHierarchy(res, params) {
 } // completeSubjectHierarchy
 
 /**
- * Convert subject fields to the correct type
- *
- * @param {Object} subject
- */
-function convertSubjectStrings(subject) {
-  // convert the strings into numbers
-  subject.childCount = parseInt(subject.childCount, 10) || 0;
-  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
-
-  // convert strings into booleans
-  subject.isPublished = JSON.parse(subject.isPublished);
-
-  // convert strings into arrays
-  subject.tags = JSON.parse(subject.tags);
-  subject.relatedLinks = JSON.parse(subject.relatedLinks);
-}
-
-/**
- * Convert aspect fields to the correct type
- *
- * @param {Object} aspect
- */
-function convertAspectStrings(aspect) {
-  // convert the strings into numbers
-  aspect.rank = parseInt(aspect.rank, 10) || 0;
-
-  // convert strings into booleans
-  aspect.isPublished = JSON.parse(aspect.isPublished);
-}
-
-/**
  * Prepare fields to be sent in the response
  *
  * Also adds a parentAbsolutePath field, if it was not there previously.
@@ -295,7 +264,7 @@ module.exports = {
         });
       }
 
-      convertSubjectStrings(subject);
+      sampleStore.convertSubjectStrings(subject);
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       prepareFields(subject, opts, req);
 
@@ -341,7 +310,7 @@ module.exports = {
     })
     .then((subjects) => {
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      subjects.forEach(convertSubjectStrings);
+      subjects.forEach(sampleStore.convertSubjectStrings);
       const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
         prepareFields(subject, opts, req);

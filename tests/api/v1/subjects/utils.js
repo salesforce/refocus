@@ -16,6 +16,7 @@ const testStartTime = new Date();
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const featureToggles = require('feature-toggles');
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 
 function flushRedisIfEnabled() {
   if (
@@ -23,15 +24,19 @@ function flushRedisIfEnabled() {
     && featureToggles.isFeatureEnabled('getSubjectFromCache')
   ) {
     return rcli.flushallAsync();
+  } else {
+    return Promise.resolve();
   }
 }
 
 module.exports = {
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => flushRedisIfEnabled())
+    Promise.join(
+      flushRedisIfEnabled(),
+      tu.forceDelete(tu.db.Sample, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },
