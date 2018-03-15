@@ -16,7 +16,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const predefinedAdminUserToken = tu.createAdminToken();
@@ -55,7 +55,7 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
@@ -90,12 +90,12 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
         aspectId: aspect.id,
         subjectId: subject.id,
         provider: user.id,
-      })
+      }, user)
       .then(() => done())
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('returnUser', false));

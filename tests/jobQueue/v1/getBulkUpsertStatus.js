@@ -63,6 +63,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .catch((err) => done(err));
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {

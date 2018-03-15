@@ -120,7 +120,7 @@ function prefilterKeys(keysArr, opts, getNameFunc) {
     resArr = filteredKeys;
   }
 
-  //apply limit and offset now if possible
+  // apply limit and offset now if possible
   if (applyLimitAndOffsetInPrefilter(opts)) {
     resArr = applyLimitAndOffset(opts, resArr);
   }
@@ -255,7 +255,7 @@ function sortByOrder(arr, propArr) {
 } // sortByOrder
 
 /**
- * Get option fields from requesr parameters. An example:
+ * Get option fields from request parameters. An example:
  * { attributes: [ 'name', 'status', 'value', 'id' ],
     order: [ '-value', 'status' ],
     limit: 5,

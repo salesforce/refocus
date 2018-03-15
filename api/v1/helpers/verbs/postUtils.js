@@ -13,7 +13,6 @@
 const constants = require('../../constants');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const u = require('./utils');
-const featureToggles = require('feature-toggles');
 
 /**
  * @param {Object} params From swagger
@@ -23,13 +22,8 @@ const featureToggles = require('feature-toggles');
  */
 function makePostPromise(params, props, req) {
   const toPost = params.queryBody.value;
-
-  if (featureToggles.isFeatureEnabled('returnUser')) {
-    toPost.createdBy = req.user.id;
-    return props.model.create(toPost, req.user);
-  }
-
-  return props.model.create(toPost);
+  toPost.createdBy = req.user ? req.user.id : undefined;
+  return props.model.create(toPost, req.user);
 }
 
 /**
@@ -49,7 +43,7 @@ function handlePostResult(o, resultObj, props, res, req) {
    * if response directly from sequelize, call reload to attach
    * the associations
    */
-  if (featureToggles.isFeatureEnabled('returnUser') && o.get) {
+  if (o.get) {
     o.reload()
     .then(() => res.status(constants.httpStatus.CREATED).json(
         u.responsify(o, props, req.method)));

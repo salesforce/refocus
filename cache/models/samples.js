@@ -28,7 +28,6 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
-const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
@@ -297,7 +296,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
 
     // Add the provider and user fields.
-    if (user && featureToggles.isFeatureEnabled('returnUser')) {
+    if (user) {
       sampleQueryBodyObj.provider = user.id;
       sampleQueryBodyObj.user = JSON.stringify({
         name: user.name,
@@ -565,14 +564,13 @@ module.exports = {
    * Post sample. First get subject from db, then get aspect from db, then try
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
-   * @param  {Object} params - Request parameters
+   * @param  {Object} reqBody - The sample object to be created
    * @param {Object} userObj - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params, userObj) {
+  postSample(reqBody, userObj) {
     const userName = userObj ? userObj.name : false;
     const cmds = [];
-    const reqBody = params.queryBody.value;
     let subject;
     let sampleName;
     let aspectObj;
@@ -639,6 +637,9 @@ module.exports = {
         reqBody[sampFields.USER] = JSON.stringify({
           name: userName,
           email: userObj.email,
+          profile: {
+            name: userObj.profile.name,
+          },
         });
       }
 

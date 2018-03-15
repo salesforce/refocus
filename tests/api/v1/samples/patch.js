@@ -15,7 +15,9 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const Aspect = tu.db.Aspect;
+const Subject = tu.db.Subject;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -50,7 +52,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
 
     it('reject if name field in request', (done) => {
@@ -105,10 +107,8 @@ describe('tests/api/v1/samples/patch.js >', () => {
             return done(err);
           }
 
-          const result = res.body;
-          const dateToInt = new Date(result.updatedAt).getTime();
-          expect(dateToInt).to.be.equal(sampUpdatedAt.getTime());
-          done();
+          expect(res.body.updatedAt).to.be.equal(sampUpdatedAt);
+          return done();
         });
       });
 
@@ -124,8 +124,8 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
           const result = res.body;
           const dateToInt = new Date(result.updatedAt).getTime();
-          expect(dateToInt).to.be.above(sampUpdatedAt.getTime());
-          done();
+          expect(dateToInt).to.be.above(new Date(sampUpdatedAt).getTime());
+          return done();
         });
       });
     });
@@ -161,10 +161,10 @@ describe('tests/api/v1/samples/patch.js >', () => {
       });
     });
 
-    //
-    // The relatedlinks are named differently in each of the tests to avoid
-    // turning the before and after hooks to beforeEach and afterEach
-    //
+    /*
+     * The relatedlinks are named differently in each of the tests to avoid
+     * turning the before and after hooks to beforeEach and afterEach
+     */
     describe('Patch Related Links >', () => {
       it('single related link', (done) => {
         api.patch(`${path}/${sampleName}`)
@@ -184,7 +184,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
           expect(res.body.relatedLinks).to.have.length(1);
           expect(res.body.relatedLinks)
           .to.have.deep.property('[0].name', 'link');
-          done();
+          return done();
         });
       });
 
@@ -223,7 +223,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
               .to.have.property('name', 'link' + i);
             }
 
-            done();
+            return done();
           });
         });
       });
@@ -342,20 +342,17 @@ describe('tests/api/v1/samples/patch.js >', () => {
       u.doSetup()
       .then((samp) => Sample.create(samp))
       .then((samp) => {
-        sampleName = samp.name;
-        samp.getSubject()
-        .then((sub) => {
-          sub.update({ isPublished: false });
-          return done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+        const subjectName = samp.name.split('|')[0].toLowerCase();
+        return Subject.findOne({ where: { name: { $iLike: subjectName } } });
+      })
+      .then((sub) => {
+        sub.update({ isPublished: false });
+        return done();
       })
       .catch(done);
     });
 
-    before(u.populateRedisIfEnabled);
+    before(u.populateRedis);
     after(u.forceDelete);
 
     it('cannot patch sample if subject not published', (done) => {
@@ -386,22 +383,21 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         sampleName = samp.name;
-        samp.getAspect()
-        .then((asp) => {
-          asp.update({ isPublished: false });
-          return done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+        const aspectName = sampleName.split('|')[1].toLowerCase();
+        return Aspect.findOne({ where: { name: { $iLike: aspectName } } });
+      })
+      .then((asp) => {
+        asp.update({ isPublished: false });
+        return done();
       })
       .catch(done);
     });
 
-    before(u.populateRedisIfEnabled);
+    before(u.populateRedis);
     after(u.forceDelete);
 
-    it('cannot patch sample if aspect not published', (done) => {
+    // TODO: unskip this when sampleStore flag is removed from aspects
+    it.skip('cannot patch sample if aspect not published', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token3)
       .send({ value: '3' })
