@@ -67,6 +67,7 @@ describe('tests/api/v1/aspects/deleteWriters.js >', () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedisIfEnabled);
   afterEach(u.forceDelete);
   afterEach(tu.forceDeleteUser);
 
