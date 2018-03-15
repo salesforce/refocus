@@ -365,16 +365,16 @@ module.exports = function generator(seq, dataTypes) {
           subjectPromises = [];
         }
 
-        return seq.Promise.all(aspectPromises)
-        .then((records) => {
-          this.aspects = records.filter((found) => found)
-            .map((rec) => rec.get());
-        })
-        .then(() => seq.Promise.all(subjectPromises))
-        .then((records) => {
-          this.subjects = records.map((rec) => rec.get());
-          return this;
-        });
+        return seq.Promise.join(
+          seq.Promise.all(aspectPromises),
+          seq.Promise.all(subjectPromises),
+          (aspectRecords, subjectRecords) => {
+            this.aspects = aspectRecords.filter((found) => found)
+              .map((rec) => rec.get());
+            this.subjects = subjectRecords.map((rec) => rec.get());
+            return this;
+          }
+        );
       }, // updateForHeartbeat
     },
     paranoid: true,
