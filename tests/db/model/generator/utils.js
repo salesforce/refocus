@@ -39,7 +39,7 @@ const GENERATOR_SIMPLE = {
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
   subjectQuery: '?absolutePath=Foo.*',
-  aspects: ['Temperature', 'Weather'],
+  aspects: ['Temperature', 'Weather', 'Humidity'],
 };
 
 /**
@@ -99,6 +99,11 @@ function createGeneratorAspects() {
     name: GENERATOR_SIMPLE.aspects[1],
     isPublished: true,
     timeout: '110s',
+  }))
+  .then(() => tu.db.Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[2],
+    isPublished: false,
+    timeout: '111s',
   }));
 } // createGeneratorAspects
 

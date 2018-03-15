@@ -110,9 +110,10 @@ describe('tests/db/model/generator/find.js >', () => {
   it('updateForHeartbeat - array of subjects', (done) => {
     Generator.findById(g2DBInstance.id)
     .then((g) => {
-      expect(g.get().aspects).to.be.an('array')
+      expect(g.get().aspects).to.be.an('array').to.have.lengthOf(3)
       .that.includes('Temperature')
-      .that.includes('Weather');
+      .that.includes('Weather')
+      .that.includes('Humidity');
       expect(g.get().subjects).to.be.an('array')
       .that.includes('foo.bar')
       .that.includes('foo.baz');
@@ -121,7 +122,7 @@ describe('tests/db/model/generator/find.js >', () => {
     .then((g) => g.updateForHeartbeat())
     .then((g) => {
       const asp = g.get().aspects;
-      expect(asp).to.be.an('array');
+      expect(asp).to.be.an('array').to.have.lengthOf(2);
       expect(asp[0]).to.contain.property('name', 'Temperature');
       expect(asp[1]).to.contain.property('name', 'Weather');
       const sub = g.get().subjects;

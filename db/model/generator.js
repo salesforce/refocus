@@ -342,8 +342,12 @@ module.exports = function generator(seq, dataTypes) {
        */
       updateForHeartbeat() {
         const g = this.get();
-        const aspectPromises = g.aspects.map((a) =>
-          seq.models.Aspect.findOne({ where: { name: { $iLike: a } } }));
+        const aspectPromises = g.aspects.map((a) => seq.models.Aspect.findOne({
+          where: {
+            name: { $iLike: a },
+            isPublished: true,
+          },
+        }));
         let subjectPromises;
         if (g.subjects && g.subjects.length) {
           subjectPromises = g.subjects.map((absPath) =>
@@ -363,7 +367,8 @@ module.exports = function generator(seq, dataTypes) {
 
         return seq.Promise.all(aspectPromises)
         .then((records) => {
-          this.aspects = records.map((rec) => rec.get());
+          this.aspects = records.filter((found) => found)
+            .map((rec) => rec.get());
         })
         .then(() => seq.Promise.all(subjectPromises))
         .then((records) => {
