@@ -332,6 +332,50 @@ module.exports = function generator(seq, dataTypes) {
             resolve(found.length === 1);
           }));
       }, // isWritableBy
+
+      /**
+       * Replaces array of subject absolutePaths with array of subject records.
+       * Replaces array of aspect names with array of aspect records.
+       * TODO: set array of subjects when generator provides "subjectQuery"
+       *
+       * @returns {Generator} - the updated Generator
+       */
+      updateForHeartbeat() {
+        const g = this.get();
+        const aspectPromises = g.aspects.map((a) => seq.models.Aspect.findOne({
+          where: {
+            name: { $iLike: a },
+            isPublished: true,
+          },
+        }));
+        let subjectPromises;
+        if (g.subjects && g.subjects.length) {
+          subjectPromises = g.subjects.map((absPath) =>
+            seq.models.Subject.findOne({
+              where: {
+                absolutePath: {
+                  $iLike: absPath,
+                },
+                isPublished: true,
+              },
+            })
+          );
+        } else {
+          // TODO find subjects using subjectQuery
+          subjectPromises = [];
+        }
+
+        return seq.Promise.join(
+          seq.Promise.all(aspectPromises),
+          seq.Promise.all(subjectPromises),
+          (aspectRecords, subjectRecords) => {
+            this.aspects = aspectRecords.filter((found) => found)
+              .map((rec) => rec.get());
+            this.subjects = subjectRecords.map((rec) => rec.get());
+            return this;
+          }
+        );
+      }, // updateForHeartbeat
     },
     paranoid: true,
   });

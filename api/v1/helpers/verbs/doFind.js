@@ -32,22 +32,18 @@ const config = require('../../../../config');
  * @param {Object} opts - The "options" object to pass into the Sequelize
  *  find command
  */
-function doFindAndCountAll(reqResNext, props, opts) {
-  const resultObj = { reqStartTime: reqResNext.req.timestamp };
+function doFindAndCountAll(reqResNext, props, opts, resultObj) {
   return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     reqResNext.res.set(COUNT_HEADER_NAME, o.count);
-
-    const retval = o.rows.map((row) => {
+    return o.rows.map((row) => {
       if (props.modelName === 'Lens') {
         delete row.dataValues.library;
       }
 
       return u.responsify(row, props, reqResNext.req.method);
     });
-    u.logAPI(reqResNext.req, resultObj, retval);
-    return retval;
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAndCountAll
@@ -63,7 +59,7 @@ function doFindAndCountAll(reqResNext, props, opts) {
  * @param {Object} opts - The "options" object to pass into the Sequelize
  * find command
  */
-function doFindResponse(reqResNext, props, opts) {
+function doFindResponse(reqResNext, props, opts, resultObj) {
   if (opts.limit || opts.offset) {
     reqResNext.res.links({
       prev: reqResNext.req.originalUrl,
@@ -71,7 +67,7 @@ function doFindResponse(reqResNext, props, opts) {
     });
   }
 
-  doFindAndCountAll(reqResNext, props, opts)
+  doFindAndCountAll(reqResNext, props, opts, resultObj)
   .then((retval) => {
     u.sortArrayObjectsByField(props, retval);
 
@@ -88,6 +84,7 @@ function doFindResponse(reqResNext, props, opts) {
       redisCache.setex(props.cacheKey, props.cacheExpiry, strObj);
     }
 
+    u.logAPI(reqResNext.req, resultObj, retval);
     reqResNext.res.status(httpStatus.OK).json(retval);
   })
   .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
@@ -103,6 +100,7 @@ function doFindResponse(reqResNext, props, opts) {
  * @param {Object} props - The helpers/nouns module for the given DB model
  */
 module.exports = function doFind(req, res, next, props) {
+  const resultObj = { reqStartTime: req.timestamp };
   const opts = fu.options(req.swagger.params, props);
 
   // Check if Cache is on or not
@@ -110,14 +108,16 @@ module.exports = function doFind(req, res, next, props) {
     redisCache.get(props.cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
-        doFindResponse({ req, res, next }, props, opts);
+        doFindResponse({ req, res, next }, props, opts, resultObj);
       } else {
         // get from cache
         const dbObj = JSON.parse(reply);
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, dbObj);
         res.status(httpStatus.OK).json(dbObj);
       }
     });
   } else {
-    doFindResponse({ req, res, next }, props, opts);
+    doFindResponse({ req, res, next }, props, opts, resultObj);
   }
 }; // exports
