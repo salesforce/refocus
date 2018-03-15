@@ -83,7 +83,7 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
       const strObj = JSON.stringify(retval);
       redisCache.setex(props.cacheKey, props.cacheExpiry, strObj);
     }
-    
+
     u.logAPI(reqResNext.req, resultObj, retval);
     reqResNext.res.status(httpStatus.OK).json(retval);
   })
