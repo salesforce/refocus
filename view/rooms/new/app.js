@@ -16,6 +16,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
+const request = require('superagent');
 // import moment from 'moment';
 
 // const u = require('../../utils');
@@ -27,6 +28,18 @@ const formContainer = document.getElementById('formContainer');
 
 // const ROOM_TYPE_ID = window.location.pathname.split('/rooms/types/')[1];
 // const GET_ROOMTYPE = '/v1/roomTypes';
+
+function createRoom(obj){
+  const req = request.post('/v1/rooms');
+  req
+    .send(obj)
+    .end((error, res) => {
+      if (error) {
+        console.log('Error: ', { error, res });
+      }
+      console.log('res', res);
+    });
+}
 
 window.onload = () => {
   uPage.setTitle('Create new room');

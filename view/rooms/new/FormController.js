@@ -9,13 +9,10 @@
 /**
  * view/rooms/new/FormController.js
  *
- * 
+ *
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-// import moment from 'moment';
-// import camelCase from 'camelcase';
-// import Parser from 'html-react-parser';
 
 class FormController extends React.Component {
   constructor(props) {
@@ -82,8 +79,15 @@ class FormController extends React.Component {
               <textarea
                 type="text"
                 className="slds-textarea"
-                placeholder="Object that contains all the settings for this room"/>
+                placeholder=
+                  "Object that contains all the settings for this room"/>
             </div>
+          </div>
+          <div className=
+            "slds-form-element slds-p-top_small slds-text-align_center">
+            <button className="slds-button slds-button_neutral" id="createNew">
+              Create Room
+            </button>
           </div>
         </div>
       </div>
@@ -98,13 +102,5 @@ FormController.propTypes = {
   settings: PropTypes.object,
   bots: PropTypes.array,
 };
-
-// FormController.defaultProps = {
-//   name: '',
-//   active: false,
-//   externalId: '',
-//   settings: {},
-//   bots: [],
-// };
 
 export default FormController;
