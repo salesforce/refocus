@@ -18,6 +18,7 @@ const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const path = '/v1/aspects';
+const samplePath = '/v1/samples';
 const allDeletePath = '/v1/aspects/{key}/relatedLinks';
 const oneDeletePath = '/v1/aspects/{key}/relatedLinks/{akey}';
 const expect = require('chai').expect;
@@ -231,6 +232,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedisIfEnabled);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
@@ -238,14 +240,14 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${aspectId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(() => {
-        Sample.findAll()
-        .then((samp) => {
-          expect(samp).to.have.length(ZERO);
-        })
-        .catch(done);
-      })
-      .end(done);
+      .end((err) => {
+        if (err) done(err);
+        api.get(samplePath)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => expect(res.body).to.have.length(ZERO))
+        .end(done);
+      });
     });
   });
 });
