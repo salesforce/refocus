@@ -163,6 +163,7 @@ module.exports = {
       email: 'admin@refocus.admin',
       name: 'admin@refocus.admin',
       password: 'password',
+      fullName: 'Admin',
     },
     connectionPool: {
       max: pe.DB_CONNECTION_POOL_MAX || DEFAULT_DB_CONNECTION_POOL.max,
