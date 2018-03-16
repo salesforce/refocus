@@ -13,7 +13,7 @@
 
 const helper = require('../helpers/nouns/botData');
 const Bot = require('../../../db').Bot;
-const BotData = require('../../../db').BotData;
+const BotData = helper.model;
 const doPost = require('../helpers/verbs/doPost');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
