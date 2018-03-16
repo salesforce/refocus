@@ -9,7 +9,7 @@
 /**
  * tests/db/model/aspect/create.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -70,17 +70,7 @@ describe('tests/db/model/aspect/create.js >', () => {
 
         throw new Error('expecting relatedLinks to be empty array');
       })
-      .then(() => asp.getSamples())
-      .then((samples) => {
-        if (tu.gotArrayWithExpectedLength(samples, 0)) {
-          return;
-        }
-
-        throw new Error('expecting samples to be empty array');
-      })
-      .then(() => {
-        done();
-      })
+      .then(() => done())
       .catch(done);
     });
 
