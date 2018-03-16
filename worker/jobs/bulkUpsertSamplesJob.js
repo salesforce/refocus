@@ -10,7 +10,6 @@
  * /worker/jobs/bulkUpsertSamplesJob.js
  */
 const logger = require('winston');
-const helper = require('../../api/v1/helpers/nouns/samples');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
@@ -40,12 +39,8 @@ module.exports = (job, done) => {
     console.log(msg); // eslint-disable-line no-console
   }
 
-  const sampleModel =
-    featureToggles.isFeatureEnabled('enableRedisSampleStore') ?
-      cacheSampleModel : helper.model;
-
   const dbStartTime = Date.now();
-  sampleModel.bulkUpsertByName(samples, user, readOnlyFields)
+  cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
       const dbEndTime = Date.now();
       let errorCount = 0;

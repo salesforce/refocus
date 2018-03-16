@@ -16,11 +16,64 @@ const pfx = '___';
 const jwtUtil = require('../utils/jwtUtil');
 const constants = require('../api/v1/constants');
 const db = require('../db');
+const sampleModel = require('../cache/models/samples');
 const testStartTime = new Date();
 const userName = `${pfx}testUser@refocus.com`;
 const featureToggles = require('feature-toggles');
 const adminUser = require('../config').db.adminUser;
 const adminProfile = require('../config').db.adminProfile;
+const sampleStore = require('../cache/sampleStore');
+const redisClient = require('../cache/redisCache').client.sampleStore;
+
+/*
+ * A wrapper to create, read, update and delete the samples using the same
+ * methods exposed by sequelize.
+ */
+const Sample = {
+  // Create and return the created sample
+  create: (toCreate, userObject) => {
+    return sampleModel.postSample(toCreate, userObject);
+  }, // create
+
+  // Return all the samples in sample store
+  findAll: () => {
+    return redisClient.sortAsync(sampleStore.constants.indexKey.sample,
+      'alpha');
+  }, // findAll
+
+  /*
+   * Update and return the updated sample.
+   * Note: The patchSample method expects an object with queryBody and key.
+   * So the sample is wrapped with the required field and sent to
+   * the patchSample method
+   */
+  update: (toUpdate, sampleName, _userName) => {
+    const wrappedObject = {
+      queryBody: { value: toUpdate },
+      key: { value: toUpdate.name },
+    };
+    return sampleModel.patchSample(wrappedObject, _userName);
+  }, // update
+
+  // Delete the sample and return it.
+  delete: (sampleName, _userName) => {
+    return sampleModel.delete(sampleName, _userName);
+  }, // delete
+
+  // Bulk upsert the sample by looking up its name in the sampleStore.
+  bulkUpsertByName: (toUpsert, user) => {
+    return sampleModel.bulkUpsertByName(toUpsert, user);
+  }, // bulkUpsertByName
+
+  // Bulk create the sample. This call the create method defined above.
+  bulkCreate: (toCreateArr, userObject) => {
+    const promiseArr = [];
+    toCreateArr.forEach((toCreate) => {
+      promiseArr.push(Sample.create(toCreate, userObject));
+    });
+    return Promise.all(promiseArr);
+  } // bulkCreate
+}; // Sample
 
 /**
  * Performs a regex test on the key to determine whether it looks like a
@@ -58,7 +111,6 @@ function forceDelete(model, testStartTime) {
 } // forceDelete
 
 module.exports = {
-  userName,
   fakeUserCredentials: {
     email: 'user1@abc.com',
     password: 'fakePasswd',
@@ -133,14 +185,18 @@ module.exports = {
   // create user and corresponding token to be used in api tests.
   // returns both the user and the token object
   createUserAndToken() {
+    let profile;
     return db.Profile.create({ name: `${pfx}testProfile` })
-    .then((createdProfile) => db.User.create({
-      profileId: createdProfile.id,
-      name: userName,
-      email: userName,
-      password: 'user123password',
-    }))
+    .then((createdProfile) => {
+      profile = createdProfile;
+      return db.User.create({
+        profileId: createdProfile.id,
+        name: userName,
+        email: userName,
+        password: 'user123password', });
+    })
     .then((user) => {
+      user.profile = profile.dataValues;
       const obj = { user };
       obj.token = jwtUtil.createToken(userName, userName);
       return obj;
@@ -195,10 +251,14 @@ module.exports = {
     .catch(done);
   }, // forceDeleteSubject
 
+  Sample,
+
   toggleOverride(key, value) {
     featureToggles._toggles[key] = value;
   }, // toggleOverride
 
+
   // username used to create the token in all the tests
   userName,
+
 }; // exports
