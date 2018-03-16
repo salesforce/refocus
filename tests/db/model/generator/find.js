@@ -141,7 +141,8 @@ describe('tests/db/model/generator/find.js >', () => {
     .then((res) => {
       expect(res).to.be.an('array').to.have.lengthOf(2);
       expect(res[0].aspects[0]).to.contain.property('name', 'Temperature');
-      expect(res[1].subjects[1]).to.contain.property('absolutePath', 'foo.baz');
+      console.log('findForHeartbeat', res);
+      expect(res[1].subjects[0]).to.contain.property('absolutePath', 'foo.bar');
       done();
     })      
     .catch(done);
