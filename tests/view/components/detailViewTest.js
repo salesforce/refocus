@@ -77,7 +77,8 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(updatedObj.tags).to.deep.equal(invalidFieldObj.tags);
   });
 
-  it('should render button row with three buttons as expected', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('should render button row with three buttons as expected', () => {
     const enzymeWrapper = setup();
     // button row container
     expect(enzymeWrapper.find('.readButtonRow')).to.have.length(ONE);
@@ -108,7 +109,8 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(instance.state.askDelete).to.equal(false);
   });
 
-  it('on click delete button, state askDelete changes to true', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('on click delete button, state askDelete changes to true', () => {
     const enzymeWrapper = setup();
     const instance = enzymeWrapper.instance();
     expect(instance.state.askDelete).to.equal(false);
@@ -148,7 +150,8 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(spy.push.calledWith(SUBJECT_URL)).to.be.true;
   });
 
-  it('on click edit, component pushes url + ?edit to history', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('on click edit, component pushes url + ?edit to history', () => {
     const spy = { push: sinon.spy() };
     const enzymeWrapper = setup({ history: spy });
     enzymeWrapper.find('.editButton').simulate('click');
