@@ -85,12 +85,15 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
 
     const editButton = enzymeWrapper.find('.editButton');
     expect(editButton).to.have.length(ONE);
+    expect(editButton.text()).to.equal('Edit');
 
     const deleteButton = enzymeWrapper.find('.deleteButton');
     expect(deleteButton).to.have.length(ONE);
+    expect(deleteButton.text()).to.equal('Delete');
 
     const addChildLink = enzymeWrapper.find('.addChildLink');
     expect(addChildLink).to.have.length(ONE);
+    expect(addChildLink.text()).to.equal('Add Child');
   });
 
   it('on cancel delete, askDelete reverts to false', () => {
