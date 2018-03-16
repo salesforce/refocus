@@ -271,7 +271,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
     });
 
-    describe('generator changes', () => {
+    describe('generator changes >', () => {
       // reset the tracked changes
       beforeEach((done) => {
         Promise.resolve()
@@ -335,7 +335,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('basic updates', () => {
+      describe('basic updates >', () => {
         it('post', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1]))
@@ -429,7 +429,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('basic updates to multiple generators', () => {
+      describe('basic updates to multiple generators >', () => {
         it('post', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1]))
@@ -495,7 +495,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('basic updates with multiple collectors', () => {
+      describe('basic updates with multiple collectors >', () => {
         it('post', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))
@@ -533,7 +533,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('multiple updates to the same generator', () => {
+      describe('multiple updates to the same generator >', () => {
         it('post + patch', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1]))
@@ -687,7 +687,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('updates to multiple generators', () => {
+      describe('updates to multiple generators >', () => {
         it('update', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1]))
@@ -729,7 +729,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('multiple updates to multiple generators', () => {
+      describe('multiple updates to multiple generators >', () => {
         it('post then move all twice', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1]))
@@ -800,7 +800,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('multiple generators multiple collectors', () => {
+      describe('multiple generators multiple collectors >', () => {
         it('update', (done) => {
           Promise.resolve()
           .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))

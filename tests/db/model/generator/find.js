@@ -110,27 +110,40 @@ describe('tests/db/model/generator/find.js >', () => {
   it('updateForHeartbeat - array of subjects', (done) => {
     Generator.findById(g2DBInstance.id)
     .then((g) => {
-      expect(g.get().aspects).to.be.an('array').to.have.lengthOf(3)
+      expect(g.aspects).to.be.an('array').to.have.lengthOf(3)
       .that.includes('Temperature')
       .that.includes('Weather')
       .that.includes('Humidity');
-      expect(g.get().subjects).to.be.an('array')
+      expect(g.subjects).to.be.an('array')
       .that.includes('foo.bar')
       .that.includes('foo.baz');
       return g;
     })
     .then((g) => g.updateForHeartbeat())
     .then((g) => {
-      const asp = g.get().aspects;
+      const asp = g.aspects;
       expect(asp).to.be.an('array').to.have.lengthOf(2);
       expect(asp[0]).to.contain.property('name', 'Temperature');
       expect(asp[1]).to.contain.property('name', 'Weather');
-      const sub = g.get().subjects;
+      const sub = g.subjects;
       expect(sub).to.be.an('array');
       expect(sub[0]).to.contain.property('absolutePath', 'foo.bar');
       expect(sub[1]).to.contain.property('absolutePath', 'foo.baz');
       done();
     })
+    .catch(done);
+  });
+
+  it('findForHeartbeat', (done) => {
+    Generator.findForHeartbeat({
+      where: { id: [generatorDBInstance.id, g2DBInstance.id] },
+    })
+    .then((res) => {
+      expect(res).to.be.an('array').to.have.lengthOf(2);
+      expect(res[0].aspects[0]).to.contain.property('name', 'Temperature');
+      expect(res[1].subjects[1]).to.contain.property('absolutePath', 'foo.baz');
+      done();
+    })      
     .catch(done);
   });
 });

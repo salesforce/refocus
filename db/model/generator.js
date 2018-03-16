@@ -211,6 +211,12 @@ module.exports = function generator(seq, dataTypes) {
           .catch(reject)
         );
       },
+
+      findForHeartbeat(findOpts) {
+        return Generator.findAll(findOpts)
+        .then((gens) => gens.map((g) => g.updateForHeartbeat()))
+        .then((genpromises) => Promise.all(genpromises));
+      }, // findForHeartbeat
     },
 
     hooks: {
@@ -369,10 +375,10 @@ module.exports = function generator(seq, dataTypes) {
           seq.Promise.all(aspectPromises),
           seq.Promise.all(subjectPromises),
           (aspectRecords, subjectRecords) => {
-            this.aspects = aspectRecords.filter((found) => found)
+            g.aspects = aspectRecords.filter((found) => found)
               .map((rec) => rec.get());
-            this.subjects = subjectRecords.map((rec) => rec.get());
-            return this;
+            g.subjects = subjectRecords.map((rec) => rec.get());
+            return g;
           }
         );
       }, // updateForHeartbeat
