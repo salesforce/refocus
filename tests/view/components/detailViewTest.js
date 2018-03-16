@@ -81,19 +81,16 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
   it.skip('should render button row with three buttons as expected', () => {
     const enzymeWrapper = setup();
     // button row container
-    expect(enzymeWrapper.find('.readButtonRow')).to.have.length(0);
+    expect(enzymeWrapper.find('.readButtonRow')).to.have.length(ONE);
 
     const editButton = enzymeWrapper.find('.editButton');
-    expect(editButton).to.have.length(0);
-    //expect(editButton.text()).to.equal('Edit');
+    expect(editButton).to.have.length(ONE);
 
     const deleteButton = enzymeWrapper.find('.deleteButton');
-    expect(deleteButton).to.have.length(0);
-    //expect(deleteButton.text()).to.equal('Delete');
+    expect(deleteButton).to.have.length(ONE);
 
     const addChildLink = enzymeWrapper.find('.addChildLink');
-    expect(addChildLink).to.have.length(0);
-    //expect(addChildLink.text()).to.equal('Add Child');
+    expect(addChildLink).to.have.length(ONE);
   });
 
   it('on cancel delete, askDelete reverts to false', () => {
