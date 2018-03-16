@@ -47,7 +47,7 @@ class ListController extends React.Component {
               const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
               return <tr key={row.id}>
                 {camelCaseHeaders.map(header =>
-                  <td key={row.id + header}>
+                  <td className="slds-cell-wrap slds-hyphenate" key={row.id + header}>
                     {Parser(row[header])}
                   </td>)}
               </tr>;

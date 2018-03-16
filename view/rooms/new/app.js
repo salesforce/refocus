@@ -18,14 +18,20 @@ import ReactDOM from 'react-dom';
 import FormController from './FormController';
 const url = require('url');
 const adr = window.location.href;
+const pathName = url.parse(adr, true).pathname.split('/');
 const q = url.parse(adr, true);
 const qdata = q.query ? q.query : {};
+const NAME_PATH = 3;
 
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
 window.onload = () => {
-  const paramName = qdata.name || '';
+  let paramName = qdata.name || '';
+  if ((pathName.length > NAME_PATH) && (pathName[NAME_PATH] !== '')) {
+    paramName = pathName[NAME_PATH];
+  }
+
   const paramType = qdata.roomType || '';
   const paramActive = qdata.active === 'true';
   const paramExternalId = qdata.externalId || '';
