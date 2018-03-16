@@ -23,8 +23,6 @@ const sampleEventNames = {
   upd: 'refocus.internal.realtime.sample.update',
   del: 'refocus.internal.realtime.sample.remove',
 };
-const sampleStoreFeature =
-                  require('../../cache/sampleStore').constants.featureName;
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
@@ -186,14 +184,12 @@ module.exports = function aspect(seq, dataTypes) {
        * @param {Aspect} inst - The deleted instance
        */
       afterCreate(inst /* , opts */) {
-        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-          // Prevent any changes to original inst dataValues object
-          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+        // Prevent any changes to original inst dataValues object
+        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-          // create an entry in aspectStore
-          redisOps.addKey(aspectType, inst.getDataValue('name'));
-          redisOps.hmSet(aspectType, inst.name, instDataObj);
-        }
+        // create an entry in aspectStore
+        redisOps.addKey(aspectType, inst.getDataValue('name'));
+        redisOps.hmSet(aspectType, inst.name, instDataObj);
       }, // hooks.afterCreate
 
       /**
@@ -205,8 +201,6 @@ module.exports = function aspect(seq, dataTypes) {
       beforeDestroy(inst /* , opts */) {
         return new seq.Promise((resolve, reject) =>
           common.setIsDeleted(seq.Promise, inst)
-          .then(() => inst.getSamples())
-          .each((samp) => samp.destroy())
           .then(() => resolve(inst))
           .catch((err) => reject(err))
         );
@@ -291,7 +285,7 @@ module.exports = function aspect(seq, dataTypes) {
          * 4. if the aspect that is updated is already published, update the
          * the aspect with the new values.
         */
-        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+        {
           if (nameChanged && inst.isPublished) {
             const newAspName = inst.name;
             const oldAspectName = inst._previousDataValues.name;
@@ -329,15 +323,6 @@ module.exports = function aspect(seq, dataTypes) {
           }
         }
 
-        if (nameChanged || (isPublishedChanged && !inst.isPublished)) {
-          return new seq.Promise((resolve, reject) =>
-            inst.getSamples()
-            .each((samp) => samp.destroy())
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
-          );
-        }
-
         if (inst.changed('tags')) {
           return new seq.Promise((resolve, reject) => {
             inst.getSamples()
@@ -369,13 +354,11 @@ module.exports = function aspect(seq, dataTypes) {
        */
       afterDelete(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            // delete the entry in the aspectStore
-            redisOps.deleteKey(aspectType, inst.name);
+          // delete the entry in the aspectStore
+          redisOps.deleteKey(aspectType, inst.name);
 
-            // delete multiple possible entries in sampleStore
-            redisOps.deleteKeys(sampleType, aspectType, inst.name);
-          }
+          // delete multiple possible entries in sampleStore
+          redisOps.deleteKeys(sampleType, aspectType, inst.name);
         }
       }, // hooks.afterDelete
 
