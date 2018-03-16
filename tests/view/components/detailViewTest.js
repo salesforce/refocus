@@ -77,22 +77,23 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(updatedObj.tags).to.deep.equal(invalidFieldObj.tags);
   });
 
-  it('should render button row with three buttons as expected', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('should render button row with three buttons as expected', () => {
     const enzymeWrapper = setup();
     // button row container
-    expect(enzymeWrapper.find('.readButtonRow')).to.have.length(ONE);
+    expect(enzymeWrapper.find('.readButtonRow')).to.have.length(0);
 
     const editButton = enzymeWrapper.find('.editButton');
-    expect(editButton).to.have.length(ONE);
-    expect(editButton.text()).to.equal('Edit');
+    expect(editButton).to.have.length(0);
+    //expect(editButton.text()).to.equal('Edit');
 
     const deleteButton = enzymeWrapper.find('.deleteButton');
-    expect(deleteButton).to.have.length(ONE);
-    expect(deleteButton.text()).to.equal('Delete');
+    expect(deleteButton).to.have.length(0);
+    //expect(deleteButton.text()).to.equal('Delete');
 
     const addChildLink = enzymeWrapper.find('.addChildLink');
-    expect(addChildLink).to.have.length(ONE);
-    expect(addChildLink.text()).to.equal('Add Child');
+    expect(addChildLink).to.have.length(0);
+    //expect(addChildLink.text()).to.equal('Add Child');
   });
 
   it('on cancel delete, askDelete reverts to false', () => {
@@ -108,7 +109,8 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(instance.state.askDelete).to.equal(false);
   });
 
-  it('on click delete button, state askDelete changes to true', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('on click delete button, state askDelete changes to true', () => {
     const enzymeWrapper = setup();
     const instance = enzymeWrapper.instance();
     expect(instance.state.askDelete).to.equal(false);
@@ -148,7 +150,8 @@ describe('tests/view/components/detailViewTest.js, Detail view >', () => {
     expect(spy.push.calledWith(SUBJECT_URL)).to.be.true;
   });
 
-  it('on click edit, component pushes url + ?edit to history', () => {
+  // Disable editing subjects/samples/aspects in UI
+  it.skip('on click edit, component pushes url + ?edit to history', () => {
     const spy = { push: sinon.spy() };
     const enzymeWrapper = setup({ history: spy });
     enzymeWrapper.find('.editButton').simulate('click');
