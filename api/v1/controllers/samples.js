@@ -16,14 +16,10 @@ const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
-const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
-const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const sampleStore = require('../../../cache/sampleStore');
-const sampleStoreConstants = sampleStore.constants;
 const redisModelSample = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
@@ -127,23 +123,19 @@ module.exports = {
       parseInt(getSamplesWildcardCacheInvalidation, RADIX) : null;
 
     // Check if Sample Store is on or not
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      if (helper.cacheEnabled) {
-        redisCache.get(helper.cacheKey, (cacheErr, reply) => {
-          if (cacheErr || !reply) {
-            doFindSample(req, res, next, resultObj, helper.cacheKey,
-              helper.cacheExpiry);
-          } else {
-            u.logAPI(req, resultObj, reply); // audit log
-            res.status(httpStatus.OK).json(JSON.parse(reply));
-          }
-        });
-      } else {
-        doFindSample(req, res, next, resultObj);
-      }
+    const resultObj = { reqStartTime: req.timestamp }; // for logging
+    if (helper.cacheEnabled) {
+      redisCache.get(helper.cacheKey, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          doFindSample(req, res, next, resultObj, helper.cacheKey,
+            helper.cacheExpiry);
+        } else {
+          u.logAPI(req, resultObj, reply); // audit log
+          res.status(httpStatus.OK).json(JSON.parse(reply));
+        }
+      });
     } else {
-      doFind(req, res, next, helper);
+      doFindSample(req, res, next, resultObj);
     }
   },
 
@@ -203,29 +195,25 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() };
-      const requestBody = req.swagger.params.queryBody.value;
-      const rLinks = requestBody.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
+    const resultObj = { reqStartTime: new Date() };
+    const requestBody = req.swagger.params.queryBody.value;
+    const rLinks = requestBody.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    const userName = req.user ? req.user.name : undefined;
+    redisModelSample.patchSample(req.swagger.params, userName)
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+      res))
+    .catch((err) => { // e.g. the sample is write protected
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.patchSample|', err);
       }
 
-      const userName = req.user ? req.user.name : undefined;
-      redisModelSample.patchSample(req.swagger.params, userName)
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
-        res))
-      .catch((err) => { // e.g. the sample is write protected
-        // Tracking invalid sample name problems, e.g. missing name
-        if (err.name === 'ResourceNotFoundError') {
-          logger.error('api/v1/controllers/samples.patchSample|', err);
-        }
-
-        return u.handleError(next, err, helper.modelName);
-      });
-    } else {
-      doPatch(req, res, next, helper);
-    }
+      return u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
@@ -238,34 +226,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
-    const isSampleStoreEnabled = featureToggles
-      .isFeatureEnabled(sampleStoreConstants.featureName);
     const reqParams = req.swagger.params;
     const toPost = reqParams.queryBody.value;
-    const isReturnUserEnabled = featureToggles.isFeatureEnabled('returnUser');
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    let createdSample;
     u.checkDuplicateRLinks(toPost.relatedLinks);
-    let createSample;
-    if (isSampleStoreEnabled) {
-      createSample = isReturnUserEnabled ? redisModelSample.postSample(reqParams,
-       req.user) : redisModelSample.postSample(reqParams, false);
-    } else {
-      createSample = isReturnUserEnabled ? helper.model.createSample(toPost,
-      req.user) : helper.model.createSample(toPost, false);
-    }
 
-    createSample
+    redisModelSample.postSample(toPost, req.user)
     .then((sample) => {
-      createdSample = sample;
-      /* reload now if the sample came from the db */
-      return isReturnUserEnabled && sample.get ? sample.reload() : sample;
-    })
-    .then(() => {
-      publisher.publishSample(createdSample, helper.associatedModels.subject,
+      publisher.publishSample(sample, helper.associatedModels.subject,
       realtimeEvents.sample.add, helper.associatedModels.aspect);
       return res.status(httpStatus.CREATED).json(
-        u.responsify(createdSample, helper, req.method));
+        u.responsify(sample, helper, req.method));
     })
     .catch((err) => {
       // Tracking invalid sample name problems, e.g. missing name
@@ -289,29 +260,25 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: req.timestamp };
-      const toPut = req.swagger.params.queryBody.value;
-      const rLinks = toPut.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
+    const resultObj = { reqStartTime: req.timestamp };
+    const toPut = req.swagger.params.queryBody.value;
+    const rLinks = toPut.relatedLinks;
+    if (rLinks) {
+      u.checkDuplicateRLinks(rLinks);
+    }
+
+    const userName = req.user ? req.user.name : undefined;
+    redisModelSample.putSample(req.swagger.params, userName)
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
+      res))
+    .catch((err) => {
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.putSample|', err);
       }
 
-      const userName = req.user ? req.user.name : undefined;
-      redisModelSample.putSample(req.swagger.params, userName)
-      .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
-        res))
-      .catch((err) => {
-        // Tracking invalid sample name problems, e.g. missing name
-        if (err.name === 'ResourceNotFoundError') {
-          logger.error('api/v1/controllers/samples.putSample|', err);
-        }
-
-        return u.handleError(next, err, helper.modelName);
-      });
-    } else {
-      doPut(req, res, next, helper);
-    }
+      return u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
@@ -352,9 +319,7 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.upsertSample(sampleQueryBody, user) :
-          helper.model.upsertByName(sampleQueryBody, user);
+          redisModelSample.upsertSample(sampleQueryBody, user);
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -438,9 +403,7 @@ module.exports = {
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const sampleModel =
-          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample : helper.model;
+        const sampleModel = redisModelSample;
 
         /*
          * Send the upserted sample to the client by publishing it to the redis
@@ -475,24 +438,9 @@ module.exports = {
   deleteSampleRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const userName = req.user ? req.user.name : undefined;
-      delRlinksPromise =
-        redisModelSample.deleteSampleRelatedLinks(params, userName);
-    } else {
-      delRlinksPromise = u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o))
-        .then((o) => {
-          let jsonData = [];
-          if (params.relName) {
-            jsonData =
-              u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
-          }
-
-          return o.update({ relatedLinks: jsonData });
-        });
-    }
+    const userName = req.user ? req.user.name : undefined;
+    const delRlinksPromise =
+      redisModelSample.deleteSampleRelatedLinks(params, userName);
 
     delRlinksPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

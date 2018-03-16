@@ -3320,31 +3320,31 @@ paths:
               helpEmail:
                 type: string
                 description: >-
-                  The email address where a user can go to get more help about the generator.
+                  The email address where a user can go to get more help about the Generator.
                 maxLength: 254
               helpUrl:
                 type: string
                 maxLength: 2082
                 description: >-
-                  The url where a user can go to get more help about the generator.
+                  The url where a user can go to get more help about the Generator.
               name:
                 type: string
-                description: The generator's name.
+                description: A unique and descriptive name for your Generator.
               subjectQuery:
                 type: string
-                description: The query to append to GET subjects.
+                description: The query to append to GET subjects. Either specify this or subjects field.
               collectors:
                  description: List of collectors this Sample Generator should try to use.
                  type: array
                  items:
                    type: string
               subjects:
-                description: AbsolutePaths of the subjects.
+                description: AbsolutePaths of the subjects. Either fill in this or subjectQuery field.
                 type: array
                 items:
                   type: string
               aspects:
-                description: Names of the aspects.
+                description: List of one or more Aspects you want to collect Samples for.
                 type: array
                 items:
                   type: string
@@ -3364,7 +3364,7 @@ paths:
               context:
                 type: object
                 description: >-
-                  Variables accessible inside the transform function.
+                  Specify the values for any context variables as defined by the Sample Generator Template you are using.
             required:
               - name
               - aspects
