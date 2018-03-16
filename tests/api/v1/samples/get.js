@@ -15,257 +15,182 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const featureToggles = require('feature-toggles');
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
   let token;
   let userId;
-
+  let userObject;
   before((done) => {
     tu.createUserAndToken()
     .then((obj) => {
       userId = obj.user.id;
       token = obj.token;
+      userObject = obj.user;
       done();
     })
     .catch(done);
   });
   after(tu.forceDeleteUser);
 
-  describe('with returnUser toggle on, should return user object with ' +
-    'profile field: ', () => {
-    before((done) => {
-      tu.toggleOverride('returnUser', true);
-      u.doSetup()
-      .then((samp) => {
-        samp.provider = userId;
-        return Sample.create(samp);
-      })
-      .then((samp) => {
-        sampleName = samp.name;
-        done();
-      })
-      .catch(done);
-    });
+  before((done) => {
+    u.doSetup()
+    .then((samp) => {
+      samp.provider = userId;
+      return Sample.create(samp, userObject);
+    })
+    .then((samp) => {
+      sampleName = samp.name;
+      done();
+    })
+    .catch(done);
+  });
 
-    before(u.populateRedisIfEnabled);
-    after(u.forceDelete);
-    after(() => tu.toggleOverride('returnUser', false));
+  before(u.populateRedis);
+  after(u.forceDelete);
 
-    it('get all', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('get all', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        expect(res.body.length).to.equal(1);
-        expect(res.body[0].provider).to.equal(userId);
-        const user = res.body[0].user;
-        expect(user).to.be.an('object');
-        expect(user.name).to.be.an('string');
-        expect(user.email).to.be.an('string');
-        expect(user.profile.name).to.be.an('string');
-        expect(res.header).to.have.property('x-total-count', '1');
-        done();
-      });
-    });
-
-    it('get by id', (done) => {
-      api.get(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.status).to.equal(constants.statuses.Critical);
-        expect(res.body.provider).to.equal(userId);
-        const user = res.body.user;
-        expect(user).to.be.an('object');
-        expect(user.name).to.be.an('string');
-        expect(user.email).to.be.an('string');
-        expect(user.profile.name).to.be.an('string');
-        done();
-      });
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].provider).to.equal(userId);
+      expect(res.body[0].id).to.be.undefined;
+      const user = res.body[0].user;
+      const sample = res.body[0];
+      const aspect = sample.aspect;
+      expect(sample).to.have.property('name').that.is.a('string');
+      expect(sample).to.have.property('status').that.is.a('string');
+      expect(sample).to.have.property('previousStatus').that.is.a('string');
+      expect(sample).to.have.property('statusChangedAt').that.is.a('string');
+      expect(sample).to.have.property('value').that.is.a('string');
+      expect(sample).to.have.property('relatedLinks').that.is.an('array');
+      expect(sample).to.have.property('createdAt').that.is.a('string');
+      expect(sample).to.have.property('updatedAt').that.is.a('string');
+      expect(sample).to.have.property('aspectId').that.is.a('string');
+      expect(sample).to.have.property('subjectId').that.is.a('string');
+      expect(sample).to.have.property('apiLinks').that.is.an('array');
+      expect(aspect).to.have.property('description').that.is.a('string');
+      expect(aspect).to.have.property('id').that.is.a('string');
+      expect(aspect).to.have.property('isPublished').that.is.a('boolean');
+      expect(aspect).to.have.property('name').that.is.a('string');
+      expect(aspect).to.have.property('criticalRange').that.is.an('array');
+      expect(aspect).to.have.property('warningRange').that.is.an('array');
+      expect(aspect).to.have.property('infoRange').that.is.an('array');
+      expect(aspect).to.have.property('okRange').that.is.an('array');
+      expect(aspect).to.have.property('timeout').that.is.a('string');
+      expect(aspect).to.have.property('valueLabel').that.is.a('string');
+      expect(aspect).to.have.property('valueType').that.is.a('string');
+      expect(aspect).to.have.property('relatedLinks').that.is.an('array');
+      expect(aspect).to.have.property('tags').that.is.an('array');
+      expect(user).to.be.an('object');
+      expect(user.name).to.be.an('string');
+      expect(user.email).to.be.an('string');
+      expect(user.profile.name).to.be.an('string');
+      expect(res.header).to.have.property('x-total-count', '1');
+      expect(sample.status).to.equal(constants.statuses.Critical);
+      return done();
     });
   });
 
-  describe('with returnUser off: ', () => {
-    before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
-      .then((samp) => {
-        sampleName = samp.name;
-        done();
-      })
-      .catch(done);
+  it('get by name', (done) => {
+    api.get(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.status).to.equal(constants.statuses.Critical);
+      expect(res.body.provider).to.equal(userId);
+      const user = res.body.user;
+      expect(user).to.be.an('object');
+      expect(user.name).to.be.an('string');
+      expect(user.email).to.be.an('string');
+      expect(user.profile.name).to.be.an('string');
+      expect(res.body.id).to.be.undefined;
+      return done();
     });
+  });
 
-    before(u.populateRedisIfEnabled);
-    after(u.forceDelete);
-
-    it('apiLinks in basic get end  with sample name', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        let href = '';
-        for (let i = res.body.length - 1; i >= 0; i--) {
-          const apiLinks = res.body[i].apiLinks;
-          for (let j = apiLinks.length - 1; j >= 0; j--) {
-            href = apiLinks[j].href;
-            if (apiLinks[j].method != 'POST') {
-              expect(href.split('/').pop()).to.equal(u.sampleName);
-            } else {
-              expect(href).to.equal(path);
-            }
+  it('apiLinks in basic get end  with sample name', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      let href = '';
+      for (let i = res.body.length - 1; i >= 0; i--) {
+        const apiLinks = res.body[i].apiLinks;
+        for (let j = apiLinks.length - 1; j >= 0; j--) {
+          href = apiLinks[j].href;
+          if (apiLinks[j].method != 'POST') {
+            expect(href.split('/').pop()).to.equal(u.sampleName);
+          } else {
+            expect(href).to.equal(path);
           }
         }
-      })
-      .end(done);
-    });
+      }
+    })
+    .end(done);
+  });
 
-    it('get all does not return user or profile field', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        for (let i = res.body.length - 1; i >= 0; i--) {
-          expect(res.body[i].user).to.not.be.defined;
-          expect(res.body[i].installedBy).to.not.be.defined;
-        }
-      })
-      .end(done);
-    });
+  it('basic get: samples should have statusChangedAt field but not ' +
+    'aspects ', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-    it('basic get', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        if (tu.gotExpectedLength(res.body, ZERO)) {
-          throw new Error('expecting sample');
-        }
-
-        if (res.body[ZERO].status !== constants.statuses.Critical) {
-          throw new Error('Incorrect Status Value');
-        }
-      })
-      .end(done);
-    });
-
-    it('basic get does not return id', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.be.above(ZERO);
-        expect(res.body[0].id).to.be.undefined;
-        done();
+      res.body.forEach((sample) => {
+        expect(sample.statusChangedAt).to.be.an('string');
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
       });
+      return done();
     });
+  });
 
-    it('basic get: samples have statusChangedAt field', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('basic get: aspect does not have statusChangedAt', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        res.body.forEach((sample) => {
-          expect(sample.statusChangedAt).to.be.an('string');
-        });
-        done();
+      res.body.forEach((sample) => {
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
       });
+      return done();
     });
+  });
 
-    it('basic get: aspect does not have statusChangedAt', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+  it('by name is case in-sensitive', (done) => {
+    const name = u.sampleName;
+    api.get(`${path}/${name.toLowerCase()}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
 
-        res.body.forEach((sample) => {
-          expect(sample.aspect.statusChangedAt).to.be.undefined;
-        });
-        done();
-      });
-    });
-
-    it('basic get by id', (done) => {
-      api.get(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        if (tu.gotExpectedLength(res.body, ZERO)) {
-          throw new Error('expecting sample');
-        }
-
-        if (res.body.status !== constants.statuses.Critical) {
-          throw new Error('Incorrect Status Value');
-        }
-      })
-      .end(done);
-    });
-
-    it('get by id does not return the user or provider field', (done) => {
-      api.get(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-      })
-      .end(done);
-    });
-
-    it('by name is case in-sensitive', (done) => {
-      const name = u.sampleName;
-      api.get(`${path}/${name.toLowerCase()}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.name).to.equal(name);
-        done();
-      });
-    });
-
-    it('does not return id', (done) => {
-      const name = u.sampleName;
-      api.get(`${path}/${name}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.id).to.be.undefined;
-        done();
-      });
+      expect(res.body.name).to.equal(name);
+      return done();
     });
   });
 });
@@ -294,7 +219,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} > ` +
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

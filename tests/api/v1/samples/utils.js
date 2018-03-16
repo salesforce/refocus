@@ -18,6 +18,7 @@ const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
 const sampleName = subjectName + '|' + aspectName;
 const featureToggles = require('feature-toggles');
 const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 
 const aspectToCreate = {
   description: 'this is a0 description',
@@ -131,22 +132,17 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
+    samstoinit.eradicate()
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
   },
 
-  populateRedisIfEnabled(done) {
-    if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-      samstoinit.eradicate()
-      .then(() => samstoinit.populate())
-      .then(() => done())
-      .catch(done);
-    } else {
-      done();
-    }
+  populateRedis(done) {
+    samstoinit.populate()
+    .then(() => done())
+    .catch(done);
   },
 
   subjectToCreate,

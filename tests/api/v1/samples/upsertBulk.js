@@ -18,7 +18,7 @@ const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples/upsert/bulk';
 const URL1 = 'https://samples.com';
 const relatedLinks = [
@@ -69,7 +69,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -298,7 +298,8 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
       .catch(done);
     });
 
-    it('no samples created if aspect isPublished is false', (done) => {
+    // TODO: unskip this when sampleStore flag is removed from the aspect model
+    it.skip('no samples created if aspect isPublished is false', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send([

@@ -93,7 +93,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
       })
       .then((a) => {
         sample1.aspectId = a.id;
-        return tu.db.Sample.create(sample1);
+        return tu.Sample.create(sample1);
       })
       .then((samp) => {
         sample1.id = samp.id;

@@ -11,6 +11,9 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
+const Promise = require('bluebird');
+supertest.Test.prototype.endAsync =
+  Promise.promisify(supertest.Test.prototype.end);
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
@@ -18,6 +21,7 @@ const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Sample = tu.db.Sample;
 const path = '/v1/aspects';
+const samplePath = '/v1/samples';
 const expect = require('chai').expect;
 const featureToggles = require('feature-toggles');
 
@@ -462,30 +466,91 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .then((s2) => {
         samp2.subjectId = s2.id;
       })
-      .then(() => {
-        Sample.create(samp1);
-        Sample.create(samp2);
-        done();
-      })
+      .then(() => Sample.create(samp1))
+      .then(() => Sample.create(samp2))
+      .then(() => done())
       .catch(done);
     });
 
+    beforeEach(u.populateRedisIfEnabled);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
+
+    function expectInResponse(res, props) {
+      expect(res.body).to.include(props);
+      return Promise.resolve();
+    }
+
+    function expectInDB(props) {
+      return Aspect.findById(i)
+      .then((asp) => {
+        expect(asp).to.include(props);
+      });
+    }
+
+    function expectInSampleEmbed(sampleCount, props) {
+      return api.get(samplePath)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => {
+        expect(res.body).to.have.length(sampleCount);
+        res.body.forEach((sample) => expect(sample.aspect).to.include(props));
+      });
+    }
+
+    it.skip('updating aspect isPublished to true does not delete its samples', (done) => {
+      api.patch(`${path}/${i}`)
+      .set('Authorization', token)
+      .send({ isPublished: true })
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => expectInResponse(res, { isPublished: true }))
+      .then(() => expectInDB({ isPublished: true }))
+      .then(() => expectInSampleEmbed(2, { isPublished: true }))
+      .then(() => done())
+      .catch(done);
+    });
 
     it('updating aspect isPublished to false deletes its samples', (done) => {
       api.patch(`${path}/${i}`)
       .set('Authorization', token)
       .send({ isPublished: false })
       .expect(constants.httpStatus.OK)
-      .expect(() => {
-        Sample.findAll()
-        .then((samp) => {
-          expect(samp).to.have.length(0);
-        })
+      .endAsync()
+      .then((res) => expectInResponse(res, { isPublished: false }))
+      .then(() => expectInDB({ isPublished: false }))
+      .then(() => expectInSampleEmbed(0, { isPublished: false }))
+      .then(() => done())
+      .catch(done);
+    });
+
+    it.skip('updating aspect without changing isPublished does not delete its ' +
+      'samples', (done) => {
+        api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ timeout: '5s' })
+        .expect(constants.httpStatus.OK)
+        .endAsync()
+        .then((res) => expectInResponse(res, { isPublished: true, timeout: '5s' }))
+        .then(() => expectInDB({ isPublished: true, timeout: '5s' }))
+        .then(() => expectInSampleEmbed(2, { isPublished: true, timeout: '5s' }))
+        .then(() => done())
         .catch(done);
-      })
-      .end(done);
+      });
+
+    it.skip('setting aspect name without changing it does not delete its samples',
+    (done) => {
+      api.patch(`${path}/${i}`)
+      .set('Authorization', token)
+      .send({ name: u.toCreate.name })
+      .expect(constants.httpStatus.OK)
+      .endAsync()
+      .then((res) => expectInResponse(res, { name: u.toCreate.name }))
+      .then(() => expectInDB({ name: u.toCreate.name }))
+      .then(() => expectInSampleEmbed(2, { name: u.toCreate.name }))
+      .then(() => done())
+      .catch(done);
     });
 
     it('updating aspect name deletes its samples', (done) => {
@@ -493,14 +558,12 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .set('Authorization', token)
       .send({ name: 'name_change' })
       .expect(constants.httpStatus.OK)
-      .expect(() => {
-        Sample.findAll()
-        .then((samp) => {
-          expect(samp).to.have.length(0);
-        })
-        .catch(done);
-      })
-      .end(done);
+      .endAsync()
+      .then((res) => expectInResponse(res, { name: 'name_change' }))
+      .then(() => expectInDB({ name: 'name_change' }))
+      .then(() => expectInSampleEmbed(0, { name: 'name_change' }))
+      .then(() => done())
+      .catch(done);
     });
   });
 });

@@ -17,7 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples/upsert/bulk';
 
 describe('tests/api/v1/samples/upsertBulkCaseSensitive.js, ' +
@@ -58,7 +58,7 @@ describe('tests/api/v1/samples/upsertBulkCaseSensitive.js, ' +
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

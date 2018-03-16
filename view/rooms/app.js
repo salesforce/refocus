@@ -15,17 +15,26 @@
 const ZERO = 0;
 const ONE = 1;
 const botsContainer = document.getElementById('botsContainer');
+const activeToggle = document.getElementById('activeToggle');
+const confirmButton = document.getElementById('confirm_button');
+const declineButton = document.getElementById('decline_button');
+const confirmationModal =
+  document.getElementById('active_confirmation_modal');
+const confirmationText =
+  document.getElementById('active_confirmation_text');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
 const GET_ROOM = '/v1/rooms/' + ROOM_ID;
+const GET_EVENTS = '/v1/events';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 let _io;
 let _user;
 let _roomName;
+let _isActive;
 let botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -112,7 +121,6 @@ function createFooter(bot) {
   gitHubImage.height = '20';
   gitHubImage.width = '20';
   gitHubImage.src = GITHUB_LOGO;
-
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
 
@@ -258,6 +266,14 @@ function setupSocketIOClient(bots) {
           detail: events,
         }));
       });
+
+      if (events.context) {
+        if (events.context.type === 'RoomState') {
+          activeToggle.dispatchEvent(new CustomEvent('refocus.events', {
+            detail: events,
+          }));
+        }
+      }
     }
   });
 
@@ -266,7 +282,85 @@ function setupSocketIOClient(bots) {
   });
 } // setupSocketIOClient
 
+/**
+ * Active toggle was clicked so need to show modal.
+ *
+ * @param  {Object} event - Clicked on toggle event.
+ */
+function toggleConfirmationModal(event) {
+  event.preventDefault();
+
+  confirmationModal.setAttribute(
+    'style',
+    'display:block;'
+  );
+
+  confirmationText.innerText =
+    `Would you like to ${_isActive ? 'deactivate' : 'activate'} this room?`;
+}
+
+// Closes the confirmation modal
+function closeConfirmationModal() {
+  confirmationModal.setAttribute(
+    'style',
+    'display:none;'
+  );
+}
+
+/**
+ * The room state has changed so it needs to be updated.
+ *
+ * @returns {Promise} For use in chaining.
+ */
+function roomStateChanged() {
+  closeConfirmationModal();
+  activeToggle.disabled = true;
+  _isActive = !_isActive;
+  const data = { active: _isActive };
+  u.patchPromiseWithUrl(GET_ROOM, data)
+  .then((res, err) => {
+    if (err) {
+      return console.log(err);
+    }
+
+    const message = _isActive ? 'Room Activated' : 'Room Deactivated';
+
+    const eventType = {
+      'type': 'RoomState',
+      'user': _user,
+      'active': _isActive,
+    };
+
+    const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID, 10)
+    };
+
+    return u.postPromiseWithUrl(GET_EVENTS, events);
+  });
+}
+
+/**
+ * Handles events that have been triggered
+ *
+ * @param  {Object} event - Event that was triggered.
+ */
+function handleEvents(event) {
+  if (event.detail.context.type === 'RoomState') {
+    event.target.checked = event.detail.context.active;
+    _isActive = event.detail.context.active;
+    event.target.disabled = false;
+  }
+}
+
 window.onload = () => {
+  activeToggle.addEventListener('click', toggleConfirmationModal);
+  activeToggle.addEventListener('refocus.events', handleEvents, false);
+  confirmButton.onclick = roomStateChanged;
+  declineButton.onclick = closeConfirmationModal;
+
   // Note: this is declared in index.pug:
   _io = io;
   _user = JSON.parse(user.replace(/&quot;/g, '"'));
@@ -275,6 +369,8 @@ window.onload = () => {
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     _roomName = res.body.name;
+    _isActive = res.body.active;
+    activeToggle.checked = _isActive;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
   })
   .then((res) => {

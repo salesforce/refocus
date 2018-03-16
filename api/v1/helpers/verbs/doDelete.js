@@ -15,7 +15,6 @@ const u = require('./utils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
-const featureToggles = require('feature-toggles');
 const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
@@ -34,8 +33,7 @@ function doDelete(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp }; // for logging
   let delPromise;
   let obj;
-  if (featureToggles.isFeatureEnabled(constants.featureName) &&
-  props.modelName === 'Sample') {
+  if (props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
     delPromise = redisModelSample.deleteSample(sampleName, req.user);
   } else {
