@@ -50,7 +50,6 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   let aspTempId;
 
   beforeEach((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     Subject.create(par)
     .then((subj) => {
       ipar = subj.id;
@@ -72,7 +71,6 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       return Sample.create(sample1);
     })
     .then(() => Sample.create(sample2))
-    .then(() => samstoinit.eradicate())
     .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
@@ -80,7 +78,6 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('on unpublish, a subject should still be found', (done) => {
     const subjectKey = redisStore.toKey('subject', parentName);
