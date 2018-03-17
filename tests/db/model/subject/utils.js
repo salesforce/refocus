@@ -11,8 +11,8 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
+const samstoinit = require('../../../../cache/sampleStoreInit');
 
 const subjectPrototype = {
   description: 'description description description description     ',
@@ -24,7 +24,7 @@ const subjectPrototype = {
 
 module.exports = {
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
+    samstoinit.eradicate()
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
@@ -39,5 +39,11 @@ module.exports = {
     s.parentId = parentId;
     s.sortBy = null;
     return s;
+  },
+
+  populateRedis(done) {
+    samstoinit.populate()
+    .then(() => done())
+    .catch(done);
   },
 };

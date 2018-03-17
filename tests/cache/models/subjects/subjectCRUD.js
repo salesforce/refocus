@@ -20,7 +20,7 @@ const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const redisOps = rtu.redisOps;
 
