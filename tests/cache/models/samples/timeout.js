@@ -16,7 +16,7 @@ const samstoinit = require('../../../../cache/sampleStoreInit');
 const doTimeout = require('../../../../cache/sampleStoreTimeout').doTimeout;
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 
@@ -28,7 +28,6 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
   const tenSeconds = 10;
   const fiveMinutes = 5;
 
-  before(() => tu.toggleOverride('enableRedisSampleStore', true));
   beforeEach((done) => {
     Aspect.create({
       isPublished: true,
@@ -99,7 +98,6 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
 
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('createdAt and updatedAt fields have the expected format', (done) => {
     const mockUpdatedAt = updatedAt;

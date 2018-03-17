@@ -17,7 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const rtu = require('../redisTestUtil');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
@@ -27,7 +27,6 @@ describe('tests/cache/models/samples/putWithoutPerms.js, ' +
   let aspect;
   let otherValidToken;
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => done())
     .catch(done);
@@ -57,7 +56,6 @@ describe('tests/cache/models/samples/putWithoutPerms.js, ' +
 
   after(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('Putting without permission should fail and return 403', (done) => {
     api.put(`${path}/${sampleName}`)

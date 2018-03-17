@@ -25,17 +25,14 @@ const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
 const featureToggles = require('feature-toggles');
 const RADIX = 10;
-let enableCacheInitial;
 let enableWorkerProcessInitial;
 let enqueueHierarchyInitial;
 
 describe('tests/cache/jobQueue/getHierarchy.js, ' +
 `api: GET using worker process ${path} >`, () => {
   before(() => {
-    enableCacheInitial = featureToggles.isFeatureEnabled('enableRedisSampleStore');
     enableWorkerProcessInitial = featureToggles.isFeatureEnabled('enableWorkerProcess');
     enqueueHierarchyInitial = featureToggles.isFeatureEnabled('enqueueHierarchy');
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
     jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
@@ -44,7 +41,6 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
   });
 
   after(() => {
-    tu.toggleOverride('enableRedisSampleStore', enableCacheInitial);
     tu.toggleOverride('enableWorkerProcess', enableWorkerProcessInitial);
     tu.toggleOverride('enqueueHierarchy', enqueueHierarchyInitial);
   });
@@ -110,7 +106,7 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
       })
       .then((a) => {
         sample1.aspectId = a.id;
-        return tu.db.Sample.create(sample1);
+        return tu.Sample.create(sample1);
       })
       .then((samp) => {
         sample1.id = samp.id;

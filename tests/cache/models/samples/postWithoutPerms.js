@@ -41,7 +41,6 @@ describe('tests/cache/models/samples/postWithoutPerms.js, ' +
   let otherValidToken;
   let user;
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
       done();
@@ -77,7 +76,6 @@ describe('tests/cache/models/samples/postWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(tu.forceDeleteUser);
 
   it('sample write permission should be tied to permission on aspect',

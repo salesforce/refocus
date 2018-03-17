@@ -32,7 +32,6 @@ describe('tests/cache/models/samples/post.js >', () => {
     `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
 
     before((done) => {
-      tu.toggleOverride('enableRedisSampleStore', true);
       tu.createToken()
       .then((returnedToken) => {
         token = returnedToken;
@@ -73,7 +72,6 @@ describe('tests/cache/models/samples/post.js >', () => {
 
     afterEach(rtu.forceDelete);
     after(tu.forceDeleteUser);
-    after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     describe('unpublished subject/aspect fails >', () => {
       it('unpublished aspect fails', (done) => {
@@ -140,7 +138,7 @@ describe('tests/cache/models/samples/post.js >', () => {
 
     describe('post duplicate fails >', () => {
       beforeEach((done) => {
-        tu.db.Sample.create(sampleToPost)
+        tu.Sample.create(sampleToPost)
         .then(() => samstoinit.eradicate())
         .then(() => samstoinit.init())
         .then(() => done())

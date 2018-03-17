@@ -22,7 +22,7 @@ const objectType = require('../../../../cache/sampleStore')
   .constants.objectType;
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const ZERO = 0;
 
 describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
@@ -35,7 +35,6 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
   let aspectId;
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -65,7 +64,6 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
 
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('unpublished subject/aspect fails >', () => {
     it('on unpublish aspect, sample is removed from cache', (done) => {

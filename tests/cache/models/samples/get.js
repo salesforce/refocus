@@ -50,7 +50,7 @@ describe('tests/cache/models/samples/get.js, ' +
     'profile field >', () => {
     const Aspect = tu.db.Aspect;
     const Subject = tu.db.Subject;
-    const Sample = tu.db.Sample;
+    const Sample = tu.Sample;
     let a1;
     let a2;
     let s1;
@@ -667,7 +667,6 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
   const s1s3a1 = '___Subject1.___Subject3|___Aspect1';
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -679,10 +678,6 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
   before(rtu.populateRedis);
   after(rtu.forceDelete);
   after(tu.forceDeleteUser);
-
-  after(() => {
-    tu.toggleOverride('enableRedisSampleStore', enableRedisSampleStore);
-  });
 
   it('get with wildcard should cache response', (done) => {
     api.get(`${path}?name=___Subj*`)

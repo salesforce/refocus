@@ -43,7 +43,6 @@ describe('tests/cache/models/samples/upsertWithoutPerms.js, ' +
   let otherValidToken;
   let user;
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => done())
     .catch(done);
@@ -77,7 +76,6 @@ describe('tests/cache/models/samples/upsertWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(tu.forceDeleteUser);
 
   it('upsert should fail when upserting a sample for an aspect without ' +

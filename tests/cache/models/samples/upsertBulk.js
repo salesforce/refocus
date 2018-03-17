@@ -33,7 +33,6 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
   let token;
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -69,7 +68,6 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
 
   after(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('name field is required', (done) => {
     api.post(path)
