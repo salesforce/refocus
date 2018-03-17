@@ -13,6 +13,8 @@
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 
 const subjectPrototype = {
   description: 'description description description description     ',
@@ -24,11 +26,13 @@ const subjectPrototype = {
 
 module.exports = {
   forceDelete(done) {
-    samstoinit.eradicate()
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    Promise.join(rcli.flushallAsync(),
+    tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },

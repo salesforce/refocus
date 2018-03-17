@@ -12,8 +12,8 @@
 'use strict';
 const tu = require('../../../testUtils');
 const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 const Promise = require('bluebird');
-
 const testStartTime = new Date();
 
 const subjectToCreate = {
@@ -41,7 +41,7 @@ module.exports = {
 
   forceDelete(done) {
     Promise.join(
-      samstoinit.eradicate(),
+      rcli.flushallAsync(),
       tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     )

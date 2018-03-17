@@ -233,7 +233,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    if ( featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
       !common.looksLikeId(req.swagger.params.key.value)
     ) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
