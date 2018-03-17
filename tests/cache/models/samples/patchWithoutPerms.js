@@ -17,7 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const rtu = require('../redisTestUtil');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 
@@ -27,7 +27,6 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
   let aspect;
   let otherValidToken;
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => {
       done();
@@ -59,7 +58,6 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
 
   after(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('patching without permission should return 403 status', (done) => {
     api.patch(`${path}/${sampleName}`)

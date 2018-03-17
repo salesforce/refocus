@@ -24,7 +24,7 @@ const u = require('./utils');
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
 const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const ZERO = 0;
 
 describe('tests/cache/models/samples/delete.js >', () => {
@@ -33,7 +33,6 @@ describe('tests/cache/models/samples/delete.js >', () => {
     let token;
 
     before((done) => {
-      tu.toggleOverride('enableRedisSampleStore', true);
       tu.createToken()
       .then((returnedToken) => {
         token = returnedToken;
@@ -45,7 +44,6 @@ describe('tests/cache/models/samples/delete.js >', () => {
     beforeEach(rtu.populateRedis);
     afterEach(rtu.forceDelete);
     after(tu.forceDeleteUser);
-    after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('basic delete', (done) => {
       api.delete(`${path}/${sampleName}`)

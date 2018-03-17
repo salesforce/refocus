@@ -26,7 +26,6 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
   let token;
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -77,7 +76,6 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
   after(rtu.forceDelete);
   after(rtu.forceDeleteUserAndProf);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('bulkupsert to multiple samples that belong to the subject should ' +
   'succeed', (done) => {

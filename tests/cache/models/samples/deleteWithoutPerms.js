@@ -17,7 +17,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const rtu = require('../redisTestUtil');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
@@ -30,7 +30,6 @@ describe('tests/cache/models/samples/deleteWithoutPerms.js, ' +
   let user;
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then(() => tu.createUser('myUniqueUser'))
     .then((usr) => tu.createTokenFromUserName(usr.name))
@@ -60,7 +59,6 @@ describe('tests/cache/models/samples/deleteWithoutPerms.js, ' +
 
   after(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('deleting sample without permission should return 403', (done) => {
     api.delete(`${path}/${sampleName}`)

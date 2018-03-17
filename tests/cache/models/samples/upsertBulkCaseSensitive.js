@@ -23,7 +23,6 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
   let token;
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -43,7 +42,6 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
   after(rtu.forceDeleteAspSampSubj);
   after(rtu.flushRedis);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('existing sample: different case name should NOT modify sample name',
   (done) => {

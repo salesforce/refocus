@@ -43,7 +43,6 @@ describe('tests/cache/models/samples/upsert.js, ' +
   ];
 
   before((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     tu.createUserAndToken()
     .then((obj) => {
       userId = obj.user.id;
@@ -70,7 +69,6 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('with returnUser toggle on >', () => {
     before(() => tu.toggleOverride('returnUser', true));
