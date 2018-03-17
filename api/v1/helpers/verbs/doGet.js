@@ -15,8 +15,6 @@ const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
-const featureToggles = require('feature-toggles');
-const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 
 /**

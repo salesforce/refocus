@@ -28,8 +28,6 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
-const sampleStore = require('../../../cache/sampleStore');
-const sampleStoreConstants = sampleStore.constants;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
@@ -208,8 +206,7 @@ module.exports = {
    */
   findSubjects(req, res, next) {
     validateTags(null, req.swagger.params);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-      featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache')) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
@@ -236,10 +233,8 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    if (
-      featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)
-      && featureToggles.isFeatureEnabled('getSubjectFromCache')
-      && !common.looksLikeId(req.swagger.params.key.value)
+    if ( featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+      !common.looksLikeId(req.swagger.params.key.value)
     ) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
@@ -426,8 +421,7 @@ module.exports = {
      * Else if parentId is provided OR cache is off,
      * do normal post.
      */
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-      featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
       !u.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
