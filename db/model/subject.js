@@ -10,10 +10,6 @@
  * db/model/subject.js
  */
 'use strict'; // eslint-disable-line strict
-
-const featureToggles = require('feature-toggles');
-const sampleStoreFeature =
-  require('../../cache/sampleStore').constants.featureName;
 const common = require('../helpers/common');
 const subjectUtils = require('../helpers/subjectUtils');
 const throwNotMatchError = subjectUtils.throwNotMatchError;
@@ -161,25 +157,6 @@ module.exports = function subject(seq, dataTypes) {
         }, {
           override: true,
         });
-        Subject.addScope('withSamples', {
-          include: [
-            {
-              model: models.Sample,
-              as: 'samples',
-              attributes: { exclude: ['subjectId'] },
-              include: [
-                {
-                  required: false,
-                  model: models.Aspect,
-                  as: 'aspect',
-                  where: {
-                    isPublished: true,
-                  },
-                },
-              ],
-            },
-          ],
-        });
         Subject.addScope('id', (value) => ({
           where: {
             id: value,
@@ -191,31 +168,6 @@ module.exports = function subject(seq, dataTypes) {
           },
         }));
         Subject.addScope('hierarchy', {
-          where: {
-            isPublished: true,
-          },
-          include: [
-            {
-              model: models.Subject,
-              as: 'descendents',
-              hierarchy: true,
-              required: false,
-              where: {
-                isPublished: true,
-              },
-              include: [
-                {
-                  model: models.Sample,
-                  as: 'samples',
-                  attributes: {
-                    exclude: ['subjectId'],
-                  },
-                },
-              ],
-            },
-          ],
-        });
-        Subject.addScope('subjectHierarchy', {
           where: {
             isPublished: true,
           },
@@ -262,23 +214,21 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       afterCreate(inst /* , opts */) {
+        /*
+         * add entry to the subjectStore in redis only if the subject
+         * is published and the sampleStoreFeature is enabled
+         */
         if (inst.getDataValue('isPublished')) {
           common.publishChange(inst, eventName.add);
 
-          /*
-           * add entry to the subjectStore in redis only if the subject
-           * is published and the sampleStoreFeature is enabled
-           */
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            // Prevent any changes to original inst dataValues object
-            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-            redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
-            redisOps.hmSet(
-              subjectType,
-              inst.getDataValue('absolutePath'),
-              instDataObj
-            );
-          }
+          // Prevent any changes to original inst dataValues object
+          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+          redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
+          redisOps.hmSet(
+            subjectType,
+            inst.getDataValue('absolutePath'),
+            instDataObj
+          );
         }
 
         // no change here
@@ -302,7 +252,6 @@ module.exports = function subject(seq, dataTypes) {
        * @param {Subject} inst - The updated instance
        */
       afterUpdate(inst /* , opts */) {
-
         /*
          * When the sample store feature is enabled do the following
          * 1. if subject is changed from unpublished to published -> update subject
@@ -310,8 +259,8 @@ module.exports = function subject(seq, dataTypes) {
          *   delete subject aspect map, remove its samples
          * 3. if the asbsolutepath of the subject changes: rename the subject key,
          *   update subject, delete subject aspect map, and remove its samples
-        */
-        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+         */
+        {
           if (inst.changed('absolutePath') ||
             (inst.changed('isPublished') && !inst.isPublished)) {
             const newAbsPath = inst.absolutePath;
@@ -340,15 +289,6 @@ module.exports = function subject(seq, dataTypes) {
 
         if (inst.changed('parentAbsolutePath') ||
           inst.changed('absolutePath')) {
-          inst.getSamples()
-          .each((samp) => {
-            if (samp) {
-              samp.destroy();
-            }
-          })
-          .catch((err) => {
-            throw (err);
-          });
           inst.getChildren()
           .then((children) => {
             if (children) {
@@ -435,9 +375,7 @@ module.exports = function subject(seq, dataTypes) {
               common.publishChange(inst, eventName.del);
 
               // if cache is on, remove reference to subjects in the cache
-              if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-                return subjectUtils.removeFromRedis(inst.absolutePath);
-              }
+              return subjectUtils.removeFromRedis(inst.absolutePath);
             }
           })
           .then(() => resolve(inst))
@@ -465,8 +403,6 @@ module.exports = function subject(seq, dataTypes) {
               return common.setIsDeleted(seq.Promise, inst);
             }
           })
-          .then(() => inst.getSamples())
-          .each((samp) => samp.destroy())
           .then(() => resolve())
           .catch((err) => reject(err))
         );
