@@ -91,6 +91,13 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
       .end(done);
     });
 
+    it('forbidden if no token', (done) => {
+      api.get(path.replace('{key}', ipar))
+      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(/ForbiddenError/)
+      .end(done);
+    });
+
     it('should be a non empty object at the grandchild level', (done) => {
       api.get(path.replace('{key}', ipar))
       .set('Authorization', token)
