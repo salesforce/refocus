@@ -51,7 +51,7 @@ describe('tests/api/v1/samples/upsertWithoutPerms.js >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

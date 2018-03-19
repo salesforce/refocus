@@ -15,7 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
 const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
@@ -47,7 +47,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
@@ -142,7 +142,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
