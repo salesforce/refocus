@@ -63,6 +63,7 @@ class DataTable extends Component {
             );
           }
         } else if (resourceKey === 'Actions') {
+          {/* Disable editing subjects/samples/aspects in UI
           // conditionally show delete
           const addChildLink = <Link
             to={'/' + resource + '/new?parentAbsolutePath=' + results[i].absolutePath}>
@@ -74,6 +75,8 @@ class DataTable extends Component {
               onClick={doDelete.bind(this, results[i].id)}
             >DELETE</button>
           }</span>;
+           */}
+          const links = <span></span>;
           rowData.push( // create child button for subject
             <th scope='col' key={ key }>{ links }</th>
           );
