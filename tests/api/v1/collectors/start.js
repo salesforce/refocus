@@ -53,7 +53,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   beforeEach((done) => {
-    GeneratorTemplate.create(generatorTemplate)
+    sgUtils.createGeneratorAspects()
+    .then(() => GeneratorTemplate.create(generatorTemplate))
     .then(() => {
       const gen1 = sgUtils.getGenerator();
       gen1.name += 'generator-1';
@@ -75,7 +76,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('if the collector is registered and status is STOPPED:', () => {
+  describe('if the collector is registered and status is STOPPED >', () => {
     it('if the user is among the writers, start the collector ' +
       'and return the expected response', (done) => {
       api.post(path)
@@ -101,6 +102,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
         expect(sg1.collectors).to.equal(undefined);
         expect(sg2.GeneratorCollectors).to.equal(undefined);
         expect(sg2.collectors).to.equal(undefined);
+        expect(res.body.generatorsAdded[0].aspects[0])
+          .to.contain.property('name', 'Temperature');
         return done();
       });
     });
@@ -145,7 +148,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  describe('if the collector is registered:', () => {
+  describe('if the collector is registered >', () => {
     it('reject if the status is PAUSED', (done) => {
       const _collector = u.getCollectorToCreate();
       _collector.name = 'PausedCollector';
@@ -180,7 +183,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 
-  describe('if collector not found', () => {
+  describe('if collector not found >', () => {
     before(() => tu.toggleOverride('returnUser', true));
     after(() => tu.toggleOverride('returnUser', false));
 
