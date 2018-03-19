@@ -69,3 +69,10 @@ window.onload = () => {
   );
   uPage.removeSpinner();
 };
+
+//for testing
+module.exports = () => {
+  return {
+    getPathVariables
+  };
+};

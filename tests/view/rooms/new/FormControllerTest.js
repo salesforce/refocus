@@ -22,7 +22,7 @@ const ONE = 1;
 
 describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
   it('Path Test', () => {
-    console.log(app);
+    console.log(app.getPathVariables);
     //expect(renderedDOM.length).to.equal(ZERO);
   });
 });
