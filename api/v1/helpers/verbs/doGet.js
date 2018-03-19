@@ -68,8 +68,7 @@ function doGet(req, res, next, props) {
     });
   } else {
     let getPromise;
-    if (featureToggles.isFeatureEnabled(constants.featureName) &&
-     props.modelName === 'Sample') {
+    if (props.modelName === 'Sample') {
       getPromise = redisModelSample.getSample(req.swagger.params);
     } else {
       getPromise = u.findByKey(props, req.swagger.params, scopes);

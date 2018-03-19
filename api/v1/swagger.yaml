@@ -11340,7 +11340,7 @@ definitions:
       List of generators assigned to this agent since last heartbeat.
       New generator templates are included as well.
     items:
-      $ref: "#/definitions/GeneratorTemplateResponse"
+      $ref: "#/definitions/HeartbeatGeneratorResponse"
 
   GeneratorsUpdatedResponse:
     type: array
@@ -11348,7 +11348,7 @@ definitions:
       List of generators assigned to this agent, but were modified
       since last heartbeat.
     items:
-      $ref: "#/definitions/GeneratorTemplateResponse"
+      $ref: "#/definitions/HeartbeatGeneratorResponse"
 
   GeneratorsRemovedResponse:
     readOnly: true
@@ -11415,6 +11415,82 @@ definitions:
         type: array
         items:
           type: string
+      tags:
+        type: array
+        items:
+          type: string
+          maxLength: 60
+          pattern: ^[0-9A-Za-z_][0-9A-Za-z_\\-]{1,59}$
+        description: >
+          Array of tag names. Tag name: Max 60 characters; case insensitive;
+          allows alpha-numeric characters, underscore (_) and dash (-). Tag
+          names cannot start with a dash (-).
+      connection:
+        type: object
+        description: Information about the connection.
+      context:
+        type: object
+        description: >
+          Variables accessible inside the transform function.
+      generatorTemplate:
+        $ref: "#/definitions/GeneratorTemplateResponse"
+
+  HeartbeatGeneratorResponse:
+    type: object
+    description: >-
+      The designation of which subjects and aspects to collect, plus any additional context data
+    properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the generator.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the generator.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the generator.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Generator.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      isActive:
+        type: boolean
+        description: Whether or not the generator is running on a collector.
+      name:
+        type: string
+        readOnly: true
+        description: The generator's name.
+      subjectQuery:
+        type: string
+        readOnly: true
+        description: The query to append to GET subjects.
+      collectors:
+        description: List of collectors this Sample Generator should try to use.
+        type: array
+        items:
+          type: object
+      subjects:
+        description: Array of subjects.
+        type: array
+        items:
+          type: object
+      aspects:
+        description: Array of aspects.
+        type: array
+        items:
+          type: object
       tags:
         type: array
         items:

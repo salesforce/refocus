@@ -498,7 +498,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
       });
     }
 
-    it('updating aspect isPublished to true does not delete its samples',
+    it.skip('updating aspect isPublished to true does not delete its samples',
       (done) => {
         const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
         aspectObj.isPublished = true;
@@ -563,7 +563,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
         .catch(done);
       });
 
-    it('setting aspect name without changing it does not delete its samples',
+    it.skip('setting aspect name without changing it does not delete its samples',
       (done) => {
         const aspectObj = JSON.parse(JSON.stringify(u.toCreate));
         aspectObj.name = u.toCreate.name;
