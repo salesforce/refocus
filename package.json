@@ -52,6 +52,7 @@
     "test-cache-jobQueue": "npm run test-with-coverage -- --recursive tests/cache/jobQueue",
     "test-cache-models": "npm run test-with-coverage -- --recursive tests/cache/models",
     "test-cache-misc": "npm run test-with-coverage -- tests/cache",
+    "test-test": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view/rooms/new",
     "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
     "test-extra": "npm run test-cache && npm run test-jobQueue && npm run test-view && npm run test-disablehttp && npm run test-cors && npm run test-limiter",

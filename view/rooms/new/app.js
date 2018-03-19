@@ -17,16 +17,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
 const url = require('url');
-const adr = window.location.href;
-const pathName = url.parse(adr, true).pathname.split('/');
-const q = url.parse(adr, true);
-const qdata = q.query ? q.query : {};
+const address = window.location.href;
 const NAME_PATH = 3;
 
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
-window.onload = () => {
+function getPathVariables(adr){
+  const pathName = url.parse(adr, true).pathname.split('/');
+  const q = url.parse(adr, true);
+  const qdata = q.query ? q.query : {};
+
   let paramName = qdata.name || '';
   if ((pathName.length > NAME_PATH) && (pathName[NAME_PATH] !== '')) {
     paramName = pathName[NAME_PATH];
@@ -42,14 +43,27 @@ window.onload = () => {
     paramSettings = {};
   }
   const paramBots = qdata.bots ? qdata.bots.split(',') : [];
+
+  return {
+    name: paramName,
+    type: paramType,
+    active: paramActive,
+    externalId: paramExternalId,
+    settings: paramSettings,
+    bots: paramBots,
+  };
+}
+
+window.onload = () => {
+  const paramaters = getPathVariables(address);
   ReactDOM.render(
     <FormController
-      name={paramName}
-      type={paramType}
-      active={paramActive}
-      externalId={paramExternalId}
-      settings={paramSettings}
-      bots={paramBots}
+      name={paramaters.name}
+      type={paramaters.type}
+      active={paramaters.active}
+      externalId={paramaters.externalId}
+      settings={paramaters.settings}
+      bots={paramaters.bots}
     />,
     formContainer
   );

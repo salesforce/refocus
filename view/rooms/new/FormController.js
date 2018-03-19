@@ -169,7 +169,7 @@ class FormController extends React.Component {
                     className="slds-page-header__title slds-m-right--small slds-align-middle" id="title">
                     Create new room
                   </h1>
-                  <p className="slds-text-body_small slds-line-height_reset" 
+                  <p className="slds-text-body_small slds-line-height_reset"
                     id="subTitle">
                     Fill in data to create a new room.
                     Click "Create Room" when you are ready to create room
