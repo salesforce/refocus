@@ -104,13 +104,7 @@ module.exports = {
    */
   upsertBotData(req, res, next) {
     const queryBody = req.swagger.params.queryBody.value;
-    BotData.findOne({
-      where: {
-        name: queryBody.name,
-        botId: queryBody.botId,
-        roomId: queryBody.roomId,
-      },
-    })
+    BotData.bdExists(queryBody)
     .then((bd) => {
       if (bd) {
         req.swagger.params.key = { value: bd.id };
