@@ -55,7 +55,7 @@ module.exports = function user(seq, dataTypes) {
     fullName: {
       type: dataTypes.STRING,
       allowNull: true,
-    }
+    },
   }, {
     classMethods: {
       getUserAssociations() {
