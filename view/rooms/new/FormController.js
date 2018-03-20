@@ -190,6 +190,7 @@ class FormController extends React.Component {
               </label>
               <div className="slds-form-element__control">
                 <input
+                  id="nameInput"
                   type="text"
                   className="slds-input"
                   value={this.state.name}
@@ -204,6 +205,7 @@ class FormController extends React.Component {
               <div className="slds-form-element__control">
                 <div className="slds-select_container">
                   <select
+                    id="typeInput"
                     className="slds-select"
                     value={this.state.type}
                     onChange={this.setType}>
@@ -219,6 +221,7 @@ class FormController extends React.Component {
               <label className="slds-form-element__label">External ID</label>
               <div className="slds-form-element__control">
                 <input
+                  id="externalIdInput"
                   type="text"
                   className="slds-input"
                   value={this.state.externalId}
@@ -236,12 +239,14 @@ class FormController extends React.Component {
                   className="slds-form-element__control"
                   onChange={this.setActive}>
                   <input
+                    id="activeInput"
                     type="radio"
                     value="Active"
                     name="active"
                     defaultChecked={this.state.active}/>
                       Active<br/>
                   <input
+                    id="inactiveInput"
                     type="radio"
                     value="Inactive"
                     name="active"
@@ -254,6 +259,7 @@ class FormController extends React.Component {
               <label className="slds-form-element__label">Bots</label>
               <div className="slds-form-element__control">
                 <input
+                  id="botsInput"
                   type="text"
                   className="slds-input"
                   value={this.state.botString}
@@ -265,6 +271,7 @@ class FormController extends React.Component {
               <label className="slds-form-element__label">Settings</label>
               <div className="slds-form-element__control">
                 <textarea
+                  id="settingsInput"
                   type="text"
                   className={this.state.settingBorder}
                   onBlur={this.fixJson}
@@ -294,7 +301,7 @@ class FormController extends React.Component {
 FormController.propTypes = {
   name: PropTypes.string,
   type: PropTypes.string,
-  active: PropTypes.boolean,
+  active: PropTypes.bool,
   externalId: PropTypes.string,
   settings: PropTypes.object,
   bots: PropTypes.array,
