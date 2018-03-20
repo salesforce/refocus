@@ -273,6 +273,8 @@ function displayBot(bot) {
   botsContainer.appendChild(botContainer);
 
   const parsedBot = parseBot(bot);
+
+  // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
 }
 
