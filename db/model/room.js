@@ -108,6 +108,7 @@ module.exports = function room(seq, dataTypes) {
           if (!instance.settings) {
             instance.settings = roomType.settings;
           }
+
           if (!instance.bots) {
             instance.bots = roomType.bots;
           }
