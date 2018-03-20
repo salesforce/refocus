@@ -1,0 +1,33 @@
+.ghost-bot {
+  height: 200px;
+  width: 100%;
+  margin-top: -1rem;
+  margin-bottom: -1rem;
+  padding: 1.5rem 1rem 1.5rem 1rem;
+}
+
+.internal-ghost-bot {
+  border: 5px dashed #006fd2;
+  height: 100%;
+  text-align: center;
+  vertical-align: center;
+}
+
+.col-dragging {
+  min-height: 100vh;
+}
+
+.bot-img {
+  margin-top: 25px;
+  height: 100px;
+  width: 100px;
+}
+
+@media (min-width: 64em) {
+  .dummy-bot {
+    height: 200px;
+    margin-top: -1rem;
+    margin-bottom: -1rem;
+    opacity: 0;
+  }
+}

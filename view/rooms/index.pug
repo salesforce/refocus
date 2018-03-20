@@ -11,6 +11,7 @@ html
     title Refocus Room
     link(rel='shortcut icon', href='favicon.ico')
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
+    link(rel='stylesheet' type='text/css' href='../static/css/room.css')
     block page-header
       div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem')
         div.slds-grid
@@ -28,6 +29,9 @@ html
                 p#subTitle.slds-text-body_small.slds-line-height_reset
     block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
+        div#botsLeftColumn.slds-col.slds-large-size--1-of-3
+        div#botsMiddleColumn.slds-col.slds-large-size--1-of-3
+        div#botsRightColumn.slds-col.slds-large-size--1-of-3
     block spinner
       div#loading_spinner
         .slds-spinner_container
