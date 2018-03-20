@@ -291,15 +291,16 @@ function heartbeat(req, res, next) {
     ['added', 'deleted', 'updated'].map((changeType) => {
       const ids = changedIds[changeType];
       const where = { where: { id: ids } };
-      return ids.length ? Generator.findAll(where) : Promise.resolve([]);
+      return ids.length ? Generator.findForHeartbeat(where) :
+        Promise.resolve([]);
     })
   ))
 
   // assign the changed generators to retval
   .then((generators) => {
-    retval.generatorsAdded = generators[0].map(g => g.get());
-    retval.generatorsDeleted = generators[1].map(g => g.get());
-    retval.generatorsUpdated = generators[2].map(g => g.get());
+    retval.generatorsAdded = generators[0];
+    retval.generatorsDeleted = generators[1];
+    retval.generatorsUpdated = generators[2];
   })
 
   // reset the tracked changes for this collector
@@ -379,12 +380,14 @@ function startCollector(req, res, next) {
       collectorToReturn = collector;
       return collector.getCurrentGenerators();
     })
+    .then((generators) => Promise.all(generators.map((g) =>
+      g.updateForHeartbeat())))
     .then((generators) => {
       collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
         // generator associations before adding it to the response
-        delete g.dataValues.GeneratorCollectors;
-        delete g.dataValues.collectors;
-        return g.dataValues;
+        delete g.GeneratorCollectors;
+        delete g.collectors;
+        return g;
       });
 
       /*
