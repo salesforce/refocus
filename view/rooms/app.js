@@ -45,6 +45,7 @@ let _isActive;
 let ghostBot;
 let dummyBot;
 let moving;
+let movingHtml;
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -131,9 +132,16 @@ function botDragEndHandler() {
  * @param {DOM} col - Column that bot is being dragged over.
  */
 function drop(event, col) {
+  console.log(movingHtml.body);
   event.preventDefault();
   const data = event.dataTransfer.getData('text');
   col.insertBefore(document.getElementById(data), ghostBot);
+
+  var botDiv = document.getElementById(data);
+  var iFrame = botDiv.getElementsByTagName('iframe')[0];
+  console.log(iFrame);
+  console.log(movingHtml.body);
+  iFrame.contentDocument = movingHtml;
 }
 
 /**
@@ -163,6 +171,8 @@ function setupMovableBots(botContainer, botIndex) {
   // Only need to move the bot if the header is clicked
   botContainer.addEventListener('mousedown', (e) => {
     moving = e.target.id === 'title-header';
+    var iFrame = botContainer.getElementsByTagName("iframe")[0];
+    movingHtml = iFrame.contentDocument;
   });
 
   // Adding bot to correct initial column
