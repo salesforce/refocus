@@ -1,5 +1,5 @@
 /**
- * Copyright (c) TAB_SPACINGFIRST_ENTRY18, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -9,7 +9,7 @@
 /**
  * view/rooms/new/FormController.js
  *
- *
+ * This component creates the form used to create a new room.
  */
 import React from 'react';
 import PropTypes from 'prop-types';
