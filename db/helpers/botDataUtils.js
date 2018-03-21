@@ -40,6 +40,30 @@ function isJson(item) {
 } // isJson
 
 /**
+ * Bot Data values are stored as strings but can be converted to
+ * JSON. If either parameter is not JSON strings we replace originalValue
+ * with the newValue. If both values are JSON strings we extend the
+ * originalValue by adding any missing key-value pairs and replacing any
+ * exsiting key-value pairs with new value
+ *
+ * @param {String} originalValue - Original bot data value
+ * @param {String} newValue - New bot data value
+ * @returns {String} - Bot data where values are properly merged
+ */
+function combineValue(originalValue, newValue) {
+  let output = newValue;
+
+  // if both values are JSON strings then extend the original JSON strings
+  if ((isJson(originalValue)) && (isJson(newValue))) {
+    output = JSON.stringify(
+      _.extend(JSON.parse(originalValue), JSON.parse(newValue))
+    );
+  }
+
+  return output;
+}
+
+/**
  * If a string contains some substring enclosed in between ${ and } this
  * is an indication that string needs to be replaced with some instance
  * value. The string between the ${ } tokens should be in the pattern
@@ -215,15 +239,7 @@ function updateValues(seq, instance) {
 
       // Update bot data
       for (let i = ZERO; i < data.length; i += TWO) {
-        newValue = data[i + ONE];
-
-        // If bot data is JSON then merge data
-        if (isJson(data[i].value)) {
-          newValue = JSON.stringify(
-            _.extend(JSON.parse(data[i].value), JSON.parse(data[i + ONE]))
-          );
-        }
-
+        newValue = combineValue(data[i].value, data[i + ONE]);
         updates.push(data[i].update({ value: newValue }));
       }
 
@@ -236,6 +252,7 @@ function updateValues(seq, instance) {
 
 module.exports = {
   isJson,
+  combineValue,
   replaceValue,
   updateValues,
 }; // exports

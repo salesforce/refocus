@@ -72,8 +72,20 @@ module.exports = function botData(seq, dataTypes) {
           through: 'BotDataWriters',
           foreignKey: 'botId',
         });
+        BotData.addScope('bdExists', (value) => ({
+          where: {
+            name: value.name,
+            botId: value.botId,
+            roomId: value.roomId,
+          },
+        }));
+      },
+
+      bdExists(query) {
+        return BotData.scope({ method: ['bdExists', query] }).findOne();
       },
     },
+
     hooks: {
 
       /**

@@ -223,6 +223,55 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     done();
   });
 
+  it('ok, regular string replaced with regular string', (done) => {
+    const oldVal = 'this is a string';
+    const newVal = 'this is a new string';
+
+    expect(bdUtil.combineValue(oldVal, newVal))
+      .to.equal(newVal);
+    done();
+  });
+
+  it('ok, JSON string replaced with regular string', (done) => {
+    const oldVal = '{\"test\": \"test value\"}';
+    const newVal = 'this is a new string';
+
+    expect(bdUtil.combineValue(oldVal, newVal))
+      .to.equal(newVal);
+    done();
+  });
+
+  it('ok, regular string replaced with JSON string', (done) => {
+    const oldVal = 'this is a new string';
+    const newVal = '{\"test\": \"test value\"}';
+
+    expect(bdUtil.combineValue(oldVal, newVal))
+      .to.equal(newVal);
+    done();
+  });
+
+  it('ok, JSON string replaced key value from new JSON string', (done) => {
+    const oldVal = '{\"test\":\"test value\",\"test2\":\"test value3\"}';
+    const newVal = '{\"test\":\"test value2\"}';
+
+    expect(bdUtil.combineValue(oldVal, newVal))
+      .to.equal('{\"test\":\"test value2\",\"test2\":\"test value3\"}');
+    done();
+  });
+
+  it('ok, JSON string add key value from new JSON string', (done) => {
+    const oldVal = '{\"test\":\"test value\",\"test2\":\"test value3\"}';
+    const newVal = '{\"test3\":\"test value4\"}';
+
+    expect(bdUtil.combineValue(oldVal, newVal))
+      .to.equal(
+        '{\"test\":\"test value\",' +
+        '\"test2\":\"test value3\",' +
+        '\"test3\":\"test value4\"}'
+      );
+    done();
+  });
+
   it('ok, Sync one botData with another on creation', (done) => {
     Bot.create(bot1)
     .then((botRes) => {
