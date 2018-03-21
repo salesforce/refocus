@@ -24,6 +24,7 @@ describe('tests/db/model/user/find.js, db: user: find >', () => {
       name: `${tu.namePrefix}1`,
       email: 'user@example.com',
       password: 'user123password',
+      fullName: 'user fullName',
     }))
     .then(() => done())
     .catch(done);

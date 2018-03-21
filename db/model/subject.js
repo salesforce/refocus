@@ -150,7 +150,7 @@ module.exports = function subject(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name', 'email'],
+              attributes: ['name', 'email', 'fullName'],
             },
           ],
           order: ['absolutePath'],
