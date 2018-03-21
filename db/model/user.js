@@ -53,7 +53,7 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: false,
     },
     fullName: {
-      type: dataTypes.STRING,
+      type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: true,
     },
   }, {
