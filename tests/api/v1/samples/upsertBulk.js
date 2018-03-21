@@ -89,6 +89,22 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
     .end(done);
   });
 
+  it('fail without token', (done) => {
+    api.post(path)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '2',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '4',
+      },
+    ])
+    .expect(constants.httpStatus.FORBIDDEN)
+    .expect(/ForbiddenError/)
+    .end(done);
+  });
+
   it('some succeed, some fail returns ok', (done) => {
     api.post(path)
     .set('Authorization', token)

@@ -9,13 +9,13 @@
 /**
  * tests/db/model/subject/delete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 
 describe('tests/db/model/subject/delete.js >', () => {
   describe('no children >', () => {
@@ -95,21 +95,6 @@ describe('tests/db/model/subject/delete.js >', () => {
         expect(err).to.have.property('subject');
         done();
       });
-    });
-
-    it('deleteHierarchy should succeed', (done) => {
-      Subject.scope('hierarchy').findById(grandparent)
-      .then((s) => s.deleteHierarchy())
-      .then(() => Subject.findById(child1))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(child2))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(parent))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(grandparent))
-      .then((s) => expect(s).to.be.null)
-      .then(() => done())
-      .catch(done);
     });
   });
 
@@ -375,12 +360,13 @@ describe('tests/db/model/subject/delete.js >', () => {
       .catch(done);
     });
 
+    before(u.populateRedis);
     after(u.forceDelete);
 
     it('samples deleted when subject is deleted', (done) => {
       Subject.findById(subject.id)
       .then((subj) => subj.destroy())
-      .then(() => Sample.findById(sample.id))
+      .then(() => Sample.findOne(sample))
       .then((samp) => {
         expect(samp).to.equal(null);
         done();

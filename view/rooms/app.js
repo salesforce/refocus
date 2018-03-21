@@ -36,7 +36,7 @@ let _io;
 let _user;
 let _roomName;
 let _isActive;
-let botInfo = {};
+const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
 
@@ -53,6 +53,18 @@ function debugMessage(msg, obj){
     console.log(msg);
   }
 }
+
+// Listen to message from child window
+const eventMethod = window.addEventListener ?
+  'addEventListener' : 'attachEvent';
+const eventer = window[eventMethod];
+const messageEvent = eventMethod === 'attachEvent' ? 'onmessage' : 'message';
+
+eventer(messageEvent, (iframeMessage) => {
+  const iframe = document
+    .getElementById(iframeMessage.data.name + '-iframe-section');
+  iframe.height = iframeMessage.data.height + 'px';
+}, false);
 
 /**
  * Creates headers for each bot added to the UI
@@ -129,47 +141,179 @@ function createFooter(bot) {
 }
 
 /**
+ * Dispatches javascript events to bots in iFrames
+ *
+ * @param {HTMLObject} iframe - iFrame DOM to add Bot UI
+ * @param {Object} bot - Bot to add to frame
+ * @param {Object} parsedBot - Object that has the HTML and JS as
+ *  HTMLObject stored as key value pair
+ * @param {Object} user - The current user
+ */
+function iframeBot(iframe, bot, parsedBot, currentUser) {
+  const botScript = parsedBot.js ? parsedBot.js.innerHTML : '';
+  const contentSection = parsedBot.html ? parsedBot.html.innerHTML: '';
+  let iframedoc = iframe.document;
+  if (iframe.contentDocument) {
+    iframedoc = iframe.contentDocument;
+  } else if (iframe.contentWindow) {
+    iframedoc = iframe.contentWindow.document;
+  }
+
+  const iframeCss =
+    `<link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/css/salesforce-lightning-design-system.2.4.3.min.css">`;
+
+  const iframeJS =
+  `<script>
+      function outputsize(e) {
+        parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": e[0].target.scrollHeight
+          }, "*"
+        );
+      }
+
+      new ResizeObserver(outputsize)
+        .observe(document.getElementById("${bot.name}"));
+    </script>`;
+
+  if (iframedoc) {
+    iframedoc.open();
+    iframedoc.writeln(
+      iframeCss +
+      `<script>var user = "${currentUser}"</script>
+      ${contentSection}
+      <script>${botScript}</script>` +
+      iframeJS
+    );
+    iframedoc.close();
+  } else {
+    debugMessage('Cannot inject dynamic contents into iframe.');
+  }
+}
+
+/**
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bot - Bot response with UI
+ * @returns {Object} - An object that stores the HTML dom and
+ *   javascript dom as key value pairs
  */
 function parseBot(bot) {
-  // Unzip bots
-  const zip = new AdmZip(new Buffer(bot.ui.data));
-  const zipEntries = zip.getEntries();
   const botScript = document.createElement('script');
   botScript.id = bot.name + '-script';
 
+  const contentSection = document.createElement('div');
+  contentSection.className = 'slds-section__content';
+
+  try {
+    // Unzip bots
+    const zip = new AdmZip(new Buffer(bot.ui.data));
+    const zipEntries = zip.getEntries();
+
+    // 'index.html' contains root elements that scripts hook up to
+    // and needs to be loaded into the DOM first
+    const index = zipEntries.filter((entry) => entry.name === 'index.html');
+    if (index.length > ZERO) {
+      contentSection.innerHTML = zip.readAsText(index[ZERO]);
+      const elem = contentSection
+        .querySelector('script[src="/index_bundle.js"]');
+      if (elem) {
+        elem.parentNode.removeChild(elem);
+      }
+    }
+
+    // go through zipEntries that arent 'index.html'
+    zipEntries.filter(
+      (entry) => entry.name !== 'index.html'
+    ).forEach((script) => {
+      botScript.appendChild(
+        document.createTextNode(zip.readAsText(script))
+      );
+    });
+
+    const output = {
+      'html': contentSection,
+      'js': botScript
+    };
+    return output;
+  } catch (exception) {
+    debugMessage('Parse Bot failed', exception);
+    return {};
+  }
+} // parseBots
+
+/**
+ * Create and fills DOM containers for bots and adds them to
+ * to the page.
+ *
+ * @param {Object} bot - Bot response with UI
+ */
+function displayBot(bot) {
   // Get the bots section of the page
   const botContainer = document.createElement('div');
   botContainer.id = bot.name + '-section';
   botContainer.className = 'slds-large-size--1-of-3';
-  const contentSection = document.createElement('div');
-  contentSection.className = 'slds-section__content';
+
   const headerSection = createHeader(bot);
   const footerSection = createFooter(bot);
 
-  // 'index.html' contains root elements that scripts hook up to
-  // and needs to be loaded into the DOM first
-  const index = zipEntries.filter((entry) => entry.name === 'index.html');
-  if (index.length > ZERO) {
-    contentSection.innerHTML = zip.readAsText(index[ZERO]);
-    headerSection.appendChild(contentSection);
-    headerSection.appendChild(footerSection);
-    botContainer.appendChild(headerSection);
-    botsContainer.appendChild(botContainer);
+  const iframe = document.createElement('iframe');
+  iframe.id = bot.name + '-iframe-section';
+  iframe.style.display = 'block';
+  iframe.style.border = 'none';
+  iframe.style.width = '100%';
+  iframe.frameBorder = 0;
+
+  headerSection.appendChild(iframe);
+  headerSection.appendChild(footerSection);
+  botContainer.appendChild(headerSection);
+  botsContainer.appendChild(botContainer);
+
+  const parsedBot = parseBot(bot);
+
+  // user is defined in ./index.pug
+  iframeBot(iframe, bot, parsedBot, user);
+}
+
+/**
+ * Dispatches javascript events to bots in iFrames
+ *
+ * @param {String} channel - Name of channel to publish to
+ * @param {Object} payload - The data that you want to send to the bot
+ * @param {Object} bots - Bots Ids as keys and bot names as the values
+ * @param {String} botId - (Optional) Bot Id that you want to send the event to
+ * @returns {String} - Message about how the event dispatch went
+ */
+function createIframeEvent(channel, payload, bots, botId) {
+  const dispatchObj = payload.new ? payload.new : payload;
+  const target = bots[botId] ? bots[botId] : bots[dispatchObj.botId];
+  const iframe = document.getElementById(
+    target + '-iframe-section'
+  );
+  let iframedoc;
+  if (iframe) {
+    if (iframe.contentDocument) {
+      iframedoc = iframe.contentDocument;
+    } else if (iframe.contentWindow) {
+      iframedoc = iframe.contentWindow.document;
+    } else {
+      return 'Dispatching Iframe Event Failed';
+    }
+  } else {
+    return 'Bot not found';
   }
 
-  // go through zipEntries that arent 'index.html'
-  zipEntries.filter(
-    (entry) => entry.name !== 'index.html'
-  ).forEach((script) => {
-    botScript.appendChild(
-      document.createTextNode(zip.readAsText(script))
-    );
-    document.body.appendChild(botScript);
-  });
-} // parseBots
+  iframedoc.getElementById(target)
+    .dispatchEvent(new CustomEvent(channel, {
+      detail: dispatchObj,
+    })
+  );
+  return 'Success';
+}
 
 /**
  * Setup the socket.io client to listen to a namespace, and once sockets
@@ -178,12 +322,14 @@ function parseBot(bot) {
  * @param  {Array} bots - Array of Bots
  */
 function setupSocketIOClient(bots) {
+  // Map Bot Ids to Bot Names
   bots.forEach((bot) => {
     botInfo[bot.body.id] = bot.body.name;
   });
 
   const socket = _io('/', { transports: ['websocket'] });
 
+  // Socket Event Names
   const settingsChangedEventName =
     'refocus.internal.realtime.room.settingsChanged';
   const botActionsUpdate =
@@ -195,77 +341,78 @@ function setupSocketIOClient(bots) {
   const botEventAdd =
     'refocus.internal.realtime.bot.event.add';
 
+  // Socket Channel Names
+  const roomChannel = 'refocus.room.settings';
+  const bdChannel = 'refocus.bot.data';
+  const baChannel = 'refocus.bot.actions';
+  const eventChannel = 'refocus.events';
+
+  // Once connected to refocus display bots
   socket.on('connect', () => {
     debugMessage('Socket Connected');
+    // If disconnected delete old bots
     bots.forEach((bot) => {
       if (document.getElementById(bot.body.name + '-section')) {
         document.getElementById(bot.body.name + '-section').remove();
-        document.getElementById(bot.body.name + '-script').remove();
       }
     });
+
+    // Add bots to page
     bots.forEach((bot) => {
-      parseBot(bot.body);
+      displayBot(bot.body);
     });
   });
 
+  // Room Setting Updated
   socket.on(settingsChangedEventName, (data) => {
     const eventData = JSON.parse(data);
     const room = eventData[settingsChangedEventName];
     if (room.id === parseInt(ROOM_ID, 10)) {
       debugMessage('Setting Changed', room);
-      document.body
-      .dispatchEvent(new CustomEvent('refocus.room.settings', {
-        detail: room,
-      }));
+      Object.keys(botInfo).forEach((key) => {
+        createIframeEvent(roomChannel, room, botInfo, key);
+      });
     }
   });
 
+  // Bot Action Updated
   socket.on(botActionsUpdate, (data) => {
     const eventData = JSON.parse(data);
     const action = eventData[botActionsUpdate];
     if (action.new.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotActions Updated', action);
-      document.getElementById(botInfo[action.new.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.actions', {
-        detail: action.new,
-      }));
+      createIframeEvent(baChannel, action, botInfo);
     }
   });
 
+  // Bot Data Added
   socket.on(botDataAdd, (data) => {
     const eventData = JSON.parse(data);
     const bd = eventData[botDataAdd];
     if (bd.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotData Added', bd);
-      document.getElementById(botInfo[bd.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.data', {
-        detail: bd,
-      }));
+      createIframeEvent(bdChannel, bd, botInfo);
     }
   });
 
+  // Bot Data Updated
   socket.on(botDataUpdate, (data) => {
     const eventData = JSON.parse(data);
     const bd = eventData[botDataUpdate];
     if (bd.new.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('BotData Updated', bd);
-      document.getElementById(botInfo[bd.new.botId])
-      .dispatchEvent(new CustomEvent('refocus.bot.data', {
-        detail: bd.new,
-      }));
+      createIframeEvent(bdChannel, bd, botInfo);
     }
   });
 
+  // Events Added
   socket.on(botEventAdd, (data) => {
     const eventData = JSON.parse(data);
     const events = eventData[botEventAdd];
     if (events.roomId === parseInt(ROOM_ID, 10)) {
       debugMessage('Events Added', events);
       Object.keys(botInfo).forEach((key) => {
-        document.getElementById(botInfo[key])
-        .dispatchEvent(new CustomEvent('refocus.events', {
-          detail: events,
-        }));
+        createIframeEvent(eventChannel, events, botInfo, key);
       });
 
       if (events.context) {
@@ -300,7 +447,9 @@ function toggleConfirmationModal(event) {
     `Would you like to ${_isActive ? 'deactivate' : 'activate'} this room?`;
 }
 
-// Closes the confirmation modal
+/**
+ * Closes the confirmation modal
+ */
 function closeConfirmationModal() {
   confirmationModal.setAttribute(
     'style',
@@ -365,6 +514,7 @@ window.onload = () => {
   // Note: this is declared in index.pug:
   _io = io;
   _user = JSON.parse(user.replace(/&quot;/g, '"'));
+  let room;
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
@@ -382,11 +532,12 @@ window.onload = () => {
     _roomName = response.name;
     _isActive = response.active;
     activeToggle.checked = _isActive;
+    room = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
-    const promises = res.body.bots.map((botName) =>
+    const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
   })
@@ -394,4 +545,12 @@ window.onload = () => {
     setupSocketIOClient(res);
     uPage.removeSpinner();
   });
+};
+
+//for testing
+module.exports = () => {
+  return {
+    parseBot,
+    iframeBot
+  };
 };

@@ -18,7 +18,7 @@ const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const subjectIndexName = redisStore.constants.indexKey.subject;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const aspectIndexName = redisStore.constants.indexKey.aspect;
@@ -52,7 +52,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   let aspWCId;
 
   beforeEach((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     Subject.create(par)
     .then((subj) => {
       ipar = subj.id;
@@ -81,7 +80,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('time fields should have the expected format', (done) => {
     let aspKey;
