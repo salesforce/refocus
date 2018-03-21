@@ -39,7 +39,7 @@ describe('tests/db/model/subject/rebuildHierarchy.js >', () => {
     })
     .then((subj) => {
       fakeParentId = subj.id;
-      done()
+      done();
     })
     .catch(done);
   });
