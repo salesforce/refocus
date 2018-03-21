@@ -21,6 +21,7 @@ import moment from 'moment';
 const u = require('../../utils');
 const uPage = require('./../utils/page');
 const roomsListContainer = document.getElementById('roomsListContainer');
+const header = document.getElementById('header');
 const GET_ROOMS = '/v1/rooms';
 const GET_ROOMTYPES = '/v1/roomTypes';
 
@@ -47,6 +48,14 @@ window.onload = () => {
 function loadController(rooms, roomTypes) {
   uPage.setTitle('Refocus Rooms');
   uPage.setSubtitle(`Number of rooms: ${rooms.length}`);
+
+  const createNewBotton = `<div class="slds-form-element" style="float: right;">
+    <button class="slds-button slds-button_neutral" onClick="window.location.href = '/rooms/new';">
+      New
+    </button>
+  </div>`;
+
+  header.insertAdjacentHTML('afterbegin', createNewBotton);
 
   const headers = ['ID', 'Name', 'Type', 'Active', 'Created At', 'Updated At'];
   const rows = rooms.map(room => {
