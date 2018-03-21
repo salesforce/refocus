@@ -105,8 +105,13 @@ module.exports = function room(seq, dataTypes) {
         const RoomType = seq.models.RoomType;
         return RoomType.findById(instance.type)
         .then((roomType) => {
-          instance.settings = roomType.settings;
-          instance.bots = roomType.bots;
+          if (!instance.settings) {
+            instance.settings = roomType.settings;
+          }
+
+          if (!instance.bots) {
+            instance.bots = roomType.bots;
+          }
         });
       },
 
