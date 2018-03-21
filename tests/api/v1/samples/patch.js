@@ -396,8 +396,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     before(u.populateRedis);
     after(u.forceDelete);
 
-    // TODO: unskip this when sampleStore flag is removed from aspects
-    it.skip('cannot patch sample if aspect not published', (done) => {
+    it('cannot patch sample if aspect not published', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token3)
       .send({ value: '3' })

@@ -314,8 +314,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
       .catch(done);
     });
 
-    // TODO: unskip this when sampleStore flag is removed from the aspect model
-    it.skip('no samples created if aspect isPublished is false', (done) => {
+    it('no samples created if aspect isPublished is false', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send([
