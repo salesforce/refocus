@@ -9,14 +9,14 @@
 /**
  * tests/api/v1/aspects/delete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/aspects';
 const samplePath = '/v1/samples';
 const allDeletePath = '/v1/aspects/{key}/relatedLinks';
@@ -232,7 +232,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 

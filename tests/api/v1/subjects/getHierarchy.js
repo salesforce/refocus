@@ -65,16 +65,16 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
     })
     .then((a) => {
       sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
+      return tu.Sample.create(sample1);
     })
     .then((samp) => {
       sample1.id = samp.id;
-      done();
+      return done();
     })
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -88,6 +88,13 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
         expect(res.body.samples).to.be.an('array');
         expect(res.body.samples).to.be.empty;
       })
+      .end(done);
+    });
+
+    it('forbidden if no token', (done) => {
+      api.get(path.replace('{key}', ipar))
+      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(/ForbiddenError/)
       .end(done);
     });
 

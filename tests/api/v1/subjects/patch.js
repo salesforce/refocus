@@ -146,12 +146,12 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
-      done();
+      return done();
     })
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
