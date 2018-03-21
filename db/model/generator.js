@@ -211,6 +211,12 @@ module.exports = function generator(seq, dataTypes) {
           .catch(reject)
         );
       },
+
+      findForHeartbeat(findOpts) {
+        return Generator.findAll(findOpts)
+        .then((gens) => gens.map((g) => g.updateForHeartbeat()))
+        .then((genpromises) => Promise.all(genpromises));
+      }, // findForHeartbeat
     },
 
     hooks: {
@@ -332,6 +338,50 @@ module.exports = function generator(seq, dataTypes) {
             resolve(found.length === 1);
           }));
       }, // isWritableBy
+
+      /**
+       * Replaces array of subject absolutePaths with array of subject records.
+       * Replaces array of aspect names with array of aspect records.
+       * TODO: set array of subjects when generator provides "subjectQuery"
+       *
+       * @returns {Generator} - the updated Generator
+       */
+      updateForHeartbeat() {
+        const g = this.get();
+        const aspectPromises = g.aspects.map((a) => seq.models.Aspect.findOne({
+          where: {
+            name: { $iLike: a },
+            isPublished: true,
+          },
+        }));
+        let subjectPromises;
+        if (g.subjects && g.subjects.length) {
+          subjectPromises = g.subjects.map((absPath) =>
+            seq.models.Subject.findOne({
+              where: {
+                absolutePath: {
+                  $iLike: absPath,
+                },
+                isPublished: true,
+              },
+            })
+          );
+        } else {
+          // TODO find subjects using subjectQuery
+          subjectPromises = [];
+        }
+
+        return seq.Promise.join(
+          seq.Promise.all(aspectPromises),
+          seq.Promise.all(subjectPromises),
+          (aspectRecords, subjectRecords) => {
+            g.aspects = aspectRecords.filter((found) => found)
+              .map((rec) => rec.get());
+            g.subjects = subjectRecords.map((rec) => rec.get());
+            return g;
+          }
+        );
+      }, // updateForHeartbeat
     },
     paranoid: true,
   });

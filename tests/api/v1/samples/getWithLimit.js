@@ -13,7 +13,7 @@
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const getWithLimit = require('../common/getWithLimit.js').getWithLimit;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 
 describe('tests/api/v1/samples/getWithLimit.js >', () => {
@@ -48,7 +48,7 @@ describe('tests/api/v1/samples/getWithLimit.js >', () => {
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

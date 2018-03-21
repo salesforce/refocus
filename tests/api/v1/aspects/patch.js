@@ -19,7 +19,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/aspects';
 const samplePath = '/v1/samples';
 const expect = require('chai').expect;
@@ -472,7 +472,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 

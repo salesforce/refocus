@@ -20,7 +20,7 @@ const Promise = require('bluebird');
 supertest.Test.prototype.endAsync =
   Promise.promisify(supertest.Test.prototype.end);
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/aspects';
 const samplePath = '/v1/samples';
 const expect = require('chai').expect;
@@ -471,7 +471,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 

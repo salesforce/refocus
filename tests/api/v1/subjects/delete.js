@@ -73,7 +73,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         .catch(done);
       });
 
-      beforeEach(u.populateRedisIfEnabled);
+      beforeEach(u.populateRedis);
 
       afterEach(u.forceDelete);
 

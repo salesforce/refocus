@@ -195,6 +195,7 @@ class List extends React.Component {
           </Modal>
         }
         <PageHeader resource={resource} >
+        {/* Disable editing subjects/samples/aspects in UI
           <Link to={ '/' + resource + '/new' }
             className='slds-button slds-button--neutral slds-not-selected'>
             <svg
@@ -205,6 +206,7 @@ class List extends React.Component {
               </use>
             </svg>New
           </Link>
+        */}
         </PageHeader>
         <div className='slds-p-vertical--x-small slds-p-horizontal--large'>
           <DataTable {...tableOpts}/>

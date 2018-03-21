@@ -28,7 +28,6 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const aspectType = redisOps.aspectType;
 const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
-const featureToggles = require('feature-toggles');
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
@@ -62,7 +61,6 @@ const embeddedAspectFields = [
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
-const MINUS_ONE = -1;
 
 /**
  * Parses a sample name into its separate parts, i.e. the subject absolute
@@ -138,8 +136,11 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
     constants.fieldsToStringify.sample);
   const aspect = sampleStore.arrayObjsStringsToJson(aspectObj,
     constants.fieldsToStringify.aspect);
-  modelUtils.cleanQueryBodyObj(aspect, embeddedAspectFields);
-  sampleStore.convertAspectStrings(aspect);
+  if (aspect) {
+    modelUtils.cleanQueryBodyObj(aspect, embeddedAspectFields);
+    sampleStore.convertAspectStrings(aspect);
+  }
+
   sampleRes.aspect = aspect;
   return sampleRes;
 } // cleanAddAspectToSample
@@ -217,6 +218,29 @@ function handleUpsertError(objectType, isBulk) {
 
   throw err;
 } // handleUpsertError
+
+/**
+ * Returns a sample object along with its related aspect; given a sample name.
+ * @param  {String} sampleName - Name of the sample
+ * @returns {Object} - Sample Object
+ */
+function getOneSample(sampleName) {
+  const parsedSampleName = parseName(sampleName); // throw is invalid name
+  const commands = [];
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.sample, sampleName),
+  ]);
+
+  // command to get aspect
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.aspect,
+      parsedSampleName.aspect.name),
+  ]);
+
+  return redisClient.batch(commands).execAsync();
+} // getOneSample
 
 /**
  * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
@@ -297,7 +321,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
 
     // Add the provider and user fields.
-    if (user && featureToggles.isFeatureEnabled('returnUser')) {
+    if (user) {
       sampleQueryBodyObj.provider = user.id;
       sampleQueryBodyObj.user = JSON.stringify({
         name: user.name,
@@ -565,14 +589,13 @@ module.exports = {
    * Post sample. First get subject from db, then get aspect from db, then try
    * to get sample from Redis. Is sample found, throw error, else create
    * sample. Update sample index and subject set as well.
-   * @param  {Object} params - Request parameters
+   * @param  {Object} reqBody - The sample object to be created
    * @param {Object} userObj - The user performing the write operation
    * @returns {Promise} - Resolves to a sample object
    */
-  postSample(params, userObj) {
+  postSample(reqBody, userObj) {
     const userName = userObj ? userObj.name : false;
     const cmds = [];
-    const reqBody = params.queryBody.value;
     let subject;
     let sampleName;
     let aspectObj;
@@ -639,6 +662,9 @@ module.exports = {
         reqBody[sampFields.USER] = JSON.stringify({
           name: userName,
           email: userObj.email,
+          profile: {
+            name: userObj.profile.name,
+          },
         });
       }
 
@@ -761,6 +787,8 @@ module.exports = {
     });
   }, // putSample
 
+  getOneSample, // exported for testing only
+
   /**
    * Retrieves the sample from redis and sends it back in the response. Get
    * sample and corresponsing aspect from redis and then apply field list
@@ -771,21 +799,7 @@ module.exports = {
    */
   getSample(params) {
     const sampleName = params.key.value.toLowerCase();
-    const parsedSampleName = parseName(sampleName); // throw is invalid name
-    const commands = [];
-    commands.push([
-      'hgetall',
-      sampleStore.toKey(constants.objectType.sample, sampleName),
-    ]);
-
-    // push command to get aspect
-    commands.push([
-      'hgetall',
-      sampleStore.toKey(constants.objectType.aspect,
-        parsedSampleName.aspect.name),
-    ]);
-
-    return redisClient.batch(commands).execAsync()
+    return getOneSample(sampleName)
     .then((responses) => {
       const sample = responses[ZERO];
       const aspect = responses[ONE];

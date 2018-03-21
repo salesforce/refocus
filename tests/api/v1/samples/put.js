@@ -15,7 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -57,7 +57,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -180,7 +180,8 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
   });
 
-  describe('subject isPublished false >', () => {
+  // TODO: unskip this once sampleStore flag is removed from the subject model
+  describe.skip('subject isPublished false >', () => {
     beforeEach((done) => {
       tu.db.Subject.findById(subjectId1)
       .then((sub) => {
@@ -201,7 +202,8 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
   });
 
-  describe('aspect isPublished false >', () => {
+  // TODO: unskip this once sampleStore flag is removed from the aspect model
+  describe.skip('aspect isPublished false >', () => {
     beforeEach((done) => {
       tu.db.Aspect.findById(aspectId1)
       .then((asp) => {

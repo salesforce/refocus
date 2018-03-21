@@ -65,6 +65,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
     .catch((err) => done(err));
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
@@ -123,7 +124,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
         return done(err);
       }
 
-      //don't call done() yet, need to wait for data to be logged
+      // don't call done() yet, need to wait for data to be logged
     });
 
     function testLogMessage(transport, level, msg, meta) {
