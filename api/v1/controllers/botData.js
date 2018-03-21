@@ -13,12 +13,14 @@
 
 const helper = require('../helpers/nouns/botData');
 const Bot = require('../../../db').Bot;
+const BotData = helper.model;
 const doPost = require('../helpers/verbs/doPost');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
 const u = require('../../../utils/common');
+const bdUtils = require('../../../db/helpers/botDataUtils');
 
 module.exports = {
 
@@ -88,6 +90,31 @@ module.exports = {
    */
   postBotData(req, res, next) {
     doPost(req, res, next, helper);
+  },
+
+  /**
+   * POST /botData/upsert
+   *
+   * Check if botData exists if does not exist create a new botData and
+   * sends it back in the response; if does exist then update the value
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  upsertBotData(req, res, next) {
+    const queryBody = req.swagger.params.queryBody.value;
+    BotData.bdExists(queryBody)
+    .then((bd) => {
+      if (bd) {
+        req.swagger.params.key = { value: bd.id };
+        req.swagger.params.queryBody.value.value =
+          bdUtils.combineValue(bd.value, queryBody.value);
+        doPatch(req, res, next, helper);
+      } else {
+        doPost(req, res, next, helper);
+      }
+    });
   },
 
   /**
