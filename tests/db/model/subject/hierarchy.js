@@ -57,9 +57,9 @@ describe('tests/db/model/subject/rebuildHierarchy.js >', () => {
           expect(subj.parentId).to.equal(ipar);
 
           return done();
-        })
-      })
-    })
+        });
+      });
+    });
   });
 
   after(u.forceDelete);
