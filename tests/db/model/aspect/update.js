@@ -9,7 +9,7 @@
 /**
  * tests/db/model/aspect/update.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');

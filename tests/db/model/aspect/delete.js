@@ -9,18 +9,14 @@
 /**
  * tests/db/model/aspect/delete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
-chai.use(chaiAsPromised);
 const expect = chai.expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
-const Subject = tu.db.Subject;
 
 describe('tests/db/model/aspect/delete.js', () => {
   describe('db: aspect: delete >', () => {
@@ -55,7 +51,6 @@ describe('tests/db/model/aspect/delete.js', () => {
       .then((o) => o.destroy())
       .then((o) => {
         if (o.deletedAt && o.isDeleted) {
-          // console.log(o.dataValues.Tags);
           done();
         } else {
           done(new Error('expecting it to be soft-deleted'));
@@ -84,54 +79,6 @@ describe('tests/db/model/aspect/delete.js', () => {
           expect(o.dataValues).to.have.property('deletedAt').to.not.equal(null);
           done();
         } else {
-          done(new Error('expecting it to be soft-deleted'));
-        }
-      })
-      .catch(done);
-    });
-  });
-
-  describe('sample >', () => {
-    afterEach(u.forceDelete);
-    let id = 0;
-    beforeEach((done) => {
-      Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect`,
-        timeout: '30s',
-        valueType: 'NUMERIC',
-      })
-      .then((created) => {
-        id = created.id;
-      })
-      .then(() => Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      }))
-      .then(() => done())
-      .catch(done);
-    });
-
-    it('with sample', (done) => {
-      Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      })
-      .then((o) => {
-        // console.log(o.dataValues.value);
-        // console.log(o.dataValues);
-        expect(o.dataValues).to.have.deep.property('value', '1');
-      })
-      .then(() => Aspect.findById(id))
-      .then((o) => o.destroy())
-      .then((o) => {
-        if (o.deletedAt && o.isDeleted) {
-          // console.log(o.dataValues);
-          expect(o.dataValues).to.have.property('isDeleted').to.not.equal(0);
-          expect(o.dataValues).to.have.property('deletedAt').to.not.equal(null);
-          done();
-        } else {
-          // console.log(o.dataValues);
           done(new Error('expecting it to be soft-deleted'));
         }
       })
