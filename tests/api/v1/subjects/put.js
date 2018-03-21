@@ -178,7 +178,7 @@ describe('tests/api/v1/subjects/put.js >', () => {
       .catch(done);
     });
 
-    before(u.populateRedisIfEnabled);
+    before(u.populateRedis);
 
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);

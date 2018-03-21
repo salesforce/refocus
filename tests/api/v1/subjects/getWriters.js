@@ -55,12 +55,12 @@ describe('tests/api/v1/subjects/getWriters.js >', () => {
     .then((secUsr) => {
       subject.addWriter(secUsr);
       user = secUsr;
+      return done();
     })
-    .then(() => done())
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);

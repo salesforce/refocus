@@ -14,9 +14,6 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
-const Profile = tu.db.Profile;
-const User = tu.db.User;
-const constants = require('../../../../db/constants');
 
 describe('tests/db/model/subject/updateParent.js >', () => {
   let subjId1;

@@ -15,7 +15,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 
 describe('db/model/subject/hierarchyPublish.js >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
@@ -67,6 +67,7 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
     .catch(done);
   });
 
+  before(u.populateRedis);
   afterEach(u.forceDelete);
 
   describe('isPublished >', () => {
@@ -130,30 +131,6 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
         done();
       })
       .catch(done);
-    });
-
-    describe('with samples isPublished >', () => {
-      it('include samples.relatedLinks association in herarchy',
-      (done) => {
-        Subject.scope(['hierarchy', 'withSamples']).findById(ipar)
-        .then((sub) => {
-          expect(sub.samples[0].relatedLinks).to.exist;
-          done();
-        })
-        .catch(done);
-      });
-    });
-
-    describe('with samples >', () => {
-      it('sample default scope should not have subject model in the resullset',
-      (done) => {
-        Subject.scope(['hierarchy', 'withSamples']).findById(ipar)
-        .then((sub) => {
-          expect(sub.samples[0].subject).to.equal(undefined);
-          done();
-        })
-        .catch(done);
-      });
     });
   });
 });

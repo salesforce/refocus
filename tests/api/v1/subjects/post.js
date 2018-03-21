@@ -91,7 +91,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         .catch(done);
       });
 
-      beforeEach(u.populateRedisIfEnabled);
+      beforeEach(u.populateRedis);
 
       afterEach(u.forceDelete);
 

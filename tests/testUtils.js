@@ -41,6 +41,20 @@ const Sample = {
       'alpha');
   }, // findAll
 
+  // Returns a sample object given its name
+  findOne: (sampleName) => {
+    return sampleModel.getOneSample(sampleName.name || sampleName)
+    .then((res) => {
+      const sample = res[0];
+      const aspect = res[1];
+      if (!sample || !aspect) {
+        return null;
+      }
+      sample.aspect = aspect;
+      return sample;
+    }).catch((err) => err);
+  }, // findOne
+
   /*
    * Update and return the updated sample.
    * Note: The patchSample method expects an object with queryBody and key.
@@ -50,7 +64,7 @@ const Sample = {
   update: (toUpdate, sampleName, _userName) => {
     const wrappedObject = {
       queryBody: { value: toUpdate },
-      key: { value: toUpdate.name },
+      key: { value: toUpdate.name || sampleName},
     };
     return sampleModel.patchSample(wrappedObject, _userName);
   }, // update
@@ -66,13 +80,18 @@ const Sample = {
   }, // bulkUpsertByName
 
   // Bulk create the sample. This call the create method defined above.
-  bulkCreate: (toCreateArr, userObject) => {
+  bulkCreate: (toCreateArr, user) => {
     const promiseArr = [];
     toCreateArr.forEach((toCreate) => {
-      promiseArr.push(Sample.create(toCreate, userObject));
+      promiseArr.push(Sample.create(toCreate, user));
     });
     return Promise.all(promiseArr);
-  } // bulkCreate
+  }, // bulkCreate
+
+  // upsert the sample by looking up its name in the sampleStore
+  upsertByName: (toUpsert, user) => {
+    return sampleModel.upsertSample(toUpsert, user);
+  }, // upsertByName
 }; // Sample
 
 /**
