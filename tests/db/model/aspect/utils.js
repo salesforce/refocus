@@ -9,10 +9,14 @@
 /**
  * tests/db/model/aspect/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestAspect`;
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
+
 const small = {
   name: n,
   timeout: '1s',
@@ -49,12 +53,16 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(rcli.flushallAsync(),
+    tu.forceDelete(tu.db.Aspect, testStartTime)
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },
+
+  samstoinit,
+
 };
