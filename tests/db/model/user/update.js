@@ -28,6 +28,7 @@ describe('tests/db/model/user/update.js, db: user: update >', () => {
       name: `${tu.namePrefix}1`,
       email: 'user@example.com',
       password: 'user123password',
+      fullName: 'user fullName',
     }))
     .then((createdUser) => {
       user = createdUser;

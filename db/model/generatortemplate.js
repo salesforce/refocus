@@ -238,7 +238,7 @@ module.exports = function user(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name', 'email'],
+              attributes: ['name', 'email', 'fullName'],
             },
           ],
           order: ['GeneratorTemplate.name'],
