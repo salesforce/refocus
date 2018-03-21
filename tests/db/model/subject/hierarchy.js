@@ -45,18 +45,25 @@ describe('tests/db/model/subject/rebuildHierarchy.js >', () => {
   });
 
   it('Rebuild Hierarchy', (done) => {
+    const query = `UPDATE "Subjectsancestors" SET "ancestorId"=` +
+      `'${fakeParentId}' WHERE "SubjectId"='${childId}'`;
 
-    let query = 'UPDATE "Subjectsancestors" SET "ancestorId"=' +
-      "'" + fakeParentId + "'" + ' WHERE "SubjectId"=' + "'" + childId  + "'";
+    const getQuery = `SELECT "ancestorId" FROM "Subjectsancestors" ` +
+      `WHERE "SubjectId"='${childId}'`;
+
     sequelize.query(query)
     .then((res) => {
-      Subject.rebuildHierarchy()
-      .then(() => {
-        Subject.findById(childId)
-        .then((subj) => {
-          expect(subj.parentId).to.equal(ipar);
+      sequelize.query(getQuery)
+      .then((res) => {
+        expect(res[0][0].ancestorId).to.equal(fakeParentId);
+        Subject.rebuildHierarchy()
+        .then(() => {
+          Subject.findById(childId)
+          .then((subj) => {
+            expect(subj.parentId).to.equal(ipar);
 
-          return done();
+            return done();
+          });
         });
       });
     });
