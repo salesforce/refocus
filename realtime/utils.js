@@ -370,29 +370,16 @@ function isIpWhitelisted(addr, whitelist) {
  * When passed in a sample, its related subject and aspect is attached to the
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
- * @param {Object} _sample - The sample instance. Could be from db directly
- * @param {Boolen} useSampleStore - The sample store flag, the subject and the
- *   aspect is fetched from the cache if this is set.
+ * @param {Object} sample - The sample instance. Could be from db directly
  * @param {Model} subjectModel - The database subject model.
  * @param {Model} aspectModel - The database aspect model.
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(_sample, useSampleStore, subjectModel,
-  aspectModel) {
-  let sample;
-  let source;
-  if (_sample.get) {
-    sample = _sample.get();
-    source = 'db';
-  } else {
-    sample = _sample;
-    source = 'redis';
-  }
+function attachAspectSubject(sample, subjectModel, aspectModel) {
 
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
-    logger.error('sample coming from ', source);
     logger.error('sample object does not contain name', JSON.stringify(sample));
     console.trace('from attachAspectSubject');
     return Promise.resolve(null);
@@ -402,31 +389,13 @@ function attachAspectSubject(_sample, useSampleStore, subjectModel,
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
-  if (useSampleStore) {
-    const subKey = redisStore.toKey('subject', subName);
-    const aspKey = redisStore.toKey('aspect', aspName);
-    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      redisClient.hgetallAsync(aspKey);
-    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      redisClient.hgetallAsync(subKey);
-    promiseArr = [getAspectPromise, getSubjectPromise];
-  } else {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
-    const getAspectPromise = aspectModel ? aspectModel.findOne(aspOpts) :
-      Promise.resolve(sample.aspect);
-    const getSubjectPromise = subjectModel ? subjectModel.findOne(subOpts) :
-      Promise.resolve(sample.subject);
-    promiseArr = [getAspectPromise, getSubjectPromise];
-  }
+  const subKey = redisStore.toKey('subject', subName);
+  const aspKey = redisStore.toKey('aspect', aspName);
+  const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+    redisClient.hgetallAsync(aspKey);
+  const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+    redisClient.hgetallAsync(subKey);
+  promiseArr = [getAspectPromise, getSubjectPromise];
 
   return Promise.all(promiseArr)
   .then((response) => {
