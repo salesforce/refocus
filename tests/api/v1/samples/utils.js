@@ -11,14 +11,11 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
 const testStartTime = new Date();
 const aspectName = `${tu.namePrefix}TEST_ASPECT`;
 const subjectName = `${tu.namePrefix}TEST_SUBJECT`;
 const sampleName = subjectName + '|' + aspectName;
-const featureToggles = require('feature-toggles');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const rcli = require('../../../../cache/redisCache').client.sampleStore;
 
 const aspectToCreate = {
   description: 'this is a0 description',

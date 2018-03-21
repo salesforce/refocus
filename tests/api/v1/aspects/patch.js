@@ -19,7 +19,7 @@ const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/aspects';
 const samplePath = '/v1/samples';
 const expect = require('chai').expect;
@@ -472,7 +472,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedisIfEnabled);
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
@@ -499,7 +499,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       });
     }
 
-    it.skip('updating aspect isPublished to true does not delete its samples', (done) => {
+    it('updating aspect isPublished to true does not delete its samples', (done) => {
       api.patch(`${path}/${i}`)
       .set('Authorization', token)
       .send({ isPublished: true })
@@ -525,7 +525,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .catch(done);
     });
 
-    it.skip('updating aspect without changing isPublished does not delete its ' +
+    it('updating aspect without changing isPublished does not delete its ' +
       'samples', (done) => {
         api.patch(`${path}/${i}`)
         .set('Authorization', token)
@@ -539,7 +539,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
         .catch(done);
       });
 
-    it.skip('setting aspect name without changing it does not delete its samples',
+    it('setting aspect name without changing it does not delete its samples',
     (done) => {
       api.patch(`${path}/${i}`)
       .set('Authorization', token)

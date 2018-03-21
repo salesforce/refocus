@@ -61,7 +61,6 @@ const embeddedAspectFields = [
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
-const MINUS_ONE = -1;
 
 /**
  * Parses a sample name into its separate parts, i.e. the subject absolute
@@ -219,6 +218,29 @@ function handleUpsertError(objectType, isBulk) {
 
   throw err;
 } // handleUpsertError
+
+/**
+ * Returns a sample object along with its related aspect; given a sample name.
+ * @param  {String} sampleName - Name of the sample
+ * @returns {Object} - Sample Object
+ */
+function getOneSample(sampleName) {
+  const parsedSampleName = parseName(sampleName); // throw is invalid name
+  const commands = [];
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.sample, sampleName),
+  ]);
+
+  // command to get aspect
+  commands.push([
+    'hgetall',
+    sampleStore.toKey(constants.objectType.aspect,
+      parsedSampleName.aspect.name),
+  ]);
+
+  return redisClient.batch(commands).execAsync();
+} // getOneSample
 
 /**
  * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
@@ -765,6 +787,8 @@ module.exports = {
     });
   }, // putSample
 
+  getOneSample, // exported for testing only
+
   /**
    * Retrieves the sample from redis and sends it back in the response. Get
    * sample and corresponsing aspect from redis and then apply field list
@@ -775,21 +799,7 @@ module.exports = {
    */
   getSample(params) {
     const sampleName = params.key.value.toLowerCase();
-    const parsedSampleName = parseName(sampleName); // throw is invalid name
-    const commands = [];
-    commands.push([
-      'hgetall',
-      sampleStore.toKey(constants.objectType.sample, sampleName),
-    ]);
-
-    // push command to get aspect
-    commands.push([
-      'hgetall',
-      sampleStore.toKey(constants.objectType.aspect,
-        parsedSampleName.aspect.name),
-    ]);
-
-    return redisClient.batch(commands).execAsync()
+    return getOneSample(sampleName)
     .then((responses) => {
       const sample = responses[ZERO];
       const aspect = responses[ONE];

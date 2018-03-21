@@ -66,12 +66,12 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
     })
     .then((createdVt) => {
       vt.id = createdVt.id;
-      done();
+      return done();
     })
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);

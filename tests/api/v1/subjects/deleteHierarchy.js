@@ -51,7 +51,7 @@ describe(`tests/api/v1/subjects/deleteHierarchy.js, DELETE ${path} >`, () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);

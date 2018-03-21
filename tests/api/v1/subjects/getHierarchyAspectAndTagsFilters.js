@@ -112,10 +112,10 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     })
     .then((a) => {
       sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
+      return tu.Sample.create(sample1);
     })
-    .then(() => tu.db.Sample.create(sample2))
-    .then(() => tu.db.Sample.create(sample3))
+    .then(() => tu.Sample.create(sample2))
+    .then(() => tu.Sample.create(sample3))
     .then(() => tu.db.Subject.create(parOther1))
     .then((subj) => {
       parOther1 = subj;
@@ -128,13 +128,13 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     .then((a) => {
       sample4.aspectId = a.id;
       sample4.subjectId = grn.id;
-      return tu.db.Sample.create(sample4);
+      return tu.Sample.create(sample4);
     })
     .then(() => done())
     .catch(done);
   });
 
-  before(u.populateRedisIfEnabled);
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);

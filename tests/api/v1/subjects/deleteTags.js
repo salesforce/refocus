@@ -48,7 +48,7 @@ describe('tests/api/v1/subjects/deleteTags.js >', () => {
     .catch(done);
   });
 
-  beforeEach(u.populateRedisIfEnabled);
+  beforeEach(u.populateRedis);
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
