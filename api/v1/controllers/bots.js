@@ -19,6 +19,7 @@ const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
+const redisCache = require('../../../cache/redisCache').client.cache;
 
 module.exports = {
 
@@ -58,7 +59,40 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getBot(req, res, next) {
-    doGet(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+
+    // try to get cached entry
+    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+      if (reply) {
+        // reply is responsified lens object as string.
+        const botObject = JSON.parse(reply);
+
+        // add api links to the object and return response.
+        botObject.apiLinks = u.getApiLinks(
+          botObject.id, helper, req.method
+        );
+
+        return res.status(httpStatus.OK).json(botObject);
+      }
+      // if cache error, print error and continue to get bot from db.
+      if (cacheErr) {
+        console.log(cacheErr); // eslint-disable-line no-console
+      }
+
+      // no reply, let's get bot from db
+      return doGet(req, res, next, helper)
+      .then((responseObj) => {
+        // cache the bot by id and name.
+        redisCache.set(responseObj.id, JSON.stringify(responseObj));
+        redisCache.set(responseObj.name, JSON.stringify(responseObj));
+
+        u.logAPI(req, resultObj, responseObj);
+        return res.status(httpStatus.OK).json(responseObj);
+      })
+      .catch((err) => {
+        return u.handleError(next, err, helper.modelName);
+      });
+    });
   },
 
   /**
