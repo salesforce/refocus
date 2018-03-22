@@ -370,7 +370,7 @@ function isIpWhitelisted(addr, whitelist) {
  * When passed in a sample, its related subject and aspect is attached to the
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
- * @param {Object} sample - The sample instance. Could be from db directly
+ * @param {Object} sample - The sample instance.
  * @param {Model} subjectModel - The database subject model.
  * @param {Model} aspectModel - The database aspect model.
  * @returns {Promise} - which resolves to a complete sample with its subject and
