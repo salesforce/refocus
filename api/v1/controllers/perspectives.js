@@ -29,6 +29,12 @@ const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
 const redisCache = require('../../../cache/redisCache').client.cache;
 
+function clearCacheKey(key) {
+  if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
+    redisCache.del(key);
+  }
+} // clearCacheKey
+
 module.exports = {
 
   /**
@@ -42,6 +48,7 @@ module.exports = {
    */
   deletePerspective(req, res, next) {
     doDelete(req, res, next, helper);
+    clearCacheKey('/v1/perspectives');
   },
 
   /**
@@ -163,11 +170,7 @@ module.exports = {
    */
   patchPerspective(req, res, next) {
     doPatch(req, res, next, helper);
-
-    // Remove from cache after successful PATCH
-    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
-      redisCache.del('/v1/perspectives');
-    }
+    clearCacheKey('/v1/perspectives');
   },
 
   /**
@@ -182,6 +185,7 @@ module.exports = {
   postPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPost(req, res, next, helper);
+    clearCacheKey('/v1/perspectives');
   },
 
   /**
@@ -198,11 +202,6 @@ module.exports = {
   putPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPut(req, res, next, helper);
-
-    // Remove from cache after successful PUT
-    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
-      redisCache.del('/v1/perspectives');
-    }
+    clearCacheKey('/v1/perspectives');
   },
-
 }; // exports
