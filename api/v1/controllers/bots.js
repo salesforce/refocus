@@ -71,7 +71,8 @@ module.exports = {
         botObject.apiLinks = u.getApiLinks(
           botObject.id, helper, req.method
         );
-
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, botObject);
         return res.status(httpStatus.OK).json(botObject);
       }
       // if cache error, print error and continue to get bot from db.
