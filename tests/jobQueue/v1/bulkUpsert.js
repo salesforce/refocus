@@ -37,7 +37,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return done();
     })
     .catch((err) => done(err));
   });

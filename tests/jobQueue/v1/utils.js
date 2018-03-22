@@ -14,6 +14,7 @@
 const tu = require('../../testUtils');
 const testStartTime = new Date();
 const rcli = require('../../../cache/redisCache').client.sampleStore;
+const samstoinit = require('../../../cache/sampleStoreInit');
 const Promise = require('bluebird');
 
 module.exports = {
@@ -23,6 +24,12 @@ module.exports = {
       tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     )
+    .then(() => done())
+    .catch(done);
+  },
+
+  populateRedis(done) {
+    samstoinit.populate()
     .then(() => done())
     .catch(done);
   },
