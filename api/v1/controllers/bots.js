@@ -64,7 +64,7 @@ module.exports = {
     // try to get cached entry
     redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
       if (reply) {
-        // reply is responsified lens object as string.
+        // reply is responsified bot object as string.
         const botObject = JSON.parse(reply);
 
         // add api links to the object and return response.
@@ -80,7 +80,12 @@ module.exports = {
       }
 
       // no reply, let's get bot from db
-      return doGet(req, res, next, helper)
+      // return doGet(req, res, next, helper)
+      u.findByKey(helper, req.swagger.params, ['botUI'])
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        return o;
+      })
       .then((responseObj) => {
         // cache the bot by id and name.
         redisCache.set(responseObj.id, JSON.stringify(responseObj));
