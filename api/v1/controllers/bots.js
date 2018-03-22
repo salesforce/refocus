@@ -71,8 +71,6 @@ module.exports = {
         botObject.apiLinks = u.getApiLinks(
           botObject.id, helper, req.method
         );
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, botObject);
         return res.status(httpStatus.OK).json(botObject);
       }
       // if cache error, print error and continue to get bot from db.
@@ -81,7 +79,6 @@ module.exports = {
       }
 
       // no reply, let's get bot from db
-      // return doGet(req, res, next, helper)
       u.findByKey(helper, req.swagger.params, ['botUI'])
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -89,8 +86,9 @@ module.exports = {
       })
       .then((responseObj) => {
         // cache the bot by id and name.
-        redisCache.set(responseObj.id, JSON.stringify(responseObj));
-        redisCache.set(responseObj.name, JSON.stringify(responseObj));
+        const stringifiedObject = JSON.stringify(responseObj);
+        redisCache.set(responseObj.id, stringifiedObject);
+        redisCache.set(responseObj.name, stringifiedObject);
 
         u.logAPI(req, resultObj, responseObj);
         return res.status(httpStatus.OK).json(responseObj);
