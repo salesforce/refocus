@@ -303,7 +303,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     // need done in these tests, otherwise tests pass before promise returns
     describe('attachAspectSubject tests', () => {
       const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
-      it('useSampleStore = true', (done) => {
+      it('without passing in subject and aspect models', (done) => {
         realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
         .then((sample) => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
