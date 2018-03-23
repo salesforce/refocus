@@ -48,7 +48,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
     const version = '2.0.0';
     api.patch(`${path}/${testBot.id}`)
     .set('Authorization', token)
-    .send({{ version }})
+    .send({ version })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
