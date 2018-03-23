@@ -84,6 +84,11 @@ module.exports = function bot(seq, dataTypes) {
       },
       comment: 'List of data variables a bot has available',
     },
+    version: {
+      type: dataTypes.STRING(constants.fieldlen.shortish),
+      allowNull: false,
+      comment: 'Bot Version. Use Semantic Versioning ^2.0.0',
+    },
   }, {
     classMethods: {
       getBotAssociations() {
