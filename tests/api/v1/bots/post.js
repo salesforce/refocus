@@ -40,6 +40,7 @@ describe('tests/api/v1/bots/post.js >', () => {
     .set('Authorization', token)
     .field('name', u.name)
     .field('url', 'https://www.foo.com')
+    .field('version', '1.0.0')
     .attach('ui', 'tests/api/v1/bots/uiBlob')
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
@@ -55,6 +56,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.token).to.not.equal(fakeToken);
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
+      expect(res.body.version).to.equal('version');
       done();
     });
   });
