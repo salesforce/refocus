@@ -45,9 +45,7 @@ let _roomName;
 let _isActive;
 let ghostBot;
 let dummyBot;
-let moving;
-let _movingContentBody;
-let _movingContentHead;
+let _movingContent;
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -84,7 +82,7 @@ eventer(messageEvent, (iframeMessage) => {
  * @param {Object} event - Dragging bot event.
  */
 function botDragHandler(event) {
-  if (botsLeft.offsetWidth === botsContainer.offsetWidth || !moving) {
+  if (botsLeft.offsetWidth === botsContainer.offsetWidth || !_movingContent) {
     event.preventDefault();
   } else {
     botsContainerColumns.forEach((c) => {
@@ -137,19 +135,20 @@ function drop(event, col) {
   event.preventDefault();
   const data = event.dataTransfer.getData('text');
   col.insertBefore(document.getElementById(data), ghostBot);
+  const botIframe = document.getElementById(data)
+    .getElementsByTagName('iframe')[ZERO];
+  const botIframedoc = botIframe.contentDocument;
 
-
-  const iframe = document.getElementById(data).getElementsByTagName('iframe')[0];
-  const iframedoc = iframe.contentDocument;
-  console.log(iframedoc);
-
-  if (iframedoc) {
-    iframedoc.open();
-    iframedoc.writeln(_movingContentHead.innerHTML + _movingContentBody.innerHTML);
-    iframedoc.close();
+  if (botIframedoc && _movingContent) {
+    botIframedoc.open();
+    botIframedoc.writeln(_movingContent);
+    botIframedoc.close();
   } else {
     debugMessage('Cannot inject dynamic contents into iframe.');
   }
+
+  // Resetting variable
+  _movingContent = null;
 
   if (ghostBot.parentElement) {
     ghostBot.parentElement.removeChild(ghostBot);
@@ -182,18 +181,18 @@ function setupMovableBots(botContainer, botIndex) {
 
   // Only need to move the bot if the header is clicked
   botContainer.addEventListener('mousedown', (e) => {
-    moving = e.target.id === 'title-header';
-    const iframe = botContainer.getElementsByTagName('iframe')[0];
-
-    if (iframe.contentDocument) {
-      _movingContentBody = iframe.contentDocument.body;
-      _movingContentHead = iframe.contentDocument.head;
-    } else if (iframe.contentWindow) {
-      _movingContentBody = iframe.contentWindow.document.body;
-      _movingContentHead = iframe.contentWindow.document.head;
+    // The bot header was clicked on
+    if (e.target.id === 'title-header') {
+      const iframe = botContainer.getElementsByTagName('iframe')[ZERO];
+      if (iframe.contentDocument) {
+        _movingContent = iframe.contentDocument.head.innerHTML +
+          iframe.contentDocument.body.innerHTML;
+      } else if (iframe.contentWindow) {
+        _movingContent = iframe.contentWindow.document.head.innerHTML +
+          iframe.contentWindow.document.body.innerHTML;
+      }
     }
   });
-
 
   // Adding bot to correct initial column
   if ((botIndex+ONE) % THREE === ONE) {
