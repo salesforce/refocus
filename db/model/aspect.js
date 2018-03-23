@@ -25,6 +25,7 @@ const sampleEventNames = {
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
+const Promise = require('bluebird');
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -182,16 +183,12 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterCreate(inst /* , opts */) {
-        const promiseArr = [];
-
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
-        // create an entry in aspectStore
-        promiseArr.push(redisOps.addKey(aspectType, inst.getDataValue('name')));
-        promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
-
-        return Promise.all(promiseArr);
+        return Promise.join(
+          redisOps.addKey(aspectType, inst.getDataValue('name')),
+          redisOps.hmSet(aspectType, inst.name, instDataObj)
+        );
       }, // hooks.afterCreate
 
       /**
@@ -269,7 +266,9 @@ module.exports = function aspect(seq, dataTypes) {
           const instChanged = {};
           Object.keys(inst._changed)
           .filter((key) => inst._changed[key])
-          .forEach((key) => instChanged[key] = inst[key]);
+          .forEach((key) => {
+            instChanged[key] = inst[key];
+          });
           promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
         }
 
@@ -284,17 +283,10 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterDelete(inst /* , opts */) {
-        const promiseArr = [];
-        if (inst.getDataValue('isPublished')) {
-          // delete the entry in the aspectStore
-          promiseArr.push(redisOps.deleteKey(aspectType, inst.name));
-
-          // delete multiple possible entries in sampleStore
-          promiseArr.push(redisOps.deleteKeys(sampleType,
-            aspectType, inst.name));
-        }
-
-        return Promise.all(promiseArr);
+        return Promise.join(
+          redisOps.deleteKey(aspectType, inst.name),
+          redisOps.deleteKeys(sampleType, aspectType, inst.name)
+        );
       }, // hooks.afterDelete
 
       /**
