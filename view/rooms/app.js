@@ -33,7 +33,8 @@ const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const GET_BOTS = '/v1/bots';
-const GET_ROOM = '/v1/rooms/' + ROOM_ID;
+let GET_ROOM = '/v1/rooms/';
+GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
@@ -45,7 +46,8 @@ let _isActive;
 let ghostBot;
 let dummyBot;
 let moving;
-let movingHtml;
+let _movingContentBody;
+let _movingContentHead;
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -116,13 +118,13 @@ function dragOverColumnHandler(column) {
 
 // Called when a bot stops being dragged.
 function botDragEndHandler() {
-  if (ghostBot.parentElement) {
-    ghostBot.parentElement.removeChild(ghostBot);
-  }
-
   botsContainerColumns.forEach((c) => {
     c.className = 'slds-col slds-large-size--1-of-3';
   });
+
+  if (ghostBot.parentElement) {
+    ghostBot.parentElement.removeChild(ghostBot);
+  }
 }
 
 /**
@@ -132,16 +134,26 @@ function botDragEndHandler() {
  * @param {DOM} col - Column that bot is being dragged over.
  */
 function drop(event, col) {
-  console.log(movingHtml.body);
   event.preventDefault();
   const data = event.dataTransfer.getData('text');
   col.insertBefore(document.getElementById(data), ghostBot);
 
-  var botDiv = document.getElementById(data);
-  var iFrame = botDiv.getElementsByTagName('iframe')[0];
-  console.log(iFrame);
-  console.log(movingHtml.body);
-  iFrame.contentDocument = movingHtml;
+
+  const iframe = document.getElementById(data).getElementsByTagName('iframe')[0];
+  const iframedoc = iframe.contentDocument;
+  console.log(iframedoc);
+
+  if (iframedoc) {
+    iframedoc.open();
+    iframedoc.writeln(_movingContentHead.innerHTML + _movingContentBody.innerHTML);
+    iframedoc.close();
+  } else {
+    debugMessage('Cannot inject dynamic contents into iframe.');
+  }
+
+  if (ghostBot.parentElement) {
+    ghostBot.parentElement.removeChild(ghostBot);
+  }
 }
 
 /**
@@ -171,9 +183,17 @@ function setupMovableBots(botContainer, botIndex) {
   // Only need to move the bot if the header is clicked
   botContainer.addEventListener('mousedown', (e) => {
     moving = e.target.id === 'title-header';
-    var iFrame = botContainer.getElementsByTagName("iframe")[0];
-    movingHtml = iFrame.contentDocument;
+    const iframe = botContainer.getElementsByTagName('iframe')[0];
+
+    if (iframe.contentDocument) {
+      _movingContentBody = iframe.contentDocument.body;
+      _movingContentHead = iframe.contentDocument.head;
+    } else if (iframe.contentWindow) {
+      _movingContentBody = iframe.contentWindow.document.body;
+      _movingContentHead = iframe.contentWindow.document.head;
+    }
   });
+
 
   // Adding bot to correct initial column
   if ((botIndex+ONE) % THREE === ONE) {
@@ -294,8 +314,8 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
             "name": "${bot.name}",
             "height": e[0].target.scrollHeight
           }, "*"
-        ); 
-      } 
+        );
+      }
 
       new ResizeObserver(outputsize)
         .observe(document.getElementById("${bot.name}"));
@@ -305,7 +325,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
     iframedoc.open();
     iframedoc.writeln(
       iframeCss +
-      `<script>var user = "${currentUser}"</script> 
+      `<script>var user = "${currentUser}"</script>
       ${contentSection}
       <script>${botScript}</script>` +
       iframeJS
@@ -320,7 +340,10 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bot - Bot response with UI
+<<<<<<< HEAD
  * @param {Int} botIndex - Index of Bot
+=======
+>>>>>>> 3370bd8dedfde0deb7baef4491a0d60836e7463a
  * @returns {Object} - An object that stores the HTML dom and
  *   javascript dom as key value pairs
  */
@@ -373,14 +396,12 @@ function parseBot(bot) {
  * to the page.
  *
  * @param {Object} bot - Bot response with UI
-* @param {Int} botIndex - Index of Bot
+ * @param {Int} botIndex - Index of Bot
  */
 function displayBot(bot, botIndex) {
   // Get the bots section of the page
   const botContainer = document.createElement('div');
   botContainer.id = bot.name + '-section';
-  //botContainer.className = 'slds-large-size--1-of-3';
-
   const headerSection = createHeader(bot);
   const footerSection = createFooter(bot);
 
@@ -395,7 +416,6 @@ function displayBot(bot, botIndex) {
   headerSection.appendChild(footerSection);
   botContainer.appendChild(headerSection);
   setupMovableBots(botContainer, botIndex);
-
   const parsedBot = parseBot(bot);
   iframeBot(iframe, bot, parsedBot, user);
 }
@@ -671,14 +691,24 @@ window.onload = () => {
   _user = JSON.parse(user.replace(/&quot;/g, '"'));
   let room;
 
-  uPage.setTitle(`Room # ${ROOM_ID}`);
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    _roomName = res.body.name;
-    _isActive = res.body.active;
+    const response = Array.isArray(res.body) ? res.body[0] : res.body;
+
+    if (response === undefined) {
+      window.location.replace(`/rooms/new/${ROOM_ID}`);
+    }
+
+    if (parseInt(ROOM_ID, 10) !== response.id) {
+      window.location.replace(`/rooms/${response.id}`);
+    }
+
+    uPage.setTitle(`Room # ${ROOM_ID}`);
+    _roomName = response.name;
+    _isActive = response.active;
     activeToggle.checked = _isActive;
     room = res.body;
-    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + res.body.type);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
