@@ -43,9 +43,11 @@ let _io;
 let _user;
 let _roomName;
 let _isActive;
-let ghostBot;
-let dummyBot;
 let _movingContent;
+// Used when holding a bot over a place it can be dropped
+const placeholderBot = document.createElement('div');
+// Used to drop a bot at the bottom of a column
+const blankBot = document.createElement('div');
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -82,14 +84,18 @@ eventer(messageEvent, (iframeMessage) => {
  * @param {Object} event - Dragging bot event.
  */
 function botDragHandler(event) {
-  if (botsLeft.offsetWidth === botsContainer.offsetWidth || !_movingContent) {
-    event.preventDefault();
-  } else {
+  // Do not allow a bot to be moved if they are only in 1 column
+  if (botsLeft.offsetWidth !== botsContainer.offsetWidth &&
+    _movingContent.length) {
     botsContainerColumns.forEach((c) => {
-      c.className = 'slds-col slds-large-size--1-of-3 col-dragging';
+      c.className = 'slds-col slds-large-size--1-of-3' +
+        ' slds-size--1-of-1 col-dragging';
     });
 
+    // Setting data to be transferred
     event.dataTransfer.setData('text', event.target.id);
+  } else {
+    event.preventDefault();
   }
 }
 
@@ -100,29 +106,28 @@ function botDragHandler(event) {
  * @param {DOM} bot - Bot container.
  */
 function allowBotDropHandler(event, bot) {
-  const col = bot.parentElement;
   event.preventDefault();
-  col.insertBefore(ghostBot, bot);
+  const col = bot.parentElement;
+  col.insertBefore(placeholderBot, bot);
 }
 
-/**
- * Called when bot is being dragged over a column where it can be dropped.
- *
- * @param {DOM} column - Column that bot is being dragged over.
- */
-function dragOverColumnHandler(column) {
-  column.appendChild(dummyBot);
-}
 
-// Called when a bot stops being dragged.
-function botDragEndHandler() {
+// Resets all columns back to their initial state
+function resetColumns() {
   botsContainerColumns.forEach((c) => {
-    c.className = 'slds-col slds-large-size--1-of-3';
+    c.className = 'slds-col slds-large-size--1-of-3 slds-size--1-of-1';
   });
 
-  if (ghostBot.parentElement) {
-    ghostBot.parentElement.removeChild(ghostBot);
+  if (placeholderBot.parentElement) {
+    placeholderBot.parentElement.removeChild(placeholderBot);
   }
+
+  if (blankBot.parentElement) {
+    blankBot.parentElement.removeChild(blankBot);
+  }
+
+  // Resetting variable as no bots are being moved
+  _movingContent = null;
 }
 
 /**
@@ -134,7 +139,7 @@ function botDragEndHandler() {
 function drop(event, col) {
   event.preventDefault();
   const data = event.dataTransfer.getData('text');
-  col.insertBefore(document.getElementById(data), ghostBot);
+  col.insertBefore(document.getElementById(data), placeholderBot);
   const botIframe = document.getElementById(data)
     .getElementsByTagName('iframe')[ZERO];
   const botIframedoc = botIframe.contentDocument;
@@ -147,12 +152,7 @@ function drop(event, col) {
     debugMessage('Cannot inject dynamic contents into iframe.');
   }
 
-  // Resetting variable
-  _movingContent = null;
-
-  if (ghostBot.parentElement) {
-    ghostBot.parentElement.removeChild(ghostBot);
-  }
+  resetColumns();
 }
 
 /**
@@ -172,7 +172,7 @@ function setupMovableBots(botContainer, botIndex) {
   });
 
   botContainer.addEventListener('dragend', () => {
-    botDragEndHandler();
+    resetColumns();
   });
 
   botContainer.addEventListener('dragover', (e) => {
@@ -608,7 +608,7 @@ function roomStateChanged() {
   u.patchPromiseWithUrl(GET_ROOM, data)
   .then((res, err) => {
     if (err) {
-      return console.log(err);
+      return debugMessage('Could not change room state.', err);
     }
 
     const message = _isActive ? 'Room Activated' : 'Room Deactivated';
@@ -643,36 +643,38 @@ function handleEvents(event) {
   }
 }
 
+// Initializes the placeholder bots so other bots can be moved.
+function initPlaceholderBots() {
+  const botImage = document.createElement('img');
+  botImage.className = 'bot-img';
+  botImage.src = BOT_LOGO;
+  placeholderBot.className = 'placeholder-bot';
+  const placeholderBotInside = document.createElement('div');
+  placeholderBotInside.className = 'internal-placeholder-bot';
+  placeholderBotInside.appendChild(botImage);
+  placeholderBot.appendChild(placeholderBotInside);
+  blankBot.className = 'blank-bot';
+}
+
 // Setting up columns so bots can be moved between them.
 function setupColumns() {
-  ghostBot = document.createElement('div');
-  dummyBot = document.createElement('div');
-  const img = document.createElement('img');
-  img.className = 'bot-img';
-  img.src = BOT_LOGO;
-  ghostBot.className = 'ghost-bot';
-  const ghostBotInside = document.createElement('div');
-  ghostBotInside.className = 'internal-ghost-bot';
-  ghostBotInside.appendChild(img);
-  ghostBot.appendChild(ghostBotInside);
-  dummyBot.className = 'dummy-bot';
-
+  initPlaceholderBots();
   botsContainerColumns.forEach((c) => {
     c.addEventListener('drop', (e) => {
       drop(e, c);
     });
 
     c.addEventListener('dragover', () => {
-      dragOverColumnHandler(c);
+      c.appendChild(blankBot);
     });
   });
 
-  ghostBot.addEventListener('dragover', (e) => {
-    allowBotDropHandler(e, ghostBot);
+  placeholderBot.addEventListener('dragover', (e) => {
+    allowBotDropHandler(e, placeholderBot);
   });
 
-  dummyBot.addEventListener('dragover', (e) => {
-    allowBotDropHandler(e, dummyBot);
+  blankBot.addEventListener('dragover', (e) => {
+    allowBotDropHandler(e, blankBot);
   });
 }
 
