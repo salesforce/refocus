@@ -340,10 +340,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bot - Bot response with UI
-<<<<<<< HEAD
  * @param {Int} botIndex - Index of Bot
-=======
->>>>>>> 3370bd8dedfde0deb7baef4491a0d60836e7463a
  * @returns {Object} - An object that stores the HTML dom and
  *   javascript dom as key value pairs
  */
@@ -417,6 +414,7 @@ function displayBot(bot, botIndex) {
   botContainer.appendChild(headerSection);
   setupMovableBots(botContainer, botIndex);
   const parsedBot = parseBot(bot);
+  // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
 }
 

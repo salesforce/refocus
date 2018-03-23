@@ -52,6 +52,10 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
     },
+    fullName: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+    },
   }, {
     classMethods: {
       getUserAssociations() {

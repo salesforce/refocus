@@ -23,8 +23,6 @@ const sampleEventNames = {
   upd: 'refocus.internal.realtime.sample.update',
   del: 'refocus.internal.realtime.sample.remove',
 };
-const sampleStoreFeature =
-                  require('../../cache/sampleStore').constants.featureName;
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
@@ -159,7 +157,7 @@ module.exports = function aspect(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name', 'email'],
+              attributes: ['name', 'email', 'fullName'],
             },
           ],
           order: ['Aspect.name'],
@@ -180,20 +178,26 @@ module.exports = function aspect(seq, dataTypes) {
     hooks: {
 
       /**
+       * TODO:
+       * 1. Have a look at the sampleStore logic and confirm that it is
+       * doing what it is supposed to do.
+       * 2. Wrap all the calls to redis in a promise and resolve it at the end
+       * like it has been done in the afterUpdate hook.
+       */
+
+      /**
        * When an aspect is created. Add its entry in the aspectStore
        * and the sampleStore if any.
        *
        * @param {Aspect} inst - The deleted instance
        */
       afterCreate(inst /* , opts */) {
-        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-          // Prevent any changes to original inst dataValues object
-          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+        // Prevent any changes to original inst dataValues object
+        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-          // create an entry in aspectStore
-          redisOps.addKey(aspectType, inst.getDataValue('name'));
-          redisOps.hmSet(aspectType, inst.name, instDataObj);
-        }
+        // create an entry in aspectStore
+        redisOps.addKey(aspectType, inst.getDataValue('name'));
+        redisOps.hmSet(aspectType, inst.name, instDataObj);
       }, // hooks.afterCreate
 
       /**
@@ -205,8 +209,6 @@ module.exports = function aspect(seq, dataTypes) {
       beforeDestroy(inst /* , opts */) {
         return new seq.Promise((resolve, reject) =>
           common.setIsDeleted(seq.Promise, inst)
-          .then(() => inst.getSamples())
-          .each((samp) => samp.destroy())
           .then(() => resolve(inst))
           .catch((err) => reject(err))
         );
@@ -276,6 +278,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        const promiseArr = [];
         const nameChanged = inst.previous('name') !== inst.getDataValue('name');
         const isPublishedChanged =
           inst.previous('isPublished') !== inst.getDataValue('isPublished');
@@ -291,51 +294,45 @@ module.exports = function aspect(seq, dataTypes) {
          * 4. if the aspect that is updated is already published, update the
          * the aspect with the new values.
         */
-        if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
+        {
           if (nameChanged && inst.isPublished) {
             const newAspName = inst.name;
             const oldAspectName = inst._previousDataValues.name;
 
             // rename entry in aspectStore
-            redisOps.renameKey(aspectType, oldAspectName, newAspName);
+            promiseArr.push(redisOps.renameKey(aspectType,
+              oldAspectName, newAspName));
 
             /*
              * delete multiple possible sample entries in the sample master
              * list of index and the related sample hashes
              */
-            redisOps.deleteKeys(sampleType, aspectType, oldAspectName);
+            promiseArr.push(redisOps.deleteKeys(sampleType, aspectType,
+              oldAspectName));
           } else if (isPublishedChanged) {
 
             // Prevent any changes to original inst dataValues object
             const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-            redisOps.hmSet(aspectType, inst.name, instDataObj);
+            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
 
             // add the aspect to the aspect master list regardless of isPublished
-            redisOps.addKey(aspectType, inst.name);
+            promiseArr.push(redisOps.addKey(aspectType, inst.name));
             if (!inst.isPublished) {
 
               /*
                * Delete multiple possible entries in the sample master list of
                * index
                */
-              redisOps.deleteKeys(sampleType, aspectType, inst.name);
+              promiseArr.push(redisOps.deleteKeys(sampleType,
+                aspectType, inst.name));
             }
           } else if (inst.isPublished) {
             const instChanged = {};
             Object.keys(inst._changed)
             .filter(key => inst._changed[key])
             .forEach(key => instChanged[key] = inst[key]);
-            redisOps.hmSet(aspectType, inst.name, instChanged);
+            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
           }
-        }
-
-        if (nameChanged || (isPublishedChanged && !inst.isPublished)) {
-          return new seq.Promise((resolve, reject) =>
-            inst.getSamples()
-            .each((samp) => samp.destroy())
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
-          );
         }
 
         if (inst.changed('tags')) {
@@ -358,7 +355,7 @@ module.exports = function aspect(seq, dataTypes) {
           });
         } // tags changed
 
-        return seq.Promise.resolve();
+        return seq.Promise.all(promiseArr);
       }, // hooks.afterUpdate
 
       /**
@@ -369,13 +366,11 @@ module.exports = function aspect(seq, dataTypes) {
        */
       afterDelete(inst /* , opts */) {
         if (inst.getDataValue('isPublished')) {
-          if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-            // delete the entry in the aspectStore
-            redisOps.deleteKey(aspectType, inst.name);
+          // delete the entry in the aspectStore
+          redisOps.deleteKey(aspectType, inst.name);
 
-            // delete multiple possible entries in sampleStore
-            redisOps.deleteKeys(sampleType, aspectType, inst.name);
-          }
+          // delete multiple possible entries in sampleStore
+          redisOps.deleteKeys(sampleType, aspectType, inst.name);
         }
       }, // hooks.afterDelete
 

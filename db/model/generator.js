@@ -149,7 +149,7 @@ module.exports = function generator(seq, dataTypes) {
           include: [
             {
               association: assoc.user,
-              attributes: ['name', 'email'],
+              attributes: ['name', 'email', 'fullName'],
             },
             {
               association: assoc.collectors,

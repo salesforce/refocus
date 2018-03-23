@@ -1797,6 +1797,68 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /botData/upsert:
+    x-swagger-router-controller: botData
+    post:
+      security:
+        - jwt: []
+      summary: Upsert botData
+      tags: [ botData ]
+      description: Creates or updates bot data for a room's specific bots
+      operationId: upsertBotData
+      parameters:
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create botData properties
+            properties:
+              name:
+                type: string
+                maxLength: 254
+                description: Name of the bot data
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+              value:
+                type: string
+                description: Value of the bot data
+              botId:
+                type: string
+                maxLength: 254
+                description: UUID for the corresponding bot
+              roomId:
+                type: integer
+                maxLength: 254
+                description: Number for the corresponding room
+            required:
+              - name
+              - value
+              - roomId
+              - botId
+      responses:
+        201:
+          description: >-
+            Bot Data Created
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        200:
+          description: >-
+            Bot Data Updated
+          schema:
+            $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /botData/{key}:
     x-swagger-router-controller: botData
     get:

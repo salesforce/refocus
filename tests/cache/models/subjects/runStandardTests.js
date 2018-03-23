@@ -21,9 +21,7 @@ const requireDir = require('require-dir');
  */
 
 describe('tests/cache/models/subjects/runStandardTests.js, ', () => {
-  before(() => tu.toggleOverride('enableRedisSampleStore', true));
   before(() => tu.toggleOverride('getSubjectFromCache', true));
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
   after(() => tu.toggleOverride('getSubjectFromCache', false));
 
   describe('run standard tests with cache enabled', () => {

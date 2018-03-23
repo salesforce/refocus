@@ -55,11 +55,7 @@ function doGetHierarchy(resultObj) {
     excludedFields.forEach(f => fields.push(f));
   }
 
-  const findByKeyPromise =
-    featureToggles.isFeatureEnabled(sampleStoreFeature) ?
-      u.findByKey(helper, params, ['subjectHierarchy']) :
-      u.findByKey(helper, params, ['hierarchy', 'samples']);
-  return findByKeyPromise
+  return u.findByKey(helper, params, ['hierarchy'])
     .then((o) => {
       resultObj.dbEndTime = Date.now();
       resultObj.dbTime = resultObj.dbEndTime - resultObj.dbStartTime;
@@ -69,19 +65,12 @@ function doGetHierarchy(resultObj) {
         retval = helper.deleteChildren(retval, depth);
       }
 
-      // if samples are stored in redis, get the samples from there.
-      if (featureToggles.isFeatureEnabled(sampleStoreFeature)) {
-        return redisSubjectModel.completeSubjectHierarchy(retval, params)
-        .then((_retval) => {
-          resultObj.retval = _retval;
-          excludedFields.forEach(f => delete retval[f]);
-          return resultObj;
-        });
-      } else {
-        resultObj.retval = helper.modifyAPIResponse(retval, params);
+      return redisSubjectModel.completeSubjectHierarchy(retval, params)
+      .then((_retval) => {
+        resultObj.retval = _retval;
         excludedFields.forEach(f => delete retval[f]);
         return resultObj;
-      }
+      });
     });
 } // doGetHierarchy
 
