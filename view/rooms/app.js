@@ -144,12 +144,8 @@ function drop(event, col) {
     .getElementsByTagName('iframe')[ZERO];
   const botIframedoc = botIframe.contentDocument;
 
-  if (botIframedoc && _movingContent) {
-    botIframedoc.open();
-    botIframedoc.writeln(_movingContent);
-    botIframedoc.close();
-  } else {
-    debugMessage('Cannot inject dynamic contents into iframe.');
+  if (_movingContent) {
+    uPage.writeInIframedoc(botIframedoc, _movingContent);
   }
 
   resetColumns();
@@ -320,19 +316,13 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
         .observe(document.getElementById("${bot.name}"));
     </script>`;
 
-  if (iframedoc) {
-    iframedoc.open();
-    iframedoc.writeln(
-      iframeCss +
+  const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
       ${contentSection}
       <script>${botScript}</script>` +
-      iframeJS
-    );
-    iframedoc.close();
-  } else {
-    debugMessage('Cannot inject dynamic contents into iframe.');
-  }
+      iframeJS;
+
+  uPage.writeInIframedoc(iframedoc, iframeContent);
 }
 
 /**
