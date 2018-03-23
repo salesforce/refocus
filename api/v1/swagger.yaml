@@ -3427,9 +3427,13 @@ paths:
                 type: object
                 description: >-
                   Specify the values for any context variables as defined by the Sample Generator Template you are using.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
             required:
               - name
               - aspects
+              - generatorTemplate
       responses:
         201:
           description: >-
@@ -3546,6 +3550,9 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
       responses:
         200:
           description: Success, returns the updated generator.
@@ -3635,9 +3642,13 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
             required:
               - name
               - aspects
+              - generatorTemplate
       responses:
         200:
           description: Success, returns the updated generator.
