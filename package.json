@@ -36,6 +36,7 @@
     "on-release": "npm run checkdb",
     "postinstall": "NODE_ENV=production gulp browserifyViews && gulp movecss && node scripts/moveSocket.js",
     "prestart": "if-env IS_HEROKU=true && echo 'no prestart needed on heroku' || npm run checkdb",
+    "rebuildSubjectHierarchy": "node db/rebuildSubjectHierarchy.js",
     "report": "istanbul report text-summary lcovonly",
     "reset-coverage": "rm -rf ./coverage",
     "start": "node index.js",

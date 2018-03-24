@@ -14,6 +14,63 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
+const sequelize = tu.db.sequelize;
+
+describe('tests/db/model/subject/rebuildHierarchy.js >', () => {
+  const trueParent = { name: `${tu.namePrefix}trueParent`, isPublished: true };
+  const fakeParent = { name: `${tu.namePrefix}fakeParent`, isPublished: true };
+  const child = { name: `${tu.namePrefix}child`, isPublished: true };
+  let ipar = 0;
+  let fakeParentId = 0;
+  let childId = 0;
+
+  before((done) => {
+    Subject.create(trueParent)
+    .then((subj) => {
+      ipar = subj.id;
+    })
+    .then(() => {
+      child.parentId = ipar;
+      return Subject.create(child);
+    })
+    .then((subj) => {
+      childId = subj.id;
+      return Subject.create(fakeParent);
+    })
+    .then((subj) => {
+      fakeParentId = subj.id;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Rebuild Hierarchy', (done) => {
+    const query = `UPDATE "Subjectsancestors" SET "ancestorId"=` +
+      `'${fakeParentId}' WHERE "SubjectId"='${childId}'`;
+
+    const getQuery = `SELECT "ancestorId" FROM "Subjectsancestors" ` +
+      `WHERE "SubjectId"='${childId}'`;
+
+    sequelize.query(query)
+    .then((res) => {
+      sequelize.query(getQuery)
+      .then((res) => {
+        expect(res[0][0].ancestorId).to.equal(fakeParentId);
+        Subject.rebuildHierarchy()
+        .then(() => {
+          Subject.findById(childId)
+          .then((subj) => {
+            expect(subj.parentId).to.equal(ipar);
+
+            return done();
+          });
+        });
+      });
+    });
+  });
+
+  after(u.forceDelete);
+});
 
 describe('tests/db/model/subject/hierarchy.js >', () => {
   const parTag = ['___na', '___continent'];
