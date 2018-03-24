@@ -210,8 +210,7 @@ module.exports = {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
-
-        u.logAPI(req, resultObj, response); // audit log
+        u.logAPI(req, resultObj, response);
         res.status(httpStatus.OK).json(response);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
@@ -239,7 +238,6 @@ module.exports = {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
       .then((response) => {
-
         u.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
       })
@@ -387,10 +385,7 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next,
-    () => {
-      doPatch(req, res, next, helper);
-    });
+    validateParentFields(req, res, next, () => doPatch(req, res, next, helper));
   },
 
   /**
@@ -498,10 +493,7 @@ module.exports = {
       );
     }
 
-    validateParentFields(req, res, next,
-    () => {
-      doPut(req, res, next, helper);
-    });
+    validateParentFields(req, res, next, () => doPut(req, res, next, helper));
   },
 
   /**

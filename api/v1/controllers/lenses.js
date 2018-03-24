@@ -271,12 +271,8 @@ module.exports = {
         const lensObject = JSON.parse(reply);
 
         // add api links to the object and return response.
-        lensObject.apiLinks = u.getApiLinks(
-          lensObject.id, helper, req.method
-        );
-
-        res.status(httpStatus.OK)
-        .json(lensObject);
+        lensObject.apiLinks = u.getApiLinks(lensObject.id, helper, req.method);
+        res.status(httpStatus.OK).json(lensObject);
       } else {
         // if cache error, print error and continue to get lens from db.
         if (cacheErr) {
@@ -472,9 +468,8 @@ module.exports = {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       delete o.dataValues.library;
       u.logAPI(req, resultObj, o.dataValues);
-      return res.status(httpStatus.OK).json(
-        u.responsify(o, helper, req.method)
-      );
+      return res.status(httpStatus.OK)
+        .json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

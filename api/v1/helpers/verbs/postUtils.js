@@ -38,11 +38,8 @@ function makePostPromise(params, props, req) {
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
   logAPI(req, resultObj, o);
-
-  /*
-   * if response directly from sequelize, call reload to attach
-   * the associations
-   */
+  
+  // if response directly from sequelize, reload to attach associations
   if (o.get) {
     o.reload()
     .then(() => res.status(constants.httpStatus.CREATED).json(
@@ -54,8 +51,6 @@ function handlePostResult(o, resultObj, props, res, req) {
 }
 
 module.exports = {
-
   handlePostResult,
-
   makePostPromise,
 };

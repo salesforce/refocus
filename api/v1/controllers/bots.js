@@ -91,8 +91,7 @@ module.exports = {
     try {
       for (const param in reqObj) {
         if (reqObj[param].value) {
-          if (typeof (reqObj[param].value) === 'object' &&
-            param === 'ui') {
+          if (typeof (reqObj[param].value) === 'object' && param === 'ui') {
             seqObj[param] = reqObj[param].value.buffer;
             uiObj.name = reqObj[param].value.originalname;
             uiObj.size = reqObj[param].value.size;
@@ -110,8 +109,7 @@ module.exports = {
             u.logAPI(req, resultObj, o.dataValues);
           }
 
-          o.dataValues.token = jwtUtil
-            .createToken(seqObj.name, seqObj.name);
+          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
           return res.status(httpStatus.CREATED)
             .json(u.responsify(o, helper, req.method));
         })
