@@ -37,18 +37,21 @@ function makePostPromise(params, props, req) {
  */
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
-  logAPI(req, resultObj, o);
   
   // if response directly from sequelize, reload to attach associations
   if (o.get) {
     o.reload()
-    .then(() => res.status(constants.httpStatus.CREATED).json(
-        u.responsify(o, props, req.method)));
+    .then((o) => {
+      logAPI(req, resultObj, o);
+      res.status(constants.httpStatus.CREATED)
+      .json(u.responsify(o, props, req.method));
+    });
   } else {
-    return res.status(constants.httpStatus.CREATED).json(
-      u.responsify(o, props, req.method));
+    logAPI(req, resultObj, o);
+    res.status(constants.httpStatus.CREATED)
+    .json(u.responsify(o, props, req.method));
   }
-}
+} // handlePostResult
 
 module.exports = {
   handlePostResult,
