@@ -9,12 +9,10 @@
 /**
  * api/v1/helpers/nouns/aspects.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const Aspect = require('../../../../db/index').Aspect;
-
 const m = 'aspect';
-
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
 const fieldsWithEnum = ['valueType'];
@@ -28,9 +26,6 @@ module.exports = {
     PUT: `Overwrite all attributes of this ${m}`,
   },
   baseUrl: '/v1/aspects',
-  fieldScopeMap: {
-    samples: 'withSamples',
-  },
   model: Aspect,
   modelName: 'Aspect',
 
