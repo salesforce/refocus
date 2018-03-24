@@ -19,8 +19,6 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const sampleType = redisOps.sampleType;
-const subAspMapType = redisOps.subAspMapType;
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -286,14 +284,8 @@ module.exports = function subject(seq, dataTypes) {
              newAbsPath));
           }
 
-          /*
-           * Delete multiple possible
-           * entries in sample master list of index.
-           * Delete the subject to aspect mapping
-           */
-          promiseArr.push(redisOps.deleteKeys(sampleType, subjectType,
-            oldAbsPath));
-          promiseArr.push(redisOps.deleteKey(subAspMapType, oldAbsPath));
+          // remove all the related samples
+          promiseArr.push(subjectUtils.removeRelatedSamples(oldAbsPath));
         }
 
         // Prevent any changes to original inst dataValues object
@@ -384,10 +376,10 @@ module.exports = function subject(seq, dataTypes) {
 
             if (inst.getDataValue('isPublished')) {
               common.publishChange(inst, eventName.del);
-
-              // if cache is on, remove reference to subjects in the cache
-              return subjectUtils.removeFromRedis(inst.absolutePath);
             }
+
+            // remove the subject and its related samples
+            return subjectUtils.removeFromRedis(inst.absolutePath);
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))
