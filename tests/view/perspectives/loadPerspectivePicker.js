@@ -206,7 +206,6 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, ' +
       setup({
         '/v1/aspects': {
           body: [{ name: ASPECT1, isPublished: true },
-          { name: 'iDontShowUp', isPublished: false },
           { name: ASPECT2, isPublished: true }],
         }
       });
