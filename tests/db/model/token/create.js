@@ -58,8 +58,8 @@ describe('tests/db/model/token/create.js >', () => {
     .catch(done);
   });
 
-  it('One user can create multiple tokens, and' +
-  'tokens are returned sorted by name in asc order', (done) => {
+  it('One user can create multiple tokens, tokens returned sorted by name ' +
+  'in asc order', (done) => {
     Token.create({
       name: 'tokenA',
       createdBy: userObj.id,
@@ -70,16 +70,13 @@ describe('tests/db/model/token/create.js >', () => {
         createdBy: userObj.id,
       })
     )
-    .then(() => {
-      Token.findAll({ where: { createdBy: userObj.id } })
-      .then((returnedTokens) => {
-        expect(returnedTokens.length).to.be.equal(2);
-        expect(returnedTokens[0].name).to.be.equal('tokenA');
-        expect(returnedTokens[0].createdBy).to.be.equal(userObj.id);
-        expect(returnedTokens[1].name).to.be.equal('tokenB');
-        expect(returnedTokens[1].createdBy).to.be.equal(userObj.id);
-      })
-      .catch(done);
+    .then(() => Token.findAll({ where: { createdBy: userObj.id } }))
+    .then((returnedTokens) => {
+      expect(returnedTokens.length).to.be.equal(2);
+      expect(returnedTokens[0].name).to.be.equal('tokenA');
+      expect(returnedTokens[0].createdBy).to.be.equal(userObj.id);
+      expect(returnedTokens[1].name).to.be.equal('tokenB');
+      expect(returnedTokens[1].createdBy).to.be.equal(userObj.id);
       done();
     })
     .catch(done);
