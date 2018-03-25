@@ -111,10 +111,6 @@ const shortTermToggles = {
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
 
-  // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
-  getSubjectFromCache: environmentVariableTrue(pe,
-    'GET_SUBJECT_FROM_CACHE'),
-
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),

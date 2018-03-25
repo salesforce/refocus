@@ -17,7 +17,7 @@ const constants = require('../../../../api/v1/constants');
 const expect = require('chai').expect;
 const config = require('../../../../config');
 
-function getWithLimit(path, skipWildcards) {
+function getWithLimit(path, skipWildcards, skipDefaultTests) {
   const originalDefaultLimit = config.api.defaults.limit;
   let expectedResponse;
   let filteredResponse;
@@ -121,74 +121,76 @@ function getWithLimit(path, skipWildcards) {
     });
   }
 
-  it('default limit 5', (done) => {
-    config.api.defaults.limit = 5;
-    api.get(`${path}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.length).to.equal(5);
-    })
-    .end(done);
-  });
-
-  it('default limit 3, limit=10', (done) => {
-    config.api.defaults.limit = 3;
-    api.get(`${path}?limit=10`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.length).to.equal(3);
-    })
-    .end(done);
-  });
-
-  it('default limit 3, offset=5', (done) => {
-    config.api.defaults.limit = 3;
-    api.get(`${path}?offset=5`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.length).to.equal(3);
-      expect(res.body[0].name).to.equal(expectedResponse[5].name);
-      expect(res.body[1].name).to.equal(expectedResponse[6].name);
-      expect(res.body[2].name).to.equal(expectedResponse[7].name);
-    })
-    .end(done);
-  });
-
-  if (!skipWildcards) {
-    it('default limit 3, name=*even', (done) => {
-      config.api.defaults.limit = 3;
-      api.get(`${path}?name=*even`)
+  // Skip tests which modify the default limit if the endpoint is using cache.
+  if (!skipDefaultTests) {
+    it('default limit 5', (done) => {
+      config.api.defaults.limit = 5;
+      api.get(`${path}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(filteredResponse[0].name);
-        expect(res.body[1].name).to.equal(filteredResponse[2].name);
-        expect(res.body[2].name).to.equal(filteredResponse[4].name);
+        expect(res.body.length).to.equal(5);
       })
       .end(done);
     });
 
-    it('default limit 3, name=*even&offset=2', (done) => {
+    it('default limit 3, limit=10', (done) => {
       config.api.defaults.limit = 3;
-      api.get(`${path}?name=*even&offset=2`)
+      api.get(`${path}?limit=10`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body.length).to.equal(3);
-        expect(res.body[0].name).to.equal(filteredResponse[4].name);
-        expect(res.body[1].name).to.equal(filteredResponse[6].name);
-        expect(res.body[2].name).to.equal(filteredResponse[8].name);
       })
       .end(done);
     });
+
+    it('default limit 3, offset=5', (done) => {
+      config.api.defaults.limit = 3;
+      api.get(`${path}?offset=5`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.length).to.equal(3);
+        expect(res.body[0].name).to.equal(expectedResponse[5].name);
+        expect(res.body[1].name).to.equal(expectedResponse[6].name);
+        expect(res.body[2].name).to.equal(expectedResponse[7].name);
+      })
+      .end(done);
+    });
+
+    if (!skipWildcards) {
+      it('default limit 3, name=*even', (done) => {
+        config.api.defaults.limit = 3;
+        api.get(`${path}?name=*even`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body.length).to.equal(3);
+          expect(res.body[0].name).to.equal(filteredResponse[0].name);
+          expect(res.body[1].name).to.equal(filteredResponse[2].name);
+          expect(res.body[2].name).to.equal(filteredResponse[4].name);
+        })
+        .end(done);
+      });
+
+      it('default limit 3, name=*even&offset=2', (done) => {
+        config.api.defaults.limit = 3;
+        api.get(`${path}?name=*even&offset=2`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body.length).to.equal(3);
+          expect(res.body[0].name).to.equal(filteredResponse[4].name);
+          expect(res.body[1].name).to.equal(filteredResponse[6].name);
+          expect(res.body[2].name).to.equal(filteredResponse[8].name);
+        })
+        .end(done);
+      });
+    }
   }
 }
 
 module.exports = {
   getWithLimit,
 };
-
