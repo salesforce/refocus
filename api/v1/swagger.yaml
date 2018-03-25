@@ -9226,7 +9226,7 @@ paths:
                   First and last name.
               fullName:
                 type: string
-                maxLength: 60
+                maxLength: 256
                 description: >
                   The user's full name.
               password:
@@ -9352,7 +9352,7 @@ paths:
                   First and last name.
               fullName:
                 type: string
-                maxLength: 60
+                maxLength: 256
                 description: >
                   The user's full name.
               password:
@@ -9414,7 +9414,7 @@ paths:
                   First and last name.
               fullName:
                 type: string
-                maxLength: 60
+                maxLength: 256
                 description: >
                   The user's full name.
               password:
@@ -10896,7 +10896,7 @@ definitions:
       fullName:
         type: string
         readOnly: true
-        maxLength: 60
+        maxLength: 256
         description: >
           The user's full name.
       password:
