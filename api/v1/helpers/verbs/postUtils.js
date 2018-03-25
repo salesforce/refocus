@@ -37,7 +37,7 @@ function makePostPromise(params, props, req) {
  */
 function handlePostResult(o, resultObj, props, res, req) {
   resultObj.dbTime = new Date() - resultObj.reqStartTime;
-  
+
   // if response directly from sequelize, reload to attach associations
   if (o.get) {
     o.reload()
