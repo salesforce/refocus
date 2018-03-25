@@ -186,23 +186,19 @@ module.exports = {
     }
 
     validateGeneratorAspectsPermissions(toPost.aspects, req)
-    .then(() => helper.model.createWithCollectors(toPost,
-      u.whereClauseForNameInArr))
-    .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
-        o.reload() : o)
+    .then(() =>
+      helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
+    .then((o) =>
+      featureToggles.isFeatureEnabled('returnUser') ? o.reload() : o)
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, o);
-
       const oldCollectors = [];
       const newCollectors = o.collectors.map(collector => collector.name);
       heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
-
-      // order collectors by name
-      u.sortArrayObjectsByField(helper, o);
-
-      res.status(constants.httpStatus.CREATED).json(
-          u.responsify(o, helper, req.method));
+      u.sortArrayObjectsByField(helper, o); // order collectors by name
+      u.logAPI(req, resultObj, o);
+      res.status(constants.httpStatus.CREATED)
+      .json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
