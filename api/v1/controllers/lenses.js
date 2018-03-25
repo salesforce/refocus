@@ -382,19 +382,15 @@ module.exports = {
       const user = req.user;
       seqObj.installedBy = user.id;
       helper.model.create(seqObj, assocToCreate)
+      .then((o) => o.reload()) // to get associations
       .then((o) => {
         delete o.dataValues.library;
-        return o.reload();
-      })
-      .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
         u.logAPI(req, resultObj, o.dataValues);
         res.status(httpStatus.CREATED)
           .json(u.responsify(o, helper, req.method));
       })
-      .catch((err) => {
-        u.handleError(next, err, helper.modelName);
-      });    
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } catch (err) {
       err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
