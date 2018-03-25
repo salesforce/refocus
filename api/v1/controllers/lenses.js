@@ -24,6 +24,7 @@ const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
+const logger = require('winston');
 const ZERO = 0;
 const ONE = 1;
 
@@ -56,7 +57,7 @@ function updateLensDetails(seqObj) {
       seqObj.version = seqObj.sourceVersion;
     }
   }
-}
+} // updateLensDetails
 
 /**
  * Parse lens metadata from lens json provided in lens zip. Set sourceName,
@@ -276,7 +277,7 @@ module.exports = {
       } else {
         // if cache error, print error and continue to get lens from db.
         if (cacheErr) {
-          console.log(cacheErr); // eslint-disable-line no-console
+          logger.error('api/v1/controllers/lenses.getLens|', cacheErr);
         }
 
         // no reply, go to db to get lens object.
@@ -378,40 +379,22 @@ module.exports = {
 
       updateLensDetails(seqObj);
       const assocToCreate = u.includeAssocToCreate(seqObj, helper);
-
-      /**
-       * Creates the lens using the model.
-       * If returnUser flag is set,
-       * reloads the lens instance to return associations.
-       *
-       * @returns {Promise} The promise to create the lens.
-       */
-      const createLens = () => helper.model.create(seqObj, assocToCreate)
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          delete o.dataValues.library;
-          u.logAPI(req, resultObj, o.dataValues);
-          if (featureToggles.isFeatureEnabled('returnUser')) {
-            o.reload()
-            .then(() => res.status(httpStatus.CREATED).json(
-                u.responsify(o, helper, req.method)));
-          } else {
-            res.status(httpStatus.CREATED).json(
-              u.responsify(o, helper, req.method)
-            );
-          }
-        })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
-
-      if (featureToggles.isFeatureEnabled('returnUser')) {
-        const user = req.user;
-        seqObj.installedBy = user.id;
-        createLens();
-      } else {
-        createLens();
-      }
+      const user = req.user;
+      seqObj.installedBy = user.id;
+      helper.model.create(seqObj, assocToCreate)
+      .then((o) => {
+        delete o.dataValues.library;
+        return o.reload();
+      })
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
+        res.status(httpStatus.CREATED)
+          .json(u.responsify(o, helper, req.method));
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });    
     } catch (err) {
       err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
