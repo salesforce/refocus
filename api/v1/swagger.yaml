@@ -2040,6 +2040,7 @@ paths:
           in: formData
           description: The unique readable name for the bot
           type: string
+          required: true
           pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: active
@@ -2063,6 +2064,7 @@ paths:
           in: formData
           description: The version of the bot. Use Semantic Versioning 2.0.0
           type: string
+          required: true
         -
           name: actions
           in: formData
