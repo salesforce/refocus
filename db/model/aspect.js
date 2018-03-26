@@ -13,7 +13,6 @@
 const common = require('../helpers/common');
 const u = require('../helpers/aspectUtils');
 const constants = require('../constants');
-const featureToggles = require('feature-toggles');
 const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
@@ -26,6 +25,7 @@ const sampleEventNames = {
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
+const Promise = require('bluebird');
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -164,15 +164,6 @@ module.exports = function aspect(seq, dataTypes) {
         }, {
           override: true,
         });
-
-        Aspect.addScope('withSamples', {
-          include: [
-            {
-              association: assoc.samples,
-              attributes: { exclude: ['aspectId'] },
-            },
-          ],
-        });
       },
     },
     hooks: {
@@ -181,8 +172,7 @@ module.exports = function aspect(seq, dataTypes) {
        * TODO:
        * 1. Have a look at the sampleStore logic and confirm that it is
        * doing what it is supposed to do.
-       * 2. Wrap all the calls to redis in a promise and resolve it at the end
-       * like it has been done in the afterUpdate hook.
+       *
        */
 
       /**
@@ -190,14 +180,15 @@ module.exports = function aspect(seq, dataTypes) {
        * and the sampleStore if any.
        *
        * @param {Aspect} inst - The deleted instance
+       * @returns {Promise}
        */
       afterCreate(inst /* , opts */) {
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
-        // create an entry in aspectStore
-        redisOps.addKey(aspectType, inst.getDataValue('name'));
-        redisOps.hmSet(aspectType, inst.name, instDataObj);
+        return Promise.join(
+          redisOps.addKey(aspectType, inst.getDataValue('name')),
+          redisOps.hmSet(aspectType, inst.name, instDataObj)
+        );
       }, // hooks.afterCreate
 
       /**
@@ -213,58 +204,6 @@ module.exports = function aspect(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeDestroy
-
-      /**
-       * Recalculate sample status if any of the status ranges changed.
-       * If aspect tags changed, send a "delete" realtime event for all the
-       * samples for this aspect. (The afterUpdate hook will subsequently send
-       * an "add" event.) This way, perspectives which filter by aspect tags
-       * will get the right samples.
-       *
-       * @param {Aspect} inst - The instance being updated
-       * @returns {Promise}
-       */
-      beforeUpdate(inst /* , opts */) {
-        const statusRangeWasUpdated = inst.changed('criticalRange') ||
-          inst.changed('warningRange') ||
-          inst.changed('infoRange') ||
-          inst.changed('okRange');
-        if (statusRangeWasUpdated) {
-          return new seq.Promise((resolve, reject) =>
-            inst.getSamples()
-            .each((samp) => {
-              samp.aspect = inst;
-              samp.calculateStatus();
-              samp.setStatusChangedAt();
-              samp.save();
-            })
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
-          );
-        }
-
-        if (inst.changed('tags')) {
-          return new seq.Promise((resolve, reject) => {
-            inst.getSamples()
-            .each((samp) =>
-              common.sampleAspectAndSubjectArePublished(seq, samp)
-              .then((published) => {
-                if (published) {
-                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
-                  .then((s) => {
-                    common.publishChange(s, sampleEventNames.del);
-                  });
-                }
-
-                return seq.Promise.resolve(true);
-              }))
-            .then(() => resolve(inst))
-            .catch(reject);
-          });
-        } // tags changed
-
-        return seq.Promise.resolve(true);
-      }, // hooks.beforeUpdate
 
       /**
        * If isPublished is being updated from true to false or the name of the
@@ -294,66 +233,44 @@ module.exports = function aspect(seq, dataTypes) {
          * 4. if the aspect that is updated is already published, update the
          * the aspect with the new values.
         */
-        {
-          if (nameChanged && inst.isPublished) {
-            const newAspName = inst.name;
-            const oldAspectName = inst._previousDataValues.name;
+        if (nameChanged && inst.isPublished) {
+          const newAspName = inst.name;
+          const oldAspectName = inst._previousDataValues.name;
 
-            // rename entry in aspectStore
-            promiseArr.push(redisOps.renameKey(aspectType,
-              oldAspectName, newAspName));
+          // rename entry in aspectStore
+          promiseArr.push(redisOps.renameKey(aspectType,
+            oldAspectName, newAspName));
 
+          /*
+           * delete multiple possible sample entries in the sample master
+           * list of index and the related sample hashes
+           */
+          promiseArr.push(redisOps.deleteKeys(sampleType, aspectType,
+            oldAspectName));
+        } else if (isPublishedChanged) {
+          // Prevent any changes to original inst dataValues object
+          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+          promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
+
+          // add the aspect to the aspect master list regardless of isPublished
+          promiseArr.push(redisOps.addKey(aspectType, inst.name));
+          if (!inst.isPublished) {
             /*
-             * delete multiple possible sample entries in the sample master
-             * list of index and the related sample hashes
+             * Delete multiple possible entries in the sample master list of
+             * index
              */
-            promiseArr.push(redisOps.deleteKeys(sampleType, aspectType,
-              oldAspectName));
-          } else if (isPublishedChanged) {
-
-            // Prevent any changes to original inst dataValues object
-            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
-
-            // add the aspect to the aspect master list regardless of isPublished
-            promiseArr.push(redisOps.addKey(aspectType, inst.name));
-            if (!inst.isPublished) {
-
-              /*
-               * Delete multiple possible entries in the sample master list of
-               * index
-               */
-              promiseArr.push(redisOps.deleteKeys(sampleType,
-                aspectType, inst.name));
-            }
-          } else if (inst.isPublished) {
-            const instChanged = {};
-            Object.keys(inst._changed)
-            .filter(key => inst._changed[key])
-            .forEach(key => instChanged[key] = inst[key]);
-            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
+            promiseArr.push(redisOps.deleteKeys(sampleType,
+              aspectType, inst.name));
           }
-        }
-
-        if (inst.changed('tags')) {
-          return new seq.Promise((resolve, reject) => {
-            inst.getSamples()
-            .each((samp) =>
-              common.sampleAspectAndSubjectArePublished(seq, samp)
-              .then((published) => {
-                if (published) {
-                  return common.augmentSampleWithSubjectAspectInfo(seq, samp)
-                  .then((s) => {
-                    common.publishChange(s, sampleEventNames.add);
-                  });
-                }
-
-                return seq.Promise.resolve(true);
-              }))
-            .then(() => resolve(inst))
-            .catch(reject);
+        } else if (inst.isPublished) {
+          const instChanged = {};
+          Object.keys(inst._changed)
+          .filter((key) => inst._changed[key])
+          .forEach((key) => {
+            instChanged[key] = inst[key];
           });
-        } // tags changed
+          promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
+        }
 
         return seq.Promise.all(promiseArr);
       }, // hooks.afterUpdate
@@ -363,15 +280,13 @@ module.exports = function aspect(seq, dataTypes) {
        * and the sampleStore if any.
        *
        * @param {Aspect} inst - The deleted instance
+       * @returns {Promise}
        */
       afterDelete(inst /* , opts */) {
-        if (inst.getDataValue('isPublished')) {
-          // delete the entry in the aspectStore
-          redisOps.deleteKey(aspectType, inst.name);
-
-          // delete multiple possible entries in sampleStore
-          redisOps.deleteKeys(sampleType, aspectType, inst.name);
-        }
+        return Promise.join(
+          redisOps.deleteKey(aspectType, inst.name),
+          redisOps.deleteKeys(sampleType, aspectType, inst.name)
+        );
       }, // hooks.afterDelete
 
       /**

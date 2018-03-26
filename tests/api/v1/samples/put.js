@@ -180,8 +180,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
   });
 
-  // TODO: unskip this once sampleStore flag is removed from the subject model
-  describe.skip('subject isPublished false >', () => {
+  describe('subject isPublished false >', () => {
     beforeEach((done) => {
       tu.db.Subject.findById(subjectId1)
       .then((sub) => {
@@ -190,8 +189,6 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       })
       .catch(done);
     });
-
-    beforeEach(u.populateRedisIfEnabled);
 
     it('cannot create sample if subject not published', (done) => {
       api.put(`${path}/${sampleName1}`)
@@ -202,8 +199,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
   });
 
-  // TODO: unskip this once sampleStore flag is removed from the aspect model
-  describe.skip('aspect isPublished false >', () => {
+  describe('aspect isPublished false >', () => {
     beforeEach((done) => {
       tu.db.Aspect.findById(aspectId1)
       .then((asp) => {

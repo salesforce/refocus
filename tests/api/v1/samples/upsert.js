@@ -163,8 +163,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
       .catch(done);
     });
 
-    // TODO: unskip this when sampleStore flag is removed from aspects
-    it.skip('name refers to unpublished aspect', (done) => {
+    it('name refers to unpublished aspect', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({

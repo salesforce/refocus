@@ -15,7 +15,7 @@ const tu = require('../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const publisher = require('../../realtime/redisPublisher');
 const sampleEvent = require('../../realtime/constants').events.sample;
 const rtu = require('../cache/models/redisTestUtil');
@@ -28,7 +28,6 @@ describe('tests/realtime/redisPublisher.js >', () => {
     const sampleName = `${subjectName}|${aspectName}`;
 
     before((done) => {
-      tu.toggleOverride('enableRedisSampleStore', true);
       let a1;
       let s1;
       Aspect.create({
@@ -48,6 +47,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         name: subjectName,
       }))
       .then((created) => (s1 = created))
+      .then(() => samstoinit.populate())
       .then(() => Sample.create({
         messageCode: '25',
         subjectId: s1.id,
@@ -57,19 +57,17 @@ describe('tests/realtime/redisPublisher.js >', () => {
           { name: 'Salesforce', value: 'http://www.salesforce.com' },
         ],
       }))
-      .then(() => samstoinit.populate())
       .then(() => done())
       .catch(done);
     });
 
     after((done) => {
-      tu.toggleOverride('enableRedisSampleStore', false);
       rtu.forceDelete(done);
     });
 
     it('certain fields in aspect should be array, and others ' +
     'should be undefined', (done) => {
-      Sample.findOne({ where: { name: sampleName } })
+      Sample.findOne(sampleName)
       .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
@@ -84,7 +82,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     it('certain fields in subject should be array, and others ' +
     'should be undefined', (done) => {
-      Sample.findOne({ where: { name: sampleName } })
+      Sample.findOne(sampleName)
       .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
@@ -98,9 +96,9 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     it('when tried to publish sample without aspect, ' +
       'aspect should be attached, along with subject', (done) => {
-      Sample.findOne({ where: { name: sampleName } })
+      Sample.findOne(sampleName)
       .then((sam) => {
-        const sampInst = sam.get();
+        const sampInst = sam;
         delete sampInst.aspect;
         return publisher.publishSample(sam, null, sampleEvent.upd);
       })
@@ -128,7 +126,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     const subjectSA = { name: `${tu.namePrefix}SouthAmerica`, isPublished: true };
 
     const samp = { value: 10 };
-    let sampId;
+    let sampleName;
     let ipar;
     const humidity = {
       name: `${tu.namePrefix}humidity`,
@@ -147,7 +145,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         return Sample.create(samp);
       })
       .then((s) => {
-        sampId = s.id;
+        sampleName = s.name;
         return Subject.create(subjectSA);
       })
       .then(() => done())
@@ -158,12 +156,12 @@ describe('tests/realtime/redisPublisher.js >', () => {
     describe('publishSample function tests >', () => {
       it('with EventType argument: sample should be published with subject ' +
       'object and asbolutePath field', (done) => {
-        Sample.findById(sampId)
+        Sample.findOne(sampleName)
         .then((sam) => publisher.publishSample(sam, Subject, sampleEvent.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject.helpEmail).to.be.undefined;
           expect(pubObj.subject.tags.length).to.equal(0);
           expect(pubObj.absolutePath).to.equal(subjectNA.name);
           expect(pubObj.aspect.tags.length).to.equal(0);
@@ -175,12 +173,12 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
       it('without EventType argument: sample should be published with subject ' +
         ' object and asbolutePath field', (done) => {
-        Sample.findById(sampId)
+        Sample.findOne(sampleName)
         .then((sam) => publisher.publishSample(sam, Subject))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject.helpEmail).to.be.undefined;
           expect(pubObj.subject.tags.length).to.equal(0);
           expect(pubObj.absolutePath).to.equal(subjectNA.name);
           expect(pubObj.aspect.tags.length).to.equal(0);
@@ -192,16 +190,16 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
       it('when tried to publish sample without aspect, ' +
       'aspect should be attached', (done) => {
-        Sample.findById(sampId)
+        Sample.findOne(sampleName)
         .then((sam) => {
-          const sampInst = sam.get();
+          const sampInst = sam;
           delete sampInst.aspect;
           return publisher.publishSample(sam, Subject, sampleEvent.upd, Aspect);
         })
         .then((pubObj) => {
           expect(pubObj.aspect).to.not.equal(null);
           expect(pubObj.aspect.name).to.equal(humidity.name);
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject.helpEmail).to.be.undefined;
           expect(pubObj.aspect.tags.length).to.equal(0);
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -218,15 +216,14 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     describe('getSampleEventType function tests >', () => {
       it('update Event', (done) => {
-        Sample.findById(sampId)
-        .then((sam) => sam.update({ value: 10 }))
+        Sample.update({ value: 10 }, sampleName)
         .then((updSample) => {
           // pass sequelize object
           let eventType = publisher.getSampleEventType(updSample);
           expect(eventType).to.equal(sampleEvent.upd);
 
           // pass plain object
-          eventType = publisher.getSampleEventType(updSample.get());
+          eventType = publisher.getSampleEventType(updSample);
           expect(eventType).to.equal(sampleEvent.upd);
           done();
         })
@@ -244,7 +241,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           expect(eventType).to.equal(sampleEvent.add);
 
           // pass plain object
-          eventType = publisher.getSampleEventType(sam.get());
+          eventType = publisher.getSampleEventType(sam);
           expect(eventType).to.equal(sampleEvent.add);
           done();
         })
