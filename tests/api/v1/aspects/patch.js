@@ -18,8 +18,12 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gu = require('../generators/utils');
+const gtu = require('../generatorTemplates/utils');
 const Aspect = tu.db.Aspect;
 const Sample = tu.Sample;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/aspects';
 const samplePath = '/v1/samples';
 const expect = require('chai').expect;
@@ -564,6 +568,112 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       .then(() => expectInSampleEmbed(0, { name: 'name_change' }))
       .then(() => done())
       .catch(done);
+    });
+  });
+
+  describe('referenced by a Generator >', () => {
+    let token;
+    const asp1 = {
+      name: `${tu.namePrefix}ASPECT1`,
+      isPublished: true,
+      timeout: '60s',
+    };
+    const asp2 = {
+      name: `${tu.namePrefix}ASPECT2`,
+      isPublished: true,
+      timeout: '60s',
+    };
+    const sgt1 = gtu.getGeneratorTemplate();
+    const gen1 = gu.getGenerator();
+    gen1.name = 'sample-generator-1';
+    gen1.generatorTemplate.name = sgt1.name;
+    gen1.generatorTemplate.version = sgt1.version;
+    gen1.aspects = [asp1.name, asp2.name];
+    const gen2 = gu.getGenerator();
+    gen2.name = 'sample-generator-2';
+    gen2.generatorTemplate.name = sgt1.name;
+    gen2.generatorTemplate.version = sgt1.version;
+    gen2.aspects = [asp2.name];
+
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    beforeEach((done) => {
+      Aspect.create(asp1)
+      .then(() => Aspect.create(asp2))
+      .then(() => GeneratorTemplate.create(sgt1))
+      .then(() => Generator.create(gen1))
+      .then(() => Generator.create(gen2))
+      .then(() => done())
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('unpublish fails', (done) => {
+      api.patch(`${path}/${asp1.name}`)
+      .set('Authorization', token)
+      .send({ isPublished: false })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot unpublish Aspect ___ASPECT1. It is currently in use by a ' +
+          'Sample Generator: sample-generator-1'
+        );
+      })
+      .end(done);
+    });
+
+    it('rename fails', (done) => {
+      api.patch(`${path}/${asp1.name}`)
+      .set('Authorization', token)
+      .send({ name: 'UPDATED_NAME' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot rename Aspect ___ASPECT1. It is currently in use by a ' +
+          'Sample Generator: sample-generator-1'
+        );
+      })
+      .end(done);
+    });
+
+    it('rename fails (multiple generators)', (done) => {
+      api.patch(`${path}/${asp2.name}`)
+      .set('Authorization', token)
+      .send({ name: 'UPDATED_NAME' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot rename Aspect ___ASPECT2. It is currently in use by 2 ' +
+          'Sample Generators: sample-generator-1,sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+    it('other updates ok', (done) => {
+      api.patch(`${path}/${asp1.name}`)
+      .set('Authorization', token)
+      .send({ timeout: '4s' })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.have.property('timeout', '4s');
+      })
+      .end(done);
     });
   });
 });

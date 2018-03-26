@@ -13,6 +13,7 @@
 const common = require('../helpers/common');
 const u = require('../helpers/aspectUtils');
 const constants = require('../constants');
+const dbErrors = require('../dbErrors');
 const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
@@ -192,18 +193,29 @@ module.exports = function aspect(seq, dataTypes) {
       }, // hooks.afterCreate
 
       /**
-       * Set the isDeleted timestamp.
+       * Check Generator references and set the isDeleted timestamp.
        *
        * @param {Aspect} inst - The instance being destroyed
        * @returns {Promise}
        */
       beforeDestroy(inst /* , opts */) {
-        return new seq.Promise((resolve, reject) =>
-          common.setIsDeleted(seq.Promise, inst)
-          .then(() => resolve(inst))
-          .catch((err) => reject(err))
-        );
+        return inst.checkGeneratorReferences('delete')
+        .then(() => common.setIsDeleted(seq.Promise, inst));
       }, // hooks.beforeDestroy
+
+      /**
+       * Check Generator references before unpublishing or renaming
+       * @param {Aspect} inst - The instance being updated
+       * @returns {Promise}
+       */
+      beforeUpdate(inst /* , opts */) {
+        const unpublished = inst.previous('isPublished') && !inst.isPublished;
+        const renamed = inst.previous('name') !== inst.name;
+        if (unpublished || renamed) {
+          const action = unpublished ? 'unpublish' : 'rename';
+          return inst.checkGeneratorReferences(action);
+        }
+      }, // hooks.beforeUpdate
 
       /**
        * If isPublished is being updated from true to false or the name of the
@@ -341,6 +353,28 @@ module.exports = function aspect(seq, dataTypes) {
             resolve(found.length === 1);
           }));
       }, // isWritableBy
+
+      checkGeneratorReferences(action) {
+        const aspectName = this.previous('name');
+        const where = { where: { aspects: { $contains: [aspectName] } } };
+        return seq.models.Generator.findAll(where)
+        .then((gens) => {
+          if (gens.length) {
+            const genNames = gens.map(g => g.name);
+            let usedBy;
+            if (gens.length === 1) {
+              usedBy = 'a Sample Generator';
+            } else {
+              usedBy = `${gens.length} Sample Generators`;
+            }
+
+            throw new dbErrors.ReferencedByGenerator({
+              message: `Cannot ${action} Aspect ${aspectName}. It is ` +
+              `currently in use by ${usedBy}: ${genNames}`,
+            });
+          }
+        });
+      },
     },
     paranoid: true,
   });
