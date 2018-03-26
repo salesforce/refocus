@@ -17,6 +17,7 @@ const AdminUpdateDeleteForbidden = require('../dbErrors')
   .AdminUpdateDeleteForbidden;
 
 const usernameLength = 254;
+const fullNameLength = 256;
 const assoc = {};
 
 // TODO implement "decryptPassword" functions
@@ -53,7 +54,7 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: false,
     },
     fullName: {
-      type: dataTypes.STRING(constants.fieldlen.normalName),
+      type: dataTypes.STRING(fullNameLength),
       allowNull: true,
     },
   }, {
