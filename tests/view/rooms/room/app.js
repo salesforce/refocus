@@ -11,6 +11,7 @@
  */
 
 const expect = require('chai').expect;
+const uPage = require('../../../../view/rooms/utils/page');
 const app = require('../../../../view/rooms/app.js')();
 
 const fs = require('fs');
@@ -18,6 +19,7 @@ const paths = require('path');
 const botPackage = fs.readFileSync(paths.join(__dirname, './test.zip'));
 const botPackage2 = fs.readFileSync(paths.join(__dirname, './test2.zip'));
 const botPackage3 = null;
+const testHTML = '<div>test</div>';
 
 describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, parsed javascript and html', () => {
@@ -76,5 +78,14 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     expect(output).to.contain('<div id="Test-Bot"></div>');
     expect(output).not.contain('index_bundle');
     expect(output).to.contain('observe(document.getElementById("test-bot")');
+  });
+
+  it('ok, place content into iframe', () => {
+    const newIframe = document.createElement('iframe');
+    document.body.appendChild(newIframe);
+    const iframedoc = newIframe.contentDocument;
+    uPage.writeInIframedoc(iframedoc, testHTML);
+    const content = newIframe.contentDocument.body.innerHTML;
+    expect(content).to.contain(testHTML);
   });
 });
