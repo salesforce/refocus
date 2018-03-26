@@ -56,7 +56,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.token).to.not.equal(fakeToken);
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
-      expect(res.body.version).to.equal('version');
+      expect(res.body.version).to.equal('1.0.0');
       done();
     });
   });
