@@ -1,0 +1,47 @@
+/**
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * public/css/room.css
+ *
+ * Styles refocus room page.
+ */
+
+.placeholder-bot {
+  height: 200px;
+  width: 100%;
+  margin-top: -1rem;
+  margin-bottom: -1rem;
+  padding: 1.5rem 1rem 1.5rem 1rem;
+}
+
+.internal-placeholder-bot {
+  border: 5px dashed #006fd2;
+  height: 100%;
+  text-align: center;
+  vertical-align: center;
+}
+
+.col-dragging {
+  min-height: 100vh;
+}
+
+.bot-img {
+  margin-top: 25px;
+  height: 100px;
+  width: 100px;
+}
+
+@media (min-width: 64em) {
+  .blank-bot {
+    height: 200px;
+    margin-top: -1rem;
+    margin-bottom: -1rem;
+    opacity: 0;
+  }
+}
