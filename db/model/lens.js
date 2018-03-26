@@ -203,8 +203,8 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterDestroy(inst /* , opts */) {
-        redisCache.del(`${constants.lensesRoute}/${lensObj.id}`);
-        redisCache.del(`${constants.lensesRoute}/${lensObj.name}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
       },
 
       /**
@@ -232,8 +232,8 @@ module.exports = function lens(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         // Clear the lens from the cache whether it's stored by id or by name.
-        redisCache.del(`${constants.lensesRoute}/${lensObj.id}`);
-        redisCache.del(`${constants.lensesRoute}/${lensObj.name}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
       },
     },
     name: {
