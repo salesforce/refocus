@@ -14,7 +14,13 @@
  */
 const ZERO = 0;
 const ONE = 1;
+const TWO = 2;
+const THREE = 3;
 const botsContainer = document.getElementById('botsContainer');
+const botsLeft = document.getElementById('botsLeftColumn');
+const botsMiddle = document.getElementById('botsMiddleColumn');
+const botsRight = document.getElementById('botsRightColumn');
+const botsContainerColumns = [botsLeft, botsMiddle, botsRight];
 const activeToggle = document.getElementById('activeToggle');
 const confirmButton = document.getElementById('confirm_button');
 const declineButton = document.getElementById('decline_button');
@@ -32,10 +38,16 @@ GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
+const BOT_LOGO = '../static/images/refocus-bot.png';
 let _io;
 let _user;
 let _roomName;
 let _isActive;
+let _movingContent;
+// Used when holding a bot over a place it can be dropped
+const placeholderBot = document.createElement('div');
+// Used to drop a bot at the bottom of a column
+const blankBot = document.createElement('div');
 const botInfo = {};
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
@@ -67,6 +79,128 @@ eventer(messageEvent, (iframeMessage) => {
 }, false);
 
 /**
+ * Called when bot is clicked and dragged
+ *
+ * @param {Object} event - Dragging bot event.
+ */
+function botDragHandler(event) {
+  // Do not allow a bot to be moved if they are only in 1 column
+  if (botsLeft.offsetWidth !== botsContainer.offsetWidth &&
+    _movingContent.length) {
+    botsContainerColumns.forEach((c) => {
+      c.className = 'slds-col slds-large-size--1-of-3' +
+        ' slds-size--1-of-1 col-dragging';
+    });
+
+    // Setting data to be transferred
+    event.dataTransfer.setData('text', event.target.id);
+  } else {
+    event.preventDefault();
+  }
+}
+
+/**
+ * Called when bot is able to be dropped
+ *
+ * @param {Object} event - Dragging bot event.
+ * @param {DOM} bot - Bot container.
+ */
+function allowBotDropHandler(event, bot) {
+  event.preventDefault();
+  const col = bot.parentElement;
+  col.insertBefore(placeholderBot, bot);
+}
+
+
+// Resets all columns back to their initial state
+function resetColumns() {
+  botsContainerColumns.forEach((c) => {
+    c.className = 'slds-col slds-large-size--1-of-3 slds-size--1-of-1';
+  });
+
+  if (placeholderBot.parentElement) {
+    placeholderBot.parentElement.removeChild(placeholderBot);
+  }
+
+  if (blankBot.parentElement) {
+    blankBot.parentElement.removeChild(blankBot);
+  }
+
+  // Resetting variable as no bots are being moved
+  _movingContent = null;
+}
+
+/**
+ * Called when bot is dropped in a valid column.
+ *
+ * @param {Object} event - Dropping bot event.
+ * @param {DOM} col - Column that bot is being dragged over.
+ */
+function drop(event, col) {
+  event.preventDefault();
+  const data = event.dataTransfer.getData('text');
+  col.insertBefore(document.getElementById(data), placeholderBot);
+  const botIframe = document.getElementById(data)
+    .getElementsByTagName('iframe')[ZERO];
+  const botIframedoc = botIframe.contentDocument;
+
+  if (_movingContent) {
+    uPage.writeInIframedoc(botIframedoc, _movingContent);
+  }
+
+  resetColumns();
+}
+
+/**
+ * Sets up the bots to be movable between columns.
+ *
+ * @param {DOM} botContainer - Container of bot
+ * @param {Int} botIndex - Index of the bot
+ */
+function setupMovableBots(botContainer, botIndex) {
+  botContainer.setAttribute(
+    'draggable',
+    'true'
+  );
+
+  botContainer.addEventListener('dragstart', (e) => {
+    botDragHandler(e);
+  });
+
+  botContainer.addEventListener('dragend', () => {
+    resetColumns();
+  });
+
+  botContainer.addEventListener('dragover', (e) => {
+    allowBotDropHandler(e, botContainer);
+  });
+
+  // Only need to move the bot if the header is clicked
+  botContainer.addEventListener('mousedown', (e) => {
+    // The bot header was clicked on
+    if (e.target.id === 'title-header') {
+      const iframe = botContainer.getElementsByTagName('iframe')[ZERO];
+      if (iframe.contentDocument) {
+        _movingContent = iframe.contentDocument.head.innerHTML +
+          iframe.contentDocument.body.innerHTML;
+      } else if (iframe.contentWindow) {
+        _movingContent = iframe.contentWindow.document.head.innerHTML +
+          iframe.contentWindow.document.body.innerHTML;
+      }
+    }
+  });
+
+  // Adding bot to correct initial column
+  if ((botIndex+ONE) % THREE === ONE) {
+    botsLeft.appendChild(botContainer);
+  } else if ((botIndex+ONE) % THREE === TWO) {
+    botsMiddle.appendChild(botContainer);
+  } else {
+    botsRight.appendChild(botContainer);
+  }
+}
+
+/**
  * Creates headers for each bot added to the UI
  *
  * @param {Object} bot - Bot response with UI
@@ -84,11 +218,13 @@ function createHeader(bot) {
   const title = document.createElement('div');
 
   const text = document.createElement('h3');
+  text.id = 'title-header';
   text.className =
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
   text.innerHTML = bot.name;
+  text.style.cursor = 'pointer';
 
   const circle = document.createElement('div');
   if (bot.active) {
@@ -180,25 +316,20 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
         .observe(document.getElementById("${bot.name}"));
     </script>`;
 
-  if (iframedoc) {
-    iframedoc.open();
-    iframedoc.writeln(
-      iframeCss +
+  const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
       ${contentSection}
       <script>${botScript}</script>` +
-      iframeJS
-    );
-    iframedoc.close();
-  } else {
-    debugMessage('Cannot inject dynamic contents into iframe.');
-  }
+      iframeJS;
+
+  uPage.writeInIframedoc(iframedoc, iframeContent);
 }
 
 /**
  * Create DOM elements for each of the files in the bots zip.
  *
  * @param {Object} bot - Bot response with UI
+ * @param {Int} botIndex - Index of Bot
  * @returns {Object} - An object that stores the HTML dom and
  *   javascript dom as key value pairs
  */
@@ -251,13 +382,12 @@ function parseBot(bot) {
  * to the page.
  *
  * @param {Object} bot - Bot response with UI
+ * @param {Int} botIndex - Index of Bot
  */
-function displayBot(bot) {
+function displayBot(bot, botIndex) {
   // Get the bots section of the page
   const botContainer = document.createElement('div');
   botContainer.id = bot.name + '-section';
-  botContainer.className = 'slds-large-size--1-of-3';
-
   const headerSection = createHeader(bot);
   const footerSection = createFooter(bot);
 
@@ -271,10 +401,8 @@ function displayBot(bot) {
   headerSection.appendChild(iframe);
   headerSection.appendChild(footerSection);
   botContainer.appendChild(headerSection);
-  botsContainer.appendChild(botContainer);
-
+  setupMovableBots(botContainer, botIndex);
   const parsedBot = parseBot(bot);
-
   // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
 }
@@ -358,8 +486,8 @@ function setupSocketIOClient(bots) {
     });
 
     // Add bots to page
-    bots.forEach((bot) => {
-      displayBot(bot.body);
+    bots.forEach((bot, i) => {
+      displayBot(bot.body, i);
     });
   });
 
@@ -470,7 +598,7 @@ function roomStateChanged() {
   u.patchPromiseWithUrl(GET_ROOM, data)
   .then((res, err) => {
     if (err) {
-      return console.log(err);
+      return debugMessage('Could not change room state.', err);
     }
 
     const message = _isActive ? 'Room Activated' : 'Room Deactivated';
@@ -505,11 +633,47 @@ function handleEvents(event) {
   }
 }
 
+// Initializes the placeholder bots so other bots can be moved.
+function initPlaceholderBots() {
+  const botImage = document.createElement('img');
+  botImage.className = 'bot-img';
+  botImage.src = BOT_LOGO;
+  placeholderBot.className = 'placeholder-bot';
+  const placeholderBotInside = document.createElement('div');
+  placeholderBotInside.className = 'internal-placeholder-bot';
+  placeholderBotInside.appendChild(botImage);
+  placeholderBot.appendChild(placeholderBotInside);
+  blankBot.className = 'blank-bot';
+}
+
+// Setting up columns so bots can be moved between them.
+function setupColumns() {
+  initPlaceholderBots();
+  botsContainerColumns.forEach((c) => {
+    c.addEventListener('drop', (e) => {
+      drop(e, c);
+    });
+
+    c.addEventListener('dragover', () => {
+      c.appendChild(blankBot);
+    });
+  });
+
+  placeholderBot.addEventListener('dragover', (e) => {
+    allowBotDropHandler(e, placeholderBot);
+  });
+
+  blankBot.addEventListener('dragover', (e) => {
+    allowBotDropHandler(e, blankBot);
+  });
+}
+
 window.onload = () => {
   activeToggle.addEventListener('click', toggleConfirmationModal);
   activeToggle.addEventListener('refocus.events', handleEvents, false);
   confirmButton.onclick = roomStateChanged;
   declineButton.onclick = closeConfirmationModal;
+  setupColumns();
 
   // Note: this is declared in index.pug:
   _io = io;
