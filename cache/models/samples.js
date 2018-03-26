@@ -139,9 +139,9 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
   if (aspect) {
     modelUtils.cleanQueryBodyObj(aspect, embeddedAspectFields);
     sampleStore.convertAspectStrings(aspect);
+    sampleRes.aspect = aspect;
   }
 
-  sampleRes.aspect = aspect;
   return sampleRes;
 } // cleanAddAspectToSample
 

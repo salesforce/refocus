@@ -7,21 +7,25 @@
  */
 
 /**
- * tests/api/v1/samples/utils.js
+ * tests/jobQueue/v1/utils.js
  */
 'use strict';
 
 const tu = require('../../testUtils');
 const testStartTime = new Date();
+const rcli = require('../../../cache/redisCache').client.sampleStore;
 const samstoinit = require('../../../cache/sampleStoreInit');
+const Promise = require('bluebird');
 
 module.exports = {
   forceDelete(done) {
-    samstoinit.eradicate()
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(
+      rcli.flushallAsync(),
+      tu.forceDelete(tu.db.Aspect, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
-    .catch((err) => done(err));
+    .catch(done);
   },
 
   populateRedis(done) {

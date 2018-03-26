@@ -9,24 +9,10 @@
 /**
  * api/v1/helpers/nouns/subjects.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const Subject = require('../../../../db/index').Subject;
-const u = require('../../../../utils/filters');
 const m = 'subject';
-
-/*
- * All the query params that can be expected in the hierarchy endpoint are
- * defined as a key. The values of the query parameters are later added to them
- * by the set filters function
- */
-const filters = {
-  aspect: {},
-  subjectTags: {},
-  aspectTags: {},
-  status: {},
-};
-
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
 
@@ -54,98 +40,6 @@ function deleteChildren(parent, depth) {
   return parent;
 } // deleteChildren
 
-/**
- * Prune a node by applying filters to it.
- *
- * @param {Object} res - Node to be pruned
- * @returns {Integer} - Returns zero only if the filters is set and all the
- *  samples are filtered.
- */
-function pruneNode(res) {
-  const filteredSamples = [];
-  const filterOnSubject = u.applyTagFilters(res.tags, 'subjectTags', filters);
-  if (filterOnSubject) {
-    for (let i = 0; i < res.samples.length; i++) {
-      if (res.samples[i].aspect) {
-        if (u.applyFilters(res.samples[i].aspect.name, 'aspect', filters) &&
-          u.applyTagFilters(res.samples[i].aspect.tags,
-            'aspectTags', filters) &&
-          u.applyFilters(res.samples[i].status, 'status', filters)) {
-          filteredSamples.push(res.samples[i]);
-        }
-      }
-    }
-  }
-
-  res.samples = filteredSamples;
-
-  /*
-   * filterOnSubject: returns true(integer > 0) only if the subjecttags are not
-   *   set or if the subjecttags are set and the subject node passes the
-   *   subjecttags filter condition
-   * res.samples.length: returns true (length > 0) only if filterOnSubject is
-   *   true and the samples have passed the aspect, aspectTags and the sample
-   *   status filter condition.
-   * filters.aspect.includes/filters.aspectTags.includes/filters.status
-   *    .includes: are each true only if they are not set. Check on this is
-   *    done so that we can return subjects without samples too.
-   */
-  return (filterOnSubject && (res.samples.length || (!filters.aspect.includes &&
-    !filters.aspectTags.includes && !filters.status.includes)));
-} // pruneNode
-
-/**
- * This recursive function does a bottom up traversal of the hierarchy tree. At
- * each child (node) of the hierarchy, it passes the child node to a set of
- * filters (pruned) to check if it should still be included in the hierarchy.
- * The filters are constructued using the query parameters in the request url.
- * If a child is included in the hierarchy, its parent is also included.
- *
- * @param {ServerResponse} res - The subject response
- * @returns {Integer} - 0 if this node was filtered out, i.e. it should not be
- *  part of the final hierarchy tree.
- */
-function traverseHierarchy(res) {
-  const filteredChildrenArr = [];
-  if (res.children) {
-    for (let i = 0; i < res.children.length; i++) {
-      if (traverseHierarchy(res.children[i])) {
-        filteredChildrenArr.push(res.children[i]);
-      }
-    }
-
-    // filtered array is attached to the children key
-    res.children = filteredChildrenArr.length ? filteredChildrenArr : undefined;
-  }
-
-  // return 0 only if both filteredChildrenArr.length and pruneNode return zero
-  return pruneNode(res) || filteredChildrenArr.length;
-} // traverseHierarchy
-
-/**
- * Check if any of the query params for the hierarchy endpoint are set. If so,
- * call setFilter to set the filter based on the query param and call
- * traverseHierarchy to traverse and prune it.
- *
- * @param {ServerResponse} res - The subject response containing the samples
- *  and children as an array
- * @param {Object} params - The query parameters in the request along with its
- *  values
- * @returns {ServerResponse} res - The modified subject response
- */
-function modifyAPIResponse(res, params) {
-  for (const key in filters) {
-    if (key && params[key].value) {
-      u.setFilters(params, filters);
-      traverseHierarchy(res);
-      u.resetFilters(filters);
-      break;
-    }
-  }
-
-  return res;
-} // modifyAPIResponse
-
 module.exports = {
   apiLinks: {
     DELETE: `Delete this ${m}`,
@@ -167,7 +61,6 @@ module.exports = {
   belongsToManyAssoc: {
     users: 'writers',
   },
-  modifyAPIResponse,
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
   tagFilterName: 'tags',
