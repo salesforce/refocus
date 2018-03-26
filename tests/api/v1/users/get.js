@@ -23,6 +23,7 @@ const Token = tu.db.Token;
 
 describe('tests/api/v1/users/get.js >', () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
+  const ufullName = `${tu.namePrefix}test fullName`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId = '';
   let token;
@@ -41,6 +42,7 @@ describe('tests/api/v1/users/get.js >', () => {
     .then((profile) => User.create({
       profileId: profile.id,
       name: uname,
+      fullName: ufullName,
       email: uname,
       password: 'user123password',
     }))
@@ -85,6 +87,7 @@ describe('tests/api/v1/users/get.js >', () => {
       }
 
       expect(res.body).to.have.property('name', uname);
+      expect(res.body).to.have.property('fullName', ufullName);
       expect(res.body).to.not.have.property('password');
       expect(res.body.isDeleted).to.not.equal(0);
       done();
