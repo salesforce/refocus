@@ -15,7 +15,7 @@ const tu = require('../../testUtils');
 const u = require('../model/subject/utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const common = require('../../../db/helpers/common');
 
 describe('tests/db/helpers/common.js >', () => {
@@ -120,7 +120,9 @@ describe('tests/db/helpers/common.js >', () => {
       .catch(done);
     });
   });
-  describe('test sampleAspectAndSubjectArePublished and ' +
+
+  // TODO: delete these tests when deleting the sample model
+  describe.skip('test sampleAspectAndSubjectArePublished and ' +
   'augmentSampleWithSubjectAspectInfo function >', () => {
     let sub;
     before((done) => {
