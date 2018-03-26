@@ -2059,6 +2059,11 @@ paths:
           type: file
           format: binary
         -
+          name: version
+          in: formData
+          description: The version of the bot. Use Semantic Versioning 2.0.0
+          type: string
+        -
           name: actions
           in: formData
           description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
