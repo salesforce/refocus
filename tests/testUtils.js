@@ -24,6 +24,7 @@ const adminUser = require('../config').db.adminUser;
 const adminProfile = require('../config').db.adminProfile;
 const sampleStore = require('../cache/sampleStore');
 const redisClient = require('../cache/redisCache').client.sampleStore;
+const doTimeout = require('../cache/sampleStoreTimeout').doTimeout;
 
 /*
  * A wrapper to create, read, update and delete the samples using the same
@@ -37,8 +38,17 @@ const Sample = {
 
   // Return all the samples in sample store
   findAll: () => {
-    return redisClient.sortAsync(sampleStore.constants.indexKey.sample,
-      'alpha');
+    const commands = [];
+    return redisClient.sortAsync(sampleStore.constants.indexKey.sample,'alpha')
+    .then((sampleKeys) => {
+
+      sampleKeys.forEach((key) => {
+        commands.push(['hgetall', key]);
+      });
+
+      return redisClient.batch(commands).execAsync();
+    }).catch((err) => err);
+
   }, // findAll
 
   // Returns a sample object given its name
@@ -64,7 +74,7 @@ const Sample = {
   update: (toUpdate, sampleName, _userName) => {
     const wrappedObject = {
       queryBody: { value: toUpdate },
-      key: { value: toUpdate.name || sampleName},
+      key: { value: toUpdate.name || sampleName },
     };
     return sampleModel.patchSample(wrappedObject, _userName);
   }, // update
@@ -92,6 +102,8 @@ const Sample = {
   upsertByName: (toUpsert, user) => {
     return sampleModel.upsertSample(toUpsert, user);
   }, // upsertByName
+
+  doTimeout,
 }; // Sample
 
 /**
