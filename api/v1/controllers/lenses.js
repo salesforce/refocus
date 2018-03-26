@@ -20,7 +20,6 @@ const doFind = require('../helpers/verbs/doFind');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const lensesRoute = require('../constants').LENSES_ROUTE;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
@@ -198,7 +197,7 @@ module.exports = {
   deleteLensWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
+      helper.belongsToManyAssoc.users, userNameOrId);
   },
 
   /**
@@ -265,10 +264,10 @@ module.exports = {
    */
   getLens(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    const key = req.swagger.params.key.value;
+    const url = req.url;
 
     // try to get cached entry
-    redisCache.get(`${lensesRoute}/${key}`, (cacheErr, reply) => {
+    redisCache.get(url, (cacheErr, reply) => {
       if (reply) {
         // reply is responsified lens object as string.
         const lensObject = JSON.parse(reply);
@@ -304,9 +303,7 @@ module.exports = {
           res.status(httpStatus.OK).json(responseObj);
 
           // cache the lens by id and name.
-          const stringifiedObject = JSON.stringify(responseObj);
-          redisCache.set(`${lensesRoute}/${responseObj.id}`, stringifiedObject);
-          redisCache.set(`${lensesRoute}/${responseObj.name}`, stringifiedObject);
+          redisCache.set(url, JSON.stringify(responseObj));
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       }
