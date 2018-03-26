@@ -119,6 +119,12 @@ module.exports = function bot(seq, dataTypes) {
     },
 
     hooks: {
+
+      afterDestroy(inst /* , opts */) {
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
+      },
+
       /**
        * Clear this record from the cache so that a fresh entry is populated
        * from the API layer when the bot is fetched.
@@ -128,8 +134,8 @@ module.exports = function bot(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         // Clear the bot from the cache whether it's stored by id or by name.
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
       },
     },
   });

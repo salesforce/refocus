@@ -58,4 +58,6 @@ module.exports = {
     Info: 'Info',
     OK: 'OK',
   },
+  BOTS_ROUTE: '/v1/bots',
+  LENSES_ROUTE: '/v1/lenses',
 };

@@ -13,6 +13,7 @@
 
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const botsRoute = require('../constants').BOTS_ROUTE;
 const jwtUtil = require('../../../utils/jwtUtil');
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -20,6 +21,7 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const redisCache = require('../../../cache/redisCache').client.cache;
+const logger = require('winston');
 
 module.exports = {
 
@@ -60,9 +62,10 @@ module.exports = {
    */
   getBot(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
+    const key = req.swagger.params.key.value;
 
     // try to get cached entry
-    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+    redisCache.get(`${botsRoute}/${key}`, (cacheErr, reply) => {
       if (reply) {
         // reply is responsified bot object as string.
         const botObject = JSON.parse(reply);
@@ -75,7 +78,7 @@ module.exports = {
       }
       // if cache error, print error and continue to get bot from db.
       if (cacheErr) {
-        console.log(cacheErr); // eslint-disable-line no-console
+        logger.error('Cache error ', cacheErr);
       }
 
       // no reply, let's get bot from db
@@ -87,8 +90,8 @@ module.exports = {
       .then((responseObj) => {
         // cache the bot by id and name.
         const stringifiedObject = JSON.stringify(responseObj);
-        redisCache.set(responseObj.id, stringifiedObject);
-        redisCache.set(responseObj.name, stringifiedObject);
+        redisCache.set(`${botsRoute}/${responseObj.id}`, stringifiedObject);
+        redisCache.set(`${botsRoute}/${responseObj.name}`, stringifiedObject);
 
         u.logAPI(req, resultObj, responseObj);
         return res.status(httpStatus.OK).json(responseObj);

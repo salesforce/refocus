@@ -23,8 +23,9 @@ const assoc = {};
  */
 function setLensObjectInCache(_inst) {
   const lensObj = lensUtil.cleanAndCreateLensJson(_inst);
-  redisCache.set(lensObj.id, JSON.stringify(lensObj));
-  redisCache.set(lensObj.name, JSON.stringify(lensObj));
+  const stringifiedLens = JSON.stringify(lensObj);
+  redisCache.set(`${constants.lensesRoute}/${lensObj.id}`, stringifiedLens);
+  redisCache.set(`${constants.lensesRoute}/${lensObj.name}`, stringifiedLens);
 }
 
 module.exports = function lens(seq, dataTypes) {
@@ -202,8 +203,8 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterDestroy(inst /* , opts */) {
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
+        redisCache.del(`${constants.lensesRoute}/${lensObj.id}`);
+        redisCache.del(`${constants.lensesRoute}/${lensObj.name}`);
       },
 
       /**
@@ -231,8 +232,8 @@ module.exports = function lens(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         // Clear the lens from the cache whether it's stored by id or by name.
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
+        redisCache.del(`${constants.lensesRoute}/${lensObj.id}`);
+        redisCache.del(`${constants.lensesRoute}/${lensObj.name}`);
       },
     },
     name: {

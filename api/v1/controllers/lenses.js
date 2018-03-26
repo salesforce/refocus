@@ -20,10 +20,12 @@ const doFind = require('../helpers/verbs/doFind');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const lensesRoute = require('../constants').LENSES_ROUTE;
 const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
+const logger = require('winston');
 const ZERO = 0;
 const ONE = 1;
 
@@ -263,9 +265,10 @@ module.exports = {
    */
   getLens(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
+    const key = req.swagger.params.key.value;
 
     // try to get cached entry
-    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+    redisCache.get(`${lensesRoute}/${key}`, (cacheErr, reply) => {
       if (reply) {
         // reply is responsified lens object as string.
         const lensObject = JSON.parse(reply);
@@ -280,7 +283,7 @@ module.exports = {
       } else {
         // if cache error, print error and continue to get lens from db.
         if (cacheErr) {
-          console.log(cacheErr); // eslint-disable-line no-console
+          logger.error('Cache error ', cacheErr);
         }
 
         // no reply, go to db to get lens object.
@@ -301,8 +304,9 @@ module.exports = {
           res.status(httpStatus.OK).json(responseObj);
 
           // cache the lens by id and name.
-          redisCache.set(responseObj.id, JSON.stringify(responseObj));
-          redisCache.set(responseObj.name, JSON.stringify(responseObj));
+          const stringifiedObject = JSON.stringify(responseObj);
+          redisCache.set(`${lensesRoute}/${responseObj.id}`, stringifiedObject);
+          redisCache.set(`${lensesRoute}/${responseObj.name}`, stringifiedObject);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       }
