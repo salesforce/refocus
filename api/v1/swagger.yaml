@@ -9156,12 +9156,14 @@ paths:
               - email
               - id
               - name
+              - fullName
               - createdBy
               - createdAt
               - updatedAt
               - -email
               - -id
               - -name
+              - -fullName
               - -createdBy
               - -createdAt
               - -updatedAt
@@ -9227,6 +9229,11 @@ paths:
                 maxLength: 256
                 description: >
                   First and last name.
+              fullName:
+                type: string
+                maxLength: 256
+                description: >
+                  The user's full name.
               password:
                 type: string
             required:
@@ -9348,6 +9355,11 @@ paths:
                 maxLength: 256
                 description: >
                   First and last name.
+              fullName:
+                type: string
+                maxLength: 256
+                description: >
+                  The user's full name.
               password:
                 type: string
       responses:
@@ -9405,6 +9417,11 @@ paths:
                 maxLength: 256
                 description: >
                   First and last name.
+              fullName:
+                type: string
+                maxLength: 256
+                description: >
+                  The user's full name.
               password:
                 type: string
               profileId:
@@ -10881,6 +10898,12 @@ definitions:
         maxLength: 256
         description: >
           First and last name.
+      fullName:
+        type: string
+        readOnly: true
+        maxLength: 256
+        description: >
+          The user's full name.
       password:
         type: string
         readOnly: true
