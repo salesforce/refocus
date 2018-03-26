@@ -76,6 +76,7 @@ module.exports = {
         );
         return res.status(httpStatus.OK).json(botObject);
       }
+
       // if cache error, print error and continue to get bot from db.
       if (cacheErr) {
         logger.error('Cache error ', cacheErr);
@@ -96,9 +97,7 @@ module.exports = {
         u.logAPI(req, resultObj, responseObj);
         return res.status(httpStatus.OK).json(responseObj);
       })
-      .catch((err) => {
-        return u.handleError(next, err, helper.modelName);
-      });
+      .catch((err) => u.handleError(next, err, helper.modelName));
     });
   },
 
