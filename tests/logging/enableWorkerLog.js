@@ -19,7 +19,7 @@ const constants = require('../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const path = '/v1/samples/upsert/bulk';
 const jobQueue = require('../../jobQueue/setup').jobQueue;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Subject = tu.db.Subject;
 
 describe('tests/logging/enableWorkerLog.js >', () => {
@@ -171,16 +171,9 @@ describe('tests/logging/enableWorkerLog.js >', () => {
         { name: `${tu.namePrefix}Subject|${tu.namePrefix}ThreeHours`, value: 2 },
         { name: `${tu.namePrefix}Subject|${tu.namePrefix}NinetyDays`, value: 3 },
       ]))
-      .then(() => Sample.findAll({
-        attributes: ['name', 'updatedAt'],
-        where: {
-          name: {
-            $ilike: `${tu.namePrefix}Subject|%`,
-          },
-        },
-      })
+      .then(() => Sample.findAll()
       .each((s) => {
-        updatedAt = s.updatedAt;
+        updatedAt = new Date(s.updatedAt);
       }))
       .then(() => done())
       .catch(done);
@@ -200,13 +193,7 @@ describe('tests/logging/enableWorkerLog.js >', () => {
         expect(res).to.contains({ numberEvaluated: 4, numberTimedOut: 2 });
         expect(res.timedOutSamples.length).to.equal(res.numberTimedOut);
       })
-      .then(() => Sample.findAll({
-        where: {
-          name: {
-            $ilike: `${tu.namePrefix}Subject|%`,
-          },
-        },
-      })
+      .then(() => Sample.findAll()
       .each((s) => {
         switch (s.name) {
           case `${tu.namePrefix}Subject|${tu.namePrefix}OneSecond`:

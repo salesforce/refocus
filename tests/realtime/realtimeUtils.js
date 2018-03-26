@@ -302,48 +302,33 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
     // need done in these tests, otherwise tests pass before promise returns
     describe('attachAspectSubject tests', () => {
-      it('useSampleStore = true', (done) => {
-        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA, true)
+      const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+      it('without passing in subject and aspect models', (done) => {
+        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
         .then((sample) => {
           expect(sample).deep.equal(looksLikeSampleObjNA);
           done();
         })
         .catch(done);
       });
-
-      it('useSampleStore = false', (done) => {
-        let sampleFromDb = {
-          get: () => looksLikeSampleObjNA,
-        };
-        realtimeUtils.attachAspectSubject(sampleFromDb, false)
+      it('same output with upper sample name', (done) => {
+        copySample.name = copySample.name.toUpperCase();
+        realtimeUtils.attachAspectSubject(copySample, tu.db.Subject, tu.db.Aspect)
         .then((sample) => {
-          expect(sample).deep.equal(looksLikeSampleObjNA);
+          expect(sample.name).equal(copySample.name);
           done();
         })
         .catch(done);
       });
 
-      describe('case insensitive tests', () => {
-        const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
-        it('same output with upper sample name', (done) => {
-          copySample.name = copySample.name.toUpperCase();
-          realtimeUtils.attachAspectSubject(copySample, false, tu.db.Subject, tu.db.Aspect)
-          .then((sample) => {
-            expect(sample.name).equal(copySample.name);
-            done();
-          })
-          .catch(done);
-        });
-
-        it('same output with lower sample name', (done) => {
-          copySample.name = copySample.name.toLowerCase();
-          realtimeUtils.attachAspectSubject(copySample, false, tu.db.Subject, tu.db.Aspect)
-          .then((sample) => {
-            expect(sample.name).equal(copySample.name);
-            done();
-          })
-          .catch(done);
-        });
+      it('same output with lower sample name', (done) => {
+        copySample.name = copySample.name.toLowerCase();
+        realtimeUtils.attachAspectSubject(copySample, tu.db.Subject, tu.db.Aspect)
+        .then((sample) => {
+          expect(sample.name).equal(copySample.name);
+          done();
+        })
+        .catch(done);
       });
     });
   });

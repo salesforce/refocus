@@ -783,7 +783,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .catch(done);
     });
 
-    it('calculate invoked on aspect update', (done) => {
+    it.skip('calculate invoked on aspect update', (done) => {
       sample.update({ value: '7' })
       .should.eventually.have.property('value', '7')
       .then(() => Sample.findOne({
