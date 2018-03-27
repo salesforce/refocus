@@ -111,8 +111,7 @@ function addKey(type, name) {
 
 /**
  * Deletes an entry from the master list of indices identified by "type" and
- * and the corresponding hash identified by "name". Use this to delete a single
- * key from the subjectStore, aspectStore or SampleStore.
+ * and the corresponding hash identified by "name".
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param {String} name - Name of the key to be deleted
@@ -135,6 +134,37 @@ function deleteKey(type, name) {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => Promise.reject(err));
 } // deleteKey
+
+/**
+ * Deletes the samples associated with the passed in association type.
+ * @param  {String} name  - Name of the object whoes related samples are to be
+ * deleted
+ * @param  {String} associationType - Association type, using which the lookup
+ * needs to be done.
+ * @returns {Promise} - which resolves to the values returned by the redis batch
+ * command
+ */
+function deleteSampleKeys(name, associationType) {
+  const cmds = [];
+  const indexName = redisStore.constants.indexKey[sampleType];
+  const assocName = redisStore.toKey(associationType, name);
+  const nameKeySubjectNamePart = redisStore.toKey(sampleType, name);
+
+  return redisClient.smembersAsync(assocName)
+  .then((members) => {
+    const keyArr = [];
+    members.forEach((member) => {
+      keyArr.push(nameKeySubjectNamePart + '|' + member);
+    });
+
+    // remove the entries from the master list of index
+    cmds.push(['srem', indexName, Array.from(keyArr)]);
+
+    // delete the hashes too
+    cmds.push(['del', Array.from(keyArr)]);
+    return redisClient.batch(cmds).execAsync();
+  });
+}
 
 /**
  * Deletes entries from the sample master list of indexes that matches
@@ -219,76 +249,6 @@ function renameKey(type, oldName, newName) {
         .then((ret) => Promise.resolve(ret))
         .catch((err) => Promise.reject(err));
 } // renameKey
-
-/**
- * Renames the entries in the sample master list and the corresponding hashes
- * identified by the entries.
- * @param  {String} type - The type of the master list on which the
- * set operations are to be performed
- * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param  {String} oldName - The old key name
- * @param  {String} newName - The new key name
- * @returns {Promise} - which resolves to the values returned by the redis batch
- * command
- */
-function renameKeys(type, objectName, oldName, newName) {
-  if (type !== sampleType) {
-    return Promise.reject(false);
-  }
-
-  const indexName = redisStore.constants.indexKey[type];
-  const oldKey = redisStore.toKey(type, oldName);
-  const newKey = redisStore.toKey(type, newName);
-  const cmds = [];
-  return redisClient.smembersAsync(indexName)
-  .then((keys) => {
-    const finalNewKeyArr = [];
-    const finalOldKeyArr = [];
-
-    /*
-     * For each key in the sampleStore, split the key into subjectKey and aspect
-     * (calling it subjectKey because the subject has redis namespace prefixed
-     * to it ). If the subjectKey matches the oldKey and the objectName is
-     * subject, add the key to finalOldKeyArr to be removed later and
-     * add create a finalNewKey(sample key) using the newKey and the aspect name
-     * obtained after spliting the key. Add the finalNewKey to
-     * a finalNewKeyArr to be aded to the sampleStore later. Also, rename the
-     * set that corresponds to the key to finalNewKey. The same is done when
-     * the oldName matches the aspect name obtained from splitting the key and
-     * the objectName is aspect, expect the finaNewKey is created using the
-     * subjectKey from spiliting the key and the newName.
-     */
-    keys.forEach((key) => {
-      const nameParts = key.split('|');
-      const subjectKey = nameParts[0];
-      const aspect = nameParts[1];
-      let finalNewKey;
-      if (oldKey === subjectKey &&
-        objectName.toLowerCase() === redisStore.constants.objectType.subject) {
-        finalNewKey = newKey + '|' + aspect;
-        finalNewKeyArr.push(finalNewKey);
-        finalOldKeyArr.push(key);
-        cmds.push(['rename', key, finalNewKey]);
-      } else if (oldName === aspect &&
-        objectName.toLowerCase() === redisStore.constants.objectType.aspect) {
-        finalNewKey = subjectKey + '|' + newName;
-        finalNewKeyArr.push(finalNewKey);
-        finalOldKeyArr.push(key);
-        cmds.push(['rename', key, finalNewKey]);
-      }
-    });
-
-    // remove the old key from the master list of index
-    cmds.push(['srem', indexName, Array.from(finalOldKeyArr)]);
-
-    // add the new key to the master list of index
-    cmds.push(['sadd', indexName, Array.from(finalNewKeyArr)]);
-
-    return redisClient.batch(cmds).execAsync();
-  })
-  .then((ret) => Promise.resolve(ret))
-  .catch((err) => Promise.reject(err));
-} // renameKeys
 
 module.exports = {
 
@@ -456,11 +416,11 @@ module.exports = {
 
   renameKey,
 
-  renameKeys,
-
   deleteKey,
 
   deleteKeys,
+
+  deleteSampleKeys,
 
   addKey,
 
