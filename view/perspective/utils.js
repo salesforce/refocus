@@ -232,16 +232,6 @@ function getTagsFromArrays(arr) {
 }
 
 /**
- * Return only the published objects.
- * @param {Array} the array to filter from.
- * Contains objects with key isPublished
- * @returns {Array} with only objects containing isPublished: true
-*/
-function getPublishedFromArr(arr) {
-  return arr.filter((elem) => elem.isPublished);
-}
-
-/**
  * Accumulates information to load the perspective dropdown,
  * and the edit/create perspective modal
  *
@@ -395,9 +385,9 @@ function getValuesObject(accumulatorObject) {
      * GET named perspective: does NOT exist: handleError
      */
      const promisesArr = [
-      getPromiseWithUrl('/v1/lenses?fields=isPublished,name'),
-      getPromiseWithUrl('/v1/subjects?fields=isPublished,absolutePath,tags'),
-      getPromiseWithUrl('/v1/aspects?fields=isPublished,name,tags')
+      getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
+      getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
+      getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
      ];
 
      if (named) {
@@ -434,14 +424,13 @@ function getValuesObject(accumulatorObject) {
 
     // assign non-perspective values to the accumulator object.
     // TODO: subjects are objects. Change to use strings
-    valuesObj.subjects = getPublishedFromArr(subjects);
+    valuesObj.subjects = subjects;
     valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
-    valuesObj.lenses = getPublishedFromArr(lenses);
+    valuesObj.lenses = lenses;
 
     // aspectFilter is an array of strings
-    const publishedAspects = getPublishedFromArr(aspects);
-    valuesObj.aspectFilter = publishedAspects.map((aspect) => aspect.name);
-    valuesObj.aspectTagFilter = getTagsFromArrays(publishedAspects);
+    valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
+    valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
 
     return valuesObj;
   });
@@ -456,5 +445,4 @@ module.exports =  {
   getConfig,
   getArray,
   getTagsFromResources,
-  getPublishedFromArr,
 };
