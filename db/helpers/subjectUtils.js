@@ -11,7 +11,6 @@
  *
  * Used by the Subject model.
  */
-
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const ParentSubjectNotMatch = require('../dbErrors')
@@ -22,8 +21,8 @@ const SubjectAlreadyExistsUnderParent = require('../dbErrors')
   .SubjectAlreadyExistsUnderParent;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const sampleType = redisOps.sampleType;
 const subAspMapType = redisOps.subAspMapType;
+const Promise = require('bluebird');
 
 /**
  * Validates a given field ie. parentAbsolutePath, parentId.
@@ -112,22 +111,39 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
 }
 
 /**
+ * Deletes all the sample entries related to a subject. The following are
+ * deleted
+ * 1. subject to aspect mapping -> samsto:subaspmap:absolutePath
+ * 2. sample entry in samsto:samples (samsto:samples:oldAbsPath|*)
+ * 3. sample hash samsto:samples:oldAbsPath|*
+ * @param {String} absolutePath - The absolutePath of the subject
+ * @returns {Promise}
+ */
+function removeRelatedSamples(absolutePath) {
+  return redisOps.deleteSampleKeys(absolutePath, subAspMapType)
+  .then(() => redisOps.deleteKey(subAspMapType, absolutePath));
+} // deleteAssociatedSamples
+
+/**
  * Deletes the subject entry AND multiple possible sample entries from the
- * redis sample store.
+ * redis sample store.  The following are deleted
+ * 1. subject entry in samsto:subjects (samsto:subject:absolutePath)
+ * 2. subject hash samsto:subject:absolutePath
+ * 3. subject to aspect mapping -> samsto:subaspmap:absolutePath
+ * 4. sample entry in samsto:samples (samsto:samples:absolutePath|*)
+ * 5. sample hash samsto:samples:absolutePath|*
  *
  * @param {String} absolutePath - The absolutePath of the subject
  * @returns {Promise}
  */
 function removeFromRedis(absolutePath) {
-  return Promise.all([
-    redisOps.deleteKey(subjectType, absolutePath),
-    redisOps.deleteKeys(sampleType, subjectType, absolutePath),
-    redisOps.deleteKey(subAspMapType, absolutePath),
-  ]);
+  return Promise.join(redisOps.deleteKey(subjectType, absolutePath),
+    removeRelatedSamples(absolutePath));
 } // removeFromRedis
 
 module.exports = {
   removeFromRedis,
+  removeRelatedSamples,
   throwNotMatchError,
   updateParentFields,
   validateParentField,
