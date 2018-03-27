@@ -26,6 +26,7 @@
 
 const constants = require('../constants');
 const u = require('../helpers/botUtils');
+const redisCache = require('../../cache/redisCache').client.cache;
 const assoc = {};
 
 module.exports = function bot(seq, dataTypes) {
@@ -121,7 +122,27 @@ module.exports = function bot(seq, dataTypes) {
         });
       },
     },
+
+    hooks: {
+
+      afterDestroy(inst /* , opts */) {
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
+      },
+
+      /**
+       * Clear this record from the cache so that a fresh entry is populated
+       * from the API layer when the bot is fetched.
+       * Note: we don't just add inst to the cache from here because default
+       * scope excludes the "ui" attribute, which obviously needs to be
+       * cached.
+       */
+      afterUpdate(inst /* , opts */) {
+        // Clear the bot from the cache whether it's stored by id or by name.
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
+      },
+    },
   });
   return Bot;
 };
-
