@@ -41,7 +41,7 @@ describe('tests/api/v1/subjects/getWithLimit.js >', () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  // Skip tests which modify the deafult limit since we're caching the results.
+  // Skip tests which modify the default limit since we're caching the results.
   const skipTestsWhichModifyDefaultLimit = true;
   getWithLimit(path, false, skipTestsWhichModifyDefaultLimit);
 });
