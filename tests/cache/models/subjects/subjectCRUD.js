@@ -282,12 +282,16 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
   it('removeFromRedis removes all the related samples ' +
     'from the samplestore', (done) => {
-    // of the form samsto:samples:
     subjectUtils.removeFromRedis(parentName)
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
-      done();
+      const subAspMapKey = redisStore.toKey('subaspmap', parentName);
+      return rcli.smembersAsync(subAspMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+      return done();
     })
     .catch(done);
   });
@@ -301,7 +305,12 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
-      done();
+      const subAspMapKey = redisStore.toKey('subaspmap', par.name);
+      return rcli.smembersAsync(subAspMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+      return done();
     })
     .catch(done);
   });
@@ -314,17 +323,22 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .then((s) => s.update({ isPublished: false }))
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);
-      return Aspect.findById(aspTempId);
+      return rcli.smembersAsync(sampleIndexName);
     })
-    .then((a) => a.destroy())
-    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
-        /* all the samples related to the subject should be deleted */
+
+        // all the samples related to the subject should be deleted
         expect(nameParts[0]).not.equal(subjectWithPrefix);
       });
-      done();
+
+      const subAspMapKey = redisStore.toKey('subaspmap', par.name);
+      return rcli.smembersAsync(subAspMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+      return done();
     })
     .catch(done);
   });

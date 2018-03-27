@@ -32,6 +32,7 @@ describe('tests/db/model/bot/create.js >', () => {
       expect(o.data.length).to.equal(5);
       expect(o).to.have.property('settings');
       expect(o.settings.length).to.equal(1);
+      expect(o).to.have.property('version').to.equal('1.0.0');
       done();
     })
   .catch(done);
@@ -42,6 +43,7 @@ describe('tests/db/model/bot/create.js >', () => {
       name: '',
       url: 'http://www.bar.com',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
@@ -58,7 +60,6 @@ describe('tests/db/model/bot/create.js >', () => {
     Promise.all([Bot.create(u.getStandard()), Bot.create(u.getStandard())])
     .then(() => done(tu.uniError))
     .catch((err) => {
-      debugger;
       expect(err.name).to.equal(tu.uniErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
       expect(err.errors[0].message).to.contain('name must be unique');
@@ -73,6 +74,7 @@ describe('tests/db/model/bot/create.js >', () => {
       name: u.name,
       url: 'notURL',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
@@ -90,6 +92,7 @@ describe('tests/db/model/bot/create.js >', () => {
       name: invalidValue,
       url: 'http://www.test.com',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
@@ -251,6 +254,19 @@ describe('tests/db/model/bot/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, no version specified', (done) => {
+    let bot = u.getStandard();
+    delete bot.version;
+    Bot.create(bot)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('version cannot be null');
       done();
     })
   .catch(done);
