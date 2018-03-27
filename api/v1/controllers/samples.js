@@ -162,9 +162,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSampleBulkUpsertStatus(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
     kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
       /*
        * throw the "ResourceNotFoundError" if there is an error in getting the
        * job or the job is not a bulkUpsert job
@@ -178,6 +181,7 @@ module.exports = {
       const ret = {};
       ret.status = job._state;
       ret.errors = job.result ? job.result.errors : [];
+      u.logAPI(req, resultObj, ret);
       return res.status(httpStatus.OK).json(ret);
     });
   },
@@ -204,8 +208,8 @@ module.exports = {
 
     const userName = req.user ? req.user.name : undefined;
     redisModelSample.patchSample(req.swagger.params, userName)
-    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
-      res))
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => { // e.g. the sample is write protected
       // Tracking invalid sample name problems, e.g. missing name
       if (err.name === 'ResourceNotFoundError') {
@@ -226,17 +230,19 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const toPost = reqParams.queryBody.value;
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     u.checkDuplicateRLinks(toPost.relatedLinks);
-
     redisModelSample.postSample(toPost, req.user)
     .then((sample) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       publisher.publishSample(sample, helper.associatedModels.subject,
       realtimeEvents.sample.add, helper.associatedModels.aspect);
-      return res.status(httpStatus.CREATED).json(
-        u.responsify(sample, helper, req.method));
+      u.logAPI(req, resultObj, sample);
+      return res.status(httpStatus.CREATED)
+        .json(u.responsify(sample, helper, req.method));
     })
     .catch((err) => {
       // Tracking invalid sample name problems, e.g. missing name
@@ -269,8 +275,8 @@ module.exports = {
 
     const userName = req.user ? req.user.name : undefined;
     redisModelSample.putSample(req.swagger.params, userName)
-    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper,
-      res))
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => {
       // Tracking invalid sample name problems, e.g. missing name
       if (err.name === 'ResourceNotFoundError') {

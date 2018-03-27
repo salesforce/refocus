@@ -127,8 +127,7 @@ module.exports = {
     try {
       for (const param in reqObj) {
         if (reqObj[param].value) {
-          if (typeof (reqObj[param].value) === 'object' &&
-            param === 'ui') {
+          if (typeof (reqObj[param].value) === 'object' && param === 'ui') {
             seqObj[param] = reqObj[param].value.buffer;
             uiObj.name = reqObj[param].value.originalname;
             uiObj.size = reqObj[param].value.size;
@@ -141,19 +140,13 @@ module.exports = {
       helper.model.create(seqObj)
         .then((o) => {
           o.dataValues.ui = uiObj;
-          if (helper.loggingEnabled) {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, o.dataValues);
-          }
-
-          o.dataValues.token = jwtUtil
-            .createToken(seqObj.name, seqObj.name);
+          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
             .json(u.responsify(o, helper, req.method));
         })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
+        .catch((err) => u.handleError(next, err, helper.modelName));
     } catch (err) {
       err.description = 'Invalid UI uploaded.';
       u.handleError(next, err, helper.modelName);
@@ -190,12 +183,10 @@ module.exports = {
       return o.save();
     })
     .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       o.dataValues.ui = uiObj;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.CREATED).json(
-        u.responsify(o, helper, req.method)
-      );
+      res.status(httpStatus.CREATED).json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
