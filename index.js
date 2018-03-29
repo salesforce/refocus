@@ -24,8 +24,16 @@ const sampleStore = require('./cache/sampleStoreInit');
 
 /**
  * Entry point for each clustered process.
+ *
+ * @param {Number} workerId - if called from throng, it's the worker process id
  */
-function start() { // eslint-disable-line max-statements
+function start(workerId) { // eslint-disable-line max-statements
+  if (workerId) {
+    console.log(`Started node worker process ${workerId}.`);
+  } else {
+    console.log('Started node server.')
+  }
+
   /*
    * Heroku support suggested we use segfault-handler but it's not available
    * for node 8 yet.
@@ -264,13 +272,19 @@ function start() { // eslint-disable-line max-statements
   require('./view/loadView')(app, passportModule, '/v1');
 
   module.exports = { app, passportModule };
-}
+} // start
+
+function startMaster() {
+  console.log('Started node cluster master.');
+} // startMaster
 
 const isProd = (process.env.NODE_ENV === 'production');
 if (isProd) {
-  throng(start, {
-    workers: WORKERS,
+  throng({
     lifetime: Infinity,
+    master: startMaster,
+    start,
+    workers: WORKERS,
   });
 } else {
   start();
