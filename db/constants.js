@@ -42,4 +42,6 @@ module.exports = {
   },
   SGEncryptionKey: 'SampleGeneratorEncryptionKey',
   SGEncryptionAlgorithm: 'SampleGeneratorEncryptionAlgorithm',
+  botsRoute: '/v1/bots',
+  lensesRoute: '/v1/lenses',
 };
