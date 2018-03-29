@@ -25,14 +25,11 @@ const sampleStore = require('./cache/sampleStoreInit');
 /**
  * Entry point for each clustered process.
  *
- * @param {Number} workerId - if called from throng, it's the worker process id
+ * @param {Number} clusterProcessId - process id if called from throng,
+ *  otherwise 0
  */
-function start(workerId) { // eslint-disable-line max-statements
-  if (workerId) {
-    console.log(`Started node worker process ${workerId}.`);
-  } else {
-    console.log('Started node server.');
-  }
+function start(clusterProcessId = 0) { // eslint-disable-line max-statements
+  console.log(`Started node process ${clusterProcessId}`);
 
   /*
    * Heroku support suggested we use segfault-handler but it's not available
@@ -161,8 +158,13 @@ function start(workerId) { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    app.use((req, res, next) => { // add timestamp to request
+    /*
+     * Custom middleware to add timestamp and node cluster worker id to the
+     * request.
+     */
+    app.use((req, res, next) => {
       req.timestamp = Date.now();
+      req.clusterProcessId = clusterProcessId;
       next();
     });
 
@@ -275,7 +277,7 @@ function start(workerId) { // eslint-disable-line max-statements
 } // start
 
 function startMaster() {
-  console.log('Started node cluster master.');
+  console.log('Started node cluster master');
 } // startMaster
 
 const isProd = (process.env.NODE_ENV === 'production');
