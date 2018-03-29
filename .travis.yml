@@ -51,7 +51,7 @@ before_install:
 install:
   - npm ci
 
-#cache:
-# directories:
+cache:
+ directories:
 # - "$HOME/.npm"
-# - node_modules
+ - node_modules
