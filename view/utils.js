@@ -99,10 +99,10 @@ function removeSpinner(spinnerID) {
  * @param {String} url The url to get from
  * @returns {Promise} For use in chaining.
  */
-function getPromiseWithUrl(url) {
+function getPromiseWithUrl(url, headers) {
   return new Promise((resolve, reject) => {
     request.get(url)
-    .set(REQ_HEADERS)
+    .set(headers || REQ_HEADERS)
     .end((error, response) => {
       // reject if error is present, otherwise resolve request
       if (error) {
