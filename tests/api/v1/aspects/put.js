@@ -613,6 +613,11 @@ describe('tests/api/v1/aspects/put.js >', () => {
       isPublished: true,
       timeout: '60s',
     };
+    const asp3 = {
+      name: `${tu.namePrefix}ASPECT3`,
+      isPublished: true,
+      timeout: '60s',
+    };
     const sgt1 = gtu.getGeneratorTemplate();
     const gen1 = gu.getGenerator();
     gen1.name = 'sample-generator-1';
@@ -623,7 +628,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
     gen2.name = 'sample-generator-2';
     gen2.generatorTemplate.name = sgt1.name;
     gen2.generatorTemplate.version = sgt1.version;
-    gen2.aspects = [asp2.name];
+    gen2.aspects = [asp2.name, asp3.name.toLowerCase()];
 
     before((done) => {
       tu.createToken()
@@ -637,6 +642,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
     beforeEach((done) => {
       Aspect.create(asp1)
       .then(() => Aspect.create(asp2))
+      .then(() => Aspect.create(asp3))
       .then(() => GeneratorTemplate.create(sgt1))
       .then(() => Generator.create(gen1))
       .then(() => Generator.create(gen2))
@@ -685,8 +691,28 @@ describe('tests/api/v1/aspects/put.js >', () => {
       .end(done);
     });
 
+    it('unpublish fails (multiple generators)', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(asp2));
+      aspectObj.isPublished = false;
+
+      api.put(`${path}/${asp2.name}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot unpublish Aspect ___ASPECT2. It is currently in use by 2 ' +
+          'Sample Generators: sample-generator-1,sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+
     it('rename fails (multiple generators)', (done) => {
-      const aspectObj = JSON.parse(JSON.stringify(asp1));
+      const aspectObj = JSON.parse(JSON.stringify(asp2));
       aspectObj.name = 'UPDATED_NAME';
 
       api.put(`${path}/${asp2.name}`)
@@ -699,6 +725,44 @@ describe('tests/api/v1/aspects/put.js >', () => {
         expect(res.body.errors[0].message).to.equal(
           'Cannot rename Aspect ___ASPECT2. It is currently in use by 2 ' +
           'Sample Generators: sample-generator-1,sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+    it('unpublish fails (case insensitive)', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(asp3));
+      aspectObj.isPublished = false;
+
+      api.put(`${path}/${asp3.name}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot unpublish Aspect ___ASPECT3. It is currently in use by a ' +
+          'Sample Generator: sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+    it('rename fails (case insensitive)', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(asp3));
+      aspectObj.name = 'UPDATED_NAME';
+
+      api.put(`${path}/${asp3.name}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot rename Aspect ___ASPECT3. It is currently in use by a ' +
+          'Sample Generator: sample-generator-2'
         );
       })
       .end(done);

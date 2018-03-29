@@ -356,8 +356,10 @@ module.exports = function aspect(seq, dataTypes) {
 
       checkGeneratorReferences(action) {
         const aspectName = this.previous('name');
-        const where = { where: { aspects: { $contains: [aspectName] } } };
-        return seq.models.Generator.findAll(where)
+
+        // the aspect names are stored in lowercase on the generator
+        const where = { aspects: { $contains: [aspectName.toLowerCase()] } };
+        return seq.models.Generator.findAll({ where })
         .then((gens) => {
           if (gens.length) {
             const genNames = gens.map(g => g.name);

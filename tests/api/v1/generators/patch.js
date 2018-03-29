@@ -35,6 +35,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
       return GeneratorTemplate.create(generatorTemplate);
     })
     .then(() => Generator.create(generatorToCreate))
+    .then(u.createGeneratorAspects())
     .then((gen) => {
       i = gen.id;
       done();
@@ -48,7 +49,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
 
   it('simple patching: ok', (done) => {
     const newDescription = {
-      description: 'Smiple patching test of generator',
+      description: 'Simple patching test of generator',
     };
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
@@ -56,6 +57,20 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.description).to.equal(newDescription.description);
+    })
+    .end(done);
+  });
+
+  it('patch aspects - saved lowercase', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ aspects: ['WEATHER', 'Temperature'] })
+    .expect(res => console.log(res.body))
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('weather');
+      expect(res.body.aspects[1]).to.equal('temperature');
     })
     .end(done);
   });
@@ -98,6 +113,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
     })
     .end(done);
   });
+
 
   it('switch isActive from false to true', (done) => {
     api.patch(`${path}/${i}`)

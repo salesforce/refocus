@@ -267,6 +267,11 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       isPublished: true,
       timeout: '60s',
     };
+    const asp3 = {
+      name: `${tu.namePrefix}ASPECT3`,
+      isPublished: true,
+      timeout: '60s',
+    };
     const sgt1 = gtu.getGeneratorTemplate();
     const gen1 = gu.getGenerator();
     gen1.name = 'sample-generator-1';
@@ -277,7 +282,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
     gen2.name = 'sample-generator-2';
     gen2.generatorTemplate.name = sgt1.name;
     gen2.generatorTemplate.version = sgt1.version;
-    gen2.aspects = [asp2.name];
+    gen2.aspects = [asp2.name, asp3.name.toLowerCase()];
 
     before((done) => {
       tu.createToken()
@@ -291,6 +296,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
     beforeEach((done) => {
       Aspect.create(asp1)
       .then(() => Aspect.create(asp2))
+      .then(() => Aspect.create(asp3))
       .then(() => GeneratorTemplate.create(sgt1))
       .then(() => Generator.create(gen1))
       .then(() => Generator.create(gen2))
@@ -325,6 +331,21 @@ describe('tests/api/v1/aspects/delete.js >', () => {
         expect(res.body.errors[0].message).to.equal(
           'Cannot delete Aspect ___ASPECT2. It is currently in use by 2 ' +
           'Sample Generators: sample-generator-1,sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+    it('delete fails (case insensitive)', (done) => {
+      api.delete(`${path}/${asp3.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot delete Aspect ___ASPECT3. It is currently in use by a ' +
+          'Sample Generator: sample-generator-2'
         );
       })
       .end(done);
