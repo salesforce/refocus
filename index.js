@@ -31,7 +31,7 @@ function start(workerId) { // eslint-disable-line max-statements
   if (workerId) {
     console.log(`Started node worker process ${workerId}.`);
   } else {
-    console.log('Started node server.')
+    console.log('Started node server.');
   }
 
   /*
