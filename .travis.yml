@@ -53,5 +53,5 @@ install:
 
 cache:
  directories:
-# - "$HOME/.npm"
+ - "$HOME/.npm"
  - node_modules
