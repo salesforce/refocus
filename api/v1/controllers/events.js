@@ -30,10 +30,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findEvents(req, res, next) {
-    if (!req.swagger.params.limit.value) {
-      req.swagger.params.limit.value = DEFAULT_LIMIT;
-    }
-
     doFind(req, res, next, helper);
   },
 

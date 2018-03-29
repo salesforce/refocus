@@ -56,8 +56,12 @@ const DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION = 5;
 
 // Expiry time used for redis cache
 const DEFAULT_CACHE_EXPIRY_IN_SECS = 60;
-const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
+const CACHE_EXPIRY_IN_SECS = +pe.CACHE_EXPIRY_IN_SECS ||
   DEFAULT_CACHE_EXPIRY_IN_SECS;
+
+// Override CACHE_EXPIRY_IN_SECS for subject find requests.
+const SUBJECT_CACHE_EXPIRY_IN_SECS = +pe.SUBJECT_CACHE_EXPIRY_IN_SECS ||
+  CACHE_EXPIRY_IN_SECS;
 
 // request limiter settings
 const expressLimiterPath = configUtil.csvToArray(pe.EXPRESS_LIMITER_PATH);
@@ -253,6 +257,7 @@ module.exports = {
   JOB_REMOVAL_DELAY,
   JOB_REMOVAL_BATCH_SIZE,
   JOB_COUNTER_RESET_INTERVAL,
+  SUBJECT_CACHE_EXPIRY_IN_SECS,
   deprioritizeJobsFrom,
   expressLimiterPath,
   expressLimiterMethod,

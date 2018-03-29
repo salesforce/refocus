@@ -39,20 +39,6 @@ const filters = {
 };
 
 /**
- * Given absolutePath, return whether the subject is in cache
- *
- * @param {String} absolutePath
- * @returns {Promise} resolves to true for found, false for not
- */
-function subjectInSampleStore(absolutePath) {
-  const subjectKey = sampleStore.toKey('subject', absolutePath);
-
-  // get from cache
-  return redisClient.sismemberAsync(
-    sampleStore.constants.indexKey.subject, subjectKey);
-}
-
-/**
  * Given a subject with its samples, aspect, aspectTags and sampleStatus filters
  * are applied to the samples and the filtered samples are attached back to the
  * subject
@@ -194,8 +180,8 @@ function getNameFromAbsolutePath(absolutePath) {
 }
 
 /**
- *  When passed a partial subject hierarchy without samples, the subject
- *  hierarchy is completed by attaching samples to it.
+ * When passed a partial subject hierarchy without samples, the subject
+ * hierarchy is completed by attaching samples to it.
  *
  * @param {ServerResponse} res - The subject response containing the samples
  *  and children as an array
@@ -243,8 +229,6 @@ function prepareFields(subject, opts, req) {
 
 module.exports = {
   completeSubjectHierarchy,
-
-  subjectInSampleStore,
 
   /**
    * Returns subject with filter options if provided.

@@ -32,6 +32,7 @@ const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
 const common = require('../../../utils/common');
+const config = require('../../../config');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 
@@ -81,7 +82,7 @@ function validateParentFields(req, res, next, callback) {
   } else {
     callback();
   }
-}
+} // validateParentFields
 
 /**
  * Validates the correct filter parameter
@@ -198,7 +199,9 @@ module.exports = {
   /**
    * GET /subjects
    *
-   * Finds zero or more subjects and sends them back in the response.
+   * Finds zero or more subjects and sends them back in the response. Uses
+   * cached response if env var SUBJECT_CACHE_EXPIRY_IN_SECS > 0 and cached
+   * response is available.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -206,17 +209,10 @@ module.exports = {
    */
   findSubjects(req, res, next) {
     validateTags(null, req.swagger.params);
-    if (featureToggles.isFeatureEnabled('getSubjectFromCache')) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      redisSubjectModel.findSubjects(req, res, resultObj)
-      .then((response) => {
-        u.logAPI(req, resultObj, response);
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doFind(req, res, next, helper);
-    }
+    helper.cacheEnabled = config.SUBJECT_CACHE_EXPIRY_IN_SECS > 0;
+    helper.cacheExpiry = config.SUBJECT_CACHE_EXPIRY_IN_SECS;
+    helper.cacheKey = req.url;
+    doFind(req, res, next, helper);
   },
 
   /**
@@ -232,19 +228,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      !common.looksLikeId(req.swagger.params.key.value)
-    ) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      redisSubjectModel.getSubject(req, res, resultObj)
-      .then((response) => {
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
-      })
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doGet(req, res, next, helper);
-    }
+    doGet(req, res, next, helper);
   },
 
   /**
@@ -407,34 +391,7 @@ module.exports = {
       );
     }
 
-    const { name, parentId, parentAbsolutePath } =
-      req.swagger.params.queryBody.value;
-
-    /*
-     * if cache is on AND parentId
-     * is not provided, check whether the subject exists in cache.
-     * Else if parentId is provided OR cache is off,
-     * do normal post.
-     */
-    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      !u.looksLikeId(parentId)) {
-      const absolutePath = parentAbsolutePath ?
-        (parentAbsolutePath + '.' + name) : name;
-      redisSubjectModel.subjectInSampleStore(absolutePath)
-      .then((found) => {
-        if (found) {
-          throw new apiErrors.DuplicateResourceError(
-            'The subject lower case absolutePath must be unique');
-        }
-
-        doPost(req, res, next, helper);
-      })
-      .catch((err) => {
-        u.handleError(next, err, helper.modelName);
-      });
-    } else {
-      doPost(req, res, next, helper);
-    }
+    doPost(req, res, next, helper);
   },
 
   /**
