@@ -302,33 +302,122 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
     // need done in these tests, otherwise tests pass before promise returns
     describe('attachAspectSubject tests', () => {
-      const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
-      it('without passing in subject and aspect models', (done) => {
-        realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
-        .then((sample) => {
-          expect(sample).deep.equal(looksLikeSampleObjNA);
-          done();
-        })
-        .catch(done);
-      });
-      it('same output with upper sample name', (done) => {
-        copySample.name = copySample.name.toUpperCase();
-        realtimeUtils.attachAspectSubject(copySample, tu.db.Subject, tu.db.Aspect)
-        .then((sample) => {
-          expect(sample.name).equal(copySample.name);
-          done();
-        })
-        .catch(done);
+
+      describe('with data from sampleStore', () => {
+
+        it('without sample having subject and aspect objects ' +
+          'attached', (done) => {
+
+          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          delete sampleObj.aspect;
+          delete sampleObj.subject;
+
+          realtimeUtils.attachAspectSubject(sampleObj)
+          .then((sample) => {
+            expect(sample.aspect.name).to.include(aspectOne.name);
+            expect(sample.subject.name).to.equal(rootSubjNA);
+            sampleObj.aspect = sample.aspect;
+            sampleObj.subject = sample.subject;
+            expect(sample).to.deep.equal(sampleObj);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('with sample having subject and aspect objects attached', (done) => {
+          realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
+          .then((sample) => {
+            expect(sample).to.deep.equals(looksLikeSampleObjNA);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('with sample having aspect attached but not subject ' +
+          'attached', (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          delete sampleObj.subject;
+          realtimeUtils.attachAspectSubject(sampleObj)
+          .then((sample) => {
+            expect(sample.subject.name).to.equal(rootSubjNA);
+            sampleObj.subject = sample.subject;
+            expect(sample).to.deep.equal(sampleObj);
+            return done();
+          })
+          .catch(done);
+        });
       });
 
-      it('same output with lower sample name', (done) => {
-        copySample.name = copySample.name.toLowerCase();
-        realtimeUtils.attachAspectSubject(copySample, tu.db.Subject, tu.db.Aspect)
-        .then((sample) => {
-          expect(sample.name).equal(copySample.name);
-          done();
-        })
-        .catch(done);
+      describe('with data from db', () => {
+        before(() => tu.toggleOverride('attachSubAspFromDB', true));
+        after(() => tu.toggleOverride('attachSubAspFromDB', false));
+
+        it('without sample having subject and aspect objects ' +
+          'attached', (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          delete sampleObj.aspect;
+          delete sampleObj.subject;
+          realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
+            tu.db.Aspect)
+          .then((sample) => {
+            expect(sample.aspect.name).to.include(aspectOne.name);
+            expect(sample.subject.name).to.equal(rootSubjNA);
+            sampleObj.aspect = sample.aspect;
+            sampleObj.subject = sample.subject;
+            expect(sample).to.deep.equal(sampleObj);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('with sample already having subject and aspect objects ' +
+          'attached', (done) => {
+          realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
+          .then((sample) => {
+            expect(sample).to.deep.equals(looksLikeSampleObjNA);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('with sample having aspect attached but not subject ' +
+          'attached', (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          delete sampleObj.subject;
+          realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
+            tu.db.Aspect)
+          .then((sample) => {
+            expect(sample.subject.name).to.equal(rootSubjNA);
+            sampleObj.subject = sample.subject;
+            expect(sample).to.deep.equal(sampleObj);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('same output with upper sample name', (done) => {
+          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          copySample.name = copySample.name.toUpperCase();
+          realtimeUtils.attachAspectSubject(copySample)
+          .then((sample) => {
+            expect(sample.name).equal(copySample.name);
+            expect(sample.absolutePath).to.equal(looksLikeSampleObjNA
+              .absolutePath);
+            done();
+          })
+          .catch(done);
+        });
+
+        it('same output with lower sample name', (done) => {
+          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          copySample.name = copySample.name.toLowerCase();
+          realtimeUtils.attachAspectSubject(copySample)
+          .then((sample) => {
+            expect(sample.name).equal(copySample.name);
+            done();
+          })
+          .catch(done);
+        });
       });
     });
   });
