@@ -168,7 +168,17 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       next();
     });
 
-    app.use('/static', express.static(path.join(__dirname, 'public')));
+    /*
+     * Serve static assets from /public dir, and specify caching by setting the
+     * Cache-Control header in the response.
+     */
+    const staticOpts = {
+      setHeaders: (res, path, stat) => {
+        res.set('Cache-Control', 'public, max-age=31536000');
+      },
+    };
+    app.use('/static',
+      express.static(path.join(__dirname, 'public'), staticOpts));
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
