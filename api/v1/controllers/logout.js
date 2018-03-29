@@ -41,6 +41,7 @@ module.exports = {
         });
       });
     } else {
+      u.logAPI(req, resultObj);
       return res.status(httpStatus.UNAUTHORIZED).json({
         success: false,
         message: 'User already logged out',

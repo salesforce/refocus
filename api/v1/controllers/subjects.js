@@ -369,10 +369,7 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next,
-    () => {
-      doPatch(req, res, next, helper);
-    });
+    validateParentFields(req, res, next, () => doPatch(req, res, next, helper));
   },
 
   /**
@@ -453,10 +450,7 @@ module.exports = {
       );
     }
 
-    validateParentFields(req, res, next,
-    () => {
-      doPut(req, res, next, helper);
-    });
+    validateParentFields(req, res, next, () => doPut(req, res, next, helper));
   },
 
   /**

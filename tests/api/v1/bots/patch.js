@@ -44,6 +44,22 @@ describe('tests/api/v1/bots/patch.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
+  it('Pass, patch bot version', (done) => {
+    const version = '2.0.0';
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ version })
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.version).to.equal(version);
+      done();
+    });
+  });
+
   it('Pass, patch bot name', (done) => {
     const newName = 'newName';
     api.patch(`${path}/${testBot.id}`)
