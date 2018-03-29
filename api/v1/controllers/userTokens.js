@@ -73,16 +73,14 @@ module.exports = {
     // get user token
     helper.model.findOne(whr)
     .then((token) => {
-      // if no token found, return error
-      if (!token) {
+      if (!token) { // if no token found, return error
         const err = new apiErrors.ResourceNotFoundError();
         err.resource = helper.model.name;
         err.key = user + ', ' + tokenName;
         throw err;
       }
 
-      // Default token cannot be deleted
-      if (token.name === token.User.name) {
+      if (token.name === token.User.name) { // Default token cannot be deleted!
         throw new apiErrors.ForbiddenError({
           explanation: 'Forbidden.',
         });
@@ -90,7 +88,7 @@ module.exports = {
 
       /*
        * Ok to destroy the token if the request is made by an admin user or
-       * if an non admin user wants to revoke their own token
+       * if an non admin user wants to revoke their own token.
        */
       if (req.headers.IsAdmin || token.createdBy === req.user.id) {
         return token.destroy();
@@ -103,14 +101,11 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, o.dataValues);
-      if (o) {
-        // object deleted successfully
-        res.status(httpStatus.OK)
-        .json(u.responsify(o, helper, req.method));
+      if (o) { // object deleted successfully
+        u.logAPI(req, resultObj, o.dataValues);
+        res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
       } else if (o instanceof Error) {
-        // forbidden err
-        throw o;
+        throw o; // forbidden err
       }
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

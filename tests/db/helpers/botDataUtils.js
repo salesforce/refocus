@@ -31,6 +31,7 @@ const bot1 = {
   data: [
     { name: 'response', type: 'STRING' },
   ],
+  version: '1.0.0',
 };
 const bot2 = {
   name: 'TestBot2',
@@ -41,6 +42,7 @@ const bot2 = {
   data: [
     { name: 'data', type: 'STRING' },
   ],
+  version: '1.0.0',
 };
 const bot3 = {
   name: 'TestBot3',
@@ -51,6 +53,7 @@ const bot3 = {
   data: [
     { name: 'data', type: 'STRING' },
   ],
+  version: '1.0.0',
 };
 const roomType = {
   name: 'roomTypeTests',

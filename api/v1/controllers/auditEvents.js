@@ -109,11 +109,9 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
       const jobType = require('../../../jobQueue/setup').jobType;
       const jobWrapper = require('../../../jobQueue/jobWrapper');
-
       const payload = {};
       payload.auditEvents = auditEvents;
       payload.reqStartTime = reqStartTime;
-
       const jobPromise = jobWrapper
         .createPromisifiedJob(jobType.BULK_CREATE_AUDIT_EVENTS,
           payload, req);

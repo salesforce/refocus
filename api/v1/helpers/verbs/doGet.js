@@ -46,6 +46,8 @@ function doGet(req, res, next, props) {
         // if err or no reply, get from db and set redis cache
         u.findByKey(props, req.swagger.params, scopes)
         .then((o) => {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o);
           res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
 
           // cache the object by cacheKey. Store the key-value pair in cache

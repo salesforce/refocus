@@ -218,10 +218,11 @@ function reregisterCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function heartbeat(req, res, next) {
+  const resultObj = { reqStartTime: req.timestamp };
   if (!req.headers.IsCollector) {
     throw new apiErrors.ForbiddenError({
       explanation: `The token: ${req.headers.TokenName} does not belong to ' +
-      'a collector`,
+        'a collector`,
     });
   }
 
@@ -256,8 +257,6 @@ function heartbeat(req, res, next) {
     }
 
     retval.collectorConfig.status = o.status;
-
-    // set lastHeartbeat
     o.set('lastHeartbeat', timestamp);
 
     // update metadata
@@ -298,6 +297,7 @@ function heartbeat(req, res, next) {
 
   // assign the changed generators to retval
   .then((generators) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     retval.generatorsAdded = generators[0];
     retval.generatorsDeleted = generators[1];
     retval.generatorsUpdated = generators[2];
@@ -328,9 +328,10 @@ function heartbeat(req, res, next) {
     )
   ))
   .then((updated) => retval.generatorsUpdated = updated)
-
-  // send response
-  .then(() => res.status(httpStatus.OK).json(retval))
+  .then(() => {
+    u.logAPI(req, resultObj, retval);
+    res.status(httpStatus.OK).json(retval);
+  })
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // heartbeat
 
@@ -345,6 +346,7 @@ function heartbeat(req, res, next) {
  * @returns {Object} - Response of the start endpoint
  */
 function startCollector(req, res, next) {
+  const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
   requestBody.status = 'Running';
   requestBody.createdBy = req.user.id;
@@ -383,6 +385,7 @@ function startCollector(req, res, next) {
     .then((generators) => Promise.all(generators.map((g) =>
       g.updateForHeartbeat())))
     .then((generators) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
         // generator associations before adding it to the response
         delete g.GeneratorCollectors;
@@ -399,13 +402,14 @@ function startCollector(req, res, next) {
       );
 
       collectorToReturn.dataValues.collectorConfig = config.collector;
-      collectorToReturn.dataValues.collectorConfig.status = collectorToReturn.status;
-
+      collectorToReturn.dataValues.collectorConfig.status =
+        collectorToReturn.status;
+      u.logAPI(req, resultObj, collectorToReturn);
       return res.status(httpStatus.OK)
         .json(u.responsify(collectorToReturn, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
-}
+} // startCollector
 
 /**
  * POST /collectors/{key}/stop
