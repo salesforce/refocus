@@ -33,12 +33,13 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   rebuildSampleStore(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
     if (!req.headers.IsAdmin) {
       return u.forbidden(next);
     }
 
     const enabled = featureToggles
-        .isFeatureEnabled(sampleStore.constants.featureName);
+      .isFeatureEnabled(sampleStore.constants.featureName);
     if (!enabled) {
       const err = new apiErrors.InvalidSampleStoreState({
         explanation: 'You cannot rebuild the sample store if the ' +
@@ -49,7 +50,11 @@ module.exports = {
 
     return sampleStoreInit.eradicate()
       .then(() => sampleStoreInit.populate())
-      .then(() => res.status(httpStatus.NO_CONTENT).json())
+      .then(() => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, {});
+        res.status(httpStatus.NO_CONTENT).json();
+      })
       .catch(() => u.forbidden(next));
   },
 }; // exports

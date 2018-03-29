@@ -15,7 +15,6 @@ const u = require('./utils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
 const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
 

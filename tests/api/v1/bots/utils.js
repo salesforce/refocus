@@ -52,6 +52,7 @@ const standard = {
     { name: 'Data4', type: 'STRING' },
     { name: 'Data5', type: 'ARRAY' },
   ],
+  version: '1.0.0',
 };
 
 const nonActive = {
@@ -113,6 +114,7 @@ const nonActive = {
       type: 'ARRAY',
     },
   ],
+  version: '1.0.0',
 };
 
 module.exports = {

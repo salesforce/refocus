@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/doDeleteAllBToMAssoc.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
