@@ -107,6 +107,10 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  // get subject and aspect for realtime from database
+  attachSubAspFromDB: environmentVariableTrue(pe,
+    'ATTACH_SUB_ASP_FROM_DB'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
@@ -131,7 +135,6 @@ const shortTermToggles = {
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'
   ),
-
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
