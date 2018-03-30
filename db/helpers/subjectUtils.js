@@ -11,6 +11,8 @@
  *
  * Used by the Subject model.
  */
+'use strict'; // eslint-disable-line strict
+
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const ParentSubjectNotMatch = require('../dbErrors')
