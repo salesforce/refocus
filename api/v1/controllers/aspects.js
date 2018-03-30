@@ -132,9 +132,8 @@ module.exports = {
   /**
    * POST /aspects/{key}/writers
    *
-   * Add one or more users to an aspect’s list of authorized writers. If
-   * the "enableRedisSampleStore" is turned on add the writers to the aspect
-   * stored in redis
+   * Add one or more users to an aspect’s list of authorized writers. Also,
+   * add the writers to the aspect stored in redis
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -149,29 +148,25 @@ module.exports = {
     userProps.model.findAll(options)
     .then((usrs) => {
       users = usrs;
-      if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-        return u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o))
-          .then((o) => redisOps.getValue('aspect', o.name))
-          .then((cachedAspect) => {
-            if (cachedAspect) {
-              const userSet = new Set();
-              usrs.forEach((user) => {
-                userSet.add(user.dataValues.name);
-              });
-              cachedAspect.writers = cachedAspect.writers || [];
-              Array.from(userSet).forEach((user) => {
-                cachedAspect.writers.push(user);
-              });
-              return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
-            }
+      return u.findByKey(helper, params)
+      .then((o) => u.isWritable(req, o))
+        .then((o) => redisOps.getValue('aspect', o.name))
+        .then((cachedAspect) => {
+          if (cachedAspect) {
+            const userSet = new Set();
+            usrs.forEach((user) => {
+              userSet.add(user.dataValues.name);
+            });
+            cachedAspect.writers = cachedAspect.writers || [];
+            Array.from(userSet).forEach((user) => {
+              cachedAspect.writers.push(user);
+            });
+            return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+          }
 
-            // reject the promise if the aspect is not found in the cache
-            return Promise.reject(new apiErrors.ResourceNotFoundError());
-          });
-      }
-
-      return Promise.resolve(true);
+          // reject the promise if the aspect is not found in the cache
+          return Promise.reject(new apiErrors.ResourceNotFoundError());
+        });
     })
     .then(() => {
       doPostAssoc(req, res, next, helper,
@@ -244,43 +239,37 @@ module.exports = {
   /**
    * DELETE /aspects/{keys}/writers
    *
-   * Deletes all the writers associated with this resource. If the
-   * "enableRedisSampleStore" is turned on, delete all writers for this aspect
-   * from the cache too.
+   * Deletes all the writers associated with this resource. Also, deletes all
+   * the writers of the aspect stored in redis
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspectWriters(req, res, next) {
-    if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-      const params = req.swagger.params;
-      u.findByKey(helper, params)
-      .then((o) => u.isWritable(req, o))
-        .then((o) => redisOps.getValue('aspect', o.name))
-        .then((cachedAspect) => {
-          if (cachedAspect) {
-            cachedAspect.writers = [];
-            return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
-          }
+    const params = req.swagger.params;
+    u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+      .then((o) => redisOps.getValue('aspect', o.name))
+      .then((cachedAspect) => {
+        if (cachedAspect) {
+          cachedAspect.writers = [];
+          return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        }
 
-          // reject the promise if the aspect is not found in the cache
-          return Promise.reject(new apiErrors.ResourceNotFoundError());
-        })
-        .then(() => doDeleteAllAssoc(req, res, next, helper,
-              helper.belongsToManyAssoc.users))
-        .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-    }
+        // reject the promise if the aspect is not found in the cache
+        return Promise.reject(new apiErrors.ResourceNotFoundError());
+      })
+      .then(() => doDeleteAllAssoc(req, res, next, helper,
+            helper.belongsToManyAssoc.users))
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
    * DELETE /aspects/{keys}/writers/userNameOrId
    *
-   * Deletes a user from an aspect’s list of authorized writers. If the
-   * "enableRedisSampleStore" feature is turned on, delete that user from the
-   * authorized list of writers stored in the cache for this aspect.
+   * Deletes a user from an aspect’s list of authorized writers. Also, deletes
+   * the user from the aspect store in redis.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -290,42 +279,37 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     let aspectName;
     let userName;
-    if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-      const params = req.swagger.params;
-      u.findByKey(helper, params)
-      .then((o) => u.isWritable(req, o))
-      .then((o) => {
-        aspectName = o.name;
-        const options = {};
-        options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
-        return u.findAssociatedInstances(helper,
-         params, helper.belongsToManyAssoc.users, options);
-      })
-      .then((o) => {
-        u.throwErrorForEmptyArray(o,
-           params.userNameOrId.value, userProps.modelName);
+    const params = req.swagger.params;
+    u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((o) => {
+      aspectName = o.name;
+      const options = {};
+      options.where = u.whereClauseForNameOrId(params.userNameOrId.value);
+      return u.findAssociatedInstances(helper,
+       params, helper.belongsToManyAssoc.users, options);
+    })
+    .then((o) => {
+      u.throwErrorForEmptyArray(o,
+         params.userNameOrId.value, userProps.modelName);
 
-        // the object "o" here is always an array of length 1
-        userName = o[0].dataValues.name;
-        return redisOps.getValue('aspect', aspectName);
-      })
-      .then((cachedAspect) => {
-        if (cachedAspect) {
-          cachedAspect.writers = cachedAspect.writers
-              .filter((writer) => writer !== userName);
-          return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
-        }
+      // the object "o" here is always an array of length 1
+      userName = o[0].dataValues.name;
+      return redisOps.getValue('aspect', aspectName);
+    })
+    .then((cachedAspect) => {
+      if (cachedAspect) {
+        cachedAspect.writers = cachedAspect.writers
+            .filter((writer) => writer !== userName);
+        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+      }
 
-        // reject the promise if the aspect is not found in the cache
-        return Promise.reject(new apiErrors.ResourceNotFoundError());
-      })
-      .then(() => doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId))
-      .catch((err) => u.handleError(next, err, helper.modelName));
-    } else {
-      doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
-    }
+      // reject the promise if the aspect is not found in the cache
+      return Promise.reject(new apiErrors.ResourceNotFoundError());
+    })
+    .then(() => doDeleteOneAssoc(req, res, next, helper,
+      helper.belongsToManyAssoc.users, userNameOrId))
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

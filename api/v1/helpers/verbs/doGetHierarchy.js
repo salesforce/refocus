@@ -9,12 +9,9 @@
 /**
  * api/v1/helpers/verbs/doGetHierarchy.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
-const featureToggles = require('feature-toggles');
 const redisSubjectModel = require('../../../../cache/models/subject');
-const sampleStoreFeature =
-  require('../../../../cache/sampleStore').constants.featureName;
 const helper = require('../nouns/subjects');
 const u = require('./utils');
 const ZERO = 0;
@@ -37,22 +34,22 @@ function doGetHierarchy(resultObj) {
   const excludedFields = [];
 
   if (filterFields) {
-    //if createdBy field is excluded, need to add it for the SQL query to work
+    // if createdBy field is excluded, need to add it for the SQL query to work
     if (!fields.includes('createdBy')) {
       excludedFields.push('createdBy');
     }
 
-    //if absolutePath field is excluded, need to add it for the SQL query to work
+    // if absolutePath field is excluded, need to add it for the SQL query to work
     if (!fields.includes('absolutePath')) {
       excludedFields.push('absolutePath');
     }
 
-    //if tags field is excluded, need to add it so we can filter by tags later
+    // if tags field is excluded, need to add it so we can filter by tags later
     if (filterByTags && !fields.includes('tags')) {
       excludedFields.push('tags');
     }
 
-    excludedFields.forEach(f => fields.push(f));
+    excludedFields.forEach((f) => fields.push(f));
   }
 
   return u.findByKey(helper, params, ['hierarchy'])
@@ -68,7 +65,7 @@ function doGetHierarchy(resultObj) {
       return redisSubjectModel.completeSubjectHierarchy(retval, params)
       .then((_retval) => {
         resultObj.retval = _retval;
-        excludedFields.forEach(f => delete retval[f]);
+        excludedFields.forEach((f) => delete retval[f]);
         return resultObj;
       });
     });
