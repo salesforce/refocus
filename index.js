@@ -24,8 +24,13 @@ const sampleStore = require('./cache/sampleStoreInit');
 
 /**
  * Entry point for each clustered process.
+ *
+ * @param {Number} clusterProcessId - process id if called from throng,
+ *  otherwise 0
  */
-function start() { // eslint-disable-line max-statements
+function start(clusterProcessId = 0) { // eslint-disable-line max-statements
+  console.log(`Started node process ${clusterProcessId}`);
+
   /*
    * Heroku support suggested we use segfault-handler but it's not available
    * for node 8 yet.
@@ -153,8 +158,13 @@ function start() { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    app.use((req, res, next) => { // add timestamp to request
+    /*
+     * Custom middleware to add timestamp and node cluster worker id to the
+     * request.
+     */
+    app.use((req, res, next) => {
       req.timestamp = Date.now();
+      req.clusterProcessId = clusterProcessId;
       next();
     });
 
@@ -264,13 +274,19 @@ function start() { // eslint-disable-line max-statements
   require('./view/loadView')(app, passportModule, '/v1');
 
   module.exports = { app, passportModule };
-}
+} // start
+
+function startMaster() {
+  console.log('Started node cluster master');
+} // startMaster
 
 const isProd = (process.env.NODE_ENV === 'production');
 if (isProd) {
-  throng(start, {
-    workers: WORKERS,
+  throng({
     lifetime: Infinity,
+    master: startMaster,
+    start,
+    workers: WORKERS,
   });
 } else {
   start();
