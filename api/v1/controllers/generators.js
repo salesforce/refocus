@@ -279,9 +279,7 @@ module.exports = {
   /**
    * POST /generators/{key}/writers
    *
-   * Add one or more users to an generator’s list of authorized writers. If
-   * the "enableRedisSampleStore" is turned on add the writers to the generator
-   * stored in redis
+   * Add one or more users to an generator’s list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -294,9 +292,7 @@ module.exports = {
   /**
    * DELETE /generators/{keys}/writers/userNameOrId
    *
-   * Deletes a user from an generator’s list of authorized writers. If the
-   * "enableRedisSampleStore" feature is turned on, delete that user from the
-   * authorized list of writers stored in the cache for this generator.
+   * Deletes a user from an generator’s list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
