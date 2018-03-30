@@ -96,7 +96,15 @@ function removeSpinner(spinnerID) {
 }
 
 /**
- * @param {String} url The url to get from
+ * Default behavior (no custom headers passed) - when a request is
+ * sent to the server a full response is downloaded (no caching).
+ *
+ * Custom headers object allow for specifying caching policy (and any other option
+ * available through headers), e.g. {'Cache-Control': 'max-age=31536000,public'}
+ * will allow CDNs to cache request responses for 1 year.
+ *
+ * @param {String} url - The url to get from
+ * @param {Object} (optional) headers - HTTP headers
  * @returns {Promise} For use in chaining.
  */
 function getPromiseWithUrl(url, headers) {
