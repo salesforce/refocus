@@ -32,7 +32,6 @@ const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
 const Generator = require('../../../db/index').Generator;
-const Collector = require('../../../db/index').Collector;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
 
