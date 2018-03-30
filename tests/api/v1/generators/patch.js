@@ -114,7 +114,6 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .end(done);
   });
 
-
   it('switch isActive from false to true', (done) => {
     api.patch(`${path}/${i}`)
     .set('Authorization', token)

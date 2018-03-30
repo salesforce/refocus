@@ -710,7 +710,6 @@ describe('tests/api/v1/aspects/put.js >', () => {
       .end(done);
     });
 
-
     it('rename fails (multiple generators)', (done) => {
       const aspectObj = JSON.parse(JSON.stringify(asp2));
       aspectObj.name = 'UPDATED_NAME';
