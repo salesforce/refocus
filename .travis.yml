@@ -44,3 +44,13 @@ script:
   - npm run jscs-enforce
   - npm run checkdb
   - npm run test-travis
+
+before_install:
+ - npm install -g npm@^5.7.0
+
+install:
+  - npm ci
+
+cache:
+ directories:
+ - "$HOME/.npm"
