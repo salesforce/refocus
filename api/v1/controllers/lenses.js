@@ -24,6 +24,7 @@ const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
+const logger = require('winston');
 const ZERO = 0;
 const ONE = 1;
 
@@ -56,7 +57,7 @@ function updateLensDetails(seqObj) {
       seqObj.version = seqObj.sourceVersion;
     }
   }
-}
+} // updateLensDetails
 
 /**
  * Parse lens metadata from lens json provided in lens zip. Set sourceName,
@@ -196,7 +197,7 @@ module.exports = {
   deleteLensWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
+      helper.belongsToManyAssoc.users, userNameOrId);
   },
 
   /**
@@ -263,24 +264,21 @@ module.exports = {
    */
   getLens(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
+    const url = req.url;
 
     // try to get cached entry
-    redisCache.get(req.swagger.params.key.value, (cacheErr, reply) => {
+    redisCache.get(url, (cacheErr, reply) => {
       if (reply) {
         // reply is responsified lens object as string.
         const lensObject = JSON.parse(reply);
 
         // add api links to the object and return response.
-        lensObject.apiLinks = u.getApiLinks(
-          lensObject.id, helper, req.method
-        );
-
-        res.status(httpStatus.OK)
-        .json(lensObject);
+        lensObject.apiLinks = u.getApiLinks(lensObject.id, helper, req.method);
+        res.status(httpStatus.OK).json(lensObject);
       } else {
         // if cache error, print error and continue to get lens from db.
         if (cacheErr) {
-          console.log(cacheErr); // eslint-disable-line no-console
+          logger.error('api/v1/controllers/lenses.getLens|', cacheErr);
         }
 
         // no reply, go to db to get lens object.
@@ -301,8 +299,7 @@ module.exports = {
           res.status(httpStatus.OK).json(responseObj);
 
           // cache the lens by id and name.
-          redisCache.set(responseObj.id, JSON.stringify(responseObj));
-          redisCache.set(responseObj.name, JSON.stringify(responseObj));
+          redisCache.set(url, JSON.stringify(responseObj));
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       }
@@ -382,40 +379,18 @@ module.exports = {
 
       updateLensDetails(seqObj);
       const assocToCreate = u.includeAssocToCreate(seqObj, helper);
-
-      /**
-       * Creates the lens using the model.
-       * If returnUser flag is set,
-       * reloads the lens instance to return associations.
-       *
-       * @returns {Promise} The promise to create the lens.
-       */
-      const createLens = () => helper.model.create(seqObj, assocToCreate)
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          delete o.dataValues.library;
-          u.logAPI(req, resultObj, o.dataValues);
-          if (featureToggles.isFeatureEnabled('returnUser')) {
-            o.reload()
-            .then(() => res.status(httpStatus.CREATED).json(
-                u.responsify(o, helper, req.method)));
-          } else {
-            res.status(httpStatus.CREATED).json(
-              u.responsify(o, helper, req.method)
-            );
-          }
-        })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
-
-      if (featureToggles.isFeatureEnabled('returnUser')) {
-        const user = req.user;
-        seqObj.installedBy = user.id;
-        createLens();
-      } else {
-        createLens();
-      }
+      const user = req.user;
+      seqObj.installedBy = user.id;
+      helper.model.create(seqObj, assocToCreate)
+      .then((o) => o.reload()) // to get associations
+      .then((o) => {
+        delete o.dataValues.library;
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
+        res.status(httpStatus.CREATED)
+          .json(u.responsify(o, helper, req.method));
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } catch (err) {
       err.description = 'Invalid library uploaded.';
       u.handleError(next, err, helper.modelName);
@@ -472,9 +447,8 @@ module.exports = {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       delete o.dataValues.library;
       u.logAPI(req, resultObj, o.dataValues);
-      return res.status(httpStatus.OK).json(
-        u.responsify(o, helper, req.method)
-      );
+      return res.status(httpStatus.OK)
+        .json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

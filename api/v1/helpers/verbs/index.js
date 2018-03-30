@@ -11,6 +11,7 @@
  *
  * Exports all verbs from the verbs directory
  */
+'use strict'; // eslint-disable-line strict
 
 const doDelete = require('./doDelete');
 const doFind = require('./doFind');
