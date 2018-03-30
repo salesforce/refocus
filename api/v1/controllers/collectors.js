@@ -129,6 +129,27 @@ function getCollector(req, res, next) {
 } // getCollector
 
 /**
+ * GET /collectors/{key}/status
+ *
+ * Get the status for the collector specified by id or name.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function getCollectorStatus(req, res, next) {
+  const resultObj = { reqStartTime: req.timestamp };
+  u.findByKey(helper, req.swagger.params, ['status'])
+  .then((o) => {
+    const returnObj = o.get ? o.get() : o;
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    u.logAPI(req, resultObj, returnObj);
+    res.status(httpStatus.OK).json(returnObj);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // getCollectorStatus
+
+/**
  * PATCH /collectors/{key}
  *
  * Update the specified collector's config data. If a field is not included in
@@ -534,6 +555,7 @@ function deleteCollectorWriters(req, res, next) {
 module.exports = {
   findCollectors,
   getCollector,
+  getCollectorStatus,
   patchCollector,
   deregisterCollector,
   reregisterCollector,
