@@ -32,6 +32,7 @@ const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
 const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
 const Generator = require('../../../db/index').Generator;
+const Collector = require('../../../db/index').Collector;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
 
@@ -127,6 +128,27 @@ function findCollectors(req, res, next) {
 function getCollector(req, res, next) {
   doGet(req, res, next, helper);
 } // getCollector
+
+/**
+ * GET /collectors/{key}/status
+ *
+ * Get the status for the collector specified by id or name.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function getCollectorStatus(req, res, next) {
+  const resultObj = { reqStartTime: req.timestamp };
+  u.findByKey(helper, req.swagger.params, ['status'])
+  .then((o) => {
+    const returnObj = o.get ? o.get() : o;
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    u.logAPI(req, resultObj, returnObj);
+    res.status(httpStatus.OK).json(returnObj);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // getCollectorStatus
 
 /**
  * PATCH /collectors/{key}
@@ -534,6 +556,7 @@ function deleteCollectorWriters(req, res, next) {
 module.exports = {
   findCollectors,
   getCollector,
+  getCollectorStatus,
   patchCollector,
   deregisterCollector,
   reregisterCollector,
