@@ -132,6 +132,13 @@ errors.create({
   explanation: 'If a subject specifies that it has a parent, the parent' +
   'subject must not already have a child with the same absolutePath',
 });
+errors.create({
+  scope: exports,
+  code: 10121,
+  status: 400,
+  name: 'ReferencedByGenerator',
+  parent: this.ValidationError,
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

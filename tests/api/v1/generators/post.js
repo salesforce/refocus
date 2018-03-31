@@ -60,6 +60,11 @@ describe('tests/api/v1/generators/post.js >', () => {
       expect(res.body.name).to.include(generator.name);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
+
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
       done();
     });
   });

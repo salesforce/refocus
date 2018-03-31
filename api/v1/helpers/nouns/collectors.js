@@ -31,4 +31,5 @@ module.exports = {
   fieldsWithEnum: ['status'],
   readOnlyFields: ['id', 'isDeleted'],
   fieldsWritableByCollectorOnly: ['osInfo', 'processInfo', 'version'],
+  fieldScopeMap: { status: 'status' },
 }; // exports
