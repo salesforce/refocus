@@ -18,7 +18,7 @@ import Dropdown from '../admin/components/common/Dropdown';
 import ControlledInput from '../admin/components/common/ControlledInput';
 import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
-import { filteredArray, getConfig } from './utils';
+import { filteredArray, getConfig, getTagsFromArrays } from './utils';
 import { getPromiseWithUrl } from '../utils';
 
 const ZERO = 0;
@@ -60,6 +60,7 @@ class CreatePerspective extends React.Component {
       aspectFilter: [],
       aspectFilterType: '',
       subjectArr: [],
+      subjectTagsArr: [],
     }; // default values
   }
 
@@ -99,8 +100,8 @@ class CreatePerspective extends React.Component {
     .then((subjects) => {
       // console.log('this is the subject-- i got', subjects);
       const s = subjects.body; // subjects.body.map((subject) => subject.absolutePath);
-      this.setState({ subjectArr: s });
-
+      const sTags = getTagsFromArrays(s);
+      this.setState({ subjectArr: s, subjectTagsArr: sTags });
      // console.log('this is the subject-- i got-------', this.state.subjectArr);
           /*
      * Possible cases:
@@ -165,6 +166,11 @@ class CreatePerspective extends React.Component {
         console.log('this is my subject--- from updateDropdownConfig', values.subjects);
       }
 
+      if (key === 'subjectTagFilter') {
+        console.log('subjectTagFilter properly assigned');
+        values.subjectTagFilter = this.state.subjectTagsArr;
+        console.log('this is my subjectTagFilter----', values.subjectTagFilter);
+      }
       if (key === 'name') {
         console.log('this is name, so continue');
         continue;

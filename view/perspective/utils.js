@@ -228,6 +228,7 @@ function getConfig(values, key, value) {
 }
 
 /**
+ * TODO: dont create an array object every time.
  * Return array of unique tags
  * @param {Array} Objects with tags: [tag1, tag2, ...]
  * @returns {Array} contains unique tags
