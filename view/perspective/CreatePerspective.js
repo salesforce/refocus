@@ -19,6 +19,7 @@ import ControlledInput from '../admin/components/common/ControlledInput';
 import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
 import { filteredArray, getConfig } from './utils';
+import { getPromiseWithUrl } from '../utils';
 
 const ZERO = 0;
 
@@ -58,6 +59,7 @@ class CreatePerspective extends React.Component {
       aspectTagFilterType: '',
       aspectFilter: [],
       aspectFilterType: '',
+      subjectArr: [],
     }; // default values
   }
 
@@ -93,8 +95,14 @@ class CreatePerspective extends React.Component {
 
   componentDidMount() {
     const { values, name, isEditing } = this.props;
+    getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags')
+    .then((subjects) => {
+      // console.log('this is the subject-- i got', subjects);
+      const s = subjects.body; // subjects.body.map((subject) => subject.absolutePath);
+      this.setState({ subjectArr: s });
 
-    /*
+     // console.log('this is the subject-- i got-------', this.state.subjectArr);
+          /*
      * Possible cases:
      * on edit: load the perspective according to name.
      * on new: load the default object
@@ -135,11 +143,11 @@ class CreatePerspective extends React.Component {
           aspectFilterType: 'EXCLUDE',
         }
       }
-
       this.setState(stateObject, () => {
         this.updateDropdownConfig();
       });
     }
+    })
   }
 
   updateDropdownConfig() {
@@ -148,9 +156,19 @@ class CreatePerspective extends React.Component {
     const { dropdownConfig } = this.state;
     const { values, BLOCK_SIZE } = this.props;
     let stateObject = getStateDataOnly(this.state);
+    // contains everything from name to su as len tags
     for (let key in stateObject) {
       let value = this.state[key];
+      if (key=== 'subjects') {
+        console.log('subjects was assigned properly to values');
+        values.subjects = this.state.subjectArr;
+        console.log('this is my subject--- from updateDropdownConfig', values.subjects);
+      }
 
+      if (key === 'name') {
+        console.log('this is name, so continue');
+        continue;
+      }
       //  if perspective passed in, may amend value based on key
       let config = getConfig(values, key, value);
 
@@ -512,6 +530,7 @@ class CreatePerspective extends React.Component {
 }
 
 CreatePerspective.propTypes = {
+  name: PropTypes.string,
   cancelCreate: PropTypes.func,
   sendResource: PropTypes.func,
   values: PropTypes.object,

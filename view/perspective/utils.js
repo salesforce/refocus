@@ -134,7 +134,7 @@ function getTagsFromResources(array) {
 /**
  * Return array of items that are from one array and
  * not in another
- *
+ * TODO: this is an O(n^2) operation. Use sets to make it O(n)
  * @param {Array} options Return a subset of this
  * @param {Array} value Array of data to exclude
  * @returns {Array} Contains items from options
@@ -162,6 +162,7 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
 }
 
 /**
+ * this function -->. this is called as one of the function in setState
  * Returns config object for the key in values array.
  *
  * @param {Array} values Data to get resource config.
@@ -170,9 +171,19 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
  * @param {Array} value Update state to this value
  * @returns {Object} The resource configuration object
  */
+// values: are the values from props
+// key: is from the state object. it is actually a key of the state object
+// example-- subjects, lenses, aspects.....
+// value: is the value of the key of the state object
 function getConfig(values, key, value) {
+  console.log('this is getCOnfig, values, key, value', values, key, value);
   const ZERO = 0;
+  // get something called option. for example, pass all the values of subjects ie subject objects and
+  // and pass the value which is from the state object = current stateObject[key]
+  // if values = [A,B,C] and value = C. options returned is A,B
+  // this is not required
   const options = getOptions(values[key] || [], value);
+  console.log('what is the options for value-----', value, options)
   const convertedText = convertCamelCase(key);
   let config = {
     title: key,
@@ -182,6 +193,7 @@ function getConfig(values, key, value) {
   if (key === 'subjects') {
     config.placeholderText = 'Enter a subject name';
     let options = getArray('absolutePath', values[key]);
+    // very similar to what is been done in getOptions. Not sure why this is done there
     config.options = filteredArray(options, value);
     config.isArray = false;
     config.notOpenOnFocus = true;
@@ -259,10 +271,10 @@ function getValuesObject(accumulatorObject) {
     persNames: [], // will be array of strings
     rootSubject: {},
     lens: {}, // includes library
-    subjects: [], // { name: absolutePath, id }
+   // subjects: [], // { name: absolutePath, id }
     aspectTagFilter: [], // { name, id }
     aspectFilter: [], // strings
-    subjectTagFilter: [], // strings
+   // subjectTagFilter: [], // strings
     lenses: [], // { name, id }
     statusFilter: Object.keys(statuses).sort(),
   };
@@ -386,7 +398,7 @@ function getValuesObject(accumulatorObject) {
      */
      const promisesArr = [
       getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
-      getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
+      Promise.resolve(true), // getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
       getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
      ];
 
@@ -424,8 +436,8 @@ function getValuesObject(accumulatorObject) {
 
     // assign non-perspective values to the accumulator object.
     // TODO: subjects are objects. Change to use strings
-    valuesObj.subjects = subjects;
-    valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
+    valuesObj.subjects = {};
+    valuesObj.subjectTagFilter = []; //getTagsFromArrays(valuesObj.subjects);
     valuesObj.lenses = lenses;
 
     // aspectFilter is an array of strings

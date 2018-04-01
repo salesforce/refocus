@@ -51,7 +51,6 @@ import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
-const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
@@ -68,7 +67,6 @@ const LENS_LIBRARY_REX = /(?:\.([^.]+))?$/;
 
 // Some API endpoints...
 const GET_DEFAULT_PERSPECTIVE = '/v1/globalconfig/DEFAULT_PERSPECTIVE';
-const GET_PERSPECTIVE_NAMES = '/v1/perspectives?fields=name';
 
 // Some divs on the perspective page...
 const LENS_DIV = document.getElementById('lens');
