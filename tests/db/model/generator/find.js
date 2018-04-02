@@ -87,8 +87,8 @@ describe('tests/db/model/generator/find.js >', () => {
     Generator.findById(generatorDBInstance.id)
     .then((g) => {
       expect(g.get().aspects).to.be.an('array')
-      .that.includes('Temperature')
-      .that.includes('Weather');
+      .that.includes('temperature')
+      .that.includes('weather');
       expect(g.get().subjectQuery).to.equal('?absolutePath=Foo.*');
       return g;
     })
@@ -96,8 +96,8 @@ describe('tests/db/model/generator/find.js >', () => {
     .then((g) => {
       const asp = g.get().aspects;
       expect(asp).to.be.an('array');
-      expect(asp[0]).to.contain.property('name', 'Temperature');
-      expect(asp[1]).to.contain.property('name', 'Weather');
+      expect(asp[0]).to.contain.property('name', 'temperature');
+      expect(asp[1]).to.contain.property('name', 'weather');
       const sub = g.get().subjects;
       expect(sub).to.be.an('array');
       expect(sub[0]).to.contain.property('absolutePath', 'foo.bar');
@@ -111,9 +111,9 @@ describe('tests/db/model/generator/find.js >', () => {
     Generator.findById(g2DBInstance.id)
     .then((g) => {
       expect(g.aspects).to.be.an('array').to.have.lengthOf(3)
-      .that.includes('Temperature')
-      .that.includes('Weather')
-      .that.includes('Humidity');
+      .that.includes('temperature')
+      .that.includes('weather')
+      .that.includes('humidity');
       expect(g.subjects).to.be.an('array')
       .that.includes('foo.bar')
       .that.includes('foo.baz');
