@@ -2584,6 +2584,39 @@ paths:
 
   # ---------------------------------------------------------------------------
 
+  /collectors/{key}/status:
+    x-swagger-router-controller: collectors
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Get collector status
+      description: >-
+        Retrieve the specified collector status by the collector's id or name.
+      operationId: getCollectorStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to get the status of.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's status.
+          schema:
+             type: object
+             properties:
+               status:
+                 type: string
+                 description: The collector status.
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Collector not found"
+
+  # ---------------------------------------------------------------------------
+
   /collectors/{key}/deregister:
     x-swagger-router-controller: collectors
     post:
