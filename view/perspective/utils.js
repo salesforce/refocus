@@ -273,10 +273,10 @@ function getValuesObject(accumulatorObject) {
     rootSubject: {},
     lens: {}, // includes library
    // subjects: [], // { name: absolutePath, id }
-    aspectTagFilter: [], // { name, id }
-    aspectFilter: [], // strings
+   // aspectTagFilter: [], // { name, id }
+   // aspectFilter: [], // strings
    // subjectTagFilter: [], // strings
-    lenses: [], // { name, id }
+   // lenses: [], // { name, id }
     statusFilter: Object.keys(statuses).sort(),
   };
   let hierarchyLoadEvent; // will be custom event
@@ -393,15 +393,15 @@ function getValuesObject(accumulatorObject) {
         ' "Search Perspectives" input box then click "New Perspective".');
      }
 
-    /*
-     * GET named perspective: exists. Assign perspective
-     * GET named perspective: does NOT exist: handleError
-     */
-     const promisesArr = [
-      getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
-      Promise.resolve(true), // getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
-      getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
-     ];
+    // /*
+    //  * GET named perspective: exists. Assign perspective
+    //  * GET named perspective: does NOT exist: handleError
+    //  */
+     // const promisesArr = [
+     //  // getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
+     //  // Promise.resolve(true), // getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
+     //  // getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
+     // ];
 
      if (named) {
       if (returnedPerspective) {
@@ -410,7 +410,7 @@ function getValuesObject(accumulatorObject) {
         valuesObj.name = valuesObj.perspective.name;
 
         // perspective exists. GET its hierarchy and lenses soon.
-        promisesArr.concat(getPageLoadingPromises(returnedPerspective));
+        getPageLoadingPromises(returnedPerspective);
       } else {
 
         // named perspective does not exist
@@ -421,32 +421,8 @@ function getValuesObject(accumulatorObject) {
       }
     }
 
-    return Promise.all(promisesArr);
-  })
-  .then((responses) => {
-
-    // on redirect, responses is a string
-    // otherwise it is an array of API responses
-    if (typeof responses === 'string') {
-      return;
-    }
-
-    // const lenses = responses[0].body;
-    // const subjects = responses[1].body;
-    // const aspects = responses[2].body;
-
-    // // assign non-perspective values to the accumulator object.
-    // // TODO: subjects are objects. Change to use strings
-    // valuesObj.subjects = {};
-    // valuesObj.subjectTagFilter = []; //getTagsFromArrays(valuesObj.subjects);
-    // valuesObj.lenses = lenses;
-
-    // // aspectFilter is an array of strings
-    // valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
-    // valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
-
     return valuesObj;
-  });
+  })
 } // getValuesObject
 
 module.exports =  {
