@@ -183,7 +183,7 @@ function getConfig(values, key, value) {
   // if values = [A,B,C] and value = C. options returned is A,B
   // this is not required
   const options = getOptions(values[key] || [], value);
-  console.log('what is the options for value-----', value, options)
+  console.log('what is the options for value-----', key, value, options)
   const convertedText = convertCamelCase(key);
   let config = {
     title: key,
@@ -218,7 +218,7 @@ function getConfig(values, key, value) {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
       let options = getArray('name', values[key]);
-      config.options = filteredArray(values[key], value);
+      config.options = filteredArray(options, value);
     }
 
     delete config.placeholderText;
@@ -431,19 +431,19 @@ function getValuesObject(accumulatorObject) {
       return;
     }
 
-    const lenses = responses[0].body;
-    const subjects = responses[1].body;
-    const aspects = responses[2].body;
+    // const lenses = responses[0].body;
+    // const subjects = responses[1].body;
+    // const aspects = responses[2].body;
 
-    // assign non-perspective values to the accumulator object.
-    // TODO: subjects are objects. Change to use strings
-    valuesObj.subjects = {};
-    valuesObj.subjectTagFilter = []; //getTagsFromArrays(valuesObj.subjects);
-    valuesObj.lenses = lenses;
+    // // assign non-perspective values to the accumulator object.
+    // // TODO: subjects are objects. Change to use strings
+    // valuesObj.subjects = {};
+    // valuesObj.subjectTagFilter = []; //getTagsFromArrays(valuesObj.subjects);
+    // valuesObj.lenses = lenses;
 
-    // aspectFilter is an array of strings
-    valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
-    valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
+    // // aspectFilter is an array of strings
+    // valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
+    // valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
 
     return valuesObj;
   });

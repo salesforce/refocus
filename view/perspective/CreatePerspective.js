@@ -59,8 +59,7 @@ class CreatePerspective extends React.Component {
       aspectTagFilterType: '',
       aspectFilter: [],
       aspectFilterType: '',
-      subjectArr: [],
-      subjectTagsArr: [],
+      perspectiveOptions: {},
     }; // default values
   }
 
@@ -96,12 +95,27 @@ class CreatePerspective extends React.Component {
 
   componentDidMount() {
     const { values, name, isEditing } = this.props;
-    getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags')
-    .then((subjects) => {
+    const promiseArr = [
+      getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
+      getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
+      getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
+     ];
+     Promise.all(promiseArr)
+    .then((response) => {
+      const lenses = response[0].body;
+      const subjects = response[1].body;
+      const aspects = response[2].body;
+      const _perspectiveOptions = {};
+      _perspectiveOptions.lenses = lenses;
+      _perspectiveOptions.subjects = subjects;
+      _perspectiveOptions.subjectTagFilter = getTagsFromArrays(subjects);
+      _perspectiveOptions.aspectFilter = aspects;
+      _perspectiveOptions.aspectTagFilter = getTagsFromArrays(aspects);
+     // _perspectiveOptions.statusFilter = [];
       // console.log('this is the subject-- i got', subjects);
-      const s = subjects.body; // subjects.body.map((subject) => subject.absolutePath);
-      const sTags = getTagsFromArrays(s);
-      this.setState({ subjectArr: s, subjectTagsArr: sTags });
+      // const s = subjects.body; // subjects.body.map((subject) => subject.absolutePath);
+      // const sTags = getTagsFromArrays(s);
+      this.setState({ perspectiveOptions: _perspectiveOptions });
      // console.log('this is the subject-- i got-------', this.state.subjectArr);
           /*
      * Possible cases:
@@ -154,29 +168,33 @@ class CreatePerspective extends React.Component {
   updateDropdownConfig() {
 
     // attach config to keys, keys to dropdownConfig
-    const { dropdownConfig } = this.state;
+    const { dropdownConfig, perspectiveOptions } = this.state;
     const { values, BLOCK_SIZE } = this.props;
+    perspectiveOptions.statusFilter = values.statusFilter;
     let stateObject = getStateDataOnly(this.state);
     // contains everything from name to su as len tags
     for (let key in stateObject) {
       let value = this.state[key];
-      if (key=== 'subjects') {
-        console.log('subjects was assigned properly to values');
-        values.subjects = this.state.subjectArr;
-        console.log('this is my subject--- from updateDropdownConfig', values.subjects);
-      }
+      // if (key=== 'subjects') {
+      //   console.log('subjects was assigned properly to values');
+      //   values.subjects = this.state.subjectArr;
+      //   console.log('this is my subject--- from updateDropdownConfig', values.subjects);
+      // }
 
-      if (key === 'subjectTagFilter') {
-        console.log('subjectTagFilter properly assigned');
-        values.subjectTagFilter = this.state.subjectTagsArr;
-        console.log('this is my subjectTagFilter----', values.subjectTagFilter);
-      }
-      if (key === 'name') {
-        console.log('this is name, so continue');
-        continue;
-      }
+      // if (key === 'subjectTagFilter') {
+      //   console.log('subjectTagFilter properly assigned');
+      //   values.subjectTagFilter = this.state.subjectTagsArr;
+      //   console.log('this is my subjectTagFilter----', values.subjectTagFilter);
+      // }
+      // if (key === 'name') {
+      //   console.log('this is name, so continue');
+      //   continue;
+      // }
+       if (key === 'aspectFilter') {
+        console.log('---aspectFilter----', perspectiveOptions.aspectFilter);
+       }
       //  if perspective passed in, may amend value based on key
-      let config = getConfig(values, key, value);
+      let config = getConfig(perspectiveOptions, key, value);
 
       // if this dropdown is multi-pill, move the dropdown menu lower
       let marginTop = !config.isArray ? ZERO : value.length * BLOCK_SIZE;
@@ -318,9 +336,9 @@ class CreatePerspective extends React.Component {
 
   // POST or PUT, depending on state
   doCreate() {
-    const { values, sendResource, isEditing, name } = this.props;
+    const { sendResource, isEditing, name } = this.props;
     const postObject = getStateDataOnly(this.state);
-
+    const values = this.state.perspectiveOptions;
     if (!postObject.lenses.length) {
       this.showError('Please enter a valid lens.');
     } else if (!postObject.subjects.length) {
@@ -345,7 +363,7 @@ class CreatePerspective extends React.Component {
       }
 
       // for create perspectives, rename key lenses --> lensId,
-      // and perspectives --> name. Start with deep copy values obj
+      // and perspectives --> name.
       postObject.lensId = postObject.lenses;
       postObject.rootSubject = postObject.subjects;
       delete postObject.lenses;
