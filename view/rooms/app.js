@@ -44,6 +44,7 @@ let _user;
 let _roomName;
 let _isActive;
 let _movingContent;
+let _botsLayout;
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
 // Used to drop a bot at the bottom of a column
@@ -157,7 +158,7 @@ function drop(event, col) {
  * @param {DOM} botContainer - Container of bot
  * @param {Int} botIndex - Index of the bot
  */
-function setupMovableBots(botContainer, botIndex) {
+function setupMovableBots(botContainer, botName, botIndex) {
   botContainer.setAttribute(
     'draggable',
     'true'
@@ -190,13 +191,25 @@ function setupMovableBots(botContainer, botIndex) {
     }
   });
 
-  // Adding bot to correct initial column
-  if ((botIndex+ONE) % THREE === ONE) {
-    botsLeft.appendChild(botContainer);
-  } else if ((botIndex+ONE) % THREE === TWO) {
-    botsMiddle.appendChild(botContainer);
+  if (_botsLayout) {
+    if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
+      botsLeft.appendChild(botContainer);
+    } else if (_botsLayout.middleColumn &&
+      _botsLayout.middleColumn.includes(botName)) {
+      botsMiddle.appendChild(botContainer);
+    } else if (_botsLayout.rightColumn &&
+      _botsLayout.rightColumn.includes(botName)) {
+      botsRight.appendChild(botContainer);
+    }
   } else {
-    botsRight.appendChild(botContainer);
+    // Adding bot to correct initial column
+    if ((botIndex+ONE) % THREE === ONE) {
+      botsLeft.appendChild(botContainer);
+    } else if ((botIndex+ONE) % THREE === TWO) {
+      botsMiddle.appendChild(botContainer);
+    } else {
+      botsRight.appendChild(botContainer);
+    }
   }
 }
 
@@ -401,7 +414,7 @@ function displayBot(bot, botIndex) {
   headerSection.appendChild(iframe);
   headerSection.appendChild(footerSection);
   botContainer.appendChild(headerSection);
-  setupMovableBots(botContainer, botIndex);
+  setupMovableBots(botContainer, bot.name, botIndex);
   const parsedBot = parseBot(bot);
   // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
@@ -701,6 +714,12 @@ window.onload = () => {
   })
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
+
+    if (res.body.settings && res.body.settings.botsLayout) {
+      _botsLayout = res.body.settings.botsLayout;
+    }
+
+    _botsLayout = res.body.settings.botsLayout;
     const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
