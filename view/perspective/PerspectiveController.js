@@ -54,15 +54,6 @@ class PerspectiveController extends React.Component {
     this.setState({ showCreatePanel: false });
   }
 
-  componentDidMount() {
-    // u.getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags')
-    // .then((subjects) => {
-    //   // console.log('this is the subject', subjects);
-    //   this.setState({ subjects: subjects });
-    // })
-
-  }
-
   onEdit(event) {
     // prevent the page from refreshing to another perspective
     event.preventDefault();
@@ -85,7 +76,7 @@ class PerspectiveController extends React.Component {
           onEdit={ this.onEdit.bind(this) }
           options={ values.persNames }
           // if there's lenses, open modal
-          onAddNewButton={ this.openCreatePanel.bind(this) } // no side effect because of this change
+          onAddNewButton={ this.openCreatePanel.bind(this) }
           newButtonText='New Perspective'
           renderAsLink={ true }
         />
