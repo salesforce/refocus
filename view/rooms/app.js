@@ -201,9 +201,9 @@ function setupMovableBots(botContainer, botName, botIndex) {
     } else if (_botsLayout.rightColumn &&
       _botsLayout.rightColumn.includes(botName)) {
       return botsRight.appendChild(botContainer);
-    } else {
-      return;
     }
+
+    return;
   }
 
   // No bot layout was defined in settings
