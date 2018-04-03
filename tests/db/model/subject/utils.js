@@ -26,9 +26,8 @@ const subjectPrototype = {
 
 module.exports = {
   forceDelete(done) {
-    Promise.join(rcli.flushallAsync(),
-      tu.forceDelete(tu.db.Sample, testStartTime)
-      .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(samstoinit.eradicate(),
+      tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
       .then(() => tu.forceDelete(tu.db.User, testStartTime))
       .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
