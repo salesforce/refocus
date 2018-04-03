@@ -713,13 +713,11 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
-    uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
-
     if (res.body.settings && res.body.settings.botsLayout) {
       _botsLayout = res.body.settings.botsLayout;
     }
-
-    _botsLayout = res.body.settings.botsLayout;
+    
+    uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
     const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
