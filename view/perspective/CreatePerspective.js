@@ -51,14 +51,14 @@ class CreatePerspective extends React.Component {
       name: props.name,
       subjects: [],
       lenses: '',
-      statusFilterType: '',
+      statusFilterType: 'EXCLUDE',
       statusFilter: [],
       subjectTagFilter: [],
-      subjectTagFilterType: '',
+      subjectTagFilterType: 'EXCLUDE',
       aspectTagFilter: [],
-      aspectTagFilterType: '',
+      aspectTagFilterType: 'EXCLUDE',
       aspectFilter: [],
-      aspectFilterType: '',
+      aspectFilterType: 'EXCLUDE',
       perspectiveOptions: {},
     }; // default values
   }
@@ -95,12 +95,33 @@ class CreatePerspective extends React.Component {
 
   componentDidMount() {
     const { values, name, isEditing } = this.props;
+    // default object
+    let stateObject = { name : ''};
+    // on edit: load the perspective according to name.
+    if (isEditing) {
+      const _perspective = values.perspectives
+        .filter((pers) => pers.name === name)[0];
+      stateObject = {
+        name: _perspective.name,
+        lenses: _perspective.lens.name,
+        subjects: _perspective.rootSubject,
+        statusFilterType: _perspective.statusFilterType,
+        statusFilter: _perspective.statusFilter,
+        subjectTagFilter: _perspective.subjectTagFilter,
+        subjectTagFilterType: _perspective.subjectTagFilterType,
+        aspectTagFilter: _perspective.aspectTagFilter,
+        aspectTagFilterType: _perspective.aspectTagFilterType,
+        aspectFilter: _perspective.aspectFilter,
+        aspectFilterType: _perspective.aspectFilterType,
+      };
+    }
+
     const promiseArr = [
       getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
       getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
       getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
-     ];
-     Promise.all(promiseArr)
+    ];
+    Promise.all(promiseArr)
     .then((response) => {
       const lenses = response[0].body;
       const subjects = response[1].body;
@@ -109,95 +130,29 @@ class CreatePerspective extends React.Component {
       _perspectiveOptions.lenses = lenses;
       _perspectiveOptions.subjects = subjects;
       _perspectiveOptions.subjectTagFilter = getTagsFromArrays(subjects);
-      _perspectiveOptions.aspectFilter = aspects;
+      _perspectiveOptions.aspectFilter = aspects.map((aspect) => aspect.name);
       _perspectiveOptions.aspectTagFilter = getTagsFromArrays(aspects);
-     // _perspectiveOptions.statusFilter = [];
-      // console.log('this is the subject-- i got', subjects);
-      // const s = subjects.body; // subjects.body.map((subject) => subject.absolutePath);
-      // const sTags = getTagsFromArrays(s);
-      this.setState({ perspectiveOptions: _perspectiveOptions });
-     // console.log('this is the subject-- i got-------', this.state.subjectArr);
-          /*
-     * Possible cases:
-     * on edit: load the perspective according to name.
-     * on new: load the default object
-     */
-    let stateObject;
 
-    // wait for props values to be assigned
-    if (values) {
-      if (isEditing) {
-        const _perspective = values.perspectives
-          .filter((pers) => pers.name === name)[0];
-        stateObject = {
-          name: _perspective.name,
-          lenses: _perspective.lens.name,
-          subjects: _perspective.rootSubject,
-          statusFilterType: _perspective.statusFilterType,
-          statusFilter: _perspective.statusFilter,
-          subjectTagFilter: _perspective.subjectTagFilter,
-          subjectTagFilterType: _perspective.subjectTagFilterType,
-          aspectTagFilter: _perspective.aspectTagFilter,
-          aspectTagFilterType: _perspective.aspectTagFilterType,
-          aspectFilter: _perspective.aspectFilter,
-          aspectFilterType: _perspective.aspectFilterType,
-        };
-      } else {
-        // use default values
-        stateObject = {
-          name: '',
-          lenses: '',
-          subjects: '',
-          statusFilterType: 'EXCLUDE',
-          statusFilter: [],
-          subjectTagFilter: [],
-          subjectTagFilterType: 'EXCLUDE',
-          aspectTagFilter: [],
-          aspectTagFilterType: 'EXCLUDE',
-          aspectFilter: [],
-          aspectFilterType: 'EXCLUDE',
-        }
-      }
+      stateObject.perspectiveOptions = _perspectiveOptions;
       this.setState(stateObject, () => {
         this.updateDropdownConfig();
       });
-    }
     })
   }
 
   updateDropdownConfig() {
-
     // attach config to keys, keys to dropdownConfig
     const { dropdownConfig, perspectiveOptions } = this.state;
     const { values, BLOCK_SIZE } = this.props;
     perspectiveOptions.statusFilter = values.statusFilter;
-    let stateObject = getStateDataOnly(this.state);
-    // contains everything from name to su as len tags
+    const stateObject = getStateDataOnly(this.state);
     for (let key in stateObject) {
-      let value = this.state[key];
-      // if (key=== 'subjects') {
-      //   console.log('subjects was assigned properly to values');
-      //   values.subjects = this.state.subjectArr;
-      //   console.log('this is my subject--- from updateDropdownConfig', values.subjects);
-      // }
-
-      // if (key === 'subjectTagFilter') {
-      //   console.log('subjectTagFilter properly assigned');
-      //   values.subjectTagFilter = this.state.subjectTagsArr;
-      //   console.log('this is my subjectTagFilter----', values.subjectTagFilter);
-      // }
-      // if (key === 'name') {
-      //   console.log('this is name, so continue');
-      //   continue;
-      // }
-       if (key === 'aspectFilter') {
-        console.log('---aspectFilter----', perspectiveOptions.aspectFilter);
-       }
+      const value = this.state[key];
       //  if perspective passed in, may amend value based on key
-      let config = getConfig(perspectiveOptions, key, value);
+      const config = getConfig(perspectiveOptions, key, value);
 
       // if this dropdown is multi-pill, move the dropdown menu lower
-      let marginTop = !config.isArray ? ZERO : value.length * BLOCK_SIZE;
+      const marginTop = !config.isArray ? ZERO : value.length * BLOCK_SIZE;
       config.dropDownStyle = { marginTop },
       config.onClickItem = this.appendPill,
       dropdownConfig[key] = config;
@@ -237,7 +192,7 @@ class CreatePerspective extends React.Component {
 
   onInputValueChange(event) {
     const { name, value } = event;
-    let stateRule = {};
+    const stateRule = {};
     stateRule[name] = value;
     this.setState(stateRule);
   }
@@ -338,7 +293,7 @@ class CreatePerspective extends React.Component {
   doCreate() {
     const { sendResource, isEditing, name } = this.props;
     const postObject = getStateDataOnly(this.state);
-    const values = this.state.perspectiveOptions;
+    const lenses = this.state.perspectiveOptions.lenses;
     if (!postObject.lenses.length) {
       this.showError('Please enter a valid lens.');
     } else if (!postObject.subjects.length) {
@@ -346,17 +301,16 @@ class CreatePerspective extends React.Component {
     } else if (!postObject.name.length) {
       this.showError('Please enter a name for this perspective.');
     } else {
-
       // check if lens field is uid. if not, need to get uid for lens name
       const regexpUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!regexpUUID.test(postObject.lenses)) {
-        let lens = values.lenses.filter((_lens) => {
+        const lens = lenses.filter((_lens) => {
           return _lens.name === postObject.lenses;
         });
 
         if (!lens.length) {
-          this.showError('Please enter a valid lens name. No lens with name '
-            + postObject.lenses + ' found');
+          this.showError('Please enter a valid lens name. No lens with name ' +
+            postObject.lenses + ' found');
         }
 
         postObject.lenses = lens[ZERO].id;
