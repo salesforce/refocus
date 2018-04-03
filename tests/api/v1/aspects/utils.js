@@ -41,9 +41,11 @@ module.exports = {
 
   forceDelete(done) {
     Promise.join(
-      rcli.flushallAsync(),
+      samstoinit.eradicate(),
       tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
     )
     .then(() => done())
     .catch(done);
