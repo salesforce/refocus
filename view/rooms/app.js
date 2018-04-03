@@ -191,25 +191,28 @@ function setupMovableBots(botContainer, botName, botIndex) {
     }
   });
 
+  // A bot layout was defined in room/roomType settings
   if (_botsLayout) {
     if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
-      botsLeft.appendChild(botContainer);
+      return botsLeft.appendChild(botContainer);
     } else if (_botsLayout.middleColumn &&
       _botsLayout.middleColumn.includes(botName)) {
-      botsMiddle.appendChild(botContainer);
+      return botsMiddle.appendChild(botContainer);
     } else if (_botsLayout.rightColumn &&
       _botsLayout.rightColumn.includes(botName)) {
-      botsRight.appendChild(botContainer);
-    }
-  } else {
-    // Adding bot to correct initial column
-    if ((botIndex+ONE) % THREE === ONE) {
-      botsLeft.appendChild(botContainer);
-    } else if ((botIndex+ONE) % THREE === TWO) {
-      botsMiddle.appendChild(botContainer);
+      return botsRight.appendChild(botContainer);
     } else {
-      botsRight.appendChild(botContainer);
+      return;
     }
+  }
+
+  // No bot layout was defined in settings
+  if ((botIndex+ONE) % THREE === ONE) {
+    botsLeft.appendChild(botContainer);
+  } else if ((botIndex+ONE) % THREE === TWO) {
+    botsMiddle.appendChild(botContainer);
+  } else {
+    botsRight.appendChild(botContainer);
   }
 }
 
@@ -713,11 +716,12 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
-    if (res.body.settings && res.body.settings.botsLayout) {
-      _botsLayout = res.body.settings.botsLayout;
-    }
-    
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
+
+    if (room.settings && room.settings.botsLayout) {
+      _botsLayout = room.settings.botsLayout;
+    }
+
     const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName));
     return Promise.all(promises);
