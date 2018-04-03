@@ -117,6 +117,10 @@ module.exports = function collector(seq, dataTypes) {
           through: 'CollectorWriters',
           foreignKey: 'collectorId',
         });
+
+        Collector.addScope('status', {
+          attributes: ['status'],
+        });
       },
     },
     defaultScope: {

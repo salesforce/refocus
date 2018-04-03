@@ -80,6 +80,11 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect((res) => {
       expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
       expect(res.body.subjects).to.not.exist;
+
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
     })
     .end(done);
   });

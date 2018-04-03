@@ -60,6 +60,11 @@ describe('tests/api/v1/generators/post.js >', () => {
       expect(res.body.name).to.include(generator.name);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
+
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
       done();
     });
   });
@@ -74,7 +79,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (!err) {
-        return done('Expecting "Schema Validation Failed" error');
+        return done(new Error('Expecting "Schema Validation Failed" error'));
       }
 
       const errorArray = JSON.parse(res.text).errors;
@@ -170,9 +175,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         asp2.addWriter(user); // asign user as writer to aspect2
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done(); // Validation successful
-      })
+      .then(() => done()) // Validation successful
       .catch((err) => done(err));
     });
 
@@ -207,9 +210,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         asp2.addWriter(user2); // assign user2 as writer to aspect2
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done('Expecting a Forbidden error');
-      })
+      .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ValidationError');
         expect(err.message).to.be.equal('User does not have permission to ' +
@@ -248,9 +249,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         asp2.addWriter(user2); // assign user2 as writer to aspect2
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done('Expecting a Forbidden error');
-      })
+      .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ValidationError');
         expect(err.message).to.be.equal('User does not have permission to ' +
@@ -279,9 +278,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         aspects.push(`${tu.namePrefix}ASPECT2`);
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done('Expecting a ResourceNotFoundError error');
-      })
+      .then(() => done(new Error('Expecting a ResourceNotFoundError error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ResourceNotFoundError');
         expect(err.message).to.be.equal('Aspect not found');
@@ -300,9 +297,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         req.user = createdUser;
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done(); // Validation successful
-      })
+      .then(() => done()) // Validation successful
       .catch((err) => done(err));
     });
 
@@ -316,9 +311,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         aspects.push(asp1.name);
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done(); // Validation successful
-      })
+      .then(() => done()) // Validation successful
       .catch((err) => done(err));
     });
 
@@ -339,9 +332,7 @@ describe('tests/api/v1/generators/post.js >', () => {
         asp1.addWriter(user); // asign user as writer to aspect1
         return validateGeneratorAspectsPermissions(aspects, req);
       })
-      .then(() => {
-        done(); // Validation successful
-      })
+      .then(() => done()) // Validation successful
       .catch((err) => {
         expect(err.name).to.be.equal('ForbiddenError');
         expect(err.message).to.be.equal('Resource is write protected');
@@ -353,17 +344,13 @@ describe('tests/api/v1/generators/post.js >', () => {
 
     it('aspects argument null', (done) => {
       validateGeneratorAspectsPermissions(null, {})
-      .then(() => {
-        done(); // Promise is expected to resolve
-      })
+      .then(() => done()) // Promise is expected to resolve
       .catch((e) => done(e));
     });
 
     it('req argument null', (done) => {
       validateGeneratorAspectsPermissions([], null)
-      .then(() => {
-        done('Expecting a ValidationError error');
-      })
+      .then(() => done(new Error('Expecting a ValidationError error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ValidationError');
         expect(err.message).to.be.equal(

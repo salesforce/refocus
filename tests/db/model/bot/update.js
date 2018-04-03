@@ -64,6 +64,17 @@ describe('tests/db/model/bot/update.js >', () => {
     .catch(done);
   });
 
+  it('ok, bot version updated', (done) => {
+    Bot.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ version: '2.0.0' }))
+    .then(() => Bot.findOne({ where: { name: u.name } }))
+    .then((o) => {
+      expect(o).to.have.property('version').to.equal('2.0.0');
+      done();
+    })
+    .catch(done);
+  });
+
   it('fail, bot url bad', (done) => {
     Bot.findOne({ where: { name: u.name } })
     .then((o) => o.update({ url: 'noURL' }))

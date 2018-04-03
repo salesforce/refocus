@@ -18,6 +18,8 @@ const SUBTITLE_ELEM_ID = 'subTitle';
 const SPINNER_ID = 'loading_spinner';
 const ROOMS_TAB = 'roomsTab';
 const ROOM_TYPES_TAB = 'roomTypesTab';
+const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
+  .includes('debug=REALTIME');
 
 module.exports = {
 
@@ -62,5 +64,15 @@ module.exports = {
   setRoomTypesTab() {
     let roomTypesTab = document.getElementById(ROOM_TYPES_TAB);
     roomTypesTab.className += ' slds-is-active';
+  },
+
+  writeInIframedoc(iframedoc, iframeContent) {
+    if (iframedoc) {
+      iframedoc.open();
+      iframedoc.writeln(iframeContent);
+      iframedoc.close();
+    } else if (DEBUG_REALTIME) {
+      console.log('Cannot inject dynamic contents into iframe.');
+    }
   },
 };

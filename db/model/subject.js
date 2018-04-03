@@ -19,8 +19,6 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const sampleType = redisOps.sampleType;
-const subAspMapType = redisOps.subAspMapType;
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -191,8 +189,7 @@ module.exports = function subject(seq, dataTypes) {
        * TODO:
        * 1. Have a look at the sampleStore logic and confirm that it is
        * doing what it is supposed to do.
-       * 2. Wrap all the calls to redis in a promise and resolve it at the end
-       * like it has been done in the afterUpdate hook of the aspect model.
+       *
        */
 
       /**
@@ -222,6 +219,8 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       afterCreate(inst /* , opts */) {
+        const promiseArr = [];
+
         /*
          * add entry to the subjectStore in redis only if the subject
          * is published and the sampleStoreFeature is enabled
@@ -231,12 +230,13 @@ module.exports = function subject(seq, dataTypes) {
 
           // Prevent any changes to original inst dataValues object
           const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-          redisOps.addKey(subjectType, inst.getDataValue('absolutePath'));
-          redisOps.hmSet(
+          promiseArr.push(redisOps.addKey(subjectType,
+            inst.getDataValue('absolutePath')));
+          promiseArr.push(redisOps.hmSet(
             subjectType,
             inst.getDataValue('absolutePath'),
             instDataObj
-          );
+          ));
         }
 
         // no change here
@@ -246,6 +246,8 @@ module.exports = function subject(seq, dataTypes) {
             if (par) {
               par.increment('childCount');
             }
+
+            return Promise.all(promiseArr);
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))
@@ -258,6 +260,7 @@ module.exports = function subject(seq, dataTypes) {
        * publish the updated and former subject to redis channel.
        *
        * @param {Subject} inst - The updated instance
+       * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
         const promiseArr = [];
@@ -270,35 +273,27 @@ module.exports = function subject(seq, dataTypes) {
          * 3. if the asbsolutepath of the subject changes: rename the subject key,
          *   update subject, delete subject aspect map, and remove its samples
          */
-        {
-          if (inst.changed('absolutePath') ||
-            (inst.changed('isPublished') && !inst.isPublished)) {
-            const newAbsPath = inst.absolutePath;
-            const oldAbsPath = inst._previousDataValues.absolutePath;
+        if (inst.changed('absolutePath') ||
+          (inst.changed('isPublished') && !inst.isPublished)) {
+          const newAbsPath = inst.absolutePath;
+          const oldAbsPath = inst._previousDataValues.absolutePath;
 
-            if (inst.changed('absolutePath')) {
-              // rename entry in subject store
-              promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
-               newAbsPath));
-            }
-
-            /*
-             * Delete multiple possible
-             * entries in sample master list of index.
-             * Delete the subject to aspect mapping
-             */
-            promiseArr.push(redisOps.deleteKeys(sampleType, subjectType,
-              oldAbsPath));
-            promiseArr.push(redisOps.deleteKey(subAspMapType, oldAbsPath));
+          if (inst.changed('absolutePath')) {
+            // rename entry in subject store
+            promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
+             newAbsPath));
           }
 
-          // Prevent any changes to original inst dataValues object
-          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
-          //  update subject
-          promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
-            instDataObj));
+          // remove all the related samples
+          promiseArr.push(subjectUtils.removeRelatedSamples(oldAbsPath));
         }
+
+        // Prevent any changes to original inst dataValues object
+        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+
+        //  update subject
+        promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
+          instDataObj));
 
         if (inst.changed('parentAbsolutePath') ||
           inst.changed('absolutePath')) {
@@ -361,7 +356,7 @@ module.exports = function subject(seq, dataTypes) {
         }
 
         return Promise.all(promiseArr);
-      }, // hooks.afterupdate
+      }, // hooks.afterUpdate
 
       /**
        * Decrements childCount in parent.
@@ -381,10 +376,10 @@ module.exports = function subject(seq, dataTypes) {
 
             if (inst.getDataValue('isPublished')) {
               common.publishChange(inst, eventName.del);
-
-              // if cache is on, remove reference to subjects in the cache
-              return subjectUtils.removeFromRedis(inst.absolutePath);
             }
+
+            // remove the subject and its related samples
+            return subjectUtils.removeFromRedis(inst.absolutePath);
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))
@@ -480,13 +475,11 @@ module.exports = function subject(seq, dataTypes) {
 
           // If either is empty, decrement the parent's childCount
           if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
-
             // set parentAbsolutePath, parentId to null
             return updateParentFields(Subject, null, null, inst);
           }
 
           if ((papChanged && pidChanged) && (!papEmpty && !pidEmpty)) {
-
             // do parentAbsolutePath and parentId point to the same subject?
             return validateParentField(Subject,
               inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')

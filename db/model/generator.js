@@ -94,6 +94,10 @@ module.exports = function generator(seq, dataTypes) {
     aspects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       allowNull: false,
+      set(arr) {
+        // store the aspect names in lowercase to allow case insensitivity
+        this.setDataValue('aspects', arr.map(a => a.toLowerCase()));
+      },
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),

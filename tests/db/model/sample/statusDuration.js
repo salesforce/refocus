@@ -172,7 +172,7 @@ describe('tests/db/model/sample/statusDuration.js >', () => {
       .catch(done);
     });
 
-    it('previousStatus change with Aspect Range changes', (done) => {
+    it.skip('previousStatus change with Aspect Range changes', (done) => {
       sample.update({ value: '.25' })
       .then((samp) => {
         expect(samp.status).to.equal(constants.statuses.Critical);
