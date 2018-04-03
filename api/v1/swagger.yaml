@@ -2040,6 +2040,7 @@ paths:
           in: formData
           description: The unique readable name for the bot
           type: string
+          required: true
           pattern: ^[0-9A-Za-z_\\-]{0,60}$
         -
           name: active
@@ -2058,6 +2059,12 @@ paths:
           in: formData
           type: file
           format: binary
+        -
+          name: version
+          in: formData
+          description: The version of the bot. Use Semantic Versioning 2.0.0
+          type: string
+          required: true
         -
           name: actions
           in: formData
@@ -2301,67 +2308,6 @@ paths:
   # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
-    post:
-      security:
-        - jwt: []
-      tags: [ collectors ]
-      summary: Access restricted to Refocus Collector only.
-      description: Access restricted to Refocus Collector only.
-      operationId: postCollector
-      parameters:
-        -
-          name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Access restricted to Refocus Collector only.
-            properties:
-              name:
-                type: string
-                description: Access restricted to Refocus Collector only.
-              description:
-                type: string
-                maxLength: 4096
-                description: Access restricted to Refocus Collector only.
-              helpEmail:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 254
-              helpUrl:
-                type: string
-                maxLength: 2082
-                description: Access restricted to Refocus Collector only.
-              host:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 4096
-              ipAddress:
-                type: string
-                description: Access restricted to Refocus Collector only.
-                maxLength: 60
-              osInfo:
-                type: object
-                description: Access restricted to Refocus Collector only.
-              processInfo:
-                type: object
-                description: Access restricted to Refocus Collector only.
-              version:
-                type: string
-                description: Access restricted to Refocus Collector only.
-            required:
-              - name
-              - version
-      responses:
-        201:
-          description: Success.
-          schema:
-            $ref: "#/definitions/CollectorResponse"
-        400:
-          $ref: "#/responses/400"
-        403:
-          $ref: "#/responses/403"
     get:
       security:
         - jwt: []
@@ -2635,6 +2581,39 @@ paths:
           $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
+
+  /collectors/{key}/status:
+    x-swagger-router-controller: collectors
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Get collector status
+      description: >-
+        Retrieve the specified collector status by the collector's id or name.
+      operationId: getCollectorStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to get the status of.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's status.
+          schema:
+             type: object
+             properties:
+               status:
+                 type: string
+                 description: The collector status.
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Collector not found"
 
   # ---------------------------------------------------------------------------
 
@@ -6643,6 +6622,89 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /rooms/{roomId}/data:
+    x-swagger-router-controller: botData
+    get:
+      security:
+        - jwt: []
+      summary: Get room bot data
+      tags: [ rooms ]
+      operationId: findBotData
+      parameters:
+        -
+          name: roomId
+          in: path
+          description: >-
+            The id of the room to retrieve bot data from
+          required: true
+          type: integer
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified bot data
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /rooms/{roomId}/bots/{botId}/data:
+    x-swagger-router-controller: botData
+    get:
+      security:
+        - jwt: []
+      summary: Get room bot data
+      tags: [ rooms ]
+      operationId: findBotData
+      parameters:
+        -
+          name: roomId
+          in: path
+          description: >-
+            The id of the room to retrieve bot data from
+          required: true
+          type: integer
+        -
+          name: botId
+          in: path
+          description: >-
+            The id of the bot which people want to reference
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+      responses:
+        200:
+          description: >-
+            Success, returns specified bot data
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/BotDataResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /roomTypes:
     x-swagger-router-controller: roomTypes
     get:
@@ -9722,89 +9784,6 @@ paths:
             details.
           schema:
             $ref: '#/definitions/ErrorResponse'
-
-  # ---------------------------------------------------------------------------
-  /rooms/{roomId}/data:
-    x-swagger-router-controller: botData
-    get:
-      security:
-        - jwt: []
-      summary: Get room bot data
-      tags: [ rooms ]
-      operationId: findBotData
-      parameters:
-        -
-          name: roomId
-          in: path
-          description: >-
-            The id of the room to retrieve bot data from
-          required: true
-          type: integer
-        -
-          $ref: "#/parameters/limitParam"
-        -
-          $ref: "#/parameters/offsetParam"
-      responses:
-        200:
-          description: >-
-            Success, returns specified bot data
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotDataResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-  # ---------------------------------------------------------------------------
-  /rooms/{roomId}/bots/{botId}/data:
-    x-swagger-router-controller: botData
-    get:
-      security:
-        - jwt: []
-      summary: Get room bot data
-      tags: [ rooms ]
-      operationId: findBotData
-      parameters:
-        -
-          name: roomId
-          in: path
-          description: >-
-            The id of the room to retrieve bot data from
-          required: true
-          type: integer
-        -
-          name: botId
-          in: path
-          description: >-
-            The id of the bot which people want to reference
-          required: true
-          type: string
-        -
-          $ref: "#/parameters/limitParam"
-        -
-          $ref: "#/parameters/offsetParam"
-      responses:
-        200:
-          description: >-
-            Success, returns specified bot data
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/BotDataResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
 
 # =============================================================================
 definitions:

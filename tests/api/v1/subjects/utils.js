@@ -19,7 +19,7 @@ const rcli = require('../../../../cache/redisCache').client.sampleStore;
 module.exports = {
   forceDelete(done) {
     Promise.join(
-      rcli.flushallAsync(),
+      samstoinit.eradicate(),
       tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     )

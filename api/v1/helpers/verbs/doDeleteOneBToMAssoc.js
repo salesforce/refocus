@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/verbs/doDeleteOneBToMAssoc.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
@@ -29,7 +29,7 @@ const httpStatus = require('../../constants').httpStatus;
  *
  */
 function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
-              props, assocName, nameOrId) {
+    props, assocName, nameOrId) {
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   const options = {};
@@ -41,8 +41,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
     return u.isWritable(req, o);
   })
   .then((o) => {
-
-    // if assocName is "writers", it resolves to "getWriters"
+    /* if assocName is "writers", resolves to "getWriters" */
     const getAssocfuncName = `get${u.capitalizeFirstLetter(assocName)}`;
     return o[getAssocfuncName](options);
   })
@@ -50,18 +49,14 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
     if (o) {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      // if the resolved object is an empty array, throw a ResourceNotFound error
-      u.throwErrorForEmptyArray(o,
-          params.userNameOrId.value, assocName);
+      // if resolved object is empty array, throw ResourceNotFound error
+      u.throwErrorForEmptyArray(o, params.userNameOrId.value, assocName);
       resultObj.recordCount = o.length; // not 0
 
-      // if assocName is "writers", it resolves to "removeWriters"
+      // if assocName is "writers", resolves to "removeWriters"
       const functionName = `remove${u.capitalizeFirstLetter(assocName)}`;
 
-      /*
-       * if the assocName is "writers", it resolves to
-       * modelInst.removeWriters(o)
-       */
+      // if assocName is "writers", resolves to modelInst.removeWriters(o)
       modelInst[functionName](o);
       u.logAPI(req, resultObj, o[0].dataValues);
       res.status(httpStatus.NO_CONTENT).json();
