@@ -88,7 +88,6 @@ function getArray(field, arrayOfObjects) {
  * @returns {String} The converted string, includes spaces.
  */
 function convertCamelCase(string) {
-
   // insert a space before all caps
   // then uppercase the first character
   return string
@@ -132,9 +131,9 @@ function getTagsFromResources(array) {
 }
 
 /**
+ * TODO: this is an O(n^2) operation. Use sets to make it O(n)
  * Return array of items that are from one array and
  * not in another
- * TODO: this is an O(n^2) operation. Use sets to make it O(n)
  * @param {Array} options Return a subset of this
  * @param {Array} value Array of data to exclude
  * @returns {Array} Contains items from options
@@ -162,7 +161,7 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
 }
 
 /**
- * this function -->. this is called as one of the function in setState
+ * TODO: call getOptions only if it is required
  * Returns config object for the key in values array.
  *
  * @param {Array} values Data to get resource config.
@@ -171,29 +170,17 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
  * @param {Array} value Update state to this value
  * @returns {Object} The resource configuration object
  */
-// values: are the values from props
-// key: is from the state object. it is actually a key of the state object
-// example-- subjects, lenses, aspects.....
-// value: is the value of the key of the state object
 function getConfig(values, key, value) {
-  console.log('this is getCOnfig, values, key, value', values, key, value);
-  const ZERO = 0;
-  // get something called option. for example, pass all the values of subjects ie subject objects and
-  // and pass the value which is from the state object = current stateObject[key]
-  // if values = [A,B,C] and value = C. options returned is A,B
-  // this is not required
   const options = getOptions(values[key] || [], value);
-  console.log('what is the options for value-----', key, value, options)
   const convertedText = convertCamelCase(key);
-  let config = {
+  const config = {
     title: key,
     options,
   };
 
   if (key === 'subjects') {
     config.placeholderText = 'Enter a subject name';
-    let options = getArray('absolutePath', values[key]);
-    // very similar to what is been done in getOptions. Not sure why this is done there
+    const options = getArray('absolutePath', values[key]);
     config.options = filteredArray(options, value);
     config.isArray = false;
     config.notOpenOnFocus = true;
@@ -202,7 +189,7 @@ function getConfig(values, key, value) {
     config.customFilterOnKeyUp = findNamePrefixFromAbsolutePath;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
-    let options = getArray('name', values[key]);
+    const options = getArray('name', values[key]);
     config.options = filteredArray(options, value);
     config.isArray = false;
   } else if (key.slice(-6) === 'Filter') {
@@ -217,8 +204,9 @@ function getConfig(values, key, value) {
     } else if (key === 'aspectFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
-      let options = getArray('name', values[key]);
-      config.options = filteredArray(options, value);
+      // TODO: the below line is not used. Will be cleaned.
+      // let options = getArray('name', values[key]);
+      config.options = filteredArray(values[key], value);
     }
 
     delete config.placeholderText;
@@ -262,7 +250,6 @@ function getValuesObject(accumulatorObject) {
     redirectToUrl, // here for testing purposes
   } = accumulatorObject;
   const constants = require('../../api/v1/constants');
-  const httpStatus = constants.httpStatus;
   const statuses = constants.statuses;
 
   const valuesObj = {
@@ -272,11 +259,6 @@ function getValuesObject(accumulatorObject) {
     persNames: [], // will be array of strings
     rootSubject: {},
     lens: {}, // includes library
-   // subjects: [], // { name: absolutePath, id }
-   // aspectTagFilter: [], // { name, id }
-   // aspectFilter: [], // strings
-   // subjectTagFilter: [], // strings
-   // lenses: [], // { name, id }
     statusFilter: Object.keys(statuses).sort(),
   };
   let hierarchyLoadEvent; // will be custom event
@@ -310,25 +292,30 @@ function getValuesObject(accumulatorObject) {
      */
     const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
     .then((res) => {
-
-      // hierarchyLoadEvent can be undefined or a custom event
-      // if hierarchyLoadEvent is custom event, it will be dispatched
+      /*
+       * hierarchyLoadEvent can be undefined or a custom event
+       * if hierarchyLoadEvent is custom event, it will be dispatched
+       */
       handleLensDomEvent(res.body.library, hierarchyLoadEvent);
 
-      // set the lens received flag to true, to dispatch lens load
-       // when hierarchy is resolved in getHierarchy
+      /*
+       * set the lens received flag to true, to dispatch lens load event
+       * when hierarchy is resolved in getHierarchy
+       */
       gotLens = true;
 
       valuesObj.lens = res.body;
     });
 
-    const filterString  = getFilterQuery(perspective);
+    const filterString = getFilterQuery(perspective);
     const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
     perspective.rootSubject + '/hierarchy' + filterString)
     .then((res) => {
 
-      // if gotLens is false, hierarchyLoadEvent will be assigned
-      // and NOT dispatched. Otherwise dispatch the hierarchy event
+      /*
+       * If getLens is false, hierarchyLoadEvent will be assigned
+       * and NOT dispatched. Otherwise the hierarchy event will be dispatched
+      */
       hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
 
       valuesObj.rootSubject = res.body;
@@ -337,10 +324,11 @@ function getValuesObject(accumulatorObject) {
     return [getLens, getHierarchy];
   }
 
-  // Need to get all perspectives, for editing perspectives.
-  // for GET perspective, do NOT throw error if 404, since
-  // throwing an error skips loading the perspective picker.
-  // If successful, load the hierarchy and lens
+  /*
+   * GET all the perspectives for editing. Do not an error because throwing an
+   * error does not load the perspective picker. Load the subject hierarchy and
+   * lens if successfull
+   */
   const arr = [
     getPromiseWithUrl('/v1/perspectives'),
     getPromiseWithUrl(url)
@@ -365,45 +353,37 @@ function getValuesObject(accumulatorObject) {
      *  perspective in the perspectives array.
      * If no perspectives exist, valuesObj.perspective = null
      */
-     if (!named) {
+    if (!named) {
       if (returnedPerspective) {
-
-        // the value field has the name of the default perspective.
-        // need the return statement to skip executing the rest of code
+        /*
+         * The value field has the name of the default perspective.
+         * Need the return statement to skip executing the rest of code
+         */
         return redirectToUrl('/perspectives/' + returnedPerspective.value);
       }
 
-      // default perspective does NOT exist.
-      // GET the first perspective by alphabetical order.
-      // Check to see there are perspectives
+      /*
+       * default perspective does NOT exist.
+       * GET the first perspective by alphabetical order.
+       * Check to see there are perspectives
+       */
       if (valuesObj.perspectives.length) {
-
-        // redirect to the first perspective. The rest of the code
-        // won't be executed.
+        /*
+         * redirect to the first perspective. The rest of the code
+         * won't be executed.
+         */
         return redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
       }
 
-      // default perspective does NOT exist AND
-      // there are no perspectives
+      // default perspective does NOT exist and there are NO perspectives
       valuesObj.perspective = null;
 
-      // Execution needs to continue after this, to
-      //  load the perspective picker
+      // Execution needs to continue after this to load the perspective picker
       customHandleError('There are no perspectives yet. Click the ' +
         ' "Search Perspectives" input box then click "New Perspective".');
-     }
+    }
 
-    // /*
-    //  * GET named perspective: exists. Assign perspective
-    //  * GET named perspective: does NOT exist: handleError
-    //  */
-     // const promisesArr = [
-     //  // getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
-     //  // Promise.resolve(true), // getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
-     //  // getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
-     // ];
-
-     if (named) {
+    if (named) {
       if (returnedPerspective) {
         setupSocketIOClient(returnedPerspective);
         valuesObj.perspective = returnedPerspective;
@@ -412,7 +392,6 @@ function getValuesObject(accumulatorObject) {
         // perspective exists. GET its hierarchy and lenses soon.
         getPageLoadingPromises(returnedPerspective);
       } else {
-
         // named perspective does not exist
         const name = url.split('/').pop();
         customHandleError('Sorry, but the perspective you were trying ' +
@@ -422,10 +401,10 @@ function getValuesObject(accumulatorObject) {
     }
 
     return valuesObj;
-  })
+  });
 } // getValuesObject
 
-module.exports =  {
+module.exports = {
   getValuesObject,
   getTagsFromArrays,
   getFilterQuery,
