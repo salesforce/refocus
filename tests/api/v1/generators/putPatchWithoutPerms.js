@@ -47,7 +47,6 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
-      return u.createGeneratorAspects();
     })
     .then(() => done())
     .catch(done);

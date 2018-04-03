@@ -84,6 +84,21 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
+  it('post without Generator Teamplate error', (done) => {
+    delete generator.generatorTemplate;
+    api.post(path)
+    .set('Authorization', token)
+    .send(generator)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Missing required property: generatorTemplate'
+      );
+      done();
+    });
+  });
+
   describe('post duplicate fails >', () => {
     const gen = JSON.parse(JSON.stringify(generator));
     gen.name += 'pdf';

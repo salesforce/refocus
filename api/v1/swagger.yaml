@@ -3430,6 +3430,13 @@ paths:
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: The Generator Template's version.
             required:
               - name
               - aspects
@@ -3553,6 +3560,13 @@ paths:
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: The Generator Template's version.
       responses:
         200:
           description: Success, returns the updated generator.
@@ -3645,6 +3659,13 @@ paths:
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: The Generator Template's version.
             required:
               - name
               - aspects
