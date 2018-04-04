@@ -186,23 +186,19 @@ module.exports = {
     }
 
     validateGeneratorAspectsPermissions(toPost.aspects, req)
-    .then(() => helper.model.createWithCollectors(toPost,
-      u.whereClauseForNameInArr))
-    .then((o) => featureToggles.isFeatureEnabled('returnUser') ?
-        o.reload() : o)
+    .then(() =>
+      helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
+    .then((o) =>
+      featureToggles.isFeatureEnabled('returnUser') ? o.reload() : o)
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, o);
-
       const oldCollectors = [];
       const newCollectors = o.collectors.map(collector => collector.name);
       heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
-
-      // order collectors by name
-      u.sortArrayObjectsByField(helper, o);
-
-      res.status(constants.httpStatus.CREATED).json(
-          u.responsify(o, helper, req.method));
+      u.sortArrayObjectsByField(helper, o); // order collectors by name
+      u.logAPI(req, resultObj, o);
+      res.status(constants.httpStatus.CREATED)
+      .json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
@@ -283,9 +279,7 @@ module.exports = {
   /**
    * POST /generators/{key}/writers
    *
-   * Add one or more users to an generator’s list of authorized writers. If
-   * the "enableRedisSampleStore" is turned on add the writers to the generator
-   * stored in redis
+   * Add one or more users to an generator’s list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -298,9 +292,7 @@ module.exports = {
   /**
    * DELETE /generators/{keys}/writers/userNameOrId
    *
-   * Deletes a user from an generator’s list of authorized writers. If the
-   * "enableRedisSampleStore" feature is turned on, delete that user from the
-   * authorized list of writers stored in the cache for this generator.
+   * Deletes a user from an generator’s list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object

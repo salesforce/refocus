@@ -50,16 +50,16 @@ module.exports = {
         }
 
         return Profile.isAdmin(user.profileId)
-        .then((isAdmin) => { // update in token payload if admin
+        .then((isAdmin) => {
+          // update token payload if user is admin
           const payloadObj = {
             ProfileName: user.profile.name,
             IsAdmin: isAdmin,
           };
 
           // Create token
-          const tokenToReturn = jwtUtil.createToken(
-            user.name, user.name, payloadObj
-          );
+          const tokenToReturn =
+            jwtUtil.createToken(user.name, user.name, payloadObj);
           const userObj = u.responsify(user, helper, req.method);
           userObj.token = tokenToReturn;
           req.session.token = tokenToReturn;

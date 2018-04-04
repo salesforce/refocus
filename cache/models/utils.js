@@ -9,6 +9,8 @@
 /**
  * cache/models/utils.js
  */
+'use strict'; // eslint-disable-line strict
+
 const apiConstants = require('../../api/v1/constants');
 const defaults = require('../../config').api.defaults;
 const sampleStore = require('../sampleStore');

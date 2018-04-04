@@ -17,8 +17,9 @@ const jwtUtil = require('../../../utils/jwtUtil');
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
-const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
+const redisCache = require('../../../cache/redisCache').client.cache;
+const logger = require('winston');
 
 module.exports = {
 
@@ -58,7 +59,42 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getBot(req, res, next) {
-    doGet(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const url = req.url;
+
+    // try to get cached entry
+    redisCache.get(url, (cacheErr, reply) => {
+      if (reply) {
+        // reply is responsified bot object as string.
+        const botObject = JSON.parse(reply);
+
+        // add api links to the object and return response.
+        botObject.apiLinks = u.getApiLinks(
+          botObject.id, helper, req.method
+        );
+        return res.status(httpStatus.OK).json(botObject);
+      }
+
+      // if cache error, print error and continue to get bot from db.
+      if (cacheErr) {
+        logger.error('Cache error ', cacheErr);
+      }
+
+      // no reply, let's get bot from db
+      u.findByKey(helper, req.swagger.params, ['botUI'])
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        return o;
+      })
+      .then((responseObj) => {
+        // cache the bot by id and name.
+        redisCache.set(url, JSON.stringify(responseObj));
+
+        u.logAPI(req, resultObj, responseObj);
+        return res.status(httpStatus.OK).json(responseObj);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    });
   },
 
   /**
@@ -91,8 +127,7 @@ module.exports = {
     try {
       for (const param in reqObj) {
         if (reqObj[param].value) {
-          if (typeof (reqObj[param].value) === 'object' &&
-            param === 'ui') {
+          if (typeof (reqObj[param].value) === 'object' && param === 'ui') {
             seqObj[param] = reqObj[param].value.buffer;
             uiObj.name = reqObj[param].value.originalname;
             uiObj.size = reqObj[param].value.size;
@@ -105,19 +140,13 @@ module.exports = {
       helper.model.create(seqObj)
         .then((o) => {
           o.dataValues.ui = uiObj;
-          if (helper.loggingEnabled) {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, o.dataValues);
-          }
-
-          o.dataValues.token = jwtUtil
-            .createToken(seqObj.name, seqObj.name);
+          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
             .json(u.responsify(o, helper, req.method));
         })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
+        .catch((err) => u.handleError(next, err, helper.modelName));
     } catch (err) {
       err.description = 'Invalid UI uploaded.';
       u.handleError(next, err, helper.modelName);
@@ -154,12 +183,10 @@ module.exports = {
       return o.save();
     })
     .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       o.dataValues.ui = uiObj;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.CREATED).json(
-        u.responsify(o, helper, req.method)
-      );
+      res.status(httpStatus.CREATED).json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

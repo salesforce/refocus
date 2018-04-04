@@ -17,6 +17,7 @@ const testStartTime = new Date();
 const rt = `${tu.namePrefix}TestRoomType`;
 const r = `${tu.namePrefix}TestRoom`;
 const bd = `${tu.namePrefix}TestBotData`;
+const samstoinit = require('../../cache/sampleStoreInit');
 
 const standardRoom = {
   name: r,
@@ -124,6 +125,7 @@ const standardBot = {
     { name: 'Data4', type: 'STRING' },
     { name: 'Data5', type: 'ARRAY' },
   ],
+  version: '1.0.0',
 };
 
 const standardBotAction = {
@@ -216,10 +218,9 @@ module.exports = {
       },
       force: true,
     })
+    .then(() => samstoinit.eradicate())
     .then(() => tu.forceDelete(tu.db.Perspective, testStartTime))
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Sample, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotAction, testStartTime))
     .then(() => tu.forceDelete(tu.db.BotData, testStartTime))

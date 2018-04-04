@@ -88,13 +88,8 @@ module.exports = {
         ProfileName: user.profile.name,
         IsAdmin: isAdmin,
       };
-
-      token = jwtUtil.createToken(
-        tokenName, user.name, payloadObj
-      );
-
-      // create token object in db
-      return helper.model.create({
+      token = jwtUtil.createToken(tokenName, user.name, payloadObj);
+      return helper.model.create({ // create token object in db
         name: tokenName,
         createdBy: user.id,
       });
