@@ -111,7 +111,7 @@ function samlAuthentication(userProfile, done) {
     }
 
     if (!user.fullName) {
-      user.updateAttributes({
+      user.update({
         fullName: userFullName,
       });
     }
