@@ -47,6 +47,7 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
+      return u.createGeneratorAspects();
     })
     .then(() => done())
     .catch(done);
@@ -84,7 +85,6 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
      .send(toPut)
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
-      console.log(res.body);
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(1);
       expect(errorArray[0].type).to.equal('ForbiddenError');
