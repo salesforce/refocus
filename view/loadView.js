@@ -110,19 +110,16 @@ function samlAuthentication(userProfile, done) {
       });
     }
 
-    if (!user.fullName) {
-      user.update({
-        fullName: userFullName,
-      }).then(() => {
-        return done(null, user);
-      });
+    if (user.fullName) {
+      // profile already attached - default scope applied on find
+      return done(null, user);
     }
 
-
-    console.log("aaaaa");
-
-    // profile already attached - default scope applied on find
-    return done(null, user);
+    user.update({
+      fullName: userFullName,
+    }).then(() => {
+      return done(null, user);
+    });
   })
   .catch((error) => {
     done(error);
