@@ -165,74 +165,23 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, ' +
       return obj.then((obj) => {
         expect(obj.name).to.equal(DUMMY_STRING);
         expect(obj.perspective.name).to.equal(DUMMY_STRING);
-        expect(obj.subjects.length).to.equal(2);
-        expect(obj.lenses.length).to.equal(2);
+        expect(obj.subjects).to.equal(undefined);
+        expect(obj.lenses).to.equal(undefined);
         expect(obj.lens.id).to.equal(DUMMY_ID);
         expect(obj.lens.name).to.equal(LENS_NAME);
         expect(obj.persNames.length).to.equal(2);
 
         // filters
-        expect(obj.aspectFilter.length).to.equal(2);
+        expect(obj.aspectFilter).to.equal(undefined);
         expect(obj.statusFilter).to.deep.equal(Object.keys(statuses).sort());
-        expect(obj.aspectTagFilter.length).to.equal(0);
-        expect(obj.subjectTagFilter.length).to.equal(0);
+        expect(obj.aspectTagFilter).to.equal(undefined);
+        expect(obj.subjectTagFilter).to.equal(undefined);
 
         // default filter types
         expect(obj.perspective.aspectFilterType).to.equal('EXCLUDE');
         expect(obj.perspective.statusFilterType).to.equal('EXCLUDE');
         expect(obj.perspective.aspectTagFilterType).to.equal('EXCLUDE');
         expect(obj.perspective.subjectTagFilterType).to.equal('EXCLUDE');
-      });
-    });
-
-    it('set the available aspect tags', () => {
-      setup({
-        '/v1/aspects': {
-          body: [{ name: ASPECT1, isPublished: true, tags: tags.slice(0, 2) },
-          { name: 'iDontShowUp', isPublished: false },
-          { name: ASPECT2, isPublished: true, tags: tags.slice(2) }],
-        }
-      });
-      accumulatorObject.getPromiseWithUrl = request;
-      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
-      const obj = getValuesObject(accumulatorObject);
-      return obj.then((obj) => {
-        expect(obj.aspectTagFilter.length).to.equal(tags.length);
-        expect(obj.aspectTagFilter).to.deep.equal(tags.sort())
-      });
-    });
-
-    it('set the available aspectFilter', () => {
-      setup({
-        '/v1/aspects': {
-          body: [{ name: ASPECT1, isPublished: true },
-          { name: ASPECT2, isPublished: true }],
-        }
-      });
-      accumulatorObject.getPromiseWithUrl = request;
-      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
-      const obj = getValuesObject(accumulatorObject);
-      return obj.then((obj) => {
-        expect(obj.aspectFilter.length).to.equal(2);
-        expect(obj.aspectFilter[0]).to.equal(ASPECT1);
-        expect(obj.aspectFilter[1]).to.equal(ASPECT2);
-      });
-    });
-
-    it('set subjectTagFilter without duplicate tags', () => {
-      const subjectTags = tags.slice(0, 2);
-      setup({
-        '/v1/subjects': {
-          body: [{absolutePath: SUBJECT1, isPublished: true, tags: subjectTags },
-          { absolutePath: SUBJECT2, isPublished: true, tags: subjectTags }],
-        }
-      });
-      accumulatorObject.getPromiseWithUrl = request;
-      accumulatorObject.getPerspectiveUrl = getNamedPerspectiveUrl;
-      const obj = getValuesObject(accumulatorObject);
-      return obj.then((obj) => {
-        expect(obj.subjectTagFilter.length).to.equal(subjectTags.length);
-        expect(obj.subjectTagFilter).to.deep.equal(subjectTags);
       });
     });
 

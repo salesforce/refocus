@@ -38,11 +38,6 @@ describe('tests/view/perspectives/perspectiveController.js, ' +
   function setup() {
     const defaultProps = {
       values: {
-        subjects: [], // { name: absolutePath, id }
-        aspectTagFilter: [], // { name, id }
-        aspectFilter: [], // strings
-        subjectTagFilter: [], // strings
-        lenses: [LENS], // { name, id }
         statusFilter: [],
         persNames: [], //strings
         rootSubject: {},
