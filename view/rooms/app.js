@@ -153,9 +153,45 @@ function drop(event, col) {
 }
 
 /**
+ * Decides which column to place the bot in.
+ *
+ * @param {Int} botName - Name of the bot
+ * @param {Int} botIndex - Index of the bot
+ * @returns {String} - L, M or R
+ */
+function decideBotPosition(botName, botIndex) {
+
+  console.log(_botsLayout);
+  // A bot layout was defined in room/roomType settings
+  if (_botsLayout) {
+    if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
+      return 'L';
+    } else if (_botsLayout.middleColumn &&
+      _botsLayout.middleColumn.includes(botName)) {
+      return 'M';
+    } else if (_botsLayout.rightColumn &&
+      _botsLayout.rightColumn.includes(botName)) {
+      return 'R';
+    }
+
+    return '';
+  }
+
+  // No bot layout was defined in settings
+  if ((botIndex+ONE) % THREE === ONE) {
+    return 'L';
+  } else if ((botIndex+ONE) % THREE === TWO) {
+    return 'M';
+  }
+
+  return 'R';
+}
+
+/**
  * Sets up the bots to be movable between columns.
  *
  * @param {DOM} botContainer - Container of bot
+ * @param {Int} botName - Name of the bot
  * @param {Int} botIndex - Index of the bot
  */
 function setupMovableBots(botContainer, botName, botIndex) {
@@ -191,27 +227,13 @@ function setupMovableBots(botContainer, botName, botIndex) {
     }
   });
 
-  // A bot layout was defined in room/roomType settings
-  if (_botsLayout) {
-    if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
-      return botsLeft.appendChild(botContainer);
-    } else if (_botsLayout.middleColumn &&
-      _botsLayout.middleColumn.includes(botName)) {
-      return botsMiddle.appendChild(botContainer);
-    } else if (_botsLayout.rightColumn &&
-      _botsLayout.rightColumn.includes(botName)) {
-      return botsRight.appendChild(botContainer);
-    }
+  const position = decideBotPosition(botName, botIndex);
 
-    return;
-  }
-
-  // No bot layout was defined in settings
-  if ((botIndex+ONE) % THREE === ONE) {
+  if (position === 'L') {
     botsLeft.appendChild(botContainer);
-  } else if ((botIndex+ONE) % THREE === TWO) {
+  } else if (position === 'M') {
     botsMiddle.appendChild(botContainer);
-  } else {
+  } else if (position === 'R') {
     botsRight.appendChild(botContainer);
   }
 }
