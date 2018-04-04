@@ -756,6 +756,7 @@ window.onload = () => {
 module.exports = () => {
   return {
     parseBot,
-    iframeBot
+    iframeBot,
+    decideBotPosition
   };
 };
