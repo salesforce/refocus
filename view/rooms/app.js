@@ -40,6 +40,11 @@ const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 const BOT_LOGO = '../static/images/refocus-bot.png';
+const BOT_REQ_HEADERS = {
+  'X-Requested-With': 'XMLHttpRequest',
+  Expires: '-1',
+  'Cache-Control': 'private, max-age=31536000', // 31536000s = 1 year
+};
 let _io;
 let _user;
 let _roomName;
@@ -719,7 +724,7 @@ window.onload = () => {
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
     const promises = room.bots.map((botName) =>
-      u.getPromiseWithUrl(GET_BOTS + '/' + botName));
+      u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
     return Promise.all(promises);
   })
   .then((res) => {
