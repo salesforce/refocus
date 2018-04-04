@@ -72,6 +72,7 @@ function ensureAuthenticated(req, res, next) {
  * @param  {Function} done - Callback function
  */
 function samlAuthentication(userProfile, done) {
+  const userFullName = `${userProfile.firstname} ${userProfile.lastname}`;
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
@@ -84,7 +85,6 @@ function samlAuthentication(userProfile, done) {
         return Profile.create({ name: 'RefocusSSOUser' });
       })
       .then((profile) => {
-
         /**
          * default scope not applied on create, so we use User.find after this to
          * get profile attached to user.
@@ -94,6 +94,7 @@ function samlAuthentication(userProfile, done) {
           profileId: profile.id,
           name: userProfile.email,
           password: viewConfig.dummySsoPassword,
+          fullName: userFullName,
           sso: true,
         });
       })
@@ -105,6 +106,12 @@ function samlAuthentication(userProfile, done) {
       })
       .catch((error) => {
         done(error);
+      });
+    }
+
+    if (!user.fullName) {
+      user.updateAttributes({
+        fullName: userFullName,
       });
     }
 
