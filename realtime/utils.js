@@ -418,8 +418,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? JSON.parse(JSON.stringify(asp.get())) : asp;
-    sub = sub.get ? JSON.parse(JSON.stringify(sub.get())) : sub;
+    asp = asp.get ? asp.get() : asp;
+    sub = sub.get ? sub.get() : sub;
     delete asp.writers;
     delete sub.writers;
 
@@ -434,7 +434,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
      * filtering done on the subject absolutePath
      */
     sample.absolutePath = subName;
-    return sample;
+    return JSON.parse(JSON.stringify(sample));
   });
 } // attachAspectSubject
 
