@@ -376,8 +376,7 @@ function isIpWhitelisted(addr, whitelist) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(_sample, subjectModel, aspectModel) {
-  let sample = _sample
+function attachAspectSubject(sample, subjectModel, aspectModel) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
@@ -419,8 +418,8 @@ function attachAspectSubject(_sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? JSON.parse(JSON.stringify(asp.get())) : asp;
+    sub = sub.get ? JSON.parse(JSON.stringify(sub.get())) : sub;
     delete asp.writers;
     delete sub.writers;
 
