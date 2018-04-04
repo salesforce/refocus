@@ -85,6 +85,7 @@ function samlAuthentication(userProfile, done) {
         return Profile.create({ name: 'RefocusSSOUser' });
       })
       .then((profile) => {
+
         /**
          * default scope not applied on create, so we use User.find after this to
          * get profile attached to user.
