@@ -84,7 +84,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
-  it('post without Generator Teamplate error', (done) => {
+  it('post without Generator Template error', (done) => {
     delete generator.generatorTemplate;
     api.post(path)
     .set('Authorization', token)
