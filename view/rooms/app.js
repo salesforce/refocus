@@ -160,8 +160,6 @@ function drop(event, col) {
  * @returns {String} - L, M or R
  */
 function decideBotPosition(botName, botIndex) {
-
-  console.log(_botsLayout);
   // A bot layout was defined in room/roomType settings
   if (_botsLayout) {
     if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
