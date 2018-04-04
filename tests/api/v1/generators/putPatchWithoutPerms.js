@@ -84,6 +84,7 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
      .send(toPut)
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
+      console.log(res.body);
       const errorArray = JSON.parse(res.text).errors;
       expect(errorArray.length).to.equal(1);
       expect(errorArray[0].type).to.equal('ForbiddenError');
