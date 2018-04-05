@@ -115,11 +115,9 @@ function samlAuthentication(userProfile, done) {
       return done(null, user);
     }
 
-    user.update({
+    user.update({ // user.fullName doesn't exist, update user
       fullName: userFullName,
-    }).then(() => {
-      return done(null, user);
-    });
+    }).then(() => done(null, user));
   })
   .catch((error) => {
     done(error);
