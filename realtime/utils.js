@@ -390,11 +390,22 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
     const subOpts = {
+      attributes: [
+        'id',
+        'name',
+        'absolutePath',
+        'tags',
+      ],
       where: {
         absolutePath: { $iLike: subName },
       },
     };
     const aspOpts = {
+      attributes: [
+        'id',
+        'name',
+        'tags',
+      ],
       where: {
         name: { $iLike: aspName },
       },

@@ -30,7 +30,6 @@ module.exports = (job, done) => {
   const user = job.data.user;
   const reqStartTime = job.data.reqStartTime;
   const readOnlyFields = job.data.readOnlyFields;
-  const errors = [];
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg =
@@ -44,6 +43,7 @@ module.exports = (job, done) => {
     .then((results) => {
       const dbEndTime = Date.now();
       let errorCount = 0;
+      const errors = [];
 
       /*
        * count failed promises and send the good samples to the client by
