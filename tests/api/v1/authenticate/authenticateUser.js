@@ -126,9 +126,9 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .end(done);
     });
 
-    it('Existing SSO user without fullName now has one', (done) => {
+    it('updated existing SSO to have fullName', (done) => {
       const samlResponse = {
-        email: 'user@example.com',
+        email: ssoUser.email,
         firstname: 'testFirstName',
         lastname: 'testLastName',
       };
@@ -136,12 +136,12 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       const expectedFullName =
         `${samlResponse.firstname} ${samlResponse.lastname}`;
 
-      samlAuthentication(samlResponse, (err, newUser) => {
+      samlAuthentication(samlResponse, (err, user) => {
         if (err) {
           return done(err);
         }
 
-        expect(newUser.fullName).to.equal(expectedFullName);
+        expect(user.fullName).to.equal(expectedFullName);
         done();
       });
     });
