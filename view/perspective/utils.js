@@ -131,7 +131,9 @@ function getTagsFromResources(array) {
 }
 
 /**
- * TODO: this is an O(n^2) operation. Use sets to make it O(n)
+ * TODO: this is an O(n^2) operation. Use sets to make it O(n).
+ * Fix Me: the array iteration in the reverse causes the tags to display in the
+ * reverse alphabetical order.
  * Return array of items that are from one array and
  * not in another
  * @param {Array} options Return a subset of this
@@ -216,7 +218,7 @@ function getConfig(values, key, value) {
 }
 
 /**
- * TODO: dont create an array object every time.
+ * TODO: dont create a set object every time.
  * Return array of unique tags
  * @param {Array} Objects with tags: [tag1, tag2, ...]
  * @returns {Array} contains unique tags
