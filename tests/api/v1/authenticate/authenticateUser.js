@@ -126,7 +126,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .end(done);
     });
 
-    it('updated existing SSO to have fullName', (done) => {
+    it('updated existing SSO user to have fullName', (done) => {
       const samlResponse = {
         email: ssoUser.email,
         firstname: 'testFirstName',
