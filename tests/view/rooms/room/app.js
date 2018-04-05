@@ -20,6 +20,10 @@ const botPackage = fs.readFileSync(paths.join(__dirname, './test.zip'));
 const botPackage2 = fs.readFileSync(paths.join(__dirname, './test2.zip'));
 const botPackage3 = null;
 const testHTML = '<div>test</div>';
+const testBotName = 'test-bot';
+const firstIndex = 0;
+const secondIndex = 1;
+const thirdIndex = 2;
 
 describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, parsed javascript and html', () => {
@@ -37,7 +41,7 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
 
   it('ok, parsed javascript and html has other script', () => {
     const bot = {
-      name: 'test-bot',
+      name: testBotName,
       ui: {
         data: botPackage2,
       },
@@ -50,7 +54,7 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
 
   it('fail, bot doesnt contain UI', () => {
     const bot = {
-      name: 'test-bot',
+      name: testBotName,
       ui: {
         data: botPackage3,
       },
@@ -62,7 +66,7 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
 
   it('ok, push data to iframe', () => {
     const bot = {
-      name: 'test-bot',
+      name: testBotName,
       ui: {
         data: botPackage,
       },
@@ -87,5 +91,11 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     uPage.writeInIframedoc(iframedoc, testHTML);
     const content = newIframe.contentDocument.body.innerHTML;
     expect(content).to.contain(testHTML);
+  });
+
+  it('ok, correct string was returned for each position', () => {
+    expect(app.decideBotPosition(testBotName, firstIndex)).to.equal('L');
+    expect(app.decideBotPosition(testBotName, secondIndex)).to.equal('M');
+    expect(app.decideBotPosition(testBotName, thirdIndex)).to.equal('R');
   });
 });
