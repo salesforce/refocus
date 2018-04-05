@@ -23,8 +23,6 @@ const User = tu.db.User;
 const samlAuthentication =
   require('../../../../view/loadView.js').samlAuthentication;
 
-console.log(samlAuthentication);
-
 describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
   describe(`authenticateUser >`, () => {
     before((done) => {
