@@ -429,8 +429,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? asp.dataValues : asp;
+    sub = sub.get ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 
