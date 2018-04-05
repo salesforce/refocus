@@ -411,9 +411,9 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
       },
     };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+      aspectModel.scope(null).findOne(aspOpts);
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subjectModel.scope(null).findOne(subOpts);
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -435,10 +435,10 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     delete sub.writers;
 
     sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      asp : redisStore.arrayObjsStringsToJson(asp,
+      JSON.parse(JSON.stringify(asp)) : redisStore.arrayObjsStringsToJson(asp,
         redisStore.constants.fieldsToStringify.aspect);
     sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      sub : redisStore.arrayObjsStringsToJson(sub,
+      JSON.parse(JSON.stringify(sub)) : redisStore.arrayObjsStringsToJson(sub,
         redisStore.constants.fieldsToStringify.subject);
     /*
      * attach absolutePath field to the sample. This is done to simplify the
