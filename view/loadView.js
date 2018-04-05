@@ -317,5 +317,5 @@ function loadView(app, passport) {
 
 module.exports = {
   loadView,
-  samlAuthentication
+  samlAuthentication // for testing
 }; // exports
