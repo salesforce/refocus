@@ -142,7 +142,7 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
-module.exports = function loadView(app, passport) {
+function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
@@ -313,4 +313,9 @@ module.exports = function loadView(app, passport) {
 
   // Redirect '/v1' to '/v1/docs'.
   app.get('/v1', (req, res) => res.redirect('/v1/docs'));
+}
+
+module.exports = {
+  loadView,
+  samlAuthentication
 }; // exports

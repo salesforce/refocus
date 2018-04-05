@@ -281,7 +281,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   app.use(passportModule.session());
 
   // create app routes
-  require('./view/loadView')(app, passportModule, '/v1');
+  require('./view/loadView').loadView(app, passportModule, '/v1');
 
   module.exports = { app, passportModule };
 } // start

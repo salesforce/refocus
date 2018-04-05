@@ -20,6 +20,10 @@ const authPath = '/v1/authenticate';
 const tu = require('../../../testUtils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
+const samlAuthentication =
+  require('../../../../view/loadView.js').samlAuthentication;
+
+console.log(samlAuthentication);
 
 describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
   describe(`authenticateUser >`, () => {
@@ -86,6 +90,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(res.body.success).to.be.true;
+        console.log(res.body)
         expect(res.body.token).to.be.equal(undefined);
         done();
       });
@@ -110,7 +115,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .catch(done);
     });
 
-    after(u.forceDelete);
+    afterEach(u.forceDelete);
 
     it('sso user cannot authenticate by username password', (done) => {
       api.post(authPath)
@@ -122,6 +127,46 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/Invalid credentials/)
       .end(done);
+    });
+
+    it('Existing SSO user without fullName now has one', (done) => {
+      const samlResponse = {
+        email: 'user@example.com',
+        firstname: 'testFirstName',
+        lastname: 'testLastName',
+      };
+
+      const expectedFullName =
+        `${samlResponse.firstname} ${samlResponse.lastname}`;
+
+      samlAuthentication(samlResponse, (err, newUser) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(newUser.fullName).to.equal(expectedFullName);
+        done();
+      });
+    });
+
+    it('New SSO user has fullName', (done) => {
+      const samlResponse = {
+        email: 'newuser@example.com',
+        firstname: 'testFirstName',
+        lastname: 'testLastName',
+      };
+
+      const expectedFullName =
+        `${samlResponse.firstname} ${samlResponse.lastname}`;
+
+      samlAuthentication(samlResponse, (err, newUser) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(newUser.fullName).to.equal(expectedFullName);
+        done();
+      });
     });
   });
 });
