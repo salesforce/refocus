@@ -88,7 +88,6 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(res.body.success).to.be.true;
-        console.log(res.body)
         expect(res.body.token).to.be.equal(undefined);
         done();
       });
