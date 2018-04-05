@@ -121,7 +121,7 @@ class CreatePerspective extends React.Component {
       getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
       getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
     ];
-    Promise.all(promiseArr)
+    return Promise.all(promiseArr)
     .then((response) => {
       const lenses = response[0].body;
       const subjects = response[1].body;

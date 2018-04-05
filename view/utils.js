@@ -106,9 +106,9 @@ function getPromiseWithUrl(url) {
     .end((error, response) => {
       // reject if error is present, otherwise resolve request
       if (error) {
-        reject(error);
+        return reject(error);
       } else {
-        resolve(response);
+        return resolve(response);
       }
     });
   });
