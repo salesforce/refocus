@@ -36,6 +36,7 @@ const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
+const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 const BOT_LOGO = '../static/images/refocus-bot.png';
@@ -649,13 +650,29 @@ function roomStateChanged() {
       'user': _user,
       'active': _isActive,
     };
-
     const events = {
       log: message,
       context: eventType,
       userId: _user.id,
       roomId: parseInt(ROOM_ID, 10)
     };
+
+    /* Checks for list of sync bots in room settings
+     * Sends action for each bot to start syncing room when Room Deactivated
+     */
+    if (res.body && res.body.settings && res.body.settings.sync) {
+      res.body.settings.sync.forEach((bot) => {
+        const syncBotAction = {
+          'name': bot.botAction,
+          'botId': bot.botId,
+          'userId': _user.id,
+          'roomId': parseInt(ROOM_ID, 10),
+          'isPending': true,
+          'parameters': []
+        };
+        u.postPromiseWithUrl(GET_ACTIONS, syncBotAction);
+      });
+    }
 
     return u.postPromiseWithUrl(GET_EVENTS, events);
   });
