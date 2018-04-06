@@ -50,6 +50,7 @@ let _user;
 let _roomName;
 let _isActive;
 let _movingContent;
+let _botsLayout;
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
 // Used to drop a bot at the bottom of a column
@@ -158,12 +159,46 @@ function drop(event, col) {
 }
 
 /**
+ * Decides which column to place the bot in.
+ *
+ * @param {Int} botName - Name of the bot
+ * @param {Int} botIndex - Index of the bot
+ * @returns {String} - L, M or R
+ */
+function decideBotPosition(botName, botIndex) {
+  // A bot layout was defined in room/roomType settings
+  if (_botsLayout) {
+    if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
+      return 'L';
+    } else if (_botsLayout.middleColumn &&
+      _botsLayout.middleColumn.includes(botName)) {
+      return 'M';
+    } else if (_botsLayout.rightColumn &&
+      _botsLayout.rightColumn.includes(botName)) {
+      return 'R';
+    }
+
+    return '';
+  }
+
+  // No bot layout was defined in settings
+  if ((botIndex+ONE) % THREE === ONE) {
+    return 'L';
+  } else if ((botIndex+ONE) % THREE === TWO) {
+    return 'M';
+  }
+
+  return 'R';
+}
+
+/**
  * Sets up the bots to be movable between columns.
  *
  * @param {DOM} botContainer - Container of bot
+ * @param {Int} botName - Name of the bot
  * @param {Int} botIndex - Index of the bot
  */
-function setupMovableBots(botContainer, botIndex) {
+function setupMovableBots(botContainer, botName, botIndex) {
   botContainer.setAttribute(
     'draggable',
     'true'
@@ -196,12 +231,13 @@ function setupMovableBots(botContainer, botIndex) {
     }
   });
 
-  // Adding bot to correct initial column
-  if ((botIndex+ONE) % THREE === ONE) {
+  const position = decideBotPosition(botName, botIndex);
+
+  if (position === 'L') {
     botsLeft.appendChild(botContainer);
-  } else if ((botIndex+ONE) % THREE === TWO) {
+  } else if (position === 'M') {
     botsMiddle.appendChild(botContainer);
-  } else {
+  } else if (position === 'R') {
     botsRight.appendChild(botContainer);
   }
 }
@@ -407,7 +443,7 @@ function displayBot(bot, botIndex) {
   headerSection.appendChild(iframe);
   headerSection.appendChild(footerSection);
   botContainer.appendChild(headerSection);
-  setupMovableBots(botContainer, botIndex);
+  setupMovableBots(botContainer, bot.name, botIndex);
   const parsedBot = parseBot(bot);
   // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
@@ -723,6 +759,11 @@ window.onload = () => {
   })
   .then((res) => {
     uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
+
+    if (room.settings && room.settings.botsLayout) {
+      _botsLayout = room.settings.botsLayout;
+    }
+
     const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
     return Promise.all(promises);
@@ -737,6 +778,7 @@ window.onload = () => {
 module.exports = () => {
   return {
     parseBot,
-    iframeBot
+    iframeBot,
+    decideBotPosition
   };
 };

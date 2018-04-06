@@ -20,6 +20,8 @@ const authPath = '/v1/authenticate';
 const tu = require('../../../testUtils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
+const samlAuthentication =
+  require('../../../../view/loadView.js').samlAuthentication;
 
 describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
   describe(`authenticateUser >`, () => {
@@ -110,7 +112,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .catch(done);
     });
 
-    after(u.forceDelete);
+    afterEach(u.forceDelete);
 
     it('sso user cannot authenticate by username password', (done) => {
       api.post(authPath)
@@ -122,6 +124,46 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .expect(constants.httpStatus.BAD_REQUEST)
       .expect(/Invalid credentials/)
       .end(done);
+    });
+
+    it('updated existing SSO user to have fullName', (done) => {
+      const samlResponse = {
+        email: ssoUser.email,
+        firstname: 'testFirstName',
+        lastname: 'testLastName',
+      };
+
+      const expectedFullName =
+        `${samlResponse.firstname} ${samlResponse.lastname}`;
+
+      samlAuthentication(samlResponse, (err, user) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(user.fullName).to.equal(expectedFullName);
+        done();
+      });
+    });
+
+    it('New SSO user has fullName', (done) => {
+      const samlResponse = {
+        email: 'newuser@example.com',
+        firstname: 'testFirstName',
+        lastname: 'testLastName',
+      };
+
+      const expectedFullName =
+        `${samlResponse.firstname} ${samlResponse.lastname}`;
+
+      samlAuthentication(samlResponse, (err, newUser) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(newUser.fullName).to.equal(expectedFullName);
+        done();
+      });
     });
   });
 });
