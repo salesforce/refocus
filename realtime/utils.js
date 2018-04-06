@@ -424,6 +424,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
      * filtering done on the subject absolutePath
      */
     sample.absolutePath = subName;
+    promiseArr = [];
     return JSON.parse(JSON.stringify(sample));
   });
 } // attachAspectSubject
