@@ -63,7 +63,7 @@ module.exports = (job, done) => {
       const objToReturn = {};
 
       // attach the errors from "bulkUpsertByName"
-      objToReturn.errors = errors;
+      objToReturn.errors = JSON.parse(JSON.stringify(errors));
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
         const jobEndTime = Date.now();
 
