@@ -31,20 +31,15 @@ class PerspectiveController extends React.Component {
     };
   }
   sendResource(verb, formObj, errCallback) {
-    new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       request(verb, formObj.url)
       .set('Content-Type', 'application/json')
       .set('Authorization', u.getCookie('Authorization'))
       .send(JSON.stringify(formObj))
       .end((error, response) => {
-        error ? reject(error) : resolve(response.body);
+        return error ? reject(error) : resolve(response.body);
       });
-    }).then((res) => {
-      window.location.href = '/perspectives/' + res.name;
     })
-    .catch((err) => {
-      errCallback(err);
-    });
   }
   // TODO: test this is independent of onEdit
   openCreatePanel() {

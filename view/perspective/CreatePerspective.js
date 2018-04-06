@@ -334,7 +334,13 @@ class CreatePerspective extends React.Component {
         postObject.url = postObject.url + '/' + name;
       }
 
-      sendResource(method, postObject, this.showError);
+      sendResource(method, postObject, this.showError)
+      .then((res) => {
+        window.location.href = '/perspectives/' + res.name;
+      })
+      .catch((err) => {
+        this.showError(err);
+      });
     }
   }
 
