@@ -72,6 +72,7 @@ function ensureAuthenticated(req, res, next) {
  * @param  {Function} done - Callback function
  */
 function samlAuthentication(userProfile, done) {
+  const userFullName = `${userProfile.firstname} ${userProfile.lastname}`;
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
@@ -94,6 +95,7 @@ function samlAuthentication(userProfile, done) {
           profileId: profile.id,
           name: userProfile.email,
           password: viewConfig.dummySsoPassword,
+          fullName: userFullName,
           sso: true,
         });
       })
@@ -108,8 +110,14 @@ function samlAuthentication(userProfile, done) {
       });
     }
 
-    // profile already attached - default scope applied on find
-    return done(null, user);
+    if (user.fullName) {
+      // profile already attached - default scope applied on find
+      return done(null, user);
+    }
+
+    user.update({ // user.fullName doesn't exist, update user
+      fullName: userFullName,
+    }).then(() => done(null, user));
   })
   .catch((error) => {
     done(error);
@@ -134,7 +142,7 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
-module.exports = function loadView(app, passport) {
+function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
@@ -305,4 +313,9 @@ module.exports = function loadView(app, passport) {
 
   // Redirect '/v1' to '/v1/docs'.
   app.get('/v1', (req, res) => res.redirect('/v1/docs'));
+}
+
+module.exports = {
+  loadView,
+  samlAuthentication // for testing
 }; // exports
