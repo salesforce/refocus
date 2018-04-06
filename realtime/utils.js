@@ -384,36 +384,15 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      attributes: [
-        'id',
-        'name',
-        'absolutePath',
-        'tags',
-      ],
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      attributes: [
-        'id',
-        'name',
-        'tags',
-      ],
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.scope(null).findOne(aspOpts);
+      aspectModel.scope({ method: ['name', aspName]}).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.scope(null).findOne(subOpts);
+      subjectModel.scope({ method: ['absolutePath', subName]}).find();
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
