@@ -344,6 +344,76 @@ class CreatePerspective extends React.Component {
     }
   }
 
+  // html to render the filter section, once the filters are loaded
+  getFilterDiv(dropdownObj, radioGroupConfig) {
+    return (
+      <div>
+        <div className='slds-panel__section'>
+          <fieldset className='slds-form--compound'>
+            <div className='form-element__group'>
+              <div className='slds-form-element__row'>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label
+                    className='slds-form-element__label'
+                    htmlFor='text-input-01'>
+                  <abbr className='slds-required' title='required'>*</abbr>Root Subject
+                  </label>
+                  <div className='slds-form-element__control'>
+                    { dropdownObj.subjects }
+                  </div>
+                </div>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label className='slds-form-element__label' htmlFor='namesArr-01'>
+                  <abbr className='slds-required' title='required'>*</abbr>Lens
+                  </label>
+                  <div className='slds-form-element__control'>
+                    { dropdownObj.lenses }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div className='slds-panel__section'>
+          <h3 className='slds-text-heading--small slds-m-bottom--medium'>Filters</h3>
+          <fieldset className='slds-form--compound'>
+            <div className='form-element__group'>
+              <div className='slds-form-element__row'>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label className='slds-form-element__label'>Aspect Tags</label>
+                  <RadioGroup { ...radioGroupConfig.aspectTagFilterType }/>
+                  { dropdownObj.aspectTagFilter }
+                </div>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label className='slds-form-element__label'>Subject Tags</label>
+                  <RadioGroup { ...radioGroupConfig.subjectTagFilterType }/>
+                  { dropdownObj.subjectTagFilter }
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div className='slds-panel__section'>
+          <fieldset className='slds-form--compound'>
+            <div className='form-element__group'>
+              <div className='slds-form-element__row'>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label className='slds-form-element__label'>Aspects</label>
+                  <RadioGroup { ...radioGroupConfig.aspectFilterType }/>
+                  { dropdownObj.aspectFilter }
+                </div>
+                <div className='slds-form-element slds-size--1-of-2 '>
+                  <label className='slds-form-element__label'>Status</label>
+                  <RadioGroup { ...radioGroupConfig.statusFilterType }/>
+                  { dropdownObj.statusFilter }
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    );
+  }
   render() {
     const { cancelCreate, isEditing } = this.props;
     let dropdownObj = {};
@@ -402,6 +472,8 @@ class CreatePerspective extends React.Component {
       );
     }
 
+    const filterDiv = dropdownObj.subjects && dropdownObj.lenses ?
+      this.getFilterDiv(dropdownObj, radioGroupConfig) : 'Loading filters ...';
     const errorMessage = this.state.error ? <ErrorRender
         hide={this.closeError.bind(this)}
         error={ this.state.error } /> :
@@ -442,69 +514,7 @@ class CreatePerspective extends React.Component {
                             </div>
                         </fieldset>
                     </div>
-                    <div className='slds-panel__section'>
-                        <fieldset className='slds-form--compound'>
-                            <div className='form-element__group'>
-                                <div className='slds-form-element__row'>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label
-                                          className='slds-form-element__label'
-                                          htmlFor='text-input-01'>
-                                            <abbr className='slds-required' title='required'>*</abbr>Root Subject
-                                          </label>
-                                        <div className='slds-form-element__control'>
-                                            { dropdownObj.subjects }
-                                        </div>
-                                    </div>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label className='slds-form-element__label' htmlFor='namesArr-01'>
-                                            <abbr className='slds-required' title='required'>*</abbr>Lens
-                                          </label>
-                                        <div className='slds-form-element__control'>
-                                            { dropdownObj.lenses }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div className='slds-panel__section'>
-                        <h3 className='slds-text-heading--small slds-m-bottom--medium'>Filters</h3>
-                        <fieldset className='slds-form--compound'>
-                            <div className='form-element__group'>
-                                <div className='slds-form-element__row'>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label className='slds-form-element__label'>Aspect Tags</label>
-                                        <RadioGroup { ...radioGroupConfig.aspectTagFilterType }/>
-                                        { dropdownObj.aspectTagFilter }
-                                    </div>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label className='slds-form-element__label'>Subject Tags</label>
-                                        <RadioGroup { ...radioGroupConfig.subjectTagFilterType }/>
-                                        { dropdownObj.subjectTagFilter }
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div className='slds-panel__section'>
-                        <fieldset className='slds-form--compound'>
-                            <div className='form-element__group'>
-                                <div className='slds-form-element__row'>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label className='slds-form-element__label'>Aspects</label>
-                                        <RadioGroup { ...radioGroupConfig.aspectFilterType }/>
-                                        { dropdownObj.aspectFilter }
-                                    </div>
-                                    <div className='slds-form-element slds-size--1-of-2 '>
-                                        <label className='slds-form-element__label'>Status</label>
-                                        <RadioGroup { ...radioGroupConfig.statusFilterType }/>
-                                        { dropdownObj.statusFilter }
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
+                    { filterDiv }
                 </ul>
             </div>
         </div>
