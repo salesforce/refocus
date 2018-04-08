@@ -124,14 +124,17 @@ function publishSample(sample, subjectModel, event) {
   return Promise.all(promiseArr)
   .then((response) => {
     let sub = response[0];
-    sample.subject = sub;
-    /*
-     * attach absolutePath field to the sample. This is done to simplify the
-     * filtering done on the subject absolutePath
-     */
-    sample.absolutePath = subName;
-    promiseArr = [];
-    publishObject(sample, eventType);
+    if (sub) {
+      sample.subject = sub.get();
+      /*
+       * attach absolutePath field to the sample. This is done to simplify the
+       * filtering done on the subject absolutePath
+       */
+      sample.absolutePath = subName;
+      promiseArr = [];
+      publishObject(sample, eventType);
+    }
+
     return sample;
   });
 
