@@ -111,15 +111,37 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
-  const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
-  .then((sample) => {
-    if (sample) {
-      publishObject(sample, eventType);
-      return sample;
-    }
+function publishSample(sample, subjectModel, event) {
+  const eventType = event || getSampleEventType(sample);
+  const nameParts = sample.name.split('|');
+  const subName = nameParts[0];
+  const aspName = nameParts[1];
+  let promiseArr = [];
+  const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      subjectModel.scope({ method: ['absolutePath', subName] }).find();
+  promiseArr = [getSubjectPromise];
+
+  return Promise.all(promiseArr)
+  .then((response) => {
+    let sub = response[0];
+    sample.subject = sub;
+    /*
+     * attach absolutePath field to the sample. This is done to simplify the
+     * filtering done on the subject absolutePath
+     */
+    sample.absolutePath = subName;
+    promiseArr = [];
+    publishObject(sample, eventType);
+    return sample;
   });
+
+  // return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  // .then((sample) => {
+  //   if (sample) {
+  //     publishObject(sample, eventType);
+  //     return sample;
+  //   }
+  // });
 } // publishSample
 
 module.exports = {
