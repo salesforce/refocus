@@ -125,7 +125,7 @@ function publishSample(sample, subjectModel, event) {
   .then((response) => {
     let sub = response[0];
     if (sub) {
-      sample.subject = sub.get();
+      sample.subject = JSON.parse(JSON.stringify(sub.get()));
       /*
        * attach absolutePath field to the sample. This is done to simplify the
        * filtering done on the subject absolutePath
