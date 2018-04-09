@@ -2209,6 +2209,9 @@ paths:
               active:
                 type: boolean
                 description: If the bot is active
+              version:
+                type: string
+                description: The version of the bot. Use Semantic Versioning 2.0.0
               actions:
                 type: array
                 description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2267,6 +2270,11 @@ paths:
           name: url
           in: formData
           description: The URL of the bot server
+          type: string
+        -
+          name: version
+          in: formData
+          description: The version of the bot. Use Semantic Versioning 2.0.0
           type: string
         -
           name: ui

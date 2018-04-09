@@ -68,6 +68,23 @@ describe('tests/api/v1/bots/put.js >', () => {
     });
   });
 
+  it('Pass, put bot version & url', (done) => {
+    api.put(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .field('version', '9.9.9')
+    .field('url', 'https://newUrl.com')
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.version).to.equal('9.9.9');
+      expect(res.body.url).to.equal('https://newUrl.com');
+      done();
+    });
+  });
+
   it('Fail, put bot invalid name', (done) => {
     const newName = '~!invalidName';
     api.put(`${path}/${testBot.id}`)
