@@ -384,25 +384,15 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+      aspectModel.scope({ method: ['name', aspName]}).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subjectModel.scope({ method: ['absolutePath', subName]}).find();
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -418,23 +408,24 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? asp.dataValues : asp;
+    sub = sub.get ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 
     sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      asp : redisStore.arrayObjsStringsToJson(asp,
+      JSON.parse(JSON.stringify(asp)) : redisStore.arrayObjsStringsToJson(asp,
         redisStore.constants.fieldsToStringify.aspect);
     sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      sub : redisStore.arrayObjsStringsToJson(sub,
+      JSON.parse(JSON.stringify(sub)) : redisStore.arrayObjsStringsToJson(sub,
         redisStore.constants.fieldsToStringify.subject);
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
      */
     sample.absolutePath = subName;
-    return sample;
+    promiseArr = [];
+    return JSON.parse(JSON.stringify(sample));
   });
 } // attachAspectSubject
 

@@ -154,6 +154,12 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
         });
 
+        Aspect.addScope('name', (value) => ({
+          where: {
+            name: { $iLike: value },
+          },
+        }));
+
         Aspect.addScope('defaultScope', {
           include: [
             {
