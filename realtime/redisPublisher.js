@@ -133,6 +133,7 @@ function publishSample(sample, subjectModel, event) {
       sample.absolutePath = subName;
       promiseArr = [];
       publishObject(sample, eventType);
+      subjectModel = null;
     }
 
     return sample;
