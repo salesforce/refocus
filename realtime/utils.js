@@ -15,6 +15,7 @@ const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
+
 const featureToggles = require('feature-toggles');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -376,7 +377,10 @@ function isIpWhitelisted(addr, whitelist) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample) {
+  const subjectModel = require('../db/index').Subject;
+  const aspectModel = require('../db/index').Aspect;
+  const sequelize = require('../db').sequelize;
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
@@ -384,25 +388,19 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subName = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+    sequelize.query('SELECT id, name, tags FROM "Aspects" WHERE name LIKE :name and "isDeleted" = 0 LIMIT 1',
+    { replacements: { name: aspName  }, type: sequelize.QueryTypes.SELECT });
+
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+    sequelize.query('SELECT id, "absolutePath", name, tags FROM "Subjects" WHERE "absolutePath" LIKE :abspath and "isDeleted" = 0 LIMIT 1',
+    { replacements: { abspath: subName  }, type: sequelize.QueryTypes.SELECT });
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -413,28 +411,26 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     redisClient.hgetallAsync(subKey);
     promiseArr = [getAspectPromise, getSubjectPromise];
   }
-
   return Promise.all(promiseArr)
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = JSON.parse(JSON.stringify(asp.length ? asp[0] : asp));
+    sub = JSON.parse(JSON.stringify(sub.length ? sub[0] : sub));
     delete asp.writers;
     delete sub.writers;
-
     sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      asp : redisStore.arrayObjsStringsToJson(asp,
+      JSON.parse(JSON.stringify(asp)) : redisStore.arrayObjsStringsToJson(asp,
         redisStore.constants.fieldsToStringify.aspect);
     sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      sub : redisStore.arrayObjsStringsToJson(sub,
+      JSON.parse(JSON.stringify(sub)) : redisStore.arrayObjsStringsToJson(sub,
         redisStore.constants.fieldsToStringify.subject);
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
      */
     sample.absolutePath = subName;
-    return sample;
+    return JSON.parse(JSON.stringify(sample));
   });
 } // attachAspectSubject
 

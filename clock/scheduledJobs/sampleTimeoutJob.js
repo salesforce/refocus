@@ -29,7 +29,7 @@ function execute() {
     // send the timeoutsample to the client by publishing it to redis channel
     if (dbRes.timedOutSamples) {
       dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, dbSubject, sampleEvent.upd);
+        publisher.publishSample(sample, sampleEvent.upd);
       });
     }
 
