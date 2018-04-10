@@ -10,7 +10,6 @@
  * /worker/jobs/bulkUpsertSamplesJob.js
  */
 const logger = require('winston');
-const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const cacheSampleModel = require('../../cache/models/samples');
@@ -56,7 +55,7 @@ module.exports = (job, done) => {
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
         } else {
-          publisher.publishSample(results[i], subHelper.model);
+          publisher.publishSample(results[i]);
         }
       }
 
