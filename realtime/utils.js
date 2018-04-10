@@ -15,8 +15,6 @@ const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
-const subjectModel = require('../db/index').Subject;
-const aspectModel = require('../db/index').Aspect;
 
 const featureToggles = require('feature-toggles');
 const eventName = {
@@ -380,6 +378,8 @@ function isIpWhitelisted(addr, whitelist) {
  *   aspect.
  */
 function attachAspectSubject(sample) {
+  const subjectModel = require('../db/index').Subject;
+  const aspectModel = require('../db/index').Aspect;
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
