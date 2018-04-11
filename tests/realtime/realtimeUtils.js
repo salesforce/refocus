@@ -23,6 +23,15 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     absolutePath: rootSubjNAUSCA + '.SF',
     name: 'SF',
   };
+  const rootSubjNAObj = {
+    name: rootSubjNA,
+    isPublished: true,
+    tags: ['subTag1', 'subTag2'],
+    relatedLinks: [
+        { name: 'population', value: 'http://popl.io' },
+    ],
+  };
+
   const updatedSubject = {
     new: {
       absolutePath: rootSubjNAUSCA + '.SF',
@@ -75,10 +84,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
   before((done) => {
     tu.db.Aspect.create(aspectOne)
-    .then(() => tu.db.Subject.create({
-      name: rootSubjNA,
-      isPublished: true,
-    }))
+    .then(() => tu.db.Subject.create(rootSubjNAObj))
     .then(() => u.doSetup())
     .then((createdLens) => {
       createdLensId = createdLens.id;
@@ -395,11 +401,22 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
           delete sampleObj.aspect;
           delete sampleObj.subject;
-          realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
-            tu.db.Aspect)
+          realtimeUtils.attachAspectSubject(sampleObj)
           .then((sample) => {
             expect(sample.aspect.name).to.include(aspectOne.name);
+            expect(Object.keys(sample.aspect).length).to.equal(3);
+            expect(Object.keys(sample.aspect)).to
+              .include.members(['id', 'name', 'tags']);
+            expect(sample.aspect.tags).to.deep.equal(aspectOne.tags);
+
+            expect(sample.subject).to.not.equal(null);
             expect(sample.subject.name).to.equal(rootSubjNA);
+            expect(Object.keys(sample.subject).length).to.equal(4);
+            expect(Object.keys(sample.subject)).to
+              .include.members(['id', 'name', 'tags', 'absolutePath']);
+            expect(sample.subject.absolutePath).to.equal(rootSubjNA);
+            expect(sample.subject.tags).to.deep.equal(rootSubjNAObj.tags);
+
             sampleObj.aspect = sample.aspect;
             sampleObj.subject = sample.subject;
             expect(sample).to.deep.equal(sampleObj);
@@ -422,8 +439,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           'attached', (done) => {
           const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
           delete sampleObj.subject;
-          realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
-            tu.db.Aspect)
+          realtimeUtils.attachAspectSubject(sampleObj)
           .then((sample) => {
             expect(sample.subject.name).to.equal(rootSubjNA);
             sampleObj.subject = sample.subject;
@@ -438,8 +454,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           copySample.name = copySample.name.toUpperCase();
           delete copySample.aspect;
           delete copySample.subject;
-          realtimeUtils.attachAspectSubject(copySample, tu.db.Subject,
-            tu.db.Aspect)
+          realtimeUtils.attachAspectSubject(copySample)
           .then((sample) => {
             expect(sample.name).equal(copySample.name);
             expect(sample.absolutePath).to.equal(looksLikeSampleObjNA
@@ -454,8 +469,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           copySample.name = copySample.name.toLowerCase();
           delete copySample.aspect;
           delete copySample.subject;
-          realtimeUtils.attachAspectSubject(copySample, tu.db.Subject,
-            tu.db.Aspect)
+          realtimeUtils.attachAspectSubject(copySample)
           .then((sample) => {
             expect(sample.name).equal(copySample.name);
             done();

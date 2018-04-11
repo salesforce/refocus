@@ -380,6 +380,7 @@ function isIpWhitelisted(addr, whitelist) {
  */
 function attachAspectSubject(sample) {
   const sequelize = require('../db').sequelize;
+
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
@@ -392,25 +393,15 @@ function attachAspectSubject(sample) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
     sequelize.query('SELECT id, name, tags FROM "Aspects" WHERE name ' +
       'LIKE :name and "isDeleted" = 0 LIMIT 1',
-    { replacements: { name: aspName  }, type: sequelize.QueryTypes.SELECT });
+    { replacements: { name: aspName }, type: sequelize.QueryTypes.SELECT });
 
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
     sequelize.query('SELECT id, "absolutePath", name, tags FROM "Subjects" ' +
       'WHERE "absolutePath" LIKE :abspath and "isDeleted" = 0 LIMIT 1',
-    { replacements: { abspath: subName  }, type: sequelize.QueryTypes.SELECT });
+    { replacements: { abspath: subName }, type: sequelize.QueryTypes.SELECT });
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
@@ -427,8 +418,8 @@ function attachAspectSubject(sample) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = JSON.parse(JSON.stringify(asp.length ? asp[0] : asp));
-    sub = JSON.parse(JSON.stringify(sub.length ? sub[0] : sub));
+    asp = asp.length ? asp[0] : asp;
+    sub = sub.length ? sub[0] : sub;
     delete asp.writers;
     delete sub.writers;
 
