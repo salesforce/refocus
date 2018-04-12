@@ -369,9 +369,9 @@ function isIpWhitelisted(addr, whitelist) {
 } // isIpWhitelisted
 
 /**
- * When passed in a sample, its related subject and aspect is attached to the
- * sample. If useSampleStore is set to true, the subject ans aspect is fetched
- * for the cache instead of the database.
+ * When passed in a sample attach its related subject and aspect if not found.
+ * If the "attachSubAspFromDB" flag is turned on, get them from the database
+ * instead of "sampleStore"
  * @param {Object} sample - The sample instance.
  * @param {Model} subjectModel - The database subject model.
  * @param {Model} aspectModel - The database aspect model.
@@ -379,7 +379,9 @@ function isIpWhitelisted(addr, whitelist) {
  *   aspect.
  */
 function attachAspectSubject(sample) {
-  const sequelize = require('../db').sequelize;
+  // sequelize is required here as the global require causes circular dependency
+  const sequelize =
+    require('../db').sequelize; // eslint-disable-line global-require
 
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
@@ -393,6 +395,11 @@ function attachAspectSubject(sample) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
+    /*
+     * NOTE: The raw queries are use here because querying using the
+     * traditional find/findOne function on the model at high volume caused
+     * memory issues.
+     */
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
     sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId and ' +
       '"isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
@@ -429,6 +436,7 @@ function attachAspectSubject(sample) {
     sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
       sub : redisStore.arrayObjsStringsToJson(sub,
         redisStore.constants.fieldsToStringify.subject);
+
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
