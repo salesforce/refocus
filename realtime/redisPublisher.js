@@ -16,7 +16,6 @@ const client = require('../cache/redisCache').client;
 const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
