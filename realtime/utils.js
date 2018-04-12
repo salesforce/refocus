@@ -394,14 +394,14 @@ function attachAspectSubject(sample) {
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    sequelize.query('SELECT id, name, tags FROM "Aspects" WHERE name ' +
-      'LIKE :name and "isDeleted" = 0 LIMIT 1',
-    { replacements: { name: aspName }, type: sequelize.QueryTypes.SELECT });
+    sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId and ' +
+      '"isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
+      type: sequelize.QueryTypes.SELECT, });
 
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
     sequelize.query('SELECT id, "absolutePath", name, tags FROM "Subjects" ' +
-      'WHERE "absolutePath" LIKE :abspath and "isDeleted" = 0 LIMIT 1',
-    { replacements: { abspath: subName }, type: sequelize.QueryTypes.SELECT });
+      'WHERE id = :subjectId and "isDeleted" = 0', { replacements:
+        { subjectId: sample.subjectId }, type: sequelize.QueryTypes.SELECT, });
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
