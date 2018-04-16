@@ -59,8 +59,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -78,7 +78,6 @@ describe('tests/api/v1/generators/put.js >', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-
       expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
       expect(res.body.subjects).to.not.exist;
 
@@ -99,8 +98,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -133,8 +132,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -161,6 +160,145 @@ describe('tests/api/v1/generators/put.js >', () => {
     .end(done);
   });
 
+  it('put without generatorTemplate (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Missing required property: generatorTemplate'
+      );
+    })
+    .end(done);
+  });
+
+  it('put without generatorTemplate name (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SequelizeValidationError');
+      expect(res.body.errors[0].message).to.equal(
+        'child "name" fails because ["name" is required]'
+      );
+    })
+    .end(done);
+  });
+
+  it('put with generatorTemplate name Validation fail (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: 123,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Expected type string but found type integer'
+      );
+    })
+    .end(done);
+  });
+
+  it('put with generatorTemplate version Validation fail (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: 123,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjects: ['US'],
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Expected type string but found type integer'
+      );
+    })
+    .end(done);
+  });
+
   it('simple put with name in the url should work', (done) => {
     const toPut = {
       name: 'refocus-ok-generator',
@@ -170,8 +308,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -203,8 +341,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -237,8 +375,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
