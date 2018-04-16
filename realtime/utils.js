@@ -384,8 +384,10 @@ function attachAspectSubject(sample) {
     require('../db').sequelize; // eslint-disable-line global-require
 
   // check if sample object contains name
-  if (!sample.name || sample.name.indexOf('|') < 0) {
-    logger.error('sample object does not contain name', JSON.stringify(sample));
+  if (!sample.name || sample.name.indexOf('|') < 0 || !sample.aspectId ||
+    !sample.subjectId) {
+    logger.error('sample object does not contain name or aspectId or subjectId',
+     JSON.stringify(sample));
     console.trace('from attachAspectSubject');
     return Promise.resolve(null);
   }
