@@ -13,7 +13,6 @@
  * a job, otherwise just executes work directly in this process.
  */
 const featureToggles = require('feature-toggles');
-const dbSubject = require('../../db/index').Subject;
 const publisher = require('../../realtime/redisPublisher');
 const sampleEvent = require('../../realtime/constants').events.sample;
 const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');

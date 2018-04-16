@@ -399,6 +399,31 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           })
           .catch(done);
         });
+
+        it('should return null when passing in a sample without ' +
+          'aspectId', (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
+          delete sampleObj.aspectId;
+          realtimeUtils.attachAspectSubject(sampleObj)
+          .then((sample) => {
+            expect(sample).to.equal(null);
+            return done();
+          })
+          .catch(done);
+        });
+
+        it('should return null when passing in a sample without ' +
+          'subjectId', (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
+          delete sampleObj.subjectId;
+          realtimeUtils.attachAspectSubject(sampleObj)
+          .then((sample) => {
+            expect(sample).to.equal(null);
+            return done();
+          })
+          .catch(done);
+        });
+
       });
 
       describe('with data from db', () => {
