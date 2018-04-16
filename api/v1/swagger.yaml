@@ -3414,9 +3414,30 @@ paths:
                 type: object
                 description: >-
                   Specify the values for any context variables as defined by the Sample Generator Template you are using.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: >-
+                      A Generator Template version number (MAJOR.MINOR.PATCH)
+                      or a valid x-range, tilde range or caret range. Any of X,
+                      x, or * may be used to "stand in" for one of the numeric
+                      major, minor or patch values. A tilde range allows
+                      patch-level changes if a minor version is specified on
+                      the comparator, or allows minor-level changes if not.
+                      A caret range allows changes that do not modify the
+                      left-most non-zero major, minor or patch number.
+                      See https://github.com/npm/node-semver for more details
+                      on semver matching.
             required:
               - name
               - aspects
+              - generatorTemplate
       responses:
         201:
           description: >-
@@ -3533,6 +3554,26 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: >-
+                      A Generator Template version number (MAJOR.MINOR.PATCH)
+                      or a valid x-range, tilde range or caret range. Any of X,
+                      x, or * may be used to "stand in" for one of the numeric
+                      major, minor or patch values. A tilde range allows
+                      patch-level changes if a minor version is specified on
+                      the comparator, or allows minor-level changes if not.
+                      A caret range allows changes that do not modify the
+                      left-most non-zero major, minor or patch number.
+                      See https://github.com/npm/node-semver for more details
+                      on semver matching.
       responses:
         200:
           description: Success, returns the updated generator.
@@ -3622,9 +3663,30 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              generatorTemplate:
+                type: object
+                description: Details of Generator Template.
+                properties:
+                  name:
+                    type: string
+                    description: The Generator Template's name.
+                  version:
+                    type: string
+                    description: >-
+                      A Generator Template version number (MAJOR.MINOR.PATCH)
+                      or a valid x-range, tilde range or caret range. Any of X,
+                      x, or * may be used to "stand in" for one of the numeric
+                      major, minor or patch values. A tilde range allows
+                      patch-level changes if a minor version is specified on
+                      the comparator, or allows minor-level changes if not.
+                      A caret range allows changes that do not modify the
+                      left-most non-zero major, minor or patch number.
+                      See https://github.com/npm/node-semver for more details
+                      on semver matching.
             required:
               - name
               - aspects
+              - generatorTemplate
       responses:
         200:
           description: Success, returns the updated generator.
