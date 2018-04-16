@@ -46,8 +46,8 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       'STATUS',
     ],
     generatorTemplate: {
-      name: 'refocus-ok-generator-template',
-      version: '1.0.0',
+      name: generatorTemplate.name,
+      version: generatorTemplate.version,
     },
     context: {
       okValue: {
