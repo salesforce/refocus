@@ -13,14 +13,14 @@ module.exports = {
   up: function (qi, Sequelize) {
     return qi.changeColumn(TBL, 'log', {
       type: Sequelize.TEXT,
-      allowNull: true,
+      allowNull: false,
     });
   },
 
   down: function (qi, Sequelize) {
     return qi.changeColumn(TBL, 'log', {
       type: Sequelize.STRING,
-      allowNull: true,
+      allowNull: false,
     });
   },
 };
