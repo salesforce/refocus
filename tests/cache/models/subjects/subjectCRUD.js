@@ -13,7 +13,6 @@
 const tu = require('../../../testUtils');
 const subjectUtils = require('../../../../db/helpers/subjectUtils');
 const rtu = require('../redisTestUtil');
-const samstoinit = rtu.samstoinit;
 const redisStore = rtu.sampleStore;
 const objectType = redisStore.constants.objectType;
 const rcli = rtu.rcli;
@@ -71,7 +70,6 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       return Sample.create(sample1);
     })
     .then(() => Sample.create(sample2))
-    .then(() => samstoinit.populate())
     .then(() => done())
     .catch(done);
   });
@@ -135,10 +133,14 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       return redisOps.executeBatchCmds(cmds);
     })
     .then((res) => {
+
+      // confirms that unpublished subject was added to the master subject list
       expect(res[0]).to.equal(1);
+
+      // confirms that unpublished subject was created in redis
       expect(res[1].absolutePath).to.equal(subj.absolutePath);
       expect(res[1].id).to.equal(iparUnPub);
-      done();
+      return done();
     })
     .catch(done);
   });
@@ -181,8 +183,10 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       return rcli.keysAsync(newAbsPath + '*');
     })
     .then((ret) => {
-      // since sample store has not been popluated yet. rename should not create
-      // a new entry in sample store.
+      /*
+       * since sample store has not been popluated yet. rename should not create
+       * a new entry in sample store.
+       */
       expect(ret.length).to.equal(0);
       done();
     })
@@ -252,8 +256,10 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       return rcli.keysAsync(subAspMapKey);
     })
     .then((values) => {
-      // the subject to aspect mapping for the subject with the old
-      // absolutepath should also be deleted
+      /*
+       * the subject to aspect mapping for the subject with the old
+       * absolutepath should also be deleted
+       */
       expect(values.length).to.equal(0);
       done();
     })
@@ -346,13 +352,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
 describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
 () => {
-  beforeEach((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
-    done();
-  });
-
   afterEach(rtu.forceDelete);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('create subject with isPublished false, check tags and related links',
   (done) => {
@@ -366,6 +366,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ],
     })
     .then((subj) => {
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(1);
+      const subj = redisStore.arrayObjsStringsToJson(res[1],
+        redisStore.constants.fieldsToStringify.subject);
+      expect(subj.isPublished).to.equal('false');
       expect(Array.isArray(subj.tags)).to.be.equal(true);
       expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
       expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
@@ -373,7 +385,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      done();
+      return done();
     })
     .catch(done);
   });
@@ -382,7 +394,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
   (done) => {
     Subject.create({
       name: `${tu.namePrefix}s4`,
-      isPublished: false,
+      isPublished: true,
       tags: ['tag1', 'tag2'],
       relatedLinks: [
         { name: 'link name 1', url: 'http://abc.com' },
@@ -390,6 +402,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ],
     })
     .then((subj) => {
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(1);
+      const subj = redisStore.arrayObjsStringsToJson(res[1],
+        redisStore.constants.fieldsToStringify.subject);
+      expect(subj.isPublished).to.equal('true');
       expect(Array.isArray(subj.tags)).to.be.equal(true);
       expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
       expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
@@ -397,7 +421,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      done();
+      return done();
     })
     .catch(done);
   });
@@ -415,6 +439,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
     })
     .then((subj) => subj.update({ isPublished: false }))
     .then((subj) => {
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(1);
+      const subj = redisStore.arrayObjsStringsToJson(res[1],
+        redisStore.constants.fieldsToStringify.subject);
+      expect(subj.isPublished).to.equal('false');
       expect(Array.isArray(subj.tags)).to.be.equal(true);
       expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
       expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
@@ -422,12 +458,12 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      done();
+      return done();
     })
     .catch(done);
   });
 
-  it('update subject with isPublished true, check tags and related links',
+  it('update subject with isPublished to true, update tags',
   (done) => {
     Subject.create({
       name: `${tu.namePrefix}s4`,
@@ -438,8 +474,58 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 2', url: 'http://xyz.com' },
       ],
     })
-    .then((subj) => subj.update({ isPublished: true }))
+    .then((subj) => subj.update({ isPublished: true, tags: ['tags3'] }))
     .then((subj) => {
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(1);
+      const subj = redisStore.arrayObjsStringsToJson(res[1],
+        redisStore.constants.fieldsToStringify.subject);
+      expect(subj.isPublished).to.equal('true');
+      expect(Array.isArray(subj.tags)).to.be.equal(true);
+      expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
+      expect(subj.tags).to.deep.equal(['tags3']);
+      expect(subj.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('unpublished subject should be created on create and deleted on delete',
+  (done) => {
+    let subInst;
+    Subject.create({
+      name: `${tu.namePrefix}s4`,
+      isPublished: false,
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+         { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((subj) => {
+      subInst = subj;
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(1);
+      const subj = redisStore.arrayObjsStringsToJson(res[1],
+        redisStore.constants.fieldsToStringify.subject);
+      expect(subj.isPublished).to.equal('false');
       expect(Array.isArray(subj.tags)).to.be.equal(true);
       expect(Array.isArray(subj.relatedLinks)).to.be.equal(true);
       expect(subj.tags).to.deep.equal(['tag1', 'tag2']);
@@ -447,7 +533,20 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      done();
+    })
+    .then(() => subInst.destroy())
+    .then((subj) => {
+      const key = redisStore.toKey('subject', subj.absolutePath);
+      const cmds = [];
+      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
+        subj.absolutePath));
+      cmds.push(['hgetall', key]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0]).to.equal(0);
+      expect(res[1]).to.equal(null);
+      return done();
     })
     .catch(done);
   });
