@@ -149,7 +149,26 @@ function expectGeneratorArray(res) {
   generatorsDeleted.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
     expect(gen.context).to.be.an('object').that.has.all.keys(expectedCtxProps);
-    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys('name', 'version');
+    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(
+      'author',
+      'connection',
+      'contextDefinition',
+      'createdAt',
+      'createdBy',
+      'deletedAt',
+      'description',
+      'helpEmail',
+      'helpUrl',
+      'id',
+      'isDeleted',
+      'isPublished',
+      'name',
+      'repository',
+      'tags',
+      'transform',
+      'updatedAt',
+      'user',
+      'version');
   });
   generatorsUpdated.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
