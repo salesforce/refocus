@@ -389,20 +389,15 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+      aspectModel.sequelize.query('SELECT * FROM "Aspects" WHERE ' +
+      'name iLIKE :aspName and "isDeleted" = 0 Limit 1', { replacements:
+        { aspName: aspName }, type: aspectModel.sequelize.QueryTypes.SELECT, });
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subjectModel.sequelize.query('SELECT id, "absolutePath", name, tags ' +
+      'FROM "Subjects" WHERE "absolutePath" iLIKE :absPath and "isDeleted" = 0 Limit 1',
+      { replacements: { absPath: subName }, type:
+      subjectModel.sequelize.QueryTypes.SELECT, });
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -418,8 +413,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.length ? asp[0] : asp;
+    sub = sub.length ? sub[0] : sub;
     delete asp.writers;
     delete sub.writers;
 
