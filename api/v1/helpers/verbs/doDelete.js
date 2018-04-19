@@ -68,8 +68,7 @@ function doDelete(req, res, next, props) {
 
     // publish the delete event to the redis channel
     if (props.publishEvents) {
-      publisher.publishSample(retVal, props.associatedModels.subject,
-        event.sample.del);
+      publisher.publishSample(retVal, event.sample.del);
     }
 
     // update the cache
