@@ -47,7 +47,6 @@ describe('tests/realtime/redisPublisher.js >', () => {
         name: subjectName,
       }))
       .then((created) => (s1 = created))
-      .then(() => samstoinit.populate())
       .then(() => Sample.create({
         messageCode: '25',
         subjectId: s1.id,
