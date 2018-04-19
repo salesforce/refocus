@@ -9,7 +9,7 @@
 /**
  * tests/realtime/setupSocketIO.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const socketIOSetup = require('../../realtime/setupSocketIO');
