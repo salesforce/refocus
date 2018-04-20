@@ -160,6 +160,7 @@ module.exports = {
   looksLikeId,
   dbErrorName: 'SequelizeDatabaseError',
   dbError: new Error('expecting SequelizeDatabaseError'),
+  duplicateResourceErrorName: 'DuplicateResourceError',
   fkErrorName: 'SequelizeForeignKeyConstraintError',
   fkError: new Error('expecting SequelizeForeignKeyConstraintError'),
   namePrefix: pfx,
