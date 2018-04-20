@@ -103,7 +103,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
         expect(sg2.GeneratorCollectors).to.equal(undefined);
         expect(sg2.collectors).to.equal(undefined);
         expect(res.body.generatorsAdded[0].aspects[0])
-          .to.contain.property('name', 'Temperature');
+          .to.contain.property('name', 'temperature');
         return done();
       });
     });
