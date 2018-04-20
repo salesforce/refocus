@@ -9,9 +9,12 @@
 /**
  * api/v1/helpers/nouns/samples.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const Sample = require('../../../../db/index').Sample;
+const Aspect = require('../../../../db/index').Aspect;
+const Subject = require('../../../../db/index').Subject;
+
 const m = 'sample';
 const fieldsWithJsonArrayType = ['relatedLinks'];
 
@@ -34,6 +37,10 @@ module.exports = {
   fieldsWithEnum,
   fieldsToExclude,
   publishEvents: true,
+  associatedModels: {
+    aspect: Aspect,
+    subject: Subject,
+  },
   fieldsToCamelCase: [
     'status', 'previousStatus',
   ],

@@ -14,6 +14,7 @@
 const featureToggles = require('feature-toggles');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/samples');
+const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
 const doGet = require('../helpers/verbs/doGet');
 const u = require('../helpers/verbs/utils');
@@ -236,7 +237,8 @@ module.exports = {
     redisModelSample.postSample(toPost, req.user)
     .then((sample) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      publisher.publishSample(sample, realtimeEvents.sample.add);
+      publisher.publishSample(sample, helper.associatedModels.subject,
+      realtimeEvents.sample.add, helper.associatedModels.aspect);
       u.logAPI(req, resultObj, sample);
       return res.status(httpStatus.CREATED)
         .json(u.responsify(sample, helper, req.method));
@@ -337,7 +339,7 @@ module.exports = {
          * Send the upserted sample to the client by publishing it to the redis
          * channel.
          */
-        publisher.publishSample(samp);
+        publisher.publishSample(samp, subHelper.model);
 
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
@@ -415,7 +417,7 @@ module.exports = {
         sampleModel.bulkUpsertByName(value, user, readOnlyFields)
         .then((samples) => samples.forEach((sample) => {
           if (!sample.isFailed) {
-            publisher.publishSample(sample);
+            publisher.publishSample(sample, subHelper.model);
           }
         }));
         u.logAPI(req, resultObj, body, value.length);
@@ -456,7 +458,10 @@ module.exports = {
 
       /* send the updated sample to the client by publishing it to the redis
       channel */
-      publisher.publishSample(o, u.realtimeEvents.sample.upd);
+      publisher.publishSample(
+        o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
+        helper.associatedModels.aspect
+      );
 
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
