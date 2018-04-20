@@ -15,7 +15,6 @@ const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
-const jwtUtil = require('../../../../utils/jwtUtil');
 const common = require('../../../../utils/common');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
@@ -94,7 +93,8 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
-    publisher.publishSample(returnObj, realtimeEvents.sample.upd);
+    publisher.publishSample(returnObj, props.associatedModels.subject,
+      realtimeEvents.sample.upd);
   }
 
   // update the cache
