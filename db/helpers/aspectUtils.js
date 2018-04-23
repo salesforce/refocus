@@ -11,6 +11,7 @@
  *
  * Used by the Aspect model.
  */
+'use strict'; // eslint-disable-line strict
 
 const InvalidRangeValuesError = require('../dbErrors').InvalidRangeValuesError;
 const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
