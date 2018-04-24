@@ -19,11 +19,9 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const eventName = {
-  add: 'refocus.internal.realtime.subject.add',
-  upd: 'refocus.internal.realtime.subject.update',
-  del: 'refocus.internal.realtime.subject.remove',
-};
+const publishObject = require('../../realtime/redisPublisher').publishObject;
+const eventName = require('../../realtime/constants').events.subject;
+
 const assoc = {};
 
 module.exports = function subject(seq, dataTypes) {
@@ -186,13 +184,6 @@ module.exports = function subject(seq, dataTypes) {
     hooks: {
 
       /**
-       * TODO:
-       * 1. Have a look at the sampleStore logic and confirm that it is
-       * doing what it is supposed to do.
-       *
-       */
-
-      /**
        * BeforeCreate hook
        * set up appropriate parentAbsolutePath, absolutePath and ParentId
        * If parentAbsolutePath or parentId is provided while creating a subject,
@@ -220,7 +211,7 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
-        common.publishChange(inst, eventName.add);
+        publishObject(inst, eventName.add);
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -275,10 +266,7 @@ module.exports = function subject(seq, dataTypes) {
         const isSubjectPublished = inst.changed('isPublished') &&
           inst.isPublished;
 
-        // send sample delete events when this is set to true
-        let samplesDeleted = false;
         if (isSubjectUnpublished) {
-          samplesDeleted = true;
           promiseArr.push(subjectUtils.removeRelatedSamples(inst.absolutePath));
         }
 
@@ -291,7 +279,6 @@ module.exports = function subject(seq, dataTypes) {
            newAbsPath));
 
           // remove all the related samples
-          samplesDeleted = true;
           promiseArr.push(subjectUtils.removeRelatedSamples(oldAbsPath));
         }
 
@@ -326,10 +313,20 @@ module.exports = function subject(seq, dataTypes) {
 
         if (isSubjectUnpublished) {
           // Treat unpublishing a subject as a "delete" event.
-          common.publishChange(inst, eventName.del);
+          publishObject(inst, eventName.del);
         } else if (isSubjectPublished) {
           // Treat publishing a subject as an "add" event.
-          common.publishChange(inst, eventName.add);
+          publishObject(inst, eventName.add);
+        } else if (inst.isPublished && inst.changed('absolutePath')) {
+          /*
+           * When an absolutePath is changed, send a subject delete event with
+           * the old subject instance, followed by a subject add event with the
+           * new subject instance
+           */
+          publishObject(inst._previousDataValues, eventName.del,
+            changedKeys, ignoreAttributes);
+          publishObject(inst, eventName.add, changedKeys,
+              ignoreAttributes);
         } else if (inst.isPublished && (inst.changed('tags') ||
           inst.changed('parentId'))) {
           /*
@@ -340,18 +337,19 @@ module.exports = function subject(seq, dataTypes) {
            * If subject tags or parent were not updated, just send the usual
            * "update" event.
            */
-          common.publishChange(inst, eventName.del, changedKeys,
+          publishObject(inst, eventName.del, changedKeys,
               ignoreAttributes);
-          common.publishChange(inst, eventName.add, changedKeys,
+          publishObject(inst, eventName.add, changedKeys,
               ignoreAttributes);
         } else if (inst.published) {
-          common.publishChange(inst, eventName.upd, changedKeys,
+          publishObject(inst, eventName.upd, changedKeys,
               ignoreAttributes);
         }
 
         // finally update the subject hash in redis too
         promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
           instDataObj));
+
         return Promise.all(promiseArr);
       }, // hooks.afterUpdate
 
@@ -372,7 +370,7 @@ module.exports = function subject(seq, dataTypes) {
             }
 
             if (inst.getDataValue('isPublished')) {
-              common.publishChange(inst, eventName.del);
+              publishObject(inst, eventName.del);
             }
 
             // remove the subject and its related samples
