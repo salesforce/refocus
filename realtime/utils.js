@@ -379,9 +379,11 @@ function isIpWhitelisted(addr, whitelist) {
  *   aspect.
  */
 function attachAspectSubject(sample) {
-  // sequelize is required here as the global require causes circular dependency
-  const sequelize =
-    require('../db').sequelize; // eslint-disable-line global-require
+  // The models are required here as the global require causes circular dependency
+  const aspect =
+    require('../db/index').Aspect; // eslint-disable-line global-require
+  const subject =
+    require('../db/index').Subject; // eslint-disable-line global-require
 
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0 || !sample.aspectId ||
@@ -403,14 +405,15 @@ function attachAspectSubject(sample) {
      * memory issues.
      */
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId and ' +
-      '"isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
-      type: sequelize.QueryTypes.SELECT, });
+      aspect.sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId' +
+      ' and "isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
+      type: aspect.sequelize.QueryTypes.SELECT, });
 
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-    sequelize.query('SELECT id, "absolutePath", name, tags FROM "Subjects" ' +
-      'WHERE id = :subjectId and "isDeleted" = 0', { replacements:
-        { subjectId: sample.subjectId }, type: sequelize.QueryTypes.SELECT, });
+      subject.sequelize.query('SELECT id, "absolutePath", name, tags FROM ' +
+      '"Subjects" WHERE id = :subjectId and "isDeleted" = 0',
+      { replacements: { subjectId: sample.subjectId },
+      type: aspect.sequelize.QueryTypes.SELECT, });
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
