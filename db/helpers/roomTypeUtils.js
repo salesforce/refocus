@@ -11,6 +11,7 @@
  *
  * Used by the RoomType model.
  */
+'use strict'; // eslint-disable-line strict
 
 const dbErrors = require('../dbErrors');
 const ValidationError = require('../dbErrors').ValidationError;

@@ -14,8 +14,6 @@ const expect = require('chai').expect;
 const tu = require('../../testUtils');
 const u = require('../model/subject/utils');
 const Subject = tu.db.Subject;
-const Aspect = tu.db.Aspect;
-const Sample = tu.Sample;
 const common = require('../../../db/helpers/common');
 
 describe('tests/db/helpers/common.js >', () => {
@@ -117,61 +115,6 @@ describe('tests/db/helpers/common.js >', () => {
         expect(obj.update).to.equal(null);
         done();
       })
-      .catch(done);
-    });
-  });
-
-  // TODO: delete these tests when deleting the sample model
-  describe.skip('test sampleAspectAndSubjectArePublished and ' +
-  'augmentSampleWithSubjectAspectInfo function >', () => {
-    let sub;
-    before((done) => {
-      Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect`,
-        timeout: '30s',
-        valueType: 'NUMERIC',
-      })
-      .then(() => Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      }))
-      .then((s) => {
-        sub = s;
-        done();
-      })
-      .catch(done);
-    });
-
-    it('sampleAspectAndSubjectArePublished : check for true', (done) => {
-      Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      })
-      .then((samp) =>
-        common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp))
-      .then((pub) => {
-        expect(pub).to.equal(true);
-      })
-      .then(() => done())
-      .catch(done);
-    });
-
-    it('augmentSampleWithSubjectAspectInfo : returned sample should have' +
-        ' subject and aspect information', (done) => {
-      Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      })
-      .then((samp) =>
-        common.augmentSampleWithSubjectAspectInfo(tu.db.sequelize, samp))
-      .then((sam) => {
-        expect(sam.subject.name).to.equal(`${tu.namePrefix}Subject`);
-        expect(sam.aspect.name).to.equal(`${tu.namePrefix}Aspect`);
-        expect(sam.subject.tags).to.be.instanceof(Array);
-        expect(sam.aspect.tags).to.to.be.instanceof(Array);
-      })
-      .then(() => done())
       .catch(done);
     });
   });

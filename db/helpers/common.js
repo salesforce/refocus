@@ -51,64 +51,6 @@ function checkDuplicatesInStringArray(arr) {
 }
 
 /**
- * Takes a sample instance and enhances it with the subject instance and
- * aspect instance
- * @param {Sequelize} seq - A reference to Sequelize to have access to the
- * the Promise class.
- * @param {Instance} inst - The Sample Instance.
- * @returns {Promise} - Returns a promise which resolves to sample instance
- * enhanced with subject instance and aspect instance information.
- */
-function augmentSampleWithSubjectAspectInfo(seq, inst) {
-  return new seq.Promise((resolve, reject) => {
-    inst.getSubject()
-    .then((sub) => {
-      inst.dataValues.subject = sub;
-
-      // adding absolutePath to sample instance
-      if (sub) {
-        inst.dataValues.absolutePath = sub.absolutePath;
-      }
-
-      inst.subject = sub;
-    }).then(() => inst.getAspect())
-    .then((asp) => {
-      inst.dataValues.aspect = asp;
-      resolve(inst);
-    })
-    .catch((err) => reject(err));
-  });
-} // augmentSampleWithSubjectAspectInfo
-
-/**
- * This function checks if the aspect and subject associated with the sample
- * are published or not. It resolves to true when both the aspect and
- * the subject are published or false otherwise.
- *
- * @param {Sequelize} seq - A reference to Sequelize to have access to the
- * the Promise class.
- * @param {Instance} inst - The Sample Instance.
- * @returns {Promise} - Returns  a promise which resolves to true when both the
- * aspect and the subject are published or false otherwise.
- */
-function sampleAspectAndSubjectArePublished(seq, inst) {
-  return new seq.Promise((resolve, reject) => {
-    let asp;
-    let sub;
-    inst.getSubject()
-    .then((s) => {
-      sub = s;
-    })
-    .then(() => inst.getAspect())
-    .then((a) => {
-      asp = a;
-    })
-    .then(() => resolve(sub && asp && sub.isPublished && asp.isPublished))
-    .catch((err) => reject(err));
-  });
-} // sampleAspectAndSubjectArePublished
-
-/**
  * Create db log. Changed values will be empty in case of post.
  * @param  {Object} inst  -  Model instance in case of post,
  * { old: old_inst, new: new_inst} in case of update
@@ -294,8 +236,6 @@ module.exports = {
   dbconf,
   setIsDeleted,
   publishChange,
-  sampleAspectAndSubjectArePublished,
-  augmentSampleWithSubjectAspectInfo,
   validateJsonSchema,
   createDBLog,
   changeType,

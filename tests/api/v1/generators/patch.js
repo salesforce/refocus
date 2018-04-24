@@ -65,7 +65,6 @@ describe('tests/api/v1/generators/patch.js >', () => {
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
     .send({ aspects: ['WEATHER', 'Temperature'] })
-    .expect(res => console.log(res.body))
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
