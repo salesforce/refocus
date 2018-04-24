@@ -15,6 +15,7 @@ const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
+
 const featureToggles = require('feature-toggles');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -176,10 +177,11 @@ function applyFilter(filterString, objValues) {
 }
 
 /**
- * The decision to emit an object over a namespace identified by the nspComponents
- * variable happens here. The nspComponents are decoded to various filters and the
- * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspComponents variable
+ * The decision to emit an object over a namespace identified by the
+ * nspComponents variable happens here. The nspComponents are decoded to
+ * various filters and the filters are compared with the obj to decide whether
+ * this object should be emitted over the namespace identified by the
+ * nspComponents variable
  * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
  * @returns {Boolean} - true if this obj is to be emitted over this namespace
@@ -376,7 +378,9 @@ function isIpWhitelisted(addr, whitelist) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample) {
+  const sequelize = require('../db').sequelize;
+
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
@@ -389,20 +393,16 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+    sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId and ' +
+      '"isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
+      type: sequelize.QueryTypes.SELECT });
+
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+    sequelize.query('SELECT id, "absolutePath", name, tags FROM "Subjects" ' +
+      'WHERE id = :subjectId and "isDeleted" = 0', { replacements:
+        { subjectId: sample.subjectId }, type: sequelize.QueryTypes.SELECT });
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -418,8 +418,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.length ? asp[0] : asp;
+    sub = sub.length ? sub[0] : sub;
     delete asp.writers;
     delete sub.writers;
 
