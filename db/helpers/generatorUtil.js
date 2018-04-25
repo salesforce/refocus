@@ -9,6 +9,8 @@
 /**
  * db/helpers/generatorUtil.js
  */
+'use strict'; // eslint-disable-line strict
+
 const common = require('./common');
 const dbErrors = require('../dbErrors');
 

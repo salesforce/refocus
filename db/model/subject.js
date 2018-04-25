@@ -19,11 +19,9 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const eventName = {
-  add: 'refocus.internal.realtime.subject.add',
-  upd: 'refocus.internal.realtime.subject.update',
-  del: 'refocus.internal.realtime.subject.remove',
-};
+const publishObject = require('../../realtime/redisPublisher').publishObject;
+const eventName = require('../../realtime/constants').events.subject;
+
 const assoc = {};
 
 module.exports = function subject(seq, dataTypes) {
@@ -186,13 +184,6 @@ module.exports = function subject(seq, dataTypes) {
     hooks: {
 
       /**
-       * TODO:
-       * 1. Have a look at the sampleStore logic and confirm that it is
-       * doing what it is supposed to do.
-       *
-       */
-
-      /**
        * BeforeCreate hook
        * set up appropriate parentAbsolutePath, absolutePath and ParentId
        * If parentAbsolutePath or parentId is provided while creating a subject,
@@ -220,26 +211,19 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
+        publishObject(inst, eventName.add);
 
-        /*
-         * add entry to the subjectStore in redis only if the subject
-         * is published and the sampleStoreFeature is enabled
-         */
-        if (inst.getDataValue('isPublished')) {
-          common.publishChange(inst, eventName.add);
+        // Prevent any changes to original inst dataValues object
+        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-          // Prevent any changes to original inst dataValues object
-          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-          promiseArr.push(redisOps.addKey(subjectType,
-            inst.getDataValue('absolutePath')));
-          promiseArr.push(redisOps.hmSet(
-            subjectType,
-            inst.getDataValue('absolutePath'),
-            instDataObj
-          ));
-        }
+        promiseArr.push(redisOps.addKey(subjectType,
+          inst.getDataValue('absolutePath')));
+        promiseArr.push(redisOps.hmSet(
+          subjectType,
+          inst.getDataValue('absolutePath'),
+          instDataObj
+        ));
 
-        // no change here
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
           .then((par) => {
@@ -255,45 +239,48 @@ module.exports = function subject(seq, dataTypes) {
       }, // hooks.afterCreate
 
       /**
-       * Update entire hierarchy if parentId, parentAbsolutePath, Name changes
-       * If the subject changed significantly,
-       * publish the updated and former subject to redis channel.
-       *
+       * Do the following
+       * 1. Update entire hierarchy if parentId, parentAbsolutePath, name
+       *   changes
+       * 2. If a subject is unpublished, delete its related samples and the
+       * entries in subject aspect map in redis
+       * 3. If the absolutePath of the subject changes, remake the subject in
+       * the subject master list, rename the hash, delete the related samples
+       * and the subject aspect map in redis
+       * 4. Send the appropriate realtime event for the subject
+       * 5. If the samples get deleted send the sample delete event
        * @param {Subject} inst - The updated instance
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        // Prevent any changes to original inst dataValues object
+        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+
         const promiseArr = [];
 
-        /*
-         * When the sample store feature is enabled do the following
-         * 1. if subject is changed from unpublished to published -> update subject
-         * 2. if subject is changed from published to unpublished -> update subject,
-         *   delete subject aspect map, remove its samples
-         * 3. if the asbsolutepath of the subject changes: rename the subject key,
-         *   update subject, delete subject aspect map, and remove its samples
-         */
-        if (inst.changed('absolutePath') ||
-          (inst.changed('isPublished') && !inst.isPublished)) {
+        // change from published to unpublished
+        const isSubjectUnpublished = inst.changed('isPublished') &&
+          !inst.isPublished;
+
+        // change from unpublished to published
+        const isSubjectPublished = inst.changed('isPublished') &&
+          inst.isPublished;
+
+        if (isSubjectUnpublished) {
+          promiseArr.push(subjectUtils.removeRelatedSamples(inst.absolutePath));
+        }
+
+        if (inst.changed('absolutePath')) {
           const newAbsPath = inst.absolutePath;
           const oldAbsPath = inst._previousDataValues.absolutePath;
 
-          if (inst.changed('absolutePath')) {
-            // rename entry in subject store
-            promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
-             newAbsPath));
-          }
+          // rename entry in subject store
+          promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
+           newAbsPath));
 
           // remove all the related samples
           promiseArr.push(subjectUtils.removeRelatedSamples(oldAbsPath));
         }
-
-        // Prevent any changes to original inst dataValues object
-        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
-        //  update subject
-        promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
-          instDataObj));
 
         if (inst.changed('parentAbsolutePath') ||
           inst.changed('absolutePath')) {
@@ -324,36 +311,44 @@ module.exports = function subject(seq, dataTypes) {
           'isDeleted',
         ];
 
-        if (inst.getDataValue('isPublished')) {
-          if (inst.previous('isPublished')) {
-            /*
-             * If tags OR parent were updated, send a "delete" event followed
-             * by an "add" event so that perspectives get notified and lenses
-             * can re-render correctly. Tag changes have to be handled this
-             * way for filtering.
-             * If subject tags or parent were not updated, just send the usual
-             * "update" event.
-             *
-             * TODO : Right now don't have the ability to mock the socket.io
-             * test for this.
-             */
-            if (inst.changed('tags') || inst.changed('parentId')) {
-              common.publishChange(inst, eventName.del, changedKeys,
-                ignoreAttributes);
-              common.publishChange(inst, eventName.add, changedKeys,
-                ignoreAttributes);
-            } else {
-              common.publishChange(inst, eventName.upd, changedKeys,
-              ignoreAttributes);
-            }
-          } else {
-            // Treat publishing a subject as an "add" event.
-            common.publishChange(inst, eventName.add);
-          }
-        } else if (inst.previous('isPublished')) {
+        if (isSubjectUnpublished) {
           // Treat unpublishing a subject as a "delete" event.
-          common.publishChange(inst, eventName.del);
+          publishObject(inst, eventName.del);
+        } else if (isSubjectPublished) {
+          // Treat publishing a subject as an "add" event.
+          publishObject(inst, eventName.add);
+        } else if (inst.isPublished && inst.changed('absolutePath')) {
+          /*
+           * When an absolutePath is changed, send a subject delete event with
+           * the old subject instance, followed by a subject add event with the
+           * new subject instance
+           */
+          publishObject(inst._previousDataValues, eventName.del,
+            changedKeys, ignoreAttributes);
+          publishObject(inst, eventName.add, changedKeys,
+              ignoreAttributes);
+        } else if (inst.isPublished && (inst.changed('tags') ||
+          inst.changed('parentId'))) {
+          /*
+           * If tags OR parent were updated, send a "delete" event followed
+           * by an "add" event so that perspectives get notified and lenses
+           * can re-render correctly. Tag changes have to be handled this
+           * way for filtering.
+           * If subject tags or parent were not updated, just send the usual
+           * "update" event.
+           */
+          publishObject(inst, eventName.del, changedKeys,
+              ignoreAttributes);
+          publishObject(inst, eventName.add, changedKeys,
+              ignoreAttributes);
+        } else if (inst.published) {
+          publishObject(inst, eventName.upd, changedKeys,
+              ignoreAttributes);
         }
+
+        // finally update the subject hash in redis too
+        promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
+          instDataObj));
 
         return Promise.all(promiseArr);
       }, // hooks.afterUpdate
@@ -375,7 +370,7 @@ module.exports = function subject(seq, dataTypes) {
             }
 
             if (inst.getDataValue('isPublished')) {
-              common.publishChange(inst, eventName.del);
+              publishObject(inst, eventName.del);
             }
 
             // remove the subject and its related samples
@@ -387,8 +382,7 @@ module.exports = function subject(seq, dataTypes) {
       }, // hooks.afterDelete
 
       /**
-       * Prevents from deleting a subject which has children. Delete the
-       * subject's samples.
+       * Prevents from deleting a subject which has children.
        *
        * @param {Subject} inst - The instance being destroyed
        * @returns {Promise} which resolves to undefined or rejects if an error

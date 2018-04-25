@@ -11,6 +11,7 @@
  *
  * Used by the User model.
  */
+'use strict'; // eslint-disable-line strict
 
 const bcrypt = require('bcrypt-nodejs');
 const conf = require('../../config');

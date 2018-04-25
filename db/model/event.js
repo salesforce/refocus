@@ -38,7 +38,7 @@ module.exports = function event(seq, dataTypes) {
       defaultValue: dataTypes.UUIDV4,
     },
     log: {
-      type: dataTypes.STRING,
+      type: dataTypes.TEXT,
       allowNull: false,
       comment: 'This is a readable event logline',
     },

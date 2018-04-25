@@ -18,11 +18,6 @@ const assoc = {};
 const timeoutLength = 10;
 const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
 const valueLabelLength = 10;
-const sampleEventNames = {
-  add: 'refocus.internal.realtime.sample.add',
-  upd: 'refocus.internal.realtime.sample.update',
-  del: 'refocus.internal.realtime.sample.remove',
-};
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;

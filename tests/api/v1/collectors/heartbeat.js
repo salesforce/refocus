@@ -343,7 +343,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then((res) => {
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
             expect(res.body.generatorsAdded[0].aspects[0])
-              .to.contain.property('name', 'Temperature');
+              .to.contain.property('name', 'temperature');
           })
           .then(done).catch(done);
         });

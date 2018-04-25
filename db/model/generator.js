@@ -344,47 +344,24 @@ module.exports = function generator(seq, dataTypes) {
       }, // isWritableBy
 
       /**
-       * Replaces array of subject absolutePaths with array of subject records.
-       * Replaces array of aspect names with array of aspect records.
-       * TODO: set array of subjects when generator provides "subjectQuery"
+       * Replaces string array of aspect names with object array of aspect
+       * records (with only the "name" attribute).
+       * Replaces generatorTemplate (name/version) with full generator template
+       * record.
        *
        * @returns {Generator} - the updated Generator
        */
       updateForHeartbeat() {
         const g = this.get();
-        const aspectPromises = g.aspects.map((a) => seq.models.Aspect.findOne({
-          where: {
-            name: { $iLike: a },
-            isPublished: true,
-          },
-        }));
-        let subjectPromises;
-        if (g.subjects && g.subjects.length) {
-          subjectPromises = g.subjects.map((absPath) =>
-            seq.models.Subject.findOne({
-              where: {
-                absolutePath: {
-                  $iLike: absPath,
-                },
-                isPublished: true,
-              },
-            })
-          );
-        } else {
-          // TODO find subjects using subjectQuery
-          subjectPromises = [];
-        }
+        const aspects = g.aspects.map((a) => ({ name: a }));
+        g.aspects = aspects;
 
-        return seq.Promise.join(
-          seq.Promise.all(aspectPromises),
-          seq.Promise.all(subjectPromises),
-          (aspectRecords, subjectRecords) => {
-            g.aspects = aspectRecords.filter((found) => found)
-              .map((rec) => rec.get());
-            g.subjects = subjectRecords.map((rec) => rec.get());
-            return g;
-          }
-        );
+        const gt = g.generatorTemplate;
+        return seq.models.GeneratorTemplate.getSemverMatch(gt.name, gt.version)
+        .then((t) => {
+          if (t) g.generatorTemplate = t.get();
+        })
+        .then(() => g);
       }, // updateForHeartbeat
     },
     paranoid: true,

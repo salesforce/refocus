@@ -12,6 +12,7 @@
  * Used by the Sample model to compute a sample's status.
  */
 'use strict'; // eslint-disable-line strict
+
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const fourByteBase = 2;

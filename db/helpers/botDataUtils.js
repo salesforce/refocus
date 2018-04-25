@@ -11,6 +11,8 @@
  *
  * Used by the Bot Data model.
  */
+'use strict'; // eslint-disable-line strict
+
 const _ = require('lodash');
 const ZERO = 0;
 const ONE = 1;
