@@ -53,6 +53,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const fs = require('fs');
   const yaml = require('js-yaml');
   const ipfilter = require('express-ipfilter');
+  const cleanXForwardedFor = require('./config/cleanXForwardedFor');
   const bodyParser = require('body-parser');
   const env = conf.environment[conf.nodeEnv];
   const ENCODING = 'utf8';
@@ -107,6 +108,10 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   if (featureToggles.isFeatureEnabled('requireHttps')) {
     app.enable('trust proxy');
     app.use(enforcesSSL());
+  }
+
+  if (featureToggles.isFeatureEnabled('cleanXForwardedFor')) {
+    app.use(cleanXForwardedFor);
   }
 
   // Set the IP restricitions defined in config.js
