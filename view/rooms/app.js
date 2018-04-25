@@ -300,12 +300,15 @@ function createFooter(bot) {
   const footer = document.createElement('h3');
   const linkedElement = document.createElement('a');
   const gitHubImage = document.createElement('img');
+  const botVersion = document.createElement('span');
 
   footer.className =
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
 
+  botVersion.innerHTML = 'Version '+bot.version;
+  botVersion.className = 'slds-p-horizontal--medium';
   linkedElement.href = bot.url;
   linkedElement.target = '_blank';
   linkedElement.rel = 'noopener noreferrer';
@@ -314,6 +317,7 @@ function createFooter(bot) {
   gitHubImage.src = GITHUB_LOGO;
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
+  footer.appendChild(botVersion);
 
   return footer;
 }
@@ -485,6 +489,68 @@ function createIframeEvent(channel, payload, bots, botId) {
   return 'Success';
 }
 
+
+/**
+ * The user has entered the page log this event
+ *
+ * @returns {Promise} For use in chaining.
+ */
+function userEnterRoom() {
+  const currentUser = {
+    name: _user.name,
+    id: _user.id,
+    email: _user.email,
+    fullName: _user.fullName,
+  }
+
+  const message = currentUser.fullName + ' has joined the room at ' +
+      moment().format('YYYY-MM-DD HH:mm Z');
+  const eventType =  {
+      'type': 'User',
+      'user': currentUser,
+      'isActive': true,
+    }
+  const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID, 10)
+    };
+
+  return u.postPromiseWithUrl(GET_EVENTS, events);
+}
+
+/**
+ * The user has left the page log this event
+ *
+ * @returns {Promise} For use in chaining.
+ */
+function confirmUserExit(){
+  const currentUser = {
+    name: _user.name,
+    id: _user.id,
+    email: _user.email,
+    fullName: _user.fullName,
+  }
+
+  const eventType = {
+    'type': 'User',
+    'user': currentUser,
+    'isActive': false,
+  };
+
+  const message = currentUser.name + ' has left the room at ' +
+      moment().format('YYYY-MM-DD HH:mm Z');
+  const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID, 10)
+    };
+
+  return u.postPromiseWithUrl(GET_EVENTS, events);
+}
+
 /**
  * Setup the socket.io client to listen to a namespace, and once sockets
  * are connected install the bots in the room.
@@ -520,6 +586,7 @@ function setupSocketIOClient(bots) {
   // Once connected to refocus display bots
   socket.on('connect', () => {
     debugMessage('Socket Connected');
+    userEnterRoom()
     // If disconnected delete old bots
     bots.forEach((bot) => {
       if (document.getElementById(bot.body.name + '-section')) {
@@ -597,6 +664,8 @@ function setupSocketIOClient(bots) {
 
   socket.on('disconnect', () => {
     debugMessage('Socket Disconnected');
+    console.log('Socket Disconnected')
+    confirmUserExit()
   });
 } // setupSocketIOClient
 
@@ -725,6 +794,7 @@ function setupColumns() {
     allowBotDropHandler(e, blankBot);
   });
 }
+window.onbeforeunload = confirmUserExit;
 
 window.onload = () => {
   activeToggle.addEventListener('click', toggleConfirmationModal);
