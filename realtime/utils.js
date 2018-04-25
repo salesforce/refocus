@@ -399,21 +399,26 @@ function attachAspectSubject(sample) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
+    const subOpts = {
+      where: {
+        id: sample.subjectId,
+      },
+    };
+    const aspOpts = {
+      where: {
+        id: sample.aspectId,
+      },
+    };
     /*
      * NOTE: The raw queries are use here because querying using the
      * traditional find/findOne function on the model at high volume caused
      * memory issues.
      */
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspect.sequelize.query('SELECT * FROM "Aspects" WHERE id = :aspectId' +
-      ' and "isDeleted" = 0', { replacements: { aspectId: sample.aspectId },
-      type: aspect.sequelize.QueryTypes.SELECT, });
+     aspect.findOne(aspOpts);
 
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subject.sequelize.query('SELECT id, "absolutePath", name, tags FROM ' +
-      '"Subjects" WHERE id = :subjectId and "isDeleted" = 0',
-      { replacements: { subjectId: sample.subjectId },
-      type: aspect.sequelize.QueryTypes.SELECT, });
+      subject.findOne(subOpts);
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
