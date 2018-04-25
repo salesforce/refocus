@@ -333,7 +333,7 @@ function heartbeat(req, res, next) {
       attachTemplate(sg)
       .then((sg) => {
         if (featureToggles.isFeatureEnabled('returnUser')) {
-          const userName = sg.generatorTemplate.user.name;
+          const userName = sg.user.dataValues.name;
           sg.token = jwtUtil.createToken(userName, userName);
         }
 
@@ -345,7 +345,14 @@ function heartbeat(req, res, next) {
   .then(() => Promise.all(
     retval.generatorsUpdated.map((sg) =>
       attachTemplate(sg)
-      .then((sg) => reEncryptSGContextValues(sg, authToken, timestamp))
+      .then((sg) => {
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          const userName = sg.user.dataValues.name;
+          sg.token = jwtUtil.createToken(userName, userName);
+        }
+
+        return reEncryptSGContextValues(sg, authToken, timestamp);
+      })
     )
   ))
   .then((updated) => retval.generatorsUpdated = updated)
@@ -408,6 +415,10 @@ function startCollector(req, res, next) {
     .then((generators) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          g.token = jwtUtil.createToken(g.user.name, g.user.name);
+        }
+
         // generator associations before adding it to the response
         delete g.GeneratorCollectors;
         delete g.collectors;
