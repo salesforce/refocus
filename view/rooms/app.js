@@ -32,6 +32,8 @@ const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
+const urlParameters = window.location.href.includes('?') ?
+  window.location.href.split('?')[ONE] : '';
 const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
@@ -743,7 +745,7 @@ window.onload = () => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
 
     if (response === undefined) {
-      window.location.replace(`/rooms/new/${ROOM_ID}`);
+      window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
     }
 
     if (parseInt(ROOM_ID, 10) !== response.id) {
@@ -774,7 +776,7 @@ window.onload = () => {
   });
 };
 
-//for testing
+// For testing
 module.exports = () => {
   return {
     parseBot,
