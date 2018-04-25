@@ -20,23 +20,36 @@ import moment from 'moment';
 
 const u = require('../../utils');
 const uPage = require('./../utils/page');
+const url = require('url');
 const roomsListContainer = document.getElementById('roomsListContainer');
 const header = document.getElementById('header');
 const GET_ROOMS = '/v1/rooms';
 const GET_ROOMTYPES = '/v1/roomTypes';
+const address = window.location.href;
+const ZERO = 0;
+const ONE = 1;
+const LIST_NUM = 25;
+const q = url.parse(address, true);
+const qdata = q.query ? q.query : {};
+const currentPage = qdata.page ? parseInt(qdata.page, 10) : ONE;
+const offset = currentPage > ZERO ? (currentPage - ONE) * LIST_NUM : ZERO;
 
 window.onload = () => {
   let rooms;
   let roomTypes;
+  let numRooms;
   uPage.setRoomsTab();
-  u.getPromiseWithUrl(`${GET_ROOMS}?sort=-id`)
+  u.getPromiseWithUrl(
+    `${GET_ROOMS}?limit=25&offset=${offset}&sort=-id`
+  )
   .then((res) => {
+    numRooms = res.header['x-total-count'];
     rooms = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES);
   })
   .then((res) => {
     roomTypes = res.body;
-    loadController(rooms, roomTypes);
+    loadController(rooms, roomTypes, numRooms);
   });
 };
 
@@ -45,9 +58,23 @@ window.onload = () => {
  *
  * @param {Object} values Data returned from AJAX.
  */
-function loadController(rooms, roomTypes) {
+function loadController(rooms, roomTypes, numRooms) {
   uPage.setTitle('Refocus Rooms');
-  uPage.setSubtitle(`Number of rooms: ${rooms.length}`);
+
+  const numPages = parseInt(numRooms/LIST_NUM) + ONE;
+  const redirect = 'if (this.value)' +
+    ' window.location.href= \'/rooms?page=\' + this.value';
+  let pageOptions = '<div>Page: <select onChange="' + redirect + '">';
+  for (let i = ONE; i < numPages + ONE; i++) {
+    if (i === currentPage) {
+      pageOptions += '<option value="'+i+'" selected>' + i + '</option>';
+    } else {
+      pageOptions += '<option value="'+i+'">' + i + '</option>';
+    }
+  }
+  pageOptions += '</select></div>';
+
+  uPage.setSubtitle(`Number of rooms: ${numRooms} ${pageOptions}`);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
     <button class="slds-button slds-button_neutral" onClick="window.location.href = '/rooms/new';">
@@ -63,7 +90,7 @@ function loadController(rooms, roomTypes) {
     const { id } = room;
     room.id = `<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>${id}</a>`;
     room.name = `<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>${room.name}</a>`;
-    room.type = `<a href=/rooms/types/${roomType[0].id}>${roomType[0].name}</a>`;
+    room.type = `<a href=/rooms/types/${roomType[ZERO].id}>${roomType[ZERO].name}</a>`;
     room.active = room.active ? 'True' : 'False';
     room.createdAt = moment(room.createdAt).format('lll');
     room.updatedAt = moment(room.updatedAt).format('lll');
