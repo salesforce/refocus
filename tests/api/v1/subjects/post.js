@@ -452,7 +452,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       .set('Authorization', token)
       .send(n0)
       .expect(constants.httpStatus.BAD_REQUEST)
-      .expect(res => expect(res.body.errors[0].type).to.equal(tu.uniErrorName))
+      .expect((res) => expect(res.body.errors[0].type).to.be
+        .oneOf([tu.uniErrorName, tu.duplicateResourceErrorName]))
       .end(done);
     });
 

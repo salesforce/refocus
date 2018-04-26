@@ -13,6 +13,7 @@
  */
 
 'use strict'; // eslint-disable-line strict
+
 const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');

@@ -12,7 +12,6 @@
  * Initialize socket.io for sending realtime events out to perspective pages.
  */
 'use strict'; // eslint-disable-line strict
-const ResourceNotFoundError = require('../db/dbErrors').ResourceNotFoundError;
 const perspective = require('../db/index').Perspective;
 const room = require('../db/index').Room;
 const featureToggles = require('feature-toggles');
