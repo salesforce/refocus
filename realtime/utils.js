@@ -399,26 +399,15 @@ function attachAspectSubject(sample) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        id: sample.subjectId,
-      },
-    };
-    const aspOpts = {
-      where: {
-        id: sample.aspectId,
-      },
-    };
     /*
      * NOTE: The raw queries are use here because querying using the
      * traditional find/findOne function on the model at high volume caused
      * memory issues.
      */
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-     aspect.findOne(aspOpts);
-
+     aspect.scope({ method: ['forRealTime', sample.aspectId] }).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subject.findOne(subOpts);
+      subject.scope({ method: ['forRealTime', sample.subjectId] }).find();
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
@@ -435,8 +424,8 @@ function attachAspectSubject(sample) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.length ? asp[0] : asp;
-    sub = sub.length ? sub[0] : sub;
+    asp = asp.dataValues ? asp.dataValues : asp;
+    sub = sub.dataValues ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 

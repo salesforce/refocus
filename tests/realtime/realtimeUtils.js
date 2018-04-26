@@ -438,7 +438,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           realtimeUtils.attachAspectSubject(sampleObj)
           .then((sample) => {
             expect(sample.aspect.name).to.include(aspectOne.name);
-            expect(Object.keys(sample.aspect).length).to.equal(22);
+            expect(Object.keys(sample.aspect).length).to.equal(23);
             expect(sample.aspect.tags).to.deep.equal(aspectOne.tags);
 
             expect(sample.subject).to.not.equal(null);

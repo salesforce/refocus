@@ -155,6 +155,14 @@ module.exports = function subject(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Subject.addScope('forRealTime', (value) => ({
+          where: {
+            id: value,
+          },
+          attributes: ['id', 'name', 'tags', 'absolutePath'],
+        }));
+
         Subject.addScope('id', (value) => ({
           where: {
             id: value,
