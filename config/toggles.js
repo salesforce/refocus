@@ -49,6 +49,9 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const longTermToggles = {
+  // Use only the last ip address found in the X-Forwarded-For header.
+  cleanXForwardedFor: environmentVariableTrue(pe, 'CLEAN_X_FORWARDED_FOR'),
+
   // Enable api activity logging
   enableApiActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
