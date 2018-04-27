@@ -29,7 +29,7 @@ window.onload = () => {
   let rooms;
   let roomTypes;
   uPage.setRoomsTab();
-  u.getPromiseWithUrl(GET_ROOMS)
+  u.getPromiseWithUrl(`${GET_ROOMS}?sort=-id`)
   .then((res) => {
     rooms = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES);
