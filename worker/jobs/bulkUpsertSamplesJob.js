@@ -60,6 +60,14 @@ module.exports = (job, done) => {
         }
       }
 
+      // force garbage collection after samples are published
+      if (global.gc) {
+        global.gc();
+      } else {
+        logger.info('Garbage Collection unavailable. Pass --expose-gc when ' +
+          'starting the worker');
+      }
+
       const objToReturn = {};
 
       // attach the errors from "bulkUpsertByName"
