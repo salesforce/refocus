@@ -34,7 +34,7 @@ function getPathVariables(adr){
   }
 
   const paramType = qdata.roomType || '';
-  const paramActive = qdata.active === 'true';
+  const paramActive = qdata.active !== 'false';
   const paramExternalId = qdata.externalId || '';
   let paramSettings;
   try {
