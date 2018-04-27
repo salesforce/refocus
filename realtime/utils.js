@@ -15,6 +15,7 @@ const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
+
 const featureToggles = require('feature-toggles');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
@@ -176,10 +177,11 @@ function applyFilter(filterString, objValues) {
 }
 
 /**
- * The decision to emit an object over a namespace identified by the nspComponents
- * variable happens here. The nspComponents are decoded to various filters and the
- * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspComponents variable
+ * The decision to emit an object over a namespace identified by the
+ * nspComponents variable happens here. The nspComponents are decoded to
+ * various filters and the filters are compared with the obj to decide whether
+ * this object should be emitted over the namespace identified by the
+ * nspComponents variable
  * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
  * @returns {Boolean} - true if this obj is to be emitted over this namespace
@@ -367,19 +369,27 @@ function isIpWhitelisted(addr, whitelist) {
 } // isIpWhitelisted
 
 /**
- * When passed in a sample, its related subject and aspect is attached to the
- * sample. If useSampleStore is set to true, the subject ans aspect is fetched
- * for the cache instead of the database.
+ * When passed in a sample attach its related subject and aspect if not found.
+ * If the "attachSubAspFromDB" flag is turned on, get them from the database
+ * instead of "sampleStore"
  * @param {Object} sample - The sample instance.
  * @param {Model} subjectModel - The database subject model.
  * @param {Model} aspectModel - The database aspect model.
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample) {
+  // The models are required here as the global require causes circular dependency
+  const aspect =
+    require('../db/index').Aspect; // eslint-disable-line global-require
+  const subject =
+    require('../db/index').Subject; // eslint-disable-line global-require
+
   // check if sample object contains name
-  if (!sample.name || sample.name.indexOf('|') < 0) {
-    logger.error('sample object does not contain name', JSON.stringify(sample));
+  if (!sample.name || sample.name.indexOf('|') < 0 || !sample.aspectId ||
+    !sample.subjectId) {
+    logger.error('sample object does not contain name or aspectId or subjectId',
+     JSON.stringify(sample));
     console.trace('from attachAspectSubject');
     return Promise.resolve(null);
   }
@@ -389,20 +399,16 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
+    /*
+     * NOTE: The raw queries are use here because querying using the
+     * traditional find/findOne function on the model at high volume caused
+     * memory issues.
+     */
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+     aspect.scope({ method: ['forRealTime', sample.aspectId] }).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subject.scope({ method: ['forRealTime', sample.subjectId] }).find();
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subName);
@@ -418,8 +424,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.dataValues ? asp.dataValues : asp;
+    sub = sub.dataValues ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 
@@ -429,6 +435,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
       sub : redisStore.arrayObjsStringsToJson(sub,
         redisStore.constants.fieldsToStringify.subject);
+
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath

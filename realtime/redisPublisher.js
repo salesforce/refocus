@@ -16,7 +16,6 @@ const client = require('../cache/redisCache').client;
 const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -112,9 +111,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
+function publishSample(sampleInst, event) {
   const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  return rtUtils.attachAspectSubject(sampleInst)
   .then((sample) => {
     if (sample) {
       publishObject(sample, eventType);
