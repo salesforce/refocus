@@ -137,25 +137,32 @@ function deleteKey(type, name) {
 
 /**
  * Deletes the samples associated with the passed in association type.
- * @param  {String} name  - Name of the object whoes related samples are to be
- * deleted
  * @param  {String} associationType - Association type, using which the lookup
  * needs to be done.
- * @returns {Promise} - which resolves to the values returned by the redis batch
- * command
+ * @param  {String} name  - Name of the object whoes related samples are to be
+ * deleted.
+ * @returns {Array} of deleted sample
  */
-function deleteSampleKeys(name, associationType) {
-  const cmds = [];
+function deleteSampleKeys(associationType, name) {
+  let cmds = [];
   const indexName = redisStore.constants.indexKey[sampleType];
   const assocName = redisStore.toKey(associationType, name);
   const nameKeySubjectNamePart = redisStore.toKey(sampleType, name);
-
+  const keyArr = [];
+  let deletedSamples = [];
   return redisClient.smembersAsync(assocName)
   .then((members) => {
-    const keyArr = [];
     members.forEach((member) => {
-      keyArr.push(nameKeySubjectNamePart + '|' + member);
+      const sampleKey = nameKeySubjectNamePart + '|' + member;
+      keyArr.push(sampleKey);
+      cmds.push(['hgetall', sampleKey]);
     });
+
+    return redisClient.batch(cmds).execAsync();
+  })
+  .then((samples) => {
+    deletedSamples = samples || [];
+    cmds = [];
 
     // remove the entries from the master list of index
     cmds.push(['srem', indexName, Array.from(keyArr)]);
@@ -163,7 +170,8 @@ function deleteSampleKeys(name, associationType) {
     // delete the hashes too
     cmds.push(['del', Array.from(keyArr)]);
     return redisClient.batch(cmds).execAsync();
-  });
+  })
+  .then(() => deletedSamples);
 }
 
 /**
