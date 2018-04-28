@@ -28,11 +28,13 @@ const GET_ROOMTYPES = '/v1/roomTypes';
 const address = window.location.href;
 const ZERO = 0;
 const ONE = 1;
-const LIST_NUM = 25;
+const MAX_ROOM_NUMBERS = 25;
 const q = url.parse(address, true);
-const qdata = q.query ? q.query : {};
+const qdata = q.query || {};
 const currentPage = qdata.page ? parseInt(qdata.page, 10) : ONE;
-const offset = currentPage > ZERO ? (currentPage - ONE) * LIST_NUM : ZERO;
+const offset = currentPage > ZERO ?
+  (currentPage - ONE) * MAX_ROOM_NUMBERS :
+  ZERO;
 
 window.onload = () => {
   let rooms;
@@ -40,10 +42,10 @@ window.onload = () => {
   let numRooms;
   uPage.setRoomsTab();
   u.getPromiseWithUrl(
-    `${GET_ROOMS}?limit=25&offset=${offset}&sort=-id`
+    `${GET_ROOMS}?limit=${MAX_ROOM_NUMBERS}&offset=${offset}&sort=-id`
   )
   .then((res) => {
-    numRooms = res.header['x-total-count'];
+    numRooms = Number(res.header['x-total-count']);
     rooms = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES);
   })
@@ -61,7 +63,7 @@ window.onload = () => {
 function loadController(rooms, roomTypes, numRooms) {
   uPage.setTitle('Refocus Rooms');
 
-  const numPages = parseInt(numRooms/LIST_NUM) + ONE;
+  const numPages = parseInt(numRooms/MAX_ROOM_NUMBERS) + ONE;
   const redirect = 'if (this.value)' +
     ' window.location.href= \'/rooms?page=\' + this.value';
   let pageOptions = '<div>Page: <select onChange="' + redirect + '">';
@@ -77,7 +79,9 @@ function loadController(rooms, roomTypes, numRooms) {
   uPage.setSubtitle(`Number of rooms: ${numRooms} ${pageOptions}`);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
-    <button class="slds-button slds-button_neutral" onClick="window.location.href = '/rooms/new';">
+    <button
+      class="slds-button slds-button_neutral"
+      onClick="window.location.href = '/rooms/new';">
       New
     </button>
   </div>`;
@@ -85,12 +89,18 @@ function loadController(rooms, roomTypes, numRooms) {
   header.insertAdjacentHTML('afterbegin', createNewBotton);
 
   const headers = ['ID', 'Name', 'Type', 'Active', 'Created At', 'Updated At'];
-  const rows = rooms.map(room => {
-    const roomType = roomTypes.filter(rt => rt.id === room.type);
+  const rows = rooms.map((room) => {
+    const roomType = roomTypes.filter((rt) => rt.id === room.type);
     const { id } = room;
-    room.id = `<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>${id}</a>`;
-    room.name = `<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>${room.name}</a>`;
-    room.type = `<a href=/rooms/types/${roomType[ZERO].id}>${roomType[ZERO].name}</a>`;
+    room.id =`<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>
+      ${id}
+    </a>`;
+    room.name = `<a href=/rooms/${id} target='_blank' rel='noopener noreferrer'>
+      ${room.name}
+    </a>`;
+    room.type = `<a href=/rooms/types/${roomType[ZERO].id}>
+      ${roomType[ZERO].name}
+    </a>`;
     room.active = room.active ? 'True' : 'False';
     room.createdAt = moment(room.createdAt).format('lll');
     room.updatedAt = moment(room.updatedAt).format('lll');
