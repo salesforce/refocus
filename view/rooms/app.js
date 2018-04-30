@@ -21,6 +21,7 @@ const botsLeft = document.getElementById('botsLeftColumn');
 const botsMiddle = document.getElementById('botsMiddleColumn');
 const botsRight = document.getElementById('botsRightColumn');
 const botsContainerColumns = [botsLeft, botsMiddle, botsRight];
+const backButton = document.getElementById('backButton');
 const activeToggle = document.getElementById('activeToggle');
 const confirmButton = document.getElementById('confirm_button');
 const declineButton = document.getElementById('decline_button');
@@ -53,8 +54,10 @@ let _roomName;
 let _isActive;
 let _movingContent;
 let _botsLayout;
+
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
+
 // Used to drop a bot at the bottom of a column
 const blankBot = document.createElement('div');
 const botInfo = {};
@@ -67,7 +70,7 @@ const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
  * @param {Object} msg - Bot response with UI
  * @param {Object} obj - Bot response with UI
  */
-function debugMessage(msg, obj){
+function debugMessage(msg, obj) {
   if ((DEBUG_REALTIME) && obj) {
     console.log(msg, obj);
   } else if (DEBUG_REALTIME) {
@@ -119,7 +122,6 @@ function allowBotDropHandler(event, bot) {
   const col = bot.parentElement;
   col.insertBefore(placeholderBot, bot);
 }
-
 
 // Resets all columns back to their initial state
 function resetColumns() {
@@ -184,9 +186,9 @@ function decideBotPosition(botName, botIndex) {
   }
 
   // No bot layout was defined in settings
-  if ((botIndex+ONE) % THREE === ONE) {
+  if ((botIndex + ONE) % THREE === ONE) {
     return 'L';
-  } else if ((botIndex+ONE) % THREE === TWO) {
+  } else if ((botIndex + ONE) % THREE === TWO) {
     return 'M';
   }
 
@@ -245,6 +247,59 @@ function setupMovableBots(botContainer, botName, botIndex) {
 }
 
 /**
+ * Creates the minimize button for each bot
+ *
+ * @param {Object} bot - Bot response with UI
+ * @returns {DOM} section - Minimize Button
+ */
+function createMinimizeButton(bot) {
+  const minimize = document.createElement('div');
+  minimize.className = 'slds-float_right';
+  minimize.style.cursor = 'pointer';
+  minimize.onclick = () => {
+    const botFrame = document.getElementById(bot.name + '-iframe-section');
+    const up = document.getElementById(bot.name + '-toggleUp');
+    const down = document.getElementById(bot.name + '-toggleDown');
+    if (botFrame.style.display === 'none') {
+      up.style.display = 'block';
+      down.style.display = 'none';
+      botFrame.style.display = 'block';
+    } else {
+      up.style.display = 'none';
+      down.style.display = 'block';
+      botFrame.style.display = 'none';
+    }
+  };
+
+  const svgURL = 'http://www.w3.org/2000/svg';
+  const xlinkURL = 'http://www.w3.org/1999/xlink';
+  const svgElem = document.createElementNS(svgURL, 'svg');
+  svgElem.setAttribute('class',
+    'slds-icon slds-icon_xx-small slds-m-top_x-small');
+  svgElem.setAttribute('style', 'fill:black');
+  const useElemUp = document.createElementNS(svgURL, 'use');
+  useElemUp.setAttributeNS(
+    xlinkURL,
+    'xlink:href',
+    '../static/icons/utility-sprite/svg/symbols.svg#chevronup'
+  );
+  useElemUp.setAttribute('id', bot.name + '-toggleUp');
+  svgElem.appendChild(useElemUp);
+  const useElemDown = document.createElementNS(svgURL, 'use');
+  useElemDown.setAttributeNS(
+    xlinkURL,
+    'xlink:href',
+    '../static/icons/utility-sprite/svg/symbols.svg#chevrondown'
+  );
+  useElemDown.setAttribute('id', bot.name + '-toggleDown');
+  useElemDown.setAttribute('style', 'display: none');
+  svgElem.appendChild(useElemDown);
+  minimize.appendChild(svgElem);
+
+  return minimize;
+}
+
+/**
  * Creates headers for each bot added to the UI
  *
  * @param {Object} bot - Bot response with UI
@@ -260,15 +315,16 @@ function createHeader(bot) {
   );
 
   const title = document.createElement('div');
+  title.className =
+    'slds-p-horizontal_small ' +
+    'slds-theme_shade ';
 
   const text = document.createElement('h3');
   text.id = 'title-header';
   text.className =
-    'slds-section__title ' +
-    'slds-p-horizontal_small ' +
-    'slds-theme_shade ';
+    'slds-section__title ';
   text.innerHTML = bot.name;
-  text.style.cursor = 'pointer';
+  text.style.cursor = 'move';
 
   const circle = document.createElement('div');
   if (bot.active) {
@@ -282,9 +338,9 @@ function createHeader(bot) {
       'background:#c23934;width:8px;height:8px;border-radius:50%;margin:5px;'
     );
   }
-
   circle.className = 'slds-float_right';
 
+  title.appendChild(createMinimizeButton(bot));
   title.appendChild(text);
   text.appendChild(circle);
   section.appendChild(title);
@@ -302,12 +358,15 @@ function createFooter(bot) {
   const footer = document.createElement('h3');
   const linkedElement = document.createElement('a');
   const gitHubImage = document.createElement('img');
+  const botVersion = document.createElement('span');
 
   footer.className =
     'slds-section__title ' +
     'slds-p-horizontal_small ' +
     'slds-theme_shade ';
 
+  botVersion.innerHTML = 'Version ' + bot.version;
+  botVersion.className = 'slds-p-horizontal--medium';
   linkedElement.href = bot.url;
   linkedElement.target = '_blank';
   linkedElement.rel = 'noopener noreferrer';
@@ -316,6 +375,7 @@ function createFooter(bot) {
   gitHubImage.src = GITHUB_LOGO;
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
+  footer.appendChild(botVersion);
 
   return footer;
 }
@@ -327,11 +387,11 @@ function createFooter(bot) {
  * @param {Object} bot - Bot to add to frame
  * @param {Object} parsedBot - Object that has the HTML and JS as
  *  HTMLObject stored as key value pair
- * @param {Object} user - The current user
+ * @param {Object} currentUser - The current user
  */
 function iframeBot(iframe, bot, parsedBot, currentUser) {
   const botScript = parsedBot.js ? parsedBot.js.innerHTML : '';
-  const contentSection = parsedBot.html ? parsedBot.html.innerHTML: '';
+  const contentSection = parsedBot.html ? parsedBot.html.innerHTML : '';
   let iframedoc = iframe.document;
   if (iframe.contentDocument) {
     iframedoc = iframe.contentDocument;
@@ -411,8 +471,8 @@ function parseBot(bot) {
     });
 
     const output = {
-      'html': contentSection,
-      'js': botScript
+      html: contentSection,
+      js: botScript,
     };
     return output;
   } catch (exception) {
@@ -447,6 +507,7 @@ function displayBot(bot, botIndex) {
   botContainer.appendChild(headerSection);
   setupMovableBots(botContainer, bot.name, botIndex);
   const parsedBot = parseBot(bot);
+
   // user is defined in ./index.pug
   iframeBot(iframe, bot, parsedBot, user);
 }
@@ -488,6 +549,67 @@ function createIframeEvent(channel, payload, bots, botId) {
 }
 
 /**
+ * The user has entered the page log this event
+ *
+ * @returns {Promise} For use in chaining.
+ */
+function userEnterRoom() {
+  const currentUser = {
+    name: _user.name,
+    id: _user.id,
+    email: _user.email,
+    fullName: _user.fullName ? _user.fullName : _user.name,
+  };
+
+  const message = currentUser.fullName + ' has joined the room at ' +
+      moment().format('YYYY-MM-DD HH:mm Z');
+  const eventType =  {
+      type: 'User',
+      user: currentUser,
+      isActive: true,
+    };
+  const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID, 10),
+    };
+
+  return u.postPromiseWithUrl(GET_EVENTS, events);
+}
+
+/**
+ * The user has left the page log this event
+ *
+ * @returns {Promise} For use in chaining.
+ */
+function confirmUserExit() {
+  const currentUser = {
+    name: _user.name,
+    id: _user.id,
+    email: _user.email,
+    fullName: _user.fullName ? _user.fullName : _user.name,
+  };
+
+  const eventType = {
+    type: 'User',
+    user: currentUser,
+    isActive: false,
+  };
+
+  const message = currentUser.fullName + ' has left the room at ' +
+      moment().format('YYYY-MM-DD HH:mm Z');
+  const events = {
+      log: message,
+      context: eventType,
+      userId: _user.id,
+      roomId: parseInt(ROOM_ID, 10),
+    };
+
+  return u.postPromiseWithUrl(GET_EVENTS, events);
+}
+
+/**
  * Setup the socket.io client to listen to a namespace, and once sockets
  * are connected install the bots in the room.
  *
@@ -522,6 +644,8 @@ function setupSocketIOClient(bots) {
   // Once connected to refocus display bots
   socket.on('connect', () => {
     debugMessage('Socket Connected');
+    userEnterRoom();
+
     // If disconnected delete old bots
     bots.forEach((bot) => {
       if (document.getElementById(bot.body.name + '-section')) {
@@ -599,6 +723,7 @@ function setupSocketIOClient(bots) {
 
   socket.on('disconnect', () => {
     debugMessage('Socket Disconnected');
+    confirmUserExit();
   });
 } // setupSocketIOClient
 
@@ -631,8 +756,6 @@ function closeConfirmationModal() {
 
 /**
  * The room state has changed so it needs to be updated.
- *
- * @returns {Promise} For use in chaining.
  */
 function roomStateChanged() {
   closeConfirmationModal();
@@ -648,15 +771,15 @@ function roomStateChanged() {
     const message = _isActive ? 'Room Activated' : 'Room Deactivated';
 
     const eventType = {
-      'type': 'RoomState',
-      'user': _user,
-      'active': _isActive,
+      type: 'RoomState',
+      user: _user,
+      active: _isActive,
     };
     const events = {
       log: message,
       context: eventType,
       userId: _user.id,
-      roomId: parseInt(ROOM_ID, 10)
+      roomId: parseInt(ROOM_ID, 10),
     };
 
     /* Checks for list of sync bots in room settings
@@ -665,12 +788,12 @@ function roomStateChanged() {
     if (res.body && res.body.settings && res.body.settings.sync) {
       res.body.settings.sync.forEach((bot) => {
         const syncBotAction = {
-          'name': bot.botAction,
-          'botId': bot.botId,
-          'userId': _user.id,
-          'roomId': parseInt(ROOM_ID, 10),
-          'isPending': true,
-          'parameters': []
+          name: bot.botAction,
+          botId: bot.botId,
+          userId: _user.id,
+          roomId: parseInt(ROOM_ID, 10),
+          isPending: true,
+          parameters: [],
         };
         u.postPromiseWithUrl(GET_ACTIONS, syncBotAction);
       });
@@ -693,7 +816,9 @@ function handleEvents(event) {
   }
 }
 
-// Initializes the placeholder bots so other bots can be moved.
+/**
+ * Initializes the placeholder bots so other bots can be moved.
+ */
 function initPlaceholderBots() {
   const botImage = document.createElement('img');
   botImage.className = 'bot-img';
@@ -706,7 +831,9 @@ function initPlaceholderBots() {
   blankBot.className = 'blank-bot';
 }
 
-// Setting up columns so bots can be moved between them.
+/**
+ * Setting up columns so bots can be moved between them.
+ */
 function setupColumns() {
   initPlaceholderBots();
   botsContainerColumns.forEach((c) => {
@@ -728,7 +855,17 @@ function setupColumns() {
   });
 }
 
+window.onbeforeunload = confirmUserExit;
+
 window.onload = () => {
+  // Back button from index.pug
+  backButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.location.href = '/rooms';
+  });
+  backButton.style.cursor = 'pointer';
+
+  // Active Toggle from index.pug
   activeToggle.addEventListener('click', toggleConfirmationModal);
   activeToggle.addEventListener('refocus.events', handleEvents, false);
   confirmButton.onclick = roomStateChanged;
@@ -781,6 +918,6 @@ module.exports = () => {
   return {
     parseBot,
     iframeBot,
-    decideBotPosition
+    decideBotPosition,
   };
 };
