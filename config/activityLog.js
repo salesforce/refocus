@@ -52,6 +52,13 @@ module.exports = {
       totalTime: 'None',
       user: 'None',
     },
+    unauthorized: {
+      activity: 'unauthorized',
+      ipAddress: 'None',
+      method: 'None',
+      request_id: 'None',
+      uri: 'None',
+    },
     worker: {
       activity: 'worker',
       dbTime: 'None',

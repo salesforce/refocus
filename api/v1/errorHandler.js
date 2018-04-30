@@ -18,6 +18,7 @@ const apiErrors = require('./apiErrors');
 const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
 const cacheErrors = require('../../cache/redisErrors');
+const activityLog = require('../../utils/activityLog');
 
 /**
  * Indicates whether the error is an API error as defined by our apiErrors
@@ -121,8 +122,22 @@ module.exports = function errorHandler(err, req, res, next) {
     if (!isApiError(err) && !isDbError(err) && !isCacheError(err)) {
       if (/Route defined in Swagger specification.*/.test(err.message)) {
         err.status = constants.httpStatus.NOT_ALLOWED;
-      } else if (err.name === 'SequelizeUniqueConstraintError') {
-        err.status = constants.httpStatus.BAD_REQUEST;
+      } else if (err.name === 'Unauthorized') {
+        // Log and reject
+        err.status = constants.httpStatus.UNAUTHORIZED;
+        const logObject = {
+          activity: 'unauthorized',
+          ipAddress: activityLog.getIPAddrFromReq(req),
+          uri: req.url,
+          method: req.method,
+        };
+
+        // Add "request_id" if header is set by heroku.
+        if (req.headers && req.headers['x-request-id']) {
+          logObject.request_id = req.headers['x-request-id'];
+        }
+
+        activityLog.printActivityLogString(logObject, 'unauthorized');
       } else {
         err.status = constants.httpStatus.BAD_REQUEST;
       }
