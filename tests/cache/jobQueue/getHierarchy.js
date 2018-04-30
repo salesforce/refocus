@@ -9,14 +9,13 @@
 /**
  * tests/cache/jobQueue/getHierarchy.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const jobQueue = require('../../../jobQueue/setup').jobQueue;
 const jobType = require('../../../jobQueue/setup').jobType;
 const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../index').app);
-const samstoinit = require('../../../cache/sampleStoreInit');
 const tu = require('../../testUtils');
 const rtu = require('../models/redisTestUtil');
 const constants = require('../../../api/v1/constants');
@@ -110,11 +109,10 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
       })
       .then((a) => {
         sample1.aspectId = a.id;
-        return tu.db.Sample.create(sample1);
+        return tu.Sample.create(sample1);
       })
       .then((samp) => {
         sample1.id = samp.id;
-        return samstoinit.populate();
       })
       .then(() => done())
       .catch(done);

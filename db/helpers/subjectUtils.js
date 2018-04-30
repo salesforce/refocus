@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const sampleEvent = require('../../realtime/constants').events.sample;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const ParentSubjectNotMatch = require('../dbErrors')
@@ -24,6 +25,7 @@ const SubjectAlreadyExistsUnderParent = require('../dbErrors')
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const subAspMapType = redisOps.subAspMapType;
+const publishSample = require('../../realtime/redisPublisher').publishSample;
 const Promise = require('bluebird');
 
 /**
@@ -113,18 +115,45 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
 }
 
 /**
- * Deletes all the sample entries related to a subject. The following are
- * deleted
+ * Deletes all the sample entries related to a subject. The sample delete events
+ * are also sent. The following are deleted
  * 1. subject to aspect mapping -> samsto:subaspmap:absolutePath
  * 2. sample entry in samsto:samples (samsto:samples:oldAbsPath|*)
  * 3. sample hash samsto:samples:oldAbsPath|*
- * @param {String} absolutePath - The absolutePath of the subject
- * @returns {Promise}
+ * @param {Object} subject - The subject object
+ * @param {Object} seq - The sequelize object
+ * @returns {Promise} which resolves to the deleted samples.
  */
-function removeRelatedSamples(absolutePath) {
-  return redisOps.deleteSampleKeys(absolutePath, subAspMapType)
-  .then(() => redisOps.deleteKey(subAspMapType, absolutePath));
-} // deleteAssociatedSamples
+function removeRelatedSamples(subject, seq) {
+  let samples = [];
+  return redisOps.deleteSampleKeys(subAspMapType, subject.absolutePath)
+  .then((_samples) => {
+    samples = _samples;
+    return redisOps.deleteKey(subAspMapType, subject.absolutePath);
+  })
+  .then(() => {
+    const promises = [];
+
+    // publish the samples only if the sequelize object seq is available
+    if (seq && samples.length) {
+      samples.forEach((sample) => {
+        /*
+         * publishSample attaches the subject and the aspect by fetching it
+         * either from the database or redis. Deleted subject will not be found
+         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * the subject here before publishing the sample.
+         */
+        if (sample) {
+          sample.subject = subject;
+          promises.push(publishSample(sample, null, sampleEvent.del,
+            seq.models.Aspect));
+        }
+      });
+    }
+
+    return Promise.all(promises);
+  });
+} // removeRelatedSamples
 
 /**
  * Deletes the subject entry AND multiple possible sample entries from the
@@ -135,12 +164,13 @@ function removeRelatedSamples(absolutePath) {
  * 4. sample entry in samsto:samples (samsto:samples:absolutePath|*)
  * 5. sample hash samsto:samples:absolutePath|*
  *
- * @param {String} absolutePath - The absolutePath of the subject
+ * @param {Object} subject - The subject object
+ * @param {Object} seq - The sequelize object
  * @returns {Promise}
  */
-function removeFromRedis(absolutePath) {
-  return Promise.join(redisOps.deleteKey(subjectType, absolutePath),
-    removeRelatedSamples(absolutePath));
+function removeFromRedis(subject, seq) {
+  return Promise.join(redisOps.deleteKey(subjectType, subject.absolutePath),
+    removeRelatedSamples(subject, seq));
 } // removeFromRedis
 
 module.exports = {
