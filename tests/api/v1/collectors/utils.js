@@ -37,7 +37,7 @@ const expectedPropsDel = [
   'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
   'deletedAt', 'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id',
   'isActive', 'isDeleted', 'name', 'subjectQuery', 'subjects', 'tags',
-  'updatedAt', 'user',
+  'updatedAt', 'user', 'currentCollector',
 ];
 
 const expectedCtxProps = ['password', 'secretInformation',
