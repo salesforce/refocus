@@ -13,7 +13,7 @@ html
     link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
     link(rel='stylesheet' type='text/css' href='../static/css/room.css')
     block page-header
-      div.slds-page-header.slds-page-header_vertical(style='padding-left: 1.5rem').slds-theme_shade 
+      div.slds-page-header.slds-page-header_vertical.slds-theme_shade
         div.slds-grid
           div.slds-cols.slds-has-flexi-truncate
             div.slds-media.slds-no-space.slds-grow
@@ -25,8 +25,14 @@ html
                       span.slds-checkbox_faux
                       span.slds-checkbox_on.slds-text-align--center Active
                       span.slds-checkbox_off.slds-text-align--center Inactive
-                h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
-                p#subTitle.slds-text-body_small.slds-line-height_reset
+                div.slds-grid.slds-grid_vertical-align-center
+                  div(style='vertical-align: middle')#backButton
+                    span.slds-icon_container.slds-icon-utility-change_owner.slds-chat-icon
+                      svg.slds-icon.slds-m-right_x-small.slds-icon_x-small(aria-hidden='true' style="fill: #000;")
+                        use(xlink:href='../static/icons/utility-sprite/svg/symbols.svg#left')
+                  div
+                    h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
+                    p#subTitle.slds-text-body_small.slds-line-height_reset
     block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
         div#botsLeftColumn.slds-col.slds-large-size--1-of-3.slds-size--1-of-1
