@@ -49,9 +49,6 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const longTermToggles = {
-  // Use only the last ip address found in the X-Forwarded-For header.
-  cleanXForwardedFor: environmentVariableTrue(pe, 'CLEAN_X_FORWARDED_FOR'),
-
   // Enable api activity logging
   enableApiActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
@@ -92,6 +89,10 @@ const longTermToggles = {
    * achieve better web process throughput and response times.
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
+
+  // Reject (401) requests with multiple X-Forwarded-For values
+  rejectMultipleXForwardedFor:
+    environmentVariableTrue(pe, 'REJECT_MULTIPLE_X_FORWARDED_FOR'),
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),

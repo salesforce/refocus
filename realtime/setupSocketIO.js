@@ -14,17 +14,18 @@
 'use strict'; // eslint-disable-line strict
 const perspective = require('../db/index').Perspective;
 const room = require('../db/index').Room;
-const featureToggles = require('feature-toggles');
+const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
 const jwtUtils = require('../utils/jwtUtil');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
-const logEnabled =
-  featureToggles.isFeatureEnabled('enableRealtimeActivityLogs');
+const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;
+const XFWD = 'x-forwarded-for';
+const DISCO_MSG = 'disconnecting socket: could not identify ip address';
 
 /**
  * Load the authenticated user name from the session id.
@@ -114,12 +115,20 @@ function init(io, redisStore) {
 
         // Get IP address and perspective name from socket handshake.
         if (socket.handshake) {
-          if (socket.handshake.headers &&
-          socket.handshake.headers['x-forwarded-for']) {
-            ipAddress = socket.handshake.headers['x-forwarded-for'];
+          if (socket.handshake.headers && socket.handshake.headers[XFWD]) {
+            /*
+             * Reject if feature enabled and x-forwarded-for has multiple ip
+             * addresses.
+             */
+            if (toggle.isFeatureEnabled('rejectMultipleXForwardedFor') &&
+              socket.handshake.headers[XFWD].indexOf(',') !== -1) {
+              throw new Error(DISCO_MSG);
+            }
+
+            ipAddress = socket.handshake.headers[XFWD];
 
             // console.log('[IPDEBUG] socket.handshake.headers' +
-            //   '[x-forwarded-for]', ipAddress);
+            //   XFWD, ipAddress);
           } else if (socket.handshake.address) {
             // console.log('[IPDEBUG] socket.handshake.address', ipAddress);
             ipAddress = socket.handshake.address;
@@ -127,7 +136,7 @@ function init(io, redisStore) {
 
           rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
         } else {
-          throw new Error('disconnecting socket: could not identify ip address');
+          throw new Error(DISCO_MSG);
         }
 
         if (logEnabled) {

@@ -53,7 +53,8 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const fs = require('fs');
   const yaml = require('js-yaml');
   const ipfilter = require('express-ipfilter');
-  const cleanXForwardedFor = require('./config/cleanXForwardedFor');
+  const rejectMultipleXForwardedFor =
+    require('./config/rejectMultipleXForwardedFor');
   const bodyParser = require('body-parser');
   const env = conf.environment[conf.nodeEnv];
   const ENCODING = 'utf8';
@@ -110,8 +111,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     app.use(enforcesSSL());
   }
 
-  if (featureToggles.isFeatureEnabled('cleanXForwardedFor')) {
-    app.use(cleanXForwardedFor);
+  // Reject (401) requests with multiple X-Forwarded-For values
+  if (featureToggles.isFeatureEnabled('rejectMultipleXForwardedFor')) {
+    app.use(rejectMultipleXForwardedFor);
   }
 
   // Set the IP restricitions defined in config.js
