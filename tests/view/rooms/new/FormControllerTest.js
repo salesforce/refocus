@@ -27,7 +27,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: []
@@ -40,7 +40,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: 'test',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: []
@@ -53,7 +53,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: 'test',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: []
@@ -66,7 +66,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: 'roomTypeId',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: []
@@ -75,11 +75,11 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
   });
 
    it('Ok, Get active from parameters', () => {
-    const params = app.getPathVariables('http://refocus/rooms/new/?active=true');
+    const params = app.getPathVariables('http://refocus/rooms/new/?active=false');
     const output = {
       name: '',
       type: '',
-      active: true,
+      active: false,
       externalId: '',
       settings: {},
       bots: []
@@ -92,7 +92,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: '',
-      active: false,
+      active: true,
       externalId: '00000',
       settings: {},
       bots: []
@@ -105,7 +105,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: { "test":"test" },
       bots: []
@@ -118,7 +118,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: []
@@ -131,7 +131,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const output = {
       name: '',
       type: '',
-      active: false,
+      active: true,
       externalId: '',
       settings: {},
       bots: ['Bot1', 'Bot2']

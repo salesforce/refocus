@@ -267,7 +267,9 @@ module.exports = function subject(seq, dataTypes) {
           inst.isPublished;
 
         if (isSubjectUnpublished) {
-          promiseArr.push(subjectUtils.removeRelatedSamples(inst.absolutePath));
+          promiseArr.push(
+            subjectUtils.removeRelatedSamples(inst.dataValues, seq)
+          );
         }
 
         if (inst.changed('absolutePath')) {
@@ -279,7 +281,9 @@ module.exports = function subject(seq, dataTypes) {
            newAbsPath));
 
           // remove all the related samples
-          promiseArr.push(subjectUtils.removeRelatedSamples(oldAbsPath));
+          promiseArr.push(
+            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq)
+          );
         }
 
         if (inst.changed('parentAbsolutePath') ||
@@ -311,46 +315,51 @@ module.exports = function subject(seq, dataTypes) {
           'isDeleted',
         ];
 
-        if (isSubjectUnpublished) {
-          // Treat unpublishing a subject as a "delete" event.
-          publishObject(inst, eventName.del);
-        } else if (isSubjectPublished) {
-          // Treat publishing a subject as an "add" event.
-          publishObject(inst, eventName.add);
-        } else if (inst.isPublished && inst.changed('absolutePath')) {
-          /*
-           * When an absolutePath is changed, send a subject delete event with
-           * the old subject instance, followed by a subject add event with the
-           * new subject instance
-           */
-          publishObject(inst._previousDataValues, eventName.del,
-            changedKeys, ignoreAttributes);
-          publishObject(inst, eventName.add, changedKeys,
-              ignoreAttributes);
-        } else if (inst.isPublished && (inst.changed('tags') ||
-          inst.changed('parentId'))) {
-          /*
-           * If tags OR parent were updated, send a "delete" event followed
-           * by an "add" event so that perspectives get notified and lenses
-           * can re-render correctly. Tag changes have to be handled this
-           * way for filtering.
-           * If subject tags or parent were not updated, just send the usual
-           * "update" event.
-           */
-          publishObject(inst, eventName.del, changedKeys,
-              ignoreAttributes);
-          publishObject(inst, eventName.add, changedKeys,
-              ignoreAttributes);
-        } else if (inst.published) {
-          publishObject(inst, eventName.upd, changedKeys,
-              ignoreAttributes);
-        }
-
         // finally update the subject hash in redis too
         promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
           instDataObj));
 
-        return Promise.all(promiseArr);
+        /*
+         * Once all the data related changes are done and the sample realtime
+         * events have been sent. Send the corresponding subject realtime event
+         */
+        return Promise.all(promiseArr)
+        .then(() => {
+          if (isSubjectUnpublished) {
+            // Treat unpublishing a subject as a "delete" event.
+            publishObject(inst, eventName.del);
+          } else if (isSubjectPublished) {
+            // Treat publishing a subject as an "add" event.
+            publishObject(inst, eventName.add);
+          } else if (inst.isPublished && inst.changed('absolutePath')) {
+            /*
+             * When an absolutePath is changed, send a subject delete event with
+             * the old subject instance, followed by a subject add event with
+             * the new subject instance
+             */
+            publishObject(inst._previousDataValues, eventName.del,
+              changedKeys, ignoreAttributes);
+            publishObject(inst, eventName.add, changedKeys,
+                ignoreAttributes);
+          } else if (inst.isPublished && (inst.changed('tags') ||
+            inst.changed('parentId'))) {
+            /*
+             * If tags OR parent were updated, send a "delete" event followed
+             * by an "add" event so that perspectives get notified and lenses
+             * can re-render correctly. Tag changes have to be handled this
+             * way for filtering.
+             * If subject tags or parent were not updated, just send the usual
+             * "update" event.
+             */
+            publishObject(inst, eventName.del, changedKeys,
+                ignoreAttributes);
+            publishObject(inst, eventName.add, changedKeys,
+                ignoreAttributes);
+          } else if (inst.published) {
+            publishObject(inst, eventName.upd, changedKeys,
+                ignoreAttributes);
+          }
+        });
       }, // hooks.afterUpdate
 
       /**
@@ -369,12 +378,16 @@ module.exports = function subject(seq, dataTypes) {
               par.decrement('childCount');
             }
 
+            // remove the subject and its related samples
+            return subjectUtils.removeFromRedis(inst.dataValues, seq);
+          })
+          .then(() => {
+            // send the subject delete event if the subject was published
             if (inst.getDataValue('isPublished')) {
-              publishObject(inst, eventName.del);
+              return publishObject(inst, eventName.del);
             }
 
-            // remove the subject and its related samples
-            return subjectUtils.removeFromRedis(inst.absolutePath);
+            return null;
           })
           .then(() => resolve(inst))
           .catch((err) => reject(err))
