@@ -25,7 +25,7 @@ const redisOps = rtu.redisOps;
 
 describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   const parentName = `${tu.namePrefix}NorthAmerica`;
-  const par = { name: parentName, isPublished: true };
+  const par = { name: parentName, isPublished: true, absolutePath: parentName };
   const parUnPub = {
     name: `${tu.namePrefix}SouthAmerica`,
     isPublished: false,
@@ -288,7 +288,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
   it('removeFromRedis removes all the related samples ' +
     'from the samplestore', (done) => {
-    subjectUtils.removeFromRedis(parentName)
+    subjectUtils.removeFromRedis(par)
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
