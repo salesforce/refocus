@@ -141,4 +141,88 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       done();
     });
   });
+
+  it('update currentCollector field without changing collectors', (done) => {
+    generatorDBInstance
+    .updateWithCollectors(
+      { currentCollector: collector1.name }, u.whereClauseForNameInArr
+    )
+    .then((o) => {
+      expect(o.currentCollector).to.equal(collector1.name);
+
+      // check collector is still there
+      expect(Array.isArray(o.collectors)).to.be.true;
+      expect(o.collectors.length).to.equal(ONE);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, update currentCollector field and update collectors, ' +
+    'currentCollector is one of the updated collectors list', (done) => {
+    generatorDBInstance
+    .updateWithCollectors(
+      {
+        currentCollector: collector2.name,
+        collectors: [collector2.name, collector3.name],
+      }, u.whereClauseForNameInArr
+    )
+    .then((o) => {
+      expect(o.currentCollector).to.equal(collector2.name);
+      expect(Array.isArray(o.collectors)).to.be.true;
+      expect(o.collectors.length).to.equal(THREE);
+      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, update currentCollector field and update collectors, ' +
+    'currentCollector is one of the existing collectors list', (done) => {
+    generatorDBInstance
+    .updateWithCollectors(
+      {
+        currentCollector: collector1.name,
+        collectors: [collector2.name, collector3.name],
+      }, u.whereClauseForNameInArr
+    )
+    .then((o) => {
+      expect(o.currentCollector).to.equal(collector1.name);
+      expect(Array.isArray(o.collectors)).to.be.true;
+      expect(o.collectors.length).to.equal(THREE);
+      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(collectorNames).to.contain(collector1.name);
+      expect(collectorNames).to.contain(collector2.name);
+      expect(collectorNames).to.contain(collector3.name);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('not ok, update currentCollector field and update collectors, ' +
+    'currentCollector does not belong to existing or updated collectors ' +
+    'list', (done) => {
+    generatorDBInstance
+    .updateWithCollectors(
+      {
+        currentCollector: 'collector-not-in-list',
+        collectors: [collector2.name, collector3.name],
+      }, u.whereClauseForNameInArr
+    )
+    .then((o) => done(
+      new Error('Expected InvalidCurrentCollector, received', o)
+    ))
+    .catch((err) => {
+      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
+      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.explanation).to.equal(
+        'CurrentCollector: collector-not-in-list should be one of assigned ' +
+        'list of collectors to generator: beautiful,world,hello'
+      );
+      done();
+    });
+  });
 });

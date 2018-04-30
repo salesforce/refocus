@@ -139,6 +139,15 @@ errors.create({
   name: 'ReferencedByGenerator',
   parent: this.ValidationError,
 });
+errors.create({
+  scope: exports,
+  code: 10122,
+  status: 400,
+  name: 'InvalidCurrentCollector',
+  parent: this.ValidationError,
+  defaultMessage: 'CurrentCollector should be one of the assigned list of ' +
+  'possible generator collectors.',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

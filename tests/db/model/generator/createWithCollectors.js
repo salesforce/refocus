@@ -70,6 +70,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    localGenerator.currentCollector = collector1.name;
 
     Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => {
@@ -94,6 +95,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getCollectors).to.equal('function');
+      expect(o.currentCollector).to.equal(collector1.name);
       done();
     })
     .catch(done);
@@ -138,6 +140,73 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(err.name).to.equal('ResourceNotFoundError');
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
+      done();
+    });
+  });
+
+  it('Error if currentCollector is not one of the assigned generator ' +
+    'collectors list', (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [collector1.name, collector2.name];
+    localGenerator.currentCollector = 'iDontExist';
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    .then((o) => done(
+      new Error('Expected InvalidCurrentCollector, received', o)
+    ))
+    .catch((err) => {
+      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
+      expect(err.name).to.equal('InvalidCurrentCollector');
+      done();
+    });
+  });
+
+  it('Ok, currentCollector undefined and collectors list defined ', (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [collector1.name, collector2.name];
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    .then((o) => {
+      expect(o.name).to.equal(generator.name);
+      expect(o.collectors.length).to.equal(TWO);
+      expect(o.currentCollector).to.equal(null);
+
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Error, currentCollector defined and collectors list empty ',
+  (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.collectors = [];
+    localGenerator.currentCollector = collector1.name;
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    .then((o) => done(
+      new Error('Expected InvalidCurrentCollector, received', o)
+    ))
+    .catch((err) => {
+      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
+      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.explanation).to.equal(
+        'Assigned collector list of generator is empty.'
+      );
+      done();
+    });
+  });
+
+  it('Error, currentCollector defined and collectors list undefined ',
+  (done) => {
+    const localGenerator = JSON.parse(JSON.stringify(generator));
+    localGenerator.currentCollector = collector1.name;
+    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    .then((o) => done(
+      new Error('Expected InvalidCurrentCollector, received', o)
+    ))
+    .catch((err) => {
+      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
+      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.explanation).to.equal(
+        'Assigned collector list of generator is empty.'
+      );
       done();
     });
   });

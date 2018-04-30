@@ -131,9 +131,56 @@ function validateCollectors(seq, collectorNames,
   );
 }
 
+/**
+ * Validate currentCollector name to be one of the assigned list
+ * of collectors in generator
+ * @param  {String} currCollector - Current collector name
+ * @param  {Array} generatorCollectorsArr - List of collectors assigned to
+ * generator - list contents can be strings or objects.
+ * @throws {ValidationError} If collector is not valid, throw
+ * InvalidCurrentCollector error
+ */
+function validateCurrentCollector(currCollector, generatorCollectorsArr) {
+  if (!currCollector) {
+    return; // no need to validate
+  }
+
+  if (!generatorCollectorsArr || generatorCollectorsArr.length === 0) {
+    throw new dbErrors.InvalidCurrentCollector({
+      explanation: 'Assigned collector list of generator is empty.',
+    });
+  }
+
+  let isCurrCollectorValid = false;
+  const genCollectorsNameArr = []; // array of collector names
+
+  generatorCollectorsArr.forEach((genCollector) => {
+    let genCollectorName;
+    if (typeof genCollector === 'object') { // get name if sequelize object
+      genCollectorName = genCollector.get().name;
+    } else {
+      genCollectorName = genCollector;
+    }
+
+    genCollectorsNameArr.push(genCollectorName);
+
+    if (currCollector === genCollectorName) {
+      isCurrCollectorValid = true; // valid if names matches
+    }
+  });
+
+  if (!isCurrCollectorValid) {
+    throw new dbErrors.InvalidCurrentCollector({
+      explanation: `CurrentCollector: ${currCollector} should be one of ` +
+      `assigned list of collectors to generator: ${genCollectorsNameArr}`,
+    });
+  }
+}
+
 module.exports = {
   validateCollectorNames,
   checkCollectorsExist,
   validateCollectors,
   validateGeneratorCtx,
+  validateCurrentCollector,
 };
