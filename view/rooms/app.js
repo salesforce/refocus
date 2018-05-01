@@ -406,31 +406,59 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       href="/static/css/salesforce-lightning-design-system.2.4.3.min.css">`;
 
   const iframeJS =
-
   `
-  <script src="../static/scripts/javascript-detect-element-resize/detect-element-resize.js"></script>
   <script>
-      function outputsize(e) {
-        console.log("${bot.name}",e)
-        if (e.path && e.path[2].clientHeight > 0) {
-          parent.postMessage(
-          {
-            "name": "${bot.name}",
-            "height": e.path[2].clientHeight
-          }, "*"
-        );
-        } else {
-          parent.postMessage(
-          {
-            "name": "${bot.name}",
-            "height": e.target.clientHeight < 100 ? 600 : e.target.clientHeight
-          }, "*"
-        );
-        }
-      }
+    function outputSize(e, browser) {
+      console.log("${bot.name}",e)
+      console.log("browser",browser)
 
-        addResizeListener(document.getElementById("${bot.name}"), outputsize);
-    </script>`;
+      if (browser === 'chrome') {
+        parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": e[0].target.scrollHeight
+          }, "*"
+        );
+      } else {
+        parent.postMessage(
+        {
+          "name": "${bot.name}",
+          "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+            600 :
+            document.getElementById("${bot.name}").clientHeight
+        }, "*"
+      );
+      }
+    }
+
+    if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
+      new ResizeObserver(
+        function(event) {
+          outputSize(event, 'chrome')
+        }
+      ).observe(document.getElementById("${bot.name}"));
+    } else {
+      var targetNode = document.getElementById("${bot.name}");
+      var config = { attributes: true, childList: true };
+      var observer = new MutationObserver(function(mutationsList) {
+        for(var mutation of mutationsList) {
+          parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+              600 :
+              document.getElementById("${bot.name}").clientHeight
+          }, "*")  
+        }
+      });
+      observer.observe(targetNode, config);
+      window.addEventListener("resize", 
+        function(event) {
+          outputSize(event, 'other');
+        }
+      );
+    }        
+  </script>`;
 
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
