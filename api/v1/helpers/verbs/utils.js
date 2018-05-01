@@ -43,8 +43,8 @@ function updateInstance(o, puttableFields, toPut) {
     } else {
       /*
        * value may be set but not changed. set changed to true to
-       * trigger checks in the model. This is the only way to differentiate between
-       * PUT and PATCH in certain cases.
+       * trigger checks in the model. This is the only way to differentiate
+       * between PUT and PATCH in certain cases.
        */
       o.changed(key, true);
       o.set(key, toPut[key]);
@@ -58,7 +58,7 @@ function updateInstance(o, puttableFields, toPut) {
  * Sorts the array field of an object or an array of objects alphabetically.
  *
  * @param {Object} props - The helpers/nouns module for the given DB model
- * @param  {Object|Array} instArrayOrObject  - The instance object or an array
+ * @param {Object|Array} instArrayOrObject  - The instance object or an array
  *   of instance object with fields containing an array of objects that needs
  *   to be sorted alphabetically.
  */
@@ -93,8 +93,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
-    publisher.publishSample(returnObj, props.associatedModels.subject,
-      realtimeEvents.sample.upd);
+    publisher.publishSample(returnObj, realtimeEvents.sample.upd);
   }
 
   // update the cache

@@ -19,8 +19,11 @@ const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const publishObject = require('../../realtime/redisPublisher').publishObject;
-const eventName = require('../../realtime/constants').events.subject;
+const eventName = {
+  add: 'refocus.internal.realtime.subject.add',
+  upd: 'refocus.internal.realtime.subject.update',
+  del: 'refocus.internal.realtime.subject.remove',
+};
 
 const assoc = {};
 
@@ -219,7 +222,9 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
-        publishObject(inst, eventName.add);
+        if (inst.isPublished) {
+          common.publishChange(inst, eventName.add);
+        }
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -322,7 +327,6 @@ module.exports = function subject(seq, dataTypes) {
           'updatedAt',
           'isDeleted',
         ];
-
         // finally update the subject hash in redis too
         promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
           instDataObj));
@@ -335,19 +339,19 @@ module.exports = function subject(seq, dataTypes) {
         .then(() => {
           if (isSubjectUnpublished) {
             // Treat unpublishing a subject as a "delete" event.
-            publishObject(inst, eventName.del);
+            common.publishChange(inst, eventName.del);
           } else if (isSubjectPublished) {
             // Treat publishing a subject as an "add" event.
-            publishObject(inst, eventName.add);
+            common.publishChange(inst, eventName.add);
           } else if (inst.isPublished && inst.changed('absolutePath')) {
             /*
              * When an absolutePath is changed, send a subject delete event with
              * the old subject instance, followed by a subject add event with
              * the new subject instance
              */
-            publishObject(inst._previousDataValues, eventName.del,
+            common.publishChange(inst._previousDataValues, eventName.del,
               changedKeys, ignoreAttributes);
-            publishObject(inst, eventName.add, changedKeys,
+            common.publishChange(inst, eventName.add, changedKeys,
                 ignoreAttributes);
           } else if (inst.isPublished && (inst.changed('tags') ||
             inst.changed('parentId'))) {
@@ -359,12 +363,12 @@ module.exports = function subject(seq, dataTypes) {
              * If subject tags or parent were not updated, just send the usual
              * "update" event.
              */
-            publishObject(inst, eventName.del, changedKeys,
+            common.publishChange(inst, eventName.del, changedKeys,
                 ignoreAttributes);
-            publishObject(inst, eventName.add, changedKeys,
+            common.publishChange(inst, eventName.add, changedKeys,
                 ignoreAttributes);
           } else if (inst.published) {
-            publishObject(inst, eventName.upd, changedKeys,
+            common.publishChange(inst, eventName.upd, changedKeys,
                 ignoreAttributes);
           }
         });
@@ -392,7 +396,7 @@ module.exports = function subject(seq, dataTypes) {
           .then(() => {
             // send the subject delete event if the subject was published
             if (inst.getDataValue('isPublished')) {
-              return publishObject(inst, eventName.del);
+              common.publishChange(inst, eventName.del);
             }
 
             return null;

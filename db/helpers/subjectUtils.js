@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const sampleEvent = require('../../realtime/constants').events.sample;
+const sampleEvent = require('../constants').events.sample;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const ParentSubjectNotMatch = require('../dbErrors')
@@ -25,7 +25,7 @@ const SubjectAlreadyExistsUnderParent = require('../dbErrors')
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const subAspMapType = redisOps.subAspMapType;
-const publishSample = require('../../realtime/redisPublisher').publishSample;
+const publishChange = require('../helpers/common').publishChange;
 const Promise = require('bluebird');
 
 /**
@@ -145,8 +145,7 @@ function removeRelatedSamples(subject, seq) {
          */
         if (sample) {
           sample.subject = subject;
-          promises.push(publishSample(sample, null, sampleEvent.del,
-            seq.models.Aspect));
+          promises.push(publishChange(sample, sampleEvent.del));
         }
       });
     }

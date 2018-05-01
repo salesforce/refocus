@@ -17,8 +17,7 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
-const realTime = require('../../realtime/redisPublisher');
-const rtConstants = require('../../realtime/constants');
+const dbCommon = require('../helpers/common');
 const u = require('../helpers/botUtils');
 const commonUtils = require('../../utils/common');
 const botActionEventNames = {
@@ -27,9 +26,9 @@ const botActionEventNames = {
   del: 'refocus.internal.realtime.bot.action.remove',
 };
 const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.botActionFilterIndex,
+  client: constants.bot.client,
+  channel: constants.bot.channel,
+  filterIndex: constants.bot.botActionFilterIndex,
   filterField: 'name',
 };
 
@@ -172,17 +171,17 @@ module.exports = function botAction(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(),
+        return dbCommon.publishChange(instance.toJSON(),
           botActionEventNames.add, changedKeys, ignoreAttributes, pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
-        return realTime.publishObject(instance.toJSON(),
+        return dbCommon.publishChange(instance.toJSON(),
           botActionEventNames.upd, null, null, pubOpts);
       }, // hooks.afterUpdate
 
       afterDelete(instance /* , opts */) {
-        return realTime.publishObject(instance.toJSON(),
+        return dbCommon.publishChange(instance.toJSON(),
           botActionEventNames.del, null, null, pubOpts);
       }, // hooks.afterDelete
     }, // hooks

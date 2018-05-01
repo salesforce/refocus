@@ -14,6 +14,8 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const aspectModel = constants.db.Aspect;
+const subjectModel = constants.db.Subject;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const eventName = {
@@ -371,12 +373,10 @@ function isIpWhitelisted(addr, whitelist) {
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
  * @param {Object} sample - The sample instance.
- * @param {Model} subjectModel - The database subject model.
- * @param {Model} aspectModel - The database aspect model.
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
