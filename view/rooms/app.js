@@ -460,7 +460,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
       ${contentSection}
-      <script>${botScript}</script>`+
+      <script>${botScript}</script>` +
       iframeJS;
 
   uPage.writeInIframedoc(iframedoc, iframeContent);
