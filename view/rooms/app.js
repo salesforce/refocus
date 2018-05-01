@@ -406,19 +406,56 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       href="/static/css/salesforce-lightning-design-system.2.4.3.min.css">`;
 
   const iframeJS =
-  `<script>
-      function outputsize(e) {
+  `
+  <script>
+    function outputSize(e, browser) {
+      if (browser === 'chrome') {
         parent.postMessage(
           {
             "name": "${bot.name}",
             "height": e[0].target.scrollHeight
           }, "*"
         );
+      } else {
+        parent.postMessage(
+        {
+          "name": "${bot.name}",
+          "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+            600 :
+            document.getElementById("${bot.name}").clientHeight
+        }, "*"
+      );
       }
+    }
 
-      new ResizeObserver(outputsize)
-        .observe(document.getElementById("${bot.name}"));
-    </script>`;
+    if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
+      new ResizeObserver(
+        function(event) {
+          outputSize(event, 'chrome')
+        }
+      ).observe(document.getElementById("${bot.name}"));
+    } else {
+      var targetNode = document.getElementById("${bot.name}");
+      var config = { attributes: true, childList: true };
+      var observer = new MutationObserver(function(mutationsList) {
+        for(var mutation of mutationsList) {
+          parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+              600 :
+              document.getElementById("${bot.name}").clientHeight
+          }, "*")  
+        }
+      });
+      observer.observe(targetNode, config);
+      window.addEventListener("resize", 
+        function(event) {
+          outputSize(event, 'other');
+        }
+      );
+    }        
+  </script>`;
 
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
