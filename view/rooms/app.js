@@ -409,9 +409,6 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   `
   <script>
     function outputSize(e, browser) {
-      console.log("${bot.name}",e)
-      console.log("browser",browser)
-
       if (browser === 'chrome') {
         parent.postMessage(
           {
