@@ -29,6 +29,13 @@ const collectorToCreate =  {
 const expectedProps = [
   'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
   'deletedAt', 'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id',
+  'isActive', 'isDeleted', 'name', 'subjectQuery', 'subjects', 'tags', 'token',
+  'updatedAt', 'user',
+];
+
+const expectedPropsDel = [
+  'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
+  'deletedAt', 'description', 'generatorTemplate', 'helpEmail', 'helpUrl', 'id',
   'isActive', 'isDeleted', 'name', 'subjectQuery', 'subjects', 'tags',
   'updatedAt', 'user',
 ];
@@ -82,8 +89,7 @@ function getCollector(userToken, collector) {
   .endAsync();
 }
 
-function postGenerator(gen, userToken, collectors, statusCode) {
-  if (!statusCode) statusCode = 201;
+function postGenerator(gen, userToken, collectors, statusCode = 201) {
   if (collectors) {
     gen.collectors = collectors.map(c => c.name);
   } else {
@@ -97,8 +103,7 @@ function postGenerator(gen, userToken, collectors, statusCode) {
   .endAsync();
 }
 
-function patchGenerator(gen, userToken, collectors, statusCode) {
-  if (!statusCode) statusCode = 200;
+function patchGenerator(gen, userToken, collectors, statusCode = 200) {
   const patchData = { description: 'UPDATED' };
   if (collectors) {
     patchData.collectors = collectors.map(c => c.name);
@@ -111,8 +116,7 @@ function patchGenerator(gen, userToken, collectors, statusCode) {
   .endAsync();
 }
 
-function putGenerator(gen, userToken, collectors, statusCode) {
-  if (!statusCode) statusCode = 200;
+function putGenerator(gen, userToken, collectors, statusCode = 200) {
   gen.description += '.';
   if (collectors) {
     gen.collectors = collectors.map(c => c.name);
@@ -147,7 +151,7 @@ function expectGeneratorArray(res) {
     expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(expectedSGTProps);
   });
   generatorsDeleted.forEach((gen) => {
-    expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
+    expect(gen).to.be.an('object').that.has.all.keys(expectedPropsDel);
     expect(gen.context).to.be.an('object').that.has.all.keys(expectedCtxProps);
     expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(
       'author',

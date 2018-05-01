@@ -58,9 +58,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then(() => {
       const gen1 = sgUtils.getGenerator();
       gen1.name += 'generator-1';
+      gen1.createdBy = user.id;
 
       const gen2 = sgUtils.getGenerator();
       gen2.name += 'generator-2';
+      gen2.createdBy = user.id;
       return Generator.bulkCreate([gen1, gen2]);
     })
     .then((generators) => {
