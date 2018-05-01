@@ -406,24 +406,36 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       href="/static/css/salesforce-lightning-design-system.2.4.3.min.css">`;
 
   const iframeJS =
-  `<script>
+
+  `
+  <script src="../static/scripts/javascript-detect-element-resize/detect-element-resize.js"></script>
+  <script>
       function outputsize(e) {
-        parent.postMessage(
+        console.log("${bot.name}",e)
+        if (e.path && e.path[2].clientHeight > 0) {
+          parent.postMessage(
           {
             "name": "${bot.name}",
-            "height": e[0].target.scrollHeight
+            "height": e.path[2].clientHeight
           }, "*"
         );
+        } else {
+          parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": e.target.clientHeight < 100 ? 600 : e.target.clientHeight
+          }, "*"
+        );
+        }
       }
 
-      new ResizeObserver(outputsize)
-        .observe(document.getElementById("${bot.name}"));
+        addResizeListener(document.getElementById("${bot.name}"), outputsize);
     </script>`;
 
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
       ${contentSection}
-      <script>${botScript}</script>` +
+      <script>${botScript}</script>`+
       iframeJS;
 
   uPage.writeInIframedoc(iframedoc, iframeContent);
