@@ -60,6 +60,8 @@ const longTermToggles = {
   enableKueStatsActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_KUESTATS_ACTIVITY_LOGS'),
 
+  enablePubStatsLogs: environmentVariableTrue(pe, 'ENABLE_PUB_STATS_LOGS'),
+
   // Enable queueStatsActivityLogs
   enableQueueStatsActivityLogs:
     environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),
