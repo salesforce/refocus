@@ -36,7 +36,7 @@ function toLogObj(key, count) {
 /**
  * Generate the logging objects, one per publish "key". Look up the pubStats
  * hash in redis and "reset" it by deleting it; generate and return an array of
- * pubStats activity type logging objects. 
+ * pubStats activity type logging objects.
  *
  * @returns {Array} array of pubStats activity type logging objects
  */
