@@ -390,7 +390,6 @@ module.exports = function generator(seq, dataTypes) {
   Generator.validateSubjectQuery = function (subjectQuery) {
     // subjectQuery should start with '?'
     if (subjectQuery.charAt(0) !== '?') {
-      console.log('Hello');
       throw new ValidationError('subjectQuery ValidationError',
         'subjectQuery must start with "?"');
     }
