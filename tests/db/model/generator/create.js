@@ -415,6 +415,70 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
+  describe('subjectQuery validation', () => {
+    it('valid subjectQuery', (done) => {
+      console.log(Generator);
+      const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
+      const returnSubjectQuery = Generator.validateSubjectQuery(subjectQuery);
+      expect(subjectQuery).to.equal(returnSubjectQuery);
+
+      done();
+    });
+
+    it('invalid subjectQuery missing ? at start', (done) => {
+      const subjectQuery = '?absolutePath=Foo*&name=b*?tags=-T1,-T2';
+
+      try {
+        const x = Generator.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('length of subjectQuery should be greater than 6', (done) => {
+      const subjectQuery = '?abso';
+
+      try {
+        const x = Generator.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('format of subjectQuery is "?<key>=<value>"', (done) => {
+      const subjectQuery = '?absolutePath:abc';
+
+      try {
+        const x = Generator.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('Wildcard "*" is prohibited in the subjectQuery for "tag" filters',
+      (done) => {
+      const subjectQuery = '?tags=abc*';
+
+      try {
+        const x = Generator.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+  });
+
   describe('GlobalConfig rows with wrong encrytion algorithm', () => {
     const secretKey = 'mySecretKey';
     const algorithm = 'aes-256-invalid-algorithm';

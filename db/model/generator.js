@@ -1,4 +1,4 @@
-/**
+  /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
@@ -41,6 +41,7 @@ const customVersionValidationSchema = joi.extend((joi) => ({
     },
   ],
 }));
+
 
 const generatorTemplateSchema = joi.object().keys({
   name: joi.string().regex(constants.nameRegex)
@@ -87,6 +88,11 @@ module.exports = function generator(seq, dataTypes) {
     },
     subjectQuery: {
       type: dataTypes.STRING,
+      validate: {
+        validateSQ(value) {
+          Generator.validateSubjectQuery(value);
+        }
+      }
     },
     subjects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
@@ -366,5 +372,49 @@ module.exports = function generator(seq, dataTypes) {
     },
     paranoid: true,
   });
+
+  /*
+   * Validate Subject Query
+   *
+   * @param {String} subjectQuery string
+   * @return {String} returns Subject Query or throws an error
+   *                          if subjectQuery fails with validation
+   *                          rules
+   */
+  Generator.validateSubjectQuery = function (subjectQuery) {
+    // subjectQuery should start with '?'
+    if (subjectQuery.charAt(0) !== '?') {
+      console.log('Hello');
+      throw new ValidationError('subjectQuery ValidationError',
+        'subjectQuery must start with "?"');
+    }
+
+    // size of subjectQuery should be greater than 6
+    if (subjectQuery.length <= 6) {
+      throw new ValidationError('subjectQuery ValidationError',
+        'subjectQuery must be longer than 6 characters');
+    }
+
+    const subjectQueryString = subjectQuery.substr(1);
+
+    const splitSubjectQuery = subjectQueryString.split('&');
+
+    splitSubjectQuery.forEach((sq) => {
+      const splitSQ = sq.split('=');
+
+      if (splitSQ.length !== 2) {
+        throw new ValidationError('subjectQuery ValidationError',
+          'Format of subjectQuery must be "?{key}={value}"');
+      }
+
+      if (splitSQ[0] == 'tags' && splitSQ[1].indexOf('*') > -1) {
+        throw new ValidationError('subjectQuery ValidationError',
+          'Wildcard "*" is prohibited in the subjectQuery for "tag" filters');
+      }
+    });
+
+    return subjectQuery;
+  };
+
   return Generator;
 };
