@@ -70,7 +70,7 @@ function createRoom(paramaters){
         if (error.response.text.includes('SequelizeUniqueConstraintError')) {
           window.location.href = `/rooms/${paramaters.name}`;
         }
-        console.log('Error: ', error.response.text);
+        console.error(error.response.text);
       } else {
         window.location.replace(`/rooms/${res.body.id}`);
       }
