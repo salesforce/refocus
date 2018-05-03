@@ -417,7 +417,6 @@ describe('tests/db/model/generator/create.js >', () => {
 
   describe('subjectQuery validation', () => {
     it('valid subjectQuery', (done) => {
-      console.log(Generator);
       const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
       const returnSubjectQuery = Generator.validateSubjectQuery(subjectQuery);
       expect(subjectQuery).to.equal(returnSubjectQuery);
