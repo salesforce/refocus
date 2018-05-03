@@ -55,10 +55,10 @@ module.exports = (job, done) => {
 
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
-        } else {
-          publisher.publishSample(results[i], subHelper.model);
         }
       }
+
+      publisher.publishSample(results, subHelper.model);
 
       const objToReturn = {};
 

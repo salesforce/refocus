@@ -94,11 +94,12 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   if (obj[event]) {
+    console.log('----published-----', obj);
     pubClient.publish(channelName, JSON.stringify(obj));
   }
 
   return obj;
-} // publishChange
+} // publishObject
 
 /**
  * The sample object needs to be attached its subject object and it also needs
@@ -112,14 +113,18 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
-  const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
-  .then((sample) => {
-    if (sample) {
-      publishObject(sample, eventType);
-      return sample;
-    }
+function publishSample(samples, subjectModel, event, aspectModel) {
+  const _samples = Array.isArray(samples) ? samples: [samples];
+  return rtUtils.attachAspectSubject(_samples, subjectModel, aspectModel)
+  .then((_samples) => {
+    _samples.forEach((sample) => {
+      if (sample) {
+        const eventType = event || getSampleEventType(sample);
+        publishObject(sample, eventType);
+      }
+    });
+
+    return samples;
   });
 } // publishSample
 
