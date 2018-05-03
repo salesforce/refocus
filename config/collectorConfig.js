@@ -45,8 +45,8 @@ module.exports = {
    * new heartbeat.
    * For example, let's say heartbeatIntervalMillis=15000 and
    * heartbeatLatencyToleranceMillis=5000. If a collector's last heartbeat
-   * was at 12:00:00:000 then Refocus will treat the collector as down at 
-   * at 12:00:20:000.
+   * was at 12:00:00:000 then Refocus will treat the collector as down at
+   * 12:00:20:000.
    */
   heartbeatLatencyToleranceMillis,
 
