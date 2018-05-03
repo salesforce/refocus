@@ -26,6 +26,7 @@ if (conf.newRelicKey) {
 
 const featureToggles = require('feature-toggles');
 const kueStatsActivityLogs = require('./scheduledJobs/kueStatsActivityLogs');
+const pubStatsLogs = require('./scheduledJobs/pubStatsLogs');
 const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
 const queueStatsActivityLogs =
   require('./scheduledJobs/queueStatsActivityLogs');
@@ -53,6 +54,11 @@ if (featureToggles.isFeatureEnabled('enableKueStatsActivityLogs')) {
 if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
   setInterval(queueStatsActivityLogs.execute,
     conf.queueStatsActivityLogsInterval);
+}
+
+// If enablePubStatsLogs is true then write log
+if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
+  setInterval(pubStatsLogs.execute, conf.pubStatsLogsIntervalMillis);
 }
 
 // Clean up completed jobs
