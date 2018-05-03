@@ -94,7 +94,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   if (obj[event]) {
-    console.log('----published-----', obj);
     pubClient.publish(channelName, JSON.stringify(obj));
   }
 

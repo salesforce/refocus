@@ -44,7 +44,7 @@ module.exports = (job, done) => {
     .then((results) => {
       const dbEndTime = Date.now();
       let errorCount = 0;
-
+      const samplesToPublish = [];
       /*
        * count failed promises and send the good samples to the client by
        * publishing it to the redis channel
@@ -55,10 +55,12 @@ module.exports = (job, done) => {
 
           // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
+        } else {
+          samplesToPublish.push(results[i]);
         }
       }
 
-      publisher.publishSample(results, subHelper.model);
+      publisher.publishSample(samplesToPublish, subHelper.model);
 
       const objToReturn = {};
 
