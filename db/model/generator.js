@@ -42,7 +42,6 @@ const customVersionValidationSchema = joi.extend((joi) => ({
   ],
 }));
 
-
 const generatorTemplateSchema = joi.object().keys({
   name: joi.string().regex(constants.nameRegex)
     .max(constants.fieldlen.normalName).required()
@@ -91,8 +90,8 @@ module.exports = function generator(seq, dataTypes) {
       validate: {
         validateSQ(value) {
           Generator.validateSubjectQuery(value);
-        }
-      }
+        },
+      },
     },
     subjects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
