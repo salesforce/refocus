@@ -35,6 +35,11 @@ module.exports = {
       inactiveCount: 0,
       workTimeMillis: 0,
     },
+    pubStats: {
+      activity: 'pubStats',
+      key: 'None',
+      count: 0,
+    },
     queueStats: {
       activity: 'queueStats',
       averageQueueTimeMillis: 0,
