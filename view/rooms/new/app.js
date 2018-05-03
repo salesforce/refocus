@@ -16,6 +16,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
+const request = require('superagent');
 const url = require('url');
 const address = window.location.href;
 const NAME_PATH = 3;
@@ -54,6 +55,28 @@ function getPathVariables(adr){
   };
 }
 
+function createRoom(paramaters){
+  const req = request.post('/v1/rooms');
+  const obj = {
+    name: paramaters.name,
+    type: paramaters.type,
+    externalId: paramaters.externalId,
+    active: paramaters.active,
+  };
+  req
+    .send(obj)
+    .end((error, res) => {
+      if (error) {
+        if (error.response.text.includes('SequelizeUniqueConstraintError')) {
+          window.location.href = `/rooms/${paramaters.name}`;
+        }
+        console.log('Error: ', error.response.text);
+      } else {
+        window.location.replace(`/rooms/${res.body.id}`);
+      }
+    });
+}
+
 window.onload = () => {
   const paramaters = getPathVariables(address);
   ReactDOM.render(
@@ -67,10 +90,17 @@ window.onload = () => {
     />,
     formContainer
   );
-  uPage.removeSpinner();
+  if (paramaters.name &&
+    paramaters.type &&
+    paramaters.active &&
+    paramaters.externalId) {
+    createRoom(paramaters);
+  } else {
+    uPage.removeSpinner();
+  }
 };
 
-//for testing
+// For testing
 module.exports = () => {
   return {
     getPathVariables
