@@ -11,11 +11,24 @@
  */
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
+const rcache = require('../cache/redisCache').client.cache;
 const subPerspective = require('../cache/redisCache').client.subPerspective;
 const subBot = require('../cache/redisCache').client.subBot;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
+const PUB_STATS_HASH = require('./constants').pubStatsHash;
 const logger = require('winston');
+
+/**
+ * Store pub stats in redis cache, count by key. Note that we're using the
+ * async redis command here; we don't require the hincrby command to complete
+ * before moving on to other work, so we're not wrapping it in a promise.
+ *
+ * @param {String} key - The publish key
+ */
+function trackPublishKey(key) {
+  rcache.hincrbyAsync(PUB_STATS_HASH, key, 1);
+}
 
 /**
  * Redis subscriber uses socket.io to broadcast.
@@ -24,41 +37,22 @@ const logger = require('winston');
  * @param {Object} sub - Redis subscriber instance
  */
 module.exports = (io) => {
-  // Broadcast messages to Perspectives
-  subPerspective.on('message', (channel, mssgStr) => {
-    if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
-      logger.info('Size of the sample received by the subscriber',
-        mssgStr.length);
-    }
+  // Broadcast messages to Perspectives and Bots
+  [subBot, subPerspective].forEach((s) => {
+    s.on('message', (channel, mssgStr) => {
+      const mssgObj = JSON.parse(mssgStr);
+      const key = Object.keys(mssgObj)[0];
+      const parsedObj = rtUtils.parseObject(mssgObj[key], key);
 
-    // message object to be sent to the clients
-    const mssgObj = JSON.parse(mssgStr);
-    const key = Object.keys(mssgObj)[0];
-    const parsedObj = rtUtils.parseObject(mssgObj[key], key);
+      if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
+        trackPublishKey(key);
+      }
 
-    /*
-     * pass on the message received through the redis subscriber to the socket
-     * io emitter to send data to the browser clients.
-     */
-    emitter(io, key, parsedObj);
-  });
-
-  // Broadcast messages to Bots
-  subBot.on('message', (channel, mssgStr) => {
-    if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
-      logger.info('Size of the bot received by the subscriber',
-        mssgStr.length);
-    }
-
-    // message object to be sent to the clients
-    const mssgObj = JSON.parse(mssgStr);
-    const key = Object.keys(mssgObj)[0];
-    const parsedObj = rtUtils.parseObject(mssgObj[key], key);
-
-    /*
-     * pass on the message received through the redis subscriber to the socket
-     * io emitter to send data
-     */
-    emitter(io, key, parsedObj);
+      /*
+       * pass on the message received through the redis subscriber to the socket
+       * io emitter to send data to the browser clients.
+       */
+      emitter(io, key, parsedObj);
+    });
   });
 };

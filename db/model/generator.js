@@ -127,6 +127,13 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
+    currentCollector: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+    },
   }, {
     classMethods: {
       getGeneratorAssociations() {
