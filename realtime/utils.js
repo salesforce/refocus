@@ -402,7 +402,7 @@ function attachSubject(samples, subjectModel) {
   let promiseArr = [];
   const subjectIds = getSubjectIds(samples);
   const getSubjectPromise = subjectModel.scope({
-    method: ['forRealTime', subjectIds.subjectIds],
+    method: ['idsIn', subjectIds.subjectIds],
   }).findAll();
 
   promiseArr = [getSubjectPromise];
@@ -456,9 +456,9 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
 
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-     aspectModel.scope({ method: ['forRealTime', aspName] }).find();
+     aspectModel.scope({ method: ['nameLike', aspName] }).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.scope({ method: ['forRealTime', subAbsPath] }).find();
+      subjectModel.scope({ method: ['absPathLike', subAbsPath] }).find();
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {

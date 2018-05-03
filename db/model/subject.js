@@ -154,7 +154,14 @@ module.exports = function subject(seq, dataTypes) {
           override: true,
         });
 
-        Subject.addScope('forRealTime', (values) => ({
+        Subject.addScope('absPathLike', (value) => ({
+          where: {
+            absolutePath: { $iLike: value },
+          },
+          attributes: ['id', 'name', 'tags', 'absolutePath'],
+        }));
+
+        Subject.addScope('idsIn', (values) => ({
           where: {
             id: { $in: values },
           },

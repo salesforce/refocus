@@ -161,9 +161,9 @@ module.exports = function aspect(seq, dataTypes) {
           override: true,
         });
 
-        Aspect.addScope('forRealTime', (values) => ({
+        Aspect.addScope('nameLike', (value) => ({
           where: {
-            id: { $in: values },
+            name: { $iLike: value },
           },
           include: [
             {
