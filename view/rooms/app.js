@@ -445,16 +445,16 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
             "height": document.getElementById("${bot.name}").clientHeight < 100 ?
               600 :
               document.getElementById("${bot.name}").clientHeight
-          }, "*")  
+          }, "*")
         }
       });
       observer.observe(targetNode, config);
-      window.addEventListener("resize", 
+      window.addEventListener("resize",
         function(event) {
           outputSize(event, 'other');
         }
       );
-    }        
+    }
   </script>`;
 
   const iframeContent = iframeCss +
@@ -577,11 +577,14 @@ function createIframeEvent(channel, payload, bots, botId) {
     return 'Bot not found';
   }
 
-  iframedoc.getElementById(target)
-    .dispatchEvent(new CustomEvent(channel, {
-      detail: dispatchObj,
-    })
-  );
+  if (iframedoc.getElementById(target)) {
+    iframedoc.getElementById(target)
+      .dispatchEvent(new CustomEvent(channel, {
+        detail: dispatchObj,
+      })
+    );
+  }
+
   return 'Success';
 }
 
