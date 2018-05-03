@@ -366,28 +366,70 @@ function isIpWhitelisted(addr, whitelist) {
   throw new Error(`IP address "${addr}" is not whitelisted`);
 } // isIpWhitelisted
 
-
-function getSubjectAspectIds(samples) {
-  const aspectIdSet = new Set();
+/**
+ * Return an array of unique subjectIds from an sample array
+ * @param  {Array} samples - Array of Sample
+ * @return {Array} od unique subject ids
+ */
+function getSubjectIds(samples) {
   const subjectIdSet = new Set();
   samples.forEach((sample) => {
     // check if sample object contains name
-    if (!sample.name || sample.name.indexOf('|') < 0 || !sample.aspectId ||
-      !sample.subjectId) {
-        logger.error('sample object does not contain name',
+    if (!sample.name || sample.name.indexOf('|') < 0 || !sample.subjectId) {
+      logger.error('sample object does not contain name or subjectId',
           JSON.stringify(sample));
-        console.trace('from attachAspectSubject');
+      console.trace('from attachAspectSubject');
     } else {
-      aspectIdSet.add(sample.aspectId);
       subjectIdSet.add(sample.subjectId);
     }
   });
 
   return {
-    aspectIds: [...aspectIdSet],
     subjectIds: [...subjectIdSet],
   };
 }
+
+/**
+ * When passed in a sample, its related subject and aspect is attached to the
+ * sample. If useSampleStore is set to true, the subject ans aspect is fetched
+ * for the cache instead of the database.
+ * @param {Object} samples - The sample Array.
+ * @param {Model} subjectModel - The database subject model.
+ * @returns {Promise} - which resolves to a complete sample with its subject and
+ *   aspect.
+ */
+function attachSubject(samples, subjectModel) {
+  let promiseArr = [];
+  const subjectIds = getSubjectIds(samples);
+  const getSubjectPromise = subjectModel.scope({
+    method: ['forRealTime', subjectIds.subjectIds],
+  }).findAll();
+
+  promiseArr = [getSubjectPromise];
+  return Promise.all(promiseArr)
+  .then((response) => {
+    const subjects = response[0];
+    const subjectMap = {};
+
+    subjects.forEach((subject) => {
+      subjectMap[subject.id] = subject.dataValues;
+    });
+
+    samples.forEach((sample) => {
+      if (!sample.subject) {
+        sample.subject = subjectMap[sample.subjectId];
+      }
+
+      /*
+       * attach absolutePath field to the sample. This is done to simplify the
+       * filtering done on the subject absolutePath
+       */
+      sample.absolutePath = sample.subject.absolutePath;
+    });
+
+    return samples;
+  });
+} // attachSubject
 
 /**
  * When passed in a sample, its related subject and aspect is attached to the
@@ -399,57 +441,62 @@ function getSubjectAspectIds(samples) {
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(samples, subjectModel, aspectModel) {
+function attachAspectSubject(sample, subjectModel, aspectModel) {
+  // check if sample object contains name
+  if (!sample.name || sample.name.indexOf('|') < 0) {
+    logger.error('sample object does not contain name', JSON.stringify(sample));
+    console.trace('from attachAspectSubject');
+    return Promise.resolve(null);
+  }
 
-  // let nameParts = sample.name.split('|');
-  // const subAbsPath = nameParts[0];
+  let nameParts = sample.name.split('|');
+  const subAbsPath = nameParts[0];
+  const aspName = nameParts[1];
   let promiseArr = [];
-  const subjectAspectIds = getSubjectAspectIds(samples);
-  console.log('---subjectAspectIds----', subjectAspectIds);
-  const getAspectPromise = Promise.resolve(true);
-    // aspectModel.scope({ method: ['forRealTime', subjectAspectIds.aspectIds] }).find();
-  const getSubjectPromise =
-    subjectModel.scope({ method: ['forRealTime', subjectAspectIds.subjectIds] }).findAll();
+  if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
 
-  promiseArr = [getAspectPromise, getSubjectPromise];
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+     aspectModel.scope({ method: ['forRealTime', aspName] }).find();
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      subjectModel.scope({ method: ['forRealTime', subAbsPath] }).find();
+
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  } else {
+    const subKey = redisStore.toKey('subject', subAbsPath);
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+    redisClient.hgetallAsync(aspKey);
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+    redisClient.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];
+  }
+
   return Promise.all(promiseArr)
   .then((response) => {
-    console.log('----promise then --', response);
-    const aspects = response[0];
-    const subjects = response[1];
-    const aspectMap = {};
-    const subjectMap = {};
+    let asp = response[0];
+    let sub = response[1];
+    asp = asp.dataValues ? asp.dataValues : asp;
+    sub = sub.dataValues ? sub.dataValues : sub;
+    delete asp.writers;
+    delete sub.writers;
 
-    // aspects.forEach((aspect) => {
-    //   aspectMap[aspect.id] = aspect.dataValues;
-    // })
-
-    subjects.forEach((subject) => {
-      subjectMap[subject.id] = subject.dataValues;
-    })
-
-    console.log('this is the subjectmap-----', subjectMap);
-    samples.forEach((sample) => {
-      if (!sample.aspect) {
-        sample.aspect = aspectMap[sample.aspectId];
-      }
-
-      if (!sample.subject) {
-        sample.subject = subjectMap[sample.subjectId];
-      }
-      /*
-       * attach absolutePath field to the sample. This is done to simplify the
-       * filtering done on the subject absolutePath
-       */
-      sample.absolutePath = sample.subject.absolutePath;
-    })
-
-    console.log('---samples----', samples);
-    return samples;
+    sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
+      asp : redisStore.arrayObjsStringsToJson(asp,
+        redisStore.constants.fieldsToStringify.aspect);
+    sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
+      sub : redisStore.arrayObjsStringsToJson(sub,
+        redisStore.constants.fieldsToStringify.subject);
+    /*
+     * attach absolutePath field to the sample. This is done to simplify the
+     * filtering done on the subject absolutePath
+     */
+    sample.absolutePath = subAbsPath;
+    return sample;
   });
 } // attachAspectSubject
 
 module.exports = {
+  attachSubject,
   getPerspectiveNamespaceString,
   getBotsNamespaceString,
   getNewObjAsString,

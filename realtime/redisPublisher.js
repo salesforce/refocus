@@ -16,7 +16,6 @@ const client = require('../cache/redisCache').client;
 const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -112,9 +111,30 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(samples, subjectModel, event, aspectModel) {
-  const _samples = Array.isArray(samples) ? samples: [samples];
-  return rtUtils.attachAspectSubject(_samples, subjectModel, aspectModel)
+function publishSample(sampleInst, subjectModel, event, aspectModel) {
+  const eventType = event || getSampleEventType(sampleInst);
+  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  .then((sample) => {
+    if (sample) {
+      publishObject(sample, eventType);
+      return sample;
+    }
+  });
+} // publishSample
+
+/**
+ * The sample object needs to be attached its subject object and it also needs
+ * a absolutePath field added to it before the sample is published to the redis
+ * channel.
+ * @param  {Array} samples - The array of samples to be published
+ * @param  {Model} subjectModel - A reference to the subject model to get
+ * the related subject instance
+ * @param  {String} event  - Type of the event that is being published
+ * @returns {Promise} - which resolves to an array of complete samples.
+ */
+function publishBulkSamples(samples, subjectModel, event) {
+  const sampleArr = Array.isArray(samples) ? samples : [samples];
+  return rtUtils.attachSubject(sampleArr, subjectModel)
   .then((_samples) => {
     _samples.forEach((sample) => {
       if (sample) {
@@ -128,6 +148,7 @@ function publishSample(samples, subjectModel, event, aspectModel) {
 } // publishSample
 
 module.exports = {
+  publishBulkSamples,
   publishObject,
   publishSample,
   getSampleEventType,

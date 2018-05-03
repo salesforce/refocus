@@ -60,7 +60,7 @@ module.exports = (job, done) => {
         }
       }
 
-      publisher.publishSample(samplesToPublish, subHelper.model);
+      publisher.publishBulkSamples(samplesToPublish, subHelper.model);
 
       const objToReturn = {};
 
