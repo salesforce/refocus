@@ -5,12 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
+
 /**
  * view/perspective/utils.js
  *
  * JSON config for CreatePerspective.js
  * Includes all config for resources that need special treatment
  */
+const LENS_REQ_HEADERS = {
+  'X-Requested-With': 'XMLHttpRequest',
+  Expires: '-1',
+  'Cache-Control': 'private,max-age=31536000', // 31536000s = 1 year
+};
 
 /**
  * Generate the filter string for the hierarchy API GET.
@@ -295,7 +301,8 @@ function getValuesObject(accumulatorObject) {
      * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
      * it is also dispatched.
      */
-    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
+    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId,
+      LENS_REQ_HEADERS)
     .then((res) => {
 
       // hierarchyLoadEvent can be undefined or a custom event

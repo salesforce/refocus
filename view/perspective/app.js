@@ -58,11 +58,6 @@ const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
 const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
   .includes('protocol=websocket');
-const REQ_HEADERS = {
-  'X-Requested-With': 'XMLHttpRequest',
-  Expires: '-1',
-  'Cache-Control': 'no-cache,no-store,must-revalidate,max-age=-1,private',
-};
 const DEFAULT_ERROR_MESSAGE = 'An unexpected error occurred.';
 const LENS_LIBRARY_REX = /(?:\.([^.]+))?$/;
 
