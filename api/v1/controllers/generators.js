@@ -180,16 +180,11 @@ module.exports = {
     const params = req.swagger.params;
     u.mergeDuplicateArrayElements(params.queryBody.value, helper);
     const toPost = params.queryBody.value;
-
-    if (featureToggles.isFeatureEnabled('returnUser')) {
-      toPost.createdBy = req.user.id;
-    }
-
+    toPost.createdBy = req.user.id;
     validateGeneratorAspectsPermissions(toPost.aspects, req)
     .then(() =>
       helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
-    .then((o) =>
-      featureToggles.isFeatureEnabled('returnUser') ? o.reload() : o)
+    .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const oldCollectors = [];
