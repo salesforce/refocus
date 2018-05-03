@@ -40,11 +40,6 @@ module.exports = (io) => {
   // Broadcast messages to Perspectives and Bots
   [subBot, subPerspective].forEach((s) => {
     s.on('message', (channel, mssgStr) => {
-      if (featureToggles.isFeatureEnabled('enableRealtimeActivityLogs')) {
-        logger.info('Size of message received by subscriber', mssgStr.length);
-      }
-
-      // message object to be sent to the clients
       const mssgObj = JSON.parse(mssgStr);
       const key = Object.keys(mssgObj)[0];
       const parsedObj = rtUtils.parseObject(mssgObj[key], key);

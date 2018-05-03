@@ -41,14 +41,11 @@ function toLogObj(key, count) {
  * @returns {Array} array of pubStats activity type logging objects
  */
 function generateLogObjects() {
-  return Promise.all([
-    redis.hgetallAsync(PUB_STATS_HASH),
-    redis.delAsync(PUB_STATS_HASH),
-  ])
-  .then((res) => {
-    const p = res[0];
-    return Object.keys(p).map((key) => toLogObj(key, p[key]));
-  });
+  let p;
+  return redis.hgetallAsync(PUB_STATS_HASH)
+  .then((res) => p = res)
+  .then(() => redis.delAsync(PUB_STATS_HASH))
+  .then(() => Object.keys(p).map((key) => toLogObj(key, p[key])));
 } // generateLogObjects
 
 /**
