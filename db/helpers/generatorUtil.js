@@ -176,10 +176,55 @@ function validateCollectors(seq, collectorNames,
   );
 }
 
+/**
+ * Validate currentCollector name to be one of the assigned list
+ * of collectors in generator
+ * @param  {String} currCollector - Current collector name
+ * @param  {Array} generatorCollectorsArr - List of collectors assigned to
+ * generator - list contents can be strings or objects.
+ * @throws {ValidationError} If collector is not valid, throw
+ * InvalidCurrentCollector error
+ */
+function validateCurrentCollector(currCollector, generatorCollectorsArr) {
+  if (!currCollector) {
+    return; // no need to validate
+  }
+
+  if (!generatorCollectorsArr || !generatorCollectorsArr.length) {
+    throw new dbErrors.InvalidCollector({
+      explanation: 'This sample generator has not yet designated any ' +
+      'collectors.',
+    });
+  }
+
+  let isCurrCollectorValid = false;
+  const genCollectorsNameArr = []; // array of collector names
+
+  generatorCollectorsArr.forEach((genCollector) => {
+    const genCollectorName = genCollector.get ? genCollector.get().name :
+                              genCollector;
+
+    genCollectorsNameArr.push(genCollectorName);
+
+    if (currCollector === genCollectorName) {
+      isCurrCollectorValid = true; // valid if names matches
+    }
+  });
+
+  if (!isCurrCollectorValid) {
+    throw new dbErrors.InvalidCollector({
+      explanation: `Collector "${currCollector}" cannot be assigned as the ` +
+      'current collector for this sample generator. Select one of ' +
+      `${genCollectorsNameArr}.`,
+    });
+  }
+}
+
 module.exports = {
   validateCollectorNames,
   checkCollectorsExist,
   validateCollectors,
   validateGeneratorCtx,
   validateSubjectQuery,
+  validateCurrentCollector,
 };
