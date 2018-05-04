@@ -49,6 +49,51 @@ function validateGeneratorCtx(sgCtx, sgtCtxDef) {
   });
 } // validateCtxRequiredFields
 
+/*
+ * Validate Subject Query
+ *
+ * @param {String} subjectQuery string
+ * @return {String} returns Subject Query
+ * @throws {ValidationError} Throw an error if subjectQuery fails following
+ * criteria:
+ * 1. subjectQuery must start with "?"
+ * 2. subjectQuery must be longer than 6 characters
+ * 3. Format of subjectQuery must be "?{key}={value}"
+ * 4. Wildcard "*" is prohibited in the subjectQuery for "tag" filters
+ */
+function validateSubjectQuery(subjectQuery) {
+  // subjectQuery should start with '?'
+  if (subjectQuery.charAt(0) !== '?') {
+    throw new dbErrors.ValidationError('subjectQuery ValidationError',
+      'subjectQuery must start with "?"');
+  }
+
+  // size of subjectQuery should be greater than 6
+  if (subjectQuery.length <= 6) {
+    throw new dbErrors.ValidationError('subjectQuery ValidationError',
+      'subjectQuery must be longer than 6 characters');
+  }
+
+  const subjectQueryString = subjectQuery.substr(1);
+  const splitSubjectQuery = subjectQueryString.split('&');
+
+  splitSubjectQuery.forEach((sq) => {
+    const splitSQ = sq.split('=');
+
+    if (splitSQ.length !== 2) {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Format of subjectQuery must be "?{key}={value}"');
+    }
+
+    if (splitSQ[0] == 'tags' && splitSQ[1].indexOf('*') > -1) {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Wildcard "*" is prohibited in the subjectQuery for "tag" filters');
+    }
+  });
+
+  return subjectQuery;
+}
+
 /**
  * Reject the request if collectorNames contain duplicate names
  * @param {Array} collectorNames Array of strings
@@ -136,4 +181,5 @@ module.exports = {
   checkCollectorsExist,
   validateCollectors,
   validateGeneratorCtx,
+  validateSubjectQuery,
 };

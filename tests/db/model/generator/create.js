@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
+const gUtil = require('../../../../db/helpers/generatorUtil');
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
@@ -418,7 +419,7 @@ describe('tests/db/model/generator/create.js >', () => {
   describe('subjectQuery validation', () => {
     it('valid subjectQuery', (done) => {
       const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
-      const returnSubjectQuery = Generator.validateSubjectQuery(subjectQuery);
+      const returnSubjectQuery = gUtil.validateSubjectQuery(subjectQuery);
       expect(subjectQuery).to.equal(returnSubjectQuery);
 
       done();
@@ -428,7 +429,7 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?absolutePath=Foo*&name=b*?tags=-T1,-T2';
 
       try {
-        const x = Generator.validateSubjectQuery(subjectQuery);
+        const x = gUtil.validateSubjectQuery(subjectQuery);
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
@@ -441,7 +442,7 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?abso';
 
       try {
-        const x = Generator.validateSubjectQuery(subjectQuery);
+        const x = gUtil.validateSubjectQuery(subjectQuery);
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
@@ -454,7 +455,7 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?absolutePath:abc';
 
       try {
-        const x = Generator.validateSubjectQuery(subjectQuery);
+        const x = gUtil.validateSubjectQuery(subjectQuery);
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
@@ -468,7 +469,7 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?tags=abc*';
 
       try {
-        const x = Generator.validateSubjectQuery(subjectQuery);
+        const x = gUtil.validateSubjectQuery(subjectQuery);
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
