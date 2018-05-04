@@ -156,8 +156,6 @@ function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        console.log(trackObj.user);
-
         res.render(viewmap[key], trackObj);
       }
     )
