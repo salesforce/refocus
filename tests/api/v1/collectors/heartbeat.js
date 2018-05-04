@@ -843,6 +843,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           expect(res.body.collectorConfig)
           .to.have.property('heartbeatIntervalMillis', 15000);
           expect(res.body.collectorConfig)
+          .to.have.property('heartbeatLatencyToleranceMillis', 5000);
+          expect(res.body.collectorConfig)
           .to.have.property('sampleUpsertQueueTimeMillis', 15000);
           expect(res.body.collectorConfig)
           .to.have.property('maxSamplesPerBulkUpsert', 1000);
@@ -857,6 +859,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then((res) => {
           expect(res.body.collectorConfig)
           .to.have.property('heartbeatIntervalMillis', 10000);
+          expect(res.body.collectorConfig)
+          .to.have.property('heartbeatLatencyToleranceMillis', 5000);
           expect(res.body.collectorConfig)
           .to.have.property('sampleUpsertQueueTimeMillis', 15000);
           expect(res.body.collectorConfig)
