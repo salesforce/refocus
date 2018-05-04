@@ -20,7 +20,9 @@ const request = require('superagent');
 const url = require('url');
 const address = window.location.href;
 const NAME_PATH = 3;
-const pathName = url.parse(address, true).pathname.split('/');
+const pathName = url.parse(address, true).pathname ?
+  url.parse(address, true).pathname.split('/') :
+  '';
 const q = url.parse(address, true);
 const qdata = q.query ? q.query : {};
 
