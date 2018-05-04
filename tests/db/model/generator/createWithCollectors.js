@@ -151,11 +151,11 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     localGenerator.currentCollector = 'iDontExist';
     Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => done(
-      new Error('Expected InvalidCurrentCollector, received', o)
+      new Error('Expected InvalidCollector, received', o)
     ))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
-      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.name).to.equal('InvalidCollector');
       done();
     });
   });
@@ -181,13 +181,13 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     localGenerator.currentCollector = collector1.name;
     Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => done(
-      new Error('Expected InvalidCurrentCollector, received', o)
+      new Error('Expected InvalidCollector, received', o)
     ))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
-      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.name).to.equal('InvalidCollector');
       expect(err.explanation).to.equal(
-        'Assigned collector list of generator is empty.'
+        'This sample generator has not yet designated any collectors.'
       );
       done();
     });
@@ -199,13 +199,13 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     localGenerator.currentCollector = collector1.name;
     Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => done(
-      new Error('Expected InvalidCurrentCollector, received', o)
+      new Error('Expected InvalidCollector, received', o)
     ))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
-      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.name).to.equal('InvalidCollector');
       expect(err.explanation).to.equal(
-        'Assigned collector list of generator is empty.'
+        'This sample generator has not yet designated any collectors.'
       );
       done();
     });

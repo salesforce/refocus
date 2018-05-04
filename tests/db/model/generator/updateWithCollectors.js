@@ -17,9 +17,6 @@ const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
-const GlobalConfig = tu.db.GlobalConfig;
-const cryptUtils = require('../../../../utils/cryptUtils');
-const constants = require('../../../../db/constants');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -213,14 +210,15 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       }, u.whereClauseForNameInArr
     )
     .then((o) => done(
-      new Error('Expected InvalidCurrentCollector, received', o)
+      new Error('Expected InvalidCollector, received', o)
     ))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
-      expect(err.name).to.equal('InvalidCurrentCollector');
+      expect(err.name).to.equal('InvalidCollector');
       expect(err.explanation).to.equal(
-        'CurrentCollector: collector-not-in-list should be one of assigned ' +
-        'list of collectors to generator: beautiful,world,hello'
+        'Collector "collector-not-in-list" cannot be assigned as the ' +
+        'current collector for this sample generator. Select one of ' +
+        'beautiful,world,hello.'
       );
       done();
     });

@@ -146,8 +146,9 @@ function validateCurrentCollector(currCollector, generatorCollectorsArr) {
   }
 
   if (!generatorCollectorsArr || generatorCollectorsArr.length === 0) {
-    throw new dbErrors.InvalidCurrentCollector({
-      explanation: 'Assigned collector list of generator is empty.',
+    throw new dbErrors.InvalidCollector({
+      explanation: 'This sample generator has not yet designated any ' +
+      'collectors.',
     });
   }
 
@@ -170,9 +171,10 @@ function validateCurrentCollector(currCollector, generatorCollectorsArr) {
   });
 
   if (!isCurrCollectorValid) {
-    throw new dbErrors.InvalidCurrentCollector({
-      explanation: `CurrentCollector: ${currCollector} should be one of ` +
-      `assigned list of collectors to generator: ${genCollectorsNameArr}`,
+    throw new dbErrors.InvalidCollector({
+      explanation: `Collector "${currCollector}" cannot be assigned as the ` +
+      'current collector for this sample generator. Select one of ' +
+      `${genCollectorsNameArr}.`,
     });
   }
 }

@@ -143,10 +143,10 @@ errors.create({
   scope: exports,
   code: 10122,
   status: 400,
-  name: 'InvalidCurrentCollector',
+  name: 'InvalidCollector',
   parent: this.ValidationError,
-  defaultMessage: 'CurrentCollector should be one of the assigned list of ' +
-  'possible generator collectors.',
+  defaultMessage: 'The specified collector is not in the list of collectors ' +
+  'for this sample generator.',
 });
 
 // ----------------------------------------------------------------------------
