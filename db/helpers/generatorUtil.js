@@ -145,7 +145,7 @@ function validateCurrentCollector(currCollector, generatorCollectorsArr) {
     return; // no need to validate
   }
 
-  if (!generatorCollectorsArr || generatorCollectorsArr.length === 0) {
+  if (!generatorCollectorsArr || !generatorCollectorsArr.length) {
     throw new dbErrors.InvalidCollector({
       explanation: 'This sample generator has not yet designated any ' +
       'collectors.',
@@ -156,12 +156,8 @@ function validateCurrentCollector(currCollector, generatorCollectorsArr) {
   const genCollectorsNameArr = []; // array of collector names
 
   generatorCollectorsArr.forEach((genCollector) => {
-    let genCollectorName;
-    if (typeof genCollector === 'object') { // get name if sequelize object
-      genCollectorName = genCollector.get().name;
-    } else {
-      genCollectorName = genCollector;
-    }
+    const genCollectorName = genCollector.get ? genCollector.get().name :
+                              genCollector;
 
     genCollectorsNameArr.push(genCollectorName);
 
