@@ -89,6 +89,25 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
+  it('400 error, post with current collector but no collectors list',
+  (done) => {
+    generator.currentCollector = 'some-collector';
+    api.post(path)
+    .set('Authorization', token)
+    .send(generator)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('InvalidCollector');
+      expect(res.body.errors[0].description).to.equal('This sample generator ' +
+        'has not yet designated any collectors.');
+      return done();
+    });
+  });
+
   it('post without Generator Template error', (done) => {
     delete generator.generatorTemplate;
     api.post(path)
