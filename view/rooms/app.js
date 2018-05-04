@@ -37,7 +37,6 @@ const urlParameters = window.location.href.includes('?') ?
   window.location.href.split('?')[ONE] : '';
 const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
-let GET_USER = '/v1/users/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
@@ -407,36 +406,61 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       href="/static/css/salesforce-lightning-design-system.2.4.3.min.css">`;
 
   const iframeJS =
-
   `
-  <script src="../static/scripts/javascript-detect-element-resize/detect-element-resize.js"></script>
   <script>
-      function outputsize(e) {
-        console.log("${bot.name}",e)
-        if (e.path && e.path[2].clientHeight > 0) {
-          parent.postMessage(
+    function outputSize(e, browser) {
+      if (browser === 'chrome') {
+        parent.postMessage(
           {
             "name": "${bot.name}",
-            "height": e.path[2].clientHeight
+            "height": e[0].target.scrollHeight
           }, "*"
         );
-        } else {
-          parent.postMessage(
-          {
-            "name": "${bot.name}",
-            "height": e.target.clientHeight < 100 ? 600 : e.target.clientHeight
-          }, "*"
-        );
-        }
+      } else {
+        parent.postMessage(
+        {
+          "name": "${bot.name}",
+          "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+            600 :
+            document.getElementById("${bot.name}").clientHeight
+        }, "*"
+      );
       }
+    }
 
-        addResizeListener(document.getElementById("${bot.name}"), outputsize);
-    </script>`;
+    if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
+      new ResizeObserver(
+        function(event) {
+          outputSize(event, 'chrome')
+        }
+      ).observe(document.getElementById("${bot.name}"));
+    } else {
+      var targetNode = document.getElementById("${bot.name}");
+      var config = { attributes: true, childList: true };
+      var observer = new MutationObserver(function(mutationsList) {
+        for(var mutation of mutationsList) {
+          parent.postMessage(
+          {
+            "name": "${bot.name}",
+            "height": document.getElementById("${bot.name}").clientHeight < 100 ?
+              600 :
+              document.getElementById("${bot.name}").clientHeight
+          }, "*")
+        }
+      });
+      observer.observe(targetNode, config);
+      window.addEventListener("resize",
+        function(event) {
+          outputSize(event, 'other');
+        }
+      );
+    }
+  </script>`;
 
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
       ${contentSection}
-      <script>${botScript}</script>`+
+      <script>${botScript}</script>` +
       iframeJS;
 
   uPage.writeInIframedoc(iframedoc, iframeContent);
@@ -892,8 +916,8 @@ window.onload = () => {
    */
   _user = JSON.parse(user.replace(/&quot;/g, '"')
     .replace(/apos;/g, "'"));
-
   let room;
+
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
