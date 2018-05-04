@@ -151,10 +151,12 @@ function loadView(app, passport) {
       (req, res) => {
         const trackObj = {
           trackingId: viewConfig.trackingId,
-          user: JSON.stringify(req.user),
+          user: JSON.stringify(req.user).replace(/'/g, ''),
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
+
+        console.log(trackObj.user);
 
         res.render(viewmap[key], trackObj);
       }
