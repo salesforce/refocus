@@ -212,6 +212,15 @@ module.exports = function generator(seq, dataTypes) {
             whereClauseForNameInArr)
           .then((_collectors) => {
             collectors = _collectors;
+
+            /* validate that current collector is one of the assigned
+            generator collectors list */
+            if (requestBody.currentCollector) {
+              sgUtils.validateCurrentCollector(
+                requestBody.currentCollector, requestBody.collectors
+              );
+            }
+
             return Generator.create(requestBody);
           })
           .then((_createdGenerator) => {
@@ -323,11 +332,26 @@ module.exports = function generator(seq, dataTypes) {
        */
       updateWithCollectors(requestBody, whereClauseForNameInArr) {
         let collectors; // will be populated with actual collectors
+
+        // combined list of existing and to be added collectors
+        const collectorsArr = [];
         return new seq.Promise((resolve, reject) =>
          sgUtils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
-          .then((_collectors) => {
+          .then((_collectors) => { // collectors list in request body
             collectors = _collectors;
+            collectorsArr.push(..._collectors);
+
+            return this.getCollectors();
+          })
+          .then((genCollectors) => { // existing collectors list
+            collectorsArr.push(...genCollectors);
+
+            /* validate that current collector is one of the assigned
+            generator collectors list */
+            sgUtils.validateCurrentCollector(
+              requestBody.currentCollector, collectorsArr
+            );
             return this.update(requestBody);
           })
           .then(() => this.addCollectors(collectors))

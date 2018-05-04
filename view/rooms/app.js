@@ -914,7 +914,11 @@ window.onload = () => {
 
   // Note: this is declared in index.pug:
   _io = io;
-  _user = JSON.parse(user.replace(/&quot;/g, '"'));
+  /* looks for apos; instead of &apos; due to whole
+   * string being html escaped but ' being skipped
+   */
+  _user = JSON.parse(user.replace(/&quot;/g, '"')
+    .replace(/apos;/g, "'"));
   let room;
 
   u.getPromiseWithUrl(GET_ROOM)
