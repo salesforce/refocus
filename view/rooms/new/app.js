@@ -46,7 +46,7 @@ function getPathVariables(){
 
   return {
     name: paramName,
-    type: paramType,
+    roomType: paramType,
     active: paramActive,
     externalId: paramExternalId,
     settings: paramSettings,
@@ -58,7 +58,7 @@ function createRoom(paramaters){
   const req = request.post('/v1/rooms');
   const obj = {
     name: paramaters.name,
-    type: paramaters.type,
+    type: paramaters.roomType,
     externalId: paramaters.externalId,
     active: paramaters.active,
   };
@@ -85,7 +85,7 @@ window.onload = () => {
   ReactDOM.render(
     <FormController
       name={paramaters.name}
-      type={paramaters.type}
+      type={paramaters.roomType}
       active={paramaters.active}
       externalId={paramaters.externalId}
       settings={paramaters.settings}
@@ -94,7 +94,7 @@ window.onload = () => {
     formContainer
   );
   if (paramaters.name &&
-    paramaters.type &&
+    paramaters.roomType &&
     paramaters.active &&
     paramaters.externalId) {
     createRoom(paramaters);
