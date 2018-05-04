@@ -63,4 +63,5 @@ module.exports = {
     botEventFilterIndex: 3,
   },
 
+  pubStatsHash: 'pubstats',
 };

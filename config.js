@@ -271,6 +271,7 @@ module.exports = {
     DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
+  pubStatsLogsIntervalMillis: +pe.PUB_STATS_LOGS_INTERVAL_MILLIS || 60000,
   queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
