@@ -20,15 +20,14 @@ const request = require('superagent');
 const url = require('url');
 const address = window.location.href;
 const NAME_PATH = 3;
+const pathName = url.parse(address, true).pathname.split('/');
+const q = url.parse(address, true);
+const qdata = q.query ? q.query : {};
 
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
-function getPathVariables(adr){
-  const pathName = url.parse(adr, true).pathname.split('/');
-  const q = url.parse(adr, true);
-  const qdata = q.query ? q.query : {};
-
+function getPathVariables(){
   let paramName = qdata.name || '';
   if ((pathName.length > NAME_PATH) && (pathName[NAME_PATH] !== '')) {
     paramName = pathName[NAME_PATH];
@@ -72,13 +71,17 @@ function createRoom(paramaters){
         }
         console.error(error.response.text);
       } else {
-        window.location.replace(`/rooms/${res.body.id}`);
+        if (qdata.keepParams) {
+          window.location.replace(`/rooms/${res.body.id}?${address.split('?')[1]}`);
+        } else {
+          window.location.replace(`/rooms/${res.body.id}`);
+        }
       }
     });
 }
 
 window.onload = () => {
-  const paramaters = getPathVariables(address);
+  const paramaters = getPathVariables();
   ReactDOM.render(
     <FormController
       name={paramaters.name}
