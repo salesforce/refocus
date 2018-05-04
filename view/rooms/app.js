@@ -445,16 +445,16 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
             "height": document.getElementById("${bot.name}").clientHeight < 100 ?
               600 :
               document.getElementById("${bot.name}").clientHeight
-          }, "*")  
+          }, "*")
         }
       });
       observer.observe(targetNode, config);
-      window.addEventListener("resize", 
+      window.addEventListener("resize",
         function(event) {
           outputSize(event, 'other');
         }
       );
-    }        
+    }
   </script>`;
 
   const iframeContent = iframeCss +
@@ -911,8 +911,8 @@ window.onload = () => {
 
   // Note: this is declared in index.pug:
   _io = io;
-  _user = JSON.parse(user.replace(/&quot;/g, '"'));
-  let room;
+ _user = JSON.parse(user.replace(/&quot;/g, '"')
+    .replace(/apos;/g, "'"));  let room;
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
