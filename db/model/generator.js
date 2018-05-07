@@ -87,6 +87,11 @@ module.exports = function generator(seq, dataTypes) {
     },
     subjectQuery: {
       type: dataTypes.STRING,
+      validate: {
+        validateSQ(value) {
+          sgUtils.validateSubjectQuery(value);
+        },
+      },
     },
     subjects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
@@ -397,5 +402,6 @@ module.exports = function generator(seq, dataTypes) {
     },
     paranoid: true,
   });
+
   return Generator;
 };

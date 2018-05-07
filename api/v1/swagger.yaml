@@ -3296,8 +3296,10 @@ paths:
           name: subjectQuery
           in: query
           type: string
+          minLength: 7
+          maxLength: 4096
           description: >-
-            Filter by the query to append to GET subjects; asterisk (*) wildcards ok.
+            Filter by the query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
         -
           name: subjects
           in: query
@@ -3390,7 +3392,9 @@ paths:
                 description: A unique and descriptive name for your Generator.
               subjectQuery:
                 type: string
-                description: The query to append to GET subjects. Either specify this or subjects field.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               collectors:
                  description: List of collectors this Sample Generator should try to use.
                  type: array
@@ -3540,7 +3544,9 @@ paths:
               subjectQuery:
                 type: string
                 readOnly: true
-                description: The query to append to GET subjects.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               subjects:
                 description: AbsolutePaths of the subjects.
                 type: array
@@ -3654,7 +3660,9 @@ paths:
               subjectQuery:
                 type: string
                 readOnly: true
-                description: The query to append to GET subjects.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               subjects:
                 description: AbsolutePaths of the subjects.
                 type: array
@@ -11566,7 +11574,9 @@ definitions:
       subjectQuery:
         type: string
         readOnly: true
-        description: The query to append to GET subjects.
+        minLength: 7
+        maxLength: 4096
+        description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
       collectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
@@ -11646,7 +11656,9 @@ definitions:
       subjectQuery:
         type: string
         readOnly: true
-        description: The query to append to GET subjects.
+        minLength: 7
+        maxLength: 4096
+        description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
       collectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
