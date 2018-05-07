@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
+const gUtil = require('../../../../db/helpers/generatorUtil');
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
@@ -412,6 +413,69 @@ describe('tests/db/model/generator/create.js >', () => {
         done();
       })
       .catch(done);
+    });
+  });
+
+  describe('subjectQuery validation', () => {
+    it('valid subjectQuery', (done) => {
+      const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
+      const returnSubjectQuery = gUtil.validateSubjectQuery(subjectQuery);
+      expect(subjectQuery).to.equal(returnSubjectQuery);
+
+      done();
+    });
+
+    it('invalid subjectQuery missing ? at start', (done) => {
+      const subjectQuery = '?absolutePath=Foo*&name=b*?tags=-T1,-T2';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('length of subjectQuery should be greater than 6', (done) => {
+      const subjectQuery = '?abso';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('format of subjectQuery is "?<key>=<value>"', (done) => {
+      const subjectQuery = '?absolutePath:abc';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('Wildcard "*" is prohibited in the subjectQuery for "tag" filters',
+      (done) => {
+      const subjectQuery = '?tags=abc*';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
     });
   });
 
