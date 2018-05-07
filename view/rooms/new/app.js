@@ -16,16 +16,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
+const request = require('superagent');
 const url = require('url');
-const address = window.location.href;
+const ADDRESS = window.location.href;
 const NAME_PATH = 3;
-
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
-function getPathVariables(adr){
-  const pathName = url.parse(adr, true).pathname.split('/');
-  const q = url.parse(adr, true);
+function getPathVariables(addr){
+  const pathName = url.parse(addr, true).pathname ?
+    url.parse(addr, true).pathname.split('/') :
+    '';
+  const q = url.parse(addr, true);
   const qdata = q.query ? q.query : {};
 
   let paramName = qdata.name || '';
@@ -46,7 +48,7 @@ function getPathVariables(adr){
 
   return {
     name: paramName,
-    type: paramType,
+    roomType: paramType,
     active: paramActive,
     externalId: paramExternalId,
     settings: paramSettings,
@@ -54,12 +56,40 @@ function getPathVariables(adr){
   };
 }
 
+function createRoom(paramaters){
+  const q = url.parse(ADDRESS, true);
+  const qdata = q.query ? q.query : {};
+  const req = request.post('/v1/rooms');
+  const obj = {
+    name: paramaters.name,
+    type: paramaters.roomType,
+    externalId: paramaters.externalId,
+    active: paramaters.active,
+  };
+  req
+    .send(obj)
+    .end((error, res) => {
+      if (error) {
+        if (error.response.text.includes('SequelizeUniqueConstraintError')) {
+          window.location.href = `/rooms/${paramaters.name}`;
+        }
+        console.error(error.response.text);
+      } else if (qdata.keepParams) {
+        window.location.replace(
+          `/rooms/${res.body.id}?${ADDRESS.split('?')[1]}
+        `);
+      } else {
+        window.location.replace(`/rooms/${res.body.id}`);
+      }
+    });
+}
+
 window.onload = () => {
-  const paramaters = getPathVariables(address);
+  const paramaters = getPathVariables(ADDRESS);
   ReactDOM.render(
     <FormController
       name={paramaters.name}
-      type={paramaters.type}
+      type={paramaters.roomType}
       active={paramaters.active}
       externalId={paramaters.externalId}
       settings={paramaters.settings}
@@ -67,10 +97,17 @@ window.onload = () => {
     />,
     formContainer
   );
-  uPage.removeSpinner();
+  if (paramaters.name &&
+    paramaters.roomType &&
+    paramaters.active &&
+    paramaters.externalId) {
+    createRoom(paramaters);
+  } else {
+    uPage.removeSpinner();
+  }
 };
 
-//for testing
+// For testing
 module.exports = () => {
   return {
     getPathVariables
