@@ -577,8 +577,9 @@ function createIframeEvent(channel, payload, bots, botId) {
     return 'Bot not found';
   }
 
-  if (iframedoc.getElementById(target)) {
-    iframedoc.getElementById(target)
+  const targetedFrame = iframedoc.getElementById(target);
+  if (targetedFrame) {
+    targetedFrame
       .dispatchEvent(new CustomEvent(channel, {
         detail: dispatchObj,
       })
