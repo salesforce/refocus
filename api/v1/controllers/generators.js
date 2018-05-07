@@ -23,6 +23,7 @@ const featureToggles = require('feature-toggles');
 const constants = require('../constants');
 const Aspect = require('../helpers/nouns/aspects').model;
 const apiErrors = require('../apiErrors');
+const genUtil = require('../../../db/helpers/generatorUtil');
 
 /**
  * Validate that user has write permissions on given aspects.
@@ -230,6 +231,9 @@ module.exports = {
     })
     .then((_collectors) => {
       collectors = _collectors;
+
+      // validate currentCollector to be one of the generator collectors list
+      genUtil.validateCurrentCollector(toPut.currentCollector, _collectors);
       return u.updateInstance(instance, puttableFields, toPut);
     })
     .then((_updatedInstance) => {

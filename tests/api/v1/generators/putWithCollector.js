@@ -93,8 +93,8 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
 
   // delete generator after each test
   afterEach(() => tu.forceDelete(tu.db.Generator, testStartTime));
-  after(gtUtil.forceDelete);
-  after(tu.forceDeleteUser);
+  after(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime));
+  after(u.forceDelete);
 
   it('ok: wipes out collectors', (done) => {
     api.put(`${path}/${generatorId}`)
@@ -186,6 +186,49 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
 
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
+      return done();
+    });
+  });
+
+  it('ok: currentCollector one of the collectors specified', (done) => {
+    const withCollectors = JSON.parse(JSON.stringify(toPut));
+    withCollectors.collectors = [collector1.name, collector2.name, collector3.name];
+    withCollectors.currentCollector = collector1.name;
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(withCollectors)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      const { collectors } = res.body;
+      expect(collectors.length).to.equal(THREE);
+      const collectorNames = collectors.map((collector) => collector.name);
+      expect(res.body.currentCollector).to.equal(collector1.name);
+      return done();
+    });
+  });
+
+  it('400 error: currentCollector does not belong to one of the collectors ' +
+    'specified', (done) => {
+    const withCollectors = JSON.parse(JSON.stringify(toPut));
+    withCollectors.collectors = [collector1.name, collector2.name, collector3.name];
+    withCollectors.currentCollector = 'collector-not-in-list';
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(withCollectors)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('InvalidCollector');
+      expect(res.body.errors[0].description).to.equal('Collector ' +
+        '"collector-not-in-list" cannot be assigned as the current collector ' +
+        'for this sample generator. Select one of beautiful,hello,world.');
       return done();
     });
   });

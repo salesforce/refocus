@@ -3252,6 +3252,7 @@ paths:
               - createdAt
               - description
               - name
+              - currentCollector
               - updatedAt
               - -isActive
               - -aspects
@@ -3261,6 +3262,7 @@ paths:
               - -description
               - -name
               - -updatedAt
+              - -currentCollector
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3333,6 +3335,13 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: currentCollector
+          in: query
+          type: string
+          description: >-
+            Filter by the name of current collector assigned to the generator.
+          maxLength: 60
       responses:
         200:
           description: >-
@@ -3438,6 +3447,11 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              currentCollector:
+                type: string
+                description: >-
+                  Filter by the name of current collector assigned to the generator.
+                maxLength: 60
             required:
               - name
               - aspects
@@ -3580,6 +3594,11 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              currentCollector:
+                type: string
+                description: >-
+                  Name of current collector assigned to the generator.
+                maxLength: 60
       responses:
         200:
           description: Success, returns the updated generator.
@@ -3691,6 +3710,11 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              currentCollector:
+                type: string
+                description: >-
+                  Name of current collector assigned to the generator.
+                maxLength: 60
             required:
               - name
               - aspects
@@ -11587,6 +11611,10 @@ definitions:
           Variables accessible inside the transform function.
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
+      currentCollector:
+        type: string
+        description: Name of current collector assigned to the generator.
+        maxLength: 60
 
   HeartbeatGeneratorResponse:
     type: object
@@ -11665,6 +11693,10 @@ definitions:
           Variables accessible inside the transform function.
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
+      currentCollector:
+        type: string
+        description: Name of current collector assigned to the generator.
+        maxLength: 60
 
   GeneratorTemplateResponse:
     type: object
@@ -11931,6 +11963,7 @@ parameters:
         - id
         - name
         - updatedAt
+        - currentCollector
 
   GeneratorTemplateFieldsParam:
     name: fields

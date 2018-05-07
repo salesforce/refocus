@@ -67,6 +67,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    localGenerator.currentCollector = collector1.name;
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)
@@ -80,6 +81,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       const collectorNames = res.body.collectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
+      expect(res.body.currentCollector).to.equal(collector1.name);
       return done();
     });
   });
@@ -93,6 +95,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    _generator.currentCollector = collector1.name;
     api.post(path)
     .set('Authorization', token)
     .send(_generator)
