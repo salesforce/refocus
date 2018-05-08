@@ -41,5 +41,6 @@ module.exports = {
   sortArrayObjects: {
     collectors: 'name',
   },
+  readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
 
 }; // exports

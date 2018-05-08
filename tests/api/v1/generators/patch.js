@@ -123,4 +123,22 @@ describe('tests/api/v1/generators/patch.js >', () => {
     })
     .end(done);
   });
+
+  it('error, patch with currentCollector, read only', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ currentCollector: 'some-collector' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
+    });
+  });
 });
