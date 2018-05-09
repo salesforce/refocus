@@ -403,4 +403,45 @@ describe('tests/api/v1/generators/put.js >', () => {
       done();
     });
   });
+
+  it('error, put with currentCollector, read only', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+      currentCollector: 'some-collector',
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
+    });
+  });
 });
