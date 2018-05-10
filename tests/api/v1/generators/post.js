@@ -89,6 +89,25 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
+  it('error, post with currentCollector, read only', (done) => {
+    generator.currentCollector = 'some-collector';
+    api.post(path)
+    .set('Authorization', token)
+    .send(generator)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
+    });
+  });
+
   it('post without Generator Template error', (done) => {
     delete generator.generatorTemplate;
     api.post(path)

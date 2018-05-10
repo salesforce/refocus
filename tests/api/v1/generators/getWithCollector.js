@@ -27,21 +27,25 @@ const THREE = 3;
 
 describe('tests/api/v1/generators/getWithCollector.js >', () => {
   let token;
+  let collector1 = { name: 'hello', version: '1.0.0' };
+  let collector2 = { name: 'beautiful', version: '1.0.0' };
+  let collector3 = { name: 'world', version: '1.0.0' };
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
   const genWithNoCollector = u.getGenerator();
   u.createSGtoSGTMapping(generatorTemplate, genWithNoCollector);
+
   const genWithOneCollector = u.getGenerator();
   genWithOneCollector.name = 'refocus-info-generator';
+  genWithOneCollector.currentCollector = collector1.name;
   u.createSGtoSGTMapping(generatorTemplate, genWithOneCollector);
+
   const genWithThreeCollectors = u.getGenerator();
   genWithThreeCollectors.name = 'refocus-critical-generator';
+  genWithThreeCollectors.currentCollector = collector1.name;
   u.createSGtoSGTMapping(generatorTemplate, genWithThreeCollectors);
 
-  let collector1 = { name: 'hello', version: '1.0.0' };
-  let collector2 = { name: 'beautiful', version: '1.0.0' };
-  let collector3 = { name: 'world', version: '1.0.0' };
   const sortedNames = [collector1, collector2, collector3]
     .map((col) => col.name)
     .sort();
@@ -124,6 +128,24 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       const collectorNames = res.body.collectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
+      return done();
+    });
+  });
+
+  it('find by currentCollector, found', (done) => {
+    api.get(`${path}?currentCollector=${collector1.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.lengthOf(TWO);
+      expect(res.body[0].name).to.equal(genWithThreeCollectors.name);
+      expect(res.body[0].currentCollector).to.equal(collector1.name);
+      expect(res.body[1].name).to.equal(genWithOneCollector.name);
+      expect(res.body[1].currentCollector).to.equal(collector1.name);
       return done();
     });
   });

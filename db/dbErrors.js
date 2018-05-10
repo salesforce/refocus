@@ -139,15 +139,6 @@ errors.create({
   name: 'ReferencedByGenerator',
   parent: this.ValidationError,
 });
-errors.create({
-  scope: exports,
-  code: 10122,
-  status: 400,
-  name: 'InvalidCollector',
-  parent: this.ValidationError,
-  defaultMessage: 'The specified collector is not in the list of collectors ' +
-  'for this sample generator.',
-});
 
 // ----------------------------------------------------------------------------
 // Not Found
