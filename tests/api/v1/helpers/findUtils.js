@@ -9,7 +9,7 @@
 /**
  * tests/api/v1/helpers/findUtils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
 const config = require('../../../../config');
 const options = fu.options;
@@ -55,7 +55,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         attributes: ['name', 'description', 'id'],
         order: ['name'],
-        limit: 10,
+        limit: 1, // limit set to 1 because name is unique
         offset: 10,
         where: {
           name: {
@@ -89,9 +89,12 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       opts.where.name.$iLike = 'na\\%me';
       expect(options(params, props)).to.deep.equal(opts);
 
+      // limit set to 1 because name is unique
+      const optsWithLimit1 = Object.assign({}, opts);
+      optsWithLimit1.limit = 1;
       params.name.value = 'na_me';
       opts.where.name.$iLike = 'na\\_me';
-      expect(options(params, props)).to.deep.equal(opts);
+      expect(options(params, props)).to.deep.equal(optsWithLimit1);
 
       params.name.value = '*n%am_e*';
       opts.where.name.$iLike = '%n\\%am\\_e%';
@@ -156,6 +159,120 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
+  });
 
+  describe('applyLimitIfUniqueField >', () => {
+    it('basic opts with no unique field, limit unchanged', () => {
+      const props = {};
+      const opts = {
+        limit: config.api.defaults.limit,
+        where: { someField: { $iLike: 'someValue' } },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: config.api.defaults.limit,
+        where: { someField: { $iLike: 'someValue' } },
+      });
+    });
+
+    it('opts with name field, one value, limit set to 1', () => {
+      const props = {};
+      const opts = {
+        limit: 15000,
+        where: { name: { $iLike: 'someName' } },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 1,
+        where: { name: { $iLike: 'someName' } },
+      });
+    });
+
+    it('opts with name field, multiple value, limit set to number of ' +
+      'values', () => {
+      const props = {};
+      const opts = {
+        limit: 40,
+        where: { name:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+        },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 2,
+        where: { name:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+        },
+      });
+    });
+
+    it('opts with overriden unique field, one value, limit set to 1', () => {
+      const props = { nameFinder: 'absolutePath' };
+      const opts = {
+        limit: 50,
+        where: { absolutePath: { $iLike: 'someName' } },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 1,
+        where: { absolutePath: { $iLike: 'someName' } },
+      });
+    });
+
+    it('opts with overriden unique field, multiple value, limit set to ' +
+      'number of values', () => {
+      const props = { nameFinder: 'absolutePath' };
+      const opts = {
+        limit: 5,
+        where: { absolutePath:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+        },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 2,
+        where: { absolutePath:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+        },
+      });
+    });
+
+    it('opts with name field, one wildcard value, limit unchanged', () => {
+      const props = {};
+      const opts = {
+        limit: 20,
+        where: { name: { $iLike: 'someName%' } },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 20,
+        where: { name: { $iLike: 'someName%' } },
+      });
+    });
+
+    it('opts with name field, multiple value, one wildcard value, ' +
+      'limit unchanged', () => {
+      const props = {};
+      const opts = {
+        limit: 10,
+        where: { name:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'some%Name' }] },
+        },
+      };
+
+      fu.applyLimitIfUniqueField(opts, props);
+      expect(opts).to.deep.equal({
+        limit: 10,
+        where: { name:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'some%Name' }] },
+        },
+      });
+    });
   });
 });
