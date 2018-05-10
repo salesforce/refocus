@@ -58,6 +58,7 @@ describe('tests/api/v1/generators/post.js >', () => {
 
       expect(res.body.apiLinks).to.be.an('Array');
       expect(res.body.name).to.include(generator.name);
+      expect(res.body).to.have.property('intervalSecs', 60);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
 
