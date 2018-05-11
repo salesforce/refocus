@@ -70,6 +70,35 @@ describe('tests/api/v1/generators/post.js >', () => {
     });
   });
 
+  it('OK, post with intervalSecs', (done) => {
+    const g = u.getGenerator();
+    g.name = g.name + 'intsec';
+    g.intervalSecs = 100;
+    u.createSGtoSGTMapping(generatorTemplate, g);
+    api.post(path)
+    .set('Authorization', token)
+    .send(g)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        console.log(err);
+        return done(err);
+      }
+
+      expect(res.body.apiLinks).to.be.an('Array');
+      expect(res.body.name).to.include(g.name);
+      expect(res.body).to.have.property('intervalSecs', 100);
+      expect(res.body.id).to.not.equal(undefined);
+      expect(res.body).to.have.any.keys(Object.keys(g));
+
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
+      done();
+    });
+  });
+
   it('simple post without required fields', (done) => {
     const g = JSON.parse(JSON.stringify(generator));
     delete g.name;
