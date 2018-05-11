@@ -9,13 +9,14 @@
 /**
  * api/v1/helpers/verbs/findUtils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const u = require('./utils');
 const get = require('just-safe-get');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
 const ZERO = 0;
 const ONE = 1;
+const MINUS_ONE = -1;
 const RADIX = 10;
 
 /**
@@ -248,6 +249,52 @@ function toSequelizeOrder(sortOrder) {
 } // toSequelizeOrder
 
 /**
+ * Check for unique field in opts. If unique field is present, there are
+ * following cases:
+ * 1) Unique field have single value - set limit to 1
+ *    Eg: opts = { where: { $iLike: { uniqField: 'someValue' } } };
+ * 2) Unique field can have multiple values - set limit to the number of values
+ *    Eg: opts = { where: { uniqField:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+        } };
+ * 3) Unique field have single wildcard value - limit unchanged
+      Eg: opts = { where: { $iLike: { uniqField: '%someValue%' } } };
+ * 4) Unique field have multiple values one of which is wildcard value -
+ *    limit unchanged
+ *    Eg: opts = { where: { uniqField:
+          { $or: [{ $iLike: 'someName1' }, { $iLike: '%someName%' }] },
+        } };
+ * It is assumed that each field value will have $iLike operator applied.
+ * @param  {Object} opts - Query options object
+ * @param  {Object} props - The helpers/nouns module for the given DB model
+ */
+function applyLimitIfUniqueField(opts, props) {
+  const uniqueFieldName = props.nameFinder || 'name';
+  if (opts.where && opts.where[uniqueFieldName]) {
+    const optsWhereOR = opts.where[uniqueFieldName][constants.SEQ_OR];
+    if (optsWhereOR && Array.isArray(optsWhereOR)) { // multiple values
+      let isWildCardExp = false;
+      optsWhereOR.forEach((orObj) => {
+        if (orObj[constants.SEQ_LIKE] &&
+         orObj[constants.SEQ_LIKE].indexOf('%') > MINUS_ONE) {
+          isWildCardExp = true;
+        }
+      });
+
+      if (!isWildCardExp) { // if no wildcard value, set limit to no. of values
+        opts.limit = optsWhereOR.length;
+      }
+    }
+
+    // single value
+    const optsWhereFieldLike = opts.where[uniqueFieldName][constants.SEQ_LIKE];
+    if (optsWhereFieldLike && optsWhereFieldLike.indexOf('%') < ZERO) {
+      opts.limit = 1; // set limit to 1 if no wildcard value
+    }
+  }
+}
+
+/**
  * Builds the "options" object to pass intto the Sequelize find command.
  *
  * @param {Object} params - The request params
@@ -295,6 +342,8 @@ function options(params, props) {
     if (props.modifyWhereClause) {
       props.modifyWhereClause(params, opts);
     }
+
+    applyLimitIfUniqueField(opts, props);
   }
 
   return opts;
@@ -319,4 +368,5 @@ module.exports = {
   getNextUrl,
   options,
   toSequelizeWildcards, // for testing
+  applyLimitIfUniqueField, // for testing
 }; // exports
