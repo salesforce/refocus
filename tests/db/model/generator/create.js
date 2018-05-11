@@ -59,6 +59,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.context).to.deep.equal(generator.context);
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);
+      expect(o.intervalSecs).to.equal(60);
       expect(o.createdBy).to.equal(generator.createdBy);
       expect(o.isActive).to.equal(false);
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
@@ -169,44 +170,6 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, with both subjects and subjectQuery present in ' +
-    'the generator schema', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    _generator.subjects = ['Asia, America'];
-    _generator.subjectQuery = '?absolutePath=Foo.*';
-    _generator.name += 'bothSubSUbQPresent';
-    Generator.create(_generator)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
-    .catch((err) => {
-      expect(err.message)
-      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
-      expect(err.name).to.contain('SequelizeValidationError');
-      expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
-      done();
-    });
-  });
-
-  it('not ok, when both subjects and subjectQuery are not in ' +
-    'generator schema', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    delete _generator.subjects;
-    delete _generator.subjectQuery;
-    _generator.name += 'bothSubSubQNotPresent';
-    Generator.create(_generator)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
-    .catch((err) => {
-      expect(err.message)
-      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
-      expect(err.name).to.contain('SequelizeValidationError');
-      expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
-      done();
-    });
-  });
-
   it('not ok, cannot create a generator without a matching generator' +
     ' template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
@@ -223,8 +186,8 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator without a providing fields required' +
-    'by the generator template contextDefinition ', (done) => {
+  it('not ok, cannot create a generator without providing fields required ' +
+    'by the generator template contextDefinition', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     const _generatorTemplate = gtUtil.getGeneratorTemplate();
     _generatorTemplate.name = 'ExtraRequiredField';
@@ -247,7 +210,7 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator with null context when context fields' +
+  it('not ok, cannot create a generator with null context when context fields ' +
     'are marked required by the contextDefinition in the template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.name = 'WithoutContextField';
@@ -296,7 +259,7 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator with encrypted filed ' +
+  it('not ok, cannot create a generator with encrypted field ' +
     'when key/algo not found in global config', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.generatorTemplate.name = gtWithEncryption.name;

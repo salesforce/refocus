@@ -68,6 +68,14 @@ module.exports = function generator(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
+    intervalSecs: {
+      type: dataTypes.INTEGER,
+      defaultValue: 60,
+      validate: {
+        isInt: true,
+        min: 1,
+      },
+    },
     isDeleted: {
       type: dataTypes.BIGINT,
       defaultValue: 0,

@@ -158,6 +158,21 @@ describe('tests/api/v1/generators/get.js >', () => {
     });
   });
 
+  it('Simple GET with name and fields=intervalSecs', (done) => {
+    api.get(`${path}/${generatorCritical.name}?fields=intervalSecs`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(generatorCritical.name);
+      expect(res.body).to.have.property('intervalSecs', 60);
+      done();
+    });
+  });
+
   it('Simple GET with name in lowercase', (done) => {
     api.get(`${path}/${generatorInfo.name.toLowerCase()}`)
     .set('Authorization', token)
