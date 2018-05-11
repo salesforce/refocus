@@ -11671,6 +11671,10 @@ definitions:
         readOnly: true
         description: >
           The collector id.
+      intervalSecs:
+        type: integer
+        description: >-
+          Interval (seconds) between each collection.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -11986,6 +11990,7 @@ parameters:
         - helpEmail
         - helpUrl
         - id
+        - intervalSecs
         - name
         - updatedAt
         - currentCollector

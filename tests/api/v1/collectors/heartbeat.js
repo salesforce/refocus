@@ -133,7 +133,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       .catch(done);
     });
 
-    describe('validation', () => {
+    describe('validation >', () => {
       it('no token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .send({ timestamp: Date.now() })
@@ -233,7 +233,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
     });
 
-    describe('return collector status in heartbeat', () => {
+    describe('return collector status in heartbeat >', () => {
       const _localCollector = u.getCollectorToCreate();
       _localCollector.name += 'collectorForStateChange';
 
@@ -293,7 +293,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       describe('make sure updating a nonexistent collector doesnt modify ' +
-      'the collectorMap', () => {
+      'the collectorMap >', () => {
         const collector4 = u.getCollectorToCreate();
         collector4.name += '4';
         afterEach((done) => {
@@ -1100,6 +1100,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           return u.postGenerator(generator2, userToken, [collector1])
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
+            expect(res.body.generatorsAdded[0])
+              .to.have.property('intervalSecs', 60);
             const reencryptedSG = res.body.generatorsAdded[0];
             expect(reencryptedSG.token).to.be.a('string');
             done();
