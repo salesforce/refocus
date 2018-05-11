@@ -160,6 +160,18 @@ module.exports = function aspect(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Aspect.addScope('nameLike', (value) => ({
+          where: {
+            name: { $iLike: value },
+          },
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
+        }));
       },
     },
     hooks: {

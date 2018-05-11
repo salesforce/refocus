@@ -153,6 +153,21 @@ module.exports = function subject(seq, dataTypes) {
         }, {
           override: true,
         });
+
+        Subject.addScope('absPathLike', (value) => ({
+          where: {
+            absolutePath: { $iLike: value },
+          },
+          attributes: ['id', 'name', 'tags', 'absolutePath'],
+        }));
+
+        Subject.addScope('idsIn', (values) => ({
+          where: {
+            id: { $in: values },
+          },
+          attributes: ['id', 'name', 'tags', 'absolutePath'],
+        }));
+
         Subject.addScope('id', (value) => ({
           where: {
             id: value,
