@@ -3251,6 +3251,7 @@ paths:
               - subjectQuery
               - createdAt
               - description
+              - intervalSecs
               - name
               - currentCollector
               - updatedAt
@@ -3260,6 +3261,7 @@ paths:
               - -subjectQuery
               - -createdAt
               - -description
+              - -intervalSecs
               - -name
               - -updatedAt
               - -currentCollector
@@ -3286,6 +3288,12 @@ paths:
           type: boolean
           description: >-
             Filter by whether or not the generator is running on a collector.
+        -
+          name: intervalSecs
+          in: query
+          type: integer
+          description: >-
+            Interval (seconds) between each collection.
         -
           name: name
           in: query
@@ -3387,6 +3395,12 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the Generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 description: A unique and descriptive name for your Generator.
@@ -3532,6 +3546,12 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 readOnly: true
@@ -3648,6 +3668,12 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 readOnly: true
@@ -11559,6 +11585,10 @@ definitions:
         readOnly: true
         description: >
           The collector id.
+      intervalSecs:
+        type: integer
+        description: >-
+          Interval (seconds) between each collection.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -11641,6 +11671,10 @@ definitions:
         readOnly: true
         description: >
           The collector id.
+      intervalSecs:
+        type: integer
+        description: >-
+          Interval (seconds) between each collection.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -11956,6 +11990,7 @@ parameters:
         - helpEmail
         - helpUrl
         - id
+        - intervalSecs
         - name
         - updatedAt
         - currentCollector

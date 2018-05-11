@@ -229,6 +229,32 @@ describe('tests/db/model/generator/update.js >', () => {
     });
   });
 
+  it('not ok, invalid negative intervalSecs', (done) => {
+    generatorDBInstance.update({
+      intervalSecs: -1,
+    })
+    .then(() => done(new Error('Expecting Validation Error')))
+    .catch((err) => {
+      expect(err.message).to.contain('Validation error: Validation min failed');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors.length).to.equal(1);
+      done();
+    });
+  });
+
+  it('not ok, invalid non-integer intervalSecs', (done) => {
+    generatorDBInstance.update({
+      intervalSecs: 'abcd',
+    })
+    .then(() => done(new Error('Expecting Validation Error')))
+    .catch((err) => {
+      expect(err.message).to.contain('Validation error: Validation isInt failed');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors.length).to.equal(1);
+      done();
+    });
+  });
+
   it('not ok, cannot switch to a generatorTemplate that has encrypted ' +
     'fields when global config key and algo pair is not set', (done) => {
     generatorDBInstance.update({
