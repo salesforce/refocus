@@ -45,20 +45,32 @@ module.exports = function token(seq, dataTypes) {
       postImport(models) {
         assoc.createdBy = Token.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
-        Token.addScope('defaultScope',
-          {
-            include: [
-              {
-                association: assoc.createdBy,
-              },
-            ],
-            order: ['Token.name'],
-          },
-          {
-            override: true,
-          }
-        );
+
+        Token.addScope('baseScope', {
+          order: ['Token.name'],
+        });
+
+        Token.addScope('defaultScope', {
+          include: [
+            {
+              association: assoc.createdBy,
+              attributes: ['name', 'email'],
+            },
+          ],
+          order: ['Token.name'],
+        }, {
+          override: true,
+        });
+
+        Token.addScope('user', {
+          include: [
+            {
+              association: assoc.createdBy,
+            },
+          ],
+        });
       },
     },
     hooks: {

@@ -169,6 +169,10 @@ module.exports = function generator(seq, dataTypes) {
           foreignKey: 'generatorId',
         });
 
+        Generator.addScope('baseScope', {
+          order: ['name'],
+        });
+
         Generator.addScope('defaultScope', {
           include: [
             {
@@ -191,6 +195,32 @@ module.exports = function generator(seq, dataTypes) {
           order: ['name'],
         }, {
           override: true,
+        });
+
+        Generator.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
+        });
+
+        Generator.addScope('collectors', {
+          include: [
+            {
+              association: assoc.collectors,
+              attributes: [
+                'id',
+                'name',
+                'registered',
+                'status',
+                'isDeleted',
+                'createdAt',
+                'updatedAt',
+              ],
+            },
+          ],
         });
       },
 
