@@ -36,6 +36,9 @@ module.exports = {
   fieldsWithArrayType,
   fieldsWithJsonArrayType,
   fieldsWithEnum,
+  fieldScopeMap: {
+    user: 'user',
+  },
   tagFilterName: 'tags',
   readOnlyFields: ['id', 'isDeleted'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],

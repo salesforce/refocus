@@ -33,5 +33,8 @@ module.exports = {
   },
   fieldsWithArrayType: ['tags'],
   tagFilterName: 'tags',
+  fieldScopeMap: {
+    user: 'user',
+  },
 }; // exports
 

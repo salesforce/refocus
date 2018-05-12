@@ -25,4 +25,7 @@ module.exports = {
   model: Token,
   modelName: 'Token',
   stringify: ['isRevoked'],
+  fieldScopeMap: {
+    user: 'user',
+  },
 }; // exports
