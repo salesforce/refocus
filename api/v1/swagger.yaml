@@ -3496,6 +3496,8 @@ paths:
           description: The id or key of the generator to retrieve.
           required: true
           type: string
+        -
+          $ref: "#/parameters/GeneratorFieldsParam"
       responses:
         200:
           description: Success, returns the specified generator.
@@ -11950,6 +11952,7 @@ parameters:
         - valueLabel
         - valueType
         - warningRange
+        - user
 
   AuditEventsFieldsParam:
     name: fields
@@ -11994,6 +11997,8 @@ parameters:
         - name
         - updatedAt
         - currentCollector
+        - user
+        - collectors
 
   GeneratorTemplateFieldsParam:
     name: fields
@@ -12019,6 +12024,7 @@ parameters:
         - contextDefinition
         - transform
         - isPublished
+        - user
 
   LensesFieldsParam:
     name: fields
@@ -12046,6 +12052,7 @@ parameters:
         - thumbnailUrl
         - updatedAt
         - version
+        - user
 
   PerspectivesFieldsParam:
     name: fields
@@ -12073,6 +12080,8 @@ parameters:
         - subjectTagFilter
         - subjectTagFilterType
         - updatedAt
+        - user
+        - lens
 
   ProfilesFieldsParam:
     name: fields
@@ -12157,6 +12166,7 @@ parameters:
         - parentId
         - relatedLinks
         - updatedAt
+        - user
 
   TokensFieldsParam:
     name: fields
@@ -12171,6 +12181,7 @@ parameters:
       enum:
         - name
         - isRevoked
+        - user
 
   UsersFieldsParam:
     name: fields
@@ -12191,6 +12202,7 @@ parameters:
         - createdAt
         - sso
         - updatedAt
+        - profile
 
 # =============================================================================
 responses:
