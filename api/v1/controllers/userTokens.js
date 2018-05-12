@@ -29,11 +29,11 @@ function whereClauseForUser(userNameOrId) {
      * need to use '$table.field$' for association fields. User IDs in the url
      * are case-sensitve.
      */
-    whr.where = { '$User.id$': {} };
-    whr.where['$User.id$'] = userNameOrId;
+    whr.where = { '$user.id$': {} };
+    whr.where['$user.id$'] = userNameOrId;
   } else {
-    whr.where = { '$User.name$': {} };
-    whr.where['$User.name$'][cnstnts.SEQ_LIKE] = userNameOrId;
+    whr.where = { '$user.name$': {} };
+    whr.where['$user.name$'][cnstnts.SEQ_LIKE] = userNameOrId;
   }
 
   return whr;
@@ -80,7 +80,7 @@ module.exports = {
         throw err;
       }
 
-      if (token.name === token.User.name) { // Default token cannot be deleted!
+      if (token.name === token.user.name) { // Default token cannot be deleted!
         throw new apiErrors.ForbiddenError({
           explanation: 'Forbidden.',
         });
