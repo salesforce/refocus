@@ -50,7 +50,7 @@ describe(`tests/api/v1/generatorTemplates/associations.js, GET ${path} >`, () =>
   const schema = {
     user: Joi.object().keys({
       name: Joi.string().required(),
-      fullName: Joi.string().optional(),
+      fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
         name: Joi.string().required(),
