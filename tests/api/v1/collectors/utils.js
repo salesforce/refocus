@@ -29,15 +29,15 @@ const collectorToCreate =  {
 const expectedProps = [
   'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
   'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
-  'helpEmail', 'helpUrl', 'id', 'isActive', 'isDeleted', 'name', 'subjectQuery',
-  'subjects', 'tags', 'token', 'updatedAt', 'user',
+  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
+  'subjectQuery', 'subjects', 'tags', 'token', 'updatedAt', 'user',
 ];
 
 const expectedPropsDel = [
   'aspects', 'collectors', 'connection', 'context', 'createdAt', 'createdBy',
   'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
-  'helpEmail', 'helpUrl', 'id', 'isActive', 'isDeleted', 'name', 'subjectQuery',
-  'subjects', 'tags', 'updatedAt', 'user',
+  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
+  'subjectQuery', 'subjects', 'tags', 'updatedAt', 'user',
 ];
 
 const expectedCtxProps = ['password', 'secretInformation',
