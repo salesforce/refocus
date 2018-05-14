@@ -10,9 +10,6 @@
  * tests/api/v1/generators/associations.js
  */
 'use strict';
-const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -66,23 +63,24 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   const associations = ['user', 'collectors'];
   const schema = {
     user: Joi.object().keys({
-      name: Joi.string(),
-      email: Joi.string(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional(),
+      email: Joi.string().required(),
       profile: Joi.object().keys({
-        name: Joi.string(),
-      }),
+        name: Joi.string().required(),
+      }).required(),
     }),
-    collectors: Joi.array().items(
+    collectors: Joi.array().length(1).items(
       Joi.object().keys({
-        id: Joi.string(),
-        name: Joi.string(),
-        registered: Joi.boolean(),
-        status: Joi.string(),
-        isDeleted: Joi.string(),
-        createdAt: Joi.string(),
-        updatedAt: Joi.string(),
-        GeneratorCollectors: Joi.object(),
-      })
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+        registered: Joi.boolean().required(),
+        status: Joi.string().required(),
+        isDeleted: Joi.string().required(),
+        createdAt: Joi.string().required(),
+        updatedAt: Joi.string().required(),
+        GeneratorCollectors: Joi.object().required(),
+      }),
     ),
   };
 

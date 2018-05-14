@@ -15,7 +15,6 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Token = tu.db.Token;
 const User = tu.db.User;
 const expect = require('chai').expect;
@@ -63,14 +62,13 @@ describe(`tests/api/v1/tokens/associations.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['createdBy'];
   const joiSchema = {
     user: Joi.object().keys({
-      name: Joi.string(),
-      email: Joi.string(),
+      name: Joi.string().required(),
+      email: Joi.string().required(),
       profile: Joi.object().keys({
-        name: Joi.string(),
-      }),
+        name: Joi.string().required(),
+      }).required(),
     }),
   };
 

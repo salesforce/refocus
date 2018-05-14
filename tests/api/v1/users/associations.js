@@ -10,8 +10,6 @@
  * tests/api/v1/users/associations.js
  */
 'use strict';
-const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const testAssociations = require('../common/testAssociations.js').testAssociations;
@@ -40,8 +38,8 @@ describe(`tests/api/v1/users/associations.js, GET ${path} >`, () => {
   const associations = ['profile'];
   const schema = {
     profile: Joi.object().keys({
-      name: Joi.string(),
-    }),
+      name: Joi.string().required(),
+    }).required(),
   };
 
   testAssociations(path, associations, schema, conf);
