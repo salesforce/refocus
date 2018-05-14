@@ -70,6 +70,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    localGenerator.currentCollector = collector1.name;
 
     Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
     .then((o) => {
@@ -94,6 +95,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getCollectors).to.equal('function');
+      expect(o.currentCollector).to.equal(collector1.name);
       done();
     })
     .catch(done);

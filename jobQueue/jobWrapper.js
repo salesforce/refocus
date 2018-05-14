@@ -127,7 +127,7 @@ function logJobOnComplete(req, job) {
 
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
 
-      /**
+      /*
        * we already set UserName and TokenName in req headers when verifying
        * token
        */
@@ -141,24 +141,27 @@ function logJobOnComplete(req, job) {
 }
 
 /**
- * Prioritize jobs based on job type, size, and ip address.
+ * Prioritize jobs based on user name, token name or ip address.
  *
- * @param {String} jobName - the type of the job
- * @param {Object} data - the job payload
+ * @param {Array} prioritize - array of user names, token names and/or ip
+ *  addresses to prioritize
+ * @param {Array} deprioritize - array of user names, token names and/or ip
+ *  addresses to deprioritize
  * @param {Object} req - the request object
  * @returns {String} kue priority
  */
-function calculateJobPriority(jobName, data, req) {
+function calculateJobPriority(prioritize, deprioritize, req) {
   // low=10, normal=0, medium=-5, high=-10, critical=-15
-  const ipAddress = activityLogUtil.getIPAddrFromReq(req);
-  if (conf.prioritizeJobsFrom.includes(ipAddress)) {
-    return 'high';
-  }
-
-  if (conf.deprioritizeJobsFrom.includes(ipAddress)) {
-    return 'low';
-  }
-
+  if (!req) return 'normal';
+  const ip = activityLogUtil.getIPAddrFromReq(req);
+  const un = req.headers.UserName || '';
+  const tn = req.headers.TokenName || '';
+  if (prioritize.includes(ip) ||
+    prioritize.includes(un) ||
+    prioritize.includes(tn)) return 'high';
+  if (deprioritize.includes(ip) ||
+    deprioritize.includes(un) ||
+    deprioritize.includes(tn)) return 'low';
   return 'normal';
 } // calculateJobPriority
 
@@ -174,7 +177,8 @@ function calculateJobPriority(jobName, data, req) {
  *  jobQueue is created in the test mode.
  */
 function createPromisifiedJob(jobName, data, req) {
-  const jobPriority = calculateJobPriority(jobName, data, req);
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     console.log('[KJI] Entered ' + // eslint-disable-line no-console
       `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
@@ -210,7 +214,8 @@ function createPromisifiedJob(jobName, data, req) {
  *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
-  const jobPriority = calculateJobPriority(jobName, data, req);
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     console.log('[KJI] Entered ' + // eslint-disable-line no-console
       `jobWrapper.js createJob: jobName=${jobName} ` +
@@ -234,9 +239,10 @@ function createJob(jobName, data, req) {
 } // createJob
 
 module.exports = {
-  jobQueue,
+  calculateJobPriority, // export for testing only
   createJob,
   createPromisifiedJob,
-  mapJobResultsToLogObject,
+  jobQueue,
   logJobOnComplete,
+  mapJobResultsToLogObject,
 }; // exports

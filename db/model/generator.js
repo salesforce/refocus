@@ -68,6 +68,14 @@ module.exports = function generator(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
+    intervalSecs: {
+      type: dataTypes.INTEGER,
+      defaultValue: 60,
+      validate: {
+        isInt: true,
+        min: 1,
+      },
+    },
     isDeleted: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
@@ -87,6 +95,11 @@ module.exports = function generator(seq, dataTypes) {
     },
     subjectQuery: {
       type: dataTypes.STRING,
+      validate: {
+        validateSQ(value) {
+          sgUtils.validateSubjectQuery(value);
+        },
+      },
     },
     subjects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
@@ -326,7 +339,7 @@ module.exports = function generator(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
          sgUtils.validateCollectors(seq, requestBody.collectors,
             whereClauseForNameInArr)
-          .then((_collectors) => {
+          .then((_collectors) => { // collectors list in request body
             collectors = _collectors;
             return this.update(requestBody);
           })
@@ -373,5 +386,6 @@ module.exports = function generator(seq, dataTypes) {
     },
     paranoid: true,
   });
+
   return Generator;
 };

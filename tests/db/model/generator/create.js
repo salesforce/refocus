@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
+const gUtil = require('../../../../db/helpers/generatorUtil');
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
@@ -58,6 +59,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.context).to.deep.equal(generator.context);
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);
+      expect(o.intervalSecs).to.equal(60);
       expect(o.createdBy).to.equal(generator.createdBy);
       expect(o.isActive).to.equal(false);
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
@@ -168,44 +170,6 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, with both subjects and subjectQuery present in ' +
-    'the generator schema', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    _generator.subjects = ['Asia, America'];
-    _generator.subjectQuery = '?absolutePath=Foo.*';
-    _generator.name += 'bothSubSUbQPresent';
-    Generator.create(_generator)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
-    .catch((err) => {
-      expect(err.message)
-      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
-      expect(err.name).to.contain('SequelizeValidationError');
-      expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
-      done();
-    });
-  });
-
-  it('not ok, when both subjects and subjectQuery are not in ' +
-    'generator schema', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    delete _generator.subjects;
-    delete _generator.subjectQuery;
-    _generator.name += 'bothSubSubQNotPresent';
-    Generator.create(_generator)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
-    .catch((err) => {
-      expect(err.message)
-      .to.contain('Only one of ["subjects", "subjectQuery"] is required');
-      expect(err.name).to.contain('SequelizeValidationError');
-      expect(err.errors[0].path).to.equal('eitherSubjectsORsubjectQuery');
-      done();
-    });
-  });
-
   it('not ok, cannot create a generator without a matching generator' +
     ' template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
@@ -222,8 +186,8 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator without a providing fields required' +
-    'by the generator template contextDefinition ', (done) => {
+  it('not ok, cannot create a generator without providing fields required ' +
+    'by the generator template contextDefinition', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     const _generatorTemplate = gtUtil.getGeneratorTemplate();
     _generatorTemplate.name = 'ExtraRequiredField';
@@ -246,7 +210,7 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator with null context when context fields' +
+  it('not ok, cannot create a generator with null context when context fields ' +
     'are marked required by the contextDefinition in the template', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.name = 'WithoutContextField';
@@ -295,7 +259,7 @@ describe('tests/db/model/generator/create.js >', () => {
     });
   });
 
-  it('not ok, cannot create a generator with encrypted filed ' +
+  it('not ok, cannot create a generator with encrypted field ' +
     'when key/algo not found in global config', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.generatorTemplate.name = gtWithEncryption.name;
@@ -412,6 +376,69 @@ describe('tests/db/model/generator/create.js >', () => {
         done();
       })
       .catch(done);
+    });
+  });
+
+  describe('subjectQuery validation', () => {
+    it('valid subjectQuery', (done) => {
+      const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
+      const returnSubjectQuery = gUtil.validateSubjectQuery(subjectQuery);
+      expect(subjectQuery).to.equal(returnSubjectQuery);
+
+      done();
+    });
+
+    it('invalid subjectQuery missing ? at start', (done) => {
+      const subjectQuery = '?absolutePath=Foo*&name=b*?tags=-T1,-T2';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('length of subjectQuery should be greater than 6', (done) => {
+      const subjectQuery = '?abso';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('format of subjectQuery is "?<key>=<value>"', (done) => {
+      const subjectQuery = '?absolutePath:abc';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
+    });
+
+    it('Wildcard "*" is prohibited in the subjectQuery for "tag" filters',
+      (done) => {
+      const subjectQuery = '?tags=abc*';
+
+      try {
+        const x = gUtil.validateSubjectQuery(subjectQuery);
+      } catch (err) {
+        expect(err.message).to.equal('subjectQuery ValidationError');
+        expect(err.name).to.equal('ValidationError');
+
+        done();
+      }
     });
   });
 

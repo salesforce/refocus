@@ -58,8 +58,38 @@ describe('tests/api/v1/generators/post.js >', () => {
 
       expect(res.body.apiLinks).to.be.an('Array');
       expect(res.body.name).to.include(generator.name);
+      expect(res.body).to.have.property('intervalSecs', 60);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
+
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
+      done();
+    });
+  });
+
+  it('OK, post with intervalSecs', (done) => {
+    const g = u.getGenerator();
+    g.name = g.name + 'intsec';
+    g.intervalSecs = 100;
+    u.createSGtoSGTMapping(generatorTemplate, g);
+    api.post(path)
+    .set('Authorization', token)
+    .send(g)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        console.log(err);
+        return done(err);
+      }
+
+      expect(res.body.apiLinks).to.be.an('Array');
+      expect(res.body.name).to.include(g.name);
+      expect(res.body).to.have.property('intervalSecs', 100);
+      expect(res.body.id).to.not.equal(undefined);
+      expect(res.body).to.have.any.keys(Object.keys(g));
 
       // aspect names are saved lowercase
       expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
@@ -86,6 +116,25 @@ describe('tests/api/v1/generators/post.js >', () => {
       expect(errorArray.length).to.equal(2);
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
       done();
+    });
+  });
+
+  it('error, post with currentCollector, read only', (done) => {
+    generator.currentCollector = 'some-collector';
+    api.post(path)
+    .set('Authorization', token)
+    .send(generator)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
     });
   });
 

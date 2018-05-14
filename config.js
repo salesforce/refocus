@@ -106,10 +106,10 @@ const JOB_COUNTER_RESET_INTERVAL = 60 * 1000 *
 
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
- * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of ip addresses if
- * you want to prioritize or deprioritize jobs from a particular user ip
- * address (or multiple users' ip addresses). Has no effect if you're not
- * using worker dynos.
+ * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of user names, token
+ * names or ip addresses if you want to prioritize or deprioritize jobs from
+ * particular users and/or tokens and/or ip addresses. Has no effect if you're
+ * not using worker dynos.
  */
 const prioritizeJobsFrom = configUtil.csvToArray(pe.PRIORITIZE_JOBS_FROM);
 const deprioritizeJobsFrom = configUtil.csvToArray(pe.DEPRIORITIZE_JOBS_FROM);
@@ -271,6 +271,7 @@ module.exports = {
     DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
+  pubStatsLogsIntervalMillis: +pe.PUB_STATS_LOGS_INTERVAL_MILLIS || 60000,
   queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,

@@ -3251,7 +3251,9 @@ paths:
               - subjectQuery
               - createdAt
               - description
+              - intervalSecs
               - name
+              - currentCollector
               - updatedAt
               - -isActive
               - -aspects
@@ -3259,8 +3261,10 @@ paths:
               - -subjectQuery
               - -createdAt
               - -description
+              - -intervalSecs
               - -name
               - -updatedAt
+              - -currentCollector
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3285,6 +3289,12 @@ paths:
           description: >-
             Filter by whether or not the generator is running on a collector.
         -
+          name: intervalSecs
+          in: query
+          type: integer
+          description: >-
+            Interval (seconds) between each collection.
+        -
           name: name
           in: query
           type: string
@@ -3294,8 +3304,10 @@ paths:
           name: subjectQuery
           in: query
           type: string
+          minLength: 7
+          maxLength: 4096
           description: >-
-            Filter by the query to append to GET subjects; asterisk (*) wildcards ok.
+            Filter by the query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
         -
           name: subjects
           in: query
@@ -3331,6 +3343,13 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: currentCollector
+          in: query
+          type: string
+          description: >-
+            Filter by the name of current collector assigned to the generator.
+          maxLength: 60
       responses:
         200:
           description: >-
@@ -3376,12 +3395,20 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the Generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 description: A unique and descriptive name for your Generator.
               subjectQuery:
                 type: string
-                description: The query to append to GET subjects. Either specify this or subjects field.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               collectors:
                  description: List of collectors this Sample Generator should try to use.
                  type: array
@@ -3519,6 +3546,12 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 readOnly: true
@@ -3526,7 +3559,9 @@ paths:
               subjectQuery:
                 type: string
                 readOnly: true
-                description: The query to append to GET subjects.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               subjects:
                 description: AbsolutePaths of the subjects.
                 type: array
@@ -3554,6 +3589,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              currentCollector:
+                type: string
+                readOnly: true
+                description: >-
+                  Filter by the name of current collector assigned to the generator.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -3628,6 +3668,12 @@ paths:
                 maxLength: 2082
                 description: >-
                   The url where a user can go to get more help about the generator.
+              intervalSecs:
+                type: integer
+                minimum: 1
+                default: 60
+                description: >-
+                  Interval (seconds) between each collection.
               name:
                 type: string
                 readOnly: true
@@ -3635,7 +3681,9 @@ paths:
               subjectQuery:
                 type: string
                 readOnly: true
-                description: The query to append to GET subjects.
+                minLength: 7
+                maxLength: 4096
+                description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
               subjects:
                 description: AbsolutePaths of the subjects.
                 type: array
@@ -3663,6 +3711,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
+              currentCollector:
+                type: string
+                readOnly: true
+                description: >-
+                  Filter by the name of current collector assigned to the generator.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -11532,6 +11585,10 @@ definitions:
         readOnly: true
         description: >
           The collector id.
+      intervalSecs:
+        type: integer
+        description: >-
+          Interval (seconds) between each collection.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -11542,7 +11599,9 @@ definitions:
       subjectQuery:
         type: string
         readOnly: true
-        description: The query to append to GET subjects.
+        minLength: 7
+        maxLength: 4096
+        description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
       collectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
@@ -11575,6 +11634,10 @@ definitions:
         type: object
         description: >
           Variables accessible inside the transform function.
+      currentCollector:
+        type: string
+        description: Name of current collector assigned to the generator.
+        maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -11608,6 +11671,10 @@ definitions:
         readOnly: true
         description: >
           The collector id.
+      intervalSecs:
+        type: integer
+        description: >-
+          Interval (seconds) between each collection.
       isActive:
         type: boolean
         description: Whether or not the generator is running on a collector.
@@ -11618,7 +11685,9 @@ definitions:
       subjectQuery:
         type: string
         readOnly: true
-        description: The query to append to GET subjects.
+        minLength: 7
+        maxLength: 4096
+        description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
       collectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
@@ -11651,6 +11720,10 @@ definitions:
         type: object
         description: >
           Variables accessible inside the transform function.
+      currentCollector:
+        type: string
+        description: Name of current collector assigned to the generator.
+        maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -11917,8 +11990,10 @@ parameters:
         - helpEmail
         - helpUrl
         - id
+        - intervalSecs
         - name
         - updatedAt
+        - currentCollector
 
   GeneratorTemplateFieldsParam:
     name: fields
