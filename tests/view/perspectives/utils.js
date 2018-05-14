@@ -16,6 +16,7 @@ import { getArray,
   getConfig,
   filteredArray,
   getOptions,
+  getTagsFromArrays,
 } from '../../../view/perspective/utils';
 
 const ZERO = 0;
@@ -127,6 +128,54 @@ describe('tests/view/perspectives/utils.js, Config perspective functions >',
       );
       // input is in decreasing order
       expect(published[ZERO]).to.equal(NUM);
+    });
+  });
+
+  describe('getTagsFromArrays >', () => {
+    it('not an array', () => {
+      const tags = getTagsFromArrays('not-an-arr');
+      expect(tags.length).to.equal(0);
+    });
+
+    it('null array', () => {
+      const tags = getTagsFromArrays();
+      expect(tags.length).to.equal(0);
+    });
+
+    it('empty array', () => {
+      const tags = getTagsFromArrays([]);
+      expect(tags.length).to.equal(0);
+    });
+
+    it('array with one object having one tag', () => {
+      const arr = [{ tags: ['tag1'] }];
+      const tags = getTagsFromArrays(arr);
+      expect(tags.length).to.equal(1);
+      expect(tags).to.deep.equal(['tag1']);
+    });
+
+    it('array with one object having multiple tags', () => {
+      const arr = [{ tags: ['tag1', 'tag2'] }];
+      const tags = getTagsFromArrays(arr);
+      expect(tags.length).to.equal(2);
+      expect(tags).to.deep.equal(['tag1', 'tag2']);
+    });
+
+    it('array with one object having duplicate tags', () => {
+      const arr = [{ tags: ['tag1', 'tag1'] }];
+      const tags = getTagsFromArrays(arr);
+      expect(tags.length).to.equal(1);
+      expect(tags).to.deep.equal(['tag1']);
+    });
+
+    it('array with multiple objects having tags, result sorted', () => {
+      const arr = [
+        { tags: ['tag2', 'tag1'] },
+        { tags: ['tag2', 'tag4', 'tag3'] },
+      ];
+      const tags = getTagsFromArrays(arr);
+      expect(tags.length).to.equal(4);
+      expect(tags).to.deep.equal(['tag1', 'tag2', 'tag3', 'tag4']);
     });
   });
 });
