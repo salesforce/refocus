@@ -43,13 +43,11 @@ Refocus is a driver of innovation and platform for innovation. We need to foster
 |Method |Q1 |Q2 |Q3 |Q4 |
 |---    |---    |---    |---    |---    |
 |1) Reliability |Improved logging   |Enhanced Monitoring    |Robust Testing Framework with code coverage above 95% and Continuous Deployment    |Availability Monitoring with the Service Health Dashboard  |
-|2) Scale   |Get median hierarchy load times below 5 seconds consistently   |Support 100 million samples per day    |Support 200 Million samples per day (baseline 36 Million)
-and double the number of API requests (baseline: 200,000)   |600 Weekly Active Users (baseline 480) |
+|2) Scale   |Get median hierarchy load times below 5 seconds consistently   |Support 100 million samples per day    |Support 200 Million samples per day (baseline 36 Million) and double the number of API requests (baseline: 200,000)   |600 Weekly Active Users (baseline 480) |
 |3) Security    |-  |Assess risks using "Threat Monitoring" |Mitigate Security Issues   |-  |
 |4) IMC |Launch IMC |Manually create Incidents from Refocus |-  |-  |
 |5) Easy Integration    |All Focus Metrics run on Collectors    |Focus is decommissioned and collectors are GA  |-  |30 Aspects use collectors  |
 |6) Unified UX  |UX Wireframes and Personas |UX Prototype   |Start UX implementation    |Net Promoter score >60 & Perspectives can have user defined preferences    |
 |7) API |-  |-  |Expose the real-time API   |Bulk API for Subjects  |
-|8) Sharing |3 Quarterly Updates (customer stories, metrics, etc)   |3 Quarterly Updates (customer stories, metrics, etc) & Velocity Conference hands on session    |3 Quarterly Updates (customer stories, metrics, etc)
-Explore Github Issues   |3 Quarterly Updates (customer stories, metrics, etc)   |
+|8) Sharing |3 Quarterly Updates (customer stories, metrics, etc)   |3 Quarterly Updates (customer stories, metrics, etc) & Velocity Conference hands on session    |3 Quarterly Updates (customer stories, metrics, etc) and Explore Github Issues   |3 Quarterly Updates (customer stories, metrics, etc)   |
 
