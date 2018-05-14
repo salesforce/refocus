@@ -5,6 +5,12 @@ title: Refocus V2MOM (Plan) 2018
 
 # Refocus V2MOM 2018 (Vision, Values, Methods, Obstacles, Metrics)
 
+## What is a V2MOM?
+
+A V2MOM helps guide us on the work we are going to do this year. 
+
+The vision helps us define what we want to do. The values establish what is most important about the vision; it sets the principles and beliefs that guide it (in priority order). The methods illustrate how we get the job done by outlining the actions and the steps that everyone needs to take. The obstacles identify the challenges, problems, and issues we have to overcome to achieve our vision. Finally, the measures specify the actual result we aim to achieve.
+
 # Vision
 
 We accelerate innovation and improve reliability by giving our customers an intuitive, flexible, and collaborative platform.
@@ -51,3 +57,8 @@ Refocus is a driver of innovation and platform for innovation. We need to foster
 |7) API |-  |-  |Expose the real-time API   |Bulk API for Subjects  |
 |8) Sharing |3 Quarterly Updates (customer stories, metrics, etc)   |3 Quarterly Updates (customer stories, metrics, etc) & Velocity Conference hands on session    |3 Quarterly Updates (customer stories, metrics, etc) and Explore Github Issues   |3 Quarterly Updates (customer stories, metrics, etc)   |
 
+# Obstacles
+
+* Operations require a large percentage of developer time
+* Performance issues as we grow our user base
+* Resources being moved to other projects
