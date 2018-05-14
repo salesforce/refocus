@@ -247,4 +247,19 @@ describe('tests/db/model/subject/find.js >', () => {
       done();
     });
   });
+
+  describe('forRealTime scope >', () => {
+    it('ok', (done) => {
+      Subject.scope({ method: ['forRealTime', `${tu.namePrefix}1`] }).find()
+      .then((found) => {
+        expect(found).to.have.property('id');
+        expect(found).to.not.have.property('description');
+        expect(found).to.have.property('name', `${tu.namePrefix}1`);
+        expect(found).to.have.property('absolutePath', `${tu.namePrefix}1`);
+        expect(found.tags).to.be.an('array').that.is.empty;
+        done();
+      })
+      .catch(done);
+    });
+  });
 });

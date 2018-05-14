@@ -117,4 +117,15 @@ describe('tests/db/model/aspect/find.js >', () => {
     expect(Aspect.getProfileAccessField()).to.equal('aspectAccess');
     done();
   });
+
+  it('forRealTime scope', (done) => {
+    Aspect.scope({ method: ['forRealTime', 'luke'] }).find()
+    .then((found) => {
+      expect(found).to.have.property('id');
+      expect(found).to.have.property('name', 'luke');
+      expect(found).to.not.have.property('description');
+      done();
+    })
+    .catch(done);
+  });
 });
