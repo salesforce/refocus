@@ -216,15 +216,19 @@ function getConfig(values, key, value) {
 }
 
 /**
- * Return array of unique tags
- * @param {Array} Objects with tags: [tag1, tag2, ...]
- * @returns {Array} contains unique tags
+ * Return array of unique sorted tags
+ * @param {Array} arr - Objects with tags: [tag1, tag2, ...]
+ * @returns {Array} contains unique sorted tags
  */
 function getTagsFromArrays(arr) {
-  let tags = new Set();
+  if (!Array.isArray(arr) || !arr.length) {
+    return [];
+  }
+
+  const tags = new Set();
   for (let i = arr.length - 1; i >= 0; i--) {
     if (arr[i] && arr[i].tags && arr[i].tags.length) {
-      tags = new Set([...tags, ...new Set(arr[i].tags)]);
+      arr[i].tags.forEach((tag) => tags.add(tag));
     }
   }
 
