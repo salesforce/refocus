@@ -51,7 +51,7 @@ module.exports = (job, ctx, done) => {
     let avl = configUtil.availableMemory();
     while (avl <= maxPayload) {
       console.log(new Date(), 'Check for available memory');
-      setTimeout(() => { avl = configUtil.availableMemory(); }, 100);
+      setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
     }
 
     if (avl > maxPayload) {
