@@ -16,7 +16,6 @@ const client = require('../cache/redisCache').client;
 const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -105,16 +104,12 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
  * @param  {Object} sampleInst - The sample instance to be published
- * @param  {Model} subjectModel - The subject model to get the related
- * subject instance
  * @param  {String} event  - Type of the event that is being published
- * @param  {Model} aspectModel  - The aspect model to get the related
- * aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
+function publishSample(sampleInst, event) {
   const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
+  return rtUtils.attachAspectSubject(sampleInst)
   .then((sample) => {
     if (sample) {
       publishObject(sample, eventType);

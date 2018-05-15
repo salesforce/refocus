@@ -14,6 +14,8 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const aspectModel = constants.db.Aspect;
+const subjectModel = constants.db.Subject;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const eventName = {
@@ -371,12 +373,10 @@ function isIpWhitelisted(addr, whitelist) {
  * sample. If useSampleStore is set to true, the subject ans aspect is fetched
  * for the cache instead of the database.
  * @param {Object} sample - The sample instance.
- * @param {Model} subjectModel - The database subject model.
- * @param {Model} aspectModel - The database aspect model.
  * @returns {Promise} - which resolves to a complete sample with its subject and
  *   aspect.
  */
-function attachAspectSubject(sample, subjectModel, aspectModel) {
+function attachAspectSubject(sample) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
@@ -385,27 +385,19 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   }
 
   let nameParts = sample.name.split('|');
-  const subName = nameParts[0];
+  const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
+
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+     aspectModel.scope({ method: ['forRealTime', aspName] }).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subjectModel.scope({ method: ['forRealTime', subAbsPath] }).find();
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
-    const subKey = redisStore.toKey('subject', subName);
+    const subKey = redisStore.toKey('subject', subAbsPath);
     const aspKey = redisStore.toKey('aspect', aspName);
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
     redisClient.hgetallAsync(aspKey);
@@ -418,8 +410,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.dataValues ? asp.dataValues : asp;
+    sub = sub.dataValues ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 
@@ -433,7 +425,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
      */
-    sample.absolutePath = subName;
+    sample.absolutePath = subAbsPath;
     return sample;
   });
 } // attachAspectSubject

@@ -27,6 +27,7 @@ module.exports = {
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
   defaultJSONValue: {},
+
   statuses: {
     Critical: 'Critical',
     Invalid: 'Invalid',
@@ -35,13 +36,43 @@ module.exports = {
     Info: 'Info',
     OK: 'OK',
   },
+
   collectorStatuses: {
     Stopped: 'Stopped',
     Running: 'Running',
     Paused: 'Paused',
   },
+
   SGEncryptionKey: 'SampleGeneratorEncryptionKey',
+
   SGEncryptionAlgorithm: 'SampleGeneratorEncryptionAlgorithm',
+
   botsRoute: '/v1/bots',
+
   lensesRoute: '/v1/lenses',
+
+  events: {
+    room: {
+      add: 'refocus.internal.realtime.room.add',
+      upd: 'refocus.internal.realtime.room.settingsChanged',
+      del: 'refocus.internal.realtime.room.remove',
+    },
+    sample: {
+      add: 'refocus.internal.realtime.sample.add',
+      upd: 'refocus.internal.realtime.sample.update',
+      del: 'refocus.internal.realtime.sample.remove',
+    },
+    perspective: {
+      initialize: 'refocus.internal.realtime.perspective.namespace.initialize',
+    },
+  },
+
+  bot: {
+    client: 'pubBot',
+    channel: 'botChannelName',
+    roomFilterIndex: 0,
+    botActionFilterIndex: 1,
+    botDataFilterIndex: 2,
+    botEventFilterIndex: 3,
+  },
 };

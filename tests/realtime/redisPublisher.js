@@ -67,7 +67,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     it('certain fields in aspect should be array, and others ' +
     'should be undefined', (done) => {
       Sample.findOne(sampleName)
-      .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+      .then((sam) => publisher.publishSample(sam, sampleEvent.upd))
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
         expect(pubObj.aspect.name).to.equal(aspectName);
@@ -82,7 +82,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     it('certain fields in subject should be array, and others ' +
     'should be undefined', (done) => {
       Sample.findOne(sampleName)
-      .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+      .then((sam) => publisher.publishSample(sam, sampleEvent.upd))
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectName);
@@ -99,7 +99,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       .then((sam) => {
         const sampInst = sam;
         delete sampInst.aspect;
-        return publisher.publishSample(sam, null, sampleEvent.upd);
+        return publisher.publishSample(sam, sampleEvent.upd);
       })
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
@@ -156,7 +156,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       it('with EventType argument: sample should be published with subject ' +
       'object and asbolutePath field', (done) => {
         Sample.findOne(sampleName)
-        .then((sam) => publisher.publishSample(sam, Subject, sampleEvent.upd))
+        .then((sam) => publisher.publishSample(sam, sampleEvent.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -173,7 +173,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       it('without EventType argument: sample should be published with subject ' +
         ' object and asbolutePath field', (done) => {
         Sample.findOne(sampleName)
-        .then((sam) => publisher.publishSample(sam, Subject))
+        .then((sam) => publisher.publishSample(sam))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -193,7 +193,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => {
           const sampInst = sam;
           delete sampInst.aspect;
-          return publisher.publishSample(sam, Subject, sampleEvent.upd, Aspect);
+          return publisher.publishSample(sam, sampleEvent.upd);
         })
         .then((pubObj) => {
           expect(pubObj.aspect).to.not.equal(null);

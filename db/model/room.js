@@ -14,8 +14,9 @@
  */
 
 const constants = require('../constants');
-const realTime = require('../../realtime/redisPublisher');
-const rtConstants = require('../../realtime/constants');
+const dbCommon = require('../helpers/common');
+// const realTime = require('../../realtime/redisPublisher');
+// const rtConstants = require('../../realtime/constants');
 const assoc = {};
 const roomEventNames = {
   add: 'refocus.internal.realtime.bot.namespace.initialize',
@@ -23,9 +24,9 @@ const roomEventNames = {
   del: 'refocus.internal.realtime.room.remove',
 };
 const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.roomFilterIndex,
+  client: constants.bot.client,
+  channel: constants.bot.channel,
+  filterIndex: constants.bot.roomFilterIndex,
   filterField: 'name',
 };
 
@@ -124,14 +125,14 @@ module.exports = function room(seq, dataTypes) {
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+        return dbCommon.publishChange(instance.toJSON(), roomEventNames.add,
           changedKeys, ignoreAttributes, pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+            return dbCommon.publishChange(instance.toJSON(), roomEventNames.upd,
               null, null, pubOpts);
           }
         }
@@ -141,7 +142,7 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+          return dbCommon.publishChange(instance.toJSON(), roomEventNames.upd,
               null, null, pubOpts);
         }
 

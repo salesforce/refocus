@@ -16,20 +16,20 @@
 
 const assoc = {};
 const u = require('../helpers/botDataUtils');
+const dbCommon = require('../helpers/common');
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
 const commonUtils = require('../../utils/common');
-const realTime = require('../../realtime/redisPublisher');
-const rtConstants = require('../../realtime/constants');
+// const realTime = require('../../realtime/redisPublisher');
 const botDataEventNames = {
   add: 'refocus.internal.realtime.bot.data.add',
   upd: 'refocus.internal.realtime.bot.data.update',
   del: 'refocus.internal.realtime.bot.data.remove',
 };
 const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.botDataFilterIndex,
+  client: constants.bot.client,
+  channel: constants.bot.channel,
+  filterIndex: constants.bot.botDataFilterIndex,
   filterField: 'name',
 };
 
@@ -149,7 +149,7 @@ module.exports = function botData(seq, dataTypes) {
         // Publish creation
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        const publishObject = realTime.publishObject(instance.toJSON(),
+        const publishObject = dbCommon.publishChange(instance.toJSON(),
           botDataEventNames.add, changedKeys, ignoreAttributes, pubOpts);
 
         return Promise.all([updateValues, publishObject]);
@@ -166,8 +166,8 @@ module.exports = function botData(seq, dataTypes) {
         // Publish update
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        const publishObject = realTime.publishObject(instance.toJSON(),
-          botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
+        // const publishObject = realTime.publishObject(instance.toJSON(),
+        //   botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
 
         return Promise.all([updateValues, publishObject]);
       }, // hooks.afterUpdate
@@ -176,8 +176,8 @@ module.exports = function botData(seq, dataTypes) {
         // Publish delete
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
-        return realTime.publishObject(instance.toJSON(),
-          botDataEventNames.del, changedKeys, ignoreAttributes, pubOpts);
+        // return realTime.publishObject(instance.toJSON(),
+        //   botDataEventNames.del, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterDelete
     },
     indexes: [

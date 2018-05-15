@@ -13,7 +13,6 @@
  * a job, otherwise just executes work directly in this process.
  */
 const featureToggles = require('feature-toggles');
-const dbSubject = require('../../db/index').Subject;
 const publisher = require('../../realtime/redisPublisher');
 const sampleEvent = require('../../realtime/constants').events.sample;
 const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
@@ -29,7 +28,7 @@ function execute() {
     // send the timeoutsample to the client by publishing it to redis channel
     if (dbRes.timedOutSamples) {
       dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, dbSubject, sampleEvent.upd);
+        publisher.publishSample(sample, sampleEvent.upd);
       });
     }
 

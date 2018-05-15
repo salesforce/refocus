@@ -12,15 +12,13 @@
  * Initialize socket.io for sending realtime events out to perspective pages.
  */
 'use strict'; // eslint-disable-line strict
-const perspective = require('../db/index').Perspective;
-const room = require('../db/index').Room;
-const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
 const jwtUtils = require('../utils/jwtUtil');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
+const toggle = require('feature-toggles');
 const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;

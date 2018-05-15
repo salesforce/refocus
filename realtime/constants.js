@@ -11,10 +11,13 @@
  */
 'use strict';
 
+const db = require('../db/index');
 module.exports = {
   asbPathIndex: 0,
 
   aspectFilterIndex: 1,
+
+  db,
 
   subjectTagFilterIndex: 2,
 
