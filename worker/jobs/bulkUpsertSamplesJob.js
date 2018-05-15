@@ -50,7 +50,6 @@ module.exports = (job, ctx, done) => {
     // Resume when we have enough available memory
     let avl = configUtil.availableMemory();
     while (avl <= maxPayload) {
-      console.log(new Date(), 'Check for available memory');
       setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
     }
 
