@@ -11,6 +11,7 @@
  * Utilities for config
  */
 'use strict'; // eslint-disable-line strict
+const BYTES_PER_KB = 1024;
 
 /**
  * Convert ipWhitelist string to array of ip ranges.
@@ -90,7 +91,46 @@ function getReadReplicas(pe, replicaLabel) {
   return replicas;
 } // getReadReplicas
 
+/**
+ * Converts a string like "250KB" or "100MB" or "25GB" to bytes (numeric).
+ *
+ * @param {String} str - The string to convert
+ * @returns {Number} number of bytes, or zero if the string is not an
+ *  appropriate pattern, i.e. /\d+[GKM]B/i.
+ */
+function convertToBytes(str) {
+  // Short circuit if it's already a number
+  const n = Number(str);
+  if (n >= 0) return n;
+
+  // Kilobytes?
+  const k = str.match(/(\d+)KB/i);
+  if (k) return k[1] * BYTES_PER_KB;
+
+  // Megabytes?
+  const m = str.match(/(\d+)MB/i);
+  if (m) return m[1] * BYTES_PER_KB * BYTES_PER_KB;
+
+  // Gigabytes?
+  const g = str.match(/(\d+)GB/i);
+  if (g) return g[1] * BYTES_PER_KB * BYTES_PER_KB * BYTES_PER_KB;
+
+  return 0;
+} // convertToBytes
+
+/**
+ * Return the amount of memory (bytes) available to the node process.
+ *
+ * @returns {Number} available memory in bytes
+ */
+function availableMemory() {
+  const mem = process.memoryUsage();
+  return mem.heapTotal - mem.heapUsed;
+} // availableMemory
+
 module.exports = {
+  availableMemory,
+  convertToBytes,
   csvToArray,
   parseIPlist,
   getReadReplicas,
