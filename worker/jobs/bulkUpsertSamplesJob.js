@@ -60,7 +60,8 @@ module.exports = (job, ctx, done) => {
 
     // Resume after 1 sec
     setTimeout(() => {
-      console.log(new Date(), 'Resume "bulkUpsertSamples" jobs');
+      console.log(new Date(), 'Resume "bulkUpsertSamples" jobs',
+        configUtil.availableMemory());
       ctx.resume();
     }, 1000);
   } // pauseFunc
