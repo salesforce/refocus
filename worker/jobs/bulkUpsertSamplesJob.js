@@ -47,16 +47,22 @@ module.exports = (job, ctx, done) => {
 
     console.log(new Date(), 'Pause "bulkUpsertSamples" jobs');
 
-    // Resume when we have enough available memory
-    let avl = configUtil.availableMemory();
-    while (avl <= maxPayload) {
-      setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
-    }
+    // // Resume when we have enough available memory
+    // let avl = configUtil.availableMemory();
+    // while (avl <= maxPayload) {
+    //   setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
+    // }
 
-    if (avl > maxPayload) {
+    // if (avl > maxPayload) {
+    //   console.log(new Date(), 'Resume "bulkUpsertSamples" jobs');
+    //   ctx.resume();
+    // }
+
+    // Resume after 1 sec
+    setTimeout(() => {
       console.log(new Date(), 'Resume "bulkUpsertSamples" jobs');
       ctx.resume();
-    }
+    }, 1000);
   } // pauseFunc
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
@@ -119,6 +125,7 @@ module.exports = (job, ctx, done) => {
      * Check if we have enough memory to handle another job after this. This
      * doesn't block returning "done" for *this* job.
      */
+    console.log(`maxPayload=${maxPayload}`);
     if (maxPayload > 0 && configUtil.availableMemory() <= maxPayload) {
       ctx.pause(DELAY_MS, pauseFunc);
     }
