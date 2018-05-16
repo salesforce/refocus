@@ -13,10 +13,12 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const doGetHierarchy = require('../../api/v1/helpers/verbs/doGetHierarchy');
 const errors = require('errors');
+const processUtil = require('util');
 
 module.exports = (job, ctx, done) => {
   console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+    processUtil.inspect(process.cpuUsage()), 'mem',
+    processUtil.inspect(process.memoryUsage()));
   const jobStartTime = Date.now();
   doGetHierarchy(job.data)
   .then((resultObj) => {

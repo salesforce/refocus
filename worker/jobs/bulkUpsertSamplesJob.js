@@ -18,13 +18,15 @@ const publisher = require('../../realtime/redisPublisher');
 const conf = require('../../config');
 const configUtil = require('../../config/configUtil');
 const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
+const processUtil = require('util');
 
 // Give active jobs chance to  complete before "pause" calls graceful shutdown.
 const DELAY_MS = 5000;
 
 module.exports = (job, ctx, done) => {
   console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+    processUtil.inspect(process.cpuUsage()), 'mem',
+    processUtil.inspect(process.memoryUsage()));
 
   /*
    * The shape of the old jobs objects in redis is different from the shape
@@ -139,7 +141,6 @@ module.exports = (job, ctx, done) => {
      * "results" key and attaches it to a hash identified by q:job:{jobId},
      * to be stored in redis.
      */
-    console.log(new Date(), 'returning "done" for *this* job');
     return done(null, obj);
   })
   .catch((err) => {

@@ -13,10 +13,12 @@ const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
+const processUtil = require('util');
 
 module.exports = (job, ctx, done) => {
   console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+    processUtil.inspect(process.cpuUsage()), 'mem',
+    processUtil.inspect(process.memoryUsage()));
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered sampleTimeoutJob.js';
     console.log(msg); // eslint-disable-line no-console

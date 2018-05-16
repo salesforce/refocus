@@ -15,10 +15,12 @@ const scheduledJob =
   require('../../clock/scheduledJobs/persistSampleStoreJob');
 const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
+const processUtil = require('util');
 
 module.exports = (job, ctx, done) => {
   console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+    processUtil.inspect(process.cpuUsage()), 'mem',
+    processUtil.inspect(process.memoryUsage()));
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered persistSampleStoreJob.js';
     console.log(msg); // eslint-disable-line no-console

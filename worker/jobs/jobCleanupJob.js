@@ -14,10 +14,12 @@ const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
 const conf = require('../../config');
+const processUtil = require('util');
 
 module.exports = (job, ctx, done) => {
   console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+    processUtil.inspect(process.cpuUsage()), 'mem',
+    processUtil.inspect(process.memoryUsage()));
   const jobStartTime = Date.now();
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();
