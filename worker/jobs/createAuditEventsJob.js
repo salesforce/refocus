@@ -13,12 +13,10 @@ const logger = require('winston');
 const auditEvent = require('../../api/v1/helpers/nouns/auditEvents').model;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
-const processUtil = require('util');
+const workerUtils = require('../utils');
 
 module.exports = (job, ctx, done) => {
-  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    processUtil.inspect(process.cpuUsage()), 'mem',
-    processUtil.inspect(process.memoryUsage()));
+  workerUtils.onEnter(job);
   const jobStartTime = Date.now();
   const auditEvents = job.data.auditEvents;
   const reqStartTime = job.data.reqStartTime;
@@ -45,10 +43,12 @@ module.exports = (job, ctx, done) => {
         return done(null, objToReturn);
       }
 
+      workerUtils.beforeExit(job);
       return done();
     })
     .catch((err) => {
       logger.error('Caught error from /worker/jobs/createAuditEventsJob:', err);
+      workerUtils.beforeExit(job);
       return done(err);
     });
 };

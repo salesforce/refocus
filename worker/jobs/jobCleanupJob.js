@@ -14,12 +14,10 @@ const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
 const conf = require('../../config');
-const processUtil = require('util');
+const workerUtils = require('../utils');
 
 module.exports = (job, ctx, done) => {
-  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    processUtil.inspect(process.cpuUsage()), 'mem',
-    processUtil.inspect(process.memoryUsage()));
+  workerUtils.onEnter(job);
   const jobStartTime = Date.now();
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();
@@ -41,13 +39,16 @@ module.exports = (job, ctx, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      workerUtils.beforeExit(job);
       return done(null, objToReturn);
     }
 
+    workerUtils.beforeExit(job);
     return done();
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/jobCleanupJob:', err);
+    workerUtils.beforeExit(job);
     return done(err);
   });
 };

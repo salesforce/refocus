@@ -18,15 +18,13 @@ const publisher = require('../../realtime/redisPublisher');
 const conf = require('../../config');
 const configUtil = require('../../config/configUtil');
 const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
-const processUtil = require('util');
+const workerUtils = require('../utils');
 
 // Give active jobs chance to  complete before "pause" calls graceful shutdown.
 const DELAY_MS = 5000;
 
 module.exports = (job, ctx, done) => {
-  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
-    processUtil.inspect(process.cpuUsage()), 'mem',
-    processUtil.inspect(process.memoryUsage()));
+  workerUtils.onEnter(job);
 
   /*
    * The shape of the old jobs objects in redis is different from the shape
@@ -131,7 +129,6 @@ module.exports = (job, ctx, done) => {
      * Check if we have enough memory to handle another job after this. This
      * doesn't block returning "done" for *this* job.
      */
-    console.log(`maxPayload=${maxPayload}`);
     if (maxPayload > 0 && configUtil.availableMemory() <= maxPayload) {
       ctx.pause(DELAY_MS, pauseFunc);
     }
@@ -141,10 +138,12 @@ module.exports = (job, ctx, done) => {
      * "results" key and attaches it to a hash identified by q:job:{jobId},
      * to be stored in redis.
      */
+    workerUtils.beforeExit(job);
     return done(null, obj);
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+    workerUtils.beforeExit(job);
     return done(err);
   });
 };
