@@ -14,7 +14,10 @@ const auditEvent = require('../../api/v1/helpers/nouns/auditEvents').model;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 
-module.exports = (job, done) => {
+module.exports = (job, ctx, done) => {
+  console.log(new Date(), process.pid, 'Processing createAuditEventsJob', job, ctx);
+  console.log(new Date(), process.pid, process.cpuUsage());
+  console.log(new Date(), process.pid, process.memoryUsage());
   const jobStartTime = Date.now();
   const auditEvents = job.data.auditEvents;
   const reqStartTime = job.data.reqStartTime;

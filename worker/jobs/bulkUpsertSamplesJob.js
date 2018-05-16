@@ -23,6 +23,10 @@ const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
 const DELAY_MS = 5000;
 
 module.exports = (job, ctx, done) => {
+  console.log(new Date(), process.pid, 'Processing bulkUpsertSamplesJob', job, ctx);
+  console.log(new Date(), process.pid, process.cpuUsage());
+  console.log(new Date(), process.pid, process.memoryUsage());
+
   /*
    * The shape of the old jobs objects in redis is different from the shape
    * of the new job objects that will be inserted in redis. The following

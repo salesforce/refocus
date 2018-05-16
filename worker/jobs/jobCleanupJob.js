@@ -15,7 +15,10 @@ const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
 const conf = require('../../config');
 
-module.exports = (job, done) => {
+module.exports = (job, ctx, done) => {
+  console.log(new Date(), process.pid, 'Processing jobCleanupJob', job, ctx);
+  console.log(new Date(), process.pid, process.cpuUsage());
+  console.log(new Date(), process.pid, process.memoryUsage());
   const jobStartTime = Date.now();
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();

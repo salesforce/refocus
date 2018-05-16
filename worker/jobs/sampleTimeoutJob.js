@@ -14,7 +14,10 @@ const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
 
-module.exports = (job, done) => {
+module.exports = (job, ctx, done) => {
+  console.log(new Date(), process.pid, 'Processing sampleTimeoutJob', job, ctx);
+  console.log(new Date(), process.pid, process.cpuUsage());
+  console.log(new Date(), process.pid, process.memoryUsage());
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered sampleTimeoutJob.js';
     console.log(msg); // eslint-disable-line no-console
