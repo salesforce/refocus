@@ -125,10 +125,7 @@ function convertToBytes(str) {
  */
 function availableMemory() {
   const mem = process.memoryUsage();
-  const avail = mem.heapTotal - mem.heapUsed;
-  console.log(new Date(),
-    `heapTotal=${mem.heapTotal}, heapUsed=${mem.heapUsed}, avail=${avail}`);
-  return avail;
+  return mem.heapTotal - mem.heapUsed;
 } // availableMemory
 
 module.exports = {

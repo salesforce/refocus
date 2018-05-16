@@ -20,8 +20,8 @@ const configUtil = require('../../config/configUtil');
 const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
 const workerUtils = require('../utils');
 
-// Give active jobs chance to  complete before "pause" calls graceful shutdown.
-const DELAY_MS = 5000;
+// Give active jobs chance to complete before "pause" calls graceful shutdown.
+const DELAY_MS = 30000;
 
 module.exports = (job, ctx, done) => {
   workerUtils.onEnter(job);
@@ -46,9 +46,10 @@ module.exports = (job, ctx, done) => {
    * have enough available memory to process a new job.
    */
   function pauseFunc(err) {
-    if (err) console.error('Error pausing "bulkUpsertSamples" jobs', err);
+    if (err) console.error(`Error pausing ${job.type} jobs`, err);
 
-    console.log(new Date(), 'Pause "bulkUpsertSamples" jobs');
+    console.log(`Pause processing ${job.type} jobs`,
+      configUtil.availableMemory());
 
     // // Resume when we have enough available memory
     // let avl = configUtil.availableMemory();
@@ -61,9 +62,8 @@ module.exports = (job, ctx, done) => {
     //   ctx.resume();
     // }
 
-    // Resume after 1 sec
     setTimeout(() => {
-      console.log(new Date(), 'Resume "bulkUpsertSamples" jobs',
+      console.log(`Resume processing ${job.type} jobs`,
         configUtil.availableMemory());
       ctx.resume();
     }, 1000);
@@ -130,6 +130,7 @@ module.exports = (job, ctx, done) => {
      * doesn't block returning "done" for *this* job.
      */
     if (maxPayload > 0 && configUtil.availableMemory() <= maxPayload) {
+      console.log(`avl ${configUtil.availableMemory()} <= max ${maxPayload}`);
       ctx.pause(DELAY_MS, pauseFunc);
     }
 
