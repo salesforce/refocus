@@ -23,7 +23,7 @@ const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
 const DELAY_MS = 5000;
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing bulkUpsertSamplesJob', job, ctx);
+  console.log(new Date(), process.pid, 'Processing', job.type);
   console.log(new Date(), process.pid, process.cpuUsage());
   console.log(new Date(), process.pid, process.memoryUsage());
 

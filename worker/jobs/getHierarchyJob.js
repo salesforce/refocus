@@ -15,7 +15,7 @@ const doGetHierarchy = require('../../api/v1/helpers/verbs/doGetHierarchy');
 const errors = require('errors');
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing getHierarchyJob', job, ctx);
+  console.log(new Date(), process.pid, 'Processing', job.type);
   console.log(new Date(), process.pid, process.cpuUsage());
   console.log(new Date(), process.pid, process.memoryUsage());
   const jobStartTime = Date.now();

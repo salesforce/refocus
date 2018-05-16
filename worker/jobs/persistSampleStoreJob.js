@@ -17,7 +17,7 @@ const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing persistSampleStoreJob', job, ctx);
+  console.log(new Date(), process.pid, 'Processing', job.type);
   console.log(new Date(), process.pid, process.cpuUsage());
   console.log(new Date(), process.pid, process.memoryUsage());
   if (featureToggles.isFeatureEnabled('instrumentKue')) {

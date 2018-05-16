@@ -16,7 +16,7 @@ const activityLogUtil = require('../../utils/activityLog');
 const conf = require('../../config');
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing jobCleanupJob', job, ctx);
+  console.log(new Date(), process.pid, 'Processing', job.type);
   console.log(new Date(), process.pid, process.cpuUsage());
   console.log(new Date(), process.pid, process.memoryUsage());
   const jobStartTime = Date.now();
