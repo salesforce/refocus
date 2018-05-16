@@ -15,9 +15,8 @@ const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing', job.type);
-  console.log(new Date(), process.pid, process.cpuUsage());
-  console.log(new Date(), process.pid, process.memoryUsage());
+  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
+    process.cpuUsage(), 'mem', process.memoryUsage());
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered sampleTimeoutJob.js';
     console.log(msg); // eslint-disable-line no-console

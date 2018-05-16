@@ -17,9 +17,8 @@ const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing', job.type);
-  console.log(new Date(), process.pid, process.cpuUsage());
-  console.log(new Date(), process.pid, process.memoryUsage());
+  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
+    process.cpuUsage(), 'mem', process.memoryUsage());
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered persistSampleStoreJob.js';
     console.log(msg); // eslint-disable-line no-console

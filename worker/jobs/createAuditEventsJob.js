@@ -15,9 +15,8 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing', job.type);
-  console.log(new Date(), process.pid, process.cpuUsage());
-  console.log(new Date(), process.pid, process.memoryUsage());
+  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
+    process.cpuUsage(), 'mem', process.memoryUsage());
   const jobStartTime = Date.now();
   const auditEvents = job.data.auditEvents;
   const reqStartTime = job.data.reqStartTime;

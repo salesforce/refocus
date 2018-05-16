@@ -23,9 +23,8 @@ const maxPayload = configUtil.convertToBytes(conf.payloadLimit);
 const DELAY_MS = 5000;
 
 module.exports = (job, ctx, done) => {
-  console.log(new Date(), process.pid, 'Processing', job.type);
-  console.log(new Date(), process.pid, process.cpuUsage());
-  console.log(new Date(), process.pid, process.memoryUsage());
+  console.log(`pid ${process.pid}|Processing ${job.type}`, 'cpu',
+    process.cpuUsage(), 'mem', process.memoryUsage());
 
   /*
    * The shape of the old jobs objects in redis is different from the shape
