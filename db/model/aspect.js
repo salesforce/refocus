@@ -173,6 +173,18 @@ module.exports = function aspect(seq, dataTypes) {
             },
           ],
         });
+
+        Aspect.addScope('forRealTime', (value) => ({
+          where: {
+            name: { $iLike: value },
+          },
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
+        }));
       },
     },
     hooks: {

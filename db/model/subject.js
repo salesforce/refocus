@@ -193,6 +193,12 @@ module.exports = function subject(seq, dataTypes) {
             },
           ],
         });
+        Subject.addScope('forRealTime', (value) => ({
+          where: {
+            absolutePath: { $iLike: value },
+          },
+          attributes: ['id', 'name', 'tags', 'absolutePath'],
+        }));
       },
     },
     hooks: {

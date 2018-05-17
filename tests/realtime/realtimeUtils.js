@@ -9,7 +9,7 @@
 /**
  * tests/realtime/realtimeUtils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const realtimeUtils = require('../../realtime/utils');
 const tu = require('../testUtils');
@@ -22,6 +22,14 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   const newSubject = {
     absolutePath: rootSubjNAUSCA + '.SF',
     name: 'SF',
+  };
+  const rootSubjNAObj = {
+    name: rootSubjNA,
+    isPublished: true,
+    tags: ['ea'],
+    relatedLinks: [
+      { name: 'population', value: 'http://popl.io' },
+    ],
   };
   const updatedSubject = {
     new: {
@@ -38,11 +46,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   const aspectOne = {
     name: tu.namePrefix + 'temperature',
     timeout: '30s',
+    okRange: [1, 5],
     isPublished: true,
     tags: ['temp'],
   };
-  const looksLikeSampleObjNA = {
-    value: '10',
+  const sampleToCreateNA = {
+    value: '2',
     name: rootSubjNA + '|' + aspectOne.name,
     absolutePath: rootSubjNA,
     status: 'OK',
@@ -51,6 +60,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       tags: ['ea'],
     },
   };
+
   const looksLikeSampleObjNAUS = {
     value: '1',
     name: rootSubjNAUS + '|' + aspectOne.name,
@@ -72,13 +82,21 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   let botEventTest;
   let botDataTest;
   let createdLensId;
+  let sampleInstNA;
 
   before((done) => {
     tu.db.Aspect.create(aspectOne)
-    .then(() => tu.db.Subject.create({
-      name: rootSubjNA,
-      isPublished: true,
-    }))
+    .then(() => tu.db.Subject.create(rootSubjNAObj))
+    .then(() => tu.Sample.upsertByName(sampleToCreateNA))
+    .then((sample) => {
+      sampleInstNA = sample;
+      /*
+       * Attach absolutePath and subject object to the sample to make it a
+       * complete object for publishing.
+       */
+      sampleInstNA.absolutePath = rootSubjNA;
+      sampleInstNA.subject = rootSubjNAObj;
+    })
     .then(() => u.doSetup())
     .then((createdLens) => {
       createdLensId = createdLens.id;
@@ -161,7 +179,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
   after(u.forceDelete);
 
   describe('utility function tests >', () => {
-    describe('shouldIEmitThisObject functon tests >', () => {
+    describe('shouldIEmitThisObject function tests >', () => {
       it('should return false for some randomSubjectRoot', () => {
         const nspString = '/SomRadomSubjectRoo';
         expect(realtimeUtils.shouldIEmitThisObj(nspString, rootSubjNAUS))
@@ -169,14 +187,15 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
 
       it('should return true for pers rootNA', () => {
-        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
-        expect(realtimeUtils
-          .shouldIEmitThisObj(nspString, looksLikeSampleObjNA))
+        const nspString = realtimeUtils
+          .getPerspectiveNamespaceString(persRootNA);
+        expect(realtimeUtils.shouldIEmitThisObj(nspString, sampleInstNA))
           .to.equal(true);
       });
 
-      it('should return true for pers rootNAUS', () => {
-        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUS);
+      it.only('should return true for pers rootNAUS', () => {
+        const nspString = realtimeUtils
+          .getPerspectiveNamespaceString(persRootNAUS);
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
           looksLikeSampleObjNAUS)).to.equal(true);
       });
@@ -214,7 +233,8 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
     describe('getPerspectiveNamespaceString tests >', () => {
       it('for perspective persNAUS', () => {
-        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUS);
+        const nspString = realtimeUtils
+          .getPerspectiveNamespaceString(persRootNAUS);
         expect(nspString)
         .to.equal('/' + rootSubjNAUS + '&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
@@ -225,17 +245,20 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
 
       it('for perspective persNA', () => {
-        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNA);
+        const nspString = realtimeUtils
+          .getPerspectiveNamespaceString(persRootNA);
         expect(nspString)
-        .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name + ';humidity&INCLUDE=ea;' +
-          rootSubjNA + '&INCLUDE=temp;hum&INCLUDE=OK');
+          .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name +
+            ';humidity&INCLUDE=ea;' + rootSubjNA +
+            '&INCLUDE=temp;hum&INCLUDE=OK');
       });
 
       it('for perspective persNAUSCA', () => {
-        const nspString = realtimeUtils.getPerspectiveNamespaceString(persRootNAUSCA);
+        const nspString = realtimeUtils
+          .getPerspectiveNamespaceString(persRootNAUSCA);
         expect(nspString)
-        .to.equal('/' + rootSubjNAUSCA + '&EXCLUDE=' + aspectOne.name + ';humidity' +
-          '&EXCLUDE&EXCLUDE&EXCLUDE=OK');
+          .to.equal('/' + rootSubjNAUSCA + '&EXCLUDE=' + aspectOne.name +
+            ';humidity&EXCLUDE&EXCLUDE&EXCLUDE=OK');
       });
     });
 
@@ -306,7 +329,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         it('without sample having subject and aspect objects ' +
           'attached', (done) => {
 
-          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
           delete sampleObj.aspect;
           delete sampleObj.subject;
 
@@ -323,9 +346,9 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         });
 
         it('with sample having subject and aspect objects attached', (done) => {
-          realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
+          realtimeUtils.attachAspectSubject(sampleInstNA)
           .then((sample) => {
-            expect(sample).to.deep.equals(looksLikeSampleObjNA);
+            expect(sample).to.deep.equals(sampleInstNA);
             return done();
           })
           .catch(done);
@@ -333,7 +356,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
         it('with sample having aspect attached but not subject ' +
           'attached', (done) => {
-          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
           delete sampleObj.subject;
           realtimeUtils.attachAspectSubject(sampleObj)
           .then((sample) => {
@@ -346,22 +369,21 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         });
 
         it('same output with upper sample name', (done) => {
-          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const copySample = JSON.parse(JSON.stringify(sampleInstNA));
           copySample.name = copySample.name.toUpperCase();
           delete copySample.aspect;
           delete copySample.subject;
           realtimeUtils.attachAspectSubject(copySample)
           .then((sample) => {
             expect(sample.name).equal(copySample.name);
-            expect(sample.absolutePath).to.equal(looksLikeSampleObjNA
-              .absolutePath);
+            expect(sample.absolutePath).to.equal(sampleInstNA.absolutePath);
             done();
           })
           .catch(done);
         });
 
         it('same output with lower sample name', (done) => {
-          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const copySample = JSON.parse(JSON.stringify(sampleInstNA));
           copySample.name = copySample.name.toLowerCase();
           delete copySample.aspect;
           delete copySample.subject;
@@ -375,7 +397,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
         it('should return null when passing in a sample without ' +
           'name', (done) => {
-          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
           delete sampleObj.name;
           realtimeUtils.attachAspectSubject(sampleObj)
           .then((sample) => {
@@ -392,7 +414,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
         it('without sample having subject and aspect objects ' +
           'attached', (done) => {
-          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
           delete sampleObj.aspect;
           delete sampleObj.subject;
           realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
@@ -410,9 +432,9 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
         it('with sample already having subject and aspect objects ' +
           'attached', (done) => {
-          realtimeUtils.attachAspectSubject(looksLikeSampleObjNA)
+          realtimeUtils.attachAspectSubject(sampleInstNA)
           .then((sample) => {
-            expect(sample).to.deep.equals(looksLikeSampleObjNA);
+            expect(sample).to.deep.equals(sampleInstNA);
             return done();
           })
           .catch(done);
@@ -420,7 +442,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
         it('with sample having aspect attached but not subject ' +
           'attached', (done) => {
-          const sampleObj = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
           delete sampleObj.subject;
           realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
             tu.db.Aspect)
@@ -434,7 +456,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         });
 
         it('same output with upper sample name', (done) => {
-          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const copySample = JSON.parse(JSON.stringify(sampleInstNA));
           copySample.name = copySample.name.toUpperCase();
           delete copySample.aspect;
           delete copySample.subject;
@@ -442,15 +464,14 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
             tu.db.Aspect)
           .then((sample) => {
             expect(sample.name).equal(copySample.name);
-            expect(sample.absolutePath).to.equal(looksLikeSampleObjNA
-              .absolutePath);
+            expect(sample.absolutePath).to.equal(sampleInstNA.absolutePath);
             done();
           })
           .catch(done);
         });
 
         it('same output with lower sample name', (done) => {
-          const copySample = JSON.parse(JSON.stringify(looksLikeSampleObjNA));
+          const copySample = JSON.parse(JSON.stringify(sampleInstNA));
           copySample.name = copySample.name.toLowerCase();
           delete copySample.aspect;
           delete copySample.subject;
