@@ -40,6 +40,7 @@ module.exports = {
   POSTGRES_UUID_RE:
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   QUERY_PARAM_REPLACE_ALL_REGEX: /\*/g,
+  BASE_SCOPE: 'baseScope',
   SEQ_DEFAULT_SCOPE: 'defaultScope',
   SEQ_DESC: 'DESC',
   SEQ_LIKE: '$iLike',

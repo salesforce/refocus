@@ -34,4 +34,7 @@ module.exports = {
     perspectives: 'writablePerspectives',
     subjects: 'writableSubjects',
   },
+  fieldScopeMap: {
+    profile: 'profile',
+  },
 }; // exports

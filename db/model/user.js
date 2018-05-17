@@ -122,6 +122,14 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'createdBy',
           hooks: true,
         });
+
+        User.addScope('baseScope', {
+          attributes: {
+            exclude: ['password'],
+          },
+          order: ['User.name'],
+        });
+
         User.addScope('defaultScope', {
           attributes: {
             exclude: ['password'],
@@ -135,6 +143,15 @@ module.exports = function user(seq, dataTypes) {
           order: ['User.name'],
         }, {
           override: true,
+        });
+
+        User.addScope('profile', {
+          include: [
+            {
+              association: assoc.profile,
+              attributes: ['name'],
+            },
+          ],
         });
         User.addScope('withSensitiveInfo', {
           include: [

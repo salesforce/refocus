@@ -167,7 +167,7 @@ describe('tests/api/v1/generators/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal(generatorCritical.name);
+      expect(res.body).to.have.keys('intervalSecs', 'id', 'apiLinks');
       expect(res.body).to.have.property('intervalSecs', 60);
       done();
     });

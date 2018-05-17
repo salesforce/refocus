@@ -193,8 +193,8 @@ describe('tests/api/v1/userTokens/get.js, ' +
       }
 
       expect(res.body).to.have.length(2);
-      expect(res.body[0].User).to.have.property('name', uname);
-      expect(res.body[1].User).to.have.property('name', uname);
+      expect(res.body[0].user).to.have.property('name', uname);
+      expect(res.body[1].user).to.have.property('name', uname);
       done();
     });
   });
