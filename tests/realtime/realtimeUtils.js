@@ -193,7 +193,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           .to.equal(true);
       });
 
-      it.only('should return true for pers rootNAUS', () => {
+      it('should return true for pers rootNAUS', () => {
         const nspString = realtimeUtils
           .getPerspectiveNamespaceString(persRootNAUS);
         expect(realtimeUtils.shouldIEmitThisObj(nspString,
