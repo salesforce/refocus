@@ -108,8 +108,19 @@ module.exports = function lens(seq, dataTypes) {
 
         Lens.addScope('lensLibrary', {
           attributes: { include: ['name', 'library'] },
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
         }, {
           override: true,
+        });
+
+        Lens.addScope('baseScope', {
+          attributes: { exclude: ['library'] },
+          order: ['Lens.name'],
         });
 
         Lens.addScope('defaultScope', {
@@ -123,6 +134,15 @@ module.exports = function lens(seq, dataTypes) {
           order: ['Lens.name'],
         }, {
           override: true,
+        });
+
+        Lens.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
         });
       },
     },

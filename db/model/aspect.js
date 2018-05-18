@@ -149,6 +149,10 @@ module.exports = function aspect(seq, dataTypes) {
           foreignKey: 'aspectId',
         });
 
+        Aspect.addScope('baseScope', {
+          order: ['Aspect.name'],
+        });
+
         Aspect.addScope('defaultScope', {
           include: [
             {
@@ -159,6 +163,15 @@ module.exports = function aspect(seq, dataTypes) {
           order: ['Aspect.name'],
         }, {
           override: true,
+        });
+
+        Aspect.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
         });
       },
     },

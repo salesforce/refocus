@@ -67,7 +67,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.id).to.be.an('string');
         expect(obj.name).to.equal(`${tu.namePrefix}testLensName`);
         expect(obj.library).to.be.defined;
-        expect(obj.user).to.be.an('object');
         expect(obj.installedBy).to.equal(userId);
         done();
       });

@@ -142,6 +142,11 @@ module.exports = function subject(seq, dataTypes) {
           through: 'SubjectWriters',
           foreignKey: 'subjectId',
         });
+
+        Subject.addScope('baseScope', {
+          order: ['absolutePath'],
+        });
+
         Subject.addScope('defaultScope', {
           include: [
             {
@@ -152,6 +157,15 @@ module.exports = function subject(seq, dataTypes) {
           order: ['absolutePath'],
         }, {
           override: true,
+        });
+
+        Subject.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
         });
         Subject.addScope('id', (value) => ({
           where: {
