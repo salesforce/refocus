@@ -15,8 +15,10 @@ const scheduledJob =
   require('../../clock/scheduledJobs/persistSampleStoreJob');
 const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
+const workerUtils = require('../utils');
 
-module.exports = (job, done) => {
+module.exports = (job, ctx, done) => {
+  workerUtils.onEnter(job);
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = '[KJI] Entered persistSampleStoreJob.js';
     console.log(msg); // eslint-disable-line no-console
@@ -46,13 +48,16 @@ module.exports = (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      workerUtils.beforeExit(job);
       return done(null, objToReturn);
     }
 
+    workerUtils.beforeExit(job);
     return done();
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/persistSampleStoreJob:', err);
+    workerUtils.beforeExit(job);
     return done(err);
   });
 };

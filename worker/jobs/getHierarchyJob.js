@@ -13,8 +13,10 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const doGetHierarchy = require('../../api/v1/helpers/verbs/doGetHierarchy');
 const errors = require('errors');
+const workerUtils = require('../utils');
 
-module.exports = (job, done) => {
+module.exports = (job, ctx, done) => {
+  workerUtils.onEnter(job);
   const jobStartTime = Date.now();
   doGetHierarchy(job.data)
   .then((resultObj) => {
@@ -32,17 +34,20 @@ module.exports = (job, done) => {
       activityLogUtil.updateActivityLogParams(resultObj, tempObj);
     }
 
+    workerUtils.beforeExit(job);
     return done(null, resultObj);
   })
   .catch((err) => {
     if (errors.isError(err)) {
       const errString = JSON.stringify(err);
+      workerUtils.beforeExit(job);
       done(errString);
     } else {
       // Native errors have non-enumerable properties. Specify props to include.
       const props = Object.getOwnPropertyNames(err);
       props.push('name');
       const errString = JSON.stringify(err, props);
+      workerUtils.beforeExit(job);
       done(errString);
     }
   });
