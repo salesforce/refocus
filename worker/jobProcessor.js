@@ -33,8 +33,8 @@ const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
 const createAuditEventJob = require('./jobs/createAuditEventsJob');
 const workerStarted = 'Worker Process Started';
 logger.info(workerStarted);
-  console.log(`pid ${process.pid}|Entered jobProcessor.js`, 'cpu',
-    process.cpuUsage(), 'mem', process.memoryUsage());
+console.log(`pid ${process.pid}|Entered jobProcessor.js`, 'cpu',
+  process.cpuUsage(), 'mem', process.memoryUsage());
 
 jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
   bulkUpsertSamplesJob);

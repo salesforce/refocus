@@ -1,3 +1,14 @@
+/**
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * /worker/utils.js
+ */
 function onEnter(job) {
   const obj = {
     action: 'onEnter',
@@ -6,7 +17,7 @@ function onEnter(job) {
     jobType: job.type,
     memoryUsage: process.memoryUsage(),
     pid: process.pid,
-  }
+  };
   console.log(JSON.stringify(obj));
 }
 
@@ -18,11 +29,11 @@ function beforeExit(job) {
     jobType: job.type,
     memoryUsage: process.memoryUsage(),
     pid: process.pid,
-  }
-  console.log(JSON.stringify(obj));  
+  };
+  console.log(JSON.stringify(obj));
 }
 
 module.exports = {
   onEnter,
   beforeExit,
-}
+};
