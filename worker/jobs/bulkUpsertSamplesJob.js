@@ -54,7 +54,10 @@ module.exports = (job, ctx, done) => {
     // Resume when we have enough available memory
     let avl = configUtil.availableMemory();
     while (avl <= maxPayload) {
-      setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
+      setTimeout(() => {
+        avl = configUtil.availableMemory();
+        console.log(`Looping while paused, avl ${configUtil.availableMemory()}`);
+      }, 1000);
     }
 
     if (avl > maxPayload) {
@@ -131,7 +134,8 @@ module.exports = (job, ctx, done) => {
      * doesn't block returning "done" for *this* job.
      */
     if (maxPayload > 0 && configUtil.availableMemory() <= maxPayload) {
-      console.log(`avl ${configUtil.availableMemory()} <= max ${maxPayload}`);
+      console.log(`Call pause because avl ${configUtil.availableMemory()} ` +
+        `<= max ${maxPayload}`);
       ctx.pause(DELAY_MS, pauseFunc);
     }
 
