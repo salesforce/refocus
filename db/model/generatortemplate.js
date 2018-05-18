@@ -234,6 +234,10 @@ module.exports = function user(seq, dataTypes) {
           foreignKey: 'generatorTemplateId',
         });
 
+        GeneratorTemplate.addScope('baseScope', {
+          order: ['GeneratorTemplate.name'],
+        });
+
         GeneratorTemplate.addScope('defaultScope', {
           include: [
             {
@@ -244,6 +248,15 @@ module.exports = function user(seq, dataTypes) {
           order: ['GeneratorTemplate.name'],
         }, {
           override: true,
+        });
+
+        GeneratorTemplate.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email', 'fullName'],
+            },
+          ],
         });
       },
     },

@@ -70,7 +70,7 @@ describe('tests/api/v1/tokens/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body.User.name).to.equal(username);
+      expect(res.body.user.name).to.equal(username);
       expect(res.body.createdBy).to.be.defined;
       done();
     });

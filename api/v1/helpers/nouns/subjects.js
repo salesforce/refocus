@@ -52,6 +52,7 @@ module.exports = {
   deleteChildren,
   fieldScopeMap: {
     hierarchy: 'hierarchy',
+    user: 'user',
   },
   model: Subject,
   modelName: 'Subject',

@@ -2,7 +2,7 @@
   "name": "Refocus",
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
-    "node": "6.x",
+    "node": "8.x",
     "npm": "3.x"
   },
   "license": "BSD-3-Clause",

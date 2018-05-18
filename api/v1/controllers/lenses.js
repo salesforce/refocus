@@ -282,7 +282,12 @@ module.exports = {
         }
 
         // no reply, go to db to get lens object.
-        u.findByKey(helper, req.swagger.params, ['lensLibrary'])
+        let extraAttributes;
+        if (!req.swagger.params.fields.value) {
+          extraAttributes = ['lensLibrary'];
+        }
+
+        u.findByKey(helper, req.swagger.params, extraAttributes)
         .then((o) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           if (o.isPublished === false) {

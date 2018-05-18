@@ -89,8 +89,9 @@ module.exports = function perspective(seq, dataTypes) {
       },
 
       postImport(models) {
-        assoc.createdBy = Perspective.belongsTo(models.User, {
+        assoc.user = Perspective.belongsTo(models.User, {
           foreignKey: 'createdBy',
+          as: 'user',
         });
         assoc.lens = Perspective.belongsTo(models.Lens, {
           as: 'lens',
@@ -104,10 +105,17 @@ module.exports = function perspective(seq, dataTypes) {
           through: 'PerspectiveWriters',
           foreignKey: 'perspectiveId',
         });
+
+        Perspective.addScope('baseScope', {
+          order: ['Perspective.name'],
+        });
+
         Perspective.addScope('defaultScope', {
           include: [
-
-            // assoc.createdBy,
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
             {
               association: assoc.lens,
               attributes: [
@@ -125,10 +133,31 @@ module.exports = function perspective(seq, dataTypes) {
           override: true,
         });
 
-        Perspective.addScope('withoutLensAssociation', {
-          include: [],
-          order: ['Perspective.name'],
+        Perspective.addScope('user', {
+          include: [
+            {
+              association: assoc.user,
+              attributes: ['name', 'email'],
+            },
+          ],
         });
+
+        Perspective.addScope('lens', {
+          include: [
+            {
+              association: assoc.lens,
+              attributes: [
+                'helpEmail',
+                'helpUrl',
+                'id',
+                'name',
+                'thumbnailUrl',
+                'version',
+              ],
+            },
+          ],
+        });
+
       },
     },
     hooks: {
