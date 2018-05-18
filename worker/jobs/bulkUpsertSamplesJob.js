@@ -51,22 +51,23 @@ module.exports = (job, ctx, done) => {
     console.log(`Pause processing ${job.type} jobs`,
       configUtil.availableMemory());
 
-    // // Resume when we have enough available memory
-    // let avl = configUtil.availableMemory();
-    // while (avl <= maxPayload) {
-    //   setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
-    // }
+    // Resume when we have enough available memory
+    let avl = configUtil.availableMemory();
+    while (avl <= maxPayload) {
+      setTimeout(() => { avl = configUtil.availableMemory(); }, 1000);
+    }
 
-    // if (avl > maxPayload) {
-    //   console.log(new Date(), 'Resume "bulkUpsertSamples" jobs');
-    //   ctx.resume();
-    // }
-
-    setTimeout(() => {
+    if (avl > maxPayload) {
       console.log(`Resume processing ${job.type} jobs`,
         configUtil.availableMemory());
       ctx.resume();
-    }, 1000);
+    }
+
+    // setTimeout(() => {
+    //   console.log(`Resume processing ${job.type} jobs`,
+    //     configUtil.availableMemory());
+    //   ctx.resume();
+    // }, 1000);
   } // pauseFunc
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
