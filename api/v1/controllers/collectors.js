@@ -362,6 +362,7 @@ function heartbeat(req, res, next) {
  *
  * Starts a collector by setting the status to "Running". If the collector is
  * not found, a new collector is created.
+ *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
@@ -369,68 +370,70 @@ function heartbeat(req, res, next) {
  */
 function startCollector(req, res, next) {
   const resultObj = { reqStartTime: req.timestamp };
-  const requestBody = req.swagger.params.queryBody.value;
-  requestBody.status = 'Running';
-  requestBody.createdBy = req.user.id;
-  let collectorToReturn;
-  return helper.model.findOne({ where: { name: requestBody.name } })
-    .then((collector) => {
-      if (collector) {
-        return u.isWritable(req, collector);
+  const body = req.swagger.params.queryBody.value;
+  body.status = 'Running';
+  body.createdBy = req.user.id;
+  let collToReturn;
+  let name;
+  return helper.model.findOne({ where: { name: body.name } })
+  /* Already exists? Verify that this user has write permission. */
+  .then((coll) => {
+    if (coll) return u.isWritable(req, coll);
+    return coll;
+  })
+  /* Already exists and is running or paused? Error! */
+  .then((coll) => {
+    if (coll) {
+      if (coll.status === 'Running' || coll.status === 'Paused') {
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Cannot start--only a stopped collector can start',
+        });
       }
 
-      return collector;
-    })
-    .then((collector) => {
-      if (collector) {
-        if (!collector.registered) {
-          throw new apiErrors.ForbiddenError({ explanation:
-            'Cannot start--this collector is not registered.',
-          });
-        }
-
-        if (collector.status === 'Running' || collector.status === 'Paused') {
-          throw new apiErrors.ForbiddenError({ explanation:
-            'Cannot start--only a stopped collector can start',
-          });
-        }
+      if (!coll.registered) {
+        throw new apiErrors.ForbiddenError({
+          explanation: 'You must reregister this collector before you can ' +
+            'start it',
+        });
       }
+    }
 
-      return collector;
-    })
-    .then((collector) => collector ? collector.update(requestBody) :
-      helper.model.create(requestBody))
-    .then((collector) => {
-      collectorToReturn = collector;
-      return collector.getCurrentGenerators();
-    })
-    .then((generators) => Promise.all(generators.map((g) =>
-      g.updateForHeartbeat())))
-    .then((generators) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      collectorToReturn.dataValues.generatorsAdded = generators.map((g) => {
-        g.token = jwtUtil.createToken(g.user.name, g.user.name);
-        delete g.GeneratorCollectors;
-        delete g.collectors;
-        return g;
-      });
+    return coll;
+  })
+  /* Update or create */
+  .then((coll) => coll ? coll.update(body) : helper.model.create(body))
+  .then((coll) => {
+    name = coll.name;
+    collToReturn = coll;
+    return coll.getCurrentGenerators();
+  })
+  /* Filter: only want generators marked as "current" for this collector. */
+  .then((gens) => gens.filter((g) => g.currentCollector = name))
+  /* Add all the attributes necessary to send back to collector. */
+  .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
+  .then((gens) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    collToReturn.dataValues.generatorsAdded = gens.map((g) => {
+      g.token = jwtUtil.createToken(g.user.name, g.user.name);
+      delete g.GeneratorCollectors;
+      delete g.collectors;
+      return g;
+    });
 
-      /*
-       * When a collector registers itself with Refocus, Refocus sends back a
-       * special token for that collector to use for all subsequent heartbeats.
-       */
-      collectorToReturn.dataValues.token = jwtUtil.createToken(
-        requestBody.name, requestBody.name, { IsCollector: true }
-      );
+    /*
+     * When a collector registers itself with Refocus, Refocus sends back a
+     * special token for that collector to use for all subsequent heartbeats.
+     */
+    collToReturn.dataValues.token = jwtUtil.createToken(body.name, body.name,
+      { IsCollector: true });
 
-      collectorToReturn.dataValues.collectorConfig = config.collector;
-      collectorToReturn.dataValues.collectorConfig.status =
-        collectorToReturn.status;
-      u.logAPI(req, resultObj, collectorToReturn);
-      return res.status(httpStatus.OK)
-        .json(u.responsify(collectorToReturn, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    collToReturn.dataValues.collectorConfig = config.collector;
+    collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+    u.logAPI(req, resultObj, collToReturn);
+    return res.status(httpStatus.OK)
+      .json(u.responsify(collToReturn, helper, req.method));
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector
 
 /**
