@@ -42,7 +42,8 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
 /**
  * Return boolean true if the named environment variable contains a comma-
  * delimited list of strings and one of those strings matches the test string
- * (case-insensitive).
+ * (case-insensitive). If the env var === '*' then returns true for any test
+ * string.
  *
  * @param {Object} env - The node process environment. (Passing it into
  *  this function instead of just getting a reference to it *inside* this
@@ -54,6 +55,9 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  */
 function envVarIncludes(env, envVarName, str) {
   const val = env[envVarName];
+
+  /* str length < 1? False! */
+  if (str.length < 1) return false;
 
   /* Not defined or null? False! */
   if (typeof val === 'undefined' || !val) return false;
