@@ -278,4 +278,5 @@ module.exports = {
   hiddenRoutes,
   corsRoutes,
   encryptionAlgoForCollector,
+  workerProcesses: +pe.WORKER_PROCESSES || 1,
 };

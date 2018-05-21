@@ -15,6 +15,7 @@
  * Add a new jobQueue.process(...) block for each new type of job.
  */
 'use strict'; // eslint-disable-line strict
+const throng = require('throng');
 const conf = require('../config');
 if (conf.newRelicKey) {
   require('newrelic'); // eslint-disable-line global-require
@@ -22,27 +23,44 @@ if (conf.newRelicKey) {
 
 const logger = require('winston');
 const jobSetup = require('../jobQueue/setup');
-const jobConcurrency = jobSetup.jobConcurrency;
-const jobType = jobSetup.jobType;
-const jobQueue = require('../jobQueue/jobWrapper').jobQueue;
-const bulkUpsertSamplesJob = require('./jobs/bulkUpsertSamplesJob');
-const getHierarchyJob = require('./jobs/getHierarchyJob');
-const jobCleanupJob = require('./jobs/jobCleanupJob');
-const sampleTimeoutJob = require('./jobs/sampleTimeoutJob');
-const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
-const createAuditEventJob = require('./jobs/createAuditEventsJob');
-const workerStarted = 'Worker Process Started';
-logger.info(workerStarted);
+const c = jobSetup.jobConcurrency;
+const t = jobSetup.jobType;
+const q = require('../jobQueue/jobWrapper').jobQueue;
+const bu = require('./jobs/bulkUpsertSamplesJob');
+const hi = require('./jobs/getHierarchyJob');
+const cl = require('./jobs/jobCleanupJob');
+const ti = require('./jobs/sampleTimeoutJob');
+const ps = require('./jobs/persistSampleStoreJob');
+const au = require('./jobs/createAuditEventsJob');
 
-jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
-  bulkUpsertSamplesJob);
-jobQueue.process(jobType.GET_HIERARCHY, jobConcurrency.GET_HIERARCHY,
-  getHierarchyJob);
-jobQueue.process(jobType.JOB_CLEANUP, jobConcurrency.JOB_CLEANUP,
-  jobCleanupJob);
-jobQueue.process(jobType.SAMPLE_TIMEOUT, jobConcurrency.SAMPLE_TIMEOUT,
-  sampleTimeoutJob);
-jobQueue.process(jobType.PERSIST_SAMPLE_STORE,
-  jobConcurrency.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
-jobQueue.process(jobType.BULK_CREATE_AUDIT_EVENTS,
-  jobConcurrency.BULK_CREATE_AUDIT_EVENTS, createAuditEventJob);
+/**
+ * Entry point for each clustered process.
+ *
+ * @param {Number} clusterProcessId - process id if called from throng,
+ *  otherwise 0
+ */
+function start(clusterProcessId = 0) {
+  logger.info(`Worker process ${clusterProcessId} started`);
+  q.process(t.BULKUPSERTSAMPLES,        c.BULKUPSERTSAMPLES,        bu);
+  q.process(t.GET_HIERARCHY,            c.GET_HIERARCHY,            hi);
+  q.process(t.JOB_CLEANUP,              c.JOB_CLEANUP,              cl);
+  q.process(t.SAMPLE_TIMEOUT,           c.SAMPLE_TIMEOUT,           ti);
+  q.process(t.PERSIST_SAMPLE_STORE,     c.PERSIST_SAMPLE_STORE,     ps);
+  q.process(t.BULK_CREATE_AUDIT_EVENTS, c.BULK_CREATE_AUDIT_EVENTS, au);
+} // start
+
+function startMaster() {
+  console.log('Started node cluster master');
+} // startMaster
+
+const isProd = (process.env.NODE_ENV === 'production');
+if (isProd) {
+  throng({
+    lifetime: Infinity,
+    master: startMaster,
+    start,
+    workers: conf.workerProcesses,
+  });
+} else {
+  start();
+}
