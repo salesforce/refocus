@@ -39,6 +39,37 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
     x.toString().toLowerCase() === 'true';
 } // environmentVariableTrue
 
+/**
+ * Return boolean true if the named environment variable contains a comma-
+ * delimited list of strings and one of those strings matches the test string
+ * (case-insensitive). If the env var === '*' then returns true for any test
+ * string.
+ *
+ * @param {Object} env - The node process environment. (Passing it into
+ *  this function instead of just getting a reference to it *inside* this
+ *  function makes the function easier to test.)
+ * @param {String} envVarName - The name of the environment var.
+ * @param {String} str - The test string.
+ * @returns {Boolean} true if the named environment variable is boolean true or
+ *  case-insensitive string 'true'.
+ */
+function envVarIncludes(env, envVarName, str) {
+  const val = env[envVarName];
+
+  /* str length < 1? False! */
+  if (str.length < 1) return false;
+
+  /* Not defined or null? False! */
+  if (typeof val === 'undefined' || !val) return false;
+
+  /* Wildcard "all"? True! */
+  if (val.toString() === '*') return true;
+
+  /* Array includes str? (Strip any leading/trailing spaces first. */
+  const arr = val.toString().toLowerCase().split(',').map((i) => i.trim());
+  return arr.includes(str.toLowerCase());
+} // envVarIncludes
+
 /*
  * longTermToggles - add a new toggle here if you expect it to be around
  * long-term.
@@ -49,27 +80,23 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const longTermToggles = {
-  // Enable api activity logging
-  enableApiActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
+  // Activity logging
+  enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
+  enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'kueStats'),
+  enablePubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'pubStats'),
+  enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'queueStats'),
+  enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'realtime'),
+  enableUnauthorizedActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'unauthorized'),
+  enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'worker'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
-
-  // Enable Kue stats activity logging
-  enableKueStatsActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_KUESTATS_ACTIVITY_LOGS'),
-
-  // Enable logging for real-time publish stats
-  enablePubStatsLogs: environmentVariableTrue(pe, 'ENABLE_PUB_STATS_LOGS'),
-
-  // Enable queueStatsActivityLogs
-  enableQueueStatsActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),
-
-  // Enable realtime activity logging
-  enableRealtimeActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
 
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
@@ -82,10 +109,6 @@ const longTermToggles = {
   // Enable sample store info logging
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
-
-  // Enable worker activity logging
-  enableWorkerActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
 
   /*
    * Use this setting to offload work from web processes to worker processes to
@@ -148,4 +171,5 @@ featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
 
 module.exports = {
   environmentVariableTrue, // exporting to make it easy to test
+  envVarIncludes, // exporting for test only
 };

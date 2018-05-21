@@ -13,6 +13,7 @@ const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/sampleTimeoutJob');
 const activityLogUtil = require('../../utils/activityLog');
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
@@ -45,13 +46,16 @@ module.exports = (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      jobLog(jobStartTime, job);
       return done(null, objToReturn);
     }
 
+    jobLog(jobStartTime, job);
     return done();
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/sampleTimeoutJob:', err);
+    jobLog(jobStartTime, job, err.message || '');
     return done(err);
   });
 };
