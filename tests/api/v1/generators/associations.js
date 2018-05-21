@@ -80,10 +80,8 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
         createdAt: Joi.string().required(),
         updatedAt: Joi.string().required(),
         GeneratorCollectors: Joi.object().required(),
-      }),
-    ),
+      })),
   };
 
   testAssociations(path, associations, schema, conf);
 });
-
