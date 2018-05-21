@@ -21,13 +21,12 @@ const eventName = {
   upd: 'refocus.internal.realtime.subject.update',
   del: 'refocus.internal.realtime.subject.remove',
 };
-
-const filters = ['aspectFilter',
-                  'subjectTagFilter',
-                  'aspectTagFilter',
-                  'statusFilter',
-                ];
-
+const filters = [
+  'aspectFilter',
+  'subjectTagFilter',
+  'aspectTagFilter',
+  'statusFilter',
+];
 const botAbsolutePath = '/Bots';
 
 /**
@@ -385,27 +384,17 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   }
 
   let nameParts = sample.name.split('|');
-  const subName = nameParts[0];
+  const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { $iLike: subName },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { $iLike: aspName },
-      },
-    };
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+      aspectModel.scope({ method: ['forRealTime', aspName] }).find();
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
+      subjectModel.scope({ method: ['forRealTime', subAbsPath] }).find();
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
-    const subKey = redisStore.toKey('subject', subName);
+    const subKey = redisStore.toKey('subject', subAbsPath);
     const aspKey = redisStore.toKey('aspect', aspName);
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
     redisClient.hgetallAsync(aspKey);
@@ -418,8 +407,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
-    sub = sub.get ? sub.get() : sub;
+    asp = asp.dataValues ? asp.dataValues : asp;
+    sub = sub.dataValues ? sub.dataValues : sub;
     delete asp.writers;
     delete sub.writers;
 
@@ -433,7 +422,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
      */
-    sample.absolutePath = subName;
+    sample.absolutePath = subAbsPath;
     return sample;
   });
 } // attachAspectSubject
