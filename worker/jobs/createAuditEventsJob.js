@@ -13,6 +13,7 @@ const logger = require('winston');
 const auditEvent = require('../../api/v1/helpers/nouns/auditEvents').model;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
@@ -38,13 +39,16 @@ module.exports = (job, done) => {
 
         // update time parameters in object to return.
         activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+        jobLog(jobStartTime, job);
         return done(null, objToReturn);
       }
 
+      jobLog(jobStartTime, job);
       return done();
     })
     .catch((err) => {
       logger.error('Caught error from /worker/jobs/createAuditEventsJob:', err);
+      jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });
 };
