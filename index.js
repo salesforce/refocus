@@ -60,6 +60,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const ENCODING = 'utf8';
   const compress = require('compression');
   const cors = require('cors');
+  const etag = require('etag');
 
   // set up server side socket.io and redis publisher
   const express = require('express');
@@ -175,7 +176,18 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       next();
     });
 
-    app.use('/static', express.static(path.join(__dirname, 'public')));
+    const staticOptions = {
+      etag: true,
+      setHeaders(res, path, stat) {
+        res.set('ETag', etag(stat));
+
+        // give me the latest copy unless I already have the latest copy.
+        res.set('Cache-Control', 'public, max-age=0');
+      },
+    };
+
+    app.use('/static', express.static(path.join(__dirname, 'public'),
+      staticOptions));
 
     // Set the X-XSS-Protection HTTP header as a basic protection against XSS
     app.use(helmet.xssFilter());
