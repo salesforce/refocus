@@ -269,7 +269,7 @@ describe('tests/api/v1/generators/post.js >', () => {
       .catch((e) => done(e));
     });
 
-    it.only('error, all aspects do not have user permission', (done) => {
+    it('error, all aspects do not have user permission', (done) => {
       const userName1 = 'user1';
       const userName2 = 'user2';
       const req = {};
