@@ -12,7 +12,7 @@
  * Kue stats activity logging.
  */
 const key = 'kueStats';
-const k = require('../../config/activityLog').activityType[key];
+const k = require('../../config/activityLog')[key];
 const warningThreshold = require('../../config').kueStatsInactiveWarning;
 const activityLogUtil = require('../../utils/activityLog');
 const jobQueue = require('../../jobQueue/setup').jobQueue;
