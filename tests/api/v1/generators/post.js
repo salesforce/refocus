@@ -269,7 +269,7 @@ describe('tests/api/v1/generators/post.js >', () => {
       .catch((e) => done(e));
     });
 
-    it('error, all aspects do not have user permission', (done) => {
+    it.only('error, all aspects do not have user permission', (done) => {
       const userName1 = 'user1';
       const userName2 = 'user2';
       const req = {};
@@ -295,9 +295,9 @@ describe('tests/api/v1/generators/post.js >', () => {
       })
       .then((asp2) => { // created aspect2
         aspects.push(asp2.name);
-        asp2.addWriter(user2); // assign user2 as writer to aspect2
-        return validateGeneratorAspectsPermissions(aspects, req);
+        return asp2.addWriter(user2); // assign user2 as writer to aspect2
       })
+      .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ValidationError');
