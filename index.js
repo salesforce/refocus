@@ -176,17 +176,10 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       next();
     });
 
-    function generateETagContent(stat) {
-      const rounded = 1000;
-      const radix = 16;
-      return `"sf--${Math.ceil(Number(stat.mtime) / rounded).toString(radix)}-
-        ${Number(stat.size).toString(radix)}"`;
-    }
-
     const staticOptions = {
       etag: true,
       setHeaders(res, path, stat) {
-        res.set('ETag', etag(generateETagContent(stat)));
+        res.set('ETag', etag(stat));
 
         // give me the latest copy unless I already have the latest copy.
         res.set('Cache-Control', 'public, max-age=0');
