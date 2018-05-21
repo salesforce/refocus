@@ -37,7 +37,6 @@ describe('tests/config/toggles.js >', () => {
       myList: ' Abc,def ,GHi,',
       withWildcard: '*',
     };
-    expect
     expect(toggles.envVarIncludes(env, 'withWildcard', 'abc')).to.equal(true);
     expect(toggles.envVarIncludes(env, 'myList', 'ABC')).to.equal(true);
     expect(toggles.envVarIncludes(env, 'myList', 'def')).to.equal(true);
