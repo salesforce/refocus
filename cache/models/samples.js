@@ -920,6 +920,10 @@ module.exports = {
    * @returns {Array} - Resolves to an array of resolved promises
    */
   bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
+    if (!sampleQueryBody || !Array.isArray(sampleQueryBody)) {
+      Promise.resolve([]);
+    }
+
     const promises = sampleQueryBody.map((sampleReq) => {
       // Throw error if sample is upserted with read-only field.
       try {
