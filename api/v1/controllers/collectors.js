@@ -408,6 +408,10 @@ function startCollector(req, res, next) {
     return coll.getCurrentGenerators();
   })
   /* Filter: only want generators marked as "current" for this collector. */
+  /*
+   * TODO: remove this filter once heartbeatUtil.trackGeneratorChanges is
+   *  returning the right ones
+   */
   .then((gens) => gens.filter((g) => g.currentCollector = name))
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
