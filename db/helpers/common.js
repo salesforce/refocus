@@ -13,7 +13,6 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.perspectiveChannelName;
 const joi = require('joi');
@@ -98,64 +97,6 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
 }
 
 /**
- * This function returns an object to be published via redis channel
- * @param  {Object} inst  -  Model instance
-  @param  {[Array]} changedKeys - An array containing the fields of the model
- * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fields of the
- * model that should be ignored
- * @returns {Object} - Returns an object that is ready to be published Or null
- * if there are no changedfields.
- */
-function prepareToPublish(inst, changedKeys, ignoreAttributes) {
-  // prepare the data iff changed fields are not in ignoreAttributes
-  const ignoreSet = new Set(ignoreAttributes);
-  for (let i = 0; i < changedKeys.length; i++) {
-    if (!ignoreSet.has(changedKeys[i])) {
-      return {
-        old: inst._previousDataValues,
-        new: inst.get(),
-      };
-    }
-  }
-
-  return null;
-} // prepareToPublish
-
-/**
- * This function publishes an created, updated or a deleted model instance to
- * the redis channel and returns the object that was published
- *
- * @param  {Object} inst - Model instance to be published
- * @param  {String} event  - Type of the event that is being published
- * @param  {[Array]} changedKeys - An array containing the fields of the model
- * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fields of the
- * model that should be ignored
- * @returns {Object} - object that was published
- */
-function publishChange(inst, event, changedKeys, ignoreAttributes) {
-  const obj = {};
-  obj[event] = inst.get();
-
-  /**
-   * The shape of the object required for update events are a bit different.
-   * changedKeys and ignoreAttributes are passed in as arrays by the
-   * afterUpdate hooks of the models, which are passed to the prepareToPublish
-   * to get the object just for update events.
-   */
-  if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
-  }
-
-  if (obj[event]) {
-    pub.publish(channelName, JSON.stringify(obj));
-  }
-
-  return obj;
-} // publishChange
-
-/**
  * The Json format of the relatedLink is validated against a pre-defined
  * schema. Validation to check the uniqueness of relatedLinks by name is
  * done
@@ -235,7 +176,6 @@ module.exports = {
   checkDuplicatesInStringArray,
   dbconf,
   setIsDeleted,
-  publishChange,
   validateJsonSchema,
   createDBLog,
   changeType,
