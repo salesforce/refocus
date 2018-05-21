@@ -14,6 +14,7 @@
 'use strict';
 
 const util = require('util');
+const featureToggles = require('feature-toggles');
 const apiErrors = require('./apiErrors');
 const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
@@ -125,19 +126,22 @@ module.exports = function errorHandler(err, req, res, next) {
       } else if (err.name === 'Unauthorized') {
         // Log and reject
         err.status = constants.httpStatus.UNAUTHORIZED;
-        const logObject = {
-          activity: 'unauthorized',
-          ipAddress: activityLog.getIPAddrFromReq(req),
-          uri: req.url,
-          method: req.method,
-        };
+        
+        if (featureToggles.isFeatureEnabled('enableUnauthorizedActivityLogs')) {
+          const logObject = {
+            activity: 'unauthorized',
+            ipAddress: activityLog.getIPAddrFromReq(req),
+            uri: req.url,
+            method: req.method,
+          };
 
-        // Add "request_id" if header is set by heroku.
-        if (req.headers && req.headers['x-request-id']) {
-          logObject.request_id = req.headers['x-request-id'];
+          // Add "request_id" if header is set by heroku.
+          if (req.headers && req.headers['x-request-id']) {
+            logObject.request_id = req.headers['x-request-id'];
+          }
+
+          activityLog.printActivityLogString(logObject, 'unauthorized');
         }
-
-        activityLog.printActivityLogString(logObject, 'unauthorized');
       } else {
         err.status = constants.httpStatus.BAD_REQUEST;
       }

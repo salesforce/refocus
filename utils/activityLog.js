@@ -39,16 +39,17 @@ module.exports = {
 
   /**
    * Convert activity log object to String format and print.
+   *
    * @param  {Object} logObject - Log Object
    * @param  {string} logtype - api|realtime|worker|unauthorized
    * @param  {string} logLevel - Log Level info, warn, error
-   * verbose, debug, silly. Default log info.
+   *  verbose, debug, silly. Default log info.
    */
   printActivityLogString(logObject, logtype, logLevel='info') {
     // example: activity=worker user="igoldstein@salesforce.com" token="Eleven"
     // ipAddress="123.456.789.012" totalTime=123ms jobType=bulkUpsertSamples
     // queueTime=3ms workTime=487ms dbTime=413ms recordCount=2254 errorCount=1
-    const logParams = activityLogParams.activityType[logtype];
+    const logParams = activityLogParams[logtype];
     let logStr = '';
 
     for (const param in logParams) {
@@ -72,7 +73,7 @@ module.exports = {
   /**
    * Update the result object parameters calculated from job object params.
    * @param  {Object} resultObj - Result object to be returned after
-   * processing job
+   *  processing job
    * @param  {Object} tempObj - Object passed for calculating result object
    */
   updateActivityLogParams(resultObj, tempObj) {

@@ -31,4 +31,17 @@ describe('tests/config/toggles.js >', () => {
     expect(toggles.environmentVariableTrue(env, 'hello')).to.equal(false);
     done();
   });
+
+  it('envVarIncludes', (done) => {
+    const env = {
+      myList: ' Abc,def ,GHi,',
+    };
+    expect(toggles.envVarIncludes(env, 'myList', 'abc')).to.equal(true);
+    expect(toggles.envVarIncludes(env, 'myList', 'ABC')).to.equal(true);
+    expect(toggles.envVarIncludes(env, 'myList', 'def')).to.equal(true);
+    expect(toggles.envVarIncludes(env, 'myList', 'DEF')).to.equal(true);
+    expect(toggles.envVarIncludes(env, 'myList', 'ghi')).to.equal(true);
+    expect(toggles.envVarIncludes(env, 'myList', 'GHI')).to.equal(true);
+    done();
+  });
 });
