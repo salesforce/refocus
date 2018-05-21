@@ -15,6 +15,7 @@ const scheduledJob =
   require('../../clock/scheduledJobs/persistSampleStoreJob');
 const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
@@ -46,13 +47,16 @@ module.exports = (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      jobLog(jobStartTime, job);
       return done(null, objToReturn);
     }
 
+    jobLog(jobStartTime, job);
     return done();
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/persistSampleStoreJob:', err);
+    jobLog(jobStartTime, job, err.message || '');
     return done(err);
   });
 };
