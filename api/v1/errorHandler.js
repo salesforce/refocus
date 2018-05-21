@@ -126,7 +126,7 @@ module.exports = function errorHandler(err, req, res, next) {
       } else if (err.name === 'Unauthorized') {
         // Log and reject
         err.status = constants.httpStatus.UNAUTHORIZED;
-        
+
         if (featureToggles.isFeatureEnabled('enableUnauthorizedActivityLogs')) {
           const logObject = {
             activity: 'unauthorized',

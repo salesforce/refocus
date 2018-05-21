@@ -54,10 +54,10 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  */
 function envVarIncludes(env, envVarName, str) {
   const val = env[envVarName];
-  
+
   /* Not defined or null? False! */
   if (typeof val === 'undefined' || !val) return false;
-  
+
   /* Wildcard "all"? True! */
   if (val.toString() === '*') return true;
 

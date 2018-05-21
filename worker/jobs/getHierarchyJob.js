@@ -39,7 +39,7 @@ module.exports = (job, done) => {
   .catch((err) => {
     jobLog(jobStartTime, job, err.message || '');
     if (errors.isError(err)) {
-      const errString = JSON.stringify(err);      
+      const errString = JSON.stringify(err);
       done(errString);
     } else {
       // Native errors have non-enumerable properties. Specify props to include.
