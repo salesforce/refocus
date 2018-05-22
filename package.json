@@ -3,7 +3,7 @@
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
     "node": "8.x",
-    "npm": "3.x"
+    "npm": "5.x"
   },
   "license": "BSD-3-Clause",
   "main": "index.js",
