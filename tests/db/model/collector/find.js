@@ -190,11 +190,11 @@ describe('tests/db/model/collector/find.js >', () => {
         .to.have.property('name', `${tu.namePrefix}CollectorsecondCollector`);
       expect(collectors[0]).to.have.property('status', 'Running');
       expect(collectors[1])
-        .to.have.property('name', `${tu.namePrefix}CollectorthirdCollector`)
+        .to.have.property('name', `${tu.namePrefix}CollectorthirdCollector`);
       expect(collectors[1]).to.have.property('status', 'Running');
       return done();
     })
-    .catch(done)
+    .catch(done);
   });
 
   describe('missedHeartbeat >', () => {
