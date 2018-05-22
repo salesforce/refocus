@@ -13,7 +13,7 @@
  * since the last logging interval.
  */
 const aType = 'pubStats';
-const prototype = require('../../config/activityLog').activityType[aType];
+const prototype = require('../../config/activityLog')[aType];
 const activityLog = require('../../utils/activityLog');
 const PUB_STATS_HASH = require('../../realtime/constants').pubStatsHash;
 const redis = require('../../cache/redisCache').client.cache;

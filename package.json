@@ -3,7 +3,7 @@
   "description": "The Go-To Platform for Visualizing Service Health",
   "engines": {
     "node": "8.x",
-    "npm": "3.x"
+    "npm": "5.x"
   },
   "license": "BSD-3-Clause",
   "main": "index.js",
@@ -94,6 +94,7 @@
     "cors": "^2.8.4",
     "debug": "^2.2.0",
     "errors": "^0.3.0",
+    "etag": "^1.8.1",
     "express": "^4.13.3",
     "express-enforces-ssl": "^1.1.0",
     "express-ipfilter": "^0.0.24",

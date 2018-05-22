@@ -15,6 +15,7 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const cacheSampleModel = require('../../cache/models/samples');
 const publisher = require('../../realtime/redisPublisher');
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   /*
@@ -90,10 +91,12 @@ module.exports = (job, done) => {
        * "results" key and attaches it to a hash identified by q:job:{jobId},
        * to be stored in redis
        */
+      jobLog(jobStartTime, job);
       return done(null, objToReturn);
     })
     .catch((err) => {
       logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });
 };
