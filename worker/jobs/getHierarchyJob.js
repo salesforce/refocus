@@ -13,6 +13,7 @@ const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const doGetHierarchy = require('../../api/v1/helpers/verbs/doGetHierarchy');
 const errors = require('errors');
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
@@ -32,9 +33,11 @@ module.exports = (job, done) => {
       activityLogUtil.updateActivityLogParams(resultObj, tempObj);
     }
 
+    jobLog(jobStartTime, job);
     return done(null, resultObj);
   })
   .catch((err) => {
+    jobLog(jobStartTime, job, err.message || '');
     if (errors.isError(err)) {
       const errString = JSON.stringify(err);
       done(errString);

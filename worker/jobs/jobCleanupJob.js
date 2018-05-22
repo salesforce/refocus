@@ -14,6 +14,7 @@ const featureToggles = require('feature-toggles');
 const scheduledJob = require('../../clock/scheduledJobs/jobCleanup');
 const activityLogUtil = require('../../utils/activityLog');
 const conf = require('../../config');
+const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
@@ -37,13 +38,16 @@ module.exports = (job, done) => {
 
       // update time parameters in object to return.
       activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      jobLog(jobStartTime, job);
       return done(null, objToReturn);
     }
 
+    jobLog(jobStartTime, job);
     return done();
   })
   .catch((err) => {
     logger.error('Caught error from /worker/jobs/jobCleanupJob:', err);
+    jobLog(jobStartTime, job, err.message || '');
     return done(err);
   });
 };
