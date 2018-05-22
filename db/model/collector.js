@@ -15,6 +15,8 @@ const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const u = require('../helpers/collectorUtils');
 const assoc = {};
+const collectorConfig = require('../../config/collectorConfig');
+const MS_PER_SEC = 1000;
 
 module.exports = function collector(seq, dataTypes) {
   const Collector = seq.define('Collector', {
@@ -101,6 +103,27 @@ module.exports = function collector(seq, dataTypes) {
         return 'collectorAccess';
       },
 
+      /**
+       * Returns a list of running collectors where the time since the last
+       * heartbeat is greater than the latency tolerance.
+       *
+       * @param {Integer} latencyTolerance - For testing, pass in heartbeat
+       *  latency tolerance millis. If false-y, uses
+       *  collectorConfig.heartbeatLatencyToleranceMillis.
+       * @param {Date} now - For testing, pass in a Date object to represent
+       *  the current time. If false-y, uses current time.
+       */
+      missedHeartbeat(latencyTolerance, now) {
+        const tolerance = latencyTolerance ||
+          collectorConfig.heartbeatLatencyToleranceMillis;
+        const curr = (now || new Date()).getTime();
+        return Collector.scope('running').findAll()
+        .then((colls) => colls.filter((c) => {
+          const elapsed = curr - new Date(c.lastHeartbeat).getTime();
+          return elapsed >= tolerance;
+        }));
+      }, // missedHeartbeat
+
       postImport(models) {
         assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
           as: 'currentGenerators',
@@ -120,6 +143,12 @@ module.exports = function collector(seq, dataTypes) {
 
         Collector.addScope('status', {
           attributes: ['status'],
+        });
+
+        Collector.addScope('running', {
+          where: {
+            status: constants.collectorStatuses.Running,
+          },
         });
       },
     },
