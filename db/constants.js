@@ -36,9 +36,10 @@ module.exports = {
     OK: 'OK',
   },
   collectorStatuses: {
-    Stopped: 'Stopped',
-    Running: 'Running',
+    MissedHeartbeat: 'MissedHeartbeat',
     Paused: 'Paused',
+    Running: 'Running',
+    Stopped: 'Stopped',
   },
   SGEncryptionKey: 'SampleGeneratorEncryptionKey',
   SGEncryptionAlgorithm: 'SampleGeneratorEncryptionAlgorithm',
