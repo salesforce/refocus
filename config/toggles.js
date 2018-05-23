@@ -141,6 +141,10 @@ const shortTermToggles = {
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
 
+  // when attaching from db, use scopes?
+  attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
+    'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
