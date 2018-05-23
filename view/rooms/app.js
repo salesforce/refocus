@@ -577,11 +577,15 @@ function createIframeEvent(channel, payload, bots, botId) {
     return 'Bot not found';
   }
 
-  iframedoc.getElementById(target)
-    .dispatchEvent(new CustomEvent(channel, {
-      detail: dispatchObj,
-    })
-  );
+  const targetedFrame = iframedoc.getElementById(target);
+  if (targetedFrame) {
+    targetedFrame
+      .dispatchEvent(new CustomEvent(channel, {
+        detail: dispatchObj,
+      })
+    );
+  }
+
   return 'Success';
 }
 
