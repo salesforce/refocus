@@ -942,7 +942,9 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
-    uPage.setSubtitle(`${_roomName} - ${res.body.name}`);
+    const subTitle = `${_roomName} - ${res.body.name}`;
+    uPage.setSubtitle(subTitle);
+    document.title = subTitle;
 
     if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
