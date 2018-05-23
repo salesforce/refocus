@@ -388,15 +388,15 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = { 
-      where: { 
-        absolutePath: { $iLike: subAbsPath }, 
-      }, 
-    }; 
-    const aspOpts = {  
-      where: { 
-        name: { $iLike: aspName }, 
-      }, 
+    const subOpts = {
+      where: {
+        absolutePath: { $iLike: subAbsPath },
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: { $iLike: aspName },
+      },
     };
     let getAspectPromise;
     if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
@@ -415,6 +415,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
       getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
         subjectModel.findOne(subOpts);
     }
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subAbsPath);
