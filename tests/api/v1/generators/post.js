@@ -214,16 +214,18 @@ describe('tests/api/v1/generators/post.js >', () => {
       })
       .then((asp1) => { // created aspect1
         aspects.push(asp1.name);
-        asp1.addWriter(user); // asign user as writer to aspect1
-        return Aspect.create(
-          { name: `${tu.namePrefix}ASPECT2`, isPublished: true, timeout: '110s',
-        });
+        return asp1.addWriter(user); // asign user as writer to aspect1
       })
+      .then(() => Aspect.create({
+        name: `${tu.namePrefix}ASPECT2`,
+        isPublished: true,
+        timeout: '110s',
+      }))
       .then((asp2) => { // created aspect2
         aspects.push(asp2.name);
-        asp2.addWriter(user); // asign user as writer to aspect2
-        return validateGeneratorAspectsPermissions(aspects, req);
+        return asp2.addWriter(user); // asign user as writer to aspect2
       })
+      .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done()) // Validation successful
       .catch((err) => done(err));
     });
@@ -249,16 +251,18 @@ describe('tests/api/v1/generators/post.js >', () => {
       })
       .then((asp1) => { // created aspect1
         aspects.push(asp1.name);
-        asp1.addWriter(user1); // assign user1 as writer to aspect1
-        return Aspect.create(
-          { name: `${tu.namePrefix}ASPECT2`, isPublished: true, timeout: '110s',
-        });
+        return asp1.addWriter(user1); // assign user1 as writer to aspect1
       })
+      .then(() => Aspect.create({
+        name: `${tu.namePrefix}ASPECT2`,
+        isPublished: true,
+        timeout: '110s',
+      }))
       .then((asp2) => { // created aspect2
         aspects.push(asp2.name);
-        asp2.addWriter(user2); // assign user2 as writer to aspect2
-        return validateGeneratorAspectsPermissions(aspects, req);
+        return asp2.addWriter(user2); // assign user2 as writer to aspect2
       })
+      .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
         expect(err.name).to.be.equal('ValidationError');
