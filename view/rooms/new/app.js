@@ -25,10 +25,10 @@ const DEFAULT_ROOM_NAME = 'AUTO_GENERATED';
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
-function getPathVariables(addr) {
+function getPathVariables(addr){
   const pathName = url.parse(addr, true).pathname ?
-      url.parse(addr, true).pathname.split('/') :
-      '';
+    url.parse(addr, true).pathname.split('/') :
+    '';
   const q = url.parse(addr, true);
   const qdata = q.query ? q.query : {};
 
@@ -78,22 +78,21 @@ function createRoom(paramaters) {
     active: paramaters.active,
   };
   req
-  .send(obj)
-  .end((error, res) => {
-    if (error) {
-      if (error.response.text.includes('SequelizeUniqueConstraintError')) {
-        window.location.href = `/rooms/${paramaters.name}`;
+    .send(obj)
+    .end((error, res) => {
+      if (error) {
+        if (error.response.text.includes('SequelizeUniqueConstraintError')) {
+          window.location.href = `/rooms/${paramaters.name}`;
+        }
+        console.error(error.response.text);
+      } else if (qdata.keepParams) {
+        window.location.replace(
+          `/rooms/${res.body.id}?${ADDRESS.split('?')[1]}
+        `);
+      } else {
+        window.location.replace(`/rooms/${res.body.id}`);
       }
-
-      console.error(error.response.text);
-    } else if (qdata.keepParams) {
-      window.location.replace(
-            `/rooms/${res.body.id}?${ADDRESS.split('?')[1]}
-    `);
-    } else {
-      window.location.replace(`/rooms/${res.body.id}`);
-    }
-  });
+    });
 }
 
 window.onload = () => {

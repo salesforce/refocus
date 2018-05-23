@@ -58,8 +58,8 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get name from path', () => {
     const params = app.getPathVariables(
-            'http://refocus/rooms/new/test/?name=test1'
-        );
+      'http://refocus/rooms/new/test/?name=test1'
+    );
     const output = {
       name: 'test',
       roomType: '',
@@ -73,7 +73,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get type from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'roomType=roomTypeId');
+      'roomType=roomTypeId');
     const output = {
       name: '',
       roomType: 'roomTypeId',
@@ -87,7 +87,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get active from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'active=false');
+      'active=false');
     const output = {
       name: '',
       roomType: '',
@@ -101,7 +101,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get externalId from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'externalId=00000');
+      'externalId=00000');
     const output = {
       name: '',
       roomType: '',
@@ -115,7 +115,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get settings from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'settings={"test":"test"}');
+      'settings={"test":"test"}');
     const output = {
       name: '',
       roomType: '',
@@ -129,7 +129,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Fail, Get settings from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'settings={test:"test"}');
+      'settings={test:"test"}');
     const output = {
       name: '',
       roomType: '',
@@ -143,7 +143,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Ok, Get bots from parameters', () => {
     const params = app.getPathVariables('http://refocus/rooms/new/?' +
-        'bots=Bot1,Bot2');
+      'bots=Bot1,Bot2');
     const output = {
       name: '',
       roomType: '',
@@ -159,20 +159,20 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
     const parameters = app.getPathVariables('http://refocus/rooms/new/?' +
       'name=name');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={parameters.name}
-                type={parameters.type}
-                active={parameters.active}
-                externalId={parameters.externalId}
-                settings={parameters.settings}
-                bots={parameters.bots}
-            />
-        );
+      <FormController
+        name={parameters.name}
+        type={parameters.type}
+        active={parameters.active}
+        externalId={parameters.externalId}
+        settings={parameters.settings}
+        bots={parameters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'input'
-        );
+      form,
+      'input'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'nameInput') {
@@ -183,22 +183,22 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Form Controller Active', () => {
     const paramaters = app.getPathVariables('http://refocus/rooms/new/?' +
-        'active=true');
+      'active=true');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={paramaters.name}
-                type={paramaters.type}
-                active={paramaters.active}
-                externalId={paramaters.externalId}
-                settings={paramaters.settings}
-                bots={paramaters.bots}
-            />
-        );
+      <FormController
+        name={paramaters.name}
+        type={paramaters.type}
+        active={paramaters.active}
+        externalId={paramaters.externalId}
+        settings={paramaters.settings}
+        bots={paramaters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'input'
-        );
+      form,
+      'input'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'activeInput') {
@@ -209,22 +209,22 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Form Controller Inactive', () => {
     const paramaters = app.getPathVariables('http://refocus/rooms/new/?' +
-        'active=false');
+      'active=false');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={paramaters.name}
-                type={paramaters.type}
-                active={paramaters.active}
-                externalId={paramaters.externalId}
-                settings={paramaters.settings}
-                bots={paramaters.bots}
-            />
-        );
+      <FormController
+        name={paramaters.name}
+        type={paramaters.type}
+        active={paramaters.active}
+        externalId={paramaters.externalId}
+        settings={paramaters.settings}
+        bots={paramaters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'input'
-        );
+      form,
+      'input'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'inactiveInput') {
@@ -235,22 +235,22 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Form Controller externalId', () => {
     const paramaters = app.getPathVariables('http://refocus/rooms/new/?' +
-        'externalId=00000');
+      'externalId=00000');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={paramaters.name}
-                type={paramaters.type}
-                active={paramaters.active}
-                externalId={paramaters.externalId}
-                settings={paramaters.settings}
-                bots={paramaters.bots}
-            />
-        );
+      <FormController
+        name={paramaters.name}
+        type={paramaters.type}
+        active={paramaters.active}
+        externalId={paramaters.externalId}
+        settings={paramaters.settings}
+        bots={paramaters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'input'
-        );
+      form,
+      'input'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'externalIdInput') {
@@ -261,22 +261,22 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Form Controller Bots', () => {
     const paramaters = app.getPathVariables('http://refocus/rooms/new/?' +
-        'bots=bot1,bot2');
+      'bots=bot1,bot2');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={paramaters.name}
-                type={paramaters.type}
-                active={paramaters.active}
-                externalId={paramaters.externalId}
-                settings={paramaters.settings}
-                bots={paramaters.bots}
-            />
-        );
+      <FormController
+        name={paramaters.name}
+        type={paramaters.type}
+        active={paramaters.active}
+        externalId={paramaters.externalId}
+        settings={paramaters.settings}
+        bots={paramaters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'input'
-        );
+      form,
+      'input'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'botsInput') {
@@ -287,22 +287,22 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
 
   it('Form Controller Settings', () => {
     const paramaters = app.getPathVariables('http://refocus/rooms/new/?' +
-        'settings={test:"test"}');
+      'settings={test:"test"}');
     const form = ReactTestUtils.renderIntoDocument(
-            <FormController
-                name={paramaters.name}
-                type={paramaters.type}
-                active={paramaters.active}
-                externalId={paramaters.externalId}
-                settings={paramaters.settings}
-                bots={paramaters.bots}
-            />
-        );
+      <FormController
+        name={paramaters.name}
+        type={paramaters.type}
+        active={paramaters.active}
+        externalId={paramaters.externalId}
+        settings={paramaters.settings}
+        bots={paramaters.bots}
+      />
+    );
 
     const renderedDOM = ReactTestUtils.scryRenderedDOMComponentsWithTag(
-            form,
-            'textarea'
-        );
+      form,
+      'textarea'
+    );
 
     renderedDOM.forEach((dom) => {
       if (dom.id === 'botsInput') {
