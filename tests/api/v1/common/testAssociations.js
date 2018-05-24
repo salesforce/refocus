@@ -98,6 +98,20 @@ function testAssociations(path, associations, joiSchema, conf) {
     });
   });
 
+  associations.forEach((assoc) => {
+    it(`get by key: an association can be specified as a field param (${assoc})`, (done) => {
+      api.get(`${path}/${recordId}?fields=name,${assoc}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.be.an('object');
+        expect(res.body).to.have.keys('id', 'name', assoc, 'apiLinks');
+        expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+      })
+      .end(done);
+    });
+  });
+
   /*
    * These tests fail because of a bug in sequelize.
    * It doesn't properly handle multiple associations when a limit is applied:
@@ -106,21 +120,7 @@ function testAssociations(path, associations, joiSchema, conf) {
    * I think it was fixed in https://github.com/sequelize/sequelize/pull/9188
    * Skipping until we upgrade Sequelize...
    */
-  describe.skip('sequelize bug', () => {
-    associations.forEach((assoc) => {
-      it(`get by key: an association can be specified as a field param (${assoc})`, (done) => {
-        api.get(`${path}/${recordId}?fields=name,${assoc}`)
-        .set('Authorization', token)
-        .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'name', assoc, 'apiLinks');
-          expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
-        })
-        .end(done);
-      });
-    });
-
+  describe('sequelize bug', () => {
     if (associations.length > 1) {
       it('find: multiple associations can be specified as field params', (done) => {
         const fields = ['name', ...associations].toString();
