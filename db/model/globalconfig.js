@@ -38,17 +38,6 @@ module.exports = function user(seq, dataTypes) {
       allowNull: true,
     },
   }, {
-    classMethods: {
-      getGlobalConfigAssociations() {
-        return assoc;
-      },
-
-      postImport(models) {
-        assoc.createdBy = GlobalConfig.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-      },
-    },
     hooks: {
       /**
        * Set the isDeleted timestamp.
@@ -76,5 +65,20 @@ module.exports = function user(seq, dataTypes) {
     ],
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  GlobalConfig.getGlobalConfigAssociations = function () {
+    return assoc;
+  };
+
+  GlobalConfig.postImport = function (models) {
+    assoc.createdBy = GlobalConfig.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+  };
+
   return GlobalConfig;
 };
