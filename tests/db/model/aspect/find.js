@@ -70,7 +70,7 @@ describe('tests/db/model/aspect/find.js >', () => {
     })
     .then((o) => {
       if (o.length !== 2) {
-        done(new Error('expecting two aspects'));
+        return done(new Error('expecting two aspects'));
       }
     })
     .then(() => Aspect.findAll({
@@ -78,7 +78,7 @@ describe('tests/db/model/aspect/find.js >', () => {
     }))
     .then((o) => {
       if (o.length !== 1) {
-        done(new Error('expecting one aspect'));
+        return done(new Error('expecting one aspect'));
       }
     })
     .then(() => Aspect.findAll({
@@ -86,9 +86,9 @@ describe('tests/db/model/aspect/find.js >', () => {
     }))
     .then((o) => {
       if (tu.gotArrayWithExpectedLength(o, 0)) {
-        done();
+        return done();
       } else {
-        done(new Error('expecting zero aspects'));
+        return done(new Error('expecting zero aspects'));
       }
     })
     .catch(done);
