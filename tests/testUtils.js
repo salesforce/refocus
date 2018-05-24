@@ -25,6 +25,7 @@ const adminProfile = require('../config').db.adminProfile;
 const sampleStore = require('../cache/sampleStore');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const doTimeout = require('../cache/sampleStoreTimeout').doTimeout;
+const Op = require('sequelize').Op;
 
 /*
  * A wrapper to create, read, update and delete the samples using the same
@@ -130,11 +131,11 @@ function forceDelete(model, testStartTime) {
   return model.destroy({
     where: {
       name: {
-        $iLike: pfx + '%',
+        [Op.iLike]: pfx + '%',
       },
       createdAt: {
-        $lt: new Date(),
-        $gte: testStartTime,
+        [Op.lt]: new Date(),
+        [Op.gte]: testStartTime,
       },
     },
     force: true,

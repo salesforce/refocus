@@ -19,6 +19,7 @@ const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 const path = '/v1/samples';
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
 `PATCH ${path} without permission >`, () => {
@@ -37,7 +38,7 @@ describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
     .then((samp) => {
       sampleName = samp.name;
       const aspectName = sampleName.split('|')[1].toLowerCase();
-      return Aspect.findOne({ where: { name: { $iLike: aspectName } } });
+      return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
     })
     .then((asp) => {
       aspect = asp;

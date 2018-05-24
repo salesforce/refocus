@@ -18,6 +18,7 @@ const ZERO = 0;
 const ONE = 1;
 const MINUS_ONE = -1;
 const RADIX = 10;
+const Op = require('sequelize').Op;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -76,17 +77,17 @@ function convertArrayElementsToCamelCase(arr) {
 }
 
 /**
- * Transforms the value into a Sequelize where clause using "$ilike" for
+ * Transforms the value into a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  *
  * @param {String} val - The value to transform into a Sequelize where clause
  * @param {Object} props - The helpers/nouns module for the given DB model.
- * @returns {Object} a Sequelize where clause using "$ilike" for
+ * @returns {Object} a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
 
-  // given array, return { $in: array }
+  // given array, return { [Op.in]: array }
   if (Array.isArray(val) && props.isEnum) {
     const inClause = {};
     inClause[constants.SEQ_IN] = val;
@@ -167,7 +168,7 @@ function toSequelizeWhere(filter, props) {
        * clause and add it to where clause, e.g.
        * {
        *  where: {
-            valueType: { $in: ["PERCENT", "BOOLEAN"] },
+            valueType: { [Op.in]: ["PERCENT", "BOOLEAN"] },
           },
        * }
        */
@@ -252,17 +253,17 @@ function toSequelizeOrder(sortOrder) {
  * Check for unique field in opts. If unique field is present, there are
  * following cases:
  * 1) Unique field have single value - set limit to 1
- *    Eg: opts = { where: { $iLike: { uniqField: 'someValue' } } };
+ *    Eg: opts = { where: { [Op.iLike]: { uniqField: 'someValue' } } };
  * 2) Unique field can have multiple values - set limit to the number of values
  *    Eg: opts = { where: { uniqField:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         } };
  * 3) Unique field have single wildcard value - limit unchanged
-      Eg: opts = { where: { $iLike: { uniqField: '%someValue%' } } };
+      Eg: opts = { where: { [Op.iLike]: { uniqField: '%someValue%' } } };
  * 4) Unique field have multiple values one of which is wildcard value -
  *    limit unchanged
  *    Eg: opts = { where: { uniqField:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: '%someName%' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' }] },
         } };
  * It is assumed that each field value will have $iLike operator applied.
  * @param  {Object} opts - Query options object

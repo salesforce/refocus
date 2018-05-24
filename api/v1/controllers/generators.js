@@ -23,6 +23,7 @@ const constants = require('../constants');
 const Aspect = require('../helpers/nouns/aspects').model;
 const apiErrors = require('../apiErrors');
 const apiUtils = require('./utils');
+const Op = require('sequelize').Op;
 
 /**
  * Validate that user has write permissions on given aspects.
@@ -45,7 +46,7 @@ function validateGeneratorAspectsPermissions(aspects, req) {
   const getAspectPromises = [];
   aspects.forEach((aspNameFromGen) => {
     getAspectPromises.push(
-      Aspect.findOne({ where: { name: { $iLike: aspNameFromGen } } })
+      Aspect.findOne({ where: { name: { [Op.iLike]: aspNameFromGen } } })
       .then((asp) => {
         if (!asp) { // error if aspect not found
           return {

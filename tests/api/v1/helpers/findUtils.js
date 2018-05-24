@@ -83,22 +83,22 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       };
 
       params.name.value = '*name*';
-      opts.where.name.$iLike = '%name%';
+      opts.where.name[Op.iLike] = '%name%';
       expect(options(params, props)).to.deep.equal(opts);
 
       params.name.value = 'na%me';
-      opts.where.name.$iLike = 'na\\%me';
+      opts.where.name[Op.iLike] = 'na\\%me';
       expect(options(params, props)).to.deep.equal(opts);
 
       // limit set to 1 because name is unique
       const optsWithLimit1 = Object.assign({}, opts);
       optsWithLimit1.limit = 1;
       params.name.value = 'na_me';
-      opts.where.name.$iLike = 'na\\_me';
+      opts.where.name[Op.iLike] = 'na\\_me';
       expect(options(params, props)).to.deep.equal(optsWithLimit1);
 
       params.name.value = '*n%am_e*';
-      opts.where.name.$iLike = '%n\\%am\\_e%';
+      opts.where.name[Op.iLike] = '%n\\%am\\_e%';
       expect(options(params, props)).to.deep.equal(opts);
     });
 
