@@ -120,7 +120,7 @@ function testAssociations(path, associations, joiSchema, conf) {
    * I think it was fixed in https://github.com/sequelize/sequelize/pull/9188
    * Skipping until we upgrade Sequelize...
    */
-  describe('sequelize bug', () => {
+  describe.skip('sequelize bug', () => {
     if (associations.length > 1) {
       it('find: multiple associations can be specified as field params', (done) => {
         const fields = ['name', ...associations].toString();
