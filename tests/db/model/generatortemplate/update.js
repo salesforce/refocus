@@ -61,7 +61,9 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on version failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       done();
     });
@@ -75,7 +77,9 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on name failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors.length).to.equal(2);
       done();

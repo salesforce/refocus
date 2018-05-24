@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const fu = require('../../../../api/v1/helpers/verbs/findUtils.js');
 const config = require('../../../../config');
+const Op = require('sequelize').Op;
 const options = fu.options;
 const expect = require('chai').expect;
 
@@ -59,10 +60,10 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
         offset: 10,
         where: {
           name: {
-            $iLike: 'name1',
+            [Op.iLike]: 'name1',
           },
           description: {
-            $iLike: 'desc1',
+            [Op.iLike]: 'desc1',
           },
         },
       };
@@ -76,7 +77,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
         offset: config.api.defaults.offset,
         where: {
           name: {
-            $iLike: '%name%',
+            [Op.iLike]: '%name%',
           },
         },
       };
@@ -115,7 +116,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: config.api.defaults.limit,
         offset: config.api.defaults.offset,
-        where: { tags: { $contains: ['a'] } },
+        where: { tags: { [Op.contains]: ['a'] } },
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
@@ -125,7 +126,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: config.api.defaults.limit,
         offset: config.api.defaults.offset,
-        where: { tags: { $contains: ['a', 'b'] } },
+        where: { tags: { [Op.contains]: ['a', 'b'] } },
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
@@ -135,7 +136,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: config.api.defaults.limit,
         offset: config.api.defaults.offset,
-        where: { $not: { tags: { $overlap: ['a'] } } },
+        where: { [Op.not]: { tags: { [Op.overlap]: ['a'] } } },
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
@@ -145,7 +146,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: config.api.defaults.limit,
         offset: config.api.defaults.offset,
-        where: { $not: { tags: { $overlap: ['a', 'b'] } } },
+        where: { [Op.not]: { tags: { [Op.overlap]: ['a', 'b'] } } },
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
@@ -155,7 +156,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: config.api.defaults.limit,
         offset: config.api.defaults.offset,
-        where: { $not: { tags: { $overlap: ['a', 'b'] } } },
+        where: { [Op.not]: { tags: { [Op.overlap]: ['a', 'b'] } } },
       };
       expect(options(params, props)).to.deep.equal(opts);
     });
@@ -166,13 +167,13 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const props = {};
       const opts = {
         limit: config.api.defaults.limit,
-        where: { someField: { $iLike: 'someValue' } },
+        where: { someField: { [Op.iLike]: 'someValue' } },
       };
 
       fu.applyLimitIfUniqueField(opts, props);
       expect(opts).to.deep.equal({
         limit: config.api.defaults.limit,
-        where: { someField: { $iLike: 'someValue' } },
+        where: { someField: { [Op.iLike]: 'someValue' } },
       });
     });
 
@@ -180,13 +181,13 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const props = {};
       const opts = {
         limit: 15000,
-        where: { name: { $iLike: 'someName' } },
+        where: { name: { [Op.iLike]: 'someName' } },
       };
 
       fu.applyLimitIfUniqueField(opts, props);
       expect(opts).to.deep.equal({
         limit: 1,
-        where: { name: { $iLike: 'someName' } },
+        where: { name: { [Op.iLike]: 'someName' } },
       });
     });
 
@@ -196,7 +197,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: 40,
         where: { name:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         },
       };
 
@@ -204,7 +205,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       expect(opts).to.deep.equal({
         limit: 2,
         where: { name:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         },
       });
     });
@@ -213,13 +214,13 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const props = { nameFinder: 'absolutePath' };
       const opts = {
         limit: 50,
-        where: { absolutePath: { $iLike: 'someName' } },
+        where: { absolutePath: { [Op.iLike]: 'someName' } },
       };
 
       fu.applyLimitIfUniqueField(opts, props);
       expect(opts).to.deep.equal({
         limit: 1,
-        where: { absolutePath: { $iLike: 'someName' } },
+        where: { absolutePath: { [Op.iLike]: 'someName' } },
       });
     });
 
@@ -229,7 +230,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: 5,
         where: { absolutePath:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         },
       };
 
@@ -237,7 +238,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       expect(opts).to.deep.equal({
         limit: 2,
         where: { absolutePath:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         },
       });
     });
@@ -246,13 +247,13 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const props = {};
       const opts = {
         limit: 20,
-        where: { name: { $iLike: 'someName%' } },
+        where: { name: { [Op.iLike]: 'someName%' } },
       };
 
       fu.applyLimitIfUniqueField(opts, props);
       expect(opts).to.deep.equal({
         limit: 20,
-        where: { name: { $iLike: 'someName%' } },
+        where: { name: { [Op.iLike]: 'someName%' } },
       });
     });
 
@@ -262,7 +263,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       const opts = {
         limit: 10,
         where: { name:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'some%Name' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'some%Name' }] },
         },
       };
 
@@ -270,7 +271,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       expect(opts).to.deep.equal({
         limit: 10,
         where: { name:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'some%Name' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'some%Name' }] },
         },
       });
     });
