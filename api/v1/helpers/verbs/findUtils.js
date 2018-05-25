@@ -90,7 +90,7 @@ function toWhereClause(val, props) {
   // given array, return { [Op.in]: array }
   if (Array.isArray(val) && props.isEnum) {
     const inClause = {};
-    inClause[constants.SEQ_IN] = val;
+    inClause[Op.in] = val;
     return inClause;
   }
 
@@ -118,11 +118,11 @@ function toWhereClause(val, props) {
     const whereClause = {};
     if (INCLUDE) {
       whereClause[tags] = {};
-      whereClause[tags][constants.SEQ_CONTAINS] = val;
+      whereClause[tags][Op.contains] = val;
     } else { // EXCLUDE
-      whereClause[constants.SEQ_NOT] = {};
-      whereClause[constants.SEQ_NOT][tags] = {};
-      whereClause[constants.SEQ_NOT][tags][constants.SEQ_OVERLAP] = val;
+      whereClause[Op.not] = {};
+      whereClause[Op.not][tags] = {};
+      whereClause[Op.not][tags][Op.overlap] = val;
     }
 
     return whereClause;
@@ -137,7 +137,7 @@ function toWhereClause(val, props) {
   val = escapePercentLiterals(val);
   val = escapeUnderscoreLiterals(val);
   val = toSequelizeWildcards(val);
-  clause[constants.SEQ_LIKE] = val;
+  clause[Op.iLike] = val;
   return clause;
 } // toWhereClause
 
@@ -217,7 +217,7 @@ function toSequelizeWhere(filter, props) {
           where[key] = values[ZERO];
         } else if (values.length > ONE) {
           where[key] = {};
-          where[key][constants.SEQ_OR] = values;
+          where[key][Op.or] = values;
         }
       }
     }
@@ -272,12 +272,12 @@ function toSequelizeOrder(sortOrder) {
 function applyLimitIfUniqueField(opts, props) {
   const uniqueFieldName = props.nameFinder || 'name';
   if (opts.where && opts.where[uniqueFieldName]) {
-    const optsWhereOR = opts.where[uniqueFieldName][constants.SEQ_OR];
+    const optsWhereOR = opts.where[uniqueFieldName][Op.or];
     if (optsWhereOR && Array.isArray(optsWhereOR)) { // multiple values
       let isWildCardExp = false;
       optsWhereOR.forEach((orObj) => {
-        if (orObj[constants.SEQ_LIKE] &&
-         orObj[constants.SEQ_LIKE].indexOf('%') > MINUS_ONE) {
+        if (orObj[Op.iLike] &&
+         orObj[Op.iLike].indexOf('%') > MINUS_ONE) {
           isWildCardExp = true;
         }
       });
@@ -288,7 +288,7 @@ function applyLimitIfUniqueField(opts, props) {
     }
 
     // single value
-    const optsWhereFieldLike = opts.where[uniqueFieldName][constants.SEQ_LIKE];
+    const optsWhereFieldLike = opts.where[uniqueFieldName][Op.iLike];
     if (optsWhereFieldLike && optsWhereFieldLike.indexOf('%') < ZERO) {
       opts.limit = 1; // set limit to 1 if no wildcard value
     }

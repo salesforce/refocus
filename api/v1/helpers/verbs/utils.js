@@ -20,6 +20,7 @@ const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const Op = require('sequelize').Op;
 
 /**
  * @param {Object} o Sequelize instance
@@ -343,7 +344,7 @@ function whereClauseForNameOrId(nameOrId) {
 function whereClauseForNameInArr(arr) {
   const whr = {};
   whr.name = {};
-  whr.name[constants.SEQ_IN] = arr;
+  whr.name[Op.in] = arr;
   return whr;
 } // whereClauseForNameInArr
 
@@ -637,7 +638,7 @@ function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
   const opts = buildFieldList(params);
   const keyClause = {};
-  keyClause[constants.SEQ_LIKE] = key;
+  keyClause[Op.iLike] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
