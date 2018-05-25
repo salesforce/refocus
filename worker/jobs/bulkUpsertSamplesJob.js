@@ -32,8 +32,6 @@ module.exports = (job, done) => {
   const reqStartTime = job.data.reqStartTime;
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
-  let errorCount = 0;
-  let upsertResults;
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg =
       `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
@@ -43,29 +41,24 @@ module.exports = (job, done) => {
 
   const dbStartTime = Date.now();
   let dbEndTime;
+  let successCount = 0;
   cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
-      upsertResults = results;
       dbEndTime = Date.now();
-      const publishPromises = [];
-
       /*
-       * count failed promises and send the good samples to the client by
-       * publishing it to the redis channel
+       * For each result, if there was an error, track the error to return to
+       * to the caller when they check status. If no error, publish the sample
+       * to the redis channel.
        */
-      for (let i = 0; i < upsertResults.length; i++) {
-        if (upsertResults[i].isFailed) {
-          errorCount++;
-
-          // we just need "explanation" to be added to the errors
-          errors.push(upsertResults[i].explanation);
+      return Promise.all(results.map((result) => {
+        if (result.isFailed) {
+          errors.push(result.explanation);
+          return Promise.resolve();
         } else {
-          publishPromises
-            .push(publisher.publishSample(upsertResults[i], subHelper.model));
+          successCount++;
+          return publisher.publishSample(result, subHelper.model);
         }
-      }
-
-      return Promise.all(publishPromises);
+      });
     })
     .then(() => {
       const objToReturn = {};
@@ -76,10 +69,10 @@ module.exports = (job, done) => {
         const jobEndTime = Date.now();
 
         // number of successful upserts
-        objToReturn.recordCount = upsertResults.length - errorCount;
+        objToReturn.recordCount = successCount - errors.length;
 
         // number of failed upserts
-        objToReturn.errorCount = errorCount;
+        objToReturn.errorCount = errors.length;
 
         const tempObj = {
           jobStartTime,
