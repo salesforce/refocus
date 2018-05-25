@@ -58,7 +58,7 @@ module.exports = (job, done) => {
           successCount++;
           return publisher.publishSample(result, subHelper.model);
         }
-      });
+      }));
     })
     .then(() => {
       const objToReturn = {};
