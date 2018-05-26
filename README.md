@@ -23,6 +23,7 @@ Refocus is a platform for visualizing the health and status of systems and/or se
   - [Dummy SSO Password](#dummy-sso-password)
 - [Perspective Debugging](#perspective-debugging)
 - [API Documentation](#api-documentation)
+- [Refocus Rooms Documentation](#refocus-rooms-documentation)
 - [Useful Resources](#useful-resources)
 - [Contributing](#contributing)
 - [Related Github Repositories](#related-github-repositories)
@@ -72,6 +73,9 @@ If you are troubleshooting realtime event handling in a perspective, add query p
 
 ## API Documentation
 The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.yaml). Start your server and open `MY_HOST:MY_PORT/v1/docs` for interactive documentation of all the Refocus API endpoints.
+
+## Refocus Rooms Documentation
+Get started with Refocus Rooms with the [User Guide](https://docs.google.com/document/d/1CV800MUPEVzf5_J2Age8CVbhn70waXxyDPgksLDLy0g/edit#heading=h.wirt8zok39rs).
 
 ## Useful Resources
 - Redis [command line interface](http://redis.io/commands)
