@@ -87,7 +87,7 @@ const messageEvent = eventMethod === 'attachEvent' ? 'onmessage' : 'message';
 eventer(messageEvent, (iframeMessage) => {
   const iframe = document
     .getElementById(iframeMessage.data.name + '-iframe-section');
-  iframe.height = iframeMessage.data.height + 'px';
+    iframe.height = iframeMessage.data.height + 'px';
 }, false);
 
 /**
@@ -408,30 +408,22 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeJS =
   `
   <script>
-    function outputSize(e, browser) {
-      if (browser === 'chrome') {
-        parent.postMessage(
-          {
-            "name": "${bot.name}",
-            "height": e[0].target.scrollHeight
-          }, "*"
-        );
-      } else {
-        parent.postMessage(
+    function outputSize() {
+      const el = document.getElementById("${bot.name}");
+      const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
+   
+      parent.postMessage(
         {
           "name": "${bot.name}",
-          "height": document.getElementById("${bot.name}").clientHeight < 100 ?
-            600 :
-            document.getElementById("${bot.name}").clientHeight
+          "height": botHeight < 100 ? 600 : botHeight
         }, "*"
       );
-      }
     }
 
     if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
       new ResizeObserver(
         function(event) {
-          outputSize(event, 'chrome')
+          outputSize()
         }
       ).observe(document.getElementById("${bot.name}"));
     } else {
@@ -439,19 +431,13 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       var config = { attributes: true, childList: true };
       var observer = new MutationObserver(function(mutationsList) {
         for(var mutation of mutationsList) {
-          parent.postMessage(
-          {
-            "name": "${bot.name}",
-            "height": document.getElementById("${bot.name}").clientHeight < 100 ?
-              600 :
-              document.getElementById("${bot.name}").clientHeight
-          }, "*")
+          outputSize();
         }
       });
       observer.observe(targetNode, config);
       window.addEventListener("resize",
         function(event) {
-          outputSize(event, 'other');
+          outputSize();
         }
       );
     }
@@ -537,6 +523,7 @@ function displayBot(bot, botIndex) {
   iframe.style.display = 'block';
   iframe.style.border = 'none';
   iframe.style.width = '100%';
+  iframe.scrolling = 'no';
   iframe.frameBorder = 0;
 
   headerSection.appendChild(iframe);
