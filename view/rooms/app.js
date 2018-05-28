@@ -87,7 +87,7 @@ const messageEvent = eventMethod === 'attachEvent' ? 'onmessage' : 'message';
 eventer(messageEvent, (iframeMessage) => {
   const iframe = document
     .getElementById(iframeMessage.data.name + '-iframe-section');
-    iframe.height = iframeMessage.data.height + 'px';
+  iframe.height = iframeMessage.data.height + 'px';
 }, false);
 
 /**
