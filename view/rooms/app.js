@@ -410,6 +410,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   <script>
     function outputSize() {
       const el = document.getElementById("${bot.name}");
+      // Sometimes clientHeight was > scrollHeight so we need to get the max
       const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
    
       parent.postMessage(
@@ -523,6 +524,7 @@ function displayBot(bot, botIndex) {
   iframe.style.display = 'block';
   iframe.style.border = 'none';
   iframe.style.width = '100%';
+  // We don't want to scroll the iframe, just the bot inside it
   iframe.scrolling = 'no';
   iframe.frameBorder = 0;
 
