@@ -42,6 +42,20 @@ module.exports = {
     inactiveCount: 0,
     workTimeMillis: 0,
   },
+  limiter: {
+    activity: 'limiter',
+    ipAddress: 'None',
+    limit: '0/0', //limit that was hit: i.e. 500/60000 means they hit
+                  //limit of 500 requests in a 60 second period
+    method: 'None', //one of HTTP verbs
+    requestBytes: 0,
+    request_id: 'None',
+    responseBytes: 0,
+    token: 'None',
+    totalTime: '0ms',
+    uri: 'None',
+    user: 'None',
+  },
   pubStats: {
     activity: 'pubStats',
     key: 'None',

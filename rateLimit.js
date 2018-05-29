@@ -12,18 +12,21 @@
  * Rate limiting setup
  */
 const conf = require('./config');
+const activityLogUtil = require('./utils/activityLog')
 const limiterRedisClient = require('./cache/redisCache').client.limiter;
 const Limiter = require('ratelimiter');
 const Promise = require('bluebird');
 Limiter.prototype.getAsync = Promise.promisify(Limiter.prototype.get);
 
 module.exports = function (req, res, next) {
+  const reqStartTime = Date.now();
   if (req.headers.IsAdmin) return next();
   const limiterConfig1 = {
     db: limiterRedisClient,
     max: conf.expressLimiterTotal,
     duration: conf.expressLimiterExpire,
   };
+
   const limiterConfig2 = {
     db: limiterRedisClient,
     max: conf.expressLimiterTotal2,
@@ -65,6 +68,26 @@ module.exports = function (req, res, next) {
           res.set('X-RateLimit-Remaining', 0);
           var after = limit.reset - (Date.now() / 1000) | 0;
           res.set('Retry-After', after);
+
+          let logObject = {
+            activity: 'limiter',
+            ipAddress: activityLogUtil.getIPAddrFromReq(req),
+            limit: `${config.max}/${config.duration}`,
+            method: req.method,
+            requestBytes: JSON.stringify(req.body).length,
+            responseBytes: 0,
+            token: req.headers.TokenName,
+            totalTime: `${Date.now() - reqStartTime}ms`,
+            uri: req.url,
+            user: req.headers.UserName,
+          };
+
+          // Add "request_id" if header is set by heroku.
+          if (req.headers && req.headers['x-request-id']) {
+            logObject.request_id = req.headers['x-request-id'];
+          }
+
+          activityLogUtil.printActivityLogString(logObject, 'limiter')
           res.status(429).end();
           return Promise.reject();
         }
