@@ -302,15 +302,14 @@ module.exports = {
             newErr = new Error();
           }
 
-          //copy props to new error
+          // copy props to new error
           Object.keys(parsedErr).forEach((prop) => {
             if (!newErr.hasOwnProperty(prop)
             || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
               newErr[prop] = parsedErr[prop];
             }
           });
-
-        } else { //errString contains an error message.
+        } else { // errString contains an error message.
           if (errString === 'TTL exceeded') {
             newErr = new apiErrors.WorkerTimeoutError();
           } else {
@@ -562,5 +561,39 @@ module.exports = {
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
+  },
+
+  /**
+   * POST /subjects/delete/bulk
+   *
+   * Operates asynchronous bulk subject deletion.
+   *
+   * @param request body with a required list of subject ID or absolute path
+   * @returns Status of the operation and job id that can be used to check
+   * the status of the bulk subject delete request.
+   */
+  deleteSubjects(req, res, next) {
+    return res.status(httpStatus.OK).json({
+      status: 'OK',
+      jobId: 0,
+    });
+  },
+
+  /**
+   * GET /subjects/bulk/{key}/status
+   *
+   * Retrieve the status of the job requested by id.
+   *
+   * @param {Key} as the job id
+   * @returns Status of the bulk subject delete request and
+   * an array containing the error information (if that's the case).
+   */
+  getSubjectBulkDeleteStatus(req, res, next) {
+    return res.status(httpStatus.OK).json({
+      status: 'OK',
+      errors: [
+            {},
+      ],
+    });
   },
 }; // exports

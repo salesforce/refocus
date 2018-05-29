@@ -9919,6 +9919,78 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
+  # ---------------------------------------------------------------------------
+  /subjects/delete/bulk:
+    x-swagger-router-controller: subjects
+    post:
+      security:
+        - jwt: []
+      summary: Bulk subject delete
+      tags: [ subjects ]
+      description: >-
+        Operates asynchronous bulk subject deletion.
+      operationId: deleteSubjects
+      produces:
+        - text/plain; charset=utf-8
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              List of subject ID or absolute path.
+      responses:
+        200:
+          description: >-
+            Success, returns OK
+          schema:
+            $ref: "#/definitions/BulkSubjectDeleteResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/bulk/{key}/status:
+    x-swagger-router-controller: subjects
+    get:
+      security:
+        - jwt: []
+      summary: Bulk subject delete job status
+      tags: [ subjects ]
+      description: >-
+        Retrieve the status of the job requested by id.
+      operationId: getSubjectBulkDeleteStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The job id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/GetBulkSubjectDeleteStatusResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
 definitions:
 
@@ -11808,7 +11880,6 @@ definitions:
         description: >
           Id of the User who created this generatorTemplate.
 
-
   RoomResponse:
     type: object
     description: A response for information about a room
@@ -11872,6 +11943,46 @@ definitions:
       botId:
         type: string
         description: UUID of the specified bot in that room
+
+  BulkSubjectDeleteResponse:
+    type: object
+    description: >
+      Status of bulk subject delete request.
+    properties:
+      status:
+        type: string
+        enum:
+          - OK
+        readOnly: true
+        description: >
+          Status of the operation.
+      jobId:
+        type: integer
+        readOnly: true
+        description: >
+          Optionally a jobId is returned with the response when the bulk subject
+          delete request is enqueued as a job for the workers to process it
+          asynchronously. The returned jobId can be ultimately used to check the status
+          of the bulk subject delete request.
+
+  GetBulkSubjectDeleteStatusResponse:
+    type: object
+    description: >
+      Status of the bulk subject delete request.
+    properties:
+      status:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          Status.
+      errors:
+        type: array
+        readOnly: true
+        description: >
+          An array containing the error information.
+        items:
+          type: object
 
 # =============================================================================
 parameters:
