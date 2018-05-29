@@ -333,7 +333,8 @@ function heartbeat(req, res, next) {
       attachTemplate(sg)
       .then((sg) => {
         const userName = sg.user.dataValues.name;
-        sg.token = jwtUtil.createToken(userName, userName);
+        const generatorName = sg.name;
+        sg.token = jwtUtil.createToken(generatorName, userName);
         return reEncryptSGContextValues(sg, authToken, timestamp);
       })
     )
@@ -344,7 +345,8 @@ function heartbeat(req, res, next) {
       attachTemplate(sg)
       .then((sg) => {
         const userName = sg.user.dataValues.name;
-        sg.token = jwtUtil.createToken(userName, userName);
+        const generatorName = sg.name;
+        sg.token = jwtUtil.createToken(generatorName, userName);
         return reEncryptSGContextValues(sg, authToken, timestamp);
       })
     )
@@ -418,7 +420,7 @@ function startCollector(req, res, next) {
   .then((gens) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
-      g.token = jwtUtil.createToken(g.user.name, g.user.name);
+      g.token = jwtUtil.createToken(g.name, g.user.name);
       delete g.GeneratorCollectors;
       delete g.collectors;
       return g;

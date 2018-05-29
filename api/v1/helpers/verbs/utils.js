@@ -641,16 +641,12 @@ function findByKey(props, params, extraAttributes) {
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
-  const attrArr = [];
-  if (opts.attributes && Array.isArray(opts.attributes)) {
-    for (let i = 0; i < opts.attributes.length; i++) {
-      attrArr.push(opts.attributes[i]);
-    }
-  }
-
-  if (extraAttributes && Array.isArray(extraAttributes)) {
-    for (let i = 0; i < extraAttributes.length; i++) {
-      attrArr.push(extraAttributes[i]);
+  let attrArr = opts.attributes;
+  if (extraAttributes && Array.isArray(extraAttributes) && extraAttributes.length) {
+    if (attrArr) {
+      attrArr.push(...extraAttributes);
+    } else {
+      attrArr = extraAttributes;
     }
   }
 
