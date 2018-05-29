@@ -150,7 +150,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
           expect(logObj.queueResponseTime).to.match(/\d+ms/);
           expect(logObj.workTime).to.match(/\d+ms/);
           expect(logObj.dbTime).to.match(/\d+ms/);
-          expect(logObj.recordCount).to.equal(/\d+/);
+          expect(logObj.recordCount).to.match(/\d+/);
           expect(logObj.errorCount).to.match(/\d+/);
 
           const totalTime = parseInt(logObj.totalTime, RADIX);
