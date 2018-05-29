@@ -26,7 +26,6 @@ module.exports = function (req, res, next) {
     max: conf.expressLimiterTotal,
     duration: conf.expressLimiterExpire,
   };
-
   const limiterConfig2 = {
     db: limiterRedisClient,
     max: conf.expressLimiterTotal2,
@@ -87,7 +86,7 @@ module.exports = function (req, res, next) {
             logObject.request_id = req.headers['x-request-id'];
           }
 
-          activityLogUtil.printActivityLogString(logObject, 'limiter')
+          activityLogUtil.printActivityLogString(logObject, 'limiter');
           res.status(429).end();
           return Promise.reject();
         }
