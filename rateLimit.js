@@ -69,7 +69,7 @@ module.exports = function (req, res, next) {
           res.set('Retry-After', after);
 
           if (req && featureToggles.isFeatureEnabled('enableLimiterActivityLogs')) {
-            let logObject = {
+            const logObject = {
               activity: 'limiter',
               ipAddress: activityLogUtil.getIPAddrFromReq(req),
               limit: `${config.max}/${config.duration}`,
