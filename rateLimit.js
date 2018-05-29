@@ -20,7 +20,6 @@ const Promise = require('bluebird');
 Limiter.prototype.getAsync = Promise.promisify(Limiter.prototype.get);
 
 module.exports = function (req, res, next) {
-  const reqStartTime = Date.now();
   if (req.headers.IsAdmin) return next();
   const limiterConfig1 = {
     db: limiterRedisClient,
@@ -78,7 +77,7 @@ module.exports = function (req, res, next) {
               requestBytes: JSON.stringify(req.body).length,
               responseBytes: 0,
               token: req.headers.TokenName,
-              totalTime: `${Date.now() - reqStartTime}ms`,
+              totalTime: `${Date.now() - req.timestamp}ms`,
               uri: req.url,
               user: req.headers.UserName,
             };
