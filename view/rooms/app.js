@@ -416,7 +416,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       parent.postMessage(
         {
           "name": "${bot.name}",
-          "height": botHeight < 100 ? 300 : botHeight
+          "height": botHeight < 100 ? 100 : botHeight
         }, "*"
       );
     }
