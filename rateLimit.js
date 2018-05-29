@@ -13,6 +13,7 @@
  */
 const conf = require('./config');
 const activityLogUtil = require('./utils/activityLog');
+const featureToggles = require('feature-toggles');
 const limiterRedisClient = require('./cache/redisCache').client.limiter;
 const Limiter = require('ratelimiter');
 const Promise = require('bluebird');
@@ -68,25 +69,28 @@ module.exports = function (req, res, next) {
           var after = limit.reset - (Date.now() / 1000) | 0;
           res.set('Retry-After', after);
 
-          let logObject = {
-            activity: 'limiter',
-            ipAddress: activityLogUtil.getIPAddrFromReq(req),
-            limit: `${config.max}/${config.duration}`,
-            method: req.method,
-            requestBytes: JSON.stringify(req.body).length,
-            responseBytes: 0,
-            token: req.headers.TokenName,
-            totalTime: `${Date.now() - reqStartTime}ms`,
-            uri: req.url,
-            user: req.headers.UserName,
-          };
+          if (req && featureToggles.isFeatureEnabled('enableLimiterActivityLogs')) {
+            let logObject = {
+              activity: 'limiter',
+              ipAddress: activityLogUtil.getIPAddrFromReq(req),
+              limit: `${config.max}/${config.duration}`,
+              method: req.method,
+              requestBytes: JSON.stringify(req.body).length,
+              responseBytes: 0,
+              token: req.headers.TokenName,
+              totalTime: `${Date.now() - reqStartTime}ms`,
+              uri: req.url,
+              user: req.headers.UserName,
+            };
 
-          // Add "request_id" if header is set by heroku.
-          if (req.headers && req.headers['x-request-id']) {
-            logObject.request_id = req.headers['x-request-id'];
+            // Add "request_id" if header is set by heroku.
+            if (req.headers && req.headers['x-request-id']) {
+              logObject.request_id = req.headers['x-request-id'];
+            }
+
+            activityLogUtil.printActivityLogString(logObject, 'limiter');
           }
 
-          activityLogUtil.printActivityLogString(logObject, 'limiter');
           res.status(429).end();
           return Promise.reject();
         }
