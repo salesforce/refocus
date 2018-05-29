@@ -291,9 +291,9 @@ module.exports = {
         }
 
         let newErr;
-        if (parsedErr) { //errString contains a serialized error object.
+        if (parsedErr) { // errString contains a serialized error object.
 
-          //create a new error object of the correct type
+          // create a new error object of the correct type
           if (apiErrors[parsedErr.name]) {
             newErr = new apiErrors[parsedErr.name]();
           } else if (global[parsedErr.name]) {
@@ -584,7 +584,7 @@ module.exports = {
    *
    * Retrieve the status of the job requested by id.
    *
-   * @param {Key} as the job id
+   * @param {key} as the job id
    * @returns Status of the bulk subject delete request and
    * an array containing the error information (if that's the case).
    */
@@ -592,7 +592,7 @@ module.exports = {
     return res.status(httpStatus.OK).json({
       status: 'OK',
       errors: [
-            {},
+        {},
       ],
     });
   },
