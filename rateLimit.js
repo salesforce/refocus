@@ -12,7 +12,7 @@
  * Rate limiting setup
  */
 const conf = require('./config');
-const activityLogUtil = require('./utils/activityLog')
+const activityLogUtil = require('./utils/activityLog');
 const limiterRedisClient = require('./cache/redisCache').client.limiter;
 const Limiter = require('ratelimiter');
 const Promise = require('bluebird');
