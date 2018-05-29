@@ -68,6 +68,7 @@ module.exports = function token(seq, dataTypes) {
           include: [
             {
               association: assoc.createdBy,
+              attributes: ['name', 'email'],
             },
           ],
         });
