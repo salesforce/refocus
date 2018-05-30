@@ -21,6 +21,7 @@ require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const DB_URL = env.dbUrl;
+const Op = require('sequelize').Op;
 
 const SQL_DROP_SEQUELIZE_META = 'DROP TABLE IF EXISTS public."SequelizeMeta"';
 const SQL_INSERT_SEQUELIZE_META = 'INSERT INTO "SequelizeMeta"(name) VALUES';
@@ -183,12 +184,12 @@ function createOrDropDb(cmd) {
  */
 function initializeAdminUserAndProfile() {
   const profileFinder = {
-    where: { name: { $iLike: conf.db.adminProfile.name } },
+    where: { name: { [Op.iLike]: conf.db.adminProfile.name } },
   };
   const userFinder = {
     where: {
       name: {
-        $iLike: conf.db.adminUser.name,
+        [Op.iLike]: conf.db.adminUser.name,
       },
     },
   };

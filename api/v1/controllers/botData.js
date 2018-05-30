@@ -21,6 +21,7 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
 const u = require('../../../utils/common');
 const bdUtils = require('../../../db/helpers/botDataUtils');
+const Op = require('sequelize').Op;
 
 module.exports = {
 
@@ -64,7 +65,7 @@ module.exports = {
     if (botId && !u.looksLikeId(botId.value)) {
       Bot.findOne({
         where: {
-          name: { $iLike: req.swagger.params.botId.value },
+          name: { [Op.iLike]: req.swagger.params.botId.value },
         },
       })
       .then((o) => {

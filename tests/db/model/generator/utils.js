@@ -12,6 +12,7 @@
 'use strict';
 const tu = require('../../../testUtils');
 const gtUtil = require('../generatortemplate/utils');
+const Op = require('sequelize').Op;
 const testStartTime = new Date();
 
 const NOT_FOUND_STATUS_CODE = 404;
@@ -52,7 +53,7 @@ const GENERATOR_SIMPLE = {
 function whereClauseForNameInArr(arr) {
   const whr = {};
   whr.name = {};
-  whr.name.$in = arr;
+  whr.name[Op.in] = arr;
   return whr;
 } // whereClauseForNameInArr
 

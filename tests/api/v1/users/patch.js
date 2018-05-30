@@ -22,6 +22,7 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const OBAdminProfile = require('../../../../config').db.adminProfile;
 const OBAdminUser = require('../../../../config').db.adminUser;
+const Op = require('sequelize').Op;
 
 describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
   const ONE = 1;
@@ -89,7 +90,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
       User.findOne({
         where: {
           name: {
-            $iLike: OBAdminUser.name,
+            [Op.iLike]: OBAdminUser.name,
           },
         },
       })

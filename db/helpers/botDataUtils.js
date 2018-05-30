@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 
 const _ = require('lodash');
+const Op = require('sequelize').Op;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -169,7 +170,7 @@ function updateValues(seq, instance) {
         attributes: ['name', 'id'],
         where: {
           name: {
-            $in: room.bots,
+            [Op.in]: room.bots,
           },
         },
       });

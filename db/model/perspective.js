@@ -80,87 +80,6 @@ module.exports = function perspective(seq, dataTypes) {
       allowNull: true,
     },
   }, {
-    classMethods: {
-      getPerspectiveAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'perspectiveAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Perspective.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-        assoc.lens = Perspective.belongsTo(models.Lens, {
-          as: 'lens',
-          foreignKey: {
-            name: 'lensId',
-            allowNull: false,
-          },
-        });
-        assoc.writers = Perspective.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'PerspectiveWriters',
-          foreignKey: 'perspectiveId',
-        });
-
-        Perspective.addScope('baseScope', {
-          order: ['Perspective.name'],
-        });
-
-        Perspective.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-            {
-              association: assoc.lens,
-              attributes: [
-                'helpEmail',
-                'helpUrl',
-                'id',
-                'name',
-                'thumbnailUrl',
-                'version',
-              ],
-            },
-          ],
-          order: ['Perspective.name'],
-        }, {
-          override: true,
-        });
-
-        Perspective.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-          ],
-        });
-
-        Perspective.addScope('lens', {
-          include: [
-            {
-              association: assoc.lens,
-              attributes: [
-                'helpEmail',
-                'helpUrl',
-                'id',
-                'name',
-                'thumbnailUrl',
-                'version',
-              ],
-            },
-          ],
-        });
-
-      },
-    },
     hooks: {
 
       beforeDestroy(inst /* , opts */) {
@@ -207,21 +126,6 @@ module.exports = function perspective(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
     paranoid: true,
     validate: {
       lensIdNotNull() {
@@ -233,5 +137,108 @@ module.exports = function perspective(seq, dataTypes) {
       }, // lensIdNotNull
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Perspective.getPerspectiveAssociations = function () {
+    return assoc;
+  };
+
+  Perspective.getProfileAccessField = function () {
+    return 'perspectiveAccess';
+  };
+
+  Perspective.postImport = function (models) {
+    assoc.user = Perspective.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+    assoc.lens = Perspective.belongsTo(models.Lens, {
+      as: 'lens',
+      foreignKey: {
+        name: 'lensId',
+        allowNull: false,
+      },
+    });
+    assoc.writers = Perspective.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'PerspectiveWriters',
+      foreignKey: 'perspectiveId',
+    });
+
+    Perspective.addScope('baseScope', {
+      order: ['name'],
+    });
+
+    Perspective.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+        {
+          association: assoc.lens,
+          attributes: [
+            'helpEmail',
+            'helpUrl',
+            'id',
+            'name',
+            'thumbnailUrl',
+            'version',
+          ],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    Perspective.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
+
+    Perspective.addScope('lens', {
+      include: [
+        {
+          association: assoc.lens,
+          attributes: [
+            'helpEmail',
+            'helpUrl',
+            'id',
+            'name',
+            'thumbnailUrl',
+            'version',
+          ],
+        },
+      ],
+    });
+
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Perspective.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Perspective;
 };

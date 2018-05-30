@@ -21,17 +21,9 @@ const constants = require('../constants');
 const commonUtils = require('../../utils/common');
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
-const botDataEventNames = {
-  add: 'refocus.internal.realtime.bot.data.add',
-  upd: 'refocus.internal.realtime.bot.data.update',
-  del: 'refocus.internal.realtime.bot.data.remove',
-};
-const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.botDataFilterIndex,
-  filterField: 'name',
-};
+const botDataEventNames = rtConstants.events.botData;
+const pubOpts = rtConstants.pubOpts.botData;
+const Op = require('sequelize').Op;
 
 module.exports = function botData(seq, dataTypes) {
   const BotData = seq.define('BotData', {
@@ -53,38 +45,6 @@ module.exports = function botData(seq, dataTypes) {
       comment: 'Current value for bot data',
     },
   }, {
-    classMethods: {
-      getBotDataAssociations() {
-        return assoc;
-      },
-
-      postImport(models) {
-        assoc.room = BotData.belongsTo(models.Room, {
-          foreignKey: 'roomId',
-          allowNull: false,
-        });
-        assoc.room = BotData.belongsTo(models.Bot, {
-          foreignKey: 'botId',
-          allowNull: false,
-        });
-        assoc.writers = BotData.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'BotDataWriters',
-          foreignKey: 'botId',
-        });
-        BotData.addScope('bdExists', (value) => ({
-          where: {
-            name: value.name,
-            botId: value.botId,
-            roomId: value.roomId,
-          },
-        }));
-      },
-
-      bdExists(query) {
-        return BotData.scope({ method: ['bdExists', query] }).findOne();
-      },
-    },
 
     hooks: {
 
@@ -103,7 +63,7 @@ module.exports = function botData(seq, dataTypes) {
 
         return seq.models.Bot.findOne({
           where: {
-            name: { $iLike: botId },
+            name: { [Op.iLike]: botId },
           },
         })
         .then((bot) => {
@@ -188,6 +148,42 @@ module.exports = function botData(seq, dataTypes) {
       },
     ],
   });
+
+  /**
+   * Class Methods:
+   */
+
+  BotData.getBotDataAssociations = function () {
+    return assoc;
+  };
+
+  BotData.postImport = function (models) {
+    assoc.room = BotData.belongsTo(models.Room, {
+      foreignKey: 'roomId',
+      allowNull: false,
+    });
+    assoc.room = BotData.belongsTo(models.Bot, {
+      foreignKey: 'botId',
+      allowNull: false,
+    });
+    assoc.writers = BotData.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'BotDataWriters',
+      foreignKey: 'botId',
+    });
+    BotData.addScope('bdExists', (value) => ({
+      where: {
+        name: value.name,
+        botId: value.botId,
+        roomId: value.roomId,
+      },
+    }));
+  };
+
+  BotData.bdExists = function (query) {
+    return BotData.scope({ method: ['bdExists', query] }).findOne();
+  };
+
   return BotData;
 };
 

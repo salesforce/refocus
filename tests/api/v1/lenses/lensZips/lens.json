@@ -2,6 +2,6 @@
   "name": "testLens",
   "description": "asdasd",
   "version":"1.0",
-  "helpUrl": "http://localhost:3000/asdf",
+  "helpUrl": "http://www.example.com:3000/asdf",
   "helpEmail":"abc@gmail.com"
 }

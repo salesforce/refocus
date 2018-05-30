@@ -16,6 +16,7 @@ const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
+const Op = require('sequelize').Op;
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -390,12 +391,12 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
     const subOpts = {
       where: {
-        absolutePath: { $iLike: subAbsPath },
+        absolutePath: { [Op.iLike]: subAbsPath },
       },
     };
     const aspOpts = {
       where: {
-        name: { $iLike: aspName },
+        name: { [Op.iLike]: aspName },
       },
     };
     let getAspectPromise;

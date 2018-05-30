@@ -19,6 +19,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/sample/timeout.js >', () => {
   let updatedAt;
@@ -85,7 +86,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
       attributes: ['name', 'updatedAt'],
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })
@@ -108,7 +109,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
     .then(() => Sample.findAll({
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })
@@ -130,7 +131,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
     .then(() => Sample.findAll({
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })
@@ -165,7 +166,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
     .then(() => Sample.findAll({
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })
@@ -200,7 +201,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
     .then(() => Sample.findAll({
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })
