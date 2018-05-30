@@ -416,15 +416,16 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       parent.postMessage(
         {
           "name": "${bot.name}",
-          "height": botHeight < 100 ? 100 : botHeight
+          "height": Math.max(botHeight, 100)
         }, "*"
       );
     }
 
+    outputSize();
     if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
       new ResizeObserver(
         function(event) {
-          outputSize()
+          outputSize();
         }
       ).observe(document.getElementById("${bot.name}"));
     } else {
