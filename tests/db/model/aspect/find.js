@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/aspect/find.js >', () => {
   before((done) => {
@@ -66,7 +67,7 @@ describe('tests/db/model/aspect/find.js >', () => {
 
   it('find by tag, found', (done) => {
     Aspect.findAll({
-      where: { tags: { $contains: ['jedi'] } },
+      where: { tags: { [Op.contains]: ['jedi'] } },
     })
     .then((o) => {
       if (o.length !== 2) {
@@ -74,7 +75,7 @@ describe('tests/db/model/aspect/find.js >', () => {
       }
     })
     .then(() => Aspect.findAll({
-      where: { tags: { $contains: ['boring'] } },
+      where: { tags: { [Op.contains]: ['boring'] } },
     }))
     .then((o) => {
       if (o.length !== 1) {
@@ -82,7 +83,7 @@ describe('tests/db/model/aspect/find.js >', () => {
       }
     })
     .then(() => Aspect.findAll({
-      where: { tags: { $contains: ['father'] } },
+      where: { tags: { [Op.contains]: ['father'] } },
     }))
     .then((o) => {
       if (tu.gotArrayWithExpectedLength(o, 0)) {

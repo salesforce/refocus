@@ -19,6 +19,7 @@ const expect = require('chai').expect;
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Op = require('sequelize').Op;
 
 describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
   let updatedAt;
@@ -84,7 +85,7 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
       attributes: ['name', 'updatedAt'],
       where: {
         name: {
-          $ilike: `${tu.namePrefix}Subject|%`,
+          [Op.iLike]: `${tu.namePrefix}Subject|%`,
         },
       },
     })

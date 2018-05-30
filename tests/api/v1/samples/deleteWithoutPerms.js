@@ -21,6 +21,7 @@ const User = tu.db.User;
 const path = '/v1/samples';
 const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
 const deleteOneRelLinkPath = '/v1/samples/{key}/relatedLinks/{akey}';
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
   let sampleName;
@@ -48,7 +49,7 @@ describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
     .then((samp) => {
       sampleName = samp.name;
       const aspectName = sampleName.split('|')[1].toLowerCase();
-      return Aspect.findOne({ where: { name: { $iLike: aspectName } } });
+      return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
     })
     .then((asp) => asp.addWriters(user))
     .then(() => done())

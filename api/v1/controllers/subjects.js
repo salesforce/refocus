@@ -34,6 +34,7 @@ const jobSetup = require('../../../jobQueue/setup');
 const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
+const Op = require('sequelize').Op;
 
 /**
  * If both parentAbsolutePath and parentId are provided,
@@ -57,7 +58,7 @@ function validateParentFields(req, res, next, callback) {
    */
   if (parentId && parentAbsolutePath) {
     helper.model.findOne(
-      { where: { absolutePath: { $iLike: parentAbsolutePath } } }
+      { where: { absolutePath: { [Op.iLike]: parentAbsolutePath } } }
     )
     .then((parent) => {
       if (parent && parent.id !== parentId) {
