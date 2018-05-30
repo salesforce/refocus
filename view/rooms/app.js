@@ -16,6 +16,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const MIN_BOT_HEIGHT = 100;
 const botsContainer = document.getElementById('botsContainer');
 const botsLeft = document.getElementById('botsLeftColumn');
 const botsMiddle = document.getElementById('botsMiddleColumn');
@@ -412,11 +413,10 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       const el = document.getElementById("${bot.name}");
       // Sometimes clientHeight was > scrollHeight so we need to get the max
       const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
-   
       parent.postMessage(
         {
           "name": "${bot.name}",
-          "height": Math.max(botHeight, 100)
+          "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
         }, "*"
       );
     }
