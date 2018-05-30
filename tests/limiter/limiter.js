@@ -397,8 +397,6 @@ describe('tests/limiter/limiter.js >', () => {
     });
   });
 
-
-
   describe('lookup/total/expire - test middleware directly >', () => {
     let req;
     let res;
