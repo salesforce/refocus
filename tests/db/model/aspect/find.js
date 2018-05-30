@@ -42,25 +42,15 @@ describe('tests/db/model/aspect/find.js >', () => {
   describe('find by name >', () => {
     it('find by name, found', (done) => {
       Aspect.findOne({ where: { name: u.name } })
-      .then((o) => {
-        if (o === null) {
-          done(new Error('expecting record to be found'));
-        } else {
-          done();
-        }
-      })
+      .then((o) => expect(o).to.have.property('name', u.name))
+      .then(() => done())
       .catch(done);
     });
 
     it('find by name, not found', (done) => {
       Aspect.findOne({ where: { name: 'x' } })
-      .then((o) => {
-        if (o === null) {
-          done();
-        } else {
-          done(new Error('expecting record to not be found'));
-        }
-      })
+      .then((o) => expect(o).to.be.null)
+      .then(() => done())
       .catch(done);
     });
   });
@@ -69,29 +59,16 @@ describe('tests/db/model/aspect/find.js >', () => {
     Aspect.findAll({
       where: { tags: { [Op.contains]: ['jedi'] } },
     })
-    .then((o) => {
-      if (o.length !== 2) {
-        return done(new Error('expecting two aspects'));
-      }
-    })
+    .then((o) => expect(o).to.have.lengthOf(2))
     .then(() => Aspect.findAll({
       where: { tags: { [Op.contains]: ['boring'] } },
     }))
-    .then((o) => {
-      if (o.length !== 1) {
-        return done(new Error('expecting one aspect'));
-      }
-    })
+    .then((o) => expect(o).to.have.lengthOf(1))
     .then(() => Aspect.findAll({
       where: { tags: { [Op.contains]: ['father'] } },
     }))
-    .then((o) => {
-      if (tu.gotArrayWithExpectedLength(o, 0)) {
-        return done();
-      } else {
-        return done(new Error('expecting zero aspects'));
-      }
-    })
+    .then((o) => expect(o).to.be.empty)
+    .then(() => done())
     .catch(done);
   });
 
