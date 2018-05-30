@@ -21,6 +21,7 @@ const fork = require('child_process').fork;
 const Promise = require('bluebird');
 const rateLimit = Promise.promisify(require('../../rateLimit'));
 const conf = require('../../config');
+const logger = require('../../utils/activityLog').logger;
 conf.expressLimiterPath = ['*'];
 conf.expressLimiterMethod = ['all'];
 conf.expressLimiterLookup = ['headers.UserName','headers.content-type'];
@@ -182,14 +183,28 @@ describe('tests/limiter/limiter.js >', () => {
     });
 
     it('First user, 429', (done) => {
+      tu.toggleOverride('enableLimiterActivityLogs', true);
+      logger.on('logging', testLogMessage);
       makeRequest('/v1/aspects', 'post', token1)
       .then((res) => {
         expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
         expect(res.header['x-ratelimit-limit']).to.equal('3');
         expect(res.header['x-ratelimit-remaining']).to.equal('0');
-        done();
       })
       .catch(done);
+
+      function testLogMessage (transport, level, msg, meta) {
+        const logObj = {};
+        logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
+        try {
+          expect(logObj.activity).to.equal('limiter');
+          logger.removeListener('logging', testLogMessage);
+          tu.toggleOverride('enableLimiterActivityLogs', false);
+          done();
+        } catch (err) {
+          done(err);
+        }
+      }
     });
 
     it('Test limiting on multiple headers. Should fail with 400, would have' +
@@ -381,6 +396,8 @@ describe('tests/limiter/limiter.js >', () => {
       .catch(done);
     });
   });
+
+
 
   describe('lookup/total/expire - test middleware directly >', () => {
     let req;
