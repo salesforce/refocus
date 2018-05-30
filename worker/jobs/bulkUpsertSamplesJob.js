@@ -69,7 +69,7 @@ module.exports = (job, done) => {
         const jobEndTime = Date.now();
 
         // number of successful upserts
-        objToReturn.recordCount = successCount - errors.length;
+        objToReturn.recordCount = successCount;
 
         // number of failed upserts
         objToReturn.errorCount = errors.length;
