@@ -94,66 +94,8 @@ module.exports = function collector(seq, dataTypes) {
       },
     },
   }, {
-    classMethods: {
-      getCollectorAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'collectorAccess';
-      },
-
-      /**
-       * Returns a list of running collectors where the time since the last
-       * heartbeat is greater than the latency tolerance.
-       *
-       * @param {Integer} latencyTolerance - For testing, pass in heartbeat
-       *  latency tolerance millis. If false-y, uses
-       *  collectorConfig.heartbeatLatencyToleranceMillis.
-       * @param {Date} now - For testing, pass in a Date object to represent
-       *  the current time. If false-y, uses current time.
-       */
-      missedHeartbeat(latencyTolerance, now) {
-        const tolerance = latencyTolerance ||
-          collectorConfig.heartbeatLatencyToleranceMillis;
-        const curr = (now || new Date()).getTime();
-        return Collector.scope('running').findAll()
-        .then((colls) => colls.filter((c) => {
-          const elapsed = curr - new Date(c.lastHeartbeat).getTime();
-          return elapsed >= tolerance;
-        }));
-      }, // missedHeartbeat
-
-      postImport(models) {
-        assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
-          as: 'currentGenerators',
-          through: 'GeneratorCollectors',
-          foreignKey: 'collectorId',
-        });
-
-        assoc.createdBy = Collector.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-
-        assoc.writers = Collector.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'CollectorWriters',
-          foreignKey: 'collectorId',
-        });
-
-        Collector.addScope('status', {
-          attributes: ['status'],
-        });
-
-        Collector.addScope('running', {
-          where: {
-            status: constants.collectorStatuses.Running,
-          },
-        });
-      },
-    },
     defaultScope: {
-      order: ['Collector.name'],
+      order: ['name'],
     },
     hooks: {
       beforeDestroy(inst /* , opts */) {
@@ -193,22 +135,87 @@ module.exports = function collector(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Collector.getCollectorAssociations = function () {
+    return assoc;
+  };
+
+  Collector.getProfileAccessField = function () {
+    return 'collectorAccess';
+  };
+
+  /**
+   * Returns a list of running collectors where the time since the last
+   * heartbeat is greater than the latency tolerance.
+   *
+   * @param {Integer} latencyTolerance - For testing, pass in heartbeat
+   *  latency tolerance millis. If false-y, uses
+   *  collectorConfig.heartbeatLatencyToleranceMillis.
+   * @param {Date} now - For testing, pass in a Date object to represent
+   *  the current time. If false-y, uses current time.
+   */
+  Collector.missedHeartbeat = function (latencyTolerance, now) {
+    const tolerance = latencyTolerance ||
+      collectorConfig.heartbeatLatencyToleranceMillis;
+    const curr = (now || new Date()).getTime();
+    return Collector.scope('running').findAll()
+    .then((colls) => colls.filter((c) => {
+      const elapsed = curr - new Date(c.lastHeartbeat).getTime();
+      return elapsed >= tolerance;
+    }));
+  }; // missedHeartbeat
+
+  Collector.postImport = function (models) {
+    assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
+      as: 'currentGenerators',
+      through: 'GeneratorCollectors',
+      foreignKey: 'collectorId',
+    });
+
+    assoc.createdBy = Collector.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+
+    assoc.writers = Collector.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'CollectorWriters',
+      foreignKey: 'collectorId',
+    });
+
+    Collector.addScope('status', {
+      attributes: ['status'],
+    });
+
+    Collector.addScope('running', {
+      where: {
+        status: constants.collectorStatuses.Running,
+      },
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Collector.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Collector;
 }; // exports

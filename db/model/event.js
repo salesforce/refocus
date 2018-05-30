@@ -18,17 +18,8 @@
 const assoc = {};
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
-const botEventNames = {
-  add: 'refocus.internal.realtime.bot.event.add',
-  upd: 'refocus.internal.realtime.bot.event.update',
-  del: 'refocus.internal.realtime.bot.event.remove',
-};
-const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.botEventFilterIndex,
-  filterField: 'id',
-};
+const botEventNames = rtConstants.events.botEvent;
+const pubOpts = rtConstants.pubOpts.event;
 
 module.exports = function event(seq, dataTypes) {
   const Event = seq.define('Event', {
@@ -49,38 +40,6 @@ module.exports = function event(seq, dataTypes) {
         'This is any JSON you want store to facilitate the event entry',
     },
   }, {
-    classMethods: {
-      getEventAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'eventAccess';
-      },
-
-      postImport(models) {
-        assoc.room = Event.belongsTo(models.Room, {
-          foreignKey: 'roomId',
-        });
-        assoc.bot = Event.belongsTo(models.Bot, {
-          foreignKey: 'botId',
-        });
-        assoc.botData = Event.belongsTo(models.BotData, {
-          foreignKey: 'botDataId',
-        });
-        assoc.botAction = Event.belongsTo(models.BotAction, {
-          foreignKey: 'botActionId',
-        });
-        assoc.user = Event.belongsTo(models.User, {
-          foreignKey: 'userId',
-        });
-        assoc.writers = Event.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'EventWriters',
-          foreignKey: 'botId',
-        });
-      },
-    },
     hooks: {
 
       afterCreate: (instance) => {
@@ -111,6 +70,42 @@ module.exports = function event(seq, dataTypes) {
       },
     ],
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Event.getEventAssociations = function () {
+    return assoc;
+  };
+
+  Event.getProfileAccessField = function () {
+    return 'eventAccess';
+  };
+
+  Event.postImport = function (models) {
+    assoc.room = Event.belongsTo(models.Room, {
+      foreignKey: 'roomId',
+    });
+    assoc.bot = Event.belongsTo(models.Bot, {
+      foreignKey: 'botId',
+    });
+    assoc.botData = Event.belongsTo(models.BotData, {
+      foreignKey: 'botDataId',
+    });
+    assoc.botAction = Event.belongsTo(models.BotAction, {
+      foreignKey: 'botActionId',
+    });
+    assoc.user = Event.belongsTo(models.User, {
+      foreignKey: 'userId',
+    });
+    assoc.writers = Event.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'EventWriters',
+      foreignKey: 'botId',
+    });
+  };
+
   return Event;
 };
 

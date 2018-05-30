@@ -24,6 +24,7 @@
 const constants = require('../constants');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
+const Op = require('sequelize').Op;
 
 module.exports = function roomType(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
@@ -65,30 +66,6 @@ module.exports = function roomType(seq, dataTypes) {
       comment: 'Bots to be used in roomType',
     },
   }, {
-    classMethods: {
-      getRoomTypeAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'roomTypeAccess';
-      },
-
-      postImport(models) {
-        assoc.type = RoomType.hasMany(models.Room, {
-          foreignKey: 'type',
-        });
-        assoc.bots = RoomType.belongsToMany(models.Bot, {
-          foreignKey: 'roomTypeId',
-          through: 'RoomTypeBots',
-        });
-        assoc.writers = RoomType.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'RoomTypeWriters',
-          foreignKey: 'roomTypeId',
-        });
-      },
-    },
     hooks: {
 
       /**
@@ -133,7 +110,7 @@ module.exports = function roomType(seq, dataTypes) {
                 seq.models.Bot.findOne({
                   where: {
                     name: {
-                      $iLike: botName,
+                      [Op.iLike]: botName,
                     },
                   },
                 })
@@ -152,7 +129,7 @@ module.exports = function roomType(seq, dataTypes) {
                 seq.models.Bot.findOne({
                   where: {
                     name: {
-                      $iLike: botName,
+                      [Op.iLike]: botName,
                     },
                   },
                 })
@@ -184,7 +161,7 @@ module.exports = function roomType(seq, dataTypes) {
             seq.models.Bot.findOne({
               where: {
                 name: {
-                  $iLike: botName,
+                  [Op.iLike]: botName,
                 },
               },
             })
@@ -214,7 +191,7 @@ module.exports = function roomType(seq, dataTypes) {
             seq.models.Bot.findOne({
               where: {
                 name: {
-                  $iLike: botName,
+                  [Op.iLike]: botName,
                 },
               },
             })
@@ -228,5 +205,33 @@ module.exports = function roomType(seq, dataTypes) {
       }, // hooks.afterCreate
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  RoomType.getRoomTypeAssociations = function () {
+    return assoc;
+  };
+
+  RoomType.getProfileAccessField = function () {
+    return 'roomTypeAccess';
+  };
+
+  RoomType.postImport = function (models) {
+    assoc.type = RoomType.hasMany(models.Room, {
+      foreignKey: 'type',
+    });
+    assoc.bots = RoomType.belongsToMany(models.Bot, {
+      foreignKey: 'roomTypeId',
+      through: 'RoomTypeBots',
+    });
+    assoc.writers = RoomType.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'RoomTypeWriters',
+      foreignKey: 'roomTypeId',
+    });
+  };
+
   return RoomType;
 };

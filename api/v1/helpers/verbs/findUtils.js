@@ -18,6 +18,7 @@ const ZERO = 0;
 const ONE = 1;
 const MINUS_ONE = -1;
 const RADIX = 10;
+const Op = require('sequelize').Op;
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -76,20 +77,20 @@ function convertArrayElementsToCamelCase(arr) {
 }
 
 /**
- * Transforms the value into a Sequelize where clause using "$ilike" for
+ * Transforms the value into a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  *
  * @param {String} val - The value to transform into a Sequelize where clause
  * @param {Object} props - The helpers/nouns module for the given DB model.
- * @returns {Object} a Sequelize where clause using "$ilike" for
+ * @returns {Object} a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
 
-  // given array, return { $in: array }
+  // given array, return { [Op.in]: array }
   if (Array.isArray(val) && props.isEnum) {
     const inClause = {};
-    inClause[constants.SEQ_IN] = val;
+    inClause[Op.in] = val;
     return inClause;
   }
 
@@ -117,11 +118,11 @@ function toWhereClause(val, props) {
     const whereClause = {};
     if (INCLUDE) {
       whereClause[tags] = {};
-      whereClause[tags][constants.SEQ_CONTAINS] = val;
+      whereClause[tags][Op.contains] = val;
     } else { // EXCLUDE
-      whereClause[constants.SEQ_NOT] = {};
-      whereClause[constants.SEQ_NOT][tags] = {};
-      whereClause[constants.SEQ_NOT][tags][constants.SEQ_OVERLAP] = val;
+      whereClause[Op.not] = {};
+      whereClause[Op.not][tags] = {};
+      whereClause[Op.not][tags][Op.overlap] = val;
     }
 
     return whereClause;
@@ -136,7 +137,7 @@ function toWhereClause(val, props) {
   val = escapePercentLiterals(val);
   val = escapeUnderscoreLiterals(val);
   val = toSequelizeWildcards(val);
-  clause[constants.SEQ_LIKE] = val;
+  clause[Op.iLike] = val;
   return clause;
 } // toWhereClause
 
@@ -167,7 +168,7 @@ function toSequelizeWhere(filter, props) {
        * clause and add it to where clause, e.g.
        * {
        *  where: {
-            valueType: { $in: ["PERCENT", "BOOLEAN"] },
+            valueType: { [Op.in]: ["PERCENT", "BOOLEAN"] },
           },
        * }
        */
@@ -216,7 +217,7 @@ function toSequelizeWhere(filter, props) {
           where[key] = values[ZERO];
         } else if (values.length > ONE) {
           where[key] = {};
-          where[key][constants.SEQ_OR] = values;
+          where[key][Op.or] = values;
         }
       }
     }
@@ -252,17 +253,17 @@ function toSequelizeOrder(sortOrder) {
  * Check for unique field in opts. If unique field is present, there are
  * following cases:
  * 1) Unique field have single value - set limit to 1
- *    Eg: opts = { where: { $iLike: { uniqField: 'someValue' } } };
+ *    Eg: opts = { where: { [Op.iLike]: { uniqField: 'someValue' } } };
  * 2) Unique field can have multiple values - set limit to the number of values
  *    Eg: opts = { where: { uniqField:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: 'someName2' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
         } };
  * 3) Unique field have single wildcard value - limit unchanged
-      Eg: opts = { where: { $iLike: { uniqField: '%someValue%' } } };
+      Eg: opts = { where: { [Op.iLike]: { uniqField: '%someValue%' } } };
  * 4) Unique field have multiple values one of which is wildcard value -
  *    limit unchanged
  *    Eg: opts = { where: { uniqField:
-          { $or: [{ $iLike: 'someName1' }, { $iLike: '%someName%' }] },
+          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' }] },
         } };
  * It is assumed that each field value will have $iLike operator applied.
  * @param  {Object} opts - Query options object
@@ -271,12 +272,12 @@ function toSequelizeOrder(sortOrder) {
 function applyLimitIfUniqueField(opts, props) {
   const uniqueFieldName = props.nameFinder || 'name';
   if (opts.where && opts.where[uniqueFieldName]) {
-    const optsWhereOR = opts.where[uniqueFieldName][constants.SEQ_OR];
+    const optsWhereOR = opts.where[uniqueFieldName][Op.or];
     if (optsWhereOR && Array.isArray(optsWhereOR)) { // multiple values
       let isWildCardExp = false;
       optsWhereOR.forEach((orObj) => {
-        if (orObj[constants.SEQ_LIKE] &&
-         orObj[constants.SEQ_LIKE].indexOf('%') > MINUS_ONE) {
+        if (orObj[Op.iLike] &&
+         orObj[Op.iLike].indexOf('%') > MINUS_ONE) {
           isWildCardExp = true;
         }
       });
@@ -287,7 +288,7 @@ function applyLimitIfUniqueField(opts, props) {
     }
 
     // single value
-    const optsWhereFieldLike = opts.where[uniqueFieldName][constants.SEQ_LIKE];
+    const optsWhereFieldLike = opts.where[uniqueFieldName][Op.iLike];
     if (optsWhereFieldLike && optsWhereFieldLike.indexOf('%') < ZERO) {
       opts.limit = 1; // set limit to 1 if no wildcard value
     }

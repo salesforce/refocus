@@ -18,6 +18,7 @@ const rt = `${tu.namePrefix}TestRoomType`;
 const r = `${tu.namePrefix}TestRoom`;
 const bd = `${tu.namePrefix}TestBotData`;
 const samstoinit = require('../../cache/sampleStoreInit');
+const Op = require('sequelize').Op;
 
 const standardRoom = {
   name: r,
@@ -212,8 +213,8 @@ module.exports = {
     tu.db.Event.destroy({
       where: {
         createdAt: {
-          $lt: new Date(),
-          $gte: testStartTime,
+          [Op.lt]: new Date(),
+          [Op.gte]: testStartTime,
         },
       },
       force: true,

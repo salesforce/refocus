@@ -21,6 +21,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/sample/statusDuration.js >', () => {
   let globalAspect;
@@ -78,7 +79,7 @@ describe('tests/db/model/sample/statusDuration.js >', () => {
     .then(() => Sample.findOne({
       where: {
         name: {
-          $iLike: sample.name,
+          [Op.iLike]: sample.name,
         },
       },
     }))

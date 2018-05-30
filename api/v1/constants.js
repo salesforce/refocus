@@ -10,6 +10,7 @@
  * api/v1/constants.js
  */
 'use strict';
+const Op = require('sequelize').Op;
 
 module.exports = {
   httpStatus: {
@@ -43,12 +44,6 @@ module.exports = {
   BASE_SCOPE: 'baseScope',
   SEQ_DEFAULT_SCOPE: 'defaultScope',
   SEQ_DESC: 'DESC',
-  SEQ_LIKE: '$iLike',
-  SEQ_CONTAINS: '$contains',
-  SEQ_OVERLAP: '$overlap',
-  SEQ_IN: '$in',
-  SEQ_OR: '$or',
-  SEQ_NOT: '$not',
   SEQ_WILDCARD: '%',
   SEQ_MATCH: '_',
   SLASH: '/',

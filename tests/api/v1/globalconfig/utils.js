@@ -11,6 +11,7 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const Op = require('sequelize').Op;
 
 const testStartTime = new Date();
 
@@ -19,11 +20,11 @@ module.exports = {
     return tu.db.GlobalConfig.destroy({
       where: {
         key: {
-          $iLike: tu.namePrefix + '%',
+          [Op.iLike]: tu.namePrefix + '%',
         },
         createdAt: {
-          $lt: new Date(),
-          $gte: testStartTime,
+          [Op.lt]: new Date(),
+          [Op.gte]: testStartTime,
         },
       },
       force: true,

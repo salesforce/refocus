@@ -21,6 +21,7 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 const OBAdminProfile = require('../../../../config').db.adminProfile;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
+const Op = require('sequelize').Op;
 
 describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
   const ZERO = 0;
@@ -90,7 +91,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
       User.findOne({
         where: {
           name: {
-            $iLike: adminUser.name,
+            [Op.iLike]: adminUser.name,
           },
         },
       })
