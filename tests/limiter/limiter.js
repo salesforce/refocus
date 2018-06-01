@@ -304,7 +304,10 @@ describe('tests/limiter/limiter.js >', () => {
   });
 
   describe('logging on 429 response >', () => {
-    after(() => tu.toggleOverride('enableLimiterActivityLogs', false));
+    after(() => {
+      logger.removeListener('logging', testLogMessage);
+      tu.toggleOverride('enableLimiterActivityLogs', false);
+    });
 
     it('2 quick requests', (done) => {
       tu.toggleOverride('enableLimiterActivityLogs', true);
