@@ -24,7 +24,7 @@ const conf = require('../../config');
 const logger = require('../../utils/activityLog').logger;
 conf.expressLimiterPath = ['*'];
 conf.expressLimiterMethod = ['all'];
-conf.expressLimiterLookup = ['headers.UserName','headers.content-type'];
+conf.expressLimiterLookup = ['headers.UserName', 'headers.content-type'];
 conf.expressLimiterTotal = '3';
 conf.expressLimiterExpire = '2000';
 conf.expressLimiterTotal2 = '1';
@@ -77,7 +77,7 @@ describe('tests/limiter/limiter.js >', () => {
 
   function makeRequest(path, method, token = token1, data) {
     if (!data && path === '/v1/aspects' && method === 'post') {
-      data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
+      data = { name: `${tu.namePrefix}Limiter${i}`, timeout: '1m' };
       i++;
     }
 
@@ -87,7 +87,7 @@ describe('tests/limiter/limiter.js >', () => {
       .send(data)
       .end((err, res) => {
         if (err) {
-          reject(err)
+          reject(err);
         } else {
           resolve(res);
         }
@@ -315,12 +315,12 @@ describe('tests/limiter/limiter.js >', () => {
       logger.removeListener('logging', testLogMessage);
       tu.toggleOverride('enableLimiterActivityLogs', false);
     });
-    
-    afterEach((done) => setTimeout(done, 100));
 
-    function testLogMessage (transport, level, msg, meta) {
+    afterEach((done) => setTimeout(done, 200));
+
+    function testLogMessage(transport, level, msg, meta) {
       const logObj = {};
-      logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
+      logObj.activity = msg.split(' ')[0].split('=')[1]; //gets activity param from log
       try {
         expect(logObj.activity).to.equal('limiter');
         doneCopy();
@@ -353,7 +353,7 @@ describe('tests/limiter/limiter.js >', () => {
     });
 
     it('limit over longer period', (done) => {
-      doneCopy = done
+      doneCopy = done;
       makeRequest('/v1/aspects', 'post', token1)
       .then((res) => {
         expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
@@ -362,7 +362,7 @@ describe('tests/limiter/limiter.js >', () => {
       })
       .catch(done);
     });
-  })
+  });
 
   describe('environment variable parsing >', () => {
     afterEach(() => subprocess && subprocess.kill());
@@ -456,10 +456,10 @@ describe('tests/limiter/limiter.js >', () => {
       conf.expressLimiterExpire = '3000';
       conf.expressLimiterTotal2 = undefined;
       conf.expressLimiterExpire2 = undefined;
-      req = {headers: {}};
+      req = { headers: {} };
       req.headers.UserName = tu.userName;
-      res = {headers: {}};
-      res.set = function (name, value) { this.headers[name.toLowerCase()] = value };
+      res = { headers: {} };
+      res.set = function (name, value) { this.headers[name.toLowerCase()] = value; };
     });
 
     it('ok', (done) => {
@@ -551,17 +551,17 @@ describe('tests/limiter/limiter.js >', () => {
     });
   });
 
-  describe.skip('path/method - fork subprocess >', function() {
+  describe.skip('path/method - fork subprocess >', function () {
     this.timeout(10000);
     afterEach(() => subprocess && subprocess.kill());
 
     function doSend(path, method, token = token1, data) {
       if (!data && path === '/v1/aspects' && method === 'post') {
-        data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
+        data = { name: `${tu.namePrefix}Limiter${i}`, timeout: '1m' };
         i++;
       }
 
-      subprocess.send({path, method, token, data});
+      subprocess.send({ path, method, token, data });
       return new Promise((resolve) => subprocess.on('message', resolve));
     }
 
