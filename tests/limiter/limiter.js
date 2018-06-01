@@ -75,28 +75,28 @@ describe('tests/limiter/limiter.js >', () => {
     expect(headers['x-ratelimit-remaining']).to.not.exist;
   }
 
+  function makeRequest(path, method, token = token1, data) {
+    if (!data && path === '/v1/aspects' && method === 'post') {
+      data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
+      i++;
+    }
+
+    return new Promise((resolve, reject) => {
+      api[method](path)
+      .set('Authorization', token)
+      .send(data)
+      .end((err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  }
+
   describe('limit functionality >', () => {
     afterEach((done) => setTimeout(done, 100));
-
-    function makeRequest(path, method, token = token1, data) {
-      if (!data && path === '/v1/aspects' && method === 'post') {
-        data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
-        i++;
-      }
-
-      return new Promise((resolve, reject) => {
-        api[method](path)
-        .set('Authorization', token)
-        .send(data)
-        .end((err, res) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(res);
-          }
-        });
-      });
-    }
 
     it('Admin user req#1, no ratelimit headers, ok', (done) => {
       makeRequest('/v1/aspects', 'post', predefinedAdminUserToken)
@@ -183,28 +183,14 @@ describe('tests/limiter/limiter.js >', () => {
     });
 
     it('First user, 429', (done) => {
-      tu.toggleOverride('enableLimiterActivityLogs', true);
-      logger.on('logging', testLogMessage);
       makeRequest('/v1/aspects', 'post', token1)
       .then((res) => {
         expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
         expect(res.header['x-ratelimit-limit']).to.equal('3');
         expect(res.header['x-ratelimit-remaining']).to.equal('0');
+        done();
       })
       .catch(done);
-
-      function testLogMessage (transport, level, msg, meta) {
-        const logObj = {};
-        logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
-        try {
-          expect(logObj.activity).to.equal('limiter');
-          logger.removeListener('logging', testLogMessage);
-          tu.toggleOverride('enableLimiterActivityLogs', false);
-          done();
-        } catch (err) {
-          done(err);
-        }
-      }
     });
 
     it('Test limiting on multiple headers. Should fail with 400, would have' +
@@ -316,6 +302,36 @@ describe('tests/limiter/limiter.js >', () => {
       }, 2000);
     });
   });
+
+  describe('logging on 429 response >', () => {
+    after(() => tu.toggleOverride('enableLimiterActivityLogs', false));
+
+    it('2 quick requests', (done) => {
+      tu.toggleOverride('enableLimiterActivityLogs', true);
+      logger.on('logging', testLogMessage);
+      makeRequest('/v1/aspects', 'post', token1)
+      .then(() => makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
+        expect(res.header['x-ratelimit-limit']).to.equal('1');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+      }))
+      .catch(done);
+
+      function testLogMessage (transport, level, msg, meta) {
+        const logObj = {};
+        logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
+        try {
+          expect(logObj.activity).to.equal('limiter');
+          logger.removeListener('logging', testLogMessage);
+          tu.toggleOverride('enableLimiterActivityLogs', false);
+          done();
+        } catch (err) {
+          done(err);
+        }
+      }
+    });
+  })
 
   describe('environment variable parsing >', () => {
     afterEach(() => subprocess && subprocess.kill());
