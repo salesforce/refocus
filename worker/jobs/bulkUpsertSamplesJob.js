@@ -32,7 +32,6 @@ module.exports = (job, done) => {
   const reqStartTime = job.data.reqStartTime;
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
-
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg =
       `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
@@ -41,26 +40,27 @@ module.exports = (job, done) => {
   }
 
   const dbStartTime = Date.now();
+  let dbEndTime;
+  let successCount = 0;
   cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
-      const dbEndTime = Date.now();
-      let errorCount = 0;
-
+      dbEndTime = Date.now();
       /*
-       * count failed promises and send the good samples to the client by
-       * publishing it to the redis channel
+       * For each result, if there was an error, track the error to return to
+       * to the caller when they check status. If no error, publish the sample
+       * to the redis channel.
        */
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].isFailed) {
-          errorCount++;
-
-          // we just need "explanation" to be added to the errors
-          errors.push(results[i].explanation);
+      return Promise.all(results.map((result) => {
+        if (result.isFailed) {
+          errors.push(result.explanation);
+          return Promise.resolve();
         } else {
-          publisher.publishSample(results[i], subHelper.model);
+          successCount++;
+          return publisher.publishSample(result, subHelper.model);
         }
-      }
-
+      }));
+    })
+    .then(() => {
       const objToReturn = {};
 
       // attach the errors from "bulkUpsertByName"
@@ -69,10 +69,10 @@ module.exports = (job, done) => {
         const jobEndTime = Date.now();
 
         // number of successful upserts
-        objToReturn.recordCount = results.length - errorCount;
+        objToReturn.recordCount = successCount;
 
         // number of failed upserts
-        objToReturn.errorCount = errorCount;
+        objToReturn.errorCount = errors.length;
 
         const tempObj = {
           jobStartTime,
