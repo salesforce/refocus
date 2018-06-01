@@ -14,6 +14,8 @@
 'use strict'; // eslint-disable-line strict
 
 const _ = require('lodash');
+const serialize = require('serialize-javascript');
+const jsesc = require('jsesc');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -26,11 +28,12 @@ const TWO = 2;
  */
 function isJson(item) {
   let itemParse;
-  itemParse = typeof item === 'string' ? item : JSON.stringify(item);
+  itemParse = typeof item === 'string' ? item : serialize(item);
 
   try {
     itemParse = JSON.parse(itemParse);
   } catch (e) {
+    console.log(e);
     return false;
   }
 
@@ -57,7 +60,7 @@ function combineValue(originalValue, newValue) {
 
   // if both values are JSON strings then extend the original JSON strings
   if ((isJson(originalValue)) && (isJson(newValue))) {
-    output = JSON.stringify(
+    output = serialize(
       _.extend(JSON.parse(originalValue), JSON.parse(newValue))
     );
   }
@@ -107,11 +110,11 @@ function replaceValue(startingString, replaceString, instance) {
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
   if (replaceField.length > TWO) {
-    outputValue = outputValue.replace(replaceString,
-      JSON.parse(instance.value)[replaceField[TWO]]);
+    const val = JSON.parse(instance.value)[replaceField[TWO]];
+    outputValue = outputValue.replace(replaceString, (jsesc(val)));
   } else {
     outputValue = outputValue
-      .replace(replaceString, instance.value);
+      .replace(replaceString, jsesc(instance.value));
   }
 
   return outputValue;
@@ -197,7 +200,7 @@ function updateValues(seq, instance) {
           let syncValue = '';
           Object.keys(context[syncBot]).forEach((botValueName) => {
             syncValue = isJson(context[syncBot][botValueName]) ?
-              JSON.stringify(context[syncBot][botValueName]) :
+              serialize(context[syncBot][botValueName]) :
               context[syncBot][botValueName];
             const replaceBlocks = syncValue.match(/\${(.*?)}/g);
 
