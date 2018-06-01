@@ -304,12 +304,29 @@ describe('tests/limiter/limiter.js >', () => {
   });
 
   describe('logging on 429 response >', () => {
+    // used to make done available in testLogMessage
+    let doneCopy;
     after(() => {
       logger.removeListener('logging', testLogMessage);
       tu.toggleOverride('enableLimiterActivityLogs', false);
     });
+    afterEach((done) => setTimeout(done, 100));
+
+    function testLogMessage (transport, level, msg, meta) {
+      const logObj = {};
+      logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
+      try {
+        expect(logObj.activity).to.equal('limiter');
+        logger.removeListener('logging', testLogMessage);
+        tu.toggleOverride('enableLimiterActivityLogs', false);
+        doneCopy();
+      } catch (err) {
+        doneCopy(err);
+      }
+    }
 
     it('2 quick requests', (done) => {
+      doneCopy = done;
       tu.toggleOverride('enableLimiterActivityLogs', true);
       logger.on('logging', testLogMessage);
       makeRequest('/v1/aspects', 'post', token1)
@@ -320,19 +337,30 @@ describe('tests/limiter/limiter.js >', () => {
         expect(res.header['x-ratelimit-remaining']).to.equal('0');
       }))
       .catch(done);
+    });
 
-      function testLogMessage (transport, level, msg, meta) {
-        const logObj = {};
-        logObj['activity'] = msg.split(' ')[0].split('=')[1] //gets activity param from log
-        try {
-          expect(logObj.activity).to.equal('limiter');
-          logger.removeListener('logging', testLogMessage);
-          tu.toggleOverride('enableLimiterActivityLogs', false);
-          done();
-        } catch (err) {
-          done(err);
-        }
-      }
+    it('setup', (done) => {
+      makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.CREATED);
+        expect(res.header['x-ratelimit-limit']).to.equal('3');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('limit over longer period', (done) => {
+      doneCopy = done
+      tu.toggleOverride('enableLimiterActivityLogs', true);
+      logger.on('logging', testLogMessage);
+      makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
+        expect(res.header['x-ratelimit-limit']).to.equal('3');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+      })
+      .catch(done);
     });
   })
 
