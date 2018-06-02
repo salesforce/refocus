@@ -114,6 +114,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
+  console.log('publishSample', sampleInst);
   return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
   .then((sample) => {
     if (sample) {
