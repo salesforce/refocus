@@ -18,6 +18,7 @@ const modelUtils = require('./utils');
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
+const fldsToStringify = constants.fieldsToStringify;
 const redisErrors = require('../redisErrors');
 const apiErrors = require('../../api/v1/apiErrors');
 const sampleUtils = require('../../db/helpers/sampleUtils');
@@ -57,6 +58,11 @@ const embeddedAspectFields = [
   'criticalRange', 'warningRange', 'infoRange', 'okRange', 'valueLabel',
   'valueType', 'relatedLinks', 'tags', 'rank',
 ];
+const embeddedSubjectFields = [
+  'absolutePath', 'childCount', 'id', 'isDeleted', 'relatedLinks', 'tags',
+  'sortBy', 'description', 'helpEmail', 'helpUrl', 'imageUrl', 'isPublished',
+  'name', 'updatedAt', 'createdAt', 'hierarchyLevel',
+];
 
 const ZERO = 0;
 const ONE = 1;
@@ -83,10 +89,8 @@ function parseName(name) {
     return retval;
   }
 
-  logger.error(`cache/models/samples.parseName|Invalid sample name "${name}"`);
-  console.trace(); // eslint-disable-line no-console
   throw new redisErrors.ResourceNotFoundError({
-    explanation: `Invalid sample name "${name}"`,
+    explanation: `parseName: Invalid sample name "${name}"`,
   });
 } // parseName
 
@@ -307,7 +311,6 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   .then(() => {
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
-
     if (sample) { // if sample exists, just update sample
       delete sampleQueryBodyObj.name; // to avoid updating sample name
       logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
@@ -348,14 +351,12 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
+    if (!updatedSamp.name) updatedSamp.name = sampleKey.substring(14);
     parseName(updatedSamp.name); // throw if invalid name
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .catch((err) => {
-    if (isBulk) {
-      return err;
-    }
-
+    if (isBulk) return err;
     throw err;
   });
 } // upsertOneSample
@@ -405,10 +406,8 @@ module.exports = {
         });
       }
 
-      aspect = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspect = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return checkWritePermission(aspect, userName);
     })
     /*
@@ -458,10 +457,8 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
@@ -484,7 +481,7 @@ module.exports = {
       hmsetObj.updatedAt = new Date().toISOString();
 
       // stringify arrays
-      constants.fieldsToStringify.sample.forEach((field) => {
+      fldsToStringify.sample.forEach((field) => {
         if (hmsetObj[field]) {
           hmsetObj[field] = JSON.stringify(hmsetObj[field]);
         }
@@ -536,10 +533,8 @@ module.exports = {
       }
 
       modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {
@@ -568,7 +563,7 @@ module.exports = {
       }
 
       // stringify arrays
-      constants.fieldsToStringify.sample.forEach((field) => {
+      fldsToStringify.sample.forEach((field) => {
         if (reqBody[field]) {
           reqBody[field] = JSON.stringify(reqBody[field]);
         }
@@ -682,8 +677,8 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((sampleObj) => sampleStore.arrayObjsStringsToJson(
-      sampleObj, constants.fieldsToStringify.sample));
+    .then((sampleObj) => sampleStore.arrayObjsStringsToJson(sampleObj,
+      fldsToStringify.sample));
   }, // postSample
 
   /**
@@ -722,10 +717,8 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {

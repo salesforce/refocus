@@ -134,6 +134,7 @@ function prefilterKeys(keysArr, opts, getNameFunc) {
  * Remove extra fields from query body object.
  * @param  {Object} qbObj - Query body object
  * @param  {Array} fieldsArr - Array of field names
+ * @returns {Object} cleaned object
  */
 function cleanQueryBodyObj(qbObj, fieldsArr) {
   Object.keys(qbObj).forEach((qbField) => {
@@ -141,6 +142,8 @@ function cleanQueryBodyObj(qbObj, fieldsArr) {
       delete qbObj[qbField];
     }
   });
+
+  return qbObj;
 }
 
 /**

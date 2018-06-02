@@ -115,7 +115,7 @@ function attachSamples(res) {
 
         // parse the array fields to JSON before adding them to the sample list
         sampleStore.arrayObjsStringsToJson(sample,
-                                    constants.fieldsToStringify.sample);
+          constants.fieldsToStringify.sample);
         sampleStore.arrayObjsStringsToJson(asp, constants.fieldsToStringify.aspect);
         sampleStore.convertAspectStrings(asp);
 
