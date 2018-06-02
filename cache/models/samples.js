@@ -18,6 +18,7 @@ const modelUtils = require('./utils');
 const sampleStore = require('../sampleStore');
 const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
+const fldsToStringify = constants.fieldsToStringify;
 const redisErrors = require('../redisErrors');
 const apiErrors = require('../../api/v1/apiErrors');
 const sampleUtils = require('../../db/helpers/sampleUtils');
@@ -56,6 +57,11 @@ const embeddedAspectFields = [
   'id', 'description', 'isPublished', 'helpEmail', 'helpUrl', 'name', 'timeout',
   'criticalRange', 'warningRange', 'infoRange', 'okRange', 'valueLabel',
   'valueType', 'relatedLinks', 'tags', 'rank',
+];
+const embeddedSubjectFields = [
+  'absolutePath', 'childCount', 'id', 'isDeleted', 'relatedLinks', 'tags',
+  'sortBy', 'description', 'helpEmail', 'helpUrl', 'imageUrl', 'isPublished',
+  'name', 'updatedAt', 'createdAt', 'hierarchyLevel',
 ];
 
 const ZERO = 0;
@@ -350,10 +356,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .catch((err) => {
-    if (isBulk) {
-      return err;
-    }
-
+    if (isBulk) return err;
     throw err;
   });
 } // upsertOneSample
@@ -403,10 +406,8 @@ module.exports = {
         });
       }
 
-      aspect = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspect = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return checkWritePermission(aspect, userName);
     })
     /*
@@ -456,10 +457,8 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
@@ -482,7 +481,7 @@ module.exports = {
       hmsetObj.updatedAt = new Date().toISOString();
 
       // stringify arrays
-      constants.fieldsToStringify.sample.forEach((field) => {
+      fldsToStringify.sample.forEach((field) => {
         if (hmsetObj[field]) {
           hmsetObj[field] = JSON.stringify(hmsetObj[field]);
         }
@@ -534,10 +533,8 @@ module.exports = {
       }
 
       modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {
@@ -566,7 +563,7 @@ module.exports = {
       }
 
       // stringify arrays
-      constants.fieldsToStringify.sample.forEach((field) => {
+      fldsToStringify.sample.forEach((field) => {
         if (reqBody[field]) {
           reqBody[field] = JSON.stringify(reqBody[field]);
         }
@@ -680,8 +677,8 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((sampleObj) => sampleStore.arrayObjsStringsToJson(
-      sampleObj, constants.fieldsToStringify.sample));
+    .then((sampleObj) => sampleStore.arrayObjsStringsToJson(sampleObj,
+      fldsToStringify.sample));
   }, // postSample
 
   /**
@@ -720,10 +717,8 @@ module.exports = {
         });
       }
 
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
+      aspectObj = sampleStore.arrayObjsStringsToJson(aspObj,
+        fldsToStringify.aspect);
       return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {
