@@ -255,6 +255,7 @@ function getOneSample(sampleName) {
  * @returns {Object} - Updated sample
  */
 function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
+  console.log('upsertOneSample', sampleQueryBodyObj);
   const userName = user ? user.name : false;
   const sampleName = sampleQueryBodyObj.name;
   let parsedSampleName = {};
@@ -307,6 +308,8 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   .then(() => {
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
+    console.log('upsertOneSample after createSampHsetCommand',
+      sampleQueryBodyObj);
 
     if (sample) { // if sample exists, just update sample
       delete sampleQueryBodyObj.name; // to avoid updating sample name
@@ -340,6 +343,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
      * Create/update hash of sample.
      */
     logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
+    console.log('upsertOneSample sampleQueryBodyObj', sampleQueryBodyObj);
     return redisClient.batch([
       ['sadd', subaspMapKey, aspectName],
       ['sadd', constants.indexKey.sample, sampleKey],
@@ -349,6 +353,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
     console.log('upsertOneSample hgetallAsync ' + sampleKey, updatedSamp);
+    if (!updatedSamp.name) updatedSamp.name = sampleKey.substring(14);
     parseName(updatedSamp.name); // throw if invalid name
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
