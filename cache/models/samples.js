@@ -348,6 +348,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
+    console.log('upsertOneSample hgetallAsync ' + sampleKey, updatedSamp);
     parseName(updatedSamp.name); // throw if invalid name
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
