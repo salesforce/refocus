@@ -51,7 +51,6 @@ module.exports = (job, done) => {
        * to the redis channel.
        */
       return Promise.all(results.map((result) => {
-        console.log('bulkUpsertSamplesJob', result);
         if (result.isFailed) {
           errors.push(result.explanation);
           return Promise.resolve();
