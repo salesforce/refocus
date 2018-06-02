@@ -100,32 +100,38 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
  * Convert subject fields to the correct type
  *
  * @param {Object} subject
+ * @returns {Object} updated subject
  */
 function convertSubjectStrings(subject) {
-  // convert the strings into numbers
+  /* cast string back to integer */
   subject.childCount = parseInt(subject.childCount, 10) || 0;
   subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
 
-  // convert strings into booleans
+  // cast string back to boolean
   subject.isPublished = JSON.parse(subject.isPublished);
 
-  // convert strings into arrays
+  // cast string back to array
   subject.tags = JSON.parse(subject.tags);
   subject.relatedLinks = JSON.parse(subject.relatedLinks);
-}
+  
+  return subject;
+} // convertSubjectStrings
 
 /**
  * Convert aspect fields to the correct type
  *
  * @param {Object} aspect
+ * @returns {Object} updated aspect
  */
 function convertAspectStrings(aspect) {
-  // convert the strings into numbers
+  /* cast string back to integer */
   aspect.rank = parseInt(aspect.rank, 10) || undefined;
 
-  // convert strings into booleans
+  // cast string back to boolean
   aspect.isPublished = JSON.parse(aspect.isPublished);
-}
+
+  return aspect;
+} // convertAspectStrings
 
 /**
  * Remove null fields; stringify array and object fields.
