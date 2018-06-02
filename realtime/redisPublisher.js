@@ -19,12 +19,13 @@ const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
 
 /**
- * When passed an sample object, either a sequelize sample object or
- * a plain sample object, it returns either an sample add event or an sample
- * update event.
- * @param  {Object} sample - A sample Object
- * @returns {String}  - an sample add event if updatedAt timestamp is equal to
- * createdAt timestamp, returns an update event otherwise.
+ * When passed a sample object, either a sequelize sample object or a plain
+ * sample object, it returns either an sample add event or an sample update
+ * event.
+ *
+ * @param  {Object} sample - A sample
+ * @returns {String}  - A sample add event if updatedAt timestamp is equal to
+ *  createdAt timestamp, returns an update event otherwise.
  */
 function getSampleEventType(sample) {
   const updatedAt = new Date(sample.updatedAt).getTime();
