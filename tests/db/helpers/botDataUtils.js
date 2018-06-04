@@ -10,6 +10,7 @@
  * tests/db/helpers/botDataUtils.js
  */
 'use strict';
+const serialize = require('serialize-javascript');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -197,6 +198,20 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     done();
   });
 
+  it('ok, String value (special chars) replaced single depth', (done) => {
+    const testString = 'this is a ${TestBot.response}';
+    const replacment = '${TestBot.response}';
+    const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
+    const instance = {
+      name: 'response',
+      value: specialCharString,
+    };
+
+    expect(bdUtil.replaceValue(testString, replacment, instance))
+      .to.contain(specialCharString);
+    done();
+  });
+
   it('fail, String string is not matched', (done) => {
     const testString = 'this is a ${TestBot.response}';
     const replacment = '${TestBot.response2}';
@@ -223,6 +238,23 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
 
     expect(bdUtil.replaceValue(testString, replacment, instance))
       .to.equal('this is a test of replacement depth.');
+    done();
+  });
+
+  it('ok, String value (special chars) replaced multiple depth', (done) => {
+    const testString = 'this is a ${TestBot.response.newMessage}';
+    const replacment = '${TestBot.response.newMessage}';
+    const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
+    const instance = {
+      name: 'response',
+      value:
+        serialize({
+          newMessage: specialCharString
+        })
+    };
+
+    expect(bdUtil.replaceValue(testString, replacment, instance))
+      .to.contain(specialCharString);
     done();
   });
 

@@ -104,24 +104,29 @@ function combineValue(originalValue, newValue) {
  * @returns {String} outputValue - String with output replaced
  */
 function replaceValue(startingString, replaceString, instance) {
-  let outputValue = startingString;
+  let outputValue = startingString, replacementVal;
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
   if (replaceField.length > TWO) {
-    const outputValueObj = JSON.parse(outputValue);
-    for (const property in outputValueObj) {
-      if (outputValueObj.hasOwnProperty(property) &&
-        outputValueObj[property] === replaceString) {
-        try {
-          outputValueObj[property] =
-            JSON.parse(instance.value)[replaceField[TWO]];
-        } catch (e) {
-          return false;
-        }
-      }
+    try {
+      replacementVal = JSON.parse(instance.value)[replaceField[TWO]];
+    } catch (e) {
+      return false;
     }
 
-    outputValue = serialize(outputValueObj);
+    if (isJson(outputValue)) { // Output value is a serialized string
+      const outputValueObj = JSON.parse(outputValue);
+      for (const property in outputValueObj) {
+        if (outputValueObj.hasOwnProperty(property) &&
+          outputValueObj[property].includes(replaceString)) {
+          outputValueObj[property].replace(replaceString, replacementVal);
+        }
+      }
+
+      outputValue = serialize(outputValueObj);
+    } else { // Output value is just a string
+      outputValue = outputValue.replace(replaceString, replacementVal);
+    }
   } else {
     outputValue = outputValue
       .replace(replaceString, instance.value);
