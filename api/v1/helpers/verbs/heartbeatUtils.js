@@ -110,8 +110,7 @@ function getKey(collectorName, changeType) {
 function trackGeneratorChanges(generator, oldCollector, newCollector) {
   if (oldCollector === newCollector) {
     return trackChangesForCollector(oldCollector, UPDATED, generator);
-  }
-  else {
+  } else {
     return Promise.all([
       trackChangesForCollector(oldCollector, DELETED, generator),
       trackChangesForCollector(newCollector, ADDED, generator),

@@ -158,9 +158,7 @@ module.exports = {
       u.patchArrayFields(o, requestBody, helper);
       return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
     })
-    .then((retVal) => {
-      return u.handleUpdatePromise(resultObj, req, retVal, helper, res);
-    })
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
