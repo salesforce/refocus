@@ -32,7 +32,6 @@ function isJson(item) {
   try {
     itemParse = JSON.parse(itemParse);
   } catch (e) {
-    console.log(e);
     return false;
   }
 
@@ -117,7 +116,6 @@ function replaceValue(startingString, replaceString, instance) {
           outputValueObj[property] =
             JSON.parse(instance.value)[replaceField[TWO]];
         } catch (e) {
-          console.log(e);
           return false;
         }
       }
