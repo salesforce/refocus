@@ -57,6 +57,12 @@ const embeddedAspectFields = [
   'criticalRange', 'warningRange', 'infoRange', 'okRange', 'valueLabel',
   'valueType', 'relatedLinks', 'tags', 'rank',
 ];
+const embeddedSubjectFields = [
+  'absolutePath', 'createdAt', 'createdBy', 'description', 'helpEmail',
+  'helpUrl', 'hierarchyLevel', 'id', 'isPublished', 'name',
+  'parentAbsolutePath', 'parentId', 'relatedLinks', 'sortBy', 'tags',
+  'updatedAt',
+];
 
 const ZERO = 0;
 const ONE = 1;
@@ -144,6 +150,29 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
 
   return sampleRes;
 } // cleanAddAspectToSample
+
+/**
+ * Convert array strings to Json for sample and subject, then attach subject to
+ * sample.
+ *
+ * @param  {Object} sampleObj - Sample object from redis
+ * @param  {Object} subjectObj - Subject object from redis
+ * @returns {Object} - Sample object with subject attached
+ */
+function cleanAddSubjectToSample(sampleObj, subjectObj) {
+  let sampleRes = {};
+  sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
+    constants.fieldsToStringify.sample);
+  const subject = sampleStore.arrayObjsStringsToJson(subjectObj,
+    constants.fieldsToStringify.subject);
+  if (subject) {
+    modelUtils.cleanQueryBodyObj(subject, embeddedSubjectFields);
+    sampleStore.convertSubjectStrings(subject);
+    sampleRes.subject = subject;
+  }
+
+  return sampleRes;
+} // cleanAddSubjectToSample
 
 /**
  * Create properties array with fields to update/create. Value is empty string
@@ -348,9 +377,13 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
-    parseName(updatedSamp.name); // throw if invalid name
+    if (!updatedSamp.name) {
+      updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
+    }
+
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
+  .then((updatedSamp) => cleanAddSubjectToSample(updatedSamp, subject))
   .catch((err) => {
     if (isBulk) {
       return err;

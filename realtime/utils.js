@@ -422,9 +422,9 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     const subKey = redisStore.toKey('subject', subAbsPath);
     const aspKey = redisStore.toKey('aspect', aspName);
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    redisClient.hgetallAsync(aspKey);
+      redisClient.hgetallAsync(aspKey);
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-    redisClient.hgetallAsync(subKey);
+      redisClient.hgetallAsync(subKey);
     promiseArr = [getAspectPromise, getSubjectPromise];
   }
 
