@@ -121,15 +121,12 @@ function logJobOnComplete(req, job) {
      * update the log object. Add "request_id" if header is set by heroku.
      */
     if (req) {
-      if (req.headers && req.headers['x-request-id']) {
-        logObject.request_id = req.headers['x-request-id'];
-      }
-
-      logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+      if (req.request_id) logObject.request_id = req.request_id;
+      logObject.ipAddress = req.ipAddress;
 
       /*
-       * we already set UserName and TokenName in req headers when verifying
-       * token
+       * We already set UserName and TokenName in req headers when verifying
+       * token.
        */
       logObject.user = req.headers.UserName;
       logObject.token = req.headers.TokenName;
@@ -153,7 +150,7 @@ function logJobOnComplete(req, job) {
 function calculateJobPriority(prioritize, deprioritize, req) {
   // low=10, normal=0, medium=-5, high=-10, critical=-15
   if (!req) return 'normal';
-  const ip = activityLogUtil.getIPAddrFromReq(req);
+  const ip = req.ipAddress;
   const un = req.headers.UserName || '';
   const tn = req.headers.TokenName || '';
   if (prioritize.includes(ip) ||

@@ -130,15 +130,13 @@ module.exports = function errorHandler(err, req, res, next) {
         if (featureToggles.isFeatureEnabled('enableUnauthorizedActivityLogs')) {
           const logObject = {
             activity: 'unauthorized',
-            ipAddress: activityLog.getIPAddrFromReq(req),
+            ipAddress: req.ipAddress,
             uri: req.url,
             method: req.method,
           };
 
           // Add "request_id" if header is set by heroku.
-          if (req.headers && req.headers['x-request-id']) {
-            logObject.request_id = req.headers['x-request-id'];
-          }
+          if (req.request_id) logObject.request_id = req.request_id;
 
           activityLog.printActivityLogString(logObject, 'unauthorized');
         }

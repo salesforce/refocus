@@ -55,6 +55,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const ipfilter = require('express-ipfilter');
   const rejectMultipleXForwardedFor =
     require('./config/rejectMultipleXForwardedFor');
+  const requestSetup = require('./utils/requestSetup');
   const bodyParser = require('body-parser');
   const env = conf.environment[conf.nodeEnv];
   const ENCODING = 'utf8';
@@ -166,12 +167,11 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    /*
-     * Custom middleware to add timestamp and node cluster worker id to the
-     * request.
-     */
+    // Custom middleware to add some basic stuff to the request.
+    app.use(requestSetup);
+
+    // Custom middleware to add node cluster worker id to the request.
     app.use((req, res, next) => {
-      req.timestamp = Date.now();
       req.clusterProcessId = clusterProcessId;
       next();
     });

@@ -99,19 +99,17 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
 
     // create api activity log object
     const logObject = {
-      ipAddress: activityLogUtil.getIPAddrFromReq(req),
+      ipAddress: req.ipAddress,
       requestBytes: getSize(req.body),
       uri: req.url,
       method: req.method,
     };
 
     // Add "request_id" if header is set by heroku.
-    if (req.headers && req.headers['x-request-id']) {
-      logObject.request_id = req.headers['x-request-id'];
-    }
+    if (req.request_id) logObject.request_id = req.request_id;
 
     /**
-     * we already set UserName and TokenName in req headers when verifying
+     * We already set UserName and TokenName in req headers when verifying
      * token
      */
     logObject.user = req.headers.UserName;
