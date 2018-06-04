@@ -15,7 +15,6 @@
 
 const _ = require('lodash');
 const serialize = require('serialize-javascript');
-const jsesc = require('jsesc');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -110,11 +109,24 @@ function replaceValue(startingString, replaceString, instance) {
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
   if (replaceField.length > TWO) {
-    const val = JSON.parse(instance.value)[replaceField[TWO]];
-    outputValue = outputValue.replace(replaceString, (jsesc(val)));
+    const outputValueObj = JSON.parse(outputValue);
+    for (const property in outputValueObj) {
+      if (outputValueObj.hasOwnProperty(property) &&
+        outputValueObj[property] === replaceString) {
+        try {
+          outputValueObj[property] =
+            JSON.parse(instance.value)[replaceField[TWO]];
+        } catch (e) {
+          console.log(e);
+          return false;
+        }
+      }
+    }
+
+    outputValue = serialize(outputValueObj);
   } else {
     outputValue = outputValue
-      .replace(replaceString, jsesc(instance.value));
+      .replace(replaceString, instance.value);
   }
 
   return outputValue;
