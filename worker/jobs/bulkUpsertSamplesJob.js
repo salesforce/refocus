@@ -56,7 +56,20 @@ module.exports = (job, done) => {
           return Promise.resolve();
         } else {
           successCount++;
-          return publisher.publishSample(result, subHelper.model);
+          /*
+           * The following *should* just be this:
+           *
+           *   return publisher.publishSample(result, subHelper.model);
+           *
+           * ... but right now it slows things down too much so temporarily
+           * going to revert to returning immediately rather than waiting for
+           * publish to complete before resolving the promise. (This
+           * unfortunately lets all the "publish" work stack up which causes
+           * the memory issues in the workers, which we are working around
+           * temporarily while we work on fixing this.)
+           */
+          publisher.publishSample(result, subHelper.model);
+          return Promise.resolve();
         }
       }));
     })
