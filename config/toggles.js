@@ -85,6 +85,8 @@ const longTermToggles = {
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
+  enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'limiter'),
   enablePubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'pubStats'),
   enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'queueStats'),
