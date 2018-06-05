@@ -19,20 +19,18 @@ const Op = require('sequelize').Op;
 describe('tests/db/model/aspect/find.js >', () => {
   before((done) => {
     u.createMedium()
-    .then(() => {
-      Aspect.create({
-        name: 'luke',
-        timeout: '1s',
-        isPublished: true,
-        tags: ['jedi', 'boring'],
-      });
-      Aspect.create({
-        name: 'leia',
-        timeout: '1m',
-        isPublished: true,
-        tags: ['princess', 'jedi'],
-      });
-    })
+    .then(() => Aspect.create({
+      name: 'luke',
+      timeout: '1s',
+      isPublished: true,
+      tags: ['jedi', 'boring'],
+    }))
+    .then(() => Aspect.create({
+      name: 'leia',
+      timeout: '1m',
+      isPublished: true,
+      tags: ['princess', 'jedi'],
+    }))
     .then(() => done())
     .catch(done);
   });
