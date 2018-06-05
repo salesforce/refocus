@@ -115,7 +115,13 @@ function replaceValue(startingString, replaceString, instance) {
     }
 
     if (isJson(outputValue)) { // Output value is a serialized string
-      const outputValueObj = JSON.parse(outputValue);
+      let outputValueObj;
+      try {
+        outputValueObj = JSON.parse(outputValue);
+      } catch (e) {
+        return false;
+      }
+
       for (const property in outputValueObj) {
         if (outputValueObj.hasOwnProperty(property) &&
           outputValueObj[property].includes(replaceString)) {
