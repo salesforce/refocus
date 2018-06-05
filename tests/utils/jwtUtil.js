@@ -26,7 +26,6 @@ const User = tu.db.User;
 const Profile = tu.db.Profile;
 const Collector = tu.db.Collector;
 
-
 describe('tests/utils/jwtUtil.js >', () => {
   const newBot = {
     name: n,
