@@ -83,7 +83,9 @@ module.exports = function room(seq, dataTypes) {
           },
         })
         .then((roomType) => {
-          inst.type = roomType.id;
+          if (roomType && roomType.id) {
+            inst.type = roomType.id;
+          }
         });
       },
 
