@@ -105,7 +105,8 @@ function combineValue(originalValue, newValue) {
  * @returns {String} outputValue - String with output replaced
  */
 function replaceValue(startingString, replaceString, instance) {
-  let outputValue = startingString, replacementVal;
+  let outputValue = startingString;
+  let replacementVal;
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
   if (replaceField.length > TWO) {

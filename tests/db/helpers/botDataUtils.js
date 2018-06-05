@@ -249,8 +249,8 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       name: 'response',
       value:
         serialize({
-          newMessage: specialCharString
-        })
+          newMessage: specialCharString,
+        }),
     };
 
     expect(bdUtil.replaceValue(testString, replacment, instance))
