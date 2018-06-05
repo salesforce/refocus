@@ -45,7 +45,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
   after(tu.forceDeleteToken);
 
   it('Pass, post room', (done) => {
-    const room = u.getStandard();
+    let room = u.getStandard();
     room.type = testRoomType.id;
 
     api.post(`${path}`)
@@ -62,7 +62,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
     });
   });
 
-  it('Pass, post roomusing roomType name', (done) => {
+  it('Pass, post room using roomType name', (done) => {
     const room = u.getStandard();
     room.type = testRoomType.name;
 
