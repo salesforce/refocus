@@ -81,7 +81,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
   });
 
   it('Fail, duplicate room', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     tu.db.Room.create(room)
     .then(() => {
@@ -103,7 +103,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
   });
 
   it('Fail, room validation incorrect', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     room.active = 'INVALID_VALUE';
     api.post(`${path}`)
