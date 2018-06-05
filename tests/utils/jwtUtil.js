@@ -44,7 +44,7 @@ describe('tests/utils/jwtUtil.js >', () => {
   const predefinedAdminUserToken = tu.createAdminToken();
 
   // dummy callback that returns a promise.
-  const dummyCallback = function dummy () {
+  const dummyCallback = function dummy() {
     return new Promise((resolve) => {
       resolve(true);
     });
