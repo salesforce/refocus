@@ -45,8 +45,26 @@ describe('tests/api/v1/rooms/post.js >', () => {
   after(tu.forceDeleteToken);
 
   it('Pass, post room', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(room)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
+
+  it('Pass, post roomusing roomType name', (done) => {
+    const room = u.getStandard();
+    room.type = testRoomType.name;
 
     api.post(`${path}`)
     .set('Authorization', token)

@@ -14,6 +14,7 @@
  */
 
 const constants = require('../constants');
+const commonUtils = require('../../utils/common');
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
 const assoc = {};
@@ -94,6 +95,29 @@ module.exports = function room(seq, dataTypes) {
       },
     },
     hooks: {
+
+      /**
+       * If the room type is a room type name we search by that name and
+       * replace the type with the actual ID.
+       *
+       * @param {Aspect} inst - The instance being validated
+       * @returns {undefined} - OK
+       */
+      beforeValidate(inst /* , opts */) {
+        const type = inst.getDataValue('type');
+        if (commonUtils.looksLikeId(type)) {
+          return seq.Promise.resolve(inst);
+        }
+
+        return seq.models.RoomType.findOne({
+          where: {
+            name: { $iLike: type },
+          },
+        })
+        .then((roomType) => {
+          inst.type = roomType.id;
+        });
+      },
 
       /**
        * Ensures room gets default values from roomType
