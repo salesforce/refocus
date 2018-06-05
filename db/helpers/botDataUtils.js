@@ -119,7 +119,8 @@ function replaceValue(startingString, replaceString, instance) {
       for (const property in outputValueObj) {
         if (outputValueObj.hasOwnProperty(property) &&
           outputValueObj[property].includes(replaceString)) {
-          outputValueObj[property].replace(replaceString, replacementVal);
+          outputValueObj[property] =
+            outputValueObj[property].replace(replaceString, replacementVal);
         }
       }
 
