@@ -97,62 +97,8 @@ module.exports = function profile(seq, dataTypes) {
       defaultValue: 0,
     },
   }, {
-    classMethods: {
-      getProfileAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'profileAccess';
-      },
-
-      postImport(models) {
-        assoc.users = Profile.hasMany(models.User, {
-          foreignKey: 'profileId',
-          as: 'users',
-        });
-        Profile.addScope('withUsers', {
-          include: [
-            {
-              association: assoc.users,
-              attributes: { exclude: ['password'] },
-            },
-          ],
-        });
-
-        // Profile.addScope('defaultScope', {
-        //   include: [
-        //     {
-        //       model: models.User,
-        //       attributes: [ 'id', 'name' ],
-        //     }
-        //   ],
-        // }, {
-        //   override: true,
-        // });
-      },
-
-      isAdmin(profileId) {
-        return new Promise((resolve, reject) => {
-          Profile.findById(profileId)
-          .then((p) => resolve(p &&
-            p.name.toLowerCase() === adminProfileName.toLowerCase()))
-          .catch((err) => reject(err));
-        });
-      }, // isAdmin
-
-      hasWriteAccess(profileId, model) {
-        const accessModel = model.getAccessField();
-        return new Promise((resolve, reject) => {
-          Profile.findById(profileId)
-          .then((p) => resolve(p &&
-            p[accessModel] === 'rw'.toLowerCase()))
-          .catch(reject);
-        });
-      }, // hasWriteAccess
-    },
     defaultScope: {
-      order: ['Profile.name'],
+      order: ['name'],
     },
     hooks: {
 
@@ -194,15 +140,13 @@ module.exports = function profile(seq, dataTypes) {
         }
       }, // hooks.beforeDestroy
 
-      beforeFind(opts, fn) {
+      beforeFind(opts) {
         if (opts.attributes) {
           const idx = opts.attributes.indexOf('users');
           if (idx >= 0) {
             opts.attributes.splice(idx, 1);
           }
         }
-
-        fn(null, opts);
       }, // hooks.beforeFind
 
       /**
@@ -227,5 +171,53 @@ module.exports = function profile(seq, dataTypes) {
     ],
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Profile.getProfileAssociations = function () {
+    return assoc;
+  };
+
+  Profile.getProfileAccessField = function () {
+    return 'profileAccess';
+  };
+
+  Profile.postImport = function (models) {
+    assoc.users = Profile.hasMany(models.User, {
+      foreignKey: 'profileId',
+      as: 'users',
+    });
+    Profile.addScope('withUsers', {
+      include: [
+        {
+          association: assoc.users,
+          attributes: { exclude: ['password'] },
+        },
+      ],
+    });
+
+  };
+
+  Profile.isAdmin = function (profileId) {
+    return new Promise((resolve, reject) => {
+      Profile.findById(profileId)
+      .then((p) => resolve(p &&
+        p.name.toLowerCase() === adminProfileName.toLowerCase()))
+      .catch((err) => reject(err));
+    });
+  }; // isAdmin
+
+  Profile.hasWriteAccess = function (profileId, model) {
+    const accessModel = model.getAccessField();
+    return new Promise((resolve, reject) => {
+      Profile.findById(profileId)
+      .then((p) => resolve(p &&
+        p[accessModel] === 'rw'.toLowerCase()))
+      .catch(reject);
+    });
+  }; // hasWriteAccess
+
   return Profile;
 };

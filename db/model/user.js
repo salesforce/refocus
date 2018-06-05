@@ -58,112 +58,6 @@ module.exports = function user(seq, dataTypes) {
       allowNull: true,
     },
   }, {
-    classMethods: {
-      getUserAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'userAccess';
-      },
-
-      postImport(models) {
-        assoc.createdBy = User.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-        assoc.profile = User.belongsTo(models.Profile, {
-          as: 'profile',
-          foreignKey: {
-            name: 'profileId',
-            allowNull: false,
-          },
-          hooks: true,
-        });
-
-        assoc.writableGeneratorTemplates =
-          User.belongsToMany(models.GeneratorTemplate, {
-            as: 'writableGeneratorTemplates',
-            through: 'GeneratorTemplateWriters',
-            foreignKey: 'userId',
-          });
-        assoc.writableGenerators =
-          User.belongsToMany(models.Generator, {
-            as: 'writableGenerators',
-            through: 'GeneratorWriters',
-            foreignKey: 'userId',
-          });
-        assoc.writableAspects = User.belongsToMany(models.Aspect, {
-          as: 'writableAspects',
-          through: 'AspectWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableLenses = User.belongsToMany(models.Lens, {
-          as: 'writableLenses',
-          through: 'LensWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writablePerspectives = User.belongsToMany(models.Perspective, {
-          as: 'writablePerspectives',
-          through: 'PerspectiveWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableSubjects = User.belongsToMany(models.Subject, {
-          as: 'writableSubjects',
-          through: 'SubjectWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableCollectors = User.belongsToMany(models.Collector, {
-          as: 'writableCollectors',
-          through: 'CollectorWriters',
-          foreignKey: 'userId',
-        });
-        assoc.tokens = User.hasMany(models.Token, {
-          as: 'tokens',
-          foreignKey: 'createdBy',
-          hooks: true,
-        });
-
-        User.addScope('baseScope', {
-          attributes: {
-            exclude: ['password'],
-          },
-          order: ['User.name'],
-        });
-
-        User.addScope('defaultScope', {
-          attributes: {
-            exclude: ['password'],
-          },
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-          order: ['User.name'],
-        }, {
-          override: true,
-        });
-
-        User.addScope('profile', {
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-        });
-        User.addScope('withSensitiveInfo', {
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-          order: ['User.name'],
-        });
-      },
-    },
     hooks: {
 
       /**
@@ -317,5 +211,115 @@ module.exports = function user(seq, dataTypes) {
 
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  User.getUserAssociations = function () {
+    return assoc;
+  };
+
+  User.getProfileAccessField = function () {
+    return 'userAccess';
+  };
+
+  User.postImport = function (models) {
+    assoc.createdBy = User.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+    assoc.profile = User.belongsTo(models.Profile, {
+      as: 'profile',
+      foreignKey: {
+        name: 'profileId',
+        allowNull: false,
+      },
+      hooks: true,
+    });
+
+    assoc.writableGeneratorTemplates =
+      User.belongsToMany(models.GeneratorTemplate, {
+        as: 'writableGeneratorTemplates',
+        through: 'GeneratorTemplateWriters',
+        foreignKey: 'userId',
+      });
+    assoc.writableGenerators =
+      User.belongsToMany(models.Generator, {
+        as: 'writableGenerators',
+        through: 'GeneratorWriters',
+        foreignKey: 'userId',
+      });
+    assoc.writableAspects = User.belongsToMany(models.Aspect, {
+      as: 'writableAspects',
+      through: 'AspectWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableLenses = User.belongsToMany(models.Lens, {
+      as: 'writableLenses',
+      through: 'LensWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writablePerspectives = User.belongsToMany(models.Perspective, {
+      as: 'writablePerspectives',
+      through: 'PerspectiveWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableSubjects = User.belongsToMany(models.Subject, {
+      as: 'writableSubjects',
+      through: 'SubjectWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableCollectors = User.belongsToMany(models.Collector, {
+      as: 'writableCollectors',
+      through: 'CollectorWriters',
+      foreignKey: 'userId',
+    });
+    assoc.tokens = User.hasMany(models.Token, {
+      as: 'tokens',
+      foreignKey: 'createdBy',
+      hooks: true,
+    });
+
+    User.addScope('baseScope', {
+      attributes: {
+        exclude: ['password'],
+      },
+      order: ['name'],
+    });
+
+    User.addScope('defaultScope', {
+      attributes: {
+        exclude: ['password'],
+      },
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['name'],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    User.addScope('profile', {
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['name'],
+        },
+      ],
+    });
+    User.addScope('withSensitiveInfo', {
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['name'],
+        },
+      ],
+      order: ['name'],
+    });
+  };
+
   return User;
 };

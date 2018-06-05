@@ -19,6 +19,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/sample/upsert.js >', () => {
   const aspectName = `${tu.namePrefix}Aspect`;
@@ -113,7 +114,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
           Sample.findOne({
             where: {
               name: {
-                $iLike: updatedSubjectName + '|' + aspectName,
+                [Op.iLike]: updatedSubjectName + '|' + aspectName,
               },
             },
           })

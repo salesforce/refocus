@@ -15,6 +15,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const Profile = tu.db.Profile;
 const adminProfile = require('../../../../config').db.adminProfile;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/profile/update.js >', () => {
   const pname = `${tu.namePrefix}1`;
@@ -65,7 +66,7 @@ describe('tests/db/model/profile/update.js >', () => {
     Profile.findOne({
       where: {
         name: {
-          $iLike: adminProfile.name,
+          [Op.iLike]: adminProfile.name,
         },
       },
     })
