@@ -82,11 +82,13 @@ The API is self-documenting based on [`./api/v1/swagger.yaml`](./api/v1/swagger.
 Guidelines on contributing to Refocus are available [here](https://salesforce.github.io/refocus/docs/95-contributing.html).
 
 ## Related Github Repositories
-- [refocus-collector](https://github.com/salesforce/refocus-collector) - Use a Refocus Collector to push your samples to Refocus
+- [refocus-collector](https://github.com/salesforce/refocus-collector) - Use a Refocus Collector to push your samples to Refocus.
 - [refocus-collector-eval](https://github.com/salesforce/refocus-collector-eval) - Utilities used by Refocus Collectors for executing the transform logic from a Sample Generator Template.
-- [refocus-ldk](https://github.com/salesforce/refocus-ldk) - Refocus Lens Developer Kit - a toolkit for developing, testing and packaging Refocus lenses for deployment
+- [refocus-ldk](https://github.com/salesforce/refocus-ldk) - Refocus Lens Developer Kit - a toolkit for developing, testing and packaging Refocus lenses for deployment.
 - [refocus-lens-multitable](https://github.com/salesforce/refocus-lens-multitable) - A fluid multi-table layout. Each table groups subjects together under a shared parent.
+- [refocus-lens-simplelist](https://github.com/salesforce/refocus-lens-simplelist) - A simple list of samples sorted by sample name.
 - [refocus-lens-tree](https://github.com/salesforce/refocus-lens-tree) - Display your subjects and samples in a hierarchical left-to-right tree.
 - [refocus-ruby](https://github.com/heroku/refocus-ruby) - A ruby library (API wrapper) & CLI project.
-
+- [refocus-sgt-trust1](https://github.com/salesforce/refocus-sgt-trust1) - A Sample Generator Template for Refocus that pulls data from Salesforce's Trust Status API.
+- [refocus-utilities](https://github.com/salesforce/refocus-utilities) - Some utilities to help keep your Refocus instance running in good health.
 

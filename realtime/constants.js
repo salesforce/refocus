@@ -11,6 +11,15 @@
  */
 'use strict';
 
+const bot = {
+  client: 'pubBot',
+  channel: 'botChannelName',
+  roomFilterIndex: 0,
+  botActionFilterIndex: 1,
+  botDataFilterIndex: 2,
+  botEventFilterIndex: 3,
+};
+
 module.exports = {
   asbPathIndex: 0,
 
@@ -37,8 +46,26 @@ module.exports = {
       del: 'refocus.internal.realtime.subject.remove',
     },
 
+    botAction: {
+      add: 'refocus.internal.realtime.bot.action.add',
+      upd: 'refocus.internal.realtime.bot.action.update',
+      del: 'refocus.internal.realtime.bot.action.remove',
+    },
+
+    botData: {
+      add: 'refocus.internal.realtime.bot.data.add',
+      upd: 'refocus.internal.realtime.bot.data.update',
+      del: 'refocus.internal.realtime.bot.data.remove',
+    },
+
+    botEvent: {
+      add: 'refocus.internal.realtime.bot.event.add',
+      upd: 'refocus.internal.realtime.bot.event.update',
+      del: 'refocus.internal.realtime.bot.event.remove',
+    },
+
     room: {
-      add: 'refocus.internal.realtime.room.add',
+      add: 'refocus.internal.realtime.bot.namespace.initialize',
       upd: 'refocus.internal.realtime.room.settingsChanged',
       del: 'refocus.internal.realtime.room.remove',
     },
@@ -54,13 +81,34 @@ module.exports = {
     },
   },
 
-  bot: {
-    client: 'pubBot',
-    channel: 'botChannelName',
-    roomFilterIndex: 0,
-    botActionFilterIndex: 1,
-    botDataFilterIndex: 2,
-    botEventFilterIndex: 3,
+  bot,
+
+  pubOpts: {
+    botAction: {
+      client: bot.client,
+      channel: bot.channel,
+      filterIndex: bot.botActionFilterIndex,
+      filterField: 'name',
+    },
+    botData: {
+      client: bot.client,
+      channel: bot.channel,
+      filterIndex: bot.botDataFilterIndex,
+      filterField: 'name',
+    },
+    event: {
+      client: bot.client,
+      channel: bot.channel,
+      filterIndex: bot.botEventFilterIndex,
+      filterField: 'id',
+    },
+    room: {
+      client: bot.client,
+      channel: bot.channel,
+      filterIndex: bot.roomFilterIndex,
+      filterField: 'name',
+    },
+
   },
 
   pubStatsHash: 'pubstats',

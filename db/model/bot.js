@@ -91,38 +91,6 @@ module.exports = function bot(seq, dataTypes) {
       comment: 'Bot Version. Use Semantic Versioning ^2.0.0',
     },
   }, {
-    classMethods: {
-      getBotAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'botAccess';
-      },
-
-      postImport(models) {
-        assoc.writers = Bot.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'BotWriters',
-          foreignKey: 'botId',
-        });
-        assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
-          foreignKey: 'botId',
-          through: 'RoomTypeBots',
-        });
-
-        Bot.addScope('botUI', {
-          attributes: { include: ['ui'] },
-        });
-
-        Bot.addScope('defaultScope', {
-          attributes: { exclude: ['ui'] },
-        }, {
-          override: true,
-        });
-      },
-    },
-
     hooks: {
 
       afterDestroy(inst /* , opts */) {
@@ -144,5 +112,40 @@ module.exports = function bot(seq, dataTypes) {
       },
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Bot.getBotAssociations = function () {
+    return assoc;
+  };
+
+  Bot.getProfileAccessField = function () {
+    return 'botAccess';
+  };
+
+  Bot.postImport = function (models) {
+    assoc.writers = Bot.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'BotWriters',
+      foreignKey: 'botId',
+    });
+    assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
+      foreignKey: 'botId',
+      through: 'RoomTypeBots',
+    });
+
+    Bot.addScope('botUI', {
+      attributes: { include: ['ui'] },
+    });
+
+    Bot.addScope('defaultScope', {
+      attributes: { exclude: ['ui'] },
+    }, {
+      override: true,
+    });
+  };
+
   return Bot;
 };

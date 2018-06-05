@@ -15,6 +15,7 @@ const u = require('./utils');
 const tu = require('../../../testUtils');
 const AuditEvent = tu.db.AuditEvent;
 const expect = require('chai').expect;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/auditevent/find', () => {
   let auditEventDb;
@@ -110,7 +111,7 @@ describe('tests/db/model/auditevent/find', () => {
       AuditEvent.findAll(
         { where: {
           loggedAt: {
-            $lt: new Date('2023-12-31'),
+            [Op.lt]: new Date('2023-12-31'),
           },
         },
       })
@@ -141,8 +142,8 @@ describe('tests/db/model/auditevent/find', () => {
       AuditEvent.findAll(
         { where: {
           loggedAt: {
-            $lt: new Date('2027-01-01'),
-            $gt: new Date('2022-12-30'),
+            [Op.lt]: new Date('2027-01-01'),
+            [Op.gt]: new Date('2022-12-30'),
           },
         },
       })
@@ -162,7 +163,7 @@ describe('tests/db/model/auditevent/find', () => {
       AuditEvent.findAll(
         { where: {
           loggedAt: {
-            $gt: new Date('2025-12-31'),
+            [Op.gt]: new Date('2025-12-31'),
           },
         },
       })

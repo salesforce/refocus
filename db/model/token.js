@@ -37,42 +37,6 @@ module.exports = function token(seq, dataTypes) {
       allowNull: false,
     },
   }, {
-    classMethods: {
-      getTokenAssociations() {
-        return assoc;
-      },
-
-      postImport(models) {
-        assoc.createdBy = Token.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-
-        Token.addScope('baseScope', {
-          order: ['Token.name'],
-        });
-
-        Token.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.createdBy,
-              attributes: ['name', 'email'],
-            },
-          ],
-          order: ['Token.name'],
-        }, {
-          override: true,
-        });
-
-        Token.addScope('user', {
-          include: [
-            {
-              association: assoc.createdBy,
-            },
-          ],
-        });
-      },
-    },
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
@@ -89,22 +53,66 @@ module.exports = function token(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      restore() {
-        return new Promise((resolve, reject) =>
-          this.update({ isRevoked: 0 })
-          .then(resolve)
-          .catch(reject));
-      }, // restore
-
-      revoke() {
-        return new Promise((resolve, reject) =>
-          this.update({ isRevoked: Date.now() })
-          .then(resolve)
-          .catch(reject));
-      }, // revoke
-    },
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Token.getTokenAssociations = function () {
+    return assoc;
+  };
+
+  Token.postImport = function (models) {
+    assoc.createdBy = Token.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
+    Token.addScope('baseScope', {
+      order: ['name'],
+    });
+
+    Token.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.createdBy,
+          attributes: ['name', 'email'],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    Token.addScope('user', {
+      include: [
+        {
+          association: assoc.createdBy,
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Token.prototype.restore = function () {
+    return new Promise((resolve, reject) =>
+      this.update({ isRevoked: 0 })
+      .then(resolve)
+      .catch(reject));
+  }; // restore
+
+  Token.prototype.revoke = function () {
+    return new Promise((resolve, reject) =>
+      this.update({ isRevoked: Date.now() })
+      .then(resolve)
+      .catch(reject));
+  }; // revoke
+
   return Token;
 };
