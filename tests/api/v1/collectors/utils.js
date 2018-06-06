@@ -16,6 +16,7 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const Generator = tu.db.Generator;
 const collectorToCreate =  {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
@@ -89,46 +90,35 @@ function getCollector(userToken, collector) {
   .endAsync();
 }
 
-function postGenerator(gen, userToken, collectors, statusCode = 201) {
-  if (collectors) {
-    gen.collectors = collectors.map(c => c.name);
-  } else {
-    gen.collectors = undefined;
+function createGenerator(gen, userId, collector, isActive) {
+  gen = JSON.parse(JSON.stringify(gen));
+  gen.createdBy = userId;
+  if (isActive !== undefined) {
+    gen.isActive = isActive;
   }
 
-  return api.post('/v1/generators')
-  .set('Authorization', userToken)
-  .send(gen)
-  .expect(statusCode)
-  .endAsync();
+  if (collector) {
+    gen.currentCollector = collector.name;
+  } else {
+    gen.currentCollector = undefined;
+  }
+
+  return Generator.create(gen);
 }
 
-function patchGenerator(gen, userToken, collectors, statusCode = 200) {
-  const patchData = { description: 'UPDATED' };
-  if (collectors) {
-    patchData.collectors = collectors.map(c => c.name);
+function updateGenerator(gen, userToken, collector, isActive) {
+  gen = JSON.parse(JSON.stringify(gen));
+  const updateData = { description: 'UPDATED' };
+  if (isActive !== undefined) {
+    updateData.isActive = isActive;
   }
 
-  return api.patch(`/v1/generators/${gen.name}`)
-  .set('Authorization', userToken)
-  .send(patchData)
-  .expect(statusCode)
-  .endAsync();
-}
-
-function putGenerator(gen, userToken, collectors, statusCode = 200) {
-  gen.description += '.';
-  if (collectors) {
-    gen.collectors = collectors.map(c => c.name);
-  } else {
-    gen.collectors = undefined;
+  if (collector) {
+    updateData.currentCollector = collector.name;
   }
 
-  return api.put(`/v1/generators/${gen.name}`)
-  .set('Authorization', userToken)
-  .send(gen)
-  .expect(statusCode)
-  .endAsync();
+  return Generator.findOne({ where: { name: gen.name } })
+  .then((o) => o.update(updateData));
 }
 
 function sendHeartbeat(collector, collectorTokens, body) {
@@ -211,10 +201,9 @@ module.exports = {
   expectLengths,
   getCollector,
   getCollectorToCreate,
-  patchGenerator,
+  updateGenerator,
   pauseCollector,
-  postGenerator,
-  putGenerator,
+  createGenerator,
   resumeCollector,
   sendHeartbeat,
   startCollector,
