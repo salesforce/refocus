@@ -37,7 +37,8 @@ describe('tests/api/v1/collectors/patch.js >', () => {
   beforeEach((done) => {
     Collector.create(u.getCollectorToCreate())
     .then((c) => {
-      collectorToken = jwtUtil.createToken(c.name, c.name);
+      collectorToken = jwtUtil.createToken(c.name, tu.userName,
+        { IsCollector: true });
       i = c.id;
       done();
     })
@@ -77,13 +78,9 @@ describe('tests/api/v1/collectors/patch.js >', () => {
     .send({ version: '1.1.1' })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description).to.be.equal(
-        'Invalid/No Token provided.'
-      );
+      if (err) return done(err);
+      expect(res.body.errors[0])
+        .to.contain.property('description', 'Forbidden');
       done();
     });
   });
@@ -93,22 +90,8 @@ describe('tests/api/v1/collectors/patch.js >', () => {
     .set('Authorization', collectorToken)
     .send({ version: '1.1.1' })
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (tu.gotExpectedLength(res.body, 0)) {
-        throw new Error('expecting collector');
-      }
-
-      if (res.body.version !== '1.1.1') {
-        throw new Error('Incorrect version');
-      }
-    })
-    .end((err /* , res */) => {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    .expect((res) => expect(res.body).to.have.property('version', '1.1.1'))
+    .end((err) => err ? done(err) : done());
   });
 
   it('error - resource not found', (done) => {

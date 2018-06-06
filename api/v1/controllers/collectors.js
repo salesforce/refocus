@@ -163,11 +163,9 @@ function getCollectorStatus(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function patchCollector(req, res, next) {
-  // verify controller token if atleast one field is writable by collector
   let verifyCtrToken = false;
   const reqBodyKeys = Object.keys(req.body);
   const cltrWritableFields = helper.fieldsWritableByCollectorOnly;
-
   for (let i = 0; i < cltrWritableFields.length; i++) {
     const fieldName = cltrWritableFields[i];
     if (reqBodyKeys.indexOf(fieldName) > MINUS_ONE) {
@@ -176,11 +174,11 @@ function patchCollector(req, res, next) {
     }
   }
 
-  if (verifyCtrToken) { // verify that token belongs to collector
-    return jwtUtil.verifyCollectorToken(req)
-    .then(() => doPatch(req, res, next, helper))
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  }
+  // If patching restricted fields, make sure this is collector token.
+  if (verifyCtrToken && !req.headers.IsCollector) {
+    const err = new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+    return u.handleError(next, err, helper.modelName);
+  };
 
   return doPatch(req, res, next, helper);
 } // patchCollector
@@ -249,7 +247,7 @@ function heartbeat(req, res, next) {
 
   const authToken = req.headers.authorization;
   const timestamp = req.body.timestamp;
-  const collectorNameFromToken = req.headers.UserName;
+  const collectorNameFromToken = req.headers.TokenName;
   let collectorName;
 
   const retval = {
@@ -334,7 +332,8 @@ function heartbeat(req, res, next) {
       .then((sg) => {
         const userName = sg.user.dataValues.name;
         const generatorName = sg.name;
-        sg.token = jwtUtil.createToken(generatorName, userName);
+        sg.token = jwtUtil.createToken(generatorName, userName,
+          { IsGenerator: true });
         return reEncryptSGContextValues(sg, authToken, timestamp);
       })
     )
@@ -346,7 +345,8 @@ function heartbeat(req, res, next) {
       .then((sg) => {
         const userName = sg.user.dataValues.name;
         const generatorName = sg.name;
-        sg.token = jwtUtil.createToken(generatorName, userName);
+        sg.token = jwtUtil.createToken(generatorName, userName,
+          { IsGenerator: true });
         return reEncryptSGContextValues(sg, authToken, timestamp);
       })
     )
@@ -420,7 +420,8 @@ function startCollector(req, res, next) {
   .then((gens) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
-      g.token = jwtUtil.createToken(g.name, g.user.name);
+      g.token = jwtUtil.createToken(g.name, g.user.name,
+        { IsGenerator: true });
       delete g.GeneratorCollectors;
       delete g.collectors;
       return g;
@@ -430,8 +431,8 @@ function startCollector(req, res, next) {
      * When a collector registers itself with Refocus, Refocus sends back a
      * special token for that collector to use for all subsequent heartbeats.
      */
-    collToReturn.dataValues.token = jwtUtil.createToken(body.name, body.name,
-      { IsCollector: true });
+    collToReturn.dataValues.token = jwtUtil.createToken(body.name,
+      req.headers.UserName, { IsCollector: true });
 
     collToReturn.dataValues.collectorConfig = config.collector;
     collToReturn.dataValues.collectorConfig.status = collToReturn.status;

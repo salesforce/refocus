@@ -25,10 +25,12 @@ const n = `${tu.namePrefix}Testing`;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
 const Collector = tu.db.Collector;
+const gu = require('../api/v1/generators/utils');
 
 describe('tests/utils/jwtUtil.js >', () => {
   const newBot = {
     name: n,
+    version: '1.0.0',
     url: 'http://www.bar.com',
     active: true,
   };
@@ -37,17 +39,16 @@ describe('tests/utils/jwtUtil.js >', () => {
   let collectorInst;
   let userToken;
   let collectorToken;
+  let generatorToken;
   let profile;
   const testStartTime = new Date();
-
   const predefinedAdminUserToken = tu.createAdminToken();
+  const generator = gu.getGenerator();
+  const generatorTemplate = gu.gtUtil.getGeneratorTemplate();
+  gu.createSGtoSGTMapping(generatorTemplate, generator);
 
   // dummy callback that returns a promise.
-  const dummyCallback = function dummy() {
-    return new Promise((resolve) => {
-      resolve(true);
-    });
-  };
+  const dummyCallback = () => Promise.resolve(true);
 
   before((done) => {
     Profile.create({ name: tu.namePrefix + 'myProfile' })
@@ -78,20 +79,31 @@ describe('tests/utils/jwtUtil.js >', () => {
     })
     .then((token) => {
       userToken = token;
-      return jwtUtil.createToken(
-        collectorInst.name, collectorInst.name, { IsCollector: true }
+      return jwtUtil.createToken(collectorInst.name, userInst.name, { IsCollector: true }
       );
     })
     .then((token) => {
       collectorToken = token;
-      done();
-    });
+      return tu.db.GeneratorTemplate.create(generatorTemplate);
+    })
+    .then(() => gu.createGeneratorAspects())
+    .then(() => tu.db.Generator.create(generator))
+    .then(() => jwtUtil.createToken(generator.name, userInst.name,
+      { IsGenerator: true }))
+    .then((token) => generatorToken = token)
+    .then(() => done())
+    .catch((err) => done());
   });
 
   after((done) => {
     tu.forceDelete(tu.db.User, testStartTime)
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => done())
     .catch(done);
   });
@@ -118,77 +130,100 @@ describe('tests/utils/jwtUtil.js >', () => {
     .then(() => done());
   });
 
-  describe('verifyToken tests', () => {
+  describe('verifyToken >', () => {
     it('verifyCollectorToken and make sure the request header has ' +
       'info attached', (done) => {
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = collectorToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = collectorToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(collectorInst.name);
-        expect(request.headers.ProfileName).to.equal('');
-        expect(request.headers.TokenName).to.equal(collectorInst.name);
-        expect(request.headers.IsAdmin).to.equal(false);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(true);
+        expect(req.headers.UserName).to.equal(userInst.name);
+        expect(req.headers.ProfileName).to.equal(profile.name);
+        expect(req.headers.TokenName).to.equal(collectorInst.name);
+        expect(req.headers.IsAdmin).to.equal(false);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(true);
+        expect(req.headers.IsGenerator).to.equal(false);
+        return done();
+      }).catch(done);
+    });
+
+    it('verifyGeneratorToken and make sure the request header has ' +
+      'info attached', (done) => {
+      const req = {
+        headers: { },
+        session: { },
+      };
+      req.headers.authorization = generatorToken;
+      jwtUtil.verifyToken(req, dummyCallback)
+      .then(() => {
+        expect(req.headers.UserName).to.equal(userInst.name);
+        // expect(req.headers.ProfileName).to.equal('___myProfile');
+        expect(req.headers.TokenName).to.equal(generator.name);
+        expect(req.headers.IsAdmin).to.equal(false);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(false);
+        expect(req.headers.IsGenerator).to.equal(true);
         return done();
       }).catch(done);
     });
 
     it('verifyUserToken with admin user and make sure the request header has ' +
       'info attached', (done) => {
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = predefinedAdminUserToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = predefinedAdminUserToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(adminUser.name);
-        expect(request.headers.ProfileName).to.equal('Admin');
-        expect(request.headers.TokenName).to.equal(adminUser.name);
-        expect(request.headers.IsAdmin).to.equal(true);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(false);
-        expect(request.user.name).to.equal(adminUser.name);
-        expect(request.user.profile.name).to.equal(adminProfile.name);
+        expect(req.headers.UserName).to.equal(adminUser.name);
+        expect(req.headers.ProfileName).to.equal('Admin');
+        expect(req.headers.TokenName).to.equal(adminUser.name);
+        expect(req.headers.IsAdmin).to.equal(true);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(false);
+        expect(req.headers.IsGenerator).to.equal(false);
+        expect(req.user.name).to.equal(adminUser.name);
+        expect(req.user.profile.name).to.equal(adminProfile.name);
         return done();
       }).catch(done);
     });
 
     it('verifyToken with token added to session object', (done) => {
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.session.token = userToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.session.token = userToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(userInst.name);
-        expect(request.headers.ProfileName).to.equal('___myProfile');
-        expect(request.headers.TokenName).to.equal('___myRefocusUser');
-        expect(request.headers.IsAdmin).to.equal(false);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(false);
+        expect(req.headers.UserName).to.equal(userInst.name);
+        expect(req.headers.ProfileName).to.equal('___myProfile');
+        expect(req.headers.TokenName).to.equal('___myRefocusUser');
+        expect(req.headers.IsAdmin).to.equal(false);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(false);
+        expect(req.headers.IsGenerator).to.equal(false);
         return done();
       }).catch(done);
     });
 
     it('verifyToken with invalid token', (done) => {
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = 'invalid';
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = 'invalid';
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(Object.keys(request.headers)).to.deep.equal(['authorization']);
-        expect(request.headers.UserName).to.equal(undefined);
-        expect(request.headers.ProfileName).to.equal(undefined);
-        expect(request.headers.TokenName).to.equal(undefined);
+        expect(Object.keys(req.headers)).to.deep.equal(['authorization']);
+        expect(req.headers.UserName).to.equal(undefined);
+        expect(req.headers.ProfileName).to.equal(undefined);
+        expect(req.headers.TokenName).to.equal(undefined);
         return done();
       }).catch(done);
     });
@@ -198,23 +233,24 @@ describe('tests/utils/jwtUtil.js >', () => {
     (done) => {
       jwtUtil.headersWithDefaults.newBooleanHeader = true;
       const dummyToken = jwtUtil.createToken(
-        'myTokenName', userInst.name,
+        'myCollector', userInst.name,
         { newBooleanHeader: false, IsCollector: true }
       );
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = dummyToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(userInst.name);
-        expect(request.headers.ProfileName).to.equal(profile.name);
-        expect(request.headers.TokenName).to.equal('myTokenName');
-        expect(request.headers.IsAdmin).to.equal(false);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(true);
-        expect(request.headers.newBooleanHeader).to.equal(false);
+        expect(req.headers.UserName).to.equal(userInst.name);
+        expect(req.headers.ProfileName).to.equal(profile.name);
+        expect(req.headers.TokenName).to.equal('myCollector');
+        expect(req.headers.IsAdmin).to.equal(false);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(true);
+        expect(req.headers.IsGenerator).to.equal(false);
+        expect(req.headers.newBooleanHeader).to.equal(false);
         return done();
       }).catch(done);
     });
@@ -223,21 +259,22 @@ describe('tests/utils/jwtUtil.js >', () => {
       'token, both should be set in req', (done) => {
       const dummyToken = jwtUtil.createToken('myTokenName', userInst.name);
 
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = dummyToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(userInst.name);
-        expect(request.headers.ProfileName).to.equal(profile.name);
-        expect(request.headers.TokenName).to.equal('myTokenName');
-        expect(request.headers.IsAdmin).to.equal(false);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(false);
-        expect(request.user.name).to.equal(userInst.name);
-        expect(request.user.profile.name).to.equal(profile.name);
+        expect(req.headers.UserName).to.equal(userInst.name);
+        expect(req.headers.ProfileName).to.equal(profile.name);
+        expect(req.headers.TokenName).to.equal('myTokenName');
+        expect(req.headers.IsAdmin).to.equal(false);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(false);
+        expect(req.headers.IsGenerator).to.equal(false);
+        expect(req.user.name).to.equal(userInst.name);
+        expect(req.user.profile.name).to.equal(profile.name);
         return done();
       }).catch(done);
     });
@@ -246,37 +283,39 @@ describe('tests/utils/jwtUtil.js >', () => {
       'token, both should be set in req', (done) => {
       const dummyToken = jwtUtil.createToken('myTokenName', adminUser.name);
 
-      const request = {
+      const req = {
         headers: { },
         session: { },
       };
-      request.headers.authorization = dummyToken;
-      jwtUtil.verifyToken(request, dummyCallback)
+      req.headers.authorization = dummyToken;
+      jwtUtil.verifyToken(req, dummyCallback)
       .then(() => {
-        expect(request.headers.UserName).to.equal(adminUser.name);
-        expect(request.headers.ProfileName).to.equal(adminProfile.name);
-        expect(request.headers.TokenName).to.equal('myTokenName');
-        expect(request.headers.IsAdmin).to.equal(true);
-        expect(request.headers.IsBot).to.equal(false);
-        expect(request.headers.IsCollector).to.equal(false);
+        expect(req.headers.UserName).to.equal(adminUser.name);
+        expect(req.headers.ProfileName).to.equal(adminProfile.name);
+        expect(req.headers.TokenName).to.equal('myTokenName');
+        expect(req.headers.IsAdmin).to.equal(true);
+        expect(req.headers.IsBot).to.equal(false);
+        expect(req.headers.IsCollector).to.equal(false);
+        expect(req.headers.IsGenerator).to.equal(false);
         return done();
       }).catch(done);
     });
   });
 
-  describe('createToken tests', () => {
+  describe('createToken >', () => {
     it('No additional payload - no extra headers set',
     (done) => {
       const token = jwtUtil.createToken('myTokenName', 'myUserName');
       jwtVerifyAsync(token, secret, {})
-      .then((decodedData) => {
-        expect(decodedData.username).to.be.equal('myUserName');
-        expect(decodedData.tokenname).to.be.equal('myTokenName');
-        expect(decodedData.timestamp).to.be.an('number');
-        expect(decodedData.ProfileName).to.be.equal(undefined);
-        expect(decodedData.IsAdmin).to.be.equal(undefined);
-        expect(decodedData.isBot).to.be.equal(undefined);
-        expect(decodedData.IsCollector).to.be.equal(undefined);
+      .then((payload) => {
+        expect(payload.username).to.be.equal('myUserName');
+        expect(payload.tokenname).to.be.equal('myTokenName');
+        expect(payload.timestamp).to.be.an('number');
+        expect(payload.ProfileName).to.be.equal(undefined);
+        expect(payload.IsAdmin).to.be.equal(undefined);
+        expect(payload.isBot).to.be.equal(undefined);
+        expect(payload.IsCollector).to.be.equal(undefined);
+        expect(payload.IsGenerator).to.equal(undefined);
         return done();
       }).catch(done);
     });
@@ -289,14 +328,15 @@ describe('tests/utils/jwtUtil.js >', () => {
         { ProfileName: 'myProfile', IsAdmin: false }
       );
       jwtVerifyAsync(token, secret, {})
-      .then((decodedData) => {
-        expect(decodedData.username).to.be.equal('myUserName');
-        expect(decodedData.tokenname).to.be.equal('myTokenName');
-        expect(decodedData.timestamp).to.be.an('number');
-        expect(decodedData.ProfileName).to.be.equal('myProfile');
-        expect(decodedData.IsAdmin).to.be.equal(false);
-        expect(decodedData.isBot).to.be.equal(undefined);
-        expect(decodedData.IsCollector).to.be.equal(undefined);
+      .then((payload) => {
+        expect(payload.username).to.be.equal('myUserName');
+        expect(payload.tokenname).to.be.equal('myTokenName');
+        expect(payload.timestamp).to.be.an('number');
+        expect(payload.ProfileName).to.be.equal('myProfile');
+        expect(payload.IsAdmin).to.be.equal(false);
+        expect(payload.isBot).to.be.equal(undefined);
+        expect(payload.IsCollector).to.be.equal(undefined);
+        expect(payload.IsGenerator).to.equal(undefined);
         return done();
       }).catch(done);
     });
@@ -309,15 +349,16 @@ describe('tests/utils/jwtUtil.js >', () => {
         { IsCollector: true, RandomHeader: 'randomStr' }
       );
       jwtVerifyAsync(token, secret, {})
-      .then((decodedData) => {
-        expect(decodedData.username).to.be.equal('myUserName');
-        expect(decodedData.tokenname).to.be.equal('myTokenName');
-        expect(decodedData.timestamp).to.be.an('number');
-        expect(decodedData.IsCollector).to.be.equal(true);
-        expect(decodedData.ProfileName).to.be.equal(undefined);
-        expect(decodedData.IsAdmin).to.be.equal(undefined);
-        expect(decodedData.isBot).to.be.equal(undefined);
-        expect(decodedData.RandomHeader).to.be.equal(undefined);
+      .then((payload) => {
+        expect(payload.username).to.be.equal('myUserName');
+        expect(payload.tokenname).to.be.equal('myTokenName');
+        expect(payload.timestamp).to.be.an('number');
+        expect(payload.IsCollector).to.be.equal(true);
+        expect(payload.IsGenerator).to.be.equal(undefined);
+        expect(payload.ProfileName).to.be.equal(undefined);
+        expect(payload.IsAdmin).to.be.equal(undefined);
+        expect(payload.isBot).to.be.equal(undefined);
+        expect(payload.RandomHeader).to.be.equal(undefined);
         return done();
       }).catch(done);
     });
@@ -333,12 +374,13 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(decodedData.IsAdmin).to.be.equal(undefined);
         expect(decodedData.isBot).to.be.equal(undefined);
         expect(decodedData.IsCollector).to.be.equal(undefined);
+        expect(decodedData.IsGenerator).to.be.equal(undefined);
         return done();
       }).catch(done);
     });
   });
 
-  describe('assignHeaderValues tests', () => {
+  describe('assignHeaderValues >', () => {
     it('decodedTokenData empty', (done) => {
       const req = { headers: {} };
       jwtUtil.assignHeaderValues(req, {});
@@ -347,6 +389,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       expect(req.headers.ProfileName).to.be.equal('');
       expect(req.headers.IsAdmin).to.be.equal(false);
       expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsGenerator).to.be.equal(false);
       expect(req.headers.IsBot).to.be.equal(false);
       return done();
     });
@@ -367,6 +410,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       expect(req.headers.ProfileName).to.be.equal('Admin');
       expect(req.headers.IsAdmin).to.be.equal(true);
       expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsGenerator).to.be.equal(false);
       expect(req.headers.IsBot).to.be.equal(false);
       return done();
     });
@@ -389,6 +433,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       expect(req.headers.ProfileName).to.be.equal('Admin');
       expect(req.headers.IsAdmin).to.be.equal(true);
       expect(req.headers.IsCollector).to.be.equal(false);
+      expect(req.headers.IsGenerator).to.be.equal(false);
       expect(req.headers.IsBot).to.be.equal(false);
       expect(req.headers.Random).to.be.equal(undefined);
       return done();

@@ -47,7 +47,6 @@ describe('tests/enforceToken/createToken.js, api: createToken >', () => {
     .set('Authorization', `${defaultToken}xyz`)
     .send({ name: 'newToken' })
     .expect(constants.httpStatus.FORBIDDEN)
-    .expect(/Invalid Token/)
     .end(done);
   });
 
