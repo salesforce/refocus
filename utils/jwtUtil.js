@@ -18,6 +18,7 @@ const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
+const Generator = require('../db/index').Generator;
 const Bot = require('../db/index').Bot;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
@@ -29,6 +30,7 @@ const headersWithDefaults = {
   IsAdmin: false,
   IsCollector: false,
   IsBot: false,
+  IsGenerator: false,
 };
 
 /**
@@ -43,35 +45,33 @@ function assignKeyValue(object, key, value) {
 } // assignKeyValue
 
 /**
- * Assign request headers using token info
+ * Assign request headers using token info.
+ *
  * @param  {Object} req - Request object
- * @param  {Object} decodedTokenData - decoded data from token
+ * @param  {Object} payload - decoded data from token
  */
-function assignHeaderValues(req, decodedTokenData) {
-
+function assignHeaderValues(req, payload) {
   /*
    * username and tokenname should always be there if createToken function is
    * used for creating token
    */
-  if (decodedTokenData.username) {
-    assignKeyValue(req.headers, 'UserName', decodedTokenData.username);
+  if (payload.username) {
+    assignKeyValue(req.headers, 'UserName', payload.username);
   }
 
-  if (decodedTokenData.tokenname) {
-    assignKeyValue(req.headers, 'TokenName', decodedTokenData.tokenname);
+  if (payload.ProfileName) {
+    assignKeyValue(req.headers, 'ProfileName', payload.username);
   }
 
-  Object.keys(headersWithDefaults).forEach((headerName) => {
-    let headerValue;
-    if (decodedTokenData.hasOwnProperty(headerName)) {
-      headerValue = decodedTokenData[headerName];
-    } else {
-      headerValue = headersWithDefaults[headerName];
-    }
+  if (payload.tokenname) {
+    assignKeyValue(req.headers, 'TokenName', payload.tokenname);
+  }
 
-    assignKeyValue(req.headers, headerName, headerValue);
+  Object.keys(headersWithDefaults).forEach((h) => {
+    assignKeyValue(req.headers, h,
+      payload.hasOwnProperty(h) ? payload[h] : headersWithDefaults[h]);
   });
-}
+} // assignHeaderValues
 
 /**
  * Attaches the resource type to the error and passes it on to the next
@@ -135,37 +135,29 @@ function checkTokenRecord(t) {
 } // checkTokenRecord
 
 /**
- * Function to verify if a collector token is valid or not.
+ * Function to verify if a collector token is valid or not, i.e. does the token
+ * name match an actual collector name.
+ *
+ * @param {Object} payload - the decoded payload
  * @param  {object} req - request object
  * @param  {Function} cb - callback function - Optional
  * @returns {Function|undefined} - Callback function or undefined
  * @throws {ForbiddenError} If a collector record matching the username is
  *   not found
  */
-function verifyCollectorToken(req, cb) {
-  const token = req.session.token || req.headers.authorization;
-  let decodedData;
-  return jwtVerifyAsync(token, secret, {})
-  .then((_decodedData) => {
-    decodedData = _decodedData;
-    return Collector.findOne({ where: { name: decodedData.username }, });
-  })
-  .then((collector) => {
-    if (!collector) {
-      throw new apiErrors.ForbiddenError({
-        explanation: 'Invalid Token.',
-      });
+function verifyCollectorToken(payload, req, cb) {
+  return setUser(payload, req)
+  .then((p) => payload = p)
+  .then(() => Collector.findOne({ where: { name: payload.tokenname } }))
+  .then((coll) => {
+    if (!coll) {
+      throw new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
     }
 
-    assignHeaderValues(req, decodedData);
-
-    if (cb) {
-      return cb();
-    }
-
-    return undefined;
+    assignHeaderValues(req, payload);
+    return cb ? cb() : undefined;
   })
-  .catch(() => {
+  .catch((err) => {
     throw new apiErrors.ForbiddenError({
       explanation: 'Invalid/No Token provided.',
     });
@@ -173,37 +165,47 @@ function verifyCollectorToken(req, cb) {
 } // verifyCollectorToken
 
 /**
- * Function to verify if a bot token is valid or not.
+ * Function to verify if a generator token is valid or not, i.e. does the token
+ * name match an actual generator name.
+ *
+ * @param {Object} payload - the decoded payload
  * @param  {object} req - request object
+ * @param  {Function} cb - callback function - Optional
  * @returns {Function|undefined} - Callback function or undefined
- * @throws {ForbiddenError} If a collector record matching the username is
+ * @throws {ForbiddenError} If a generator record matching the token name is
  *   not found
+ */
+function verifyGeneratorToken(payload, req, cb) {
+  return setUser(payload, req)
+  .then((p) => payload = p)
+  .then(() => Generator.findOne({ where: { name: payload.tokenname } }))
+  .then((gen) => {
+    if (!gen) {
+      throw new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+    }
+
+    assignHeaderValues(req, payload);
+    return cb ? cb() : undefined;
+  })
+  .catch(() => {
+    throw new apiErrors.ForbiddenError({
+      explanation: 'Invalid/No Token provided.',
+    });
+  });
+} // verifyGeneratorToken
+
+/**
+ * Function to verify if a bot token is valid or not.
+ *
+ * @param {Object} payload - the decoded payload
  */
 function verifyBotToken(token) {
   return jwtVerifyAsync(token, secret, {})
-  .then((decodedData) => Bot.findOne({
-    where: { name: decodedData.username },
-  })).then((bot) => bot);
+  .then((payload) => Bot.findOne({ where: { name: payload.username } }));
 } // verifyBotToken
 
-/**
- * Function to verify if an user token is valid or not. If verification is
- * successful, also check the token record in the db (exists AND is not revoked)
- * and load the user record from the db and add to the request.
- * (Skip the token record check if the token is the default UI token.)
- * @param  {object}   req - request object
- * @param  {Function} cb - callback function
- * @throws {ForbiddenError} If a collector record matching the username is
- *   not found
- */
-function verifyUserToken(req, cb) {
-  const token = req.session.token || req.headers.authorization;
-  let decodedData;
-  return jwtVerifyAsync(token, secret, {})
-  .then((payLoad) => {
-    decodedData = payLoad;
-    return User.findOne({ where: { name: decodedData.username } });
-  })
+function setUser(payload, req) {
+  return User.findOne({ where: { name: payload.username } })
   .then((user) => {
     if (!user) {
       throw new apiErrors.ForbiddenError({
@@ -212,36 +214,45 @@ function verifyUserToken(req, cb) {
     }
 
     req.user = user.get();
-
-    /**
-     * For tokens with no ProfileName and IsAdmin set, like existing tokens -
-     * we set IsAdmin and ProfileName after decoding the token.
-     */
-    if (!decodedData.hasOwnProperty('ProfileName')) {
-      decodedData.ProfileName = user.profile.name;
-    }
-
-    if (!decodedData.hasOwnProperty('IsAdmin')) {
-      return Profile.isAdmin(req.user.profileId);
-    }
-
-    return decodedData.IsAdmin;
-  })
-  .then((isAdmin) => {
-    decodedData.IsAdmin = isAdmin; // ok to reassign in case of new tokens
-    assignHeaderValues(req, decodedData);
-
+    
     /*
-     * No need to check the token record if this is the default UI
-     * token.
+     * For tokens with no ProfileName and IsAdmin set (e.g. old existing
+     * tokens) we set IsAdmin and ProfileName after decoding the payload.
      */
-    if (decodedData.username === decodedData.tokenname) {
-      return cb();
+    if (!payload.hasOwnProperty('ProfileName')) {
+      payload.ProfileName = user.profile.name;
     }
+
+    return payload.hasOwnProperty('IsAdmin') ? payload.IsAdmin :
+      Profile.isAdmin(req.user.profileId);
+  })
+  .then((isAdmin) => payload.IsAdmin = isAdmin)
+  .then(() => payload);
+} // setUser
+
+/**
+ * Function to verify if a user token is valid or not. If verification is
+ * successful, also check the token record in the db (exists AND is not revoked)
+ * and load the user record from the db and add to the request.
+ * (Skip the token record check if the token is the default UI token.)
+ *
+ * @param {Object} payload - the decoded payload
+ * @param  {object}   req - request object
+ * @param  {Function} cb - callback function
+ * @throws {ForbiddenError} If a collector record matching the username is
+ *   not found
+ */
+function verifyUserToken(payload, req, cb) {
+  return setUser(payload, req)
+  .then((p) => {
+    assignHeaderValues(req, p);
+
+    // No need to check the token record if this is the default UI token.
+    if (p.username === p.tokenname) return cb();
 
     return Token.findOne({
       where: {
-        name: decodedData.tokenname,
+        name: p.tokenname,
         createdBy: req.user.id,
       },
     })
@@ -263,17 +274,15 @@ function verifyUserToken(req, cb) {
 function verifyToken(req, cb) {
   const token = req.session.token || req.headers.authorization;
   if (token) {
-    return verifyUserToken(req, cb)
-    .then((ret) => ret)
+    return jwtVerifyAsync(token, secret, {})
+    .then((payload) => {
+      if (payload.IsCollector) return verifyCollectorToken(payload, req, cb);
+      if (payload.IsGenerator) return verifyGeneratorToken(payload, req, cb);
+      return verifyUserToken(payload, req, cb);
+    })
     .catch((err) => {
-      if (err.explanation &&
-          err.explanation.endsWith('Refocus administrator.')) {
-        return handleError(cb, err, 'ApiToken');
-      }
-
-      return verifyCollectorToken(req, cb)
-      .then((_ret) => _ret)
-      .catch(() => handleInvalidToken(cb));
+      const e = new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+      return handleError(cb, e, 'ApiToken')
     });
   }
 
@@ -289,7 +298,7 @@ function verifyToken(req, cb) {
  * @param {string} tokenName - the name of the token
  * @param {string} userName - the name of the user
  * @param {Object} payloadObj - optional additional info to be included in
- * jwt claim
+ *  jwt claim
  * @returns {string} created token
  */
 function createToken(tokenName, userName, payloadObj) {
@@ -319,7 +328,8 @@ function createToken(tokenName, userName, payloadObj) {
 module.exports = {
   verifyToken,
   createToken,
-  verifyCollectorToken,
+  verifyCollectorToken, // for testing purposes only
+  verifyGeneratorToken, // for testing purposes only
   verifyBotToken,
   assignHeaderValues, // for testing purposes only
   headersWithDefaults, // for testing purposes only
