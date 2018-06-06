@@ -107,7 +107,6 @@ describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
           call
           .set('Authorization', `${defaultToken}xyz`)
           .expect(FORBIDDEN)
-          .expect(/Invalid Token/)
           .end(done);
         });
 

@@ -214,7 +214,7 @@ function setUser(payload, req) {
     }
 
     req.user = user.get();
-    
+
     /*
      * For tokens with no ProfileName and IsAdmin set (e.g. old existing
      * tokens) we set IsAdmin and ProfileName after decoding the payload.
@@ -282,7 +282,7 @@ function verifyToken(req, cb) {
     })
     .catch((err) => {
       const e = new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
-      return handleError(cb, e, 'ApiToken')
+      return handleError(cb, e, 'ApiToken');
     });
   }
 
