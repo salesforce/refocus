@@ -142,137 +142,6 @@ module.exports = function generator(seq, dataTypes) {
       },
     },
   }, {
-    classMethods: {
-      getGeneratorAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'generatorAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Generator.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-
-        assoc.collectors = Generator.belongsToMany(models.Collector, {
-          as: 'collectors',
-          through: 'GeneratorCollectors',
-          foreignKey: 'generatorId',
-        });
-
-        assoc.writers = Generator.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'GeneratorWriters',
-          foreignKey: 'generatorId',
-        });
-
-        Generator.addScope('baseScope', {
-          order: ['name'],
-        });
-
-        Generator.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-            {
-              association: assoc.collectors,
-              attributes: [
-                'id',
-                'name',
-                'registered',
-                'status',
-                'isDeleted',
-                'createdAt',
-                'updatedAt',
-              ],
-            },
-          ],
-          order: ['name'],
-        }, {
-          override: true,
-        });
-
-        Generator.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-        });
-
-        Generator.addScope('collectors', {
-          include: [
-            {
-              association: assoc.collectors,
-              attributes: [
-                'id',
-                'name',
-                'registered',
-                'status',
-                'isDeleted',
-                'createdAt',
-                'updatedAt',
-              ],
-            },
-          ],
-        });
-      },
-
-      /**
-       * Accessed by API. if pass, return a Promise with the collectors.
-       * If fail, return a rejected Promise
-       *
-       * @param {Array} collectorNames Array of strings
-       * @param {Function} whereClauseForNameInArr Returns an object query
-       * @returns {Promise} with collectors if pass, error if fail
-       */
-      validateCollectors(collectorNames, whereClauseForNameInArr) {
-        return sgUtils.validateCollectors(seq, collectorNames,
-          whereClauseForNameInArr);
-      },
-
-      /**
-       * 1. validate the collectors field: if succeed, save the collectors in temp var for
-       *  attaching to the generator. if fail, abort the operation
-       * 2. create the generator
-       * 3. add the saved collectors (if any)
-       *
-       * @param {Object} requestBody From API
-       * @param {Function} whereClauseForNameInArr Returns an object query
-       * @returns {Promise} created generator with collectors (if any)
-       */
-      createWithCollectors(requestBody, whereClauseForNameInArr) {
-        let createdGenerator;
-        let collectors; // will be populated with actual collectors
-        return new seq.Promise((resolve, reject) =>
-         sgUtils.validateCollectors(seq, requestBody.collectors,
-            whereClauseForNameInArr)
-          .then((_collectors) => {
-            collectors = _collectors;
-            return Generator.create(requestBody);
-          })
-          .then((_createdGenerator) => {
-            createdGenerator = _createdGenerator;
-            return _createdGenerator.addCollectors(collectors);
-          })
-          .then(() => resolve(createdGenerator.reload()))
-          .catch(reject)
-        );
-      },
-
-      findForHeartbeat(findOpts) {
-        return Generator.findAll(findOpts)
-        .then((gens) => gens.map((g) => g.updateForHeartbeat()))
-        .then((genpromises) => Promise.all(genpromises));
-      }, // findForHeartbeat
-    },
-
     hooks: {
 
       beforeCreate(inst /* , opts */) {
@@ -352,70 +221,205 @@ module.exports = function generator(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-
-      /**
-       * 1. validate the collectors field: if succeed, save the collectors in
-       *  temp var for attaching to the generator. if fail, abort the operation
-       * 2. update the generator
-       * 3. add the saved collectors (if any)
-       *
-       * @param {Object} requestBody From API
-       * @param {Function} whereClauseForNameInArr Returns an object query
-       * @returns {Promise} created generator with collectors (if any)
-       */
-      updateWithCollectors(requestBody, whereClauseForNameInArr) {
-        let collectors; // will be populated with actual collectors
-        return new seq.Promise((resolve, reject) =>
-         sgUtils.validateCollectors(seq, requestBody.collectors,
-            whereClauseForNameInArr)
-          .then((_collectors) => { // collectors list in request body
-            collectors = _collectors;
-            return this.update(requestBody);
-          })
-          .then(() => this.addCollectors(collectors))
-          .then(() => resolve(this.reload()))
-          .catch(reject)
-        );
-      },
-
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-
-      /**
-       * Replaces string array of aspect names with object array of aspect
-       * records (with only the "name" attribute).
-       * Replaces generatorTemplate (name/version) with full generator template
-       * record.
-       *
-       * @returns {Generator} - the updated Generator
-       */
-      updateForHeartbeat() {
-        const g = this.get();
-        const aspects = g.aspects.map((a) => ({ name: a }));
-        g.aspects = aspects;
-
-        const gt = g.generatorTemplate;
-        return seq.models.GeneratorTemplate.getSemverMatch(gt.name, gt.version)
-        .then((t) => {
-          if (t) g.generatorTemplate = t.get();
-        })
-        .then(() => g);
-      }, // updateForHeartbeat
-    },
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Generator.getGeneratorAssociations = function () {
+    return assoc;
+  };
+
+  Generator.getProfileAccessField = function () {
+    return 'generatorAccess';
+  };
+
+  Generator.postImport = function (models) {
+    assoc.user = Generator.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
+    assoc.collectors = Generator.belongsToMany(models.Collector, {
+      as: 'collectors',
+      through: 'GeneratorCollectors',
+      foreignKey: 'generatorId',
+    });
+
+    assoc.writers = Generator.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'GeneratorWriters',
+      foreignKey: 'generatorId',
+    });
+
+    Generator.addScope('baseScope', {
+      order: ['name'],
+    });
+
+    Generator.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.collectors,
+          attributes: [
+            'id',
+            'name',
+            'registered',
+            'status',
+            'isDeleted',
+            'createdAt',
+            'updatedAt',
+          ],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    Generator.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Generator.addScope('collectors', {
+      include: [
+        {
+          association: assoc.collectors,
+          attributes: [
+            'id',
+            'name',
+            'registered',
+            'status',
+            'isDeleted',
+            'createdAt',
+            'updatedAt',
+          ],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Accessed by API. if pass, return a Promise with the collectors.
+   * If fail, return a rejected Promise
+   *
+   * @param {Array} collectorNames Array of strings
+   * @param {Function} whereClauseForNameInArr Returns an object query
+   * @returns {Promise} with collectors if pass, error if fail
+   */
+  Generator.validateCollectors = function (collectorNames, whereClauseForNameInArr) {
+    return sgUtils.validateCollectors(seq, collectorNames,
+      whereClauseForNameInArr);
+  };
+
+  /**
+   * 1. validate the collectors field: if succeed, save the collectors in temp var for
+   *  attaching to the generator. if fail, abort the operation
+   * 2. create the generator
+   * 3. add the saved collectors (if any)
+   *
+   * @param {Object} requestBody From API
+   * @param {Function} whereClauseForNameInArr Returns an object query
+   * @returns {Promise} created generator with collectors (if any)
+   */
+  Generator.createWithCollectors = function (requestBody, whereClauseForNameInArr) {
+    let createdGenerator;
+    let collectors; // will be populated with actual collectors
+    return new seq.Promise((resolve, reject) =>
+      sgUtils.validateCollectors(seq, requestBody.collectors,
+        whereClauseForNameInArr)
+      .then((_collectors) => {
+        collectors = _collectors;
+        return Generator.create(requestBody);
+      })
+      .then((_createdGenerator) => {
+        createdGenerator = _createdGenerator;
+        return _createdGenerator.addCollectors(collectors);
+      })
+      .then(() => resolve(createdGenerator.reload()))
+      .catch(reject)
+    );
+  };
+
+  Generator.findForHeartbeat = function (findOpts) {
+    return Generator.findAll(findOpts)
+    .then((gens) => gens.map((g) => g.updateForHeartbeat()))
+    .then((genpromises) => Promise.all(genpromises));
+  }; // findForHeartbeat
+
+  /**
+   * Instance Methods:
+   */
+
+  /**
+   * 1. validate the collectors field: if succeed, save the collectors in
+   *  temp var for attaching to the generator. if fail, abort the operation
+   * 2. update the generator
+   * 3. add the saved collectors (if any)
+   *
+   * @param {Object} requestBody From API
+   * @param {Function} whereClauseForNameInArr Returns an object query
+   * @returns {Promise} created generator with collectors (if any)
+   */
+  Generator.prototype.updateWithCollectors = function (requestBody, whereClauseForNameInArr) {
+    let collectors; // will be populated with actual collectors
+    return new seq.Promise((resolve, reject) =>
+      sgUtils.validateCollectors(seq, requestBody.collectors,
+        whereClauseForNameInArr)
+      .then((_collectors) => { // collectors list in request body
+        collectors = _collectors;
+        return this.update(requestBody);
+      })
+      .then(() => this.addCollectors(collectors))
+      .then(() => resolve(this.reload()))
+      .catch(reject)
+    );
+  };
+
+  Generator.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
+  /**
+   * Replaces string array of aspect names with object array of aspect
+   * records (with only the "name" attribute).
+   * Replaces generatorTemplate (name/version) with full generator template
+   * record.
+   *
+   * @returns {Generator} - the updated Generator
+   */
+  Generator.prototype.updateForHeartbeat = function () {
+    const g = this.get();
+    const aspects = g.aspects.map((a) => ({ name: a }));
+    g.aspects = aspects;
+
+    const gt = g.generatorTemplate;
+    return seq.models.GeneratorTemplate.getSemverMatch(gt.name, gt.version)
+    .then((t) => {
+      if (t) g.generatorTemplate = t.get();
+    })
+    .then(() => g);
+  }; // updateForHeartbeat
 
   return Generator;
 };

@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const realtimeUtils = require('../../realtime/utils');
+const rtConstants = require('../../realtime/constants');
 const tu = require('../testUtils');
 const u = require('./utils');
 
@@ -144,6 +145,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     .then((room) => {
       roomID = room.id;
       roomTest = room.toJSON();
+      roomTest.pubOpts = rtConstants.pubOpts.room;
     })
     .then(() => {
       const bot = u.getStandardBot();
@@ -158,6 +160,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then((ba) => {
       botActionTest = ba.toJSON();
+      botActionTest.pubOpts = rtConstants.pubOpts.botAction;
     })
     .then(() => {
       const botEvent = u.getStandardEvent();
@@ -165,6 +168,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then((event) => {
       botEventTest = event.toJSON();
+      botEventTest.pubOpts = rtConstants.pubOpts.event;
       const botData = u.getStandardBotData();
       botData.roomId = roomID;
       botData.botId = botID;
@@ -172,6 +176,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     })
     .then((bd) => {
       botDataTest = bd.toJSON();
+      botDataTest.pubOpts = rtConstants.pubOpts.botData;
     }).then(() => done())
     .catch(done);
   });

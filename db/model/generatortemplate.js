@@ -155,111 +155,6 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: false,
     },
   }, {
-    classMethods: {
-      getGeneratortemplateAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'generatorTemplateAccess';
-      },
-
-      /**
-       * Returns the SGT with the highest version number which matches the
-       * semantic version string passed in.
-       *
-       * @param {String} name - the SGT name as specified by the SG
-       * @param {String} version - the semantic version string as specified by
-       *  the SG
-       * @returns {Object} the matching sample generator template with the
-       *  highest version number
-       */
-      getSemverMatch(name, version) {
-        return this.getSemverMatches(name, version)
-        .then((templates) => {
-          if (!templates.length) {
-            return null;
-          }
-
-          let max = null;
-          templates.forEach((t) => {
-            if (max) {
-              if (semver.gte(t.version, max.version)) {
-                max = t;
-              }
-            } else {
-              max = t;
-            }
-          });
-
-          return max;
-        });
-      },
-
-      /**
-       * Returns the SGTs which match the semantic version string passed in.
-       *
-       * @param {String} name - the SGT name as specified by the SG
-       * @param {String} version - the semantic version string as specified by
-       *  the SG
-       * @returns {Array} of templates (or empty array)
-       */
-      getSemverMatches(name, version) {
-        return GeneratorTemplate.findAll({
-          where: {
-            name,
-            isPublished: true,
-          },
-        })
-        .then((templates) => {
-          if (!templates || !Array.isArray(templates) || !templates.length) {
-            return [];
-          }
-
-          return templates.filter((t) =>
-            semver.satisfies(t.version, version));
-        })
-        .catch(() => []);
-      },
-
-      postImport(models) {
-        assoc.user = GeneratorTemplate.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-
-        assoc.writers = GeneratorTemplate.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'GeneratorTemplateWriters',
-          foreignKey: 'generatorTemplateId',
-        });
-
-        GeneratorTemplate.addScope('baseScope', {
-          order: ['GeneratorTemplate.name'],
-        });
-
-        GeneratorTemplate.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-          order: ['GeneratorTemplate.name'],
-        }, {
-          override: true,
-        });
-
-        GeneratorTemplate.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-        });
-      },
-    },
 
     hooks: {
       beforeDestroy(inst /* , opts */) {
@@ -285,7 +180,7 @@ module.exports = function user(seq, dataTypes) {
          */
         if (inst.changed('isPublished') && inst.isPublished === false) {
           // Find all the sample generators which use this SGT.
-          const Gen = inst.$modelOptions.sequelize.models.Generator;
+          const Gen = inst._modelOptions.sequelize.models.Generator;
           const generatorsWithNoOtherMatches = [];
           return new seq.Promise((resolve, reject) => Gen.findAll({
             where: {
@@ -344,22 +239,134 @@ module.exports = function user(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  GeneratorTemplate.getGeneratortemplateAssociations = function () {
+    return assoc;
+  };
+
+  GeneratorTemplate.getProfileAccessField = function () {
+    return 'generatorTemplateAccess';
+  };
+
+  /**
+   * Returns the SGT with the highest version number which matches the
+   * semantic version string passed in.
+   *
+   * @param {String} name - the SGT name as specified by the SG
+   * @param {String} version - the semantic version string as specified by
+   *  the SG
+   * @returns {Object} the matching sample generator template with the
+   *  highest version number
+   */
+  GeneratorTemplate.getSemverMatch = function (name, version) {
+    return this.getSemverMatches(name, version)
+    .then((templates) => {
+      if (!templates.length) {
+        return null;
+      }
+
+      let max = null;
+      templates.forEach((t) => {
+        if (max) {
+          if (semver.gte(t.version, max.version)) {
+            max = t;
+          }
+        } else {
+          max = t;
+        }
+      });
+
+      return max;
+    });
+  };
+
+  /**
+   * Returns the SGTs which match the semantic version string passed in.
+   *
+   * @param {String} name - the SGT name as specified by the SG
+   * @param {String} version - the semantic version string as specified by
+   *  the SG
+   * @returns {Array} of templates (or empty array)
+   */
+  GeneratorTemplate.getSemverMatches = function (name, version) {
+    return GeneratorTemplate.findAll({
+      where: {
+        name,
+        isPublished: true,
+      },
+    })
+    .then((templates) => {
+      if (!templates || !Array.isArray(templates) || !templates.length) {
+        return [];
+      }
+
+      return templates.filter((t) =>
+        semver.satisfies(t.version, version));
+    })
+    .catch(() => []);
+  };
+
+  GeneratorTemplate.postImport = function (models) {
+    assoc.user = GeneratorTemplate.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
+    assoc.writers = GeneratorTemplate.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'GeneratorTemplateWriters',
+      foreignKey: 'generatorTemplateId',
+    });
+
+    GeneratorTemplate.addScope('baseScope', {
+      order: ['name'],
+    });
+
+    GeneratorTemplate.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    GeneratorTemplate.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  GeneratorTemplate.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return GeneratorTemplate;
 };

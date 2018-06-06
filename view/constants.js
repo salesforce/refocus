@@ -24,6 +24,15 @@ module.exports = {
     NOT_ALLOWED: 405,
   },
 
+  statuses: {
+    Critical: 'Critical',
+    Invalid: 'Invalid',
+    Timeout: 'Timeout',
+    Warning: 'Warning',
+    Info: 'Info',
+    OK: 'OK',
+  },
+
   filterSeperator: '&',
 
   valuesSeparator: ';',

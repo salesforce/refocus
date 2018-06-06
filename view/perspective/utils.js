@@ -252,8 +252,7 @@ function getValuesObject(accumulatorObject) {
     setupSocketIOClient,
     redirectToUrl, // here for testing purposes
   } = accumulatorObject;
-  const constants = require('../../api/v1/constants');
-  const httpStatus = constants.httpStatus;
+  const constants = require('../constants');
   const statuses = constants.statuses;
 
   const valuesObj = {
