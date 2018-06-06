@@ -422,6 +422,29 @@ module.exports = {
     return redisClient.batch(cmds).execAsync();
   },
 
+  /**
+   * Get samples for a given aspect
+   * @param  {String} aspName - Aspect Name
+   * @returns {Promise} - Resolves to array of samples
+   */
+  getSamplesFromAspectName(aspName) {
+    const aspsubmapKey = redisStore.toKey(
+      redisStore.constants.objectType.aspSubMap, aspName
+    );
+    const promiseArr = [];
+    return redisClient.smembersAsync(aspsubmapKey)
+    .then((subjNames) => {
+      subjNames.forEach((subjName) => {
+        const sampleName = subjName + '|' + aspName;
+        promiseArr.push(redisClient.hgetallAsync(
+          redisStore.toKey(redisStore.constants.objectType.sample, sampleName)
+        ));
+      });
+
+      return Promise.all(promiseArr);
+    });
+  },
+
   renameKey,
 
   deleteKey,
