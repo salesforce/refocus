@@ -27,6 +27,7 @@ const subjectType = redisOps.subjectType;
 const subAspMapType = redisOps.subAspMapType;
 const publishSample = require('../../realtime/redisPublisher').publishSample;
 const Promise = require('bluebird');
+const Op = require('sequelize').Op;
 
 /**
  * Validates a given field ie. parentAbsolutePath, parentId.
@@ -84,7 +85,7 @@ function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
 
     newAbsolutePath = parentAbsolutePath ?
       parentAbsolutePath + '.' + inst.name : inst.name;
-    const whereObj = { where: { absolutePath: { $iLike: newAbsolutePath } } };
+    const whereObj = { where: { absolutePath: { [Op.iLike]: newAbsolutePath } } };
     return Subject.find(whereObj);
   })
   .then((subj) => {

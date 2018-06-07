@@ -264,7 +264,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isemail failed');
+          .to.contain('validation isemail on helpemail failed');
           done();
         })
         .catch(done);
@@ -279,7 +279,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isemail failed');
+          .to.contain('validation isemail on helpemail failed');
           done();
         })
         .catch(done);
@@ -297,7 +297,7 @@ describe('tests/db/model/aspect/create.js >', () => {
               'object' &&
             err.errors[0].type === 'string violation' &&
             err.errors[0].path === 'helpEmail' &&
-            err.errors[1].message === 'Validation isEmail failed' &&
+            err.errors[1].message === 'Validation isEmail on helpEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
             return done();
@@ -319,7 +319,7 @@ describe('tests/db/model/aspect/create.js >', () => {
               'object' &&
             err.errors[0].type === 'string violation' &&
             err.errors[0].path === 'helpEmail' &&
-            err.errors[1].message === 'Validation isEmail failed' &&
+            err.errors[1].message === 'Validation isEmail on helpEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
             return done();
@@ -405,7 +405,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -419,7 +419,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -433,7 +433,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -447,7 +447,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -549,7 +549,7 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           if (err.name === tu.valErrorName &&
             tu.gotArrayWithExpectedLength(err.errors, 1) &&
-            err.errors[0].message === 'isDeleted cannot be null' &&
+            err.errors[0].message === 'Aspect.isDeleted cannot be null' &&
             err.errors[0].type === 'notNull Violation' &&
             err.errors[0].path === 'isDeleted' &&
             err.errors[0].value === null) {
@@ -702,8 +702,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation isurl on imageurl failed'
+          );
           done();
         }).catch(done);
       });
@@ -716,8 +717,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation isurl on imageurl failed'
+          );
           done();
         }).catch(done);
       });
@@ -916,7 +918,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -966,7 +970,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -979,7 +985,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -992,7 +1000,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });

@@ -19,6 +19,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/sample/statusCalculation.js >', () => {
   let globalAspect;
@@ -76,7 +77,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
     .then(() => Sample.findOne({
       where: {
         name: {
-          $iLike: sample.name,
+          [Op.iLike]: sample.name,
         },
       },
     }))
@@ -104,7 +105,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -120,7 +121,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -136,7 +137,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -152,7 +153,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -168,7 +169,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -184,7 +185,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -213,7 +214,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -229,7 +230,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -245,7 +246,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -261,7 +262,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -277,7 +278,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -306,7 +307,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -322,7 +323,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -338,7 +339,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -367,7 +368,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -383,7 +384,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -399,7 +400,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -428,7 +429,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -444,7 +445,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -460,7 +461,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -489,7 +490,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -505,7 +506,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -521,7 +522,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -550,7 +551,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -566,7 +567,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -582,7 +583,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
         .then(() => Sample.findOne({
           where: {
             name: {
-              $iLike: sample.name,
+              [Op.iLike]: sample.name,
             },
           },
         })
@@ -612,7 +613,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -628,7 +629,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -644,7 +645,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -660,7 +661,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -676,7 +677,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -692,7 +693,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -708,7 +709,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -789,7 +790,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })
@@ -799,7 +800,7 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
       .then(() => Sample.findOne({
         where: {
           name: {
-            $iLike: sample.name,
+            [Op.iLike]: sample.name,
           },
         },
       })

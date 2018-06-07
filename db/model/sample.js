@@ -22,6 +22,7 @@ const assoc = {};
 const EMPTY_STRING = '';
 const maxSampleNameLength = constants.fieldlen.longish +
   constants.fieldlen.normalName + 1; // eslint-disable-line no-magic-numbers
+const Op = require('sequelize').Op;
 
 module.exports = function sample(seq, dataTypes) {
   const Sample = seq.define('Sample', {
@@ -70,300 +71,6 @@ module.exports = function sample(seq, dataTypes) {
       },
     },
   }, {
-    classMethods: {
-      getSampleAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'sampleAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Sample.belongsTo(models.User, {
-          foreignKey: 'provider',
-          as: 'user',
-        });
-        assoc.aspect = Sample.belongsTo(models.Aspect, {
-          as: 'aspect',
-          foreignKey: {
-            name: 'aspectId',
-            allowNull: false,
-          },
-          hooks: true,
-        });
-        assoc.subject = Sample.belongsTo(models.Subject, {
-          as: 'subject',
-          foreignKey: {
-            name: 'subjectId',
-            allowNull: false,
-          },
-          hooks: true,
-        });
-        Sample.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-            {
-              association: assoc.aspect,
-              attributes: [
-                'id',
-                'description',
-                'isPublished',
-                'helpEmail',
-                'helpUrl',
-                'name',
-                'timeout',
-                'criticalRange',
-                'warningRange',
-                'infoRange',
-                'okRange',
-                'valueLabel',
-                'valueType',
-                'relatedLinks',
-                'tags',
-                'rank',
-              ],
-            },
-          ],
-          order: ['Sample.name'],
-        }, {
-          override: true,
-        });
-        Sample.addScope('checkTimeout', {
-          attributes: [
-            'id',
-            'updatedAt',
-            'value',
-            'subjectId',
-            'aspectId',
-            'name',
-            'relatedLinks',
-          ],
-          where: {
-            status: {
-              $ne: constants.statuses.Timeout,
-            },
-          },
-          include: [
-            {
-              association: assoc.aspect,
-              attributes: ['timeout', 'isPublished', 'tags', 'name'],
-            },
-          ],
-        });
-      },
-
-      /**
-       * Custom class method to create a sample.
-       * @param  {Object} toCreate - Sample object that needs to be created.
-       * @param {Object} user - The user performing the write operation.
-       * @returns {Promise} which resolves to the created sample instance.
-      */
-      createSample(toCreate, user) {
-        const options = {};
-        options.where = { id: toCreate.aspectId };
-
-        // find the aspect related to the sample being created
-        return seq.models.Aspect.findOne(options)
-        .then((aspect) => {
-          if (!aspect) {
-            throw new dbErrors.ResourceNotFoundError({
-              explanation: 'Aspect not found.',
-              resourceType: 'Aspect',
-              resourceKey: toCreate.aspectId,
-            });
-          }
-
-          // check if the user has permission to create the sample
-          return aspect.isWritableBy(user);
-        })
-        .then((ok) => {
-          if (!ok) {
-            throw new dbErrors.ForbiddenError({
-              explanation: `The user: ${user}, does not have write permission` +
-                  'on the sample',
-            });
-          }
-
-          if (user) {
-            toCreate.provider = user.id;
-            toCreate.user = { name: user.name, email: user.email };
-          }
-
-          // create the sample if the user has write permission
-          return Sample.create(toCreate);
-        });
-      }, // createSample
-      /**
-       * NOTE:
-       * This sequelize method also has a check to make sure that the user
-       * performing the upsert operation is authorized to do so.
-       * The check is done in the DB layer to avoid extra calls to the aspect
-       * model every time an upsert is done. For example, if we are making
-       * a bulk upsert call with 1000 samples, we do not want to be making a
-       * 1000 calls in the API layer and a 1000 calls again in the DB layer.
-       *
-       * Pseudo-upserts a sample using its name to look up its associated
-       * subject and aspect. We can't use a "real" upsert because upsert
-       * doesn't invoke hooks, and we rely on hooks to publish the change.
-       *
-       * @param {Sample} toUpsert - The sample to upsert
-       * @param {Object} user - The user performing the write operation
-       * @param {Boolean} isBulk - true when used with bulk upsert, false
-       *  otherwise
-       * @returns {Promise} which resolves to the newly-created or -updated
-       *  sample record, or rejects if a ResourceNotFoundError was encountered
-       *  looking up the associated subject and aspect, or if an error was
-       *  encountered while performing the sample upsert operation itself.
-       */
-      upsertByName(toUpsert, user, isBulk) {
-        const userName = user ? user.name : false;
-        let subjasp;
-        return new seq.Promise((resolve, reject) => {
-          u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
-          .then((sa) => {
-            if (sa && sa.subject && !sa.subject.isPublished) {
-              throw new dbErrors.ResourceNotFoundError({
-                explanation: 'Subject not found.',
-                resourceType: 'Subject',
-                resourceKey: sa.subject.id,
-              });
-            }
-
-            subjasp = sa;
-            toUpsert.subjectId = sa.subject.id;
-            toUpsert.aspectId = sa.aspect.id;
-            return sa.aspect.isWritableBy(userName);
-          })
-          .then((ok) => {
-            if (!ok) {
-              throw new dbErrors.UpdateDeleteForbidden();
-            }
-
-            return Sample.findOne({
-              where: {
-                subjectId: subjasp.subject.id,
-                aspectId: subjasp.aspect.id,
-              },
-            });
-          })
-          .then((o) => {
-            if (o === null) {
-
-              // New sample. Add provider and user object,
-              // if conditions are met
-              if (user &&
-                featureToggles.isFeatureEnabled('returnUser')) {
-                toUpsert.provider = user.id;
-                toUpsert.user = { name: user.name, email: user.email };
-              }
-
-              // Make sure the name is correct
-              toUpsert.name = subjasp.subject.absolutePath +
-                '|' + subjasp.aspect.name;
-              return Sample.create(toUpsert);
-            }
-
-            // Existing sample. Do not update sample name
-            delete toUpsert.name;
-
-            /*
-             * set value changed to true during updates to avoid timeouts.
-             * Adding this to the before update hook does
-             * give the needed effect; so adding it here!!!.
-             */
-            o.changed('value', true);
-            return o.update(toUpsert);
-          })
-          .then((o) => {
-            if (featureToggles.isFeatureEnabled('returnUser')) {
-              return o.reload().then((o) => resolve(o));
-            }
-
-            return resolve(o);
-          })
-          .catch((err) => {
-            if (isBulk) {
-              /*
-               * adding isFailed:true to differentiate failed results from
-               * success results in bulk upsert
-              */
-              resolve({ explanation: err, isFailed: true });
-            } else {
-              reject(err);
-            }
-          });
-        });
-      }, // upsertByName
-
-      /**
-       * Upsert multiple samples concurrently.
-       * @param  {Array} toUpsert - An array of sample objects to upsert
-       * @param {Object} user - The user performing the write operation
-       * @param {Array} readOnlyFields - An array of read-only-fields
-       * @returns {Array} - Resolves to an array of resolved promises
-      */
-      bulkUpsertByName(toUpsert, user, readOnlyFields) {
-        const promises = toUpsert.map((s) => {
-          try {
-            // thow an error if a sample is upserted with a read-only-field
-            commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
-            return this.upsertByName(s, user, true);
-          } catch (err) {
-            return Promise.resolve({ explanation: err, isFailed: true });
-          }
-        }
-        );
-        return seq.Promise.all(promises);
-      }, // bulkUpsertByName
-
-      /**
-       * Invalidates samples which were last updated before the "timeout"
-       * specified by the aspect and resolves to an object containing the
-       * number of samples evaluated, the number of samples timedout and an
-       * array containing a "copy" of the sample object.
-       *
-       * @param {Date} now - For testing, pass in a Date object to represent
-       *  the current time
-       * @returns {Integer} number of samples timed out
-       */
-      doTimeout(now) {
-        const curr = now || new Date();
-        let numberTimedOut = 0;
-        let numberEvaluated = 0;
-        const timedOutSamples = [];
-        return new seq.Promise((resolve, reject) => {
-          Sample.scope('checkTimeout').findAll()
-          .each((s) => {
-            numberEvaluated++;
-            if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
-              numberTimedOut++;
-
-              /*
-               * NOTE: a separate copy of the sample needed to be made (by
-               * deep cloning the required fields) to let the garbage collector
-               * cleanup the timedOutSamples array.
-               */
-              const timedOutSample = {
-                value: constants.statuses.Timeout,
-                status: constants.statuses.Timeout,
-                name: s.name.split()[0],
-                statusChangedAt: new Date(),
-                aspect: JSON.parse(JSON.stringify(s.aspect)),
-              };
-              timedOutSamples.push(timedOutSample);
-              return s.update({ value: constants.statuses.Timeout });
-            }
-          })
-          .then(() => resolve({ numberEvaluated, numberTimedOut,
-            timedOutSamples, }))
-          .catch(reject);
-        });
-      }, // doTimeout
-    }, // classMethods
     hooks: {
 
       /**
@@ -466,38 +173,338 @@ module.exports = function sample(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-
-      /**
-       * Instance method wrapper around computeStatus.
-       */
-      calculateStatus() {
-        this.status = u.computeStatus(this.aspect, this.value);
-      }, // calculateStatus
-
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getAspect()
-          .then((a) => a.getWriters())
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-
-      setStatusChangedAt() {
-        if (this.status !== this._previousDataValues.status) {
-          this.previousStatus = this._previousDataValues.status;
-          this.statusChangedAt = this.updatedAt;
-        }
-      }, // setStatusChangedAt
-    }, // instanceMethods
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Sample.getSampleAssociations = function () {
+    return assoc;
+  };
+
+  Sample.getProfileAccessField = function () {
+    return 'sampleAccess';
+  };
+
+  Sample.postImport = function (models) {
+    assoc.user = Sample.belongsTo(models.User, {
+      foreignKey: 'provider',
+      as: 'user',
+    });
+    assoc.aspect = Sample.belongsTo(models.Aspect, {
+      as: 'aspect',
+      foreignKey: {
+        name: 'aspectId',
+        allowNull: false,
+      },
+      hooks: true,
+    });
+    assoc.subject = Sample.belongsTo(models.Subject, {
+      as: 'subject',
+      foreignKey: {
+        name: 'subjectId',
+        allowNull: false,
+      },
+      hooks: true,
+    });
+    Sample.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+        {
+          association: assoc.aspect,
+          attributes: [
+            'id',
+            'description',
+            'isPublished',
+            'helpEmail',
+            'helpUrl',
+            'name',
+            'timeout',
+            'criticalRange',
+            'warningRange',
+            'infoRange',
+            'okRange',
+            'valueLabel',
+            'valueType',
+            'relatedLinks',
+            'tags',
+            'rank',
+          ],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+    Sample.addScope('checkTimeout', {
+      attributes: [
+        'id',
+        'updatedAt',
+        'value',
+        'subjectId',
+        'aspectId',
+        'name',
+        'relatedLinks',
+      ],
+      where: {
+        status: {
+          [Op.ne]: constants.statuses.Timeout,
+        },
+      },
+      include: [
+        {
+          association: assoc.aspect,
+          attributes: ['timeout', 'isPublished', 'tags', 'name'],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Custom class method to create a sample.
+   * @param  {Object} toCreate - Sample object that needs to be created.
+   * @param {Object} user - The user performing the write operation.
+   * @returns {Promise} which resolves to the created sample instance.
+   */
+  Sample.createSample = function (toCreate, user) {
+    const options = {};
+    options.where = { id: toCreate.aspectId };
+
+    // find the aspect related to the sample being created
+    return seq.models.Aspect.findOne(options)
+    .then((aspect) => {
+      if (!aspect) {
+        throw new dbErrors.ResourceNotFoundError({
+          explanation: 'Aspect not found.',
+          resourceType: 'Aspect',
+          resourceKey: toCreate.aspectId,
+        });
+      }
+
+      // check if the user has permission to create the sample
+      return aspect.isWritableBy(user);
+    })
+    .then((ok) => {
+      if (!ok) {
+        throw new dbErrors.ForbiddenError({
+          explanation: `The user: ${user}, does not have write permission` +
+          'on the sample',
+        });
+      }
+
+      if (user) {
+        toCreate.provider = user.id;
+        toCreate.user = { name: user.name, email: user.email };
+      }
+
+      // create the sample if the user has write permission
+      return Sample.create(toCreate);
+    });
+  }; // createSample
+  /**
+   * NOTE:
+   * This sequelize method also has a check to make sure that the user
+   * performing the upsert operation is authorized to do so.
+   * The check is done in the DB layer to avoid extra calls to the aspect
+   * model every time an upsert is done. For example, if we are making
+   * a bulk upsert call with 1000 samples, we do not want to be making a
+   * 1000 calls in the API layer and a 1000 calls again in the DB layer.
+   *
+   * Pseudo-upserts a sample using its name to look up its associated
+   * subject and aspect. We can't use a "real" upsert because upsert
+   * doesn't invoke hooks, and we rely on hooks to publish the change.
+   *
+   * @param {Sample} toUpsert - The sample to upsert
+   * @param {Object} user - The user performing the write operation
+   * @param {Boolean} isBulk - true when used with bulk upsert, false
+   *  otherwise
+   * @returns {Promise} which resolves to the newly-created or -updated
+   *  sample record, or rejects if a ResourceNotFoundError was encountered
+   *  looking up the associated subject and aspect, or if an error was
+   *  encountered while performing the sample upsert operation itself.
+   */
+  Sample.upsertByName = function (toUpsert, user, isBulk) {
+    const userName = user ? user.name : false;
+    let subjasp;
+    return new seq.Promise((resolve, reject) => {
+      u.getSubjectAndAspectBySampleName(seq, toUpsert.name)
+      .then((sa) => {
+        if (sa && sa.subject && !sa.subject.isPublished) {
+          throw new dbErrors.ResourceNotFoundError({
+            explanation: 'Subject not found.',
+            resourceType: 'Subject',
+            resourceKey: sa.subject.id,
+          });
+        }
+
+        subjasp = sa;
+        toUpsert.subjectId = sa.subject.id;
+        toUpsert.aspectId = sa.aspect.id;
+        return sa.aspect.isWritableBy(userName);
+      })
+      .then((ok) => {
+        if (!ok) {
+          throw new dbErrors.UpdateDeleteForbidden();
+        }
+
+        return Sample.findOne({
+          where: {
+            subjectId: subjasp.subject.id,
+            aspectId: subjasp.aspect.id,
+          },
+        });
+      })
+      .then((o) => {
+        if (o === null) {
+
+          // New sample. Add provider and user object,
+          // if conditions are met
+          if (user &&
+            featureToggles.isFeatureEnabled('returnUser')) {
+            toUpsert.provider = user.id;
+            toUpsert.user = { name: user.name, email: user.email };
+          }
+
+          // Make sure the name is correct
+          toUpsert.name = subjasp.subject.absolutePath +
+            '|' + subjasp.aspect.name;
+          return Sample.create(toUpsert);
+        }
+
+        // Existing sample. Do not update sample name
+        delete toUpsert.name;
+
+        /*
+         * set value changed to true during updates to avoid timeouts.
+         * Adding this to the before update hook does
+         * give the needed effect; so adding it here!!!.
+         */
+        o.changed('value', true);
+        return o.update(toUpsert);
+      })
+      .then((o) => {
+        if (featureToggles.isFeatureEnabled('returnUser')) {
+          return o.reload().then((o) => resolve(o));
+        }
+
+        return resolve(o);
+      })
+      .catch((err) => {
+        if (isBulk) {
+          /*
+           * adding isFailed:true to differentiate failed results from
+           * success results in bulk upsert
+          */
+          resolve({ explanation: err, isFailed: true });
+        } else {
+          reject(err);
+        }
+      });
+    });
+  }; // upsertByName
+
+  /**
+   * Upsert multiple samples concurrently.
+   * @param  {Array} toUpsert - An array of sample objects to upsert
+   * @param {Object} user - The user performing the write operation
+   * @param {Array} readOnlyFields - An array of read-only-fields
+   * @returns {Array} - Resolves to an array of resolved promises
+   */
+  Sample.bulkUpsertByName = function (toUpsert, user, readOnlyFields) {
+    const promises = toUpsert.map((s) => {
+        try {
+          // thow an error if a sample is upserted with a read-only-field
+          commonUtils.noReadOnlyFieldsInReq(s, readOnlyFields);
+          return this.upsertByName(s, user, true);
+        } catch (err) {
+          return Promise.resolve({ explanation: err, isFailed: true });
+        }
+      }
+    );
+    return seq.Promise.all(promises);
+  }; // bulkUpsertByName
+
+  /**
+   * Invalidates samples which were last updated before the "timeout"
+   * specified by the aspect and resolves to an object containing the
+   * number of samples evaluated, the number of samples timedout and an
+   * array containing a "copy" of the sample object.
+   *
+   * @param {Date} now - For testing, pass in a Date object to represent
+   *  the current time
+   * @returns {Integer} number of samples timed out
+   */
+  Sample.doTimeout = function (now) {
+    const curr = now || new Date();
+    let numberTimedOut = 0;
+    let numberEvaluated = 0;
+    const timedOutSamples = [];
+    return new seq.Promise((resolve, reject) => {
+      Sample.scope('checkTimeout').findAll()
+      .each((s) => {
+        numberEvaluated++;
+        if (s.aspect && u.isTimedOut(s.aspect.timeout, curr, s.updatedAt)) {
+          numberTimedOut++;
+
+          /*
+           * NOTE: a separate copy of the sample needed to be made (by
+           * deep cloning the required fields) to let the garbage collector
+           * cleanup the timedOutSamples array.
+           */
+          const timedOutSample = {
+            value: constants.statuses.Timeout,
+            status: constants.statuses.Timeout,
+            name: s.name.split()[0],
+            statusChangedAt: new Date(),
+            aspect: JSON.parse(JSON.stringify(s.aspect)),
+          };
+          timedOutSamples.push(timedOutSample);
+          return s.update({ value: constants.statuses.Timeout });
+        }
+      })
+      .then(() => resolve({ numberEvaluated, numberTimedOut,
+        timedOutSamples, }))
+      .catch(reject);
+    });
+  }; // doTimeout
+
+  /**
+   * Instance Methods:
+   */
+
+  /**
+   * Instance method wrapper around computeStatus.
+   */
+  Sample.prototype.calculateStatus = function () {
+    this.status = u.computeStatus(this.aspect, this.value);
+  }; // calculateStatus
+
+  Sample.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getAspect()
+      .then((a) => a.getWriters())
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
+  Sample.prototype.setStatusChangedAt = function () {
+    if (this.status !== this._previousDataValues.status) {
+      this.previousStatus = this._previousDataValues.status;
+      this.statusChangedAt = this.updatedAt;
+    }
+  }; // setStatusChangedAt
+
   return Sample;
 
   // TODO add a getterMethod or instanceMethod to retrieve the aspect's links

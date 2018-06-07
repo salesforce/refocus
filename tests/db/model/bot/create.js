@@ -49,7 +49,9 @@ describe('tests/db/model/bot/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
-      expect(err.message.toLowerCase()).to.contain('validation is failed');
+      expect(err.message.toLowerCase()).to.contain(
+        'validation is on name failed'
+      );
       expect(err.errors[0].path).to.equal('name');
       done();
     })
@@ -80,8 +82,9 @@ describe('tests/db/model/bot/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
-      expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-          'failed');
+      expect(err.message.toLowerCase()).to.contain(
+        'validation isurl on url failed'
+      );
       done();
     })
   .catch(done);

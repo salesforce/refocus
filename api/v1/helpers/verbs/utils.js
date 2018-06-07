@@ -20,6 +20,7 @@ const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const Op = require('sequelize').Op;
 
 /**
  * @param {Object} o Sequelize instance
@@ -343,7 +344,7 @@ function whereClauseForNameOrId(nameOrId) {
 function whereClauseForNameInArr(arr) {
   const whr = {};
   whr.name = {};
-  whr.name[constants.SEQ_IN] = arr;
+  whr.name[Op.in] = arr;
   return whr;
 } // whereClauseForNameInArr
 
@@ -637,20 +638,16 @@ function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
   const opts = buildFieldList(params);
   const keyClause = {};
-  keyClause[constants.SEQ_LIKE] = key;
+  keyClause[Op.iLike] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
-  const attrArr = [];
-  if (opts.attributes && Array.isArray(opts.attributes)) {
-    for (let i = 0; i < opts.attributes.length; i++) {
-      attrArr.push(opts.attributes[i]);
-    }
-  }
-
-  if (extraAttributes && Array.isArray(extraAttributes)) {
-    for (let i = 0; i < extraAttributes.length; i++) {
-      attrArr.push(extraAttributes[i]);
+  let attrArr = opts.attributes;
+  if (extraAttributes && Array.isArray(extraAttributes) && extraAttributes.length) {
+    if (attrArr) {
+      attrArr.push(...extraAttributes);
+    } else {
+      attrArr = extraAttributes;
     }
   }
 
