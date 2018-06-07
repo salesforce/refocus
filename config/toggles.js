@@ -165,6 +165,10 @@ const shortTermToggles = {
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
+  // Look up the subject inside the promise chain when publishing sample
+  publishSampleInPromiseChain: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
+
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
