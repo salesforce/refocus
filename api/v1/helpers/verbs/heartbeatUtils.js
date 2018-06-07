@@ -102,28 +102,26 @@ function getKey(collectorName, changeType) {
  * collector.
  *
  * @param {Object} generator - The Generator that has been changed
- * @param {Array} oldCollectors - The names of the collectors that were associated
- *  with this generator before the update.
- * @param {Array} newCollectors - The names of the collectors that are associated
- *  with this generator now, after the update has been applied.
+ * @param {Array} oldCollector - The name of the Collector this Generator was
+ *  assigned to before the update.
+ * @param {Array} newCollector - The name of the Collector this Generator is
+ *  assigned to after the update.
  */
-function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
-  const genId = generator.id;
-  const allCollectors = Array.from(new Set([...oldCollectors, ...newCollectors]));
+function trackGeneratorChanges(generator, oldCollector, newCollector) {
+  if (oldCollector === newCollector) {
+    return trackChangesForCollector(oldCollector, UPDATED, generator);
+  } else {
+    return Promise.all([
+      trackChangesForCollector(oldCollector, DELETED, generator),
+      trackChangesForCollector(newCollector, ADDED, generator),
+    ]);
+  }
 
-  Promise.all(allCollectors.map(name => getChangedIds(name)))
-  .then((collectorChanges) => {
-    let promises = [];
-    collectorChanges.forEach((changedIds, i) => {
-      const collectorName = allCollectors[i];
-
-      // determine the change type
-      let change;
-      const inOld = oldCollectors.includes(collectorName);
-      const inNew = newCollectors.includes(collectorName);
-      if (inOld && !inNew) change = DELETED;
-      if (!inOld && inNew) change = ADDED;
-      if (inOld && inNew) change = UPDATED;
+  function trackChangesForCollector(collectorName, change, generator) {
+    const genId = generator.id;
+    if (!collectorName) return Promise.resolve();
+    return getChangedIds(collectorName)
+    .then((changedIds) => {
 
       // determine if this generator has already been changed since the last heartbeat
       const alreadyAdded = changedIds.added.includes(genId);
@@ -149,12 +147,13 @@ function trackGeneratorChanges(generator, oldCollectors, newCollectors) {
       }
 
       // update redis
-      promises.push(removeFromSet(collectorName, undoChange, genId));
-      promises.push(addToSet(collectorName, change, genId));
+      return Promise.all([
+        removeFromSet(collectorName, undoChange, genId),
+        addToSet(collectorName, change, genId),
+      ]);
     });
+  }
 
-    return Promise.all(promises);
-  });
 } // trackGeneratorChanges
 
 module.exports = {

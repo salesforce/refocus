@@ -26,7 +26,6 @@ const User = tu.db.User;
 const Profile = tu.db.Profile;
 const Collector = tu.db.Collector;
 
-
 describe('tests/utils/jwtUtil.js >', () => {
   const newBot = {
     name: n,
@@ -44,7 +43,7 @@ describe('tests/utils/jwtUtil.js >', () => {
   const predefinedAdminUserToken = tu.createAdminToken();
 
   // dummy callback that returns a promise.
-  const dummyCallback = function dummy () {
+  const dummyCallback = function dummy() {
     return new Promise((resolve) => {
       resolve(true);
     });
