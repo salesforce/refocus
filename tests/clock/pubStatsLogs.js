@@ -97,4 +97,13 @@ describe('tests/clock/pubStatsLogs >', () => {
       .catch(done);
     });
   });
+
+  describe('generateLogObjects (no data) >', () => {
+    it('ok', (done) => {
+      p.generateLogObjects()
+      .then((arr) => expect(arr).to.be.empty)
+      .then(() => done())
+      .catch(done);
+    });
+  });
 });
